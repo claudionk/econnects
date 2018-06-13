@@ -1,0 +1,22 @@
+﻿-----------------------------------------------------------
+API-x.y.z-php
+-----------------------------------------------------------
+
+Es una librería para la creación de páginas web con PHP 5 o
+superior con funciones de mensajería SMS/MMS a través de la
+Pasarela  Avanzada de  Mensajería (PAM)  de  Lleidanetworks
+Serveis Telemàtics, SL.
+
+Incluye la implementación del protocolo de comunicaciones de
+SMS MASIVO, para el envío masivo de mensajes de texto SMS y
+MMS, así como enlaces WAP y contenidos WAP-PUSH.
+
+events.php - Captura los eventos, debes de extenderla!
+virtualsms.php - Es la classe
+
+El directorio samplePDO contiene un ejemplo de implementación integrado en BBDD.
+Tengan en cuenta que se trata de un ejemplo y que por tanto lo deben adaptar a
+sus requisitos.
+
+EL directorio sample contiene un ejemplo sin BBDD y que relaiza el envio de un 
+unico SMS.

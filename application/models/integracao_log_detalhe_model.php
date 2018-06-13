@@ -1,0 +1,66 @@
+<?php
+Class Integracao_Log_Detalhe_Model extends MY_Model
+{
+    //Dados da tabela e chave primária
+    protected $_table = 'integracao_log_detalhe';
+    protected $primary_key = 'integracao_log_detalhe_id';
+
+    //Configurações
+    protected $return_type = 'array';
+    protected $soft_delete = TRUE;
+
+    //Chaves
+    protected $soft_delete_key = 'deletado';
+    protected $update_at_key = 'alteracao';
+    protected $create_at_key = 'criacao';
+
+    //campos para transformação em maiusculo e minusculo
+    protected $fields_lowercase = array();
+    protected $fields_uppercase = array();
+    
+    //Dados
+    public $validate = array(
+        array(
+            'field' => 'integracao_log_status_id',
+            'label' => 'Status',
+            'rules' => '',
+            'groups' => 'default',
+            'foreign' => 'integracao_log_status'
+        ),
+    
+    );
+
+
+    public function insLogDetalhe($integracao_log_id, $num_linha = 0, $valor_chave = ''){
+
+
+
+        $dados_log = array();
+
+        $dados_log['integracao_log_status_id'] = 2;
+        $dados_log['integracao_log_id'] = $integracao_log_id;
+        $dados_log['num_linha'] = $num_linha;
+        $dados_log['chave'] = $valor_chave;
+        $dados_log['retorno'] = '';
+        $dados_log['retorno_codigo'] = '';
+
+        $integracao_log_detalhe_id = $this->insert($dados_log, TRUE);
+
+
+        $result = $this->get($integracao_log_detalhe_id);
+
+        return $result;
+
+
+    }
+
+    function filterByLogID($integracao_log_id){
+        $this->_database->where("integracao_log_detalhe.integracao_log_id", $integracao_log_id);
+        return $this;
+    }
+
+    function get_by_id($id)
+    {
+        return $this->get_by($this->primary_key, $id);
+    }
+}

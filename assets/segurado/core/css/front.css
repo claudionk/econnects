@@ -1,0 +1,51 @@
+#toast-container {
+    top: 40px !important;;
+}
+
+.coberturas .cobertura {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.coberturas .cobertura .checkbox{
+    padding-top:0px;
+}
+.coberturas .cobertura .checkbox input {
+    margin-top: 6px;
+}
+
+section {
+    padding-top:25px !important;
+}
+
+#wizard .form-wizard-nav ul li span.de_max {
+    display: none;
+}
+@media (max-width: 768px)
+{
+    #wizard .form-wizard-nav ul li {
+        display: none;
+    }
+    #wizard .form-wizard-nav ul li.active {
+        display: inherit;
+    }
+    #wizard .form-wizard-nav ul li.active a > span.step {
+        width: 80px;
+        height: 80px;
+        padding-top: 22px;
+    }
+    #wizard .form-wizard-nav ul li.active a > span.title {
+        float: left;
+        width:100%;
+    }
+    #wizard .form-wizard-nav ul li span.de_max {
+        display: inherit;
+        padding-left: 4px;
+        color: #8a9598;
+    }
+}
+
+.card-produto h2.text-light{
+    min-height: 80px;
+    height: auto;
+}

@@ -1,0 +1,688 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="https://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8">
+  </head>
+  <body style="text-align: justify">
+    <table width="100%" style="font-family: Arial Narrow; font-size:16px; color: #3f3f3f">
+      <tr>
+        <td>
+          <table width="100%">
+            <tr>
+              <td style="text-align: center; font-weight: bold">
+                BILHETE DE SEGURO
+              </td>
+            </tr>
+            <tr>
+              <td style="text-align: center">
+                SEGURO DE ROUBO OU FURTO DE ELETRÔNICO PORTÁTIL
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <!-- Dados do Segurado -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #9f9f9f;">
+            <tr style="background-color: #9f9f9f; color: #ffffff">
+              <td colspan="4" style="text-align: left; font-weight: bold">
+                DADOS DO SEGURADO
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" width="50%" style="text-align: left; border-bottom: 1px solid #9f9f9f">
+                <b>Nome</b>
+                <br>
+                {{nome_segurado}}
+              </td>
+              <td colspan="2" width="50%" style="text-align: left; border-bottom: 1px solid #9f9f9f">
+                <b>CPF</b>
+                <br>
+                {{cpf_segurado}}
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" width="50%" style="text-align: left; border-bottom: 1px solid #9f9f9f">
+                <b>Endereço</b>
+                <br>
+                {{endereco_segurado}}
+              </td>
+              <td colspan="1" width="25%" style="text-align: left; border-bottom: 1px solid #9f9f9f">
+                <b>Número</b>
+                <br>
+                {{numero_segurado}}
+              </td>
+              <td colspan="1" width="25%" style="text-align: left; border-bottom: 1px solid #9f9f9f">
+                <b>Bairro</b>
+                <br>
+                {{bairro_segurado}}
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" width="50%" style="text-align: left">
+                <b>Cidade</b>
+                <br>
+                {{cidade_segurado}}
+              </td>
+              <td colspan="1" width="25%" style="text-align: left">
+                <b>UF</b>
+                <br>
+                {{uf_segurado}}
+              </td>
+              <td colspan="1" width="25%" style="text-align: left">
+                <b>CEP</b>
+                <br>
+                {{cep_segurado}}
+              </td>
+            </tr>
+          </table>
+          <!-- Dados do Representante do Seguro -->
+          <br>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #9f9f9f;">
+            <tr style="background-color: #9f9f9f; color: #ffffff">
+              <td colspan="4" style="text-align: left; font-weight: bold">
+                DADOS DO REPRESENTANTE DE SEGURO
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" width="50%" style="text-align: left">
+                <b>Razão Social</b>
+                <br>
+                {{nome_representante}}
+              </td>
+              <td colspan="2" width="50%" style="text-align: left">
+                <b>CNPJ</b>
+                <br>
+                {{cnpj_representante}}
+              </td>
+            </tr>
+          </table>
+          <!-- Dados da Seguradora -->
+          <br>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #9f9f9f;">
+            <tr style="background-color: #9f9f9f; color: #ffffff">
+              <td colspan="4" style="text-align: left; font-weight: bold">
+                DADOS DA SEGURADORA
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" width="50%" style="text-align: left;border-bottom: 1px solid #9f9f9f;">
+                <b>Razão Social</b>
+                <br>
+                MAPFRE SEGUROS GERAIS S.A.
+              </td>
+              <td colspan="1" width="25%" style="text-align: left;border-bottom: 1px solid #9f9f9f;">
+                <b>CNPJ</b>
+                <br>
+                61.074.175/0001-38
+              </td>
+              <td colspan="1" width="25%" style="text-align: left;border-bottom: 1px solid #9f9f9f;">
+                <b>Cód. SUSEP</b>
+                <br>
+                06238
+              </td>
+            </tr>
+            <tr>
+              <td colspan="4" width="100%" style="text-align: left">
+                <b>Endereço</b>
+                <br>
+                Avenida das Nações Unidas, 11.711 - Brooklin - São Paulo - SP - 04578-000
+              </td>
+            </tr>
+          </table>
+          <!-- Dados do Corretor -->
+          <br>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #9f9f9f;">
+            <tr style="background-color: #9f9f9f; color: #ffffff">
+              <td colspan="4" style="text-align: left; font-weight: bold">
+                DADOS DO CORRETOR
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" width="50%" style="text-align: left;border-bottom: 1px solid #9f9f9f;">
+                <b>Corretor</b>
+                <br>
+                {{nome_corretor}}
+              </td>
+              <td colspan="2" width="50%" style="text-align: left;border-bottom: 1px solid #9f9f9f;">
+                <b>Cód. SUSEP</b>
+                <br>
+                {{susep_corretor}}
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" width="50%" style="text-align: left">
+                <b>Sucursal</b>
+                <br>
+                {{sucursal_corretor}}
+              </td>
+              <td colspan="2" width="50%" style="text-align: left">
+                <b>Endereço</b>
+                <br>
+                {{endereco_corretor}}
+              </td>
+            </tr>
+          </table>
+          <!-- Dados do Seguro -->
+          <br>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #9f9f9f;">
+            <tr style="background-color: #9f9f9f; color: #ffffff">
+              <td colspan="4" style="text-align: left; font-weight: bold">
+                DADOS DO CORRETOR
+              </td>
+            </tr>
+            <tr>
+              <td colspan="4" width="100%" style="text-align: left;border-bottom: 1px solid #9f9f9f;">
+                <b>Ramo</b>
+                <br>
+                071 – Riscos Diversos – Roubo ou Furto de Eletrônicos Portáteis
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" width="50%" style="text-align: left;border-bottom: 1px solid #9f9f9f;">
+                <b>Nº do Bilhete Individual</b>
+                <br>
+                {{numero_bilhete}}
+              </td>
+              <td colspan="2" width="50%" style="text-align: left;border-bottom: 1px solid #9f9f9f;">
+                <b>Data de Emissão</b>
+                <br>
+                {{data_bilhete}}
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" width="50%" style="text-align: left">
+                <b>Início de Vigência do Seguro às 24h do dia</b>
+                <br>
+                {{inicio_vigencia_seguro}}
+              </td>
+              <td colspan="2" width="50%" style="text-align: left">
+                <b>Fim de Vigência do Seguro às 24h do dia</b>
+                <br>
+                {{fim_vigencia_seguro}}
+              </td>
+            </tr>
+          </table>
+          <!-- Coberturas Contratadas -->
+          <br>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #9f9f9f;">
+            <tr style="background-color: #9f9f9f; color: #ffffff">
+              <td colspan="5" style="text-align: left; font-weight: bold">
+                COBERTURAS CONTRATADAS
+              </td>
+            </tr>
+            <tr style="background-color: #bfbfbf; color: #000000">
+              <td width="30%" style="text-align: left; font-weight: bold">
+                Descrição
+              </td>
+              <td width="30%" style="text-align: center; font-weight: bold">
+                Limite Máximo de Indenização
+                <br>
+                (Preço do Produto - R$)
+              </td>
+              <td style="text-align: center; font-weight: bold">
+                P.O.S.(*)
+              </td>
+              <td style="text-align: center; font-weight: bold">
+                Prêmio Cobertura
+              </td>
+              <td style="text-align: center; font-weight: bold">
+                Carência
+              </td>
+            </tr>
+            <tr>
+              <td style="text-align: left; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                Roubo
+              </td>
+              <td style="text-align: center; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                {{lmi_roubo}}
+              </td>
+              <td style="text-align: center; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                {{pos_roubo}}
+              </td>
+              <td style="text-align: center; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                {{premio_roubo}}
+              </td>
+              <td style="text-align: center; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                Não há
+              </td>
+            </tr>
+            <tr>
+              <td style="text-align: left; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                Furto Mediante Arrombamento
+              </td>
+              <td style="text-align: center; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                {{lmi_furto}}
+              </td>
+              <td style="text-align: center; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                {{pos_furto}}
+              </td>
+              <td style="text-align: center; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                {{premio_furto}}
+              </td>
+              <td style="text-align: center; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                Não há
+              </td>
+            </tr>
+            <tr>
+              <td style="text-align: left; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                Quebra Acidental
+              </td>
+              <td style="text-align: center; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                {{lmi_quebra}}
+              </td>
+              <td style="text-align: center; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                {{pos_quebra}}
+              </td>
+              <td style="text-align: center; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                {{premio_quebra}}
+              </td>
+              <td style="text-align: center; font-weight: bold;border-bottom: 1px solid #9f9f9f;">
+                Não há
+              </td>
+            </tr>
+            <tr>
+              <td colspan="1" style="text-align: left;border-bottom: 1px solid #9f9f9f;">
+                <b>Descrição do Produto</b>
+                <br>
+                {{equipamento}}
+              </td>
+              <td colspan="1" style="text-align: left;border-bottom: 1px solid #9f9f9f;">
+                <b>Modelo</b>
+                <br>
+                {{modelo}}
+              </td>
+              <td colspan="1" style="text-align: left;border-bottom: 1px solid #9f9f9f;">
+              </td>
+              <td colspan="1" style="text-align: left;border-bottom: 1px solid #9f9f9f;">
+                <b>Marca</b>
+                <br>
+                {{marca}}
+              </td>
+              <td colspan="1" style="text-align: left;border-bottom: 1px solid #9f9f9f;">
+              </td>
+            </tr>
+            <tr>
+              <td colspan="1" style="text-align: left">
+                <b>Forma de Pagamento</b>
+                <br>
+                {{forma_pagamento}}
+              </td>
+              <td colspan="1" style="text-align: left">
+                <b>Prêmio Líquido</b>
+                <br>
+                {{premio_liquido}}
+              </td>
+              <td colspan="1" style="text-align: left">
+                <b>IOF (R$)</b>
+                <br>
+                {{valor_iof}}
+              </td>
+              <td colspan="1" style="text-align: left">
+                <b>Prêmio Total</b>
+                <br>
+                {{premio_total}}
+              </td>
+              <td colspan="1" style="text-align: left">
+              </td>
+            </tr>
+          </table>
+          <!-- Disposições Gerais -->
+          <table>
+            <tr>
+              <td>
+                <b>OBJETIVO DO SEGURO</b>
+                <p>
+                  1. O presente contrato de seguro tem por objetivo garantir ao Segurado, até o Limite Máximo de Indenização
+                  especificado neste documento para cada cobertura, o pagamento de indenização por prejuízos materiais, devidamente
+                  comprovados, causados aos equipamentos portáteis eletrônicos especificados neste documento decorrente de eventos
+                  previstos e cobertos de acordo com as condições contratuais deste seguro.
+                </p>
+
+                <b>RISCOS COBERTOS</b>
+                <p>
+                  1. Este seguro é contratado a risco absoluto, ou seja, a Seguradora garantirá o pagamento dos prejuízos até o valor
+                  do Limite Máximo de Indenização indicado no bilhete de Seguro para cada cobertura afetada pelo sinistro.
+                </p>
+                <p>
+                  2. As coberturas contratadas somente serão válidas quando estiverem expressamente indicadas no Bilhete de Seguro
+                  e se forem respeitadas todas as condições estabelecidas neste documento.
+                </p>
+                <p>
+                  3. Este seguro é composto de cobertura básica, de contratação obrigatória.
+                </p>
+                <p>
+                  4. Furto Mediante Arrombamento: Subtrair para si ou para outrem coisa alheia móvel, com destruição e/ou rompimento
+                  de obstáculo à subtração da coisa, ou com escalada, ou utilizando outras vias que não as destinadas a servir
+                  de entrada ao local onde se encontra o bem segurado, desde que tenham sido deixados vestígios materiais
+                  inequívocos de destruição ou rompimento de obstáculos que permitiram o acesso ao local, ou tenha sido constatado
+                  por inquérito policial. Roubo: Subtrair coisa móvel alheia, para si ou para outrem, mediante grave ameaça ou
+                  violência à pessoa, ou depois de havê-lo, por qualquer meio reduzido a impossibilidade de resistência.
+                </p>
+                <p>
+                  5. Quebra Acidental: Quebra Acidental de qualquer natureza comprovado pela assistência Técnica.
+                </p>
+                <p>
+                  6. É um seguro com abrangência nacional, ou seja, você pode acioná-lo em todo o Brasil.
+                </p>
+
+                <b>EXCLUSÕES GERAIS</b>
+                <p>
+                  1. Não estarão amparados pelo presente contrato de seguro:
+                </p>
+                <blockquote>
+                  a. Atos ilícitos dolosos ou por culpa grave equiparável ao dolo praticado pelo Segurado, pelo beneficiário ou
+                  pelo representante legal de um ou de outro, ou pelos sócios controladores da empresa segurada, pelos seus dirigentes, administradores legais, beneficiários e respectivos representantes legais;
+                </blockquote>
+                <blockquote>
+                  b. Atos praticados por ação ou omissão do Segurado, causados por má-fé;
+                </blockquote>
+                <blockquote>
+                  c. Atos de terrorismo, guerra, rebelião, revoltas populares, sabotagem, insurreição, revolução, treinamento militar
+                  e operações bélicas, atos de hostilidade ou de autoridades, tais como confisco, nacionalização, destruição ou requisição, e quaisquer perturbações da ordem pública;
+                </blockquote>
+                <blockquote>
+                  d. Atos de autoridade pública, salvo para evitar propagação de danos cobertos por este Bilhete;
+                </blockquote>
+                <blockquote>
+                  e. Atos ou atividades das Forças Armadas ou de forças de segurança em tempos de paz;
+                </blockquote>
+                <blockquote>
+                  f. Atos de vandalismo, saques, inclusive os ocorridos durante ou após o sinistro;
+                </blockquote>
+                <blockquote>
+                  g. Radiações nucleares ou ionizantes, contaminação pela radioatividade de combustível, resíduos, arma ou material nuclear;
+                </blockquote>
+                <blockquote>
+                  h. Tumultos, greve e lock-out;
+                </blockquote>
+                <blockquote>
+                  i. Lucros cessantes por paralisação parcial ou total dos equipamentos segurados;
+                </blockquote>
+                <blockquote>
+                  j. Desgaste natural causado pelo uso, deterioração gradativa, vício próprio, desarranjo mecânico, corrosão, incrustação, ferrugem, umidade e chuva;
+                </blockquote>
+                <blockquote>
+                  k. Furto, roubo, extorsão, apropriação indébita e estelionato praticados contra o patrimônio de Segurado por
+                  seus funcionários ou representantes legais, quer agindo por contra própria, quer mancomunados com terceiros;
+                </blockquote>
+                <blockquote>
+                  l. Operações de reparo, ajustamento e serviços em geral de manutenção;
+                </blockquote>
+                <blockquote>
+                  m. Demoras de qualquer espécie ou perda de mercado;
+                </blockquote>
+                <blockquote>
+                  n. Apropriação ou destruição por força de regulamentos alfandegários;
+                </blockquote>
+                <blockquote>
+                  o. Riscos provenientes de contrabando, transporte ou comércio ilegais;
+                </blockquote>
+                <blockquote>
+                  p. Negligência do Segurado com relação à utilização dos equipamentos portáteis eletrônicos e os meios utilizados para salvá-los e preservá-los antes, durante ou após a ocorrência de qualquer sinistro;
+                </blockquote>
+                <blockquote>
+                  q. Furto simples sem emprego de violência, desaparecimento inexplicável e simples extravio;
+                </blockquote>
+                <blockquote>
+                  r. Apagamento de fitas gravadas por ação de campos magnéticos de qualquer origem; e
+                </blockquote>
+                <blockquote>
+                  s. Qualquer tipo de furto do equipamento deixado no interior de automóveis, salvo se ocorrer o furto total do veiculo;
+                </blockquote>
+                <blockquote>
+                  t. Sinistros ocorridos durante o período de carência; e
+                </blockquote>
+                <blockquote>
+                  u. Incêndio, raio, explosão e suas consequências, impacto de veículos ou aeronaves ou embarcações, salvo se contratada cobertura específica.
+                </blockquote>
+                <blockquote>
+                  v. Defeito de série e/ou projeto, assim como se existir aviso do fabricante (“recall”), boletins técnicos ou programas de serviço, sobre qualquer falha ou defeito;
+                </blockquote>
+                <blockquote>
+                  w. qualquer perda ou dano causado a bens não cobertos, mesmo que decorrentes de eventos cobertos por este seguro;
+                </blockquote>
+                <blockquote>
+                  x. Lucros cessantes, danos morais, responsabilidade civil ou quaisquer outras reclamações em decorrência de eventos cobertos pelo seguro;
+                </blockquote>
+                <blockquote>
+                  y. Reposição do aparelho eletrônico portátil diferente do constante na nota fiscal ou cupom fiscal de compra, salvo se o modelo segurado não estiver mais disponível para reposição;
+                </blockquote>
+                <blockquote>
+                  z. Quebra e/ou perdas parciais de qualquer tipo não decorrentes de uma queda súbita, imprevisível e involuntária;
+                </blockquote>
+                <blockquote>
+                  aa. Danos ocasionados pelo derramamento ou queda do aparelho portátil em líquidos de qualquer espécie;
+                </blockquote>
+                <blockquote>
+                  ab. Fenômenos da natureza, inclusive chuva;
+                </blockquote>
+                <blockquote>
+                  ac. Inundação ou alagamento;
+                </blockquote>
+                <blockquote>
+                  ad. Aparelho eletrônico portátil proveniente de contrabando, transporte ou comércio ilegal;
+                </blockquote>
+                <blockquote>
+                  ae. Uso em condições não recomendadas pelo fabricante ou em situações de sobrecarga;
+                </blockquote>
+                <blockquote>
+                  af. Perda de faturamento ou perda de mercado, assim como prejuízos financeiros e lucros cessantes decorrente da paralisação parcial ou total do aparelho eletrônico portátil;
+                </blockquote>
+                <blockquote>
+                  ag. Cartões e/ou créditos telefônicos remanescentes de aparelhos com sistema pré-pago;
+                </blockquote>
+                <blockquote>
+                  ah. Operações de reparo, ajustamento e serviços de manutenção.
+                </blockquote>
+                <p>
+                  1.1 Não estarão amparados por qualquer cobertura do presente contrato de seguro os danos ou perdas causadas aos equipamentos portáteis eletrônicos quando: 
+                </p>
+                <blockquote>
+                  a. Transportados como mercadorias;
+                </blockquote>
+                <blockquote>
+                  b. Transportados como bagagem, a menos que levadas em maleta de mão, sob supervisão direta de sócios, diretores, empregados ou representantes do segurado ou em uso pelos mesmos.
+                </blockquote>
+
+                <b>VIGÊNCIA DO SEGURO</b>
+                <p>
+                  1. O início e o término de vigência do seguro dar-se-ão às 24 (vinte e quatro) horas das respectivas datas
+                  indicadas no Bilhete de Seguro.
+                </p>
+                <b>OBRIGAÇÕES DO SEGURADO</b>
+                <p>
+                  1. O Segurado obriga-se a:
+                </p>
+                <blockquote>
+                  a. Comunicar imediatamente à Seguradora, pela via mais rápida possível, a ocorrência de qualquer fato ou circunstância que possa afetar ou alterar o risco, bem como qualquer evento que possa vir a se caracterizar como um sinistro, indenizável ou não, nos termos deste contrato;
+                </blockquote>
+                <blockquote>
+                  b. Empregar os meios ao seu alcance para diminuir as consequências do sinistro;
+                </blockquote>
+                <blockquote>
+                  c. Conservar os vestígios e bens remanescentes do sinistro até que a Seguradora termine a apuração dos danos;
+                </blockquote>
+                <blockquote>
+                  d. Fornecer à Seguradora e facilitar o seu acesso a toda espécie de informação sobre as circunstâncias e consequência do sinistro, bem como os documentos necessários à apuração dos prejuízos e determinação da indenização;
+                </blockquote>
+                <blockquote>
+                  e. Dar ciência à Seguradora da contratação ou da rescisão de qualquer outro seguro referente aos mesmos riscos previstos neste contrato;
+                </blockquote>
+                <blockquote>
+                  f. Comunicar por escrito à Seguradora até o prazo máximo de 8 (oito) dias da sua ocorrência os seguintes fatos:
+                  a venda, alienação ou cessão dos bens segurados; penhor ou qualquer outro ônus sobre os bens segurados;
+                  e quaisquer modificações nos bens segurados estabelecidos no bilhete de seguro.
+                </blockquote>
+                <blockquote>
+                  g. Notificar por escrito as autoridades policiais competentes em caso roubo ou furto.
+                </blockquote>
+
+                <p>
+                  2. O não cumprimento das obrigações previstas no Item 1 desta cláusula dará direito à Seguradora de reduzir sua responsabilidade na mesma proporção da agravação do prejuízo, levando em conta a importância dos danos derivados deste descumprimento e o grau de culpa do Segurado.
+                </p>
+                <p>
+                  3. Além das obrigações desta cláusula, o Segurado, em caso de sinistro, deverá cumprir as instruções determinadas nas demais cláusulas das Condições Gerais.
+                </p>
+
+                <b>LIMITE MÁXIMO DE INDENIZAÇÃO</b>
+                <p>
+                  1. O Limite Máximo de Indenização para cada bem segurado constante no Bilhete de Seguro representa o limite máximo de responsabilidade da Seguradora e corresponderá ao valor do próprio bem, limitado ao valor definido no Bilhete de Seguro, podendo este ser o valor do bem especificado na Nota Fiscal de Compra, não sendo este valor cumulativo com qualquer outro bem segurado.
+                </p>
+                <p>
+                  2. As despesas de salvamento comprovadamente efetuadas pelo segurado e/ou após a ocorrência de um sinistro, bem como os valores referentes aos danos materiais comprovadamente causados pelo Segurado e/ou por terceiros na tentativa de evitar o sinistro, minorar o dano ou salvar a coisa, estão incluídos no Limite Máximo de Indenização da cobertura contratada.
+                </p>
+                <p>
+                  3. Em caso de sinistro, o valor da indenização pago pela seguradora será automaticamente deduzido do Limite Máximo de Indenização da cobertura afetada.
+                </p>
+                <p>
+                  3.1 Após a anuência da Seguradora, o Segurado deverá pagar o respectivo prêmio.
+                </p>
+
+                <b>PARTICIPAÇÃO OBRIGATÓRIA DO SEGURADO</b>
+                <p>
+                  1. Representa a participação do Segurado em todo e qualquer evento amparado pelo Bilhete;
+                </p>
+                <p>
+                  2. O Segurado sempre participará de parte dos prejuízos advindos de cada sinistro em percentual ou valor, conforme especificado no Bilhete de Seguro.
+                </p>
+
+                <b>DOCUMENTAÇÃO NECESSÁRIA PARA O AVISO DE SINISTRO</b>
+                <p>
+                  a. RG e CPF do Segurado e/ou Beneficiário, nos casos de pessoa física;
+                </p>
+                <p>
+                  b. Cópia do cartão do CNPJ, nos casos de pessoa jurídica;
+                </p>
+                <p>
+                  c. Comprovante de endereço;
+                </p>
+                <p>
+                  d. Registro de Ocorrência Policial;
+                </p>
+                <p>
+                  e. Cupom Bilhete de Seguro;
+                </p>
+                <p>
+                  f. Nota Fiscal do produto coberto.
+                </p>
+                <p>
+                  g. Laudo técnico identificando a causa, as peças atingidas e a extensão dos danos
+                </p>
+                <p>
+                  h. Três orçamentos ou cotações para reparo ou substituição dos bens sinistrados; e
+                </p>
+                <p>
+                  i. Comprovantes dos gastos efetuados nos reparos dos bens atingidos, tais como notas fiscais, e recibos ( o orçamento deve ter prévia aprovação da Seguradora).
+                </p>
+
+                <b>PAGAMENTO DA INDENIZAÇÃO</b>
+                <p>
+                  1.	A Seguradora disporá de 30 (trinta) dias, a contar da apresentação de todos os documentos básicos pertinentes pelo Segurado (CPF do Segurado, cupom bilhete de seguro e nota fiscal do bem), para efetuar o pagamento da importância a que estiver obrigada.
+                </p>
+
+                <b>DESISTÊNCIA DO CONTRATO</b>
+                <p>
+                  1.	A CONTRATAÇÃO DE SEGURO É OPCIONAL, SENDO POSSÍVEL A DESISTÊNCIA DO CONTRATO PELO MESMO MEIO ULTILIZADO PARA CONTRATAÇÃO, EM ATÉ 7 (SETE) DIAS CORRIDOS CONTADOS DA EMISSÃO DO BILHETE, COM A DEVOLUÇÃO INTEGRAL DO VALOR PAGO.
+                </p>
+
+                <b>CANCELAMENTO DO SEGURO</b>
+                <p>
+                  1.	O seguro poderá ser cancelado a qualquer momento, por escrito ou por solicitação à nossa central de atendimento, mediante entrega do documento físico assinado pelo segurado e protocolado na Cia.
+                </p>
+                <p>
+                  2.	Este seguro ficará automaticamente cancelado, sem qualquer restituição de prêmio na ocorrência de um sinistro com a consequência de perda total do bem segurado.
+                </p>
+
+                <b>PERDA DE DIREITOS</b>
+                <p>
+                  1. Além dos casos previstos em lei e nas demais cláusulas das condições deste Bilhete de Seguro, o Segurado perderá o direito a qualquer indenização e terá o seguro cancelado, sem direito a restituição do prêmio já pago, se:
+                </p>
+                <blockquote>
+                  a. Agravar intencionalmente o risco;
+                </blockquote>
+                <blockquote>
+                  b. Deixar de cumprir as obrigações convencionadas neste contrato; e
+                </blockquote>
+                <blockquote>
+                  c. Procurar, por qualquer meio, obter benefícios ilícitos do seguro a que se refere este contrato.
+                </blockquote>
+                <p>
+                  2. Se o Segurado, seu representante legal ou corretor de seguros fizer declarações inexatas ou omitir circunstâncias que possam influir no valor do prêmio, ficará prejudicado o direito à indenização, além de o Segurado estar obrigado ao pagamento do prêmio vencido.
+                </p>
+                <p>
+                  3. Se a inexatidão ou a omissão nas declarações não resultar de má-fé do Segurado, a Seguradora poderá:
+                </p>
+                <blockquote>
+                  I - Na hipótese de não-ocorrência do sinistro:
+                  <blockquote>
+                    a. Cancelar o seguro, retendo, do prêmio originalmente pactuado, a parcela proporcional ao tempo decorrido; ou
+                  </blockquote>
+                  <blockquote>
+                    b. Permitir a continuidade do seguro, cobrando a diferença de prêmio cabível.
+                  </blockquote>
+                </blockquote>
+                <blockquote>
+                  II - Na hipótese de ocorrência de sinistro sem indenização integral:
+                  <blockquote>
+                    a. Cancelar o seguro após o pagamento da indenização, retendo, do prêmio originalmente pactuado, acrescido da diferença cabível, a parcela calculada proporcionalmente ao tempo decorri do; ou
+                  </blockquote>
+                  <blockquote>
+                    b. permitir a continuidade do seguro, cobrando a diferença de prêmio cabível ou deduzindo-a do valor a ser indenizado.
+                  </blockquote>
+                </blockquote>
+
+                <blockquote>
+                  III - Na hipótese de ocorrência de sinistro com indenização integral, cancelar o seguro após o pagamento da indenização , deduzindo, do valor a ser indenizado, a diferença do prêmio cabível.
+                </blockquote>
+                <p>
+                  4. O Segurado será obrigado a comunicar à Seguradora, logo que souber, qualquer fato suscetível de agravar o risco coberto, sob pena de perder o direito à indenização, se ficar comprovado que silenciou de má-fé.
+                </p>
+                <p>
+                  5. A Seguradora, desde que o faça nos 15 (quinze) dias seguintes ao recebimento do aviso de agravação do risco, poderá dar-lhe ciência por escrito de sua decisão de cancelar o contrato ou, mediante acordo entre as partes, restringir a cobertura contratada.
+                </p>
+                <p>
+                  6. O cancelamento do contrato só será eficaz 30 (trinta) dias após a notificação, devendo ser restituída a diferença do prêmio, calculado proporcionalmente ao período a decorrer.
+                </p>
+                <p>
+                  7. Na hipótese de continuidade do contrato, a Seguradora poderá cobrar a diferença de prêmio cabível.
+                </p>
+                <p>
+                  8. Sob pena de perder o direito à indenização, o Segurado comunicará o sinistro à Seguradora tão logo tome conhecimento e adotará as providências imediatas para minorar suas consequências.
+                </p>
+
+
+                <b>DISPOSIÇÕES GERAIS</b>
+
+                <p style="font-size: 12px; text-decoration: underline">
+                  É PROIBIDO CONDICIONAR DESCONTO NO PREÇO DE BEM À AQUISIÇÃO DO SEGURO. O SEGURO DE UM INTERESSE POR MENOS DO QUE VALHA ACARRETA A REDUÇÃO PROPORCIONAL DA INIDENIZAÇÃO. RECOMENDAMOS A GUARD DO CERTIFICADO DO FORNECEDOR E D NOTA FISCAL DO PRODUTO. Processo SUSEP Nº.15.414.901005/2014-71. O registro deste plano da Susep não implica, por parte da Autarquia, incentivo ou recomendação a sua comercialização. O segurado poderá consultar a situação cadastral de seu corretor no site www.susep.gov.br por meio do numero de se registro na Susep, nome completo, CNPJ ou CPF. Para outras informações DISQUE SUSEP 0800-021-8484. As condições contratuais deste produto protocolizadas pela sociedade junto à SUSEP poderão ser consultadas no endereço eletrônico www.susep.gov.br, de acordo com o número do processo constante do bilhete. As informações sobre o plano de seguros a qual se vincula o bilhete contratado pode ser conferida no portal da SUSEP link <a href="http://www.susep.gov.br/menu/servicos-ao-cidadao/sistema-de-consulta-publica-de-produtos">http://www.susep.gov.br/menu/servicos-ao-cidadao/sistema-de-consulta-publica-de-produtos</a>. Em atendimento a lei 12741/12 informamos que incide as alíquotas de 0,65% de Pis/Pasep e de 4% de COFINS, sobre os prêmios de seguro deduzindo do estabelecido em legislação especifica”; “SUSEP: Superintendência de Seguros Privados – Autarquia Federal responsável pela fiscalização, normatização e controle dos mercados de seguro, previdência complementar aberta, capitalização, resseguro e corretagem de seguros; A Ouvidoria poderá ser acionada para atuar na defesa do direito dos consumidores, para prevenir, esclarecer e solucionar conflitos não atendidos pelos canais de atendimento habituais. Contato: 0800 775 1079, em horário comercial ou pelo site www.mapfre.com.br. Atendimento a deficientes auditivos e de fala: 0800 962 7373.
+                </p>
+                <p style="font-weight:bold; text-decoration: underline">
+                  <br>Em caso de dúvidas, entre em contato com as Centrais de Atendimento da Seguradora:
+                  <br>SAC: 0800 772 5832
+                  <br>SAC Deficientes Auditivos e de Fala: 0800 775 5045
+                  <br>Comunicação de Sinistro: 0800 775 1533 ou 4002 1533
+                  <br>Ouvidoria: 0800 775 1079
+                  <br>Ouvidoria Deficientes Auditivos e de Fala: 0800 962 7373
+                </p>
+              </td>
+            </tr>
+          </table>
+          <br>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td align="center" width="50%">
+                <img src="http://econnects-dev.jelastic.saveincloud.net/assets/files/templates/assinatura1_bilhete_rf_completo_mapfre.png">
+              </td>
+              <td align="center" width="50%">
+                <img src="http://econnects-dev.jelastic.saveincloud.net/assets/files/templates/assinatura2_bilhete_rf_completo_mapfre.png">
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+

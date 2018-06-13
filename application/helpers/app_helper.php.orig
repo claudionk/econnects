@@ -1,0 +1,852 @@
+<?php
+if ( ! function_exists('app_assets_url'))
+{
+    function app_assets_url($uri = '', $context = 'site'){
+
+        $CI =& get_instance();
+        $assets_directory = $CI->config->item('app_assets_dir');
+        $uri = $assets_directory . '/' .$context . '/' .$uri;
+        return base_url($uri) ;
+
+    }
+}
+
+if ( ! function_exists('app_current_controller'))
+{
+    function app_current_controller(){
+
+        $CI =& get_instance();
+
+        return $CI->router->fetch_class();
+
+    }
+}
+
+function app_current_method(){
+
+    $CI =& get_instance();
+
+    return $CI->router->fetch_method();
+
+}
+
+function app_body_class(){
+
+    $CI =& get_instance();
+
+    $controller =  $CI->router->fetch_class();
+    $method =  $CI->router->fetch_method();
+
+    return "app-{$controller}-$method";
+}
+
+function is_current_controller($controller){
+
+    if(is_array($controller)){
+       if(in_array(app_current_controller(), $controller )){
+           return  true;
+       }else {
+           return  false;
+       }
+    }else{
+        if($controller == app_current_controller()){
+            return  true;
+        }else {
+            return  false;
+        }
+    }
+}
+
+function is_current_method($method){
+
+    if($method == app_current_method()){
+
+        return  true;
+    }else {
+        return  false;
+    }
+}
+
+
+if ( ! function_exists('app_template_tag'))
+{
+    function app_template_tag($data){
+       $new_data = array();
+       foreach($data as $key => $value ){
+           $new_data['{{' .$key.'}}'] = $value;
+       }
+
+        return $new_data;
+
+    }
+}
+
+
+function app_format_template($data, $pre= '{{', $pos = '}}'){
+
+    $new_data = array();
+    foreach($data as $key => $value){
+
+        $new_data [$pre . $key. $pos ] = $value;
+    }
+    return $new_data;
+}
+
+function app_build_template_vars($data, $string){
+
+    return app_parse_template(app_format_template($data), $string);
+}
+
+function app_parse_template($data, $string){
+
+    $string =  str_replace( array_keys($data), array_values($data), $string);
+
+    //Remove as variaveis que não foram alteradas
+    $string = preg_replace('/\{\{.*\}\}/', '', $string);
+
+    return $string;
+
+}
+
+function app_create_cp_js_var($var_name , $data){
+
+    $js = '';
+
+    $data = app_format_template($data);
+    foreach($data as $key => $value){
+
+        $item = array(
+            $key,
+            $value,
+            $value
+        );
+
+        $js .= "['". implode("','" , $item) .  "'],";
+
+    }
+
+    return "var {$var_name} = [" . $js . '];';
+}
+
+function app_date_mysql_to_mask($date, $format = 'd/m/Y H:i'){
+   if($date != '0000-00-00 00:00:00' && $date != '') {
+    return date($format, strtotime($date));
+   }else {
+    return '';
+    }
+}
+
+function app_date_mask_to_mysql($date){
+
+    if($date != '0000-00-00 00:00:00' && $date != '') {
+
+        $date = preg_split('/\s/', trim($date));
+
+        if(count($date) == 3){
+
+            $dia = $date[0];
+            $hora = $date[2];
+
+            $date = implode('/', array_reverse(explode('/', $dia))) . ' ' . $hora;
+            return date("Y-m-d H:i:s", strtotime($date));
+        }
+    }
+
+    return '';
+
+}
+
+function app_date_get_diff_dias($d1, $d2, $type=''){
+
+    if(!empty($d1) && !empty($d2)) {
+
+        $d1 = explode('/', $d1);
+        $d2 = explode('/', $d2);
+        $type = strtoupper($type);
+        switch ($type)
+        {
+            case 'Y':
+                $X = 31536000;
+                break;
+            case 'M':
+                $X = 2592000;
+                break;
+            case 'D':
+                $X = 86400;
+                break;
+            case 'H':
+                $X = 3600;
+                break;
+            case 'I':
+                $X = 60;
+                break;
+            default:
+                $X = 1;
+        }
+        return floor( (mktime(0, 0, 0, $d2[1], $d2[0], $d2[2]) - mktime(0, 0, 0, $d1[1], $d1[0], $d1[2] ) )/$X );
+
+    }else{
+        return 0;
+    }
+
+
+}
+
+function app_dateonly_mask_to_mysql($date)
+{
+    if ($date != '0000-00-00' && $date != '') {
+        return $date = implode('-', array_reverse( explode('/', $date) ) );
+    } else {
+        return '';
+    }
+}
+
+function app_dateonly_mysql_to_mask($date)
+{
+    if($date != '0000-00-00' && $date != '') {
+        return date("d/m/Y", strtotime($date));
+    }else {
+        return '';
+    }
+}
+function app_cpf_to_mask($cpf)
+{
+    $string = substr($cpf, 0, 3).'.'.substr($cpf, 3,3).'.'.substr($cpf, 6,3).'-'.substr($cpf, 9, 2);
+    return $string;
+}
+
+function app_cnpj_to_mask($cpf)
+{
+    $string = substr($cpf, 0, 2).'.'.substr($cpf, 2,3).'.'.substr($cpf, 5,3).'/'.substr($cpf, 8, 4).'-'.substr($cpf, 12,2);
+    return $string;
+}
+
+function app_verifica_cpf_cnpj ($cpf_cnpj) {
+    // Verifica CPF
+    if ( strlen($cpf_cnpj ) === 11 ) {
+        return 'CPF';
+    }
+    // Verifica CNPJ
+    elseif ( strlen( $cpf_cnpj ) === 14 ) {
+        return 'CNPJ';
+    }
+    // Não retorna nada
+    else {
+        return false;
+    }
+}
+
+function app_clear_number($str){
+
+    return preg_replace('/[^0-9]/', '', $str);
+}
+
+function app_char_alpha($index){
+    //fixa o problema do indice do array começar em zero;
+    $index = $index - 1;
+
+    $char_list = range('A', 'Z' );
+
+    return $char_list[$index];
+}
+function app_get_querystring_full(){
+    $query = '';
+    $url = parse_url($_SERVER['REQUEST_URI']);
+
+    if(isset($url['query'])){
+
+        $query = '?' . $url['query'];
+    }
+
+    return$query;
+}
+
+function app_get_value($field, $default = ''){
+    $ci = & get_instance();
+
+
+    if(is_array($field)){
+
+        foreach ($field as $key => $value){
+
+            if(isset($_GET[$key][$value])){
+
+                return $_GET[$key][$value];
+            }else {
+
+                return $default;
+            }
+
+        }
+    }
+    if(isset($_GET[$field])){
+
+        return $_GET[$field];
+    }else {
+
+        return $default;
+    }
+
+
+}
+
+function app_validate_cpf($cpf) {
+
+    // Elimina possivel mascara
+    $cpf = preg_replace('/[^0-9]/', '', $cpf);
+    $cpf = str_pad($cpf, 11, '0', STR_PAD_LEFT);
+
+    // Verifica se o numero de digitos informados é igual a 11
+    if (strlen($cpf) != 11) {
+        return false;
+    }
+    // Verifica se nenhuma das sequências invalidas abaixo
+    // foi digitada. Caso afirmativo, retorna falso
+    else if ($cpf == '00000000000' ||
+        $cpf == '11111111111' ||
+        $cpf == '22222222222' ||
+        $cpf == '33333333333' ||
+        $cpf == '44444444444' ||
+        $cpf == '55555555555' ||
+        $cpf == '66666666666' ||
+        $cpf == '77777777777' ||
+        $cpf == '88888888888' ||
+        $cpf == '99999999999') {
+
+        return false;
+        // Calcula os digitos verificadores para verificar se o
+        // CPF é válido
+    } else {
+
+        for ($t = 9; $t < 11; $t++) {
+
+            for ($d = 0, $c = 0; $c < $t; $c++) {
+                $d += $cpf{$c} * (($t + 1) - $c);
+            }
+            $d = ((10 * $d) % 11) % 10;
+            if ($cpf{$c} != $d) {
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+function app_validate_cnpj($cnpj)
+{
+    $cnpj = trim($cnpj);
+    $soma = 0;
+    $multiplicador = 0;
+    $multiplo = 0;
+
+
+    # [^0-9]: RETIRA TUDO QUE NÃO É NUMÉRICO,  "^" ISTO NEGA A SUBSTITUIÇÃO, OU SEJA, SUBSTITUA TUDO QUE FOR DIFERENTE DE 0-9 POR "";
+    $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
+
+    if(empty($cnpj) || strlen($cnpj) != 14)
+        return FALSE;
+
+    # VERIFICAÇÃO DE VALORES REPETIDOS NO CNPJ DE 0 A 9 (EX. '00000000000000')
+    for($i = 0; $i <= 9; $i++)
+    {
+        $repetidos = str_pad('', 14, $i);
+
+        if($cnpj === $repetidos)
+            return FALSE;
+    }
+
+    # PEGA A PRIMEIRA PARTE DO CNPJ, SEM OS DÍGITOS VERIFICADORES
+    $parte1 = substr($cnpj, 0, 12);
+
+    # INVERTE A 1ª PARTE DO CNPJ PARA CONTINUAR A VALIDAÇÃO    $parte1_invertida = strrev($parte1);
+    $parte1_invertida = strrev($parte1);
+    # PERCORRENDO A PARTE INVERTIDA PARA OBTER O FATOR DE CALCULO DO 1º DÍGITO VERIFICADOR
+    for ($i = 0; $i <= 11; $i++)
+    {
+        $multiplicador = ($i == 0) || ($i == 8) ? 2 : $multiplicador;
+
+        $multiplo = ($parte1_invertida[$i] * $multiplicador);
+
+        $soma += $multiplo;
+
+        $multiplicador++;
+    }
+
+    # OBTENDO O 1º DÍGITO VERIFICADOR
+    $rest = $soma % 11;
+
+    $dv1 = ($rest == 0 || $rest == 1) ? 0 : 11 - $rest;
+
+    # PEGA A PRIMEIRA PARTE DO CNPJ CONCATENANDO COM O 1º DÍGITO OBTIDO
+    $parte1 .= $dv1;
+
+    # MAIS UMA VEZ INVERTE A 1ª PARTE DO CNPJ PARA CONTINUAR A VALIDAÇÃO
+    $parte1_invertida = strrev($parte1);
+
+    $soma = 0;
+
+    # MAIS UMA VEZ PERCORRE A PARTE INVERTIDA PARA OBTER O FATOR DE CALCULO DO 2º DÍGITO VERIFICADOR
+    for ($i = 0; $i <= 12; $i++)
+    {
+        $multiplicador = ($i == 0) || ($i == 8) ? 2 : $multiplicador;
+
+        $multiplo = ($parte1_invertida[$i] * $multiplicador);
+
+        $soma += $multiplo;
+
+        $multiplicador++;
+    }
+
+    # OBTENDO O 2º DÍGITO VERIFICADOR
+    $rest = $soma % 11;
+
+    $dv2 = ($rest == 0 || $rest == 1) ? 0 : 11 - $rest;
+
+    # AO FINAL COMPARA SE OS DÍGITOS OBTIDOS SÃO IGUAIS AOS INFORMADOS (OU A SEGUNDA PARTE DO CNPJ)
+    return ($dv1 == $cnpj[12] && $dv2 == $cnpj[13]) ? TRUE : FALSE;
+}
+
+function app_db_escape($string){
+
+    $ci = & get_instance();
+
+    return $ci->db->escape($string);
+}
+
+function app_set_value($field = '', $default = '')
+{
+
+
+
+        if ( ! isset($_POST[$field]))
+        {
+            $value =  $default;
+        }else {
+
+            $value =  $_POST[$field];
+        }
+
+
+
+    return form_prep($value, $field);
+}
+
+function app_has_value($field = '')
+{
+
+
+
+    if (isset($_POST[$field]))
+    {
+        return true;
+    }else {
+
+        return false;
+    }
+}
+
+/**
+ * @description  Formata telefone (11)X99999999
+ * @param $numero
+ * @return mixed|string
+ */
+function app_format_telefone($numero){
+
+    $data = app_extract_telefone($numero);
+
+    return (empty($data['ddd'])) ? $data['numero'] : "({$data['ddd']}){$data['numero']}";
+}
+
+
+function app_extract_telefone($numero){
+    $numero = preg_replace('/([^0-9])/','',$numero);
+
+    $data = array(
+        'numero' => $numero,
+        'ddd' => '',
+    );
+
+    if(strlen($numero) == 8 || strlen($numero) == 9 ){
+
+        $data['numero'] = $numero;
+        $data['ddd'] = '';
+
+    }
+    if(strlen($numero) == 10  || strlen($numero) == 11 ){
+
+        $data['numero'] = substr($numero, 2);
+        $data['ddd'] =  substr($numero, 0, 2);
+
+    }
+
+    return $data;
+}
+
+
+if ( ! function_exists('app_get_random_password'))
+{
+
+    function app_get_random_password($chars_min=6, $chars_max=8, $use_upper_case=false, $include_numbers=false, $include_special_chars=false)
+    {
+        $length = rand($chars_min, $chars_max);
+        $selection = 'aeuoyibcdfghjklmnpqrstvwxz';
+        if($include_numbers) {
+            $selection .= "1234567890";
+        }
+        if($include_special_chars) {
+            $selection .= "!@\"#$%&[]{}?|";
+        }
+
+        $password = "";
+        for($i=0; $i<$length; $i++) {
+            $current_letter = $use_upper_case ? (rand(0,1) ? strtoupper($selection[(rand() % strlen($selection))]) : $selection[(rand() % strlen($selection))]) : $selection[(rand() % strlen($selection))];
+            $password .=  $current_letter;
+        }
+
+        return $password;
+    }
+
+}
+
+function app_get_select_html($field_select, $field_label,  $valores, $valor_selecionado, $valor_opt = 'chave', $texto_in='', $atributos = ''){
+    $html = "";
+    $html .= "\n<select name=\"{$field_select}\" id=\"{$field_select}\" {$atributos}>\n";
+    if (!is_array($valor_selecionado) && !empty($texto_in)) $html .= "\t<option value=\"\">$texto_in</option>\n";
+    foreach ($valores as  $valor){
+        if($valor_opt == 'chave'){
+            $html .= "\t<option value=\"{$valor[$field_select]}\"";
+            if(is_array($valor_selecionado)){
+                if(in_array($valor[$field_select], $valor_selecionado)){
+                    $html .= " selected";
+                }
+            }else{
+                if("{$valor[$field_select]}" == "{$valor_selecionado}") $html .= " selected";
+            }
+        } else {
+            $html .= "\t<option value=\"{$valor[$field_label]}\"";
+            if($valor[$field_label] == $valor_selecionado) $html .= " selected";
+        }
+        $html .= ">{$valor[$field_label]}</option>\n";
+    }
+    $html .= "</select>\n";
+    return $html;
+}
+
+
+
+function app_get_km_list(){
+
+    return array(
+         0 =>'0 Km',
+         1000 => '1000 Km',
+         5000 => '5000 Km',
+         10000 => '10000 Km',
+         20000 => '20000 Km',
+         30000 => '30000 Km',
+         40000 => '40000 Km',
+         50000 => '50000 Km',
+         60000 => '60000 Km',
+         70000 => '70000 Km',
+         80000 => '80000 Km',
+         90000 => '90000 Km',
+         100000 => '100000 Km',
+         110000 => '110000 Km',
+         120000 => '120000 Km',
+         130000 => '130000 Km',
+         140000 => '140000 Km',
+         150000 => '150000 Km'
+    );
+}
+
+function app_youtube_id_by_url($url){
+
+    $url = parse_url($url);
+
+    if(isset($url['query'])){
+        parse_str($url['query'], $data);
+        if(isset($data['v'])){
+            return $data['v'];
+        }
+    }
+    return false;
+
+}
+
+function app_youtube_image_by_id($id, $scope = 'default'){
+
+   $img = "http://img.youtube.com/vi/{$id}/{$scope}.jpg";
+   return $img;
+
+}
+function app_youtube_embed_link_by_id($id){
+
+    $img = "http://www.youtube.com/embed/{$id}?autoplay=1";
+    return $img;
+
+}
+
+function app_get_slug($string) {
+
+    $table = array(
+        'Š'=>'S', 'š'=>'s', 'Đ'=>'Dj', 'đ'=>'dj', 'Ž'=>'Z', 'ž'=>'z', 'Č'=>'C', 'č'=>'c', 'Ć'=>'C', 'ć'=>'c',
+        'À'=>'A', 'Á'=>'A', 'Â'=>'A', 'Ã'=>'A', 'Ä'=>'A', 'Å'=>'A', 'Æ'=>'A', 'Ç'=>'C', 'È'=>'E', 'É'=>'E',
+        'Ê'=>'E', 'Ë'=>'E', 'Ì'=>'I', 'Í'=>'I', 'Î'=>'I', 'Ï'=>'I', 'Ñ'=>'N', 'Ò'=>'O', 'Ó'=>'O', 'Ô'=>'O',
+        'Õ'=>'O', 'Ö'=>'O', 'Ø'=>'O', 'Ù'=>'U', 'Ú'=>'U', 'Û'=>'U', 'Ü'=>'U', 'Ý'=>'Y', 'Þ'=>'B', 'ß'=>'Ss',
+        'à'=>'a', 'á'=>'a', 'â'=>'a', 'ã'=>'a', 'ä'=>'a', 'å'=>'a', 'æ'=>'a', 'ç'=>'c', 'è'=>'e', 'é'=>'e',
+        'ê'=>'e', 'ë'=>'e', 'ì'=>'i', 'í'=>'i', 'î'=>'i', 'ï'=>'i', 'ð'=>'o', 'ñ'=>'n', 'ò'=>'o', 'ó'=>'o',
+        'ô'=>'o', 'õ'=>'o', 'ö'=>'o', 'ø'=>'o', 'ù'=>'u', 'ú'=>'u', 'û'=>'u',  'ý'=>'y', 'þ'=>'b',
+        'ÿ'=>'y', 'Ŕ'=>'R', 'ŕ'=>'r', '/' => '-', ' ' => '-'
+    );
+
+    return strtolower(strtr($string, $table));
+}
+
+function app_get_url_anuncio($anuncio){
+
+    $CI =& get_instance();
+    $CI->load->model('anuncio_model');
+    return $CI->anuncio_model->getAnuncioUrl($anuncio);
+
+}
+function app_get_url_acessorio($anuncio){
+
+    $CI =& get_instance();
+    $CI->load->model('acessorio_anuncio_model', 'acessorio_anuncio');
+    return $CI->acessorio_anuncio->getAnuncioUrl($anuncio);
+
+}
+
+
+
+function app_merge_query_string($data){
+
+    $data = (array) $data;
+    $url_parts = parse_url($_SERVER['REQUEST_URI']);
+
+    if(isset($url_parts['query'])){
+
+
+
+        parse_str( $url_parts['query'], $query);
+
+
+        $query = array_merge($query, $data );
+
+
+
+        $url = http_build_query($query);
+
+    }else {
+
+        $url = http_build_query($data);
+
+    }
+
+    return $url;
+}
+
+function app_html_escape_br($string){
+    return nl2br(html_escape($string));
+}
+
+
+function app_get_userdata($item){
+    $CI =& get_instance();
+    return $CI->session->userdata($item);
+
+}
+function app_format_currency($number, $symbol = false, $num_casas = 2){
+
+    return number_format($number, $num_casas, ',' , '.');
+}
+
+function app_get_toprides($limit = 4){
+    $CI = &get_instance();
+
+    $CI->load->model('anuncio_model', 'anuncio_model');
+    return $CI->anuncio_model->getSidebarTopRides($limit);
+
+}
+
+function app_get_banner_by_codigo($codigo, $rand = true){
+
+    $CI = &get_instance();
+
+    $CI->load->model('cms_banner_model', 'cms_banner');
+
+    return $CI->cms_banner->getBannerByCodigo($codigo, $rand );
+
+}
+
+function app_get_firt_word($string){
+
+    $words = preg_split('/\s/', $string);
+
+    $word = trim($words[0]);
+    return ucfirst($word);
+}
+function app_unformat_currency($value){
+
+    $clearValue = preg_replace('/([^0-9\.,])/i', '', $value);
+
+    return str_replace(',', '.', str_replace('.', '', $clearValue));
+}
+
+function app_unformat_percent($value){
+
+    $clearValue = preg_replace('/([^0-9\.,])/i', '', $value);
+
+    return str_replace(',', '.', $clearValue);
+}
+
+function app_word_cut($string, $limit, $append =  '...'){
+
+    if(strlen($string) > $limit){
+
+        return mb_substr($string, 0, $limit, 'UTF-8' ) . $append;
+    }else {
+
+        return $string;
+    }
+}
+
+function app_utf8_converter($array)
+{
+    array_walk_recursive($array, function(&$item, $key){
+        if(!mb_detect_encoding($item, 'utf-8', true)){
+            $item = utf8_encode($item);
+        }
+    });
+
+    return $array;
+}
+function app_retorna_numeros($string)
+{
+    return preg_replace('/[^0-9]/', '', $string);
+}
+/**
+ * retorna tipo de cartão por número
+ * @param $number
+ * @return string
+ */
+function app_get_card_type($number)
+{
+    $number=preg_replace('/[^\d]/','',$number);
+    if (preg_match('/^3[47][0-9]{13}$/',$number))
+    {
+        return 'AMEX';
+    }
+    elseif (preg_match('/^3(?:0[0-5]|[68][0-9])[0-9]{11}$/',$number))
+    {
+        return 'DINERS';
+    }
+    elseif (preg_match('/^6(?:011|5[0-9][0-9])[0-9]{12}$/',$number))
+    {
+        return 'Discover';
+    }
+    elseif (preg_match('/^(?:2131|1800|35\d{3})\d{11}$/',$number))
+    {
+        return 'JCB';
+    }
+    elseif (preg_match('/^5[1-5][0-9]{14}$/',$number))
+    {
+        return 'MASTERCARD';
+    }
+    elseif (preg_match('/^4[0-9]{12}(?:[0-9]{3})?$/',$number))
+    {
+        return 'VISA';
+    }
+    else
+    {
+        return 'NOTACCEPTED';
+    }
+}
+
+function app_dateonly_mask_mysql_null($date)
+{
+    if ($date != '0000-00-00' && $date != '')
+    {
+        return $date = implode('-', array_reverse( explode('/', $date) ) );
+    }
+    else
+    {
+        return '0000-00-00 00:00:00';
+    }
+}
+
+function app_montar_menu($itens, &$html){
+
+    foreach ($itens as $item) {
+
+
+        $active = (is_current_controller($item['controllers'])) ? ' expanded ' : '';
+        if(is_current_controller($item['controllers']) && count($item['itens']) == 0){
+            $active = ' expanded active';
+        }
+        if($item['externo'] == 0){
+            if(empty($item['controller'])){
+                $url = "";
+            }else{
+                $url = base_url("admin/{$item['controller']}/{$item['acao']}");
+                $url .= (!empty($item['acao']) && empty($item['parametros'])) ? "/{$item['parametros']}" : '';
+            }
+        }else{
+            $url = $item['url'];
+        }
+        $class_sub = (count($item['itens']) > 0) ? 'gui-folder' : '';
+        $icon = (empty($item['icon']) && $item['pai_id'] == 0) ? 'fa fa-folder-open fa-fw' : $item['icon'];
+        $html[] = "<li class=\"{$class_sub}{$active}\">";
+        $html[] = (empty($url)) ? "    <a>" : "    <a class=\"{$active}\" href=\"{$url}\" target=\"{$item['target']}\" >";
+        $html[] = ($item['pai_id'] == 0) ? "        <div class=\"gui-icon\"><i class=\"{$icon}\"></i></div>" : "";
+        $html[] = "        <span class=\"title\">{$item['nome']}</span>";
+        $html[] = "    </a>";
+        if($item['itens']){
+            $html[] = "<ul>";
+            app_montar_menu($item['itens'], $html);
+            $html[] = "</ul>";
+        }
+
+        $html[] = "</li>";
+        /*
+            <li>
+                <a <?php if (is_current_controller(array('home'))) echo 'class="active expanded"';?> href="<?php echo base_url('admin/home/')?>" >
+                    <div class="gui-icon"><i class="md md-home"></i></div>
+
+                </a>
+            </li><!--end /menu-li -->
+
+         */
+
+    }
+}
+<<<<<<< HEAD
+
+/**
+ * Se for setado uma variável ele a retorna, caso contrário retorna vazio
+ * @param $var
+ * @param bool $default
+ * @return string
+ */
+function issetor(&$var, $default = false) {
+
+    if(isset($var))
+    {
+        return $var;
+    }
+    else
+    {
+        return ' ';
+    }
+=======
+/**
+ * admin url
+ * @param string $uri
+ * @return mixed
+ */
+function admin_url($uri = '')
+{
+    return base_url() . 'admin/' . $uri;
+>>>>>>> 804b62d4e5bd5ffc2bcfb5d5d2c4bc0d245f35d7
+}

@@ -1,0 +1,8 @@
+<!-- Tabs Heading -->
+<ul class="card-head nav nav-tabs">
+    <li<?php if (is_current_controller(array('produtos_parceiros_configuracao_comissao'))) : ?> class="active" <?php endif; ?>><a class="glyphicons list" href="<?php echo base_url("admin/produtos_parceiros_configuracao_comissao/edit/{$produto_parceiro_id}")?>"><i></i><span>Comissão</span></a></li>
+    <li<?php if (is_current_controller(array('produtos_parceiros_regra_preco'))) : ?> class="active" <?php endif; ?>><a class="glyphicons list" href="<?php echo base_url("admin/produtos_parceiros_regra_preco/index/{$produto_parceiro_id}")?>"><i></i><span>Acréscimo no Prêmio</span></a></li>
+    <li<?php if (is_current_controller(array('produtos_parceiros_desconto'))) : ?> class="active" <?php endif; ?>><a class="glyphicons list" href="<?php echo base_url("admin/produtos_parceiros_desconto/edit/{$produto_parceiro_id}")?>"><i></i><span>Desconto</span></a></li>
+    <li<?php if (is_current_controller(array('produtos_parceiros_cancelamento'))) : ?> class="active" <?php endif; ?>><a class="glyphicons list" href="<?php echo base_url("admin/produtos_parceiros_cancelamento/edit/{$produto_parceiro_id}")?>"><i></i><span>Cancelamento</span></a></li>
+    <li<?php if (is_current_controller(array('produtos_parceiros_configuracao'))) : ?> class="active" <?php endif; ?>><a class="glyphicons list" href="<?php echo base_url("admin/produtos_parceiros_configuracao/edit/{$produto_parceiro_id}")?>"><i></i><span>geral</span></a></li>
+</ul>

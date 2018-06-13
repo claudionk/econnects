@@ -1,0 +1,47 @@
+{
+  "application": {
+    "categories": ["export"],
+    "description": {"text": "econnects-dev.jelastic.websolute.net.br"},
+    "env": {"topology": {
+      "engine": "php5.6",
+      "ha": false,
+      "nodes": [
+        {
+          "count": 1,
+          "extip": false,
+          "fixedCloudlets": 1,
+          "flexibleCloudlets": 15,
+          "nodeType": "mysql5"
+        },
+        {
+          "count": 1,
+          "extip": true,
+          "fixedCloudlets": 2,
+          "flexibleCloudlets": 20,
+          "nodeType": "nginxphp"
+        }
+      ],
+      "ssl": false
+    }},
+    "name": 1516119678599,
+    "onInstall": {"call": {"procedure": "import"}},
+    "procedures": [{
+      "id": "import",
+      "onCall": [{"unpack": [
+        {
+          "destPath": "/",
+          "nodeId": "${nodes.sqldb[0].id}",
+          "sourcePath": "https://node46688-econnects-dev.jelastic.websolute.net.br:7979/794e0475-31fc-4974-8097-69c7060f4035.tar.gz"
+        },
+        {
+          "destPath": "/",
+          "nodeId": "${nodes.cp[0].id}",
+          "sourcePath": "https://node46689-econnects-dev.jelastic.websolute.net.br:7979/794e0475-31fc-4974-8097-69c7060f4035.tar.gz"
+        }
+      ]}]
+    }]
+  },
+  "jpsType": "install",
+  "jpsVersion": "0.8",
+  "result": 0
+}

@@ -1,0 +1,17 @@
+.modal.modal-wide .modal-dialog {
+    width: 60%;
+}
+.modal-wide .modal-body {
+    overflow-y: auto;
+}
+
+#tallModal .modal-body p { margin-bottom: 900px }
+
+.cobertura{
+    text-align: left;
+}
+
+.card-type-pricing .list-unstyled li{
+    padding: 2px 2px;
+    min-height: 60px;
+}

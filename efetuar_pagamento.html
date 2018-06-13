@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Busca Produtos</title>
+</head>
+<body>
+        <form method="POST" enctype="multipart/form-data" action="https://econnects-dev.jelastic.saveincloud.net/api/venda/efetuar_pagamento">
+            <input type="hidden" name="chave_acesso" value="chavebradesco">
+            <input type="hidden" name="senha" value="senhabradesco">
+          <input type="hidden" name="produto_parceiro_id" value="52">
+          <input type="hidden" name="produto_parceiro_plano_id" value="40">
+
+          <input type="hidden" name="cotacao_id" value="204">
+          <input type="hidden" name="forma_pagamento_tipo_id" value="1">
+		   <input type="hidden" name="numero" value="4555455545554555">
+          <input type="hidden" name="nome_cartao" value="JONAS RIBEIRO">
+          <input type="hidden" name="codigo" value="321">
+          <input type="hidden" name="bandeira_cartao" value="VISA">
+          <input type="hidden" name="bandeira" value="18">
+          <input type="hidden" name="validade" value="05/2019">
+          <input type="hidden" name="parcelamento_18" value="1">
+          
+            <button type="submit">Contratar Plano</button>
+        </form>
+</body>
+</html>
+
+
