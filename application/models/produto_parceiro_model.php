@@ -92,7 +92,7 @@ Class Produto_Parceiro_Model extends MY_Model
         return $this;
     }
 
-    function get_produtos_venda_admin($parceiro_id){
+    function get_produtos_venda_admin($parceiro_id, $produto_id = null){
 
 
         $this->_database->select($this->_table.'.produto_parceiro_id');
@@ -105,6 +105,9 @@ Class Produto_Parceiro_Model extends MY_Model
         $this->_database->from($this->_table);
         $this->_database->where($this->_table.'.deletado', 0);
         $this->_database->where($this->_table.'.parceiro_id', $parceiro_id);
+        if( !is_null( $produto_id ) ) {
+          $this->_database->where($this->_table.'.produto_id', $produto_id);
+        }
         $this->_database->where('produto_parceiro_configuracao.deletado', 0);
         $this->_database->where('produto_parceiro_configuracao.venda_habilitada_admin', 1);
         $this->_database->where('produto.deletado', 0);
@@ -119,7 +122,6 @@ Class Produto_Parceiro_Model extends MY_Model
             return $query->result_array();
         return array();
     }
-
 
     function get_produtos_venda_admin_parceiros($parceiro_id){
 
@@ -164,3 +166,4 @@ Class Produto_Parceiro_Model extends MY_Model
         return $this;
     }
 }
+

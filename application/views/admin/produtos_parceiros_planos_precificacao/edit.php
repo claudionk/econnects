@@ -92,7 +92,7 @@ if($_POST)
                                                                     <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Porcentagem do Segurado(%) *</label>
                                                                     <div class="col-md-8"><input class="form-control inputmask-moeda" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                                 </div>
-                                                            <?php endif; ?>
+                                                          <?php endif; ?>
                                                         </div>
                                                     </div>
 <!--
@@ -162,3 +162,5 @@ if($_POST)
         </div>
     </div>
 </div>
+
+

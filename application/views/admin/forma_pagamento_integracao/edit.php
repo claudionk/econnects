@@ -109,7 +109,7 @@ if($_POST)
 
                                                     <?php $field_name = 'producao';?>
                                                     <div class="form-group">
-                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Hambiente de Produção *</label>
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Ambiente de Produção *</label>
                                                         <label class="radio-inline">
                                                             <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
                                                                    value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />

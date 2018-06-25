@@ -14,7 +14,7 @@ $(document).ready(function(){
 
 function mostrar_exibir(){
 
-    if($("#forma_pagamento_id").val() == '5'){
+    if($("#forma_pagamento_id").val() == '8'){
         $('.boleto').show(200);
     }else{
         $('.boleto').hide(200);

@@ -69,7 +69,7 @@ if($_POST)
                                                 <!-- Column -->
                                                 <div class="col-md-6">
                                                     <br>
-                                                    <h4>Dados da Comissão</h4>
+                                                    <h4>Dados da Forma de Pagamento</h4>
                                                     <hr>
                                                     <br>
                                                      <?php $field_name = 'forma_pagamento_tipo_id';?>

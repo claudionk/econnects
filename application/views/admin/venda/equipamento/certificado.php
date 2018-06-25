@@ -93,7 +93,7 @@ if($_POST)
 
                                                                     <td class="center"><?php echo $row['num_apolice'];?></td>
                                                                     <td><?php echo $row['nome'];?></td>
-                                                                    <td><?php echo (app_verifica_cpf_cnpj($row['cnpj_cpf']) == 'CPF') ? app_cpf_to_mask($row['cnpj_cpf']) : app_cnpj_to_mask($row['cnpj_cpf']); ?></td>
+                                                                    <td><?php echo $row['cnpj_cpf']; ?></td>
                                                                     <td class="center">
                                                                         <a target="_blank" href="<?php echo base_url("{$current_controller_uri}/certificado/{$row['apolice_id']}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-print"></i>  Imprimir </a>
                                                                     </td>

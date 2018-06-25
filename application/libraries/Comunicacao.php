@@ -225,7 +225,7 @@ class Comunicacao
     $config['smtp_host'] = "send.one.com"; 				// $engine['servidor'];
     $config['smtp_port'] = "587"; 						// $engine['porta'];
     $config['smtp_user'] = "luis@schedel.com.br";		// $engine['usuario'];
-    $config['smtp_pass'] = "fuckall$$2009";				// $engine['senha'];
+    $config['smtp_pass'] = "lalalelelili";				// $engine['senha'];
     $config['protocol']  = "smtp";
     $config['validate']  = TRUE;
     $config['mailtype']  = 'html';
@@ -645,5 +645,6 @@ class Comunicacao
 
 
 }
+
 
 

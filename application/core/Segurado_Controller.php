@@ -11,10 +11,17 @@ class Segurado_Controller extends MY_Controller
     protected $controller_name;
     protected $controller_uri;
 
+    // const FORMA_PAGAMENTO_CARTAO_CREDITO = 1;
+    // const FORMA_PAGAMENTO_FATURADO = 3;
+    // const FORMA_PAGAMENTO_CARTAO_DEBITO = 6;
+    // const FORMA_PAGAMENTO_BOLETO = 5;
+
     const FORMA_PAGAMENTO_CARTAO_CREDITO = 1;
-    const FORMA_PAGAMENTO_FATURADO = 3;
-    const FORMA_PAGAMENTO_CARTAO_DEBITO = 6;
-    const FORMA_PAGAMENTO_BOLETO = 5;
+    const FORMA_PAGAMENTO_FATURADO = 9;
+    const FORMA_PAGAMENTO_CARTAO_DEBITO = 7;
+    const FORMA_PAGAMENTO_BOLETO = 8;
+    const FORMA_PAGAMENTO_TRANSF_BRADESCO = 5;
+    const FORMA_PAGAMENTO_TRANSF_BB = 6;
 
     function __construct()
     {

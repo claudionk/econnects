@@ -9,14 +9,24 @@ class Venda extends Api_Controller
   const PRECO_TIPO_TABELA = 1;
   const PRECO_TIPO_COBERTURA = 2;
   const PRECO_TIPO_VALOR_SEGURADO = 3;
+  const PRECO_POR_EQUIPAMENTO = 5;
 
   const TIPO_CALCULO_NET = 1;
   const TIPO_CALCULO_BRUTO = 2;
 
+
+  // const FORMA_PAGAMENTO_CARTAO_CREDITO = 1;
+  // const FORMA_PAGAMENTO_FATURADO = 3;
+  // const FORMA_PAGAMENTO_CARTAO_DEBITO = 6;
+  // const FORMA_PAGAMENTO_BOLETO = 5;
+
   const FORMA_PAGAMENTO_CARTAO_CREDITO = 1;
-  const FORMA_PAGAMENTO_FATURADO = 3;
-  const FORMA_PAGAMENTO_CARTAO_DEBITO = 6;
-  const FORMA_PAGAMENTO_BOLETO = 5;
+  const FORMA_PAGAMENTO_FATURADO = 9;
+  const FORMA_PAGAMENTO_CARTAO_DEBITO = 7;
+  const FORMA_PAGAMENTO_BOLETO = 8;
+  const FORMA_PAGAMENTO_TRANSF_BRADESCO = 5;
+  const FORMA_PAGAMENTO_TRANSF_BB = 6;
+
 
   /**
      * Venda constructor.
@@ -92,10 +102,17 @@ class Venda extends Api_Controller
   {
     //Cria resposta
     $response = new Response();
+    
+    if( $this->input->post("produto_id" ) != "" ) {
+      $produto_id = $this->input->post("produto_id" );
+      $produtos = $this->current_model->get_produtos_venda_admin($this->parceiro['parceiro_id'], $produto_id );
+    } else {
+      $produtos = $this->current_model->get_produtos_venda_admin($this->parceiro['parceiro_id']);
+    }
 
     //Busca dados
-    $produtos = $this->current_model->get_produtos_venda_admin($this->parceiro['parceiro_id']);
     $relacionamento = $this->current_model->get_produtos_venda_admin_parceiros($this->parceiro['parceiro_id']);
+    error_log( "Produto: $produto_id: " . print_r( $produtos, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
 
     //Se possuir dados
     if($produtos || $relacionamento)
@@ -243,7 +260,7 @@ class Venda extends Api_Controller
       $produto_parceiro_id = $this->input->post("produto_parceiro_id");
     }else{
       $response->setStatus(false);
-      $response->setError(['çampo produto_parceiro_id é obrigatório']);
+      $response->setError(['campo produto_parceiro_id é obrigatório']);
       $response->setDados($result);        
     }
 
@@ -270,11 +287,10 @@ class Venda extends Api_Controller
       );
     }
 
-
-
     $this->cotacao->setValidate($validacao);
-
-
+    
+    error_log( print_r( $this->cotacao, true ), 3, "/var/log/httpd/myapp.log" );
+    
     //Verifica válido form
     if ($this->cotacao->validate_form('cotacao'))
     {
@@ -282,7 +298,6 @@ class Venda extends Api_Controller
       $cotacao_id = (int)$this->input->post('cotacao_id');
 
       if($produto['produto_slug'] == 'equipamento'){
-
         $cotacao_id = $this->cotacao_equipamento->insert_update($produto_parceiro_id, $cotacao_id);
       }elseif($produto['produto_slug'] == 'generico'){
         $cotacao_id = $this->cotacao_generico->insert_update($produto_parceiro_id, $cotacao_id);
@@ -456,9 +471,7 @@ class Venda extends Api_Controller
 
 
     if($produto['produto_slug'] == 'equipamento'){
-
-
-
+      error_log( "CALCULO_COTACAO (params): " . print_r( $params, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
       $result = $this->calculo_cotacao_equipamento($params);
     }elseif($produto['produto_slug'] == 'generico'){
       $result = $this->calculo_cotacao_generico($params);
@@ -595,6 +608,8 @@ class Venda extends Api_Controller
     $repasse_comissao = str_pad(number_format((double)$repasse_comissao, 2, '.', ''), 5, "0", STR_PAD_LEFT);
 
     $comissao_corretor = ($configuracao['comissao'] - $repasse_comissao);
+    
+    error_log( "CALCULO_COTACAO_EQUIPAMENTO (equipamento_categoria_id): $equipamento_categoria_id\n", 3, "/var/log/httpd/myapp.log" );
 
     $valores_bruto = $this->getValoresPlano($produto_parceiro_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade);
 
@@ -785,6 +800,8 @@ class Venda extends Api_Controller
 
 
     $valores = array();
+    error_log( "PRECO_POR_EQUIPAMENTO (equipamento_categora_id): ". print_r( $equipamento_categora_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+    error_log( "PRECO_POR_EQUIPAMENTO (arrPlanos): ". print_r( $arrPlanos, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
     foreach ($arrPlanos as $plano){
       switch ((int)$plano['precificacao_tipo_id'])
       {
@@ -805,13 +822,31 @@ class Venda extends Api_Controller
           break;
         case self::PRECO_TIPO_VALOR_SEGURADO:
           break;
+        case self::PRECO_POR_EQUIPAMENTO;
+          $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
+          $this->load->model('equipamento_model', 'equipamento');
+          $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
+          error_log( "PRECO_POR_EQUIPAMENTO: ". print_r( $produto_parceiro_plano_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+          $valor = $this->produto_parceiro_plano_precificacao_itens
+            ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
+            ->filter_by_faixa( $valor_nota )
+            ->filter_by_tipo_equipamento("CATEGORIA")
+            ->filter_by_equipamento($equipamento_categora_id)
+            ->get_all();
+          
+          
+          $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
+          
+          error_log( "PRECO_POR_EQUIPAMENTO (VALOR): ". print_r( $valor, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+          error_log( "PRECO_POR_EQUIPAMENTO: $valor_nota\n", 3, "/var/log/httpd/myapp.log" );
+          break;
         default:
           break;
 
 
       }
     }
-
+    error_log( "GENÉRICO (VALORES): ". print_r( $valores, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
     return $valores;
 
 
@@ -854,6 +889,8 @@ class Venda extends Api_Controller
       ->filter_by_tipo_equipamento('TODOS')
       ->get_all();
 
+error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+
     if(count($valor) > 0)
     {
       $valor = $valor[0];
@@ -872,9 +909,11 @@ class Venda extends Api_Controller
       //BUSCA POR CATEGORIA / LINHA
       $valor = $this->produto_parceiro_plano_precificacao_itens
         ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-        ->filter_by_tipo_equipamento('CATEGORIA')
+        ->filter_by_tipo_equipamento('TODOS')
         ->filter_by_equipamento($equipamento_categoria_id)
         ->get_all();
+
+error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
 
       if(count($valor) > 0) {
         $valor = $valor[0];
@@ -908,6 +947,8 @@ class Venda extends Api_Controller
         ->filter_by_tipo_equipamento('MARCA')
         ->filter_by_equipamento($equipamento_marca_id)
         ->get_all();
+
+error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
 
       if(count($valor) > 0) {
         $valor = $valor[0];
@@ -1924,6 +1965,8 @@ class Venda extends Api_Controller
   }
 
 }
+
+
 
 
 

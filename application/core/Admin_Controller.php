@@ -12,9 +12,11 @@ class Admin_Controller extends MY_Controller
     protected $controller_uri;
 
     const FORMA_PAGAMENTO_CARTAO_CREDITO = 1;
-    const FORMA_PAGAMENTO_FATURADO = 3;
-    const FORMA_PAGAMENTO_CARTAO_DEBITO = 6;
-    const FORMA_PAGAMENTO_BOLETO = 5;
+    const FORMA_PAGAMENTO_FATURADO = 9;
+    const FORMA_PAGAMENTO_CARTAO_DEBITO = 7;
+    const FORMA_PAGAMENTO_BOLETO = 8;
+    const FORMA_PAGAMENTO_TRANSF_BRADESCO = 5;
+    const FORMA_PAGAMENTO_TRANSF_BB = 6;
 
     function __construct()
     {
@@ -306,6 +308,8 @@ class Admin_Controller extends MY_Controller
 
         if($_POST){
 
+          error_log( print_r( $_POST, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+          
             $tipo_forma_pagamento_id = $this->input->post('forma_pagamento_tipo_id');
 
 
@@ -834,3 +838,4 @@ class Admin_Controller extends MY_Controller
 
 
 }
+

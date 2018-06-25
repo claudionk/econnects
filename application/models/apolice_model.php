@@ -1002,9 +1002,17 @@ Class Apolice_Model extends MY_Model
         $data_template['assets'] = base_url('assets');
         $data_template['num_apolice'] = $apolice['num_apolice'];
         $data_template['num_certificado'] =  $apolice['num_apolice'];
+        $data_template['data_ini_vigencia'] = app_date_mysql_to_mask($apolice['data_ini_vigencia'], 'd/m/Y');
+        $data_template['data_fim_vigencia'] = app_date_mysql_to_mask($apolice['data_fim_vigencia'], 'd/m/Y');
+      
         $data_template['inicio_viagem'] = app_date_mysql_to_mask($apolice['data_ini_vigencia'], 'd/m/Y');
         $data_template['fim_viagem'] = app_date_mysql_to_mask($apolice['data_fim_vigencia'], 'd/m/Y');
         $data_template['data_pedido'] = app_date_mysql_to_mask($apolice['data_adesao'], 'd/m/Y');
+        $data_template['data_adesao'] = app_date_mysql_to_mask($apolice['data_adesao'], 'd/m/Y');
+      	$data_template['lmi_roubo'] = app_format_currency($apolice['nota_fiscal_valor']);
+        $data_template['lmi_furto'] = app_format_currency($apolice['nota_fiscal_valor']);
+        $data_template['lmi_quebra'] = app_format_currency($apolice['nota_fiscal_valor']);
+      
 
 
         $data_template['parceiro'] =  $parceiro['nome'];
@@ -1040,7 +1048,8 @@ Class Apolice_Model extends MY_Model
         $data_template['segurado_nome'] =  $apolice['nome'];
         $data_template['segurado_cnpj_cpf'] =  (app_verifica_cpf_cnpj($apolice['cnpj_cpf']) == 'CPF') ? app_cpf_to_mask($apolice['cnpj_cpf']) : app_cnpj_to_mask($apolice['cnpj_cpf']);
         $data_template['segurado_data_nascimento'] =  app_dateonly_mysql_to_mask($apolice['data_nascimento']);
-        $data_template['segurado_endereco'] = "{$apolice['endereco']}, {$apolice['endereco_numero']}";
+        $data_template['segurado_endereco'] = $apolice['endereco'];
+        $data_template['segurado_numero'] = $apolice['endereco_numero'];
         $data_template['segurado_bairro'] = $apolice['endereco_bairro'];
         $data_template['segurado_cidade'] = $apolice['endereco_cidade'];
         $data_template['segurado_estado'] = $apolice['endereco_estado'];
@@ -1058,6 +1067,7 @@ Class Apolice_Model extends MY_Model
             'dados' => $dados),
             true);
 
+      error_log( print_r( $data_template['seguro'], true ) . "\n", 3, "/var/log/httpd/myapp.log" );
         $data_template['premio'] =  $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/premio", array('premio_liquido' => $apolice['valor_premio_net'], 'premio_total' => $apolice['valor_premio_total']), true );
         $data_template['pagamento'] =  $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/pagamento", array('pagamento' => $pagamento), true );
 
@@ -1163,4 +1173,5 @@ Class Apolice_Model extends MY_Model
 
 
 }
+
 

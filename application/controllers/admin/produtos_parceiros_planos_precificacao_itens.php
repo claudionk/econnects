@@ -88,6 +88,11 @@ class Produtos_Parceiros_Planos_Precificacao_Itens extends Admin_Controller
         $data['primary_key'] = $this->current_model->primary_key();
         $data['form_action'] =  base_url("$this->controller_uri/add");
 
+        $this->load->model('equipamento_categoria_model', 'equipamento_categoria');
+        $categorias = $this->equipamento_categoria->where("equipamento_categoria_nivel", "=", "1")->order_by("nome","asc")->get_all();
+        $data["categorias"] = $categorias;
+        error_log( print_r( $categorias, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+
         //Caso post
         if($_POST)
         {
@@ -128,6 +133,11 @@ class Produtos_Parceiros_Planos_Precificacao_Itens extends Admin_Controller
         $data['primary_key'] = $this->current_model->primary_key();
         $data['form_action'] =  base_url("$this->controller_uri/edit/{$id}");
 
+
+        $this->load->model('equipamento_categoria_model', 'equipamento_categoria');
+        $categorias = $this->equipamento_categoria->where("equipamento_categoria_nivel", "=", "1")->order_by("nome","asc")->get_all();
+        $data["categorias"] = $categorias;
+        error_log( print_r( $categorias, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
 
         //Caso não exista registros
         if(!$data['row'])
@@ -295,3 +305,4 @@ class Produtos_Parceiros_Planos_Precificacao_Itens extends Admin_Controller
     }
 
  }
+

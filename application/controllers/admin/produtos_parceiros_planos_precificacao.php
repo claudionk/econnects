@@ -26,6 +26,7 @@ class Produtos_Parceiros_Planos_Precificacao extends Admin_Controller
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
         $this->load->model('precificacao_tipo_model', 'precificacao_tipo');
         $this->load->model('comissao_tipo_model', 'comissao_tipo');
+        
 
 
 
@@ -62,8 +63,6 @@ class Produtos_Parceiros_Planos_Precificacao extends Admin_Controller
 
 
         $produto_parceiro_plano =  $this->produto_parceiro_plano->get($produto_parceiro_plano_id);
-
-
 
         if(!$produto_parceiro_plano){
             //Mensagem de erro caso registro não exista
@@ -129,3 +128,4 @@ class Produtos_Parceiros_Planos_Precificacao extends Admin_Controller
 
 
 }
+

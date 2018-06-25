@@ -37,7 +37,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         array(
             'field' => 'unidade_tempo',
             'label' => 'Unidade',
-            'rules' => 'required|enum[DIA,MES,ANO]',
+            'rules' => 'required|enum[DIA,MES,ANO,VALOR]',
             'groups' => 'default'
         ),
         array(
@@ -57,6 +57,21 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
             'label' => 'Valor',
             'rules' => 'required',
             'groups' => 'default'
+        ),
+        array(
+            'field' => 'equipamento',
+            'label' => 'equipamento',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'cobranca',
+            'label' => 'cobranca',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'tipo_equipamento',
+            'label' => 'tipo_equipamento',
+            'groups' => 'default'
         )
     );
 
@@ -71,7 +86,12 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
             'inicial' => $this->input->post('inicial'),
             'final' => $this->input->post('final'),
             'valor' => app_unformat_currency($this->input->post('valor')),
+            'equipamento' => $this->input->post('equipamento'),
         );
+        if( $data["equipamento"] != "" ) {
+          $data["cobranca"] = "PORCENTAGEM";
+          $data["tipo_equipamento"] = "CATEGORIA";
+        }
         return $data;
     }
     function get_by_id($id)
@@ -96,13 +116,15 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
     function  filter_by_tipo_equipamento($tipo){
 
+        //$this->_database->where( "({$this->_table}.tipo_equipamento='$tipo' OR {$this->_table}.tipo_equipamento='TODOS')" );
         $this->_database->where("{$this->_table}.tipo_equipamento", $tipo);
+        //$this->_database->or_where("{$this->_table}.tipo_equipamento", "TODOS");
 
         return $this;
     }
     function  filter_by_equipamento($equipamento){
 
-        $this->_database->like("{$this->_table}.equipamento", "%'{$equipamento}'%");
+        $this->_database->like("{$this->_table}.equipamento", "'{$equipamento}'");
 
         return $this;
     }
@@ -112,6 +134,12 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         $this->_database->where("$qnt >=", "{$this->_table}.inicial", FALSE);
         $this->_database->where("$qnt <=", "{$this->_table}.final", FALSE);
         $this->_database->where("{$this->_table}.unidade_tempo", $unidade_tempo);
+        return $this;
+    }
+
+    function  filter_by_faixa($qnt){
+        $this->_database->where("$qnt >=", "{$this->_table}.inicial", FALSE);
+        $this->_database->where("$qnt <=", "{$this->_table}.final", FALSE);
         return $this;
     }
 
@@ -125,3 +153,4 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     }
 
 }
+
