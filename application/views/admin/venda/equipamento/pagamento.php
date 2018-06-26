@@ -24,8 +24,8 @@ if($_POST){
             </a>
 
         <?php endif; ?>
-        <a class="btn  btn-app btn-primary btn-proximo" onclick="$('#validateSubmitForm').submit();">
-            <i class="fa fa-edit"></i> Próximo
+        <a class="btn pull-right btn-app btn-primary btn-proximo" onclick="$('#validateSubmitForm').submit();">
+            <i class="fa fa-arrow-right"></i> Próximo
         </a>
     </div>
 </div>
@@ -102,7 +102,7 @@ if($_POST){
             <i class="fa fa-arrow-left"></i> Voltar
         </a>
         <a class="btn  btn-app btn-primary btn-proximo" onclick="$('#validateSubmitForm').submit();">
-            <i class="fa fa-edit"></i> Próximo
+            <i class="fa fa-arrow-right"></i> Próximo
         </a>
     </div>
 </div>

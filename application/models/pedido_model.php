@@ -24,13 +24,12 @@ Class Pedido_Model extends MY_Model
     // const FORMA_PAGAMENTO_CARTAO_DEBITO = 6;
     // const FORMA_PAGAMENTO_BOLETO = 5;
 
-    const FORMA_PAGAMENTO_CARTAO_CREDITO = 1;
-    const FORMA_PAGAMENTO_FATURADO = 9;
-    const FORMA_PAGAMENTO_CARTAO_DEBITO = 7;
-    const FORMA_PAGAMENTO_BOLETO = 8;
-    const FORMA_PAGAMENTO_TRANSF_BRADESCO = 5;
-    const FORMA_PAGAMENTO_TRANSF_BB = 6;
-
+  const FORMA_PAGAMENTO_CARTAO_CREDITO = 1;
+  const FORMA_PAGAMENTO_FATURADO = 9;
+  const FORMA_PAGAMENTO_CARTAO_DEBITO = 8;
+  const FORMA_PAGAMENTO_BOLETO = 9;
+  const FORMA_PAGAMENTO_TRANSF_BRADESCO = 2;
+  const FORMA_PAGAMENTO_TRANSF_BB = 7;
     
     //Dados
     public $validate = array(
@@ -599,13 +598,15 @@ Class Pedido_Model extends MY_Model
 
 
     public function with_cotacao_cliente_contato(){
-        $this->_database->select('cliente.razao_nome, cotacao_equipamento.equipamento_nome');
+        $this->_database->select('cliente.razao_nome, cotacao_equipamento.equipamento_nome, equipamento_marca.nome as marca, equipamento_categoria.nome as categoria');
         $this->_database->select("(SELECT contato FROM cliente_contato INNER JOIN contato on contato.contato_id = cliente_contato.contato_id WHERE cliente_contato.deletado = 0 AND contato.deletado = 0 AND contato.contato_tipo_id = 1 AND cliente_contato.cliente_id = cliente.cliente_id LIMIT 1) AS email");
         $this->_database->select("(SELECT contato FROM cliente_contato INNER JOIN contato on contato.contato_id = cliente_contato.contato_id WHERE cliente_contato.deletado = 0 AND contato.deletado = 0 AND contato.contato_tipo_id = 2 AND cliente_contato.cliente_id = cliente.cliente_id LIMIT 1)  AS celular");
         $this->_database->select("(SELECT contato FROM cliente_contato INNER JOIN contato on contato.contato_id = cliente_contato.contato_id WHERE cliente_contato.deletado = 0 AND contato.deletado = 0 AND contato.contato_tipo_id = 3 AND cliente_contato.cliente_id = cliente.cliente_id LIMIT 1) AS telefone");
         $this->_database->join('cotacao', 'cotacao.cotacao_id = pedido.cotacao_id', 'inner');
         $this->_database->join('cliente', 'cliente.cliente_id = cotacao.cliente_id', 'inner');
       	$this->_database->join("cotacao_equipamento", "cotacao_equipamento.cotacao_id = cotacao.cotacao_id", 'left');
+        $this->_database->join("equipamento_marca", "equipamento_marca.equipamento_marca_id = cotacao_equipamento.equipamento_marca_id", 'left');
+        $this->_database->join("equipamento_categoria", "equipamento_categoria.equipamento_categoria_id = cotacao_equipamento.equipamento_categoria_id", 'left');
 
         return $this;
     }
@@ -1184,8 +1185,8 @@ Class Pedido_Model extends MY_Model
           }
         }
       
-      error_log( print_r( $dados, true ) . "\n", 3, "/var/log/nginx/360.log" );
-      error_log( print_r( $item, true ) . "\n", 3, "/var/log/nginx/360.log" );
+      //error_log( print_r( $dados, true ) . "\n", 3, "/var/log/nginx/360.log" );
+      //error_log( print_r( $item, true ) . "\n", 3, "/var/log/nginx/360.log" );
       
         $dados_pedido = array();
         $dados_pedido['cotacao_id'] = $dados['cotacao_id'];
@@ -1405,6 +1406,7 @@ Class Pedido_Model extends MY_Model
 
     }
 }
+
 
 
 

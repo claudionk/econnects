@@ -101,6 +101,7 @@ Class Produto_Parceiro_Model extends MY_Model
         $this->_database->select($this->_table.'.nome');
         $this->_database->select('produto.slug, produto.nome');
         $this->_database->select('parceiro.nome as parceiro_nome');
+        $this->_database->select('parceiro.nome_fantasia as parceiro_nome_fantasia');
         $this->_database->select('produto_parceiro_configuracao.venda_carrinho_compras, produto_parceiro_configuracao.venda_multiplo_cartao');
         $this->_database->from($this->_table);
         $this->_database->where($this->_table.'.deletado', 0);

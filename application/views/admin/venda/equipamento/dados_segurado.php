@@ -12,8 +12,8 @@
         <a href="<?php echo base_url("{$current_controller_uri}/equipamento/{$carrossel['produto_parceiro_id']}/2/{$cotacao_id}")?>" class="btn  btn-app btn-primary">
             <i class="fa fa-arrow-left"></i> Voltar
         </a>
-        <a class="btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
-            <i class="fa fa-edit"></i> Próximo
+        <a class="btn pull-right btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
+            <i class="fa fa-arrow-right"></i> Próximo
         </a>
     </div>
 </div>

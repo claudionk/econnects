@@ -318,6 +318,8 @@ Class Cotacao_Equipamento_Model extends MY_Model
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
 
         $carrossel = $this->session->userdata("carrossel_{$produto_parceiro_id}");
+      
+      error_log( "Carrosel: " . print_r( $carrossel, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
 
 
         if($cotacao_id) {
@@ -684,4 +686,5 @@ Class Cotacao_Equipamento_Model extends MY_Model
     }
 
 }
+
 

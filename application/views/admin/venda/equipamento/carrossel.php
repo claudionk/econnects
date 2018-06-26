@@ -19,8 +19,8 @@
         <a href="javascript:void(0);" class="btn btn-app btn-primary btn-salvar-cotacao">
             <i class="fa fa-edit"></i> Salvar Cotação
         </a>
-        <a class="btn btn_dados_segurado  btn-app btn-primary">
-            <i class="fa fa-edit"></i> Próximo
+        <a class="btn pull-right btn_dados_segurado  btn-app btn-primary">
+            <i class="fa fa-arrow-right"></i> Próximo
         </a>
     </div>
 </div>
@@ -244,11 +244,11 @@
                                                     <li><?php echo app_produto_traducao('Quantidade', $row['produto_parceiro_id']); ?></li>
                                                 <?php endif; ?>
 
-                                                <li style="font-weight: bold;"><?php echo app_produto_traducao('PRÊMIO NET', $row['produto_parceiro_id']); ?></li>
                                                 <?php if ($exite_cobertura) : ?>
                                                     <li><?php echo app_produto_traducao('Coberturas adicionais', $row['produto_parceiro_id']); ?></li>
                                                 <?php endif; ?>
                                                 <?php if ($configuracao['repasse_comissao'] == 1) : ?>
+                                                <li style="font-weight: bold;"><?php echo app_produto_traducao('PRÊMIO NET', $row['produto_parceiro_id']); ?></li>
                                                     <li><?php echo app_produto_traducao('Comissão', $row['produto_parceiro_id']); ?></li>
                                                     <li><?php echo app_produto_traducao('Repasse de Comissão', $row['produto_parceiro_id']); ?></li>
                                                     <li style="font-weight: bold;"><?php echo app_produto_traducao('Comissão Corretor', $row['produto_parceiro_id']); ?></li>
@@ -324,11 +324,6 @@
                                                                            } ?>">
                                                                 <?php endif; ?>
 
-                                                                <tr class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>">
-                                                                    <td><span
-                                                                                class="premio_bruto premio_bruto_one_<?php echo $plano['produto_parceiro_plano_id']; ?>">---</span>
-                                                                    </td>
-                                                                </tr>
                                                                 <?php if($exite_cobertura) : ?>
                                                                     <tr class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>">
                                                                         <td>
@@ -338,6 +333,11 @@
                                                                     </tr>
                                                                 <?php endif; ?>
                                                                 <?php if ($configuracao['repasse_comissao'] == 1) : ?>
+                                                                <tr class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>">
+                                                                    <td><span
+                                                                                class="premio_bruto premio_bruto_one_<?php echo $plano['produto_parceiro_plano_id']; ?>">---</span>
+                                                                    </td>
+                                                                </tr>
                                                                     <tr class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>">
                                                                         <td>
                                                                     <span><?php echo app_format_currency($configuracao['comissao'], false, 2); ?>
@@ -697,11 +697,12 @@
             <a href="javascript:void(0);" class="btn btn-app btn-primary btn-salvar-cotacao">
                 <i class="fa fa-edit"></i> Salvar Cotação
             </a>
-        <a class="btn btn_dados_segurado  btn-app btn-primary">
-            <i class="fa fa-edit"></i> Próximo
+        <a class="btn pull-right btn_dados_segurado  btn-app btn-primary">
+            <i class="fa fa-arrow-right"></i> Próximo
         </a>
     </div>
 </div>
 <script>
     var layout = "base";
 </script>
+

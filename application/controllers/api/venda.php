@@ -22,10 +22,10 @@ class Venda extends Api_Controller
 
   const FORMA_PAGAMENTO_CARTAO_CREDITO = 1;
   const FORMA_PAGAMENTO_FATURADO = 9;
-  const FORMA_PAGAMENTO_CARTAO_DEBITO = 7;
-  const FORMA_PAGAMENTO_BOLETO = 8;
-  const FORMA_PAGAMENTO_TRANSF_BRADESCO = 5;
-  const FORMA_PAGAMENTO_TRANSF_BB = 6;
+  const FORMA_PAGAMENTO_CARTAO_DEBITO = 8;
+  const FORMA_PAGAMENTO_BOLETO = 9;
+  const FORMA_PAGAMENTO_TRANSF_BRADESCO = 2;
+  const FORMA_PAGAMENTO_TRANSF_BB = 7;
 
 
   /**
@@ -289,8 +289,6 @@ class Venda extends Api_Controller
 
     $this->cotacao->setValidate($validacao);
     
-    error_log( print_r( $this->cotacao, true ), 3, "/var/log/httpd/myapp.log" );
-    
     //Verifica válido form
     if ($this->cotacao->validate_form('cotacao'))
     {
@@ -305,6 +303,8 @@ class Venda extends Api_Controller
 
 
       $result['cotacao_id'] = $cotacao_id;
+      
+      
 
       $response->setStatus(true);
       $response->setDados($result);
@@ -611,8 +611,11 @@ class Venda extends Api_Controller
     
     error_log( "CALCULO_COTACAO_EQUIPAMENTO (equipamento_categoria_id): $equipamento_categoria_id\n", 3, "/var/log/httpd/myapp.log" );
 
+    error_log( "CALCULO_COTACAO_EQUIPAMENTO #0: " . print_r( $params, true ). "\n", 3, "/var/log/httpd/myapp.log" );
+
     $valores_bruto = $this->getValoresPlano($produto_parceiro_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade);
 
+    error_log( "CALCULO_COTACAO_EQUIPAMENTO #0: " . print_r( $valores_bruto, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
     $valores_cobertura_adicional_total = array();
     $valores_cobertura_adicional = array();
     if($coberturas_adicionais){
@@ -692,6 +695,7 @@ class Venda extends Api_Controller
     //verifica o limite da vigencia dos planos
     $fail_msg = '';
 
+    error_log( "CALCULO_COTACAO_EQUIPAMENTO #1: " . print_r( $configuracao, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
     /**
          * FAZ O CÁLCULO DO PLANO
          */
@@ -730,15 +734,21 @@ class Venda extends Api_Controller
       ->filter_by_produto_parceiro($produto_parceiro_id)
       ->get_all();
 
+    $iof = 0;
     $valores_liquido_total = array();
     foreach ($valores_liquido as $key => $value) {
       $valores_liquido_total[$key] = $value;
       foreach ($regra_preco as $regra) {
         $valores_liquido_total[$key] += (($regra['parametros']/100) * $value);
         $valores_liquido_total[$key] -= $desconto_upgrade;
+        if( strtoupper($regra["regra_preco_nome"]) == "IOF" ) {
+          $iof = $regra['parametros'];
+        }
       }
     }
 
+    error_log( "CALCULO_COTACAO_EQUIPAMENTO #1: " . print_r( $regra, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+    
     //Resultado
     $result  = array(
       'sucess' => $sucess,
@@ -768,6 +778,12 @@ class Venda extends Api_Controller
       $cotacao_eqp['comissao_corretor'] = $comissao_corretor;
       $cotacao_eqp['desconto_condicional'] = $desconto_condicional;
       $cotacao_eqp['desconto_condicional_valor'] = $desconto_condicional_valor;
+      $cotacao_eqp['premio_liquido'] = $valores_liquido[$plano['produto_parceiro_plano_id']];
+      $cotacao_eqp['premio_liquido_total'] = $valores_liquido_total[$plano['produto_parceiro_plano_id']];
+      $cotacao_eqp['iof'] = $iof;
+      
+      error_log( "CALCULO_COTACAO_EQUIPAMENTO #2: " . print_r( $cotacao_eqp, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+      
       $this->cotacao_equipamento->update($cotacao_salva['cotacao_equipamento_id'], $cotacao_eqp, TRUE);
     }
 
@@ -821,6 +837,15 @@ class Venda extends Api_Controller
         case self::PRECO_TIPO_COBERTURA:
           break;
         case self::PRECO_TIPO_VALOR_SEGURADO:
+          $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
+          $this->load->model('equipamento_model', 'equipamento');
+          $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
+          error_log( "PRECO_TIPO_VALOR_SEGURADO: ". print_r( $produto_parceiro_plano_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+          $valor = $this->produto_parceiro_plano_precificacao_itens
+            ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
+            ->filter_by_tipo_equipamento("TODOS")
+            ->get_all();
+          $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
           break;
         case self::PRECO_POR_EQUIPAMENTO;
           $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
@@ -1618,7 +1643,6 @@ error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) 
 
     $validacao = array();
 
-
     /**
          * Cartão de crédito
          */
@@ -1704,9 +1728,6 @@ error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) 
         'groups' => 'pagamento'
       );
 
-    }else if ($tipo_forma_pagamento_id == Self::FORMA_PAGAMENTO_FATURADO){
-      //faturado
-      $validacao[] = array();
     }else if ($tipo_forma_pagamento_id == Self::FORMA_PAGAMENTO_BOLETO){
       //faturado
       $validacao[] = array(
@@ -1757,7 +1778,11 @@ error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) 
         'rules' => "trim|required" ,
         'groups' => 'pagamento'
       );
+    }else{ 				// if ($tipo_forma_pagamento_id == Self::FORMA_PAGAMENTO_FATURADO){
+      //faturado
+      $validacao[] = array();
     }
+
 
     //$this->load->library('form_validation');
 
@@ -1765,22 +1790,20 @@ error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) 
     $this->cotacao->setValidate($validacao);
 
 
-    if ($this->cotacao->validate_form('pagamento'))
-    {
+  error_log( "Validou ($tipo_forma_pagamento_id)\n", 3, "/var/log/httpd/myapp.log" );
+    if ($this->cotacao->validate_form('pagamento')) {
 
-      if($pedido_id == 0)
-      {
+      if($pedido_id == 0 || $pedido_id == "" ) {
+        error_log( "Validou (" . print_r( $_POST, true ) . ")\n", 3, "/var/log/httpd/myapp.log" );
         $pedido_id = $this->pedido->insertPedido($_POST);
-      }
-      else
-      {
+
+      } else {
         $this->pedido->updatePedido($pedido_id, $_POST);
         // $this->pedido->insDadosPagamento($_POST, $pedido_id);
       }
 
       //Se for faturamento, muda status para aguardando faturamento
-      if($pedido_id && $tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO)
-      {
+      if($pedido_id && $tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO) {
         $status = $this->pedido->mudaStatus($pedido_id, "aguardando_faturamento");
       }
 
@@ -1792,7 +1815,7 @@ error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) 
       );
 
 
-    }else{
+    } else {
 
       $erros = $this->cotacao->error_array();
       $result  = array(
@@ -1965,6 +1988,8 @@ error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) 
   }
 
 }
+
+
 
 
 

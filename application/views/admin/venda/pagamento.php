@@ -27,7 +27,7 @@ if($_POST){
 
             <?php endif; ?>
             <a class="btn pull-right btn-app btn-primary btn-proximo" onclick="$('#validateSubmitForm').submit();">
-                <i class="fa fa-edit"></i> Próximo
+                <i class="fa fa-arrow-right"></i> Próximo
             </a>
         </div>
     </div>

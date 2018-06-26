@@ -19,7 +19,7 @@
             <i class="fa fa-edit"></i> Salvar Cotação
         </a>
         <a class="btn pull-right btn_dados_segurado  btn-app btn-primary">
-            <i class="fa fa-edit"></i> Próximo
+            <i class="fa fa-arrow-right"></i> Próximo
         </a>
     </div>
 </div>

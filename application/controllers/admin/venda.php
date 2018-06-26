@@ -11,6 +11,7 @@ class Venda extends Admin_Controller
     const PRECO_TIPO_TABELA = 1;
     const PRECO_TIPO_COBERTURA = 2;
     const PRECO_TIPO_VALOR_SEGURADO = 3;
+    const PRECO_POR_EQUIPAMENTO = 5;
 
     const TIPO_CALCULO_NET = 1;
     const TIPO_CALCULO_BRUTO = 2;
@@ -1721,28 +1722,25 @@ class Venda extends Admin_Controller
         }
         $valores = array();
         foreach ($arrPlanos as $plano){
-            switch ((int)$plano['precificacao_tipo_id'])
-            {
-                case self::PRECO_TIPO_TABELA:
+            switch ((int)$plano['precificacao_tipo_id']) {
+              case self::PRECO_TIPO_TABELA:
 
-                    $calculo = ($this->getValorTabelaFixa($plano['produto_parceiro_plano_id'], $quantidade_dias)*$num_passageiro);
-                    if($calculo)
-                        $valores[$plano['produto_parceiro_plano_id']] = $calculo;
-                    else
-                        return null;
+                $calculo = ($this->getValorTabelaFixa($plano['produto_parceiro_plano_id'], $quantidade_dias)*$num_passageiro);
+                if($calculo)
+                  $valores[$plano['produto_parceiro_plano_id']] = $calculo;
+                else
+                  return null;
 
-                    if($moeda_padrao['moeda_id'] != $plano['moeda_id']){
-                        $valores[$plano['produto_parceiro_plano_id']] = $this->moeda_cambio->getValor($plano['moeda_id'], $valores[$plano['produto_parceiro_plano_id']]);
-                    }
-                    break;
-                case self::PRECO_TIPO_COBERTURA:
-                    break;
-                case self::PRECO_TIPO_VALOR_SEGURADO:
-                    break;
-                default:
-                    break;
-
-
+                if($moeda_padrao['moeda_id'] != $plano['moeda_id']){
+                  $valores[$plano['produto_parceiro_plano_id']] = $this->moeda_cambio->getValor($plano['moeda_id'], $valores[$plano['produto_parceiro_plano_id']]);
+                }
+                break;
+              case self::PRECO_TIPO_COBERTURA:
+                break;
+              case self::PRECO_TIPO_VALOR_SEGURADO:
+                break;
+              default:
+                break;
             }
         }
 
@@ -2880,3 +2878,4 @@ Array
     }
 
 }
+

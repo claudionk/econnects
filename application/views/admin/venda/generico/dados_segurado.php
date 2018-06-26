@@ -12,7 +12,7 @@
                 <i class="fa fa-arrow-left"></i> Voltar
             </a>
             <a class="btn pull-right btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
-                <i class="fa fa-edit"></i> Próximo
+                <i class="fa fa-arrow-right"></i> Próximo
             </a>
         </div>
     </div>
