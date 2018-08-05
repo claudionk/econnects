@@ -150,7 +150,7 @@ class Comunicacao
      * @param $engine
      * @return array
      */
-  private function envia_sms($mensagem, $engine)
+  private function envia_sms_Twilio($mensagem, $engine)
   {
     $response = array();
     $response['retorno'] = "";
@@ -185,6 +185,77 @@ class Comunicacao
 
   }
 
+  private function envia_sms($mensagem, $engine)
+  {
+    $response = array();
+    $response['retorno'] = "";
+    $response['retorno_codigo'] = "";
+    $response['status'] = false;
+
+    $mensagem['mensagem_to'] = "+55".app_retorna_numeros($mensagem['mensagem_to']);
+    $text = html_entity_decode(strip_tags($mensagem['mensagem']));
+    $config = array(
+            'urlCurl' => 'https://api.infobip.com/sms/1/text/single',
+            'methodCurl' => 'POST', 
+            'fieldsCurl' => "{  \n   \"from\":\"SIS\",\n   \"to\":\"{$mensagem['mensagem_to']}\",\n   \"text\":\"{$text}\"\n}", 
+            'headerCurl' => array(
+        "accept: application/json",
+        "authorization: Basic anBhbmRyZWxsb0BzaXNzb2x1Y29lcy5jb20uYnI6c2lzQDIwMTc=",
+        "content-type: application/json",
+        "cache-control: no-cache",
+      ),
+    );
+
+    $curl = curl_init();
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => $config['urlCurl'],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => $config['methodCurl'],
+        CURLOPT_POSTFIELDS => $config['fieldsCurl'],
+        CURLOPT_HTTPHEADER => $config['headerCurl']
+    ));
+    $resp = curl_exec($curl);
+    $info = curl_getinfo($curl);
+    $httpCode = curl_getinfo($curl , CURLINFO_HTTP_CODE);
+    $err = curl_error($curl);
+    curl_close($curl);
+    
+
+    if ($err) {
+      $response['retorno'] = $err;
+      $response['retorno_codigo'] = $httpCode;
+    } else {
+
+            if($httpCode != "200"){
+                $response['retorno'] = "HTTPCode: {$httpCode}";
+                $response['retorno_codigo'] = $httpCode;
+            }
+            else
+            {
+                $resp = json_decode($resp, true);
+                $resp = $resp['messages'][0];
+                $response['retorno_codigo'] = $resp['messageId'];
+
+                //sucesso
+                if($response['status']['name'] == "PENDING_ENROUTE"){
+                    $retorno['status'] = true;
+                }else
+                {
+                    $retorno['retorno'] = "O SMS para o Número {$resp['to']} retornou o status {$resp['status']['name']} [{$resp['status']['description']}]";
+                }
+            }
+
+        }
+    
+
+    return $response;
+
+  }
   /**
      * Envia um e-mail
      * @param $mensagem
@@ -645,6 +716,8 @@ class Comunicacao
 
 
 }
+
+
 
 
 

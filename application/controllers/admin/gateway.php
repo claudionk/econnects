@@ -37,8 +37,7 @@ class Gateway extends Admin_Controller
   }
 
 
-  public function index($pedido_id = 0) //Função padrão (load)
-  {
+  public function index($pedido_id = 0) {
     if(!$pedido_id){
       return;
     }
@@ -55,13 +54,10 @@ class Gateway extends Admin_Controller
     if($parceiro_pagamento['forma_pagamento_integracao_id'] == self::INTEGRACAO_PAGMAX){
       $this->pagmax($pedido_id);
     }
-
-
   }
 
 
   public function run(){
-
     //      exit();
     $i = 20;
     while($i > 0){
@@ -80,7 +76,6 @@ class Gateway extends Admin_Controller
 
 
   public function pagmax($pedido_id = 0){
-
 
     log_message('debug', 'INICIO PAGMAX');
 

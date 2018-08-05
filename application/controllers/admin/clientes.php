@@ -359,8 +359,8 @@ class Clientes extends Admin_Controller
 
         $cpf = empty($cpf) ? $this->input->post('cpf') : $cpf;
 
-        $produto_parceiro_id = ($produto_parceiro_id != 0) ? $produto_parceiro_id : $this->input->post('produto_parceiro_id');
-        $cliente = $this->current_model->get_cliente($cpf, $produto_parceiro_id );
+        $produto_parceiro_id = ($produto_parceiro_id != 0) ? $produto_parceiro_id : $this->input->post( "produto_parceiro_id" );
+        $cliente = $this->current_model->get_cliente( $cpf, $produto_parceiro_id );
 
 
         $result  = array(
@@ -387,3 +387,4 @@ class Clientes extends Admin_Controller
     }
 
 }
+

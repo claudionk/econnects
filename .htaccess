@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  #RewriteBase /ci/topride/
+  RewriteCond $1 !^(index\.php|assets|robots\.txt)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ index.php?/$1 [L,QSA]
+</IfModule>
+
+#AddHandler php53-script .php .php5 .php53 .pht .phtm .phtml
+#suPHP_ConfigPath /home/topride1/
+
