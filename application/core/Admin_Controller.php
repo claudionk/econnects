@@ -176,7 +176,7 @@ class Admin_Controller extends MY_Controller
         $this->load->model('parceiro_model', 'parceiro');
         $parceiro = $this->parceiro->get($parceiro_id);
         $this->_theme = (!empty($parceiro['theme'])) ? $parceiro['theme'] : 'theme-1';
-        $this->_theme_logo =  (!empty($parceiro['logo'])) ? app_assets_url("upload/parceiros/{$parceiro['logo']}", 'admin')  :  app_assets_url('template/img/logo-connects.png', 'admin');
+        $this->_theme_logo =  (!empty($parceiro['logo'])) ? app_assets_url("upload/parceiros/{$parceiro['logo']}", 'admin') : app_assets_url('template/img/logo-connects.png', 'admin');
         $this->_theme_nome =  (!empty($parceiro['apelido'])) ? $parceiro['apelido']  :  $this->_theme_nome;
         $this->template->set('theme', $this->_theme);
         $this->template->set('theme_logo', $this->_theme_logo);
@@ -184,8 +184,7 @@ class Admin_Controller extends MY_Controller
     }
 
 
-    public function venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id = 0)
-    {
+    public function venda_pagamento( $produto_parceiro_id, $cotacao_id, $pedido_id = 0 ) {
         $pedido_id = (int)$pedido_id;
 
         $this->load->model('cotacao_model', 'cotacao');
@@ -199,45 +198,47 @@ class Admin_Controller extends MY_Controller
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
         $this->load->model('pedido_model', 'pedido');
 
+      
         //Carrega templates
         $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
         $this->template->js(app_assets_url('modulos/venda/pagamento/js/pagamento.js', 'admin'));
 
         //Retorna cotação
         $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
+        error_log( "Produto: " . print_r( $cotacao['produto_slug'], true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
         switch ($cotacao['produto_slug']) {
-            case 'seguro_viagem':
+            case "seguro_viagem":
                 $valor_total = $this->cotacao_seguro_viagem->getValorTotal($cotacao_id);
                 break;
-            case 'equipamento':
+            case "equipamento":
                 $valor_total = $this->cotacao_equipamento->getValorTotal($cotacao_id);
                 break;
-            case 'generico':
+            case "generico":
                 $valor_total = $this->cotacao_generico->getValorTotal($cotacao_id);
                 break;
+            case "seguro_saude":
+                $valor_total = $this->cotacao_generico->getValorTotal($cotacao_id);
+                break;
+            
         }
+        error_log( "Valor Total: " . print_r( $valor_total, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
 
         //formas de pagamento
         $forma_pagamento = array();
         $tipo_pagamento = $this->forma_pagamento_tipo->get_all();
 
         //Para cada tipo de pagamento
-        foreach ($tipo_pagamento as $index => $tipo)
-        {
+        foreach ($tipo_pagamento as $index => $tipo) {
             $forma = $this->produto_pagamento->with_forma_pagamento()
                 ->filter_by_produto_parceiro($produto_parceiro_id)
                 ->filter_by_forma_pagamento_tipo($tipo['forma_pagamento_tipo_id'])
                 ->filter_by_ativo()
                 ->get_all();
 
-            $bandeiras = $this->forma_pagamento_bandeira
-                ->get_many_by(array(
-                    'forma_pagamento_tipo_id' =>  $tipo['forma_pagamento_tipo_id']
-                ));
+            $bandeiras = $this->forma_pagamento_bandeira->get_many_by( array( "forma_pagamento_tipo_id" =>  $tipo["forma_pagamento_tipo_id"] ) );
 
 
-            if(count($forma) > 0){
-
+            if( count($forma) > 0 ) {
                 foreach ($forma as $index => $item) {
                     $parcelamento = array();
                     for($i = 1; $i <= $item['parcelamento_maximo'];$i++){
@@ -838,4 +839,5 @@ class Admin_Controller extends MY_Controller
 
 
 }
+
 

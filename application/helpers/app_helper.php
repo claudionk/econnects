@@ -1244,6 +1244,9 @@ function app_get_step_cotacao($cotacao_id){
         case 'generico':
             $cotacao = $CI->cotacao->with_produto_parceiro()->with_cotacao_generico()->get($cotacao_id);
             break;
+        case 'seguro_saude':
+            $cotacao = $CI->cotacao->with_produto_parceiro()->with_cotacao_generico()->get($cotacao_id);
+            break;
     }
 
     if($cotacao['step'] == 1){

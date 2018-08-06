@@ -409,7 +409,10 @@ Class Pedido_Model extends MY_Model
         return $this;
     }
 
-    public function build_faturamento($engine = 'generico'){
+    public function build_faturamento( $engine = "generico" ) {
+      if( $engine == "seguro_saude" ) {
+        $engine = "generico";
+      }
        $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.produto_parceiro_pagamento_id, pedido.num_parcela, pedido.valor_parcela")
             ->select("cotacao_{$engine}.*")
             ->select("cotacao.produto_parceiro_id, produto.slug")
@@ -429,7 +432,7 @@ Class Pedido_Model extends MY_Model
 
     }
 
-    function getPedidoProdutoParceiro($pedido_id = 0){
+    function getPedidoProdutoParceiro( $pedido_id = 0 ){
 
 
 
@@ -441,8 +444,9 @@ Class Pedido_Model extends MY_Model
             ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
             ->join("produto", "produto.produto_id = produto_parceiro.produto_id", 'inner')
             ->join("produto_parceiro_apolice", "produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'left')
-            //->join("cotacao_seguro_viagem", "cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id", 'left')
-            //->join("cotacao_equipamento", "cotacao_equipamento.cotacao_id = cotacao.cotacao_id", 'left')
+            ->join("cotacao_seguro_viagem", "cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id", 'left')
+            ->join("cotacao_equipamento", "cotacao_equipamento.cotacao_id = cotacao.cotacao_id", 'left')
+            ->join("cotacao_generico", "cotacao_generico.cotacao_id = cotacao.cotacao_id", 'left')
             ->where_in("pedido.pedido_id", $pedido_id);
 
 
@@ -475,7 +479,7 @@ Class Pedido_Model extends MY_Model
                     ->join("cotacao_equipamento", "cotacao_equipamento.cotacao_id = cotacao.cotacao_id", 'left')
                     ->where_in("pedido.pedido_id", $pedido_id);
                 $pedidos = $this->get_all();
-            }elseif ($pedido['slug'] == 'generico'){
+            }elseif ( $pedido['slug'] == "generico" || $pedido['slug'] == "seguro_saude" ){
                 $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.produto_parceiro_pagamento_id,pedido.num_parcela, pedido.valor_parcela")
                     ->select("cotacao_generico.*")
                     ->select("cotacao.produto_parceiro_id, produto.slug")
@@ -1158,6 +1162,9 @@ Class Pedido_Model extends MY_Model
             case 'generico':
                 $valor_total = $this->cotacao_generico->getValorTotal($dados['cotacao_id']);
                 break;
+            case 'seguro_saude':
+                $valor_total = $this->cotacao_generico->getValorTotal($dados['cotacao_id']);
+                break;
         }
 
         //Se for um upgrade
@@ -1261,6 +1268,9 @@ Class Pedido_Model extends MY_Model
                 $valor_total = $this->cotacao_equipamento->getValorTotal($dados['cotacao_id']);
                 break;
             case 'generico':
+                $valor_total = $this->cotacao_generico->getValorTotal($dados['cotacao_id']);
+                break;
+            case 'seguro_saude':
                 $valor_total = $this->cotacao_generico->getValorTotal($dados['cotacao_id']);
                 break;
         }
@@ -1406,6 +1416,7 @@ Class Pedido_Model extends MY_Model
 
     }
 }
+
 
 
 

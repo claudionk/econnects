@@ -120,7 +120,7 @@
                                                         $data_campo['list'] = isset($list) ? $list : array();
                                                         $data_campo['tamanho'] = $campo['tamanho'] == 0 ? 6 : $campo['tamanho'];
                                                         $data_campo['class'] = $campo['campo_classes'];
-                                                        $data_campo['opcoes'] = $campo['opcoes'];
+                                                        $data_campo['opcoes'] = $campo['campo_opcoes'];
 
                                                         ?>
 

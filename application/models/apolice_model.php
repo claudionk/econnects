@@ -48,19 +48,19 @@ Class Apolice_Model extends MY_Model
         $configuracao = $configuracao[0];
 
 
-        $porduto_parceiro = $this->produto_parceiro->with_produto()->get($pedido['produto_parceiro_id']);
+        $produto_parceiro = $this->produto_parceiro->with_produto()->get($pedido['produto_parceiro_id']);
 
 
-        if($porduto_parceiro['produto_slug'] == 'seguro_viagem'){
+        if($produto_parceiro['produto_slug'] == 'seguro_viagem'){
             $cotacao_salvas = $this->cotacao->with_cotacao_seguro_viagem()
                 ->filterByID($pedido['cotacao_id'])
                 ->get_all();
-        }elseif($porduto_parceiro['produto_slug'] == 'equipamento') {
+        }elseif($produto_parceiro['produto_slug'] == 'equipamento') {
 
             $cotacao_salvas = $this->cotacao->with_cotacao_equipamento()
                 ->filterByID($pedido['cotacao_id'])
                 ->get_all();
-        }elseif($porduto_parceiro['produto_slug'] == 'generico') {
+        }elseif( $produto_parceiro["produto_slug"] == "generico" || $produto_parceiro["produto_slug"] == "seguro_saude" ) {
 
             $cotacao_salvas = $this->cotacao->with_cotacao_generico()
                 ->filterByID($pedido['cotacao_id'])
@@ -73,7 +73,7 @@ Class Apolice_Model extends MY_Model
         $evento['mensagem']['apolices'] = "";
         $evento['mensagem']['nome'] = "";
 
-        if($porduto_parceiro['produto_slug'] == 'seguro_viagem'){
+        if($produto_parceiro['produto_slug'] == 'seguro_viagem'){
             foreach ($cotacao_salvas as $cotacao_salva)
             {
                 $cotacao_pessoas = $this->cotacao_pessoa->filter_by_seguro_viagem($cotacao_salva['cotacao_seguro_viagem_id'])->get_all();
@@ -83,7 +83,7 @@ Class Apolice_Model extends MY_Model
                 $evento['produto_parceiro_id'] = $pedido['produto_parceiro_id'];
             }
 
-        }elseif($porduto_parceiro['produto_slug'] == 'equipamento') {
+        }elseif($produto_parceiro['produto_slug'] == 'equipamento') {
 
             $cotacao_salva = $cotacao_salvas[0];
             $evento['mensagem']['nome'] = $cotacao_salva['nome'];
@@ -91,7 +91,7 @@ Class Apolice_Model extends MY_Model
             $evento['destinatario_telefone'] = $cotacao_salva['telefone'];
             $evento['produto_parceiro_id'] = $pedido['produto_parceiro_id'];
 
-        }elseif($porduto_parceiro['produto_slug'] == 'generico') {
+        }elseif( $produto_parceiro["produto_slug"] == "generico" || $produto_parceiro["produto_slug"] == "seguro_saude" ) {
 
             $cotacao_salva = $cotacao_salvas[0];
             $evento['mensagem']['nome'] = $cotacao_salva['nome'];
@@ -143,7 +143,7 @@ Class Apolice_Model extends MY_Model
                 $this->insertSeguroViagem($pedido_id);
             }elseif($produto['slug'] == 'equipamento'){
                 $this->insertSeguroEquipamento($pedido_id);
-            }elseif($produto['slug'] == 'generico'){
+            }elseif( $produto["slug"] == "generico" || $produto["slug"] == "seguro_saude" ){
                 $this->insertSeguroGenerico($pedido_id);
             }
         }
@@ -809,7 +809,7 @@ Class Apolice_Model extends MY_Model
             }elseif ($pedido['slug'] == 'equipamento'){
                 $this->_database->select("apolice_equipamento.*")
                     ->join("apolice_equipamento", "apolice.apolice_id = apolice_equipamento.apolice_id", 'inner');
-            }elseif ($pedido['slug'] == 'generico'){
+            }elseif ($pedido["slug"] == "generico" || $pedido["slug"] == "seguro_saude") {
                 $this->_database->select("apolice_generico.*")
                     ->join("apolice_generico", "apolice.apolice_id = apolice_generico.apolice_id", 'inner');
             }
@@ -862,7 +862,7 @@ Class Apolice_Model extends MY_Model
             }elseif ($pedido['slug'] == 'equipamento'){
                 $this->_database->select("apolice_equipamento.*")
                     ->join("apolice_equipamento", "apolice.apolice_id = apolice_equipamento.apolice_id", 'inner');
-            }elseif ($pedido['slug'] == 'generico'){
+            }elseif ($pedido["slug"] == "generico" || $pedido["slug"] == "seguro_saude") {
                 $this->_database->select("apolice_generico.*")
                     ->join("apolice_generico", "apolice.apolice_id = apolice_generico.apolice_id", 'inner');
             }
@@ -1030,9 +1030,7 @@ Class Apolice_Model extends MY_Model
         $data_template['fim_viagem'] = app_date_mysql_to_mask($apolice['data_fim_vigencia'], 'd/m/Y');
         $data_template['data_pedido'] = app_date_mysql_to_mask($apolice['data_adesao'], 'd/m/Y');
         $data_template['data_adesao'] = app_date_mysql_to_mask($apolice['data_adesao'], 'd/m/Y');
-      	$data_template['lmi_roubo'] = app_format_currency($apolice['nota_fiscal_valor']);
-        $data_template['lmi_furto'] = app_format_currency($apolice['nota_fiscal_valor']);
-        $data_template['lmi_quebra'] = app_format_currency($apolice['nota_fiscal_valor']);
+      
         $data_template['premio_liquido'] = "R$ ".app_format_currency($apolice['valor_premio_net']);
         $data_template['premio_total'] = "R$ ".app_format_currency($apolice['valor_premio_total']);
         $data_template['valor_iof'] = "R$ ".app_format_currency( $apolice['valor_premio_total'] - $apolice['valor_premio_net'] );
@@ -1064,6 +1062,9 @@ Class Apolice_Model extends MY_Model
           $data_template['equipamento'] = $equipamento[0]["equipamento"];
           $data_template['modelo'] = $equipamento[0]["modelo"];
           $data_template['marca'] = $equipamento[0]["marca"];
+          $data_template['lmi_roubo'] = app_format_currency($apolice['nota_fiscal_valor']);
+          $data_template['lmi_furto'] = app_format_currency($apolice['nota_fiscal_valor']);
+          $data_template['lmi_quebra'] = app_format_currency($apolice['nota_fiscal_valor']);
         } else {
           $data_template['equipamento'] = "";
           $data_template['modelo'] = "";
@@ -1227,6 +1228,7 @@ Class Apolice_Model extends MY_Model
 
 
 }
+
 
 
 

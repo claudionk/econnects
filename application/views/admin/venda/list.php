@@ -20,7 +20,7 @@
                         <img src="<?php echo app_assets_url('core/images/ico/ico_' . $row['slug']. '.png' , 'admin'); ?>">
                     </div>
                     <br>
-                    <p class="opacity-50"><em><?php echo $row['parceiro_nome'];?></em></p>
+                    <p class="opacity-50"><em><?php echo ( isset( $row['parceiro_nome_fantasia'] ) ? $row['parceiro_nome_fantasia'] : $row['parceiro_nome'] ); ?></em></p>
                 </div><!--end .card-body -->
                 <div class="card-body">
                     <a href="<?php echo base_url("{$current_controller_uri}/iniciar_venda/{$row[$primary_key]}")?>" class="btn ink-reaction btn-raised btn-primary">Venda</a>

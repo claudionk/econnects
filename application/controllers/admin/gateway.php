@@ -162,7 +162,7 @@ class Gateway extends Admin_Controller
     $pedidos = func_get_args();
     $this->load->model('apolice_model', 'apolice');
     foreach ($pedidos as $pedido_id) {
-      $this->apolice->insertAplice($pedido_id);
+      $this->apolice->insertApolice($pedido_id);
     }
 
   }
@@ -730,34 +730,29 @@ class Gateway extends Admin_Controller
       ->set_output(json_encode($result));
   }
 
-  public function pedido($cotacao_id = 0){
-
+  public function pedido( $cotacao_id = 0 ) {
 
     $cotacao_id = ($cotacao_id == 0) ? $this->input->post('cotacao_id') : $cotacao_id;
 
     $this->load->model('pedido_model', 'cartao');
 
-    $pedido = $this->pedido->get_many_by(
-      array(
-        'pedido.cotacao_id' => $cotacao_id
-      ));
+    $pedido = $this->pedido->get_many_by( array( "pedido.cotacao_id" => $cotacao_id ) );
 
     $result = array();
-    $result['result'] = FALSE;
-    $result['pedido_id'] = '';
-    $result['pedido_status_id'] = '';
-    $result['mensagem'] = '';
+    $result["result"] = false;
+    $result["pedido_id"] = "";
+    $result["pedido_status_id"] = "";
+    $result["mensagem"] = "";
 
     if(count($pedido) > 0 ) {
       $pedido = $pedido[0];
-      $result['result'] = TRUE;
-      $result['pedido_status_id'] = $pedido['pedido_status_id'];
-      $result['pedido_id'] = $pedido['pedido_id'];
+      $result["result"] = true;
+      $result["pedido_status_id"] = $pedido["pedido_status_id"];
+      $result["pedido_id"] = $pedido["pedido_id"];
 
     }else{
-      $result['mensagem'] = "PEDIDO NÃO ENCONTRADO";
+      $result["mensagem"] = "PEDIDO NÃO ENCONTRADO";
     }
-
 
     $this->output
       ->set_content_type('application/json')
@@ -855,6 +850,7 @@ class Gateway extends Admin_Controller
 
 
 }
+
 
 
 

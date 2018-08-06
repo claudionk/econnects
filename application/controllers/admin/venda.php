@@ -114,6 +114,8 @@ class Venda extends Admin_Controller
         $this->limpa_cotacao($produto_parceiro_id);
         if($produto['produto_slug'] == 'seguro_viagem'){
             redirect("$this->controller_uri/{$produto['produto_slug']}/{$produto_parceiro_id}");
+        }elseif($produto['produto_slug'] == 'seguro_saude'){
+            redirect("admin/venda_seguro_saude/{$produto['produto_slug']}/{$produto_parceiro_id}");
         }elseif($produto['produto_slug'] == 'equipamento'){
             redirect("admin/venda_equipamento/{$produto['produto_slug']}/{$produto_parceiro_id}");
         }elseif($produto['produto_slug'] == 'generico'){
@@ -153,6 +155,10 @@ class Venda extends Admin_Controller
 
         $produtos = $this->current_model->get_produtos_venda_admin($parceiro_id);
         $relacionamento = $this->current_model->get_produtos_venda_admin_parceiros($parceiro_id);
+      
+        error_log( "Produtos: " . print_r( $produtos, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
+
+        error_log( "Relacionamentos: " . print_r( $relacionamento, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
 
 
         $data['rows'] = array_merge($produtos, $relacionamento);
@@ -183,16 +189,26 @@ class Venda extends Admin_Controller
             //Redireciona para index
             redirect("$this->controller_uri/index");
         }
-    //    print_r($seguro_viagem);exit;
+      
         switch ($row['produto_slug']) {
             case 'seguro_viagem':
                 redirect("admin/venda/seguro_viagem/{$row['produto_parceiro_id']}/{$row['step']}/$cotacao_id");
                 break;
+            case 'seguro_saude':
+                $this->load->model('cotacao_generico_model', 'cotacao_generico');
+                $cotacao = $this->cotacao_generico->get_by(array('cotacao_id' => $cotacao_id));
+                error_log( "Continuar Cotação: " . print_r( $cotacao, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
+                redirect("admin/venda_seguro_saude/seguro_saude/{$row['produto_parceiro_id']}/{$cotacao['step']}/$cotacao_id");
+                break;
             case 'equipamento':
-                redirect("admin/venda_equipamento/equipamento/{$row['produto_parceiro_id']}/{$row['step']}/$cotacao_id");
+                $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento');
+                $cotacao = $this->cotacao_equipamento->get_by(array('cotacao_id' => $cotacao_id));
+                redirect("admin/venda_equipamento/equipamento/{$row['produto_parceiro_id']}/{$cotacao['step']}/$cotacao_id");
                 break;
             case 'generico':
-                redirect("admin/venda_generico/generico/{$row['produto_parceiro_id']}/{$row['step']}/$cotacao_id");
+                $this->load->model('cotacao_generico_model', 'cotacao_generico');
+                $cotacao = $this->cotacao_generico->get_by(array('cotacao_id' => $cotacao_id));
+                redirect("admin/venda_generico/generico/{$row['produto_parceiro_id']}/{$cotacao['step']}/$cotacao_id");
                 break;
         }
 
@@ -2878,4 +2894,5 @@ Array
     }
 
 }
+
 

@@ -88,7 +88,7 @@ class Venda_Equipamento extends Admin_Controller {
     public function equipamento($produto_parceiro_id, $step = 1, $cotacao_id = 0, $pedido_id = 0, $status = '')
     {
         //Carrega models
-        $this->load->model("cotacao_equipamento_model", "cotacao_equipamento_model");
+        $this->load->model("cotacao_equipamento_model", "cotacao_equipamento");
         $this->load->model("pedido_model", "pedido_model");
 
         $this->template->set('page_title_info', '');
@@ -1963,4 +1963,5 @@ class Venda_Equipamento extends Admin_Controller {
     }
 
 }
+
 

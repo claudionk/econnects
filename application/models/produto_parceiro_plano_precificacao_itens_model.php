@@ -37,7 +37,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         array(
             'field' => 'unidade_tempo',
             'label' => 'Unidade',
-            'rules' => 'required|enum[DIA,MES,ANO,VALOR]',
+            'rules' => 'required|enum[DIA,MES,ANO,VALOR,IDADE]',
             'groups' => 'default'
         ),
         array(
@@ -137,6 +137,14 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         return $this;
     }
 
+    function  filter_by_faixa_etaria( $qnt, $unidade_tempo = "IDADE" ){
+
+        $this->_database->where("$qnt >=", "{$this->_table}.inicial", FALSE);
+        $this->_database->where("$qnt <=", "{$this->_table}.final", FALSE);
+        $this->_database->where("{$this->_table}.unidade_tempo", $unidade_tempo);
+        return $this;
+    }
+
     function  filter_by_faixa($qnt){
         $this->_database->where("$qnt >=", "{$this->_table}.inicial", FALSE);
         $this->_database->where("$qnt <=", "{$this->_table}.final", FALSE);
@@ -153,4 +161,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     }
 
 }
+
+
 

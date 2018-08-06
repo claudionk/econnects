@@ -19,7 +19,7 @@
                 <a href="#"><span class="step">3<span class="de_max">/ <?php echo $max ?></span></span> <span class="title"><?php echo app_produto_traducao('Contratação', $produto_parceiro_id); ?></span></a>
             </li>
             <li class="<?php echo ($step == 4) ? 'active' : ''; if($step > 4) echo " done"; ?>">
-                <a href="#"><span class="step">4<span class="de_max">/ <?php echo $max ?></span></span> <span class="title"><?php echo app_produto_traducao('pagamento', $produto_parceiro_id); ?></span></a>
+                <a href="#"><span class="step">4<span class="de_max">/ <?php echo $max ?></span></span> <span class="title"><?php echo app_produto_traducao('Pagamento', $produto_parceiro_id); ?></span></a>
             </li>
             <li class="<?php echo ($step == 5) ? 'active' : ''; if($step > 5) echo " done"; ?>">
                 <a href="#"><span class="step">5<span class="de_max">/ <?php echo $max ?></span></span> <span class="title"><?php echo app_produto_traducao('Certificado / Bilhete', $produto_parceiro_id); ?></span></a>
