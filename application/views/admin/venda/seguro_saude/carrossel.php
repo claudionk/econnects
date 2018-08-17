@@ -8,7 +8,6 @@
     </ol>
 </div>
 
-
 <div class="card">
     <div class="card-body">
         <a href="<?php echo base_url("{$current_controller_uri}/seguro_saude/{$row['produto_parceiro_id']}/1/$cotacao_id") ?>"

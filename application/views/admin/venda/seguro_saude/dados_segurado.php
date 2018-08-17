@@ -45,6 +45,7 @@
 
 
                 <?php
+          			error_log( "Carrossel#1: " . print_r( $carrossel, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
                     $planos = explode(';', $carrossel['plano']);
                     $plano_nome = explode(';', $carrossel['plano_nome']);
                     $valor_total = explode(';', $carrossel['valor_total']);
@@ -74,7 +75,6 @@
 
                                         $dados_sessao = $this->session->userdata("cotacao_" . $carrossel['produto_parceiro_id']);
 
-error_log( "Opções: " . print_r( $campos, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
                                         ?>
 
                                         <?php foreach ($campos as $campo): ?>
@@ -145,4 +145,5 @@ error_log( "Opções: " . print_r( $campos, true ) . "\n", 3, "/var/log/nginx/ph
         </a>
     </div>
 </div>
+
 

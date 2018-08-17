@@ -306,11 +306,10 @@ class Admin_Controller extends MY_Controller
         }
 
         $data['campos'] = $this->getDataCamposBoleto($arrDados,  $data['carrossel']['plano']); */
+error_log( "Pagamento: " . print_r( $this->input->post('forma_pagamento_tipo_id'), true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
 
         if($_POST){
 
-          error_log( print_r( $_POST, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
-          
             $tipo_forma_pagamento_id = $this->input->post('forma_pagamento_tipo_id');
 
 
@@ -459,8 +458,7 @@ class Admin_Controller extends MY_Controller
 
             $this->cotacao->setValidate($validacao);
 
-            if ($this->cotacao->validate_form('pagamento'))
-            {
+            if ($this->cotacao->validate_form('pagamento')) {
 
                 if($pedido_id == 0)
                 {
@@ -490,7 +488,6 @@ class Admin_Controller extends MY_Controller
                 }
 
             }
-
 
         }
 
@@ -839,5 +836,6 @@ class Admin_Controller extends MY_Controller
 
 
 }
+
 
 
