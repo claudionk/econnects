@@ -174,9 +174,9 @@ Class Integracao_Model extends MY_Model
             'data_fim_mes_anterior' => date('Y-m-t', mktime(0, 0, 0, date('m')-1, 1, date('Y'))),
             'data_ini_mes' => date('Y-m-d', mktime(0, 0, 0, date('m'), 1, date('Y'))),
             'data_fim_mes' => date('Y-m-t', mktime(0, 0, 0, date('m'), 1, date('Y'))),
-
+            'totalRegistros' => 0,
+            'totalItens' => 0,
         );
-
 
     }
 
@@ -334,15 +334,12 @@ Class Integracao_Model extends MY_Model
 
         }
 
-
-
     }
 
     public function run_s($integracao_id){
 
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
-
 
         $this->_database->select('integracao.*');
         $this->_database->where("integracao.integracao_id", $integracao_id);
@@ -495,8 +492,6 @@ Class Integracao_Model extends MY_Model
 
         $this->load->library('ftp');
 
-
-
         $config['hostname'] = $integracao['host'];
         $config['username'] = $integracao['usuario'];
         $config['password'] = $integracao['senha'];
@@ -508,180 +503,132 @@ Class Integracao_Model extends MY_Model
         $this->ftp->close();
     }
 
+    private function processLine($multiplo, $layout, $registro, $integracao_log) {
+        $this->data_template_script['totalRegistros']++;
+        if (!empty($multiplo)) $this->data_template_script['totalItens']++;
+        return $this->getLinha($layout, $registro, $integracao_log);
+    }
+
+    private function processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao) {
+        if (!empty($layout_m)){
+
+            foreach ($registros as $registro) {
+
+                foreach ($layout_m as $lm) {
+
+                    $inserir=true;
+
+                    // caso tenha que pegar o campo do detalhe
+                    if (!empty($lm['sql'])) {
+                        $this->data_template_script['pedido_id'] = $registro['pedido_id'];
+                        $lm['sql'] = $this->parser->parse_string($lm['sql'], $this->data_template_script, TRUE);
+                        $reg = $this->_database->query($lm['sql'])->result_array();
+                        $inserir=false;
+
+                        if (!empty($reg)) {
+                            foreach ($reg as $r) {
+                                $registro = array_merge($registro, $r);
+                                $linhas[] = $this->processLine($lm['multiplo'], $lm['dados'], $registro, $integracao_log);
+                            }
+                        }
+                    }
+
+                    if ($inserir) {
+                        $linhas[] = $this->processLine($lm['multiplo'], $lm['dados'], $registro, $integracao_log);
+                    }
+
+                }
+
+                $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], count($linhas), $registro[$integracao['campo_chave']]);
+            }
+        }
+
+        return $linhas;
+    }
+
     private function createFileIntegracao($integracao = array()){
 
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
         $this->load->model('integracao_layout_model', 'integracao_layout');
-
+        $this->load->model('integracao_detalhe_model', 'integracao_det');
 
         $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
-
 
 
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
 
         $integracao['script_sql'] = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
-        //exit($integracao['script_sql']);
         $registros = $this->_database->query($integracao['script_sql'])->result_array();
-
 
         $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], count($registros));
 
         //busca layout
-        $layout_header = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
-                                                 ->filter_by_tipo('H')
-                                                 ->order_by('ordem')
-                                                 ->get_all();
+        $query = $this->_database->query("
+            SELECT il.*, id.multiplo, id.script_sql
+            FROM integracao_layout il 
+            INNER JOIN integracao_detalhe id ON il.integracao_detalhe_id=id.integracao_detalhe_id
+            WHERE il.integracao_id = {$integracao['integracao_id']} AND il.deletado = 0
+            ORDER BY id.ordem, il.ordem
+        ");
+        $layout_all = $query->result_array();
 
-        $layout_detail = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
-            ->filter_by_tipo('D')
-            ->order_by('ordem')
-            ->get_all();
-
-
-        $layout_detail2 = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
-            ->filter_by_tipo('D2')
-            ->order_by('ordem')
-            ->get_all();
-
-        $layout_detail3 = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
-            ->filter_by_tipo('D3')
-            ->order_by('ordem')
-            ->get_all();
-
-        $layout_detail4 = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
-            ->filter_by_tipo('D4')
-            ->order_by('ordem')
-            ->get_all();
-
-        $layout_detail5 = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
-            ->filter_by_tipo('D5')
-            ->order_by('ordem')
-            ->get_all();
-
-        $layout_detail6 = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
-            ->filter_by_tipo('D6')
-            ->order_by('ordem')
-            ->get_all();
-
-        $layout_detail7 = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
-            ->filter_by_tipo('D7')
-            ->order_by('ordem')
-            ->get_all();
-
-        $layout_detail8 = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
-            ->filter_by_tipo('D8')
-            ->order_by('ordem')
-            ->get_all();
-
-        $layout_detail9 = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
-            ->filter_by_tipo('D9')
-            ->order_by('ordem')
-            ->get_all();
-
-        $layout_trailler = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
-            ->filter_by_tipo('T')
-            ->order_by('ordem')
-            ->get_all();
-
-        $layout_filename = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
-            ->filter_by_tipo('F')
-            ->order_by('ordem')
-            ->get_all();
-
-
-        //header
-        $linhas[] = $this->getLinha($layout_header, $registros, $integracao_log);
-
-
-
-        //detail
-        foreach ($registros as $registro) {
-            $linha = $this->getLinha($layout_detail, $registro, $integracao_log);
-            $linha = mb_strtoupper($linha, 'UTF-8');
-            $linha = app_remove_especial_caracteres($linha);
-            $linhas[] = $linha;
-
-
-            if($layout_detail2){
-                $linha = $this->getLinha($layout_detail2, $registro, $integracao_log);
-                $linha = mb_strtoupper($linha, 'UTF-8');
-                $linha = app_remove_especial_caracteres($linha);
-                $linhas[] = $linha;
+        // monta na estrutura hierarquica
+        $tipoReg="";
+        $layout = $layout_m = $linhas = [];
+        $qtdeAux=-1;
+        foreach ($layout_all as $key => $item) {
+            if($tipoReg != $item['tipo']) {
+                $qtdeAux++;
+                $layout[$qtdeAux] = [
+                    'tipo' => $item['tipo'], 
+                    'multiplo' => $item['multiplo'], 
+                    'sql' => $item['script_sql'], 
+                    'dados' => [],
+                ];
+                $tipoReg = $item['tipo'];
             }
 
-            if($layout_detail3){
-                $linha = $this->getLinha($layout_detail3, $registro, $integracao_log);
-                $linha = mb_strtoupper($linha, 'UTF-8');
-                $linha = app_remove_especial_caracteres($linha);
-                $linhas[] = $linha;
-            }
+            $layout[$qtdeAux]['dados'][] = $item;
+        }
 
-            if($layout_detail4){
-                $linha = $this->getLinha($layout_detail3, $registro, $integracao_log);
-                $linha = mb_strtoupper($linha, 'UTF-8');
-                $linha = app_remove_especial_caracteres($linha);
-                $linhas[] = $linha;
-            }
 
-            if($layout_detail5){
-                $linha = $this->getLinha($layout_detail3, $registro, $integracao_log);
-                $linha = mb_strtoupper($linha, 'UTF-8');
-                $linha = app_remove_especial_caracteres($linha);
-                $linhas[] = $linha;
-            }
+        // Trata o nome do arquivo
+        $idxF = $this->search( $layout, 'F', 'tipo' );
+        if ( $idxF >= 0 ) {
+            $filename = $this->getLinha($layout[$idxF]['dados'], $registros, $integracao_log);
+            $filename = $filename[0];
+            unset($layout[$idxF]);
+        }
 
-            if($layout_detail6){
-                $linha = $this->getLinha($layout_detail3, $registro, $integracao_log);
-                $linha = mb_strtoupper($linha, 'UTF-8');
-                $linha = app_remove_especial_caracteres($linha);
-                $linhas[] = $linha;
+        //gera todas as linhas
+        foreach ($layout as $lay) {
+            if ($lay['multiplo'] == 0) {
+                $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
+                $layout_m = [];
+                $linhas[] = $this->processLine($lay['multiplo'], $lay['dados'], $registros, $integracao_log);
+            } else {
+                $layout_m[] = $lay;
             }
-
-            if($layout_detail7){
-                $linha = $this->getLinha($layout_detail3, $registro, $integracao_log);
-                $linha = mb_strtoupper($linha, 'UTF-8');
-                $linha = app_remove_especial_caracteres($linha);
-                $linhas[] = $linha;
-            }
-
-            if($layout_detail8){
-                $linha = $this->getLinha($layout_detail3, $registro, $integracao_log);
-                $linha = mb_strtoupper($linha, 'UTF-8');
-                $linha = app_remove_especial_caracteres($linha);
-                $linhas[] = $linha;
-            }
-
-            if($layout_detail9){
-                $linha = $this->getLinha($layout_detail3, $registro, $integracao_log);
-                $linha = mb_strtoupper($linha, 'UTF-8');
-                $linha = app_remove_especial_caracteres($linha);
-                $linhas[] = $linha;
-            }
-            $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], count($linhas), $registro[$integracao['campo_chave']]);
 
         }
 
-        //trailler
-        $linhas[] = $this->getLinha($layout_trailler, $registros, $integracao_log);
-
+        $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
 
         if(!file_exists($diretorio)){
             mkdir($diretorio, 0777, true);
         }
 
-
-
-        $filename = $this->getLinha($layout_filename, $registros, $integracao_log);
-
+        $content=$concat="";
+        foreach ($linhas as $row) {
+            $content.=$concat.implode("\n", $row);
+            $concat = "\n";
+        }
 
         //$filename = 'Intercontinental_Remessa_'. date('dmY');
-        file_put_contents("{$diretorio}/{$filename}", implode("\n", $linhas));
-
+        file_put_contents("{$diretorio}/{$filename}", $content);
 
         return array('file' => "{$diretorio}/{$filename}", 'integracao_log_id' => $integracao_log['integracao_log_id']);
-
     }
 
     private function processFileIntegracao($integracao = array(), $file){
@@ -708,8 +655,6 @@ Class Integracao_Model extends MY_Model
             ->filter_by_tipo('T')
             ->order_by('ordem')
             ->get_all();
-
-
 
 
         $fh = fopen($file, 'r');
@@ -755,9 +700,6 @@ Class Integracao_Model extends MY_Model
                     );
                 }
             }
-
-
-
 
         }
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
@@ -838,25 +780,38 @@ Class Integracao_Model extends MY_Model
         }
 
 
-
     }
 
+    private function trataRetorno($txt) {
+        $txt = mb_strtoupper($txt, 'UTF-8');
+        $txt = app_remove_especial_caracteres($txt);
+        return $txt;
+    }
 
     private function getLinha($layout, $registro = array(), $log = array()){
 
-        $result = '';
+        $result = "";
+        $arResult = []; 
 
-        foreach ($layout as $index => $item) {
-
-            //print_r($registro);
+        foreach ($layout as $ind => $item) {
+   
             $pre_result = '';
             if(strlen($item['valor_padrao']) > 0 && $item['qnt_valor_padrao'] > 0){
-                $pre_result .= mb_str_pad('', $item['qnt_valor_padrao'], $item['valor_padrao'], $item['str_pad']);
+                $field = '';
+                if (!empty($item['nome_banco'])){
+                    if(isset($registro[$item['nome_banco']])){
+                        $field = app_remove_especial_caracteres($registro[$item['nome_banco']]);
+                    }elseif(isset($log[$item['nome_banco']])){
+                        $field = $log[$item['nome_banco']];
+                    }
+                }
+                $pre_result .= mb_str_pad($field, $item['qnt_valor_padrao'], $item['valor_padrao'], $item['str_pad']);
             }elseif (!empty($item['function'])){
                 if(function_exists($item['function'])){
-                    $pre_result .= mb_str_pad(call_user_func($item['function'], $item['formato'], array('item' => $item, 'registro' => $registro, 'log' => $log)), $item['tamanho'], $item['valor_padrao'], $item['str_pad']);
+                    $pre_result .= mb_str_pad(call_user_func($item['function'], $item['formato'], array('item' => $item, 'registro' => $registro, 'log' => $log, 'global' => $this->data_template_script)), $item['tamanho'], $item['valor_padrao'], $item['str_pad']);
                 }
             }elseif (!empty($item['nome_banco'])){
+
                 if(isset($registro[$item['nome_banco']])){
                     $registro[$item['nome_banco']] = app_remove_especial_caracteres($registro[$item['nome_banco']]);
                     $pre_result .= mb_str_pad($registro[$item['nome_banco']], $item['tamanho'], isempty($item['valor_padrao'],' '), $item['str_pad']);
@@ -869,8 +824,9 @@ Class Integracao_Model extends MY_Model
 
             $result .= mb_substr($pre_result,0,$item['tamanho']);
         }
-        return $result;
 
+        $arResult[] = $this->trataRetorno($result);
+        return $arResult;
     }
 
     function filter_by_rotina_pronta(){
@@ -883,4 +839,24 @@ Class Integracao_Model extends MY_Model
         return $this;
     }
 
+    public function search( $haystack, $needle, $index = NULL ) {
+        if( is_null( $haystack ) ) {
+            return -1;
+        }
+
+        $arrayIterator = new \RecursiveArrayIterator( $haystack );
+        $iterator = new \RecursiveIteratorIterator( $arrayIterator );
+
+        while( $iterator -> valid() ) {
+            if( ( ( isset( $index ) and ( $iterator -> key() == $index ) ) or
+                ( ! isset( $index ) ) ) and ( $iterator -> current() == $needle ) ) {
+
+                return $arrayIterator -> key();
+            }
+
+            $iterator -> next();
+        }
+
+        return -1;
+    }
 }
