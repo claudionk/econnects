@@ -77,8 +77,8 @@ function buscaCep(){
             if(json.success){
 
 
-                $("#bairro").val(json.data.bairro.toLowerCase());
-                $("#endereco").val(json.data.tipo_logradouro.toLowerCase() + ' ' + json.data.logradouro.toLowerCase() );
+                $("#bairro").val(json.data.bairro.toUpperCase());
+                $("#endereco").val(json.data.tipo_logradouro.toUpperCase() + ' ' + json.data.logradouro.toUpperCase() );
 
 
                 if(json.data.uf != ''){
