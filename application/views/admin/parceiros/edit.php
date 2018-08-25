@@ -107,7 +107,16 @@ if($_POST)
                                                                 <label class="col-md-3 control-label" for="<?php echo $field_name;?>">Código SUSEP</label>
                                                                 <div class="col-md-9"><input class="form-control input-sm" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                             </div>
-
+                                                            <?php $field_name = 'codigo_sucursal';?>
+                                                            <div class="form-group">
+                                                                <label class="col-md-3 control-label" for="<?php echo $field_name;?>">Código Sucursal</label>
+                                                                <div class="col-md-9"><input class="form-control input-sm" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                            </div>
+                                                            <?php $field_name = 'codigo_corretor';?>
+                                                            <div class="form-group">
+                                                                <label class="col-md-3 control-label" for="<?php echo $field_name;?>">Código Corretor</label>
+                                                                <div class="col-md-9"><input class="form-control input-sm" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                            </div>
 
                                                             <?php $field_name = 'matriz_id';?>
                                                             <div class="form-group">
@@ -192,15 +201,14 @@ if($_POST)
                                                                 <div class="col-md-9"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                             </div>
 
-
                                                             <div class="form-group">
                                                                 <?php $field_name = 'numero';?>
                                                                 <label class="col-md-3 control-label" for="<?php echo $field_name;?>">Número</label>
                                                                 <div class="col-md-4"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
 
                                                                 <?php $field_name = 'complemento';?>
-                                                                <label class="col-md-3 control-label" for="<?php echo $field_name;?>">Compl.</label>
-                                                                <div class="col-md-3"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                                <label class="col-md-1 control-label" for="<?php echo $field_name;?>">Compl.</label>
+                                                                <div class="col-md-4"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                             </div>
 
                                                             <?php $field_name = 'bairro';?>

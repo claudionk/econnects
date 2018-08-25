@@ -51,6 +51,18 @@ Class Parceiro_Model extends MY_Model
             'groups' => 'default, add, edit'
         ),
         array(
+            'field' => 'codigo_sucursal',
+            'label' => 'Código Sucursal',
+            'rules' => '',
+            'groups' => 'default, add, edit'
+        ),
+        array(
+            'field' => 'codigo_corretor',
+            'label' => 'Código Corretor',
+            'rules' => '',
+            'groups' => 'default, add, edit'
+        ),
+        array(
             'field' => 'theme',
             'label' => 'Tema',
             'rules' => 'required',
@@ -131,6 +143,8 @@ Class Parceiro_Model extends MY_Model
             'parceiro_status_id' => $this->input->post('parceiro_status_id'),
             'parceiro_tipo_id' => $this->input->post('parceiro_tipo_id'),
             'codigo_susep' => $this->input->post('codigo_susep'),
+            'codigo_sucursal' => $this->input->post('codigo_sucursal'),
+            'codigo_corretor' => $this->input->post('codigo_corretor'),
             'matriz_id' => $this->input->post("matriz_id"),
 
             //aparencia
@@ -241,6 +255,18 @@ Class Parceiro_Model extends MY_Model
                 $this->db->like("{$this->_table}.{$field}", $query );
             }
             $field = 'codigo_susep';
+            if (isset($filters[$field]) && $filters[$field] != '') {
+
+                $query = $filters[$field];
+                $this->db->like("{$this->_table}.{$field}", $query );
+            }
+            $field = 'codigo_sucursal';
+            if (isset($filters[$field]) && $filters[$field] != '') {
+
+                $query = $filters[$field];
+                $this->db->like("{$this->_table}.{$field}", $query );
+            }
+            $field = 'codigo_corretor';
             if (isset($filters[$field]) && $filters[$field] != '') {
 
                 $query = $filters[$field];
