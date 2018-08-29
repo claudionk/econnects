@@ -154,6 +154,7 @@ Class Apolice_Model extends MY_Model
 
     public function insertSeguroEquipamento($pedido_id)
     {
+        
         $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('cotacao_model', 'cotacao');
@@ -256,9 +257,14 @@ Class Apolice_Model extends MY_Model
              $dados_equipamento['data_nascimento'] = $cotacao_salva['data_nascimento'];
              $dados_equipamento['sexo'] = $cotacao_salva['sexo'];
              $dados_equipamento['email'] = $cotacao_salva['email'];
+             
+             $dados_equipamento['ean'] = $cotacao_salva['ean'];
+             $dados_equipamento['equipamento_id'] = $cotacao_salva['equipamento_id'];
+             $dados_equipamento['equipamento_nome'] = $cotacao_salva['equipamento_nome'];
+             $dados_equipamento['equipamento_categoria_id'] = $cotacao_salva['equipamento_categoria_id'];
+             $dados_equipamento['equipamento_marca_id'] = $cotacao_salva['equipamento_marca_id'];
              $dados_equipamento['nota_fiscal_data'] = $cotacao_salva['nota_fiscal_data'];
              $dados_equipamento['nota_fiscal_valor'] = $cotacao_salva['nota_fiscal_valor'];
-
 
              $dados_equipamento['estado_civil'] = $cotacao_salva['estado_civil'];
              $dados_equipamento['rg_orgao_expedidor'] = $cotacao_salva['rg_orgao_expedidor'];

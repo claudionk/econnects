@@ -19,7 +19,6 @@ class Cron extends Admin_Controller
 
     }
 
-
     public function evento($pedido_id){
 
         $comunicacao = new Comunicacao();
@@ -49,10 +48,6 @@ class Cron extends Admin_Controller
 
             }
         }
-
-
-
-
     }
 
     public function getControllers()
@@ -115,7 +110,6 @@ class Cron extends Admin_Controller
         }
     }
 
-
     public function faturamento(){
         $this->load->model("fatura_model", "fatura");
         $this->fatura->faturamento();
@@ -123,8 +117,6 @@ class Cron extends Admin_Controller
     
     public function index() //Função padrão (load)
     {
-
-
         $this->comunicacao();
     }
 
@@ -133,7 +125,6 @@ class Cron extends Admin_Controller
         $comunicacao = new Comunicacao();
         $comunicacao->enviaCronMensagens();
     }
-
 
     public function comissao(){
 

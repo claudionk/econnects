@@ -2732,7 +2732,7 @@ label {
   border-left: none;
   border-right: none;
   border-top: none;
-  border-bottom-color: rgba(12, 12, 12, 0.12);
+  border-bottom-color: #90caf9;
   background: transparent;
   color: #0c0c0c;
   font-size: 16px;
@@ -2749,7 +2749,7 @@ label {
 .form-control[readonly],
 fieldset[disabled] .form-control {
   background-color: transparent;
-  border-bottom-color: rgba(12, 12, 12, 0.2);
+  border-bottom-color: #90caf9;
   border-bottom-style: dashed;
 }
 .form-control[disabled]::-moz-placeholder,
@@ -2825,7 +2825,7 @@ textarea.autosize {
   opacity: 0.5;
 }
 .form-group .form-control:focus {
-  border-color: rgba(12, 12, 12, 0.12);
+  border-color: #90caf9;
 }
 .form-group .form-control:focus ~ label {
   color: #2196f3;

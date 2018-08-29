@@ -205,7 +205,7 @@ class Equipamento extends Admin_Controller
             $data->_database->or_where('(equipamento.ean LIKE "%'.$filter.'%"', NULL, FALSE);
             $data->_database->or_where('equipamento.nome LIKE "%'.$filter.'%"', NULL, FALSE);
             $data->_database->or_where('equipamento.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('equipamento.tags LIKE "%'.$filter.'%"', NULL, FALSE);
+            $data->_database->or_where('equipamento.tags LIKE "%'.$filter.'%")', NULL, FALSE);
             /*$data->_database->or_where('equipamento_marca.nome LIKE "%'.$filter.'%"', NULL, FALSE);
             $data->_database->or_where('equipamento_marca.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
             $data->_database->or_where('equipamento_categoria.nome LIKE "%'.$filter.'%"', NULL, FALSE);
@@ -223,7 +223,7 @@ class Equipamento extends Admin_Controller
             $total->_database->or_where('(equipamento.ean LIKE "%'.$filter.'%"', NULL, FALSE);
             $total->_database->or_where('equipamento.nome LIKE "%'.$filter.'%"', NULL, FALSE);
             $total->_database->or_where('equipamento.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
-            $total->_database->or_where('equipamento.tags LIKE "%'.$filter.'%"', NULL, FALSE);
+            $total->_database->or_where('equipamento.tags LIKE "%'.$filter.'%")', NULL, FALSE);
           /*  $total->_database->or_where('equipamento_marca.nome LIKE "%'.$filter.'%"', NULL, FALSE);
             $total->_database->or_where('equipamento_marca.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
             $total->_database->or_where('equipamento_categoria.nome LIKE "%'.$filter.'%"', NULL, FALSE);
