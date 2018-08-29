@@ -146,6 +146,16 @@ class Campo extends Admin_Controller
     }
     public  function delete($id)
     {
+        $this->load->model('produto_parceiro_campo_model', 'produto_parceiro_campo');
+        $campoUsado = $this->produto_parceiro_campo->buscaCampoUsado($id)->get_all();
+        // echo "<pre>";print_r($campoUsado);echo "</pre>";
+        if (!empty($campoUsado)) {
+            $this->session->set_flashdata('fail_msg', 'Existem '. sizeof($campoUsado) .' configurações que utilizam este campo e por isso não pode ser excluído.');
+            redirect("{$this->controller_uri}/index");
+            exit();
+        }
+
+        // validar se o campo está sendo usado em alguma configuração
         $this->current_model->delete($id);
         $this->session->set_flashdata('succ_msg', 'Registro excluido corretamente.');
         redirect("{$this->controller_uri}/index");

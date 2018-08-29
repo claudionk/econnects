@@ -149,6 +149,24 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         return $this;
     }
 
+    function buscaCampoUsado($campo_id){
+        // $this->_database->select("count(1) c");
+
+        // $this->_database->select("campo.nome");
+        // $this->_database->select("produto_parceiro.nome");
+        // $this->_database->select("parceiro.nome_fantasia");
+        // $this->_database->select("campo_tipo.nome");
+
+        $this->_database->join('produto_parceiro', "produto_parceiro.produto_parceiro_id = {$this->_table}.produto_parceiro_id", 'inner');
+        $this->_database->join('parceiro', "parceiro.parceiro_id = produto_parceiro.parceiro_id", 'inner');
+        $this->_database->join('campo', "campo.campo_id = {$this->_table}.campo_id", 'inner');
+        $this->_database->join('campo_tipo', "campo_tipo.campo_tipo_id = {$this->_table}.campo_tipo_id", 'inner');
+
+        $this->_database->where("campo.campo_id", $campo_id);
+        $this->_database->where("{$this->_table}.deletado", 0);
+        return $this;
+    }
+
     /**
      * @description Seta os dados do post
      * @param $produto_parceiro_id
