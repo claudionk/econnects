@@ -414,6 +414,22 @@ Class Cotacao_Equipamento_Model extends MY_Model
       $data_cotacao['produto_parceiro_plano_id'] = $cotacao['produto_parceiro_plano_id'];
     }
 
+    if(isset($cotacao['ean'])){
+      $data_cotacao['ean'] = $cotacao['ean'];
+    }
+    if(isset($cotacao['equipamento_id'])){
+      $data_cotacao['equipamento_id'] = $cotacao['equipamento_id'];
+    }
+    if(isset($cotacao['equipamento_nome'])){
+      $data_cotacao['equipamento_nome'] = $cotacao['equipamento_nome'];
+    }
+    if(isset($cotacao['equipamento_marca_id'])){
+      $data_cotacao['equipamento_marca_id'] = $cotacao['equipamento_marca_id'];
+    }
+    if(isset($cotacao['equipamento_categoria_id'])){
+      $data_cotacao['equipamento_categoria_id'] = $cotacao['equipamento_categoria_id'];
+    }
+    /*
     if(isset($cotacao['equipamento_id'])){
       $data_cotacao['equipamento_nome'] = $cotacao['equipamento_id'];
     }
@@ -423,6 +439,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
     if(isset($cotacao['equipamento_categoria_id'])){
       $data_cotacao['equipamento_categoria_id'] = $cotacao['equipamento_categoria_id'];
     }
+    */
     if(isset($cotacao['nome'])){
       $data_cotacao['nome'] = $cotacao['nome'];
     }
@@ -693,6 +710,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
   }
 
 }
+
 
 
 

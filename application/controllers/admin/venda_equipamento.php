@@ -1657,6 +1657,7 @@ class Venda_Equipamento extends Admin_Controller {
             $cotacao_salva = $cotacao_salva[0];
 
             $cotacao = array();
+            $cotacao['ean'] = $cotacao_salva['ean'];
             $cotacao['equipamento_nome'] = $cotacao_salva['equipamento_nome'];
             $cotacao['produto_parceiro_id'] = $produto_parceiro_id;
             $cotacao['cnpj_cpf'] = (app_verifica_cpf_cnpj($cotacao_salva['cnpj_cpf']) == 'CPF') ? app_cpf_to_mask($cotacao_salva['cnpj_cpf']) : app_cnpj_to_mask($cotacao_salva['cnpj_cpf']);
@@ -1691,8 +1692,7 @@ class Venda_Equipamento extends Admin_Controller {
             $cotacao['quantidade'] = $cotacao_salva['quantidade'];
             $cotacao['equipamento_marca_id'] = $cotacao_salva['equipamento_marca_id'];
             $cotacao['equipamento_categoria_id'] = $cotacao_salva['equipamento_categoria_id'];
-            $cotacao['equipamento_id'] = $cotacao_salva['equipamento_nome'];
-            $cotacao['equipamento_id'] = $cotacao_salva['equipamento_nome'];
+            $cotacao['equipamento_id'] = $cotacao_salva['equipamento_id'];
             $cotacao['sexo'] = $cotacao_salva['sexo'];
             $cotacao['estado_civil'] = $cotacao_salva['estado_civil'];
             $cotacao['rg_orgao_expedidor'] = $cotacao_salva['rg_orgao_expedidor'];

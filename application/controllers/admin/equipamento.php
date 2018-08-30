@@ -375,6 +375,4 @@ class Equipamento extends Admin_Controller
         redirect("{$this->controller_uri}/index");
     }
 
-
 }
-

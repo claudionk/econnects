@@ -1420,3 +1420,68 @@ function app_remove_especial_caracteres($str) {
     $mapping = array_combine($keys[0], $values[0]);
     return strtr($str, $mapping);
 }
+
+if ( ! function_exists('soap_curl'))
+{
+    function soap_curl($config = array()){
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $config['url'],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => $config['method'],
+            CURLOPT_POSTFIELDS => $config['fields'],
+            
+        ));
+        if (!empty($config['header'])) curl_setopt($curl, CURLOPT_HTTPHEADER, $config['header']);
+        $header = curl_exec($curl);
+        $info = curl_getinfo($curl);
+        $httpCode = curl_getinfo($curl , CURLINFO_HTTP_CODE);
+        $error = curl_error($curl);
+        curl_close($curl);
+
+        return [
+            "response" => $header,
+            "info" => $info,
+            "httpCode" => $httpCode,
+            "error" => $error,
+        ];
+
+    }
+}
+
+if ( ! function_exists('app_get_token'))
+{
+    function app_get_token(){
+
+        // solicitar outro token quando a API tiver vencida
+        if ( !empty(app_get_userdata("tokenAPIvalid")) && app_get_userdata("tokenAPIvalid") >= date("Y-m-d H:i:s"))
+            return app_get_userdata("tokenAPI");
+
+        $CI =& get_instance();
+
+        $retorno = soap_curl([
+            'url' => "http://econnects-h.jelastic.saveincloud.net/api/acesso?email=". app_get_userdata("email"),
+            'method' => 'GET',
+            'fields' => '',
+            'header' => array(
+                "accept: application/json",
+            )
+        ]);
+
+        if (empty($retorno)) return;
+        if (!empty($retorno["error"])) return;
+        if (empty($retorno["response"])) return;
+
+        $response = json_decode($retorno["response"]);
+        $CI->session->set_userdata("tokenAPI", $response->api_key);
+        $CI->session->set_userdata("tokenAPIvalid", $response->validade);
+        // print_r($response);exit;
+        return $response->api_key;
+    }
+}

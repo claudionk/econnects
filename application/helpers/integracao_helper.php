@@ -77,7 +77,7 @@ if ( ! function_exists('app_integracao_mapfre_rf_total_registro')) {
     function app_integracao_mapfre_rf_total_registro($formato, $dados = array())
     {
 
-          return str_pad((count($dados['registro'])*3)+2, $formato, '0', STR_PAD_LEFT);
+        return str_pad($dados['global']['totalRegistros'], $formato, '0', STR_PAD_LEFT);
 
     }
 }
@@ -86,7 +86,7 @@ if ( ! function_exists('app_integracao_mapfre_rf_total_itens')) {
     function app_integracao_mapfre_rf_total_itens($formato, $dados = array())
     {
 
-          return str_pad((count($dados['registro'])*3), $formato, '0', STR_PAD_LEFT);
+          return str_pad($dados['global']['totalItens'], $formato, '0', STR_PAD_LEFT);
 
     }
 }
@@ -312,12 +312,12 @@ if ( ! function_exists('app_integracao_format_decimal_pad')) {
     function app_integracao_format_decimal_pad($formato, $dados = array())
     {
 
-        $a = explode(",", $formato);
-        $valor = $dados[$a[0]][$a[1]];
+        $a = explode("|", $formato);
+        $valor = (!empty($dados[$a[0]][$a[1]])) ? $dados[$a[0]][$a[1]] : 0;
         $valor = ($valor == 0) ? '0.0' : $valor;
         $valor = explode('.', $valor);
         $valor[1] = ((isset($valor[1])) || (empty(isset($valor[1]))) ) ? '00' : $valor[1];
-        return str_pad($valor[0],  ($a[2]-2), '0', STR_PAD_LEFT) . str_pad($valor[1], 2, '0', STR_PAD_LEFT);
+        return str_pad($valor[0],  ($a[2]-3), '0', STR_PAD_LEFT) .$a[3]. str_pad($valor[1], 2, '0', STR_PAD_LEFT);
 
     }
 
@@ -385,6 +385,57 @@ if ( ! function_exists('app_integracao_format_file_name_mapfre_rf')) {
         $num_sequencia = str_pad($num_sequencia,5, '0',STR_PAD_LEFT);
 
         $file = "{$codigo_revendedor}{$codigo_produto}{$data}{$num_sequencia}.TXT";
+        return  $file;
+    }
+
+}
+if ( ! function_exists('app_integracao_format_file_name_mapfre_ge')) {
+
+    function app_integracao_format_file_name_mapfre_ge($formato, $dados = array())
+    {
+
+        if(isset($dados['item']['integracao_id'])){
+
+            $CI =& get_instance();
+            $CI->load->model('integracao_model');
+            $num_sequencia = (int)$CI->integracao_model->get($dados['item']['integracao_id'])['sequencia'];
+            $num_sequencia++;
+            $CI->integracao_model->update($dados['item']['integracao_id'], array('sequencia' => $num_sequencia), TRUE);
+        }else{
+            $num_sequencia = 1;
+        }
+
+        $num_produto = "731";
+        $nome_estipulante = "SISSOLUCOESINTEGRADAS";
+        $data = date('dmY');
+        $num_sequencia = str_pad($num_sequencia,4, '0',STR_PAD_LEFT);
+
+        $file = "{$num_produto}{$nome_estipulante}{$data}{$num_sequencia}.TXT";
+        return  $file;
+    }
+
+}
+if ( ! function_exists('app_integracao_format_file_name_generali')) {
+
+    function app_integracao_format_file_name_generali($formato, $dados = array())
+    {
+
+        if(isset($dados['item']['integracao_id'])){
+
+            $CI =& get_instance();
+            $CI->load->model('integracao_model');
+            $num_sequencia = (int)$CI->integracao_model->get($dados['item']['integracao_id'])['sequencia'];
+            $num_sequencia++;
+            $CI->integracao_model->update($dados['item']['integracao_id'], array('sequencia' => $num_sequencia), TRUE);
+        }else{
+            $num_sequencia = 1;
+        }
+
+        $nome = $formato;
+        $data = date('dmYHis');
+        $num_sequencia = str_pad($num_sequencia,4, '0',STR_PAD_LEFT);
+
+        $file = "{$nome}{$data}{$num_sequencia}.TXT";
         return  $file;
     }
 

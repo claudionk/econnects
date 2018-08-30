@@ -64,6 +64,10 @@ class Helpers extends Admin_Controller {
 
 
                 }
+                // Converte o resultado em caracteres maiusculos
+                array_walk($data, function(&$value){
+                    if(!is_array($value)) $value = strtoupper($value);
+                });
                 $result['data'] = $data;
                 $result['success'] = true;
             }

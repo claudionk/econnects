@@ -44,6 +44,7 @@
     <script type="text/javascript">
         var ADMIN_URL = '<?php echo base_url('admin'); ?>';
         var base_url = '<?php echo base_url() ?>';
+        var tokenAPI = {'APIKEY': '<?php echo app_get_token() ?>'};
 
         // Seta APP para Angular JS
         //var app = angular.module("App", []);
