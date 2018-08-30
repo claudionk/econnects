@@ -26,10 +26,36 @@ $(function(){
         'autounmask': true
     });
 
-
     $('.datepicker, .inputmask-date').datepicker({
         format: 'dd/mm/yyyy',
         language: 'pt-BR'
+    });
+
+    function setFieldInvalid(){
+        var validator = $('#validateSubmitForm').validate();
+        validator.showErrors({
+          'email' : 'E-mail inválido'
+        });
+    }
+
+    $('.validateEmail').on('blur', function (e) {
+        var el = this;
+        var email = $.trim($(el).val()), parse_email = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+        if (email != '' && parse_email.test(email) ) {
+            $.ajax({
+                url: base_url + "admin/api/email/"+ encodeURIComponent(email),
+            }).success(function (data) {
+                if (!data){
+                    setFieldInvalid();
+                }
+
+            }).error(function (response) {
+                console.log(response);
+            });
+        } else {
+            setFieldInvalid();
+        }
+
     });
 
     $(".inputmask-date").inputmask("d/m/y", {autoUnmask: true});
