@@ -58,10 +58,12 @@ class Equipamento extends Admin_Controller
 
         $data->limit($limit, $limit*($page-1));
 
+        $data->_database->where("equipamento_categoria_nivel=1",NULL,FALSE);
+      
         if($filter)
         {
-            $data->_database->or_where('(equipamento_categoria.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('equipamento_categoria.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
+            $data->_database->where("(equipamento_categoria.nome LIKE '%$filter%' OR equipamento_categoria.descricao LIKE '%$filter%')", NULL, FALSE);
+            //$data->_database->or_where('', NULL, FALSE);
         }
 
         $data = $data
@@ -69,11 +71,13 @@ class Equipamento extends Admin_Controller
             ->get_all();
 
         $total = $this->equipamento_categoria;
-
+        $total->_database->where("equipamento_categoria_nivel=1",NULL,FALSE);
+      
         if($filter)
         {
-              $total->_database->or_where('(equipamento_categoria.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-              $total->_database->or_where('equipamento_categoria.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
+          $total->_database->where("(equipamento_categoria.nome LIKE '%$filter%' OR equipamento_categoria.descricao LIKE '%$filter%')", NULL, FALSE);
+              //$total->_database->or_where('(equipamento_categoria.nome LIKE "%'.$filter.'%"', NULL, FALSE);
+              //$total->_database->or_where('equipamento_categoria.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
         }
 
         $total = $total
@@ -373,3 +377,4 @@ class Equipamento extends Admin_Controller
 
 
 }
+

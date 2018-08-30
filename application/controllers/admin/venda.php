@@ -156,9 +156,9 @@ class Venda extends Admin_Controller
         $produtos = $this->current_model->get_produtos_venda_admin($parceiro_id);
         $relacionamento = $this->current_model->get_produtos_venda_admin_parceiros($parceiro_id);
       
-        error_log( "Produtos: " . print_r( $produtos, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
+        error_log( "Produtos: " . print_r( $produtos, true ) . "\n", 3, "/var/log/httpd/php_errors.log" );
 
-        error_log( "Relacionamentos: " . print_r( $relacionamento, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
+        error_log( "Relacionamentos: " . print_r( $relacionamento, true ) . "\n", 3, "/var/log/httpd/php_errors.log" );
 
 
         $data['rows'] = array_merge($produtos, $relacionamento);
@@ -197,7 +197,7 @@ class Venda extends Admin_Controller
             case 'seguro_saude':
                 $this->load->model('cotacao_generico_model', 'cotacao_generico');
                 $cotacao = $this->cotacao_generico->get_by(array('cotacao_id' => $cotacao_id));
-                error_log( "Continuar Cotação: " . print_r( $cotacao, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
+                error_log( "Continuar Cotação: " . print_r( $cotacao, true ) . "\n", 3, "/var/log/httpd/php_errors.log" );
                 redirect("admin/venda_seguro_saude/seguro_saude/{$row['produto_parceiro_id']}/{$cotacao['step']}/$cotacao_id");
                 break;
             case 'equipamento':

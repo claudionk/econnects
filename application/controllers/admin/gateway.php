@@ -13,11 +13,12 @@ class Gateway extends Admin_Controller
   const INTEGRACAO_PAGMAX = 1;
 
   const FORMA_PAGAMENTO_CARTAO_CREDITO = 1;
-  const FORMA_PAGAMENTO_FATURADO = 10;
-  const FORMA_PAGAMENTO_CARTAO_DEBITO = 7;
-  const FORMA_PAGAMENTO_BOLETO = 8;
   const FORMA_PAGAMENTO_TRANSF_BRADESCO = 5;
   const FORMA_PAGAMENTO_TRANSF_BB = 6;
+  const FORMA_PAGAMENTO_CARTAO_DEBITO = 7;
+  const FORMA_PAGAMENTO_BOLETO = 8;
+  const FORMA_PAGAMENTO_FATURADO = 9;
+  const FORMA_PAGAMENTO_CHECKOUT_PAGMAX = 10;
 
   public function __construct(){
     parent::__construct();
@@ -38,6 +39,7 @@ class Gateway extends Admin_Controller
 
 
   public function index($pedido_id = 0) {
+
     if(!$pedido_id){
       return;
     }
@@ -59,6 +61,7 @@ class Gateway extends Admin_Controller
 
   public function run(){
     //      exit();
+    error_log( "Gateway\n", 3, "/var/log/httpd/360.log" );
     $i = 20;
     while($i > 0){
       //ini_set("memory_limit","512M");
@@ -173,11 +176,11 @@ class Gateway extends Admin_Controller
      * @throws Exception
      */
   public function pagmax_efetuar_pagamento($pedido_cartao_id) {
+    
+    
     $this->load->library("Pagmax360");
     $Pagmax360 = new Pagmax360();
     
-    //error_log( print_r( $pedido_cartao_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
-
     $Pagmax360->merchantId = $this->config->item("Pagmax360_merchantId");
     $Pagmax360->merchantKey = $this->config->item("Pagmax360_merchantKey");
     $Pagmax360->Environment = $this->config->item("Pagmax360_Environment");
@@ -255,7 +258,7 @@ class Gateway extends Admin_Controller
       
       
       $isdebit = ($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) ? TRUE : FALSE; //ReturnURL
-      $return_url = ($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) ? "http://econnects-dev.jelastic.saveincloud.net/index.php/pagmax360/retorno?pedido_id={$pedido['pedido_id']}" : "";
+      $return_url = ($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) ? "http://econnects-h.jelastic.saveincloud.net/index.php/pagmax360/retorno?pedido_id={$pedido['pedido_id']}" : "";
         
         //base_url("admin/venda/seguro_viagem/41/5/{$pedido['pedido_id']}/?retorno=pagmax") : '';
 
@@ -328,13 +331,6 @@ class Gateway extends Admin_Controller
         }
       }
       
-      //const FORMA_PAGAMENTO_CARTAO_CREDITO = 1;
-      //const FORMA_PAGAMENTO_FATURADO = 9;
-      //const FORMA_PAGAMENTO_CARTAO_DEBITO = 8;
-      //const FORMA_PAGAMENTO_BOLETO = 9;
-      //const FORMA_PAGAMENTO_TRANSF_BRADESCO = 2;
-      //const FORMA_PAGAMENTO_TRANSF_BB = 7;
-      
       if($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_TRANSF_BRADESCO || $parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_TRANSF_BB ) {
         $JsonDataRequest = array(  
           array("MerchantOrderId" => rand(100,999) . $merchantOrderId, 
@@ -349,6 +345,7 @@ class Gateway extends Admin_Controller
       }
       
       if($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_BOLETO ) {
+        
         $JsonDataRequest = array(
           array("MerchantOrderId" => rand(100,999) . $merchantOrderId, 
                 "Customer" => array(   
@@ -656,7 +653,7 @@ class Gateway extends Admin_Controller
         // }
       }
 
-      //error_log( print_r( $dados_transacao, true ) . "\n", 3, "/var/log/nginx/360.log" );
+      //error_log( print_r( $dados_transacao, true ) . "\n", 3, "/var/log/httpd/360.log" );
 
       if($erro)
       {
@@ -850,6 +847,7 @@ class Gateway extends Admin_Controller
 
 
 }
+
 
 
 

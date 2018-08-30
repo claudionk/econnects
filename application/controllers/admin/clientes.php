@@ -370,13 +370,13 @@ class Clientes extends Admin_Controller
             'email' => $cliente['email'],
             'telefone' => $cliente['telefone'],
             'cliente_id' => $cliente['cliente_id'],
-            'estado_civil' => $cliente['estado_civil'],
-            'sexo' => $cliente['sexo'],
-            'rg_orgao_expedidor' => $cliente['rg_orgao_expedidor'],
-            'rg_uf' => $cliente['rg_uf'],
-            'rg_data_expedicao' => app_date_mysql_to_mask($cliente['rg_data_expedicao'], 'd/m/Y'),
-            'rg' => $cliente['ie_rg'],
-            'data_nascimento' => app_date_mysql_to_mask($cliente['data_nascimento'], 'd/m/Y')
+            'estado_civil' => (isset($cliente['estado_civil'])?$cliente['estado_civil']:''),
+            'sexo' => (isset($cliente['sexo'])?$cliente['sexo']:''),
+            'rg_orgao_expedidor' => (isset($cliente['rg_orgao_expedidor'])?$cliente['rg_orgao_expedidor']:''),
+            'rg_uf' => (isset($cliente['rg_uf'])?$cliente['rg_uf']:''),
+            'rg_data_expedicao' => (isset($cliente['rg_data_expedicao'])?app_date_mysql_to_mask($cliente['rg_data_expedicao'], 'd/m/Y'):''),
+            'rg' => (isset($cliente['ie_rg'])?$cliente['ie_rg']:''),
+            'data_nascimento' => (isset($cliente['data_nascimento'])?app_date_mysql_to_mask($cliente['data_nascimento'], 'd/m/Y'):'')
         );
 
 
@@ -387,4 +387,5 @@ class Clientes extends Admin_Controller
     }
 
 }
+
 

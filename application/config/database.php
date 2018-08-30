@@ -48,10 +48,10 @@
 $active_group = 'default';
 $active_record = TRUE;
 
-$db['default']['hostname'] = 'localhost';
-$db['default']['username'] = 'econnects';
-$db['default']['password'] = '1q2w3e';
-$db['default']['database'] = 'econnect';
+$db['default']['hostname'] = '10.100.19.90';
+$db['default']['username'] = 'root';
+$db['default']['password'] = 'w1tQCQ867B';
+$db['default']['database'] = 'sissolucoes';
 $db['default']['dbdriver'] = 'mysqli';
 $db['default']['dbprefix'] = '';
 $db['default']['pconnect'] = FALSE;

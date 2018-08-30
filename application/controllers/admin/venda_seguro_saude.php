@@ -62,7 +62,7 @@ class Venda_Seguro_Saude extends Admin_Controller {
     //Carrega dados para a página
     $cotacao_generico = $this->cotacao->with_cotacao_generico()->filterByID($cotacao_id)->get_all();
 
-    error_log( "Continuar: " . print_r( $cotacao_generico, true ) . "\n", 3, "/var/log/nginx/php_error.log" );
+    error_log( "Continuar: " . print_r( $cotacao_generico, true ) . "\n", 3, "/var/log/httpd/php_error.log" );
     
     //Verifica se registro existe
     if(!$cotacao_generico) {
@@ -125,7 +125,7 @@ class Venda_Seguro_Saude extends Admin_Controller {
 
       $status = array('pagamento_negado', 'cancelado', 'cancelado_stornado', 'aprovacao_cancelamento', 'cancelamento_aprovado');
 
-      error_log( "Pedido: " . print_r( $pedido, true ) . "\n", 3, "/var/log/nginx/php_error.log" );
+      error_log( "Pedido: " . print_r( $pedido, true ) . "\n", 3, "/var/log/httpd/php_error.log" );
       if($pedido && !in_array($pedido['pedido_status_slug'], $status) && $this->layout == 'front') {
         //$this->venda_aguardando_pagamento($produto_parceiro_id, $cotacao_id);
         redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/5/{$pedido['pedido_id']}");
@@ -1114,7 +1114,7 @@ class Venda_Seguro_Saude extends Admin_Controller {
     
     //$quantidade = $cotacao["quantidade"];
 
-    error_log( "Quantidade#1: " . print_r( $quantidade, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
+    error_log( "Quantidade#1: " . print_r( $quantidade, true ) . "\n", 3, "/var/log/httpd/php_errors.log" );
     
 
     $row =  $this->current_model->get_by_id($produto_parceiro_id);
@@ -1189,9 +1189,10 @@ class Venda_Seguro_Saude extends Admin_Controller {
         $cobertura = explode(';', $coberturas_adicional);
         $vigencia = $this->plano->getInicioFimVigencia($cobertura[0], date('Y-m-d'));
 
-        $valor = $this->getValorCoberturaAdicional($cobertura[0], $cobertura[1], 1);
+        $valor = $this->getValorCoberturaAdicional($cobertura[0], $cobertura[1], $quantidade );
         $valores_cobertura_adicional_total[$cobertura[0]] = (isset($valores_cobertura_adicional_total[$cobertura[0]])) ? ($valores_cobertura_adicional_total[$cobertura[0]] + $valor) : $valor;
         $valores_cobertura_adicional[$cobertura[0]][] = $valor;
+        error_log( print_r( $cobertura, true ), 3, "/var/log/httpd/econnects.log" );
       }
     }
 
@@ -1299,7 +1300,7 @@ class Venda_Seguro_Saude extends Admin_Controller {
       'quantidade' => $quantidade,
     );
 
-    error_log( "Cálculo#2: " . print_r( $valores_liquido, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
+    error_log( "Cálculo#2: " . print_r( $valores_liquido, true ) . "\n", 3, "/var/log/httpd/php_errors.log" );
     //Salva cotação
 
     if($cotacao_id) {
@@ -1338,7 +1339,7 @@ class Venda_Seguro_Saude extends Admin_Controller {
     $this->load->model('moeda_model', 'moeda');
     $this->load->model('moeda_cambio_model', 'moeda_cambio');
 
-    error_log( "Quantidade#2: " . print_r( $quantidade, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
+    error_log( "Quantidade#2: " . print_r( $quantidade, true ) . "\n", 3, "/var/log/httpd/php_errors.log" );
 
     $quantidade = ((int)$quantidade <=0) ? 1 : (int)$quantidade;
 
@@ -1365,7 +1366,7 @@ class Venda_Seguro_Saude extends Admin_Controller {
 
           $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($plano['produto_parceiro_plano_id'], date('Y-m-d'));
 
-          error_log( "Vigência: " . print_r( $vigencia, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
+          error_log( "Vigência: " . print_r( $vigencia, true ) . "\n", 3, "/var/log/httpd/php_errors.log" );
           
           
           //date in mm/dd/yyyy format; or it can be in other formats as well
@@ -1376,11 +1377,11 @@ class Venda_Seguro_Saude extends Admin_Controller {
                   ? ((date("Y") - $birthDate[0]) - 1)
                   : (date("Y") - $birthDate[0]));
           
-          error_log( "Idade: " . print_r( $idade, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
+          error_log( "Idade: " . print_r( $idade, true ) . "\n", 3, "/var/log/httpd/php_errors.log" );
           
           $calculo = $this->getValorTabelaFixa( $plano['produto_parceiro_plano_id'], $idade ) * $quantidade ;
           
-          error_log( "Cálculo: " . print_r( $calculo, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
+          error_log( "Cálculo: " . print_r( $calculo, true ) . "\n", 3, "/var/log/httpd/php_errors.log" );
           
           if($calculo)
             $valores[$plano['produto_parceiro_plano_id']] = $calculo;
@@ -1431,9 +1432,10 @@ class Venda_Seguro_Saude extends Admin_Controller {
 
     ));
 
-
     if($cobertura){
-      return (app_calculo_porcentagem($cobertura['porcentagem'],$cobertura['preco'])*$quantidade);
+      error_log( print_r( $cobertura, true ), 3, "/var/log/httpd/econnects.log" );
+      //return (app_calculo_porcentagem($cobertura['porcentagem'],$cobertura['preco'])*$quantidade);
+      return ($cobertura["preco"])*$quantidade;
     }else{
       return 0;
     }
@@ -1455,7 +1457,7 @@ class Venda_Seguro_Saude extends Admin_Controller {
       ->filter_by_tipo("RANGE")
       ->get_all();
 
-    error_log( "getValorTabelaFixa: $idade " . print_r( $valor, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
+    error_log( "getValorTabelaFixa: $idade " . print_r( $valor, true ) . "\n", 3, "/var/log/httpd/php_errors.log" );
     
     if(count($valor) > 0){
       return $valor[0]['valor'];
@@ -1886,5 +1888,6 @@ class Venda_Seguro_Saude extends Admin_Controller {
   }
   
 }
+
 
 
