@@ -62,8 +62,8 @@
                                                 <!-- Table heading -->
                                                 <thead>
                                                 <tr>
-                                                    <th width='40%'>Original</th>
-                                                    <th width='40%'>Tradução</th>
+                                                    <th width='40%'>De</th>
+                                                    <th width='40%'>Para</th>
                                                     <th class="center" width='20%'>Ações</th>
                                                 </tr>
                                                 </thead>

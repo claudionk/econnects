@@ -103,7 +103,7 @@ if($_POST)
                                                                     <?php $field_name = 'nome_fatura';?>
                                                                     <div class="form-group">
                                                                         <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Nome da Fatura</label>
-                                                                        <div class="col-md-6"><input maxlength="13" class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                                        <div class="col-md-6"><input maxlength="13" onkeypress="return onlyAlphabets(event,this);" class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                                     </div>
                                                                     <?php $field_name = 'parcelamento_maximo';?>
                                                                     <div class="form-group">
@@ -230,3 +230,26 @@ if($_POST)
         </div>
     </div>
 </div>
+<script language="Javascript" type="text/javascript">
+  function onlyAlphabets(e, t) {
+    try {
+      if (window.event) {
+        var charCode = window.event.keyCode;
+      }
+      else if (e) {
+        var charCode = e.which;
+      }
+      else { return true; }
+      if( (charCode > 47 && charCode < 59) || (charCode > 64 && charCode < 91) || (charCode > 96 && charCode < 123))
+        return true;
+      else
+        return false;
+    }
+
+    catch (err) {
+      alert(err.Description);
+    }
+  }
+</script>
+
+

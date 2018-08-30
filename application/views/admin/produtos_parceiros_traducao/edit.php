@@ -76,7 +76,7 @@ if($_POST)
                                                 <div class="col-md-12">
                                                     <?php $field_name = 'original';?>
                                                     <div class="form-group">
-                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Original</label>
+                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">De</label>
                                                         <div class="col-md-10"><input readonly class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
                                                 </div>
@@ -84,7 +84,7 @@ if($_POST)
                                                 <div class="col-md-12">
                                                     <?php $field_name = 'traducao';?>
                                                     <div class="form-group">
-                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Tradução *</label>
+                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Para *</label>
                                                         <div class="col-md-10"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
                                                 </div>

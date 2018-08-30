@@ -132,3 +132,4 @@ function formatRepoSelectionEquipamento (repo) {
     return repo.nome || repo.ean;
 }
 
+

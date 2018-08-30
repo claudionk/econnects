@@ -6,17 +6,12 @@ $(document).ready(function(){
 
 
     $('input[name=repasse_comissao]').change(function () {
-
         show_hide_campos();
     });
 
     $('input[name=desconto_habilitado]').change(function () {
-
         show_hide_campos();
     });
-
-
-
     $("#pai_id").chained("#produto_parceiro_id");
 
 });
@@ -43,6 +38,7 @@ function show_hide_campos(){
 }
 
 //
+
 
 
 

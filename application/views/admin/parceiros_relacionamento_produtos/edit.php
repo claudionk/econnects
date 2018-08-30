@@ -149,19 +149,19 @@ if($_POST)
                                                         <?php $field_name = 'repasse_maximo';?>
                                                         <div class="form-group repasse_habilitado">
                                                             <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Repasse máximo(%) *</label>
-                                                            <div class="col-md-4"><input class="form-control inputmask-moeda" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                            <div class="col-md-4"><input class="form-control inputmask-moeda" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : '0,000'; ?>" /></div>
                                                         </div>
 
                                                         <?php $field_name = 'comissao';?>
                                                         <div class="form-group">
                                                             <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Comissão (%) *</label>
-                                                            <div class="col-md-4"><input class="form-control inputmask-moeda" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                            <div class="col-md-4"><input class="form-control inputmask-moeda" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : '0,000'; ?>" /></div>
                                                         </div>
 
                                                         <?php $field_name = 'comissao_indicacao';?>
                                                         <div class="form-group">
                                                             <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Comissão indicação (%) *</label>
-                                                            <div class="col-md-4"><input class="form-control inputmask-moeda" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                            <div class="col-md-4"><input class="form-control inputmask-moeda" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : '0,000'; ?>" /></div>
                                                         </div>
                                                         </div>
                                                     </div>

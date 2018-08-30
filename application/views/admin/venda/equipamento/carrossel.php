@@ -1,6 +1,5 @@
 <?php
     $exite_cobertura = false;
-
 ?>
 
 <div class="section-header">
@@ -247,7 +246,7 @@
                                                 <?php if ($exite_cobertura) : ?>
                                                     <li><?php echo app_produto_traducao('Coberturas adicionais', $row['produto_parceiro_id']); ?></li>
                                                 <?php endif; ?>
-                                                <?php if ($configuracao['repasse_comissao'] == 1) : ?>
+                                                <?php if ($configuracao['calculo_tipo_id'] == 1 && $configuracao['repasse_comissao'] == 1) : ?>
                                                 <li style="font-weight: bold;"><?php echo app_produto_traducao('PRÊMIO NET', $row['produto_parceiro_id']); ?></li>
                                                     <li><?php echo app_produto_traducao('Comissão', $row['produto_parceiro_id']); ?></li>
                                                     <li><?php echo app_produto_traducao('Repasse de Comissão', $row['produto_parceiro_id']); ?></li>
@@ -332,7 +331,8 @@
                                                                         </td>
                                                                     </tr>
                                                                 <?php endif; ?>
-                                                                <?php if ($configuracao['repasse_comissao'] == 1) : ?>
+                                                                  <!--- Aba 1 -->
+                                                                <?php if ($configuracao['calculo_tipo_id'] == 1 && $configuracao['repasse_comissao'] == 1) : ?>
                                                                 <tr class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>">
                                                                     <td><span
                                                                                 class="premio_bruto premio_bruto_one_<?php echo $plano['produto_parceiro_plano_id']; ?>">---</span>
@@ -493,7 +493,8 @@
                                                                         </td>
                                                                     </tr>
                                                                 <?php endif; ?>
-                                                                <?php if ($configuracao['repasse_comissao'] == 1) : ?>
+                                                                  <!--- Aba N -->
+                                                                <?php if ($configuracao['calculo_tipo_id'] == 1 && $configuracao['repasse_comissao'] == 1) : ?>
                                                                     <tr  class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>">
                                                                         <td>
                                                                     <span><?php echo app_format_currency($configuracao['comissao'], false, 2); ?>
@@ -511,7 +512,7 @@
                                                                                    value="<?php if (isset($carrossel['repasse_comissao'])) echo $carrossel['repasse_comissao']; ?>">
                                                                         </td>
                                                                     </tr>
-                                                                    <tr  class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>"">
+                                                                    <tr  class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>">
                                                                     <td><span class="comissao_corretor"
                                                                               id="comissao_corretor_two_<?php echo $plano['produto_parceiro_plano_id']; ?>">---</span>
                                                                     </td>
@@ -705,4 +706,7 @@
 <script>
     var layout = "base";
 </script>
+
+
+
 

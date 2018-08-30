@@ -1,15 +1,12 @@
 <?php
 $host_servers['production'] = array(
-
     'alfa.econnects.com.br',
 );
 $host_servers['homologacao'] = array(
     'sis.econnects.com.br',
     'alseg.econnects.com.br',
-    'econnects-dev.jelastic.websolute.net.br',
-    'econnects.jelastic.websolute.net.br',
-    'econnects-dev.jelastic.saveincloud.net',
-    '191.243.196.15'
+    'econnects-h.jelastic.saveincloud.net',
+    '191.243.196.174'
 );
 /*
  *---------------------------------------------------------------
@@ -236,3 +233,4 @@ else
 require_once BASEPATH.'core/CodeIgniter.php';
 /* End of file index.php */
 /* Location: ./index.php */
+

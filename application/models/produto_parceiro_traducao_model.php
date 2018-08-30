@@ -22,12 +22,12 @@ Class Produto_Parceiro_Traducao_Model extends MY_Model
     public $validate = array(
         array(
             'field' => 'original',
-            'label' => 'Original',
+            'label' => 'De',
             'rules' => '',
             'groups' => 'default'
         ),array(
             'field' => 'traducao',
-            'label' => 'Tradução',
+            'label' => 'Para',
             'rules' => 'required',
             'groups' => 'default'
         ),
@@ -81,3 +81,4 @@ Class Produto_Parceiro_Traducao_Model extends MY_Model
     }
 
 }
+

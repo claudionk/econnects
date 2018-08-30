@@ -29,15 +29,21 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
     );
 
     //Get dados
-    public function get_form_data($just_check = false)
-    {
+    public function get_form_data($just_check = false) {
         //Dados
+      if( intval( $this->input->post('regra_preco_id') ) == 2 ) {
+        $data =  array(
+            'regra_preco_id' => $this->input->post('regra_preco_id'),
+            'parametros' => app_unformat_currency( $this->input->post('parametros') ),
+            'produto_parceiro_id' => $this->input->post('produto_parceiro_id')
+        );
+      } else {
         $data =  array(
             'regra_preco_id' => $this->input->post('regra_preco_id'),
             'parametros' => $this->input->post('parametros'),
             'produto_parceiro_id' => $this->input->post('produto_parceiro_id')
-
         );
+      }
         return $data;
     }
     function get_by_id($id)
@@ -58,3 +64,4 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
     }
 
 }
+

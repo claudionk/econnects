@@ -77,7 +77,6 @@ if($_POST)
                                                             <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
                                                                 <option name="" value="">Selecione</option>
                                                                 <?php
-
                                                                 foreach($regras as $linha) { ?>
                                                                     <option name="" value="<?php echo $linha[$field_name] ?>"
                                                                         <?php if(isset($row)){if($row[$field_name] == $linha[$field_name]) {echo " selected ";};}; ?> >
@@ -91,7 +90,7 @@ if($_POST)
                                                     <?php $field_name = 'parametros';?>
                                                     <div class="form-group">
                                                         <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Parametros</label>
-                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                        <div class="col-md-8"><input class="form-control <?php if( strtoupper($row["regra_preco_id"])==2){ echo 'inputmask-valor'; }?>" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
 
 

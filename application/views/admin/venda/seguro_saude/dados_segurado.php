@@ -45,7 +45,7 @@
 
 
                 <?php
-          			error_log( "Carrossel#1: " . print_r( $carrossel, true ) . "\n", 3, "/var/log/nginx/php_errors.log" );
+          			error_log( "Carrossel#1: " . print_r( $carrossel, true ) . "\n", 3, "/var/log/httpd/php_errors.log" );
                     $planos = explode(';', $carrossel['plano']);
                     $plano_nome = explode(';', $carrossel['plano_nome']);
                     $valor_total = explode(';', $carrossel['valor_total']);

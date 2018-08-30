@@ -33,7 +33,6 @@ if($_POST)
             </div>
         </div>
 
-
         <div class="col-md-4 <?php echo (app_is_form_error($original_field_name)) ? ' has-error' : ''; ?>">
             <div class="form-group">
                 <label class=" control-label" for="<?php echo $original_field_name;?>"><?php echo $field_label ?></label>
@@ -43,3 +42,4 @@ if($_POST)
         </div>
     </div>
 </div>
+

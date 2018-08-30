@@ -33,8 +33,8 @@ $(function(){
     $(".inputmask-cnpj").inputmask({"mask": "99.999.999/9999-99"});
  	$(".inputmask-celular").inputmask("mask", {"mask": "(99)9999-99999"});
     $(".inputmask-telefone").inputmask("mask", {"mask": "(99)9999-9999"});
-    $(".inputmask-moeda").inputmask('999,999', { numericInput: true, rightAlignNumerics: false, greedy: true});
-    $(".inputmask-moeda2").inputmask('999.999.999,999', { numericInput: true, rightAlignNumerics: false, greedy: true});
+    $(".inputmask-moeda").inputmask('999,99', { numericInput: true, rightAlignNumerics: false, greedy: true});
+    $(".inputmask-moeda2").inputmask('999.999.999,99', { numericInput: true, rightAlignNumerics: false, greedy: true});
     $(".inputmask-valor").inputmask('999.999.999,99', { numericInput: true, rightAlignNumerics: false, greedy: true});
     $(".inputmask-numero").inputmask('', {numericInput: true, rightAlignNumerics: false});
     $(".inputmask-cep").inputmask("mask", {"mask": "99999-999"});

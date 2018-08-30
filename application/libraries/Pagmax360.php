@@ -12,7 +12,7 @@ class Pagmax360 {
   public $merchantId;
   public $merchantKey;
   public $Environment;
-  private $UrlPagmax = "https://gw.pagmax.com.br/";
+  private $UrlPagmax = "https://gw.pagmax.com.br";
 
   public function __construct() {
     $this->CI =& get_instance();
@@ -108,6 +108,7 @@ class Pagmax360 {
   //
   public function createTransaction( $merchantId, $merchantKey, $Json, $Env = "teste" ) {
     $Url = "{$this->UrlPagmax}api/$Env/transaction";
+    $Url = "{$this->UrlPagmax}/v3/api/transaction";
     $myCurl = curl_init();
     curl_setopt( $myCurl, CURLOPT_URL, $Url );
     curl_setopt( $myCurl, CURLOPT_FRESH_CONNECT, 1 );
@@ -124,6 +125,7 @@ class Pagmax360 {
     // Loga as informações em arquivo texto
     $agora = new DateTime();
     error_log( $agora->format("Y-m-d H:i:s") . " - POST - $Url\n", 3, "/var/log/httpd/360.log" );
+    //error_log( $agora->format("Y-m-d H:i:s") . " - JSON >> \n" . print_r( $Response, true ) . "\n", 3, "/var/log/httpd/360.log" );
     
     // Loga as informações no banco de dados
     $JsonObject = json_decode( $Json );
@@ -161,6 +163,7 @@ class Pagmax360 {
   //
   public function voidTransaction( $merchantId, $merchantKey, $PaymentID, $Env = "teste" ) {
     $Url = "{$this->UrlPagmax}api/$Env/transaction/$PaymentID/void";
+    $Url = "{$this->UrlPagmax}/v3/api/transaction/$PaymentID/void";
     $myCurl = curl_init();
     curl_setopt( $myCurl, CURLOPT_URL, $Url );
     curl_setopt( $myCurl, CURLOPT_CUSTOMREQUEST, "PUT" );
@@ -212,6 +215,7 @@ class Pagmax360 {
   //
   public function captureTransaction( $merchantId, $merchantKey, $PaymentID, $Env = "teste" ) {
     $Url = "{$this->UrlPagmax}api/$Env/transaction/$PaymentID/capture";
+    $Url = "{$this->UrlPagmax}/v3/api/transaction/$PaymentID/capture";
     $myCurl = curl_init();
     curl_setopt( $myCurl, CURLOPT_URL, $Url );
     curl_setopt( $myCurl, CURLOPT_CUSTOMREQUEST, "PUT" );
@@ -264,6 +268,7 @@ class Pagmax360 {
   //
   public function getTransaction( $merchantId, $merchantKey, $PaymentID, $Env = "teste" ) {
     $Url = "{$this->UrlPagmax}api/$Env/transaction/$PaymentID";
+    $Url = "{$this->UrlPagmax}/v3/api/transaction/$PaymentID";
     $myCurl = curl_init();
     curl_setopt( $myCurl, CURLOPT_URL, $Url );
     curl_setopt( $myCurl, CURLOPT_FRESH_CONNECT, 1 );
@@ -310,6 +315,7 @@ class Pagmax360 {
   //
   public function getTransactionByMerchantOrderId( $merchantId, $merchantKey, $MerchantOrderId, $Env = "teste" ) {
     $Url = "{$this->UrlPagmax}api/$Env/MerchantOrderId/$MerchantOrderId";
+    $Url = "{$this->UrlPagmax}/v3/api/MerchantOrder/$MerchantOrderId";
     $myCurl = curl_init();
     curl_setopt( $myCurl, CURLOPT_URL, $Url );
     curl_setopt( $myCurl, CURLOPT_FRESH_CONNECT, 1 );
@@ -352,6 +358,7 @@ class Pagmax360 {
 
 
 }
+
 
 
 

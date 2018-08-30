@@ -88,7 +88,7 @@ if($_POST){
                         <?php foreach($bandeira['parcelamento'] as $parcela => $linha) : ?>
                             <option name="" value="<?php echo $parcela; ?>"
                                 <?php if(isset($row[$field_name])){if($row[$field_name] == $parcela) {echo " selected ";};}; ?> >
-                                <?php echo $linha; ?>
+                                <?php echo $linha["Descricao"]; ?>
                             </option>
                         <?php endforeach;  ?>
                     </select>

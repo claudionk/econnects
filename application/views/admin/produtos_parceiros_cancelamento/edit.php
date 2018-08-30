@@ -150,7 +150,7 @@ if($_POST)
                                                                         <label class="radio-inline radio-styled radio-primary">
                                                                             <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
                                                                                    value="E" <?php if (isset($row[$field_name]) && $row[$field_name] == 'E') echo 'checked="checked"'; ?> />
-                                                                            Especial
+                                                                            Específico
                                                                         </label>
                                                                     </div>
 
@@ -216,12 +216,12 @@ if($_POST)
                                                                     </div>
                                                                     <?php $field_name = 'inad_max_dias';?>
                                                                     <div class="form-group inadimplencia_habilitado">
-                                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Quantidade máxima de dias</label>
+                                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Quantidade máxima de dias em aberto</label>
                                                                         <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
                                                                     </div>
                                                                     <?php $field_name = 'inad_max_parcela';?>
                                                                     <div class="form-group inadimplencia_habilitado">
-                                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Quantidade máxima de parcelas</label>
+                                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Quantidade máxima de parcelas em aberto</label>
                                                                         <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
                                                                     </div>
 
@@ -248,13 +248,13 @@ if($_POST)
                                                                     </div>
                                                                     <?php $field_name = 'inad_reativacao_max_dias';?>
                                                                     <div class="form-group inadimplencia_reativacao">
-                                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Máximo de dias cancelado</label>
+                                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">No máximo quantos dias depois de cancelado</label>
                                                                         <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
                                                                     </div>
 
                                                                     <?php $field_name = 'inad_reativacao_max_parcela';?>
                                                                     <div class="form-group inadimplencia_reativacao">
-                                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Máximo de parcelas</label>
+                                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">No máximo quantas parcelas depois de cancelado</label>
                                                                         <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
                                                                     </div>
 
@@ -283,7 +283,7 @@ if($_POST)
 
                                                                     <br>
                                                                     <br>
-                                                                    <h4>Indenização</h4>
+                                                                    <h4>Reembolso em caso de cancelamento</h4>
                                                                     <hr>
                                                                     <br>
 

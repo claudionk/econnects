@@ -478,9 +478,11 @@ if($_POST)
                                                 <div class="col-md-12">
                                                 <?php $field_name = 'termo_aceite_usuario';?>
                                                     <div class="form-group">
-                                                        <label class="col-md-3 control-label" for="<?php echo $field_name;?>">termo de aceite usuário *</label>
+                                                        <label class="col-md-3 control-label" for="<?php echo $field_name;?>">Termo de Uso do Portal *</label>
                                                         <div class="col-md-9">
-                                                            <textarea class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text"  /><?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?></textarea>
+                                                            <textarea class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text">
+                                                              <?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>
+                                                          </textarea>
                                                             <?php echo display_ckeditor($ckeditor); ?>
                                                         </div>
                                                     </div>
@@ -524,3 +526,4 @@ if($_POST)
         </div>
     </div>
 </div>
+

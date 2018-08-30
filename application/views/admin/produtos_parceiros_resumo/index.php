@@ -24,9 +24,6 @@ if($_POST)
                     <a href="<?php echo base_url("admin/produtos_parceiros/view_by_parceiro/{$produto_parceiro['parceiro_id']}")?>" class="btn  btn-app btn-primary">
                         <i class="fa fa-arrow-left"></i> Voltar
                     </a>
-                    <a class="btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
-                        <i class="fa fa-edit"></i> Salvar
-                    </a>
                 </div>
 
             </div>
@@ -180,9 +177,6 @@ if($_POST)
 
                                             <a href="<?php echo base_url("admin/produtos_parceiros/view_by_parceiro/{$produto_parceiro['parceiro_id']}")?>" class="btn  btn-app btn-primary">
                                                 <i class="fa fa-arrow-left"></i> Voltar
-                                            </a>
-                                            <a class="btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
-                                                <i class="fa fa-edit"></i> Salvar
                                             </a>
                                         </div>
 
