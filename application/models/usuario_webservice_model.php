@@ -38,7 +38,7 @@ Class Usuario_Webservice_Model extends MY_Model {
   }
 
   function getByUsuarioID( $usuario_id ) {
-    $query = $this->db->query( "SELECT w.usuario_id, w.api_key, w.validade, u.parceiro_id FROM usuario_webservice w INNER JOIN usuario u ON (u.usuario_id=w.usuario_id) WHERE w.usuario_id='$usuario_id' AND w.deletado=0 AND u.deletado=0" )->result_array();
+    $query = $this->db->query( "SELECT w.usuario_webservice_id, w.usuario_id, w.api_key, w.validade, u.parceiro_id FROM usuario_webservice w INNER JOIN usuario u ON (u.usuario_id=w.usuario_id) WHERE w.usuario_id='$usuario_id' AND w.deletado=0 AND u.deletado=0" )->result_array();
     if( $query ) {
       return $query[0];
     } else {
