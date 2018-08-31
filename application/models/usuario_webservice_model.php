@@ -23,8 +23,9 @@ Class Usuario_Webservice_Model extends MY_Model {
   );
 
   function get_by_id( $id ) {
+    return $this->get($id);
   }
-
+  
   function getByAPI_KEY($key) {
     $this->_database->where('api_key', $key );
     $this->_database->limit(1);
@@ -36,6 +37,15 @@ Class Usuario_Webservice_Model extends MY_Model {
     }
   }
 
+  function getByUsuarioID( $usuario_id ) {
+    $query = $this->db->query( "SELECT w.usuario_id, w.api_key, w.validade, u.parceiro_id FROM usuario_webservice w INNER JOIN usuario u ON (u.usuario_id=w.usuario_id) WHERE w.usuario_id='$usuario_id' AND w.deletado=0 AND u.deletado=0" )->result_array();
+    if( $query ) {
+      return $query[0];
+    } else {
+      return false;
+    }
+  }
+  
   function checkKeyExpiration( $key ) {
     $query = $this->db->query( "SELECT usuario_id, api_key, validade FROM usuario_webservice WHERE api_key='$key' AND validade >= now()" )->result_array();
     if( $query ) {
@@ -46,4 +56,5 @@ Class Usuario_Webservice_Model extends MY_Model {
   }
   
 }
+
 
