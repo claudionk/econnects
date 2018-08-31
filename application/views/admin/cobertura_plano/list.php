@@ -88,6 +88,9 @@
                                                 $preco = app_calculo_porcentagem($row['porcentagem'], $row['preco']);
                                                 $exibicao = app_format_currency(app_calculo_porcentagem($row['porcentagem'], $row['preco']), FALSE, 3);
                                             }*/
+                                        }elseif($row['mostrar'] == 'importancia_segurada') {
+                                            $exibicao = "IMPORTÂNCIA SEGURADA";
+                                            $preco = 0;
                                         }else{
                                             $exibicao = $row['descricao'];
                                             $preco = 0;

@@ -42,7 +42,13 @@ if($_POST)
             </div>
         </div>
 
-        <div class="col-md-4 <?php echo (app_is_form_error($original_field_name)) ? ' has-error' : ''; ?>">
+        <!--div class="col-md-3 <?php echo (app_is_form_error($original_field_name)) ? ' has-error' : ''; ?>">
+            <div class="form-group">
+                <label class=" control-label" for="<?php echo $original_field_name;?>"><?php echo $field_label ?></label>
+                <input class="form-control" name="<?php echo $original_field_name;?>" value="<?php echo isset($row[$original_field_name]) ?  $row[$original_field_name] : ''; ?>" style="width: 100%;" />
+                <?php echo app_get_form_error($field_name); ?>
+            </div>
+        </div-->
 
         <?php $field_name = 'equipamento_nome'; ?>
         <input type="hidden" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>" value="<?php echo isset($row[$field_name]) ?  $row[$field_name] : ''; ?>" />
@@ -59,4 +65,3 @@ if($_POST)
         </div>
     </div>
 </div>
-

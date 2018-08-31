@@ -30,21 +30,23 @@ class Acesso extends CI_Controller {
 
     $usuario = $this->usuario->get_by( array( "email" => $GET["email"] ) );
     $webservice = $this->webservice->get_by( array( "usuario_id" => $usuario["usuario_id"] ) );
+    
 
-    if($webservice) {
+    if( $webservice ) {
 
-      $dados_webservice = array();
-      $dados_webservice["validade"] = date("Y-m-d H:i:s");
-      $dados_webservice["api_key"] = hash( "sha256", $dados_webservice["validade"].$usuario["email"] );
-      $this->webservice->update( $webservice["usuario_webservice_id"], $dados_webservice, TRUE ) ;
-      
-      $webservice = $this->webservice->get_by( array( "usuario_id" => $usuario["usuario_id"] ) );
-      
+      if( date( "Y-m-d H:i:s", strtotime( $webservice["validade"] ) ) < date("Y-m-d H:i:s") ) {
+        $dados_webservice = array();
+        $dados_webservice["validade"] = date("Y-m-d H:i:s", strtotime( "+12 hours", strtotime( date("Y-m-d H:i:s") ) ) );
+        $dados_webservice["api_key"] = hash( "sha256", $dados_webservice["validade"].$usuario["email"] );
+        $this->webservice->update( $webservice["usuario_webservice_id"], $dados_webservice, TRUE ) ;
+
+        $webservice = $this->webservice->get_by( array( "usuario_id" => $usuario["usuario_id"] ) );
+      }
     }else{
       
       $dados_webservice = array();
       $dados_webservice["usuario_id"] = $usuario["usuario_id"];
-      $dados_webservice["validade"] = date("Y-m-d H:i:s");
+      $dados_webservice["validade"] = date("Y-m-d H:i:s", strtotime( "+12 hours", strtotime( date("Y-m-d H:i:s") ) ) );
       $dados_webservice["api_key"] = hash( "sha256", $dados_webservice["validade"].$usuario["email"] );
       $usuario_webservice_id = $this->webservice->insert( $dados_webservice, TRUE );
 
@@ -55,5 +57,6 @@ class Acesso extends CI_Controller {
   }
 }
 ?>
+
 
 

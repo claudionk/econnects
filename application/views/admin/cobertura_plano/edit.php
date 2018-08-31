@@ -131,6 +131,10 @@ if($_POST)
                                                                     <?php if(isset($row[$field_name])){if($row[$field_name] == 'descricao') {echo " selected ";};}; ?> >
                                                                     Descrição
                                                                 </option>
+                                                                <option name="" value="importancia_segurada"
+                                                                    <?php if(isset($row[$field_name])){if($row[$field_name] == 'importancia_segurada') {echo " selected ";};}; ?> >
+                                                                    Importância Segurada
+                                                                </option>
                                                             </select>
                                                         </div>
                                                     </div>

@@ -140,6 +140,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         $this->_database->select("campo.nome");
         $this->_database->select("campo.nome_banco");
         $this->_database->select("campo.slug");
+        $this->_database->select("campo.classes");
         $this->_database->join('campo', "campo.campo_id = {$this->_table}.campo_id", 'inner');
         $this->_database->join('campo_tipo', "campo_tipo.campo_tipo_id = {$this->_table}.campo_tipo_id", 'inner');
 
@@ -298,4 +299,5 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
 
 
 }
+
 

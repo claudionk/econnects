@@ -58,12 +58,10 @@ class Equipamento extends Admin_Controller
 
         $data->limit($limit, $limit*($page-1));
 
-        $data->_database->where("equipamento_categoria_nivel=1",NULL,FALSE);
-      
         if($filter)
         {
-            $data->_database->where("(equipamento_categoria.nome LIKE '%$filter%' OR equipamento_categoria.descricao LIKE '%$filter%')", NULL, FALSE);
-            //$data->_database->or_where('', NULL, FALSE);
+            $data->_database->or_where('(equipamento_categoria.nome LIKE "%'.$filter.'%"', NULL, FALSE);
+            $data->_database->or_where('equipamento_categoria.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
         }
 
         $data = $data
@@ -71,13 +69,11 @@ class Equipamento extends Admin_Controller
             ->get_all();
 
         $total = $this->equipamento_categoria;
-        $total->_database->where("equipamento_categoria_nivel=1",NULL,FALSE);
-      
+
         if($filter)
         {
-          $total->_database->where("(equipamento_categoria.nome LIKE '%$filter%' OR equipamento_categoria.descricao LIKE '%$filter%')", NULL, FALSE);
-              //$total->_database->or_where('(equipamento_categoria.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-              //$total->_database->or_where('equipamento_categoria.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
+              $total->_database->or_where('(equipamento_categoria.nome LIKE "%'.$filter.'%"', NULL, FALSE);
+              $total->_database->or_where('equipamento_categoria.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
         }
 
         $total = $total
@@ -209,7 +205,7 @@ class Equipamento extends Admin_Controller
             $data->_database->or_where('(equipamento.ean LIKE "%'.$filter.'%"', NULL, FALSE);
             $data->_database->or_where('equipamento.nome LIKE "%'.$filter.'%"', NULL, FALSE);
             $data->_database->or_where('equipamento.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('equipamento.tags LIKE "%'.$filter.'%"', NULL, FALSE);
+            $data->_database->or_where('equipamento.tags LIKE "%'.$filter.'%")', NULL, FALSE);
             /*$data->_database->or_where('equipamento_marca.nome LIKE "%'.$filter.'%"', NULL, FALSE);
             $data->_database->or_where('equipamento_marca.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
             $data->_database->or_where('equipamento_categoria.nome LIKE "%'.$filter.'%"', NULL, FALSE);
@@ -227,7 +223,7 @@ class Equipamento extends Admin_Controller
             $total->_database->or_where('(equipamento.ean LIKE "%'.$filter.'%"', NULL, FALSE);
             $total->_database->or_where('equipamento.nome LIKE "%'.$filter.'%"', NULL, FALSE);
             $total->_database->or_where('equipamento.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
-            $total->_database->or_where('equipamento.tags LIKE "%'.$filter.'%"', NULL, FALSE);
+            $total->_database->or_where('equipamento.tags LIKE "%'.$filter.'%")', NULL, FALSE);
           /*  $total->_database->or_where('equipamento_marca.nome LIKE "%'.$filter.'%"', NULL, FALSE);
             $total->_database->or_where('equipamento_marca.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
             $total->_database->or_where('equipamento_categoria.nome LIKE "%'.$filter.'%"', NULL, FALSE);
@@ -249,8 +245,8 @@ class Equipamento extends Admin_Controller
             ->set_output(json_encode($json));
     }
 
-    public function index($offset = 0) //Função padrão (load)
-    {
+    public function index($offset = 0) { 
+      	//Função padrão (load)
         //Carrega bibliotecas
         $this->load->library('pagination');
 
@@ -375,4 +371,6 @@ class Equipamento extends Admin_Controller
         redirect("{$this->controller_uri}/index");
     }
 
+
 }
+

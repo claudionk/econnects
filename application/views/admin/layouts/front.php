@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" ng-app="App">
-<head>
+  <head>
     <title><?php echo "{$title}"; ?></title>
 
     <!-- BEGIN META -->
@@ -11,8 +11,19 @@
     <!-- END META -->
 
     <!-- BEGIN STYLESHEETS -->
-        <script src="<?php echo app_assets_url('template/js/libs/jquery/jquery-1.12.4.min.js', 'admin');?>"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-sanitize.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-route.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.4/angular-material.min.js"></script>
+    <script src="https://code.angularjs.org/1.5.5/i18n/angular-locale_pt-br.js"></script>    
+    
+    <!--<script src="<?php echo app_assets_url('template/js/libs/jquery/jquery-1.12.4.min.js', 'admin');?>"></script>-->
     <script src="<?php echo app_assets_url('template/js/libs/jquery/jquery-migrate-1.2.1.min.js', 'admin');?>"></script>
+    
     <link href='http://fonts.googleapis.com/css?family=Roboto:300italic,400italic,300,400,500,700,900' rel='stylesheet' type='text/css'/>
     <link type="text/css" rel="stylesheet" href="<?php echo app_assets_url("template/css/{$theme}/bootstrap.css", 'admin');?>" />
     <link type="text/css" rel="stylesheet" href="<?php echo app_assets_url("template/css/{$theme}/materialadmin.css", 'admin');?>" />
@@ -32,40 +43,91 @@
     <script type="text/javascript" src="<?php echo app_assets_url('template/js/libs/utils/html5shiv.js', 'admin');?>"></script>
     <script type="text/javascript" src="<?php echo app_assets_url('template/js/libs/utils/respond.min.js', 'admin');?>"></script>
     <![endif]-->
-    <!--    <script src="<?php echo app_assets_url('template/js/core/source/angular.min.js', 'admin');?>"></script> -->
+    <!--<script src="<?php echo app_assets_url('template/js/core/source/angular.min.js', 'admin');?>"></script>-->
 
+    
     <?php if(isset($enable_ckeditor)) :?>
-        <script src="<?php echo app_assets_url("ckeditor/ckeditor.js", 'common');?>"></script>
-        <script src="<?php echo app_assets_url("ckfinder/ckfinder.js", 'common');?>"></script>
+    <script src="<?php echo app_assets_url("ckeditor/ckeditor.js", 'common');?>"></script>
+    <script src="<?php echo app_assets_url("ckfinder/ckfinder.js", 'common');?>"></script>
     <?php endif?>
 
     <script type="text/javascript">
-        var ADMIN_URL = '<?php echo base_url('admin'); ?>';
-        var base_url = '<?php echo base_url() ?>';
+      var ADMIN_URL = '<?php echo base_url('admin'); ?>';
+      var base_url = '<?php echo base_url() ?>';
 
-        // Seta APP para Angular JS
-        //var app = angular.module("App", []);
+      // Seta APP para Angular JS
+      var AppController = angular.module( "App", [ "ngMaterial", "ngSanitize" ]);
+      AppController.filter("cnpj", function(){
+        return function(cnpj){
+          if( typeof cnpj != typeof undefined ) {
+            cnpj = cnpj.replace(/\D/g, "");
+            return cnpj.substr(0, 2) + "." + cnpj.substr(2, 3) + "." + cnpj.substr(5, 3) + "/" + cnpj.substr(8,4) + "-" + cnpj.substr(12,2);
+          }
+          return null;
+        };
+      });
+
+      AppController.filter("cpf", function(){
+        return function(cpf){
+          if( typeof cpf != typeof undefined ) {
+            cpf = cpf.replace(/\D/g, "");
+            return cpf.substr(0, 3) + "." + cpf.substr(3, 3) + "." + cpf.substr(6, 3) + "-" + cpf.substr(9,2);
+          }
+          return null;
+        };
+      });
+
+      AppController.filter("cep", function(){
+        return function(cep){
+          if( typeof cep != typeof undefined ) {
+            cep = cep.replace(/\D/g, "");
+            return cep.substr(0, 5) + "-" + cep.substr(5, 3);
+          }
+          return null;
+        };
+      });
+
+      AppController.filter("telefone", function(){
+        return function(telefone){
+          if( typeof telefone != typeof undefined ) {
+            if( telefone.length == 10 ) {
+              return "(" + telefone.substr(0, 2) + ") " + telefone.substr(2, 4) + "-" + telefone.substr(6, 4);
+            }
+            if( telefone.length == 11 ) {
+              return "(" + telefone.substr(0, 2) + ") " + telefone.substr(2, 5) + "-" + telefone.substr(7, 4);
+            }
+
+          }
+          return telefone;
+        };
+      });
+
+      AppController.filter("trust", ['$sce', function($sce) {
+        return function(htmlCode){
+          return $sce.trustAsHtml(htmlCode);
+        }
+      }]);      
     </script>
     <script src="<?php echo app_assets_url('core/js/anchor.min.js', 'admin');?>"></script>
     <script src="<?php echo app_assets_url('core/js/util.js', 'admin');?>"></script>
     <script src="<?php echo app_assets_url('core/js/prettify.min.js', 'admin');?>"></script>
     <script src="<?php echo app_assets_url('template/js/libs/select2/select2.full.min.js', 'admin');?>"></script>
     <script src="<?php echo app_assets_url('template/js/libs/select2/i18n/pt-BR.js', 'admin');?>"></script>
-</head>
-<body class="menubar-hoverable header-fixed menubar-pin ">
+  </head>
+  <body class="menubar-hoverable header-fixed menubar-pin ">
 
     <section>
-        <?php echo $contents;?>
+      <?php echo $contents;?>
     </section>
 
     <!-- Modal -->
     <div id="modal" class="modal fade" role="dialog">
-        <div class="modal-dialog">
+      <div class="modal-dialog">
 
-            <!-- Modal content-->
-            <div class="modal-content">
-            </div>
+        <!-- Modal content-->
+        <div class="modal-content">
         </div>
+      </div>
     </div>
     <!-- Fim Modal-->
 
@@ -90,5 +152,5 @@
     <script src="<?php echo app_assets_url('core/js/base.js', 'admin');?>"></script>
     <?php echo $js_for_layout;?>
     <!-- END JAVASCRIPT -->
-</body>
+  </body>
 </html>

@@ -19,7 +19,7 @@ class Apolice extends CI_Controller {
       $this->api_key = $_SERVER["HTTP_APIKEY"];
       $this->load->model( "usuario_webservice_model", "webservice" );
       
-      $webservice = $this->webservice->get_by( array( "api_key" => $this->api_key ) );
+      $webservice = $this->webservice->checkKeyExpiration( $this->api_key );
       if( !sizeof( $webservice ) ) {
         die( json_encode( array( "status" => false, "message" => "APIKEY is invalid" ) ) );
       }
@@ -129,6 +129,7 @@ class Apolice extends CI_Controller {
   }
 
 }
+
 
 
 

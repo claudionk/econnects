@@ -39,7 +39,7 @@ class Info extends CI_Controller {
       $this->load->model( "produto_parceiro_servico_log_model", "produto_parceiro_servico_log" );
       $this->load->model( "produto_parceiro_servico_model", "produto_parceiro_servico" );
       
-      $webservice = $this->webservice->get_by( array( "api_key" => $this->api_key ) );
+      $webservice = $this->webservice->checkKeyExpiration( $this->api_key );
       if( !sizeof( $webservice ) ) {
         die( json_encode( array( "status" => false, "message" => "APIKEY is invalid" ) ) );
       }
@@ -402,5 +402,6 @@ class validaEmail {
   }
   
 }
+
 
 

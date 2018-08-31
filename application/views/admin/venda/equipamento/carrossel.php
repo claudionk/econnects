@@ -25,7 +25,7 @@
 </div>
 
 <!-- col-app -->
-<div class="card">
+<div class="card" ng-controller="AppController">
     <!-- col-app -->
     <div class="card-body">
         <!-- Form -->
@@ -136,7 +136,22 @@
                                                                         <tr class="<?php echo ($i % 2 == 0) ? '' : 'odd'; ?>">
                                                                             <td>
                                                                                 <?php if($cobertura['cobertura_tipo_id'] == 1 ) : ?>
-                                                                                    <?php echo (($key = array_search($cobertura['cobertura_id'], array_column($plano['cobertura'], 'cobertura_id'))) === FALSE) ? '-' : $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']]; ?>
+                                                                                    <?php 
+                                                                                      if( ( $key = array_search($cobertura['cobertura_id'], array_column($plano['cobertura'], 'cobertura_id') ) ) === FALSE ) {
+                                                                                        echo '-';
+                                                                                      } else { 
+                                                                                        //$plano["cobertura"][$key]["mostrar"];
+                                                                                        if( $plano["precificacao_tipo_id"] == 2 ) {
+                                                                                          if( $plano["cobertura"][$key]["mostrar"] == "preco" || $plano["cobertura"][$key]["mostrar"] == "importancia_segurada" ) {
+                                                                                            echo "Até R$" . number_format( $cotacao_salva["nota_fiscal_valor"], 2, ",", "." );
+                                                                                          } else {
+                                                                                            echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                          }
+                                                                                        } else {
+                                                                                          echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                        }
+                                                                                      }
+                                                                                    ?>
                                                                                 <?php else : ?>
                                                                                     <?php if (($key = array_search($cobertura['cobertura_id'], array_column($plano['cobertura'], 'cobertura_id'))) === FALSE) : ?>
                                                                                         -
@@ -161,6 +176,7 @@
                                                     </ul>
                                                     <div class="clearfix"></div>
                                                 </div>
+                                              
                                                 <?php if(count($planos) > 1): ?>
                                                 <div id="slider-two-container" class="plano_slider">
                                                     <ul id="plano_slider_two" class="slide-container">
@@ -169,7 +185,9 @@
                                                                 <table class="plano_table">
                                                                     <thead>
                                                                     <tr>
-                                                                        <th class="plano_header plano_nome_one_<?php echo $plano['produto_parceiro_plano_id']; ?>"><?php echo $plano['nome']; ?></th>
+                                                                        <th class="plano_header plano_nome_one_<?php echo $plano['produto_parceiro_plano_id']; ?>">
+                                                                          <?php echo $plano['nome']; ?> 
+                                                                      </th>
                                                                     </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -178,7 +196,17 @@
                                                                         <tr class="<?php echo ($i % 2 == 0) ? '' : 'odd'; ?>">
                                                                             <td>
                                                                                 <?php if($cobertura['cobertura_tipo_id'] == 1 ) : ?>
-                                                                                    <?php echo (($key = array_search($cobertura['cobertura_id'], array_column($plano['cobertura'], 'cobertura_id'))) === FALSE) ? '-' : $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']]; ?>
+                                                                                    <?php 
+                                                                                      if( ( $key = array_search($cobertura['cobertura_id'], array_column($plano['cobertura'], 'cobertura_id') ) ) === FALSE ) {
+                                                                                        echo '-';
+                                                                                      } else { 
+                                                                                        if( $plano["precificacao_tipo_id"] == 2 ) {
+                                                                                          echo "Até R$" . number_format( $cotacao_salva["nota_fiscal_valor"], 2, ",", "." );
+                                                                                        } else {
+                                                                                          echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                        }
+                                                                                      }
+                                                                                    ?>
                                                                                 <?php else : ?>
                                                                                     <?php if (($key = array_search($cobertura['cobertura_id'], array_column($plano['cobertura'], 'cobertura_id'))) === FALSE) : ?>
                                                                                         -
@@ -188,7 +216,9 @@
                                                                                             <label>
                                                                                                 <?php $coberturas_selecionadas = (isset($carrinho_hidden['cobertura_adicional'])) ? explode(';', $carrinho_hidden['cobertura_adicional']) : array(); ?>
                                                                                                 <input class="ck-cobertura-adicional" name="ck_cobertura_adicional[]" type="checkbox" value="<?php echo "{$plano['produto_parceiro_plano_id']};{$plano['cobertura'][$key]['cobertura_plano_id']}"; ?>" <?php if(isset($carrinho_hidden['plano']) && $carrinho_hidden['plano'] == $plano['produto_parceiro_plano_id'] && isset($carrinho_hidden['cobertura_adicional']) && in_array($plano['cobertura'][$key]['cobertura_plano_id'], $coberturas_selecionadas)) {echo ' checked'; } ?>>
-                                                                                                <span class="sp-cobertura-adicional_<?php echo "{$plano['produto_parceiro_plano_id']}_{$plano['cobertura'][$key]['cobertura_plano_id']}"; ?>" ><?php echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']]; ?></span>
+                                                                                                <span class="sp-cobertura-adicional_<?php echo "{$plano['produto_parceiro_plano_id']}_{$plano['cobertura'][$key]['cobertura_plano_id']}"; ?>" >
+                                                                                                  <?php echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']]; ?>
+                                                                                              </span>
                                                                                             </label>
                                                                                         </div>
                                                                                     <?php endif;?>
@@ -480,11 +510,6 @@
                                                                                echo '1';
                                                                            } ?>">
                                                                 <?php endif; ?>
-                                                                <tr  class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>">
-                                                                    <td><span
-                                                                                class="premio_bruto premio_bruto_two_<?php echo $plano['produto_parceiro_plano_id']; ?>">---</span>
-                                                                    </td>
-                                                                </tr>
                                                                 <?php if($exite_cobertura) : ?>
                                                                     <tr class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>">
                                                                         <td>
@@ -495,6 +520,11 @@
                                                                 <?php endif; ?>
                                                                   <!--- Aba N -->
                                                                 <?php if ($configuracao['calculo_tipo_id'] == 1 && $configuracao['repasse_comissao'] == 1) : ?>
+                                                                  <tr  class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>">
+                                                                    <td><span
+                                                                              class="premio_bruto premio_bruto_two_<?php echo $plano['produto_parceiro_plano_id']; ?>">---</span>
+                                                                    </td>
+                                                                  </tr>
                                                                     <tr  class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>">
                                                                         <td>
                                                                     <span><?php echo app_format_currency($configuracao['comissao'], false, 2); ?>
@@ -706,6 +736,27 @@
 <script>
     var layout = "base";
 </script>
+<script>
+  AppController.controller("AppController", ["$scope", "$sce", "$http", "$filter", "$timeout", "$interval", function ( $scope, $sce, $http, $filter, $timeout, $interval ) {
+    $scope.cotacao_id = "<?php echo $cotacao_id ?>";
+    $scope.Token = "<?php echo app_get_token() ?>";
+    $scope.AuthHeaders = {"apikey": $scope.Token };
+    
+    console.log( "Cotação: " + $scope.cotacao_id );
+    console.log( "Token: " + $scope.Token );
+    
+    var URL = "http://econnects-h.jelastic.saveincloud.net/api/cotacao/calculo?cotacao_id=" + $scope.cotacao_id;
+    $http.get( URL, { headers: $scope.AuthHeaders } )
+      .success( function( data ) {
+      $scope.Calculo = data;
+      console.log( $scope.Calculo );
+      //toastr.success("Calculo efetuado com sucesso via API!", "Calcular cotação");
+    });
+
+    
+  }]);
+</script>
+
 
 
 

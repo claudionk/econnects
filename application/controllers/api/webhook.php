@@ -10,6 +10,7 @@ class Webhook extends CI_Controller {
   
   public function __construct() {
     parent::__construct();
+    //$webservice = $this->webservice->checkKeyExpiration( $this->api_key );
   }
   
   public function index() {
@@ -33,5 +34,6 @@ class Webhook extends CI_Controller {
   
 }
 ?>
+
 
 
