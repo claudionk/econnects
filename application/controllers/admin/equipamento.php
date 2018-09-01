@@ -51,11 +51,8 @@ class Equipamento extends Admin_Controller
             return;
         }
 
-
-
         //Retorna tudo
         $data = $this->equipamento_categoria;
-
         $data->limit($limit, $limit*($page-1));
 
         if($filter)
@@ -66,8 +63,8 @@ class Equipamento extends Admin_Controller
 
         $data = $data
             ->with_foreign()
+            ->filter_by_nviel(1)
             ->get_all();
-
         $total = $this->equipamento_categoria;
 
         if($filter)
@@ -78,8 +75,8 @@ class Equipamento extends Admin_Controller
 
         $total = $total
             ->with_foreign()
+            ->filter_by_nviel(1)
             ->get_total();
-
 
         foreach ($data as $index => $item)
         {

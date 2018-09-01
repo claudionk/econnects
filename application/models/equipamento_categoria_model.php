@@ -57,5 +57,10 @@ Class Equipamento_Categoria_Model extends MY_Model
         )
     );
 
+    function filter_by_nviel($nivel){
+        $this->_database->where('equipamento_categoria.equipamento_categoria_nivel', $nivel);
+        // $this->_database->where('equipamento_categoria.deletado', '0');
 
+        return $this;
+    }
 }
