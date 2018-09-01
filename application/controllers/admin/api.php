@@ -11,13 +11,15 @@ class Api extends Site_Controller
     public function __construct() 
     {
         parent::__construct();
+        $this->url = "http://econnects-h.jelastic.saveincloud.net/api/";
+        // $this->url = "http://localhost/econnects/api/";
     }
     
-    public function equipamento($ean){
+    private function execute($url, $method = 'GET', $fields = ''){
         $retorno = soap_curl([
-            'url' => "http://econnects-h.jelastic.saveincloud.net/api/equipamento?ean=". $ean,
-            'method' => 'GET',
-            'fields' => '',
+            'url' => $url,
+            'method' => $method,
+            'fields' => $fields,
             'header' => array(
                 "accept: application/json",
                 "APIKEY: ". app_get_token()
@@ -27,35 +29,56 @@ class Api extends Site_Controller
         if (empty($retorno)) return;
         if (!empty($retorno["error"])) return;
         if (empty($retorno["response"])) return;
+        $retornoJson = json_decode($retorno["response"]);
+
+        if (isset($retornoJson->status) && empty($retornoJson->status)) {
+            header('X-Error-Message: '. $retornoJson->message, true, 500);
+            die();
+        }
+
+        return $retorno["response"];
+    }
+
+    public function equipamento($ean){
+        $retorno = $this->execute($this->url."equipamento?ean=". $ean);
 
         $this->output
             ->set_content_type('application/json')
-            ->set_output($retorno["response"]);
+            ->set_output($retorno);
         return;
     }
 
     public function email($email){
         $email = urldecode($email);
+        $result = false;
+        $retorno = $this->execute($this->url."info/email?email=". $email ."&remetente=ti@sissolucoes.com.br");
 
-        $retorno = soap_curl([
-            'url' => "http://econnects-h.jelastic.saveincloud.net/api/info/email?email=". $email ."&remetente=ti@sissolucoes.com.br",
-            'method' => 'GET',
-            'fields' => '',
-            'header' => array(
-                "accept: application/json",
-                "APIKEY: ". app_get_token()
-            )
-        ]);
-
-        if (empty($retorno)) return;
-        if (!empty($retorno["error"])) return;
-        if (empty($retorno["response"])) return;
-
-        $response = json_decode($retorno["response"]);
+        if (!empty($retorno)) {
+            $response = json_decode($retorno);
+            $result = !empty($response->{$email}->status) && $response->{$email}->code == '250';
+        }
 
         $this->output
             ->set_content_type('application/json')
-            ->set_output(!empty($response->{$email}->status) && $response->{$email}->code == '250');
+            ->set_output($result);
+        return;
+    }
+
+    public function enriqueceCPF($cpf, $produto_parceiro_id){
+        $retorno = $this->execute($this->url."info?doc={$cpf}&produto_parceiro_id={$produto_parceiro_id}");
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output($retorno);
+        return;
+    }
+
+    public function enriqueceEAN($ean){
+        $retorno = $this->execute($this->url."equipamento?ean=$ean");
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output($retorno);
         return;
     }
 

@@ -461,3 +461,53 @@ if ( ! function_exists('app_integracao_sequencia_mapfre_rf')) {
     }
 
 }
+if ( ! function_exists('app_integracao_enriquecimento')) {
+
+    function app_integracao_enriquecimento($formato, $dados = array())
+    {
+        $ret = ['cpf' => '', 'ean' => ''];
+        $cpf = $dados['registro']['cpf'];
+        $ean = $dados['registro']['ean'];
+
+        if (!empty($cpf)) {
+            $cpf = substr($cpf, -11);
+
+            // TODO: definir o id do produto do parceiro
+            $enriquecido = app_get_api("enriqueceCPF/$cpf/47");
+            // echo "<pre>";print_r($enriquecido);echo "</pre>";
+            $ret['cpf'] = $enriquecido;
+            // exit();
+        }
+
+        if (!empty($ean)) {
+            $ean = (int)$ean;
+
+            $enriquecido = app_get_api("enriqueceEAN/$ean");
+            // echo "<pre>";print_r($enriquecido);echo "</pre>";
+            $ret['ean'] = $enriquecido;
+            // exit();
+        }
+
+        // echo "<pre>";print_r($dados);echo "</pre>";
+        // echo "<pre>";print_r($ret);echo "</pre>";
+        return $ret;
+    }
+
+}
+if ( ! function_exists('app_get_api'))
+{
+    function app_get_api($method){
+
+        $retorno = soap_curl([
+            // 'url' => "http://econnects-h.jelastic.saveincloud.net/api/info?doc={$cpf}&produto_parceiro_id={$produto_parceiro_id}",
+            // 'url' => "http://localhost/econnects/admin/api/enriqueceCPF/$cpf",
+            'url' => "http://localhost/econnects/admin/api/{$method}",
+            'method' => 'GET',
+            'fields' => '',
+            'header' => []
+        ]);
+
+        $response = (!empty($retorno["response"])) ? json_decode($retorno["response"]) : '';
+        return $response;
+    }
+}

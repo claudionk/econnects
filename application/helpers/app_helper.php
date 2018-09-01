@@ -1460,13 +1460,18 @@ if ( ! function_exists('app_get_token'))
     function app_get_token(){
 
         // solicitar outro token quando a API tiver vencida
-        if ( !empty(app_get_userdata("tokenAPIvalid")) && app_get_userdata("tokenAPIvalid") >= date("Y-m-d H:i:s"))
+        if ( !empty(app_get_userdata("tokenAPIvalid")) && app_get_userdata("tokenAPIvalid") > date("Y-m-d H:i:s"))
             return app_get_userdata("tokenAPI");
 
         $CI =& get_instance();
 
+        $email = app_get_userdata("email");
+        if (empty($email))
+            $email = "mdiorio@econnects.com.br";
+
         $retorno = soap_curl([
-            'url' => "http://econnects-h.jelastic.saveincloud.net/api/acesso?email=". app_get_userdata("email"),
+            'url' => "http://econnects-h.jelastic.saveincloud.net/api/acesso?email=". $email,
+            // 'url' => "http://localhost/econnects/api/acesso?email=". $email,
             'method' => 'GET',
             'fields' => '',
             'header' => array(
