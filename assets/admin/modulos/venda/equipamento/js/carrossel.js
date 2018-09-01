@@ -1,5 +1,34 @@
 $(function(){
 
+    var exec=false;
+    setInterval( function() {
+        var navFixed = $( "body.menubar-hoverable.header-fixed" ).is('.menubar-pin');
+        console.log(navFixed);
+        if (!navFixed) {
+            if(!exec) {
+                $(window).trigger('resize');
+                exec = true;
+
+                // destroyOne();
+                // destroyTwo();
+
+                // startCycleOne()
+                // startCycleTwo();
+            }
+        } else {
+            if(exec){
+                $(window).trigger('resize');
+                // destroyOne();
+                // destroyTwo();
+
+                // startCycleOne()
+                // startCycleTwo();
+            }
+            exec = false;
+        }
+    }, 200 );
+
+
     if(typeof layout != typeof undefined && layout != "front")
     {
         $('#vendas_coberturas').height($(".table_coberturas")[0].clientHeight+7);
@@ -15,50 +44,90 @@ $(function(){
     }
 
 
+    var planoSlideOneClone = $("#slider-one-container").html();
+    var planoPrecoSlideOneClone = $("#slider-preco-one-container").html();
     var planoSlideTwoClone = $("#slider-two-container").html();
     var planoPrecoSlideTwoClone = $("#slider-preco-two-container").html();
-
     var planoSliderOneLock = false;
 
-    $( '#plano_slider_one' ).cycle({
-        slides: ' > li',
-        startinSlide: 0,
-        log: false,
-        timeout: 0,
-        fx: 'carousel'
+    function startCycleOne(){
+        // debugger;
+        $( '#plano_slider_one' ).cycle({
+            slides: ' > li',
+            startinSlide: 0,
+            log: false,
+            timeout: 0,
+            carouselFluid: true,
+            carouselVisible: 1,
+            fx: 'carousel'
 
-    });
-    $( '#plano_slider_preco_one' ).cycle({
-        slides: ' > li',
-        startinSlide: 0,
-        log: false,
-        timeout: 0,
-        fx: 'carousel'
+        });
+        $( '#plano_slider_preco_one' ).cycle({
+            slides: ' > li',
+            startinSlide: 0,
+            log: false,
+            timeout: 0,
+            carouselFluid: true,
+            carouselVisible: 1,
+            fx: 'carousel'
 
-    });
-
-
-
-    var init_slide = 1;
-
-    if( $( "#plano_slider_two li" ).length == 2){
-        init_slide = 1;
+        });
     }
 
-    $( '#plano_slider_two' ).cycle({
-        slides: ' > li',
-        startingSlide: init_slide,
-        timeout: 0,
-        log: false,
-        fx: 'carousel'
-    });
-    $( '#plano_slider_preco_two' ).cycle({
-        slides: ' > li',
-        startingSlide: init_slide,
-        timeout: 0,
-        log: false,
-        fx: 'carousel'
-    });
+    function startCycleTwo(){
+        var init_slide = 1;
+        if( $( "#plano_slider_two li" ).length == 2){
+            init_slide = 1;
+        }
+
+        $( '#plano_slider_two' ).cycle({
+            slides: ' > li',
+            startingSlide: init_slide,
+            timeout: 0,
+            log: false,
+            carouselFluid: true,
+            carouselVisible: 1,
+            fx: 'carousel'
+        });
+        $( '#plano_slider_preco_two' ).cycle({
+            slides: ' > li',
+            startingSlide: init_slide,
+            timeout: 0,
+            log: false,
+            carouselFluid: true,
+            carouselVisible: 1,
+            fx: 'carousel'
+        });
+    }
+
+    function destroyOne(){
+        $('#plano_slider_one').cycle('destroy');
+        $('#plano_slider_one').remove();
+        $("#slider-one-container").empty();
+
+        $('#plano_slider_preco_one').cycle('destroy');
+        $('#plano_slider_preco_one').remove();
+        $("#slider-preco-one-container").empty();
+
+        $( "#slider-one-container" ).html(planoSlideOneClone);
+        $( "#slider-preco-one-container" ).html(planoPrecoSlideOneClone);
+    }
+
+    function destroyTwo(){
+        $('#plano_slider_two').cycle('destroy');
+        $('#plano_slider_two').remove();
+        $("#slider-two-container").empty();
+
+        $('#plano_slider_preco_two').cycle('destroy');
+        $('#plano_slider_preco_two').remove();
+        $("#slider-preco-two-container").empty();
+
+        $( "#slider-two-container" ).html(planoSlideTwoClone);
+        $( "#slider-preco-two-container" ).html(planoPrecoSlideTwoClone);
+    }
+
+    startCycleOne();
+    startCycleTwo();
 
     $('.ck-cobertura-adicional').click(function () {
 
@@ -74,40 +143,12 @@ $(function(){
     });
 
     $('.plano_header').on('click', function(e){
-
+        // debugger;
         if(planoSliderOneLock){
 
+            destroyTwo();
 
-            $('#plano_slider_two').cycle('destroy');
-            $('#plano_slider_two').remove();
-            $("#slider-two-container").empty();
-
-            $('#plano_slider_preco_two').cycle('destroy');
-            $('#plano_slider_preco_two').remove();
-            $("#slider-preco-two-container").empty();
-
-
-            $( "#slider-two-container" ).html(planoSlideTwoClone);
-            $( "#slider-preco-two-container" ).html(planoPrecoSlideTwoClone);
-
-            var init_slide = 1;
-
-            if( $( "#plano_slider_two li" ).length == 2){
-                init_slide = 1;
-            }
-
-            $( '#plano_slider_two' ).cycle({
-                slides: ' > li',
-                startingSlide: init_slide,
-                timeout: 0,
-                fx: 'carousel'
-            });
-            $( '#plano_slider_preco_two' ).cycle({
-                slides: ' > li',
-                startingSlide: init_slide,
-                timeout: 0,
-                fx: 'carousel'
-            });
+            startCycleTwo();
 
             /**
              * reaplica as coberturas na nova instancia do slide
