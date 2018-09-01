@@ -155,7 +155,7 @@ $.fn.cycle.transitions.carousel = {
 
         function onResize() {
             opts._carouselWrap.stop( false, true );
-            var slideWidth = opts.container.width() / opts.carouselVisible;
+            var slideWidth = opts.container.outerWidth() / opts.carouselVisible;
             slideWidth = Math.ceil( slideWidth - adjustment );
             opts._carouselWrap.children().width( slideWidth );
             if ( opts._sentinel )

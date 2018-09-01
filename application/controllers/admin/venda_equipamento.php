@@ -247,7 +247,7 @@ class Venda_Equipamento extends Admin_Controller {
       $data["row"] = array();
     }
     
-    $Url = "http://localhost/api/acesso?email=teste@econnects.com.br";
+    $Url = "http://econnects-h.jelastic.saveincloud.net/api/acesso?email=teste@econnects.com.br";
     $myCurl = curl_init();
     curl_setopt( $myCurl, CURLOPT_URL, $Url );
     curl_setopt( $myCurl, CURLOPT_FRESH_CONNECT, 1 );
@@ -264,7 +264,7 @@ class Venda_Equipamento extends Admin_Controller {
     $Response = json_decode( $Response, true );
     $api_key = ( isset( $Response["api_key"] ) ? $Response["api_key"] : "" );
 
-    $Url = "http://localhost/api/campos?produto_parceiro_id={$data['produto_parceiro_id']}&slug={$data['slug']}";
+    $Url = "http://econnects-h.jelastic.saveincloud.net/api/campos?produto_parceiro_id={$data['produto_parceiro_id']}&slug={$data['slug']}";
     $myCurl = curl_init();
     curl_setopt( $myCurl, CURLOPT_URL, $Url );
     curl_setopt( $myCurl, CURLOPT_FRESH_CONNECT, 1 );

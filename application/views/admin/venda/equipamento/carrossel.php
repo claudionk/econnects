@@ -83,7 +83,7 @@
                             <?php endif; ?>
                             <div class="row">
                                 <div class="col-xs-12">
-                                    <div class="col-xs-6 no-padding carrossel-left">
+                                    <div class="col-xs-5 no-padding carrossel-left">
                                         <div class="vendas_bloco_left">
                                             <div id="vendas_coberturas">
                                                 <table class="table_coberturas"  <?php if(count($coberturas) == 0) { echo 'style="border:none;"'; } ?>>
@@ -111,7 +111,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-xs-6 no-padding">
+                                    <div class="col-xs-7 no-padding">
                                         <div class="vendas_bloco_right">
                                             <div id="vendas_planos" style="">
                                                 <?php if(count($planos) > 1): ?>
@@ -245,7 +245,7 @@
 
 
                             <div class="row">
-                                <div class="col-xs-6 no-padding carrossel-left">
+                                <div class="col-xs-5 no-padding carrossel-left">
                                     <div class="col-xs-6" >
                                         <div class="vendas_bloco_left">
                                             <?php if((count($coberturas) > 0) && ($configuracao['quantidade_cobertura'] < count($coberturas))) : ?>
@@ -297,7 +297,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-xs-6">
+                                <div class="col-xs-7">
                                     <div class="vendas_bloco_right">
                                         <div id="vendas_planos_preco">
                                             <div class="col-xs-<?php if(count($planos) > 1) {echo '6';} else {echo '12'; } ?> no-padding">
