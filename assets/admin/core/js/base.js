@@ -58,7 +58,7 @@ $(function(){
 
     });
 
-    $(".inputmask-date").inputmask("d/m/y", {autoUnmask: true});
+    $(".inputmask-date").inputmask({"mask": "99/99/9999"});
     $(".inputmask-cpf").inputmask({"mask": "999.999.999-99"});
     $(".inputmask-cnpj").inputmask({"mask": "99.999.999/9999-99"});
  	$(".inputmask-celular").inputmask("mask", {"mask": "(99)9999-99999"});
@@ -178,12 +178,13 @@ function busca_cliente(){
         if((result.sucess == true) && result.qnt > 0){
             $('#nome').val(result.nome);
             $('#data_nascimento').val(result.data_nascimento);
+            $('#data_nascimento').datepicker('setDate', result.data_nascimento);
+
             $('#email').val(result.email);
             console.log('telefone', $('#telefone').val());
             if(!$('#telefone').val()){
                 $('#telefone').val(result.telefone);
             }
-            //
 
             $('#estado_civil').val(result.estado_civil);
             $('#sexo').val(result.sexo);
