@@ -32,7 +32,18 @@ if ( ! function_exists('mb_str_pad')) {
         return str_pad( $input, $pad_length + $diff, $pad_string, $pad_type );
     }
 }
-
+if ( ! function_exists('right')) {
+    function right( $str, $length )
+    {
+        return substr($str, -$length);
+    }
+}
+if ( ! function_exists('left')) {
+    function left( $str, $length )
+    {
+        return substr($str, 0, $length);
+    }
+}
 if ( ! function_exists('app_current_controller'))
 {
     function app_current_controller(){

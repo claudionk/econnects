@@ -277,7 +277,6 @@ Class Integracao_Model extends MY_Model
 
 
     public function run_r($integracao_id){
-
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
         $this->load->model('integracao_layout_model', 'integracao_layout');
@@ -298,28 +297,25 @@ Class Integracao_Model extends MY_Model
             $dados_integracao['status'] = 'L';
             $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
-
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
                 call_user_func($result['before_execute'], null, array('item' => $result, 'registro' => array(), 'log' => array(), 'valor' => null));
             }
-
 
             $layout_filename = $this->integracao_layout->filter_by_integracao($result['integracao_id'])
                 ->filter_by_tipo('F')
                 ->order_by('ordem')
                 ->get_all();
 
-
             $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
             $result_file = $this->getFile($result, $file);
-
 
             if(!empty($result_file['file'])){
                 $this->processFileIntegracao($result, $result_file['file']);
             }
 
-
+            // echo "FIM - R";
+            // exit();
 
             $dados_integracao = array();
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
@@ -442,15 +438,11 @@ Class Integracao_Model extends MY_Model
         $config['port'] = $integracao['porta'];
         $config['debug']	= TRUE;
 
-
         //$filename = basename($file);
         $filename = "{$file}*";
 
         $this->ftp->connect($config);
-
         $list = $this->ftp->list_files("{$integracao['diretorio']}{$filename}");
-
-
 
         $result = array(
             'file' => ''
@@ -470,12 +462,12 @@ Class Integracao_Model extends MY_Model
             }
         }
 
-
         if(!empty($file_processar)){
             $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
             if(!file_exists($diretorio)){
                 mkdir($diretorio, 0777, true);
             }
+
             $fileget = basename($file_processar);
             if($this->ftp->download($file_processar, "{$diretorio}/{$fileget}", 'binary')){
                 $result = array(
@@ -613,6 +605,7 @@ Class Integracao_Model extends MY_Model
 
         }
 
+        // echo "<pre>";print_r($linhas);echo "</pre>";
         $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
 
         if(!file_exists($diretorio)){
@@ -632,11 +625,9 @@ Class Integracao_Model extends MY_Model
     }
 
     private function processFileIntegracao($integracao = array(), $file){
-
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
         $this->load->model('integracao_layout_model', 'integracao_layout');
-
 
         $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
 
@@ -656,9 +647,7 @@ Class Integracao_Model extends MY_Model
             ->order_by('ordem')
             ->get_all();
 
-
         $fh = fopen($file, 'r');
-
 
         $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], count(file($file)), basename($file));
 
@@ -718,7 +707,7 @@ Class Integracao_Model extends MY_Model
 
                         $row['valor'] = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor']));
                     }
-                    $data_row[] = $row['valor'];
+                    $data_row[$row['layout']['nome_banco']] = trim($row['valor']);
                 }
                 if ($row['layout']['campo_log'] == 1) {
                     $id_log = $row['valor'];
@@ -734,23 +723,34 @@ Class Integracao_Model extends MY_Model
 
         }
 
-
-
         $num_linha = 1;
         foreach ($data as $index => $datum) {
             //execute before detail
-            if((!empty($result['before_detail'])) && (function_exists($result['before_detail']))){
-                call_user_func($result['before_detail'], null, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
+            if (!empty($integracao['before_detail']) ) {
+                $funcs = explode(";", $integracao['before_detail']);
+                foreach ($funcs as $f) {
+                    if ( function_exists($f) ) {
+                        $callFuncReturn = call_user_func($f, null, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
+                        if (!empty($callFuncReturn) && is_array($callFuncReturn)){
+                            $datum = $callFuncReturn;
+                        }
+                    }
+                }
             }
 
-            $this->_database->query($sql, $datum);
-            $ultimo_id = $this->_database->insert_id();
-            $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $ultimo_id);
-            $num_linha++;
+            // echo "<pre>";print_r($datum);echo "</pre>";
+            
+            $ultimo_id = null;
+            if (!empty($sql)){
+                $this->_database->query($sql, $datum);
+                $ultimo_id = $this->_database->insert_id();
+                $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $ultimo_id);
+                $num_linha++;
+            }
 
             //execute before detail
-            if((!empty($result['after_detail'])) && (function_exists($result['after_detail']))){
-                call_user_func($result['after_detail'], null, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => $ultimo_id));
+            if((!empty($integracao['after_detail'])) && (function_exists($integracao['after_detail']))){
+                call_user_func($integracao['after_detail'], null, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => $ultimo_id));
             }
         }
 

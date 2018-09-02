@@ -288,9 +288,6 @@ if ( ! function_exists('app_integracao_format_str_pad')) {
     }
 
 }
-
-
-
 if ( ! function_exists('app_integracao_format_moeda_pad')) {
 
     function app_integracao_format_moeda_pad($formato, $dados = array())
@@ -306,7 +303,6 @@ if ( ! function_exists('app_integracao_format_moeda_pad')) {
     }
 
 }
-
 if ( ! function_exists('app_integracao_format_decimal_pad')) {
 
     function app_integracao_format_decimal_pad($formato, $dados = array())
@@ -322,8 +318,39 @@ if ( ! function_exists('app_integracao_format_decimal_pad')) {
     }
 
 }
+if ( ! function_exists('app_integracao_format_decimal_r')) {
 
+    function app_integracao_format_decimal_r($formato, $dados = array())
+    {
 
+        $f = explode("|", $formato);
+        $defaultValue = str_pad(0,  100, '0', STR_PAD_LEFT);
+        $valor = (!empty($dados['valor'])) ? (int)$dados['valor'] : $defaultValue;
+
+        $a = (int)left($valor, strlen($valor)-$f[0]);
+        $b = $f[1];
+        $c = right($valor, $f[0]);
+        return $a.$b.$c;
+    }
+
+}
+if ( ! function_exists('app_integracao_format_date_r')) {
+
+    function app_integracao_format_date_r($formato, $dados = array())
+    {
+
+        $a = explode("|", $formato);
+        
+        $date = $dados['valor'];
+        if( isset( $dados['valor'] ) && !empty($dados['valor']) ){
+            $date = date_create_from_format( $a[0], $dados['valor'] );
+            $date = $date->format($a[1]);
+        }
+
+        return $date;
+    }
+
+}           
 if ( ! function_exists('app_integracao_format_file_name_capmapfre')) {
 
     function app_integracao_format_file_name_capmapfre($formato, $dados = array())
@@ -351,8 +378,6 @@ if ( ! function_exists('app_integracao_format_int')) {
     }
 
 }
-
-
 if ( ! function_exists('app_integracao_format_file_name_mapfre_assistencia')) {
 
     function app_integracao_format_file_name_mapfre_assistencia($formato, $dados = array())
@@ -461,6 +486,27 @@ if ( ! function_exists('app_integracao_sequencia_mapfre_rf')) {
     }
 
 }
+if ( ! function_exists('app_integracao_generali_dados')) {
+
+    function app_integracao_generali_dados()
+    {
+        $dados = (object)[
+            "email" => "lasa@econnects.com.br",
+            "parceiro_id" => 30,
+            "produto_parceiro_id" => 57,
+            "produto_parceiro_plano_id" => 49,
+            "cobertura_plano_id" => 281,
+        ];
+
+         if ( empty(app_get_userdata("email")) ) {
+            $CI =& get_instance();
+            $CI->session->set_userdata("email", $dados->email);
+        }
+
+        return $dados;
+    }
+
+}
 if ( ! function_exists('app_integracao_enriquecimento')) {
 
     function app_integracao_enriquecimento($formato, $dados = array())
@@ -468,15 +514,76 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         $ret = ['cpf' => '', 'ean' => ''];
         $cpf = $dados['registro']['cpf'];
         $ean = $dados['registro']['ean'];
+        // $ean = "7898058473500"; //****** REMOVER ****
+        // $dados['registro']['email'] = "teste@gmail.com"; //****** REMOVER ****
+
+        $acesso = app_integracao_generali_dados();
 
         if (!empty($cpf)) {
             $cpf = substr($cpf, -11);
 
-            // TODO: definir o id do produto do parceiro
-            $enriquecido = app_get_api("enriqueceCPF/$cpf/47");
+            $enriquecido = app_get_api("enriqueceCPF/$cpf/". $acesso->produto_parceiro_id);
             // echo "<pre>";print_r($enriquecido);echo "</pre>";
-            $ret['cpf'] = $enriquecido;
-            // exit();
+
+            if (!empty($enriquecido['status'])){
+                $enriquecido = $enriquecido['response'];
+                $ret['cpf'] = $enriquecido;
+
+                $dados['registro']['nome'] = $enriquecido->nome;
+                $dados['registro']['sexo'] = $enriquecido->sexo;
+                $dados['registro']['data_nascimento'] = $enriquecido->data_nascimento;
+                $dados['registro']['cnpj_cpf'] = $cpf;
+
+                // Endereço
+                $ExtraEnderecos = $enriquecido->endereco;
+                if( sizeof( $ExtraEnderecos ) ) {
+                    $dados['registro']['endereco'] = $ExtraEnderecos[0]->{"endereco"};
+                    $dados['registro']['numero'] = $ExtraEnderecos[0]->{"endereco_numero"};
+                    $dados['registro']['complemento'] = $ExtraEnderecos[0]->{"endereco_complemento"};
+                    $dados['registro']['bairro'] = $ExtraEnderecos[0]->{"endereco_bairro"};
+                    $dados['registro']['cidade'] = $ExtraEnderecos[0]->{"endereco_cidade"};
+                    $dados['registro']['uf'] = $ExtraEnderecos[0]->{"endereco_uf"};
+                    $dados['registro']['cep'] = str_replace("-", "", $ExtraEnderecos[0]->{"endereco_cep"});
+                    $dados['registro']['pais'] = "BRASIL";
+                }
+
+                // Contatos
+                $ExtraContatos = $enriquecido->contato;
+                $getTelefone = $getCelular = $getEmail = true;
+
+                if( sizeof( $ExtraContatos ) ) {
+                    foreach ($ExtraContatos as $contato) {
+                        if (!$getTelefone && !$getCelular && !$getEmail)
+                            break;
+
+                        // Telefone Residencial
+                        if ($contato->contato_tipo_id == 3 && $getTelefone ){ //TELEFONE RESIDENCIAL
+                            $getTelefone=false;
+                            $dados['registro']['ddd_residencial'] = left($contato->contato,2);
+                            $dados['registro']['telefone_residencial'] = trim(right($contato->contato, strlen($contato->contato)-2));
+                            $dados['registro']['telefone'] = trim($contato->contato);
+                            continue;
+                        }
+
+                        // Celular
+                        if ($contato->contato_tipo_id == 2 && $getCelular ){ // CELULAR
+                            $getCelular=false;
+                            $dados['registro']['ddd_celular'] = left($contato->contato,2);
+                            $dados['registro']['telefone_celular'] = trim(right($contato->contato, strlen($contato->contato)-2));
+                            continue;
+                        }
+
+                        // Email
+                        if ($contato->contato_tipo_id == 1 && $getEmail ){ // CELULAR
+                            $getEmail=false;
+                            $dados['registro']['email'] = $contato->contato;
+                            continue;
+                        }
+                    }
+                }
+
+            }
+
         }
 
         if (!empty($ean)) {
@@ -484,30 +591,143 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
             $enriquecido = app_get_api("enriqueceEAN/$ean");
             // echo "<pre>";print_r($enriquecido);echo "</pre>";
-            $ret['ean'] = $enriquecido;
-            // exit();
+
+            if (!empty($enriquecido['status'])){
+                $enriquecido = $enriquecido['response'];
+                $ret['ean'] = $enriquecido;
+
+                $dados['registro']['equipamento_id'] = $enriquecido->equipamento_id;
+                $dados['registro']['equipamento_nome'] = $enriquecido->nome;
+                $dados['registro']['equipamento_marca_id'] = $enriquecido->equipamento_marca_id;
+                $dados['registro']['equipamento_categoria_id'] = $enriquecido->equipamento_categoria_id;
+                $dados['registro']['equipamento_sub_categoria_id'] = $enriquecido->equipamento_sub_categoria_id;
+                $dados['registro']['imei'] = "";
+            }
         }
 
-        // echo "<pre>";print_r($dados);echo "</pre>";
+        // TODO: Validar Regras
         // echo "<pre>";print_r($ret);echo "</pre>";
-        return $ret;
+
+        return $dados['registro'];
     }
 
 }
 if ( ! function_exists('app_get_api'))
 {
-    function app_get_api($method){
+    function app_get_api($service, $method = 'GET', $fields = [], $print = false){
 
         $retorno = soap_curl([
             // 'url' => "http://econnects-h.jelastic.saveincloud.net/api/info?doc={$cpf}&produto_parceiro_id={$produto_parceiro_id}",
             // 'url' => "http://localhost/econnects/admin/api/enriqueceCPF/$cpf",
-            'url' => "http://localhost/econnects/admin/api/{$method}",
-            'method' => 'GET',
-            'fields' => '',
-            'header' => []
+            'url' => "http://localhost/econnects/admin/api/{$service}",
+            'method' => $method,
+            'fields' => $fields,
+            'header' => ["Content-Type: application/json"]
         ]);
 
+        if ($print){
+            echo "<pre>";print_r($retorno);echo "</pre>";
+            exit();
+        }
+
+        $ret = ['status' => false, 'response' => 'Falha na chamada do serviço'];
         $response = (!empty($retorno["response"])) ? json_decode($retorno["response"]) : '';
-        return $response;
+        if (!empty($retorno["response"])){
+            $response = json_decode($retorno["response"]);
+            if (empty($response)){
+                $ret['response'] = $retorno["response"];
+            } else{
+                $ret = ['status' => true, 'response' => $response];
+            }
+        }
+        return $ret;
+    }
+}
+if ( ! function_exists('app_integracao_valida_regras'))
+{
+    function app_integracao_valida_regras($dados){
+        return true;
+    }
+}
+if ( ! function_exists('app_integracao_emissao'))
+{
+    function app_integracao_emissao($format, $dados){
+        $dados = $dados['registro'];
+        // echo "<pre>";print_r($dados);echo "</pre>";
+
+        if (empty($dados))
+            return false;
+
+        $acesso = app_integracao_generali_dados();
+        $dados['produto_parceiro_id'] = $acesso->produto_parceiro_id;
+        $dados['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
+
+        // Emissão
+        if ($dados['tipo_transacao'] == 'NS') {
+
+            echo "insere cotacao";
+            echo "<pre>";print_r($dados);echo "</pre>";
+            $cotacao = app_get_api("insereCotacao", "POST", json_encode($dados));
+            echo "<pre>";print_r($cotacao);echo "</pre>";
+
+            if (!empty($cotacao['status'])) {
+                $cotacao = $cotacao['response'];
+
+                $cotacao_id = $cotacao->cotacao_id;
+
+                // Formas de Pagamento
+                $formPagto = app_get_api("forma_pagamento_cotacao/$cotacao_id");
+                echo "<pre>";print_r($formPagto);echo "</pre>";
+                if (!empty($formPagto['status'])) {
+
+                    $formPagto = $formPagto['response'];
+                    foreach ($formPagto as $fPagto) {
+
+                        if ($fPagto->tipo->slug != 'faturado') 
+                            continue;
+
+                        $forma_pagamento_id = $fPagto->pagamento[0]->forma_pagamento_id;
+                        $produto_parceiro_pagamento_id = $fPagto->pagamento[0]->produto_parceiro_pagamento_id;
+                        
+                        $camposPagto = [
+                            "cotacao_id" => $cotacao_id,
+                            "produto_parceiro_id" => $acesso->produto_parceiro_id,
+                            "forma_pagamento_id" => $forma_pagamento_id,
+                            "produto_parceiro_pagamento_id" => $produto_parceiro_pagamento_id,
+                            "campos" => [],
+                        ];
+
+                        $efetuaPagto = app_get_api("pagamento_pagar", "POST", json_encode($camposPagto));
+                        echo "<pre>";print_r($efetuaPagto);echo "</pre>";
+
+                        if (!empty($efetuaPagto['status'])) {
+
+                            echo "Pagamento efetuado! <br>";
+
+                        } else {
+                            echo "Efetua Pagto Error: ($cotacao_id / $forma_pagamento_id) ". $efetuaPagto['response']."<br>";
+                        }
+
+                        break;
+                    }
+
+                } else {
+                    echo "Formas de Pagto Error: ($cotacao_id) ". $formPagto['response']."<br>";
+                }
+
+            } else {
+                echo "Cotação Error: ". $cotacao['response']."<br>";
+            }
+
+
+
+        // Cancelamento
+        } else if ( in_array($dados['tipo_transacao'], ['XS','XI','XX']) ) {
+
+        }
+
+        echo "stop";
+        exit();
+        return true;
     }
 }
