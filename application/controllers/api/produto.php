@@ -7,6 +7,7 @@ if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 class Produto extends CI_Controller {
   public $api_key;
   public $usuario_id;
+  public $parceiro_id;
 
   public function __construct() {
     parent::__construct();
@@ -29,6 +30,7 @@ class Produto extends CI_Controller {
       if( !sizeof( $webservice ) ) {
         die( json_encode( array( "status" => false, "message" => "APIKEY is invalid" ) ) );
       }
+      $this->parceiro_id = $webservice["parceiro_id"];
     } else {
       die( json_encode( array( "status" => false, "message" => "APIKEY is missing" ) ) );
     }
@@ -45,15 +47,16 @@ class Produto extends CI_Controller {
       die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
     }
     
-    if( !isset( $GET["parceiro_id"] ) ) {
-      die( json_encode( array( "status" => false, "message" => "Campo parceiro_id é obrigatório" ) ) );
-    }
+    $parceiro_id = $this->parceiro_id;
+    //if( !isset( $GET["parceiro_id"] ) ) {
+    //  die( json_encode( array( "status" => false, "message" => "Campo parceiro_id é obrigatório" ) ) );
+    //}
+    //$parceiro_id = $GET["parceiro_id"];
     
     if( isset( $GET["produto_id"] ) ) {
       $produto_id = $GET["produto_id"];
       $produtos = $this->produto_parceiro->get_produtos_venda_admin( $parceiro_id, $produto_id );
     } else {
-      $parceiro_id = $GET["parceiro_id"];
       $produtos = $this->produto_parceiro->get_produtos_venda_admin( $parceiro_id );
     }
 
@@ -67,5 +70,6 @@ class Produto extends CI_Controller {
     }
   }
 }
+
 
 

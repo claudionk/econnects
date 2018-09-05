@@ -1194,7 +1194,7 @@ Class Pedido_Model extends MY_Model
     if( isset( $dados["bandeira"] ) && $dados["bandeira"] != "" ) {
       $dados_bandeira = "_" . $dados['bandeira'];
     } else {
-      $dados_bandeira = $item["produto_parceiro_pagamento_id"];
+      $dados_bandeira = "_" . $item["produto_parceiro_pagamento_id"];
     }
     
     if( !isset( $dados["parcelamento{$dados_bandeira}"] ) && isset( $dados["num_parcela"] ) ) {
@@ -1214,6 +1214,7 @@ Class Pedido_Model extends MY_Model
         ) 
       );
     }
+    //die( json_encode( $dados, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );    
     
     $dados_pedido = array();
     $dados_pedido["cotacao_id"] = $dados["cotacao_id"];
@@ -1459,6 +1460,7 @@ Class Pedido_Model extends MY_Model
 
   }
 }
+
 
 
 

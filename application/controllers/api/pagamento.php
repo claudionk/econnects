@@ -15,6 +15,7 @@ class Pagamento extends CI_Controller {
   const FORMA_PAGAMENTO_BOLETO = 9;
   const FORMA_PAGAMENTO_FATURADO = 10;
   const FORMA_PAGAMENTO_CHECKOUT_PAGMAX = 11;
+  const FORMA_PAGAMENTO_TERCEIROS = 12;
   
   public function __construct() {
     parent::__construct();
@@ -269,11 +270,7 @@ class Pagamento extends CI_Controller {
           )
         );
         break;
-        
-      case self::FORMA_PAGAMENTO_FATURADO:
-        $Campos = array();
-        break;
-        
+
       case self::FORMA_PAGAMENTO_TRANSF_BRADESCO:
         $Campos = array(  
           "MerchantOrderId" => "", 
@@ -330,6 +327,12 @@ class Pagamento extends CI_Controller {
           )
         );
         break;
+        
+      case self::FORMA_PAGAMENTO_FATURADO:
+      case self::FORMA_PAGAMENTO_TERCEIROS:
+        $Campos = array();
+        break;
+        
       default:
         $Campos = array();
         break;
@@ -603,10 +606,6 @@ class Pagamento extends CI_Controller {
         }
         break;
         
-      case self::FORMA_PAGAMENTO_FATURADO:
-        $Matriz = array();
-        break;
-        
       case self::FORMA_PAGAMENTO_TRANSF_BRADESCO:
         $Matriz = array(  
           "MerchantOrderId" => "", 
@@ -727,10 +726,17 @@ class Pagamento extends CI_Controller {
           $erros["Notification"] = $Matriz["Notification"];
         }
         break;
+        
+      case self::FORMA_PAGAMENTO_FATURADO:
+      case self::FORMA_PAGAMENTO_TERCEIROS:
+        $Matriz = array();
+        break;
+        
       default:
         $Campos = array();
         break;
     }
+    
     if( sizeof( $erros ) ) {
       die( 
         json_encode( 
@@ -801,9 +807,19 @@ class Pagamento extends CI_Controller {
       }
       //die( json_encode( $pedido_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
       
+      if( $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_FATURADO || $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_TERCEIROS ) {
+        $pedido_data = array();
+        $pedido_data["cotacao_id"] = $cotacao_id;
+        $pedido_data["produto_parceiro_id"] = $produto_parceiro_id;
+        $pedido_data["pedido_id"] = $pedido_id;
+        $pedido_data["forma_pagamento_id"] = $forma_pagamento_id;
+        $pedido_data["forma_pagamento_tipo_id"] = $forma_pagamento_tipo_id;
+        $pedido_data["num_parcela"] = 1;
+        $pedido_data["bandeira"] = $produto_parceiro_pagamento_id;
+      }
       if($pedido_id == 0 || $pedido_id == "" ) {
         $result = $this->db->query( "SELECT * FROM pedido WHERE cotacao_id=$cotacao_id" )->result_array();
-        if( sizeof( $result ) > 0 && 1 == 2 ) {
+        if( sizeof( $result ) > 0 ) {
           die( 
             json_encode( 
               array( 
@@ -822,6 +838,17 @@ class Pagamento extends CI_Controller {
         $this->pedido->updatePedido($pedido_id, $pedido_data);
       }
 
+      
+      if( $pedido_id && $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_FATURADO || $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_TERCEIROS ) {
+        $status = $this->pedido->mudaStatus( $pedido_id, "pagamento_confirmado" );
+        $result  = array(
+          "success" => true,
+          "mensagem" => "Pedido confirmado",
+          "dados" => array( "pedido_id" => $pedido_id )
+        );
+        die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+      }
+      
       $faturas = $this->fatura->filterByPedido($pedido_id)->get_all();
       if( $faturas ) {
         $faturas = $faturas[0];
@@ -843,10 +870,6 @@ class Pagamento extends CI_Controller {
           $Campos["Payment"]["Installments"] = $faturas["num_parcela"];
           $Campos["Payment"]["Amount"] = $faturas["valor_total"];
         }
-      }
-
-      if($pedido_id && $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_FATURADO) {
-        $status = $this->pedido->mudaStatus( $pedido_id, "aguardando_faturamento" );
       }
 
       $this->load->library("Pagmax360");
@@ -948,5 +971,6 @@ class Pagamento extends CI_Controller {
   }
   
 }
+
 
 

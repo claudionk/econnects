@@ -49,6 +49,42 @@ class Info extends CI_Controller {
     $this->usuario_id = $webservice["usuario_id"];
   }
   
+  public function imei() {
+    if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
+      $GET = $_GET;
+    } else {
+      die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
+    }
+    
+    if( !isset( $GET["imei"] ) ) {
+      die( json_encode( array( "status" => false, "message" => "Campo IMEI é obrigatório" ) ) );
+    }
+    $IMEI = $GET["imei"];
+    
+    if( !isset( $GET["produto_parceiro_id"] ) ) {
+      die( json_encode( array( "status" => false, "message" => "Campo produto_parceiro_id é obrigatório" ) ) );
+    }
+    
+    $this->produto_parceiro_id = preg_replace( "/[^0-9]/", "", $GET["produto_parceiro_id"] );
+    
+    $this->setTokenWS();
+    if( !$this->token ) {
+      die( json_encode( array( "status" => false, "message" => "Serviço de informação não configurado" ) ) );
+    }
+    
+    $protected_url = "http://ws.ifaro.com.br/WSDados.svc?wsdl";
+    
+    $client = new SoapClient( $protected_url, array( "soap_version" => SOAP_1_1, "trace" => false, "keep_alive" => false, "exceptions" => true ) );
+    $actionHeader = array( new SoapHeader("http://www.w3.org/2005/08/addressing","Action", "http://tempuri.org/IWSDados/ConsultaImei") );
+    $client->__setSoapHeaders( $actionHeader );
+
+    $parameters = array( "ConsultaImei" => array( "imei" => $IMEI, "token" => $this->token ) );
+    $resultado = $client->__soapCall( "ConsultaImei", $parameters );
+    die( json_encode( (array) $resultado->{"ConsultaImeiResult"}, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+
+    
+  }
+  
   public function index() {
     $this->load->model('base_pessoa_model', 'base_pessoa');
     
@@ -70,6 +106,9 @@ class Info extends CI_Controller {
     $this->produto_parceiro_id = preg_replace( "/[^0-9]/", "", $GET["produto_parceiro_id"] );
     
     $this->setToken();
+    if( !$this->token ) {
+      die( json_encode( array( "status" => false, "message" => "Serviço de informação não configurado" ) ) );
+    }
     $Token = $this->token;
     $Url = self::API_ENDPOINT . "ConsultaPessoa/$CPF/$Token";
     
@@ -177,6 +216,61 @@ class Info extends CI_Controller {
 
   }
 
+  public function setTokenWS() {
+
+    $config = $this->produto_parceiro_servico
+      ->with_servico()
+      ->with_servico_tipo()
+      ->filter_by_servico_tipo( "ifaro_pf" )
+      ->filter_by_produto_parceiro( $this->produto_parceiro_id )
+      ->get_all();
+    
+    if( $config ) {
+      $this->produto_parceiro_servico_id = $config[0]["produto_parceiro_servico_id"];
+
+      $Login = base64_encode( $config[0]["servico_usuario"] );
+      $Senha = base64_encode( $config[0]["servico_senha"] );
+      $Url = self::API_TOKEN . "$Login/$Senha";
+
+      $Antes = new DateTime();
+
+      $protected_url = "http://ws.ifaro.com.br/Seguranca.svc?wsdl";
+      
+      $client = new SoapClient( $protected_url, array( "soap_version" => SOAP_1_1, "trace" => false, "keep_alive" => false, "exceptions" => true ) );
+      $actionHeader = array( new SoapHeader("http://www.w3.org/2005/08/addressing","Action", "http://tempuri.org/ISegurancaApi/GetTokenAPI") );
+      $client->__setSoapHeaders( $actionHeader );
+
+      $parameters = array( "GetToken" => array( "login" => $Login, "senha" => $Senha ) );
+      $Response = (array)$client->__soapCall( "GetToken", $parameters );
+      $Response = $Response["GetTokenResult"];
+
+      $Depois = new DateTime();
+
+      $data_log["produto_parceiro_servico_log_id"] = 0;
+      $data_log["produto_parceiro_servico_id"] = $this->produto_parceiro_servico_id;
+      $data_log["url"] = $protected_url;
+      $data_log["consulta"] = "GetTokenWS";
+      $data_log["retorno"] = json_encode( $Response );
+      $data_log["time_envio"] = $Antes->format( "H:i:s" );
+      $data_log["time_retorno"] = $Depois->format( "H:i:s" );
+      $data_log["parametros"] = $protected_url;
+      $data_log["data_log"] = $Antes->format( "Y-m-d H:i:s" );
+      $data_log["ip"] = ( isset( $_SERVER[ "REMOTE_ADDR" ] ) ? $_SERVER[ "REMOTE_ADDR" ] : "" );
+      $this->produto_parceiro_servico_log->insLog( $this->produto_parceiro_servico_id, $data_log );
+
+      $response = (array)$Response;
+      if( isset( $response["TipoRetorno"] ) && intval( $response["TipoRetorno"] ) == 0 ) {
+        $this->token = $response["Token"];
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+
+  }
+  
   public function getToken() {
     return $this->token;
  	 }
@@ -402,6 +496,8 @@ class validaEmail {
   }
   
 }
+
+
 
 
 

@@ -27,8 +27,17 @@ class Acesso extends CI_Controller {
     
     $this->load->model( "usuario_model", "usuario" );
     $this->load->model( "usuario_webservice_model", "webservice" );
+    
+    if( !isset( $GET["email"] ) ) {
+      die( json_encode( array( "status" => false, "message" => "Campo email é obrigatório" ) ) );
+    } else {
+      $email = $GET["email"];
+    }
 
     $usuario = $this->usuario->get_by( array( "email" => $GET["email"] ) );
+    if( !$usuario ) {
+      die( json_encode( array( "status" => false, "message" => "Usuário não cadastrado" ) ) );
+    }
     $webservice = $this->webservice->getByUsuarioID( $usuario["usuario_id"] );
     
 
@@ -56,6 +65,7 @@ class Acesso extends CI_Controller {
   }
 }
 ?>
+
 
 
 

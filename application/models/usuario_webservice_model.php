@@ -47,14 +47,16 @@ Class Usuario_Webservice_Model extends MY_Model {
   }
   
   function checkKeyExpiration( $key ) {
-    $query = $this->db->query( "SELECT usuario_id, api_key, validade FROM usuario_webservice WHERE api_key='$key' AND validade >= now()" )->result_array();
-    if( $query ) {
+    $query = $this->db->query( "SELECT w.usuario_id, w.api_key, w.validade, u.parceiro_id FROM usuario_webservice w INNER JOIN usuario u ON (u.usuario_id=w.usuario_id) WHERE w.api_key='$key' AND w.validade >= now()" )->result_array();
+    if( sizeof( $query ) > 0 ) {
       return $query[0];
     } else {
-      return false;
+      return $query;
     }
   }
   
 }
+
+
 
 
