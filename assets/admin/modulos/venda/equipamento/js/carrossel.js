@@ -3,31 +3,18 @@ $(function(){
     var exec=false;
     setInterval( function() {
         var navFixed = $( "body.menubar-hoverable.header-fixed" ).is('.menubar-pin');
-        console.log(navFixed);
         if (!navFixed) {
             if(!exec) {
                 $(window).trigger('resize');
                 exec = true;
-
-                // destroyOne();
-                // destroyTwo();
-
-                // startCycleOne()
-                // startCycleTwo();
             }
         } else {
             if(exec){
                 $(window).trigger('resize');
-                // destroyOne();
-                // destroyTwo();
-
-                // startCycleOne()
-                // startCycleTwo();
             }
             exec = false;
         }
     }, 200 );
-
 
     if(typeof layout != typeof undefined && layout != "front")
     {
@@ -42,7 +29,6 @@ $(function(){
         $("#vendas_planos_preco .preco_slider ul li").width($("#vendas_planos_preco").width() - 1);
         $("#vendas_planos .plano_slider ul li").width($("#slider-one-container").width() -1);
     }
-
 
     var planoSlideOneClone = $("#slider-one-container").html();
     var planoPrecoSlideOneClone = $("#slider-preco-one-container").html();
@@ -155,12 +141,10 @@ $(function(){
              */
             reloadCoberturaMark();
 
-
             /**
              * reaplica o evento de clique em adicionar coberturas
              */
             applyClickCobertura();
-
 
             /**
              * reaplica o uniform nos botoes para contratar
@@ -174,14 +158,13 @@ $(function(){
             applyChangeContratar();
             reloadChangeContratar();
 
-
             /**
              * Ao destravar reincia slide para ordem correta
              * */
             $('#plano_slider_one').cycle('goto', 0);
             $('#plano_slider_preco_one').cycle('goto', 0);
 
-            $('#plano_slider_preco_one').parent().removeClass('preco_one_plano_lock');
+            $('#plano_slider_preco_one').removeClass('preco_one_plano_lock');
             console.log('unlock');
 
             planoSliderOneLock = false;
@@ -192,16 +175,16 @@ $(function(){
 
             $(".cadeado.one").addClass("fa-unlock-alt");
             $(".cadeado.one").removeClass("fa-lock");
-        }
-        else
-        {
+
+        } else {
+
             $('#plano_slider_two').cycle('remove',  $("#plano_slider_one").data("cycle.opts").currSlide);
             $('#plano_slider_preco_two').cycle('remove',  $("#plano_slider_preco_one").data("cycle.opts").currSlide);
 
             $(".cadeado.one").removeClass("fa-unlock-alt");
             $(".cadeado.one").addClass("fa-lock");
 
-            $('#plano_slider_preco_one').parent().addClass('preco_one_plano_lock');
+            $('#plano_slider_preco_one').addClass('preco_one_plano_lock');
             console.log('lock');
             planoSliderOneLock = true;
 
@@ -211,7 +194,6 @@ $(function(){
         }
 
         calculo_preco();
-
 
         return false;
     });

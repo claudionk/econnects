@@ -213,6 +213,7 @@
 
 .table_plano_lock {
     border: 1px solid #999 !important;
+    border-bottom: none !important;
 }
 
 
@@ -242,14 +243,13 @@
 .preco_table .last td  {
     border-bottom: 1px solid;
 }
-/*
+
 .preco_one_plano_lock{
     border-left: 1px solid #999999 !important;
     border-right: 1px solid #999999 !important;
-    height: 365px;
-    margin-left: -3px !important;
+    margin-left: 2px !important;
 }
-*/
+
 /* Somente para Chrome e Safari */
 @media screen and (-webkit-min-device-pixel-ratio:0) {
 /*    .preco_one_plano_lock { margin-left: 0 !important; height: 364px !important; } */

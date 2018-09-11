@@ -31,7 +31,7 @@ Class Integracao_Log_Detalhe_Model extends MY_Model
     );
 
 
-    public function insLogDetalhe($integracao_log_id, $num_linha = 0, $valor_chave = ''){
+    public function insLogDetalhe($integracao_log_id, $num_linha = 0, $valor_chave = '', $retorno = ''){
 
 
 
@@ -41,7 +41,7 @@ Class Integracao_Log_Detalhe_Model extends MY_Model
         $dados_log['integracao_log_id'] = $integracao_log_id;
         $dados_log['num_linha'] = $num_linha;
         $dados_log['chave'] = $valor_chave;
-        $dados_log['retorno'] = '';
+        $dados_log['retorno'] = $retorno;
         $dados_log['retorno_codigo'] = '';
 
         $integracao_log_detalhe_id = $this->insert($dados_log, TRUE);

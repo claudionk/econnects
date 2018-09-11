@@ -93,6 +93,15 @@ class Api extends Site_Controller
         return;
     }
 
+    public function cotacao_campos($produto_parceiro_id){
+        $retorno = $this->execute($this->url."campos?produto_parceiro_id=$produto_parceiro_id");
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output($retorno);
+        return;
+    }
+
     public function insereCotacao(){
         // $this->stop=true;
         $json = file_get_contents( "php://input" );
@@ -126,6 +135,15 @@ class Api extends Site_Controller
     public function pagamento_pagar(){
         $json = file_get_contents( "php://input" );
         $retorno = $this->execute($this->url."pagamento/pagar", "POST", $json);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output($retorno);
+        return;
+    }
+
+    public function calculo_premio($cotacao_id){
+        $retorno = $this->execute($this->url."cotacao/calculo?cotacao_id=$cotacao_id");
 
         $this->output
             ->set_content_type('application/json')

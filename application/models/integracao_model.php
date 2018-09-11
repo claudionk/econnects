@@ -294,8 +294,8 @@ Class Integracao_Model extends MY_Model
         if($result){
             $result = $result[0];
             $dados_integracao = array();
-            $dados_integracao['status'] = 'L';
-            $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            // $dados_integracao['status'] = 'L';
+            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
@@ -314,8 +314,8 @@ Class Integracao_Model extends MY_Model
                 $this->processFileIntegracao($result, $result_file['file']);
             }
 
-            // echo "FIM - R";
-            // exit();
+            echo "FIM - R";
+            exit();
 
             $dados_integracao = array();
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
@@ -455,10 +455,10 @@ Class Integracao_Model extends MY_Model
                     ->filter_by_file(basename($item))
                     ->get_total();
 
-                if ((int)$total == 0) {
+                // if ((int)$total == 0) {
                     $file_processar = $item;
                     break;
-                }
+                // }
             }
         }
 
@@ -655,6 +655,7 @@ Class Integracao_Model extends MY_Model
         $detail = array();
         $trailler = array();
         $num_registro = 0;
+        $chave = '';
 
         while (!feof($fh)) #INICIO DO WHILE NO ARQUIVO
         {
@@ -678,6 +679,11 @@ Class Integracao_Model extends MY_Model
                         'linha' => $linhas,
                     );
                 }
+
+                // echo $layout_detail[0]['chave'] ."<br>";
+                // if ($layout_detail[0]['chave'] == 1)
+                //     $chave =  substr($linhas,($item_d['inicio'])-1,$item_d['tamanho']);
+
                 $detail[] = $sub_detail;
                 $num_registro++;
             }elseif(substr($linhas,($layout_trailler[0]['inicio'])-1,$layout_trailler[0]['tamanho']) == $layout_trailler[0]['valor_padrao']){
@@ -696,7 +702,6 @@ Class Integracao_Model extends MY_Model
         $sql = $integracao['script_sql']; 
 
         $data = array();
-
         $id_log = 0;
         $num_linha = 0;
         foreach ($detail as  $rows) {
@@ -711,18 +716,22 @@ Class Integracao_Model extends MY_Model
                 }
                 if ($row['layout']['campo_log'] == 1) {
                     $id_log = $row['valor'];
+
                     if(function_exists($row['layout']['function'])){
 
                         $id_log = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor']));
                     }
+
+                    // gera log
+                    // if (!empty($chave))
+                    //     $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $chave, $id_log);
                 }
             }
             $data[] = $data_row;
-
-           $num_linha++;
-
+            $num_linha++;
         }
 
+        // echo "<pre>";print_r($data);echo "</pre>";
         $num_linha = 1;
         foreach ($data as $index => $datum) {
             //execute before detail
@@ -739,14 +748,24 @@ Class Integracao_Model extends MY_Model
             }
 
             // echo "<pre>";print_r($datum);echo "</pre>";
-            
+            // exit();
+
             $ultimo_id = null;
             if (!empty($sql)){
                 $this->_database->query($sql, $datum);
                 $ultimo_id = $this->_database->insert_id();
                 $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $ultimo_id);
-                $num_linha++;
+            // } else {
+            //     $ultimo_id = $id_log;
+            //     if (!empty($ultimo_id)) {
+            //         foreach ($datum as $key => $value) {
+            //             $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $ultimo_id);
+            //         }
+            //     }
             }
+
+
+            $num_linha++;
 
             //execute before detail
             if((!empty($integracao['after_detail'])) && (function_exists($integracao['after_detail']))){
