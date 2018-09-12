@@ -741,7 +741,7 @@ class Pagamento extends CI_Controller {
       die( 
         json_encode( 
           array( 
-            "success" => false, 
+            "status" => false, 
             "cotacao_id" => $cotacao_id, 
             "produto_parceiro_id" => $produto_parceiro_id, 
             "forma_pagamento_id" => $forma_pagamento_id, 
@@ -823,7 +823,7 @@ class Pagamento extends CI_Controller {
           die( 
             json_encode( 
               array( 
-                "success" => false, 
+                "status" => false, 
                 "cotacao_id" => $cotacao_id, 
                 "produto_parceiro_id" => $produto_parceiro_id, 
                 "forma_pagamento_id" => $forma_pagamento_id, 
@@ -842,7 +842,7 @@ class Pagamento extends CI_Controller {
       if( $pedido_id && $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_FATURADO || $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_TERCEIROS ) {
         $status = $this->pedido->mudaStatus( $pedido_id, "pagamento_confirmado" );
         $result  = array(
-          "success" => true,
+          "status" => true,
           "mensagem" => "Pedido confirmado",
           "dados" => array( "pedido_id" => $pedido_id )
         );
@@ -889,7 +889,7 @@ class Pagamento extends CI_Controller {
         if( $Response["Payment"]["Status"]["Code"] == "0" ) {
           $status = $this->pedido->mudaStatus( $pedido_id, "criado" );
           $result  = array(
-            "success" => true,
+            "status" => true,
             "mensagem" => "Transação iniciada",
             "dados" => array( "pedido_id" => $pedido_id ),
             "pagmax" => $Response
@@ -907,7 +907,7 @@ class Pagamento extends CI_Controller {
         if( $Response["Payment"]["Status"]["Code"] == "1" ) {
           $status = $this->pedido->mudaStatus( $pedido_id, "aguardando_pagamento" );
           $result  = array(
-            "success" => true,
+            "status" => true,
             "mensagem" => "Aguardando pagamento",
             "dados" => array( "pedido_id" => $pedido_id ),
             "pagmax" => $Response
@@ -925,7 +925,7 @@ class Pagamento extends CI_Controller {
         if( $Response["Payment"]["Status"]["Code"] == "2" ) {
           $status = $this->pedido->mudaStatus( $pedido_id, "pagamento_confirmado" );
           $result  = array(
-            "success" => true,
+            "status" => true,
             "mensagem" => "Pagamento efetuado com sucesso",
             "dados" => array( "pedido_id" => $pedido_id ),
             "pagmax" => $Response
@@ -934,7 +934,7 @@ class Pagamento extends CI_Controller {
         if( $Response["Payment"]["Status"]["Code"] == "3" ) {
           $status = $this->pedido->mudaStatus( $pedido_id, "pagamento_negado" );
           $result  = array(
-            "success" => false,
+            "status" => false,
             "mensagem" => "Autorização negada (" . $Response["Payment"]["ReturnMessage"] . ")",
             "dados" => array( "pedido_id" => $pedido_id ),
             "pagmax" => $Response
@@ -943,20 +943,20 @@ class Pagamento extends CI_Controller {
       } else {
         if( sizeof( $Response ) == 0 || is_null( $Response ) || is_null( json_encode( $Response ) ) ) {
           $result  = array(
-            "success" => false,
+            "status" => false,
             "mensagem" => "Falha na transacao (timeout com emissor)",
             "dados" => array( "pedido_id" => $pedido_id )
           );
         } else {
           if( isset( $Response["error"] ) && isset( $Response["error"]["Code"] ) ) {
             $result  = array(
-              "success" => false,
+              "status" => false,
               "mensagem" => "Falha na transacao (Erro " . $Response["error"]["Code"] . ")",
               "dados" => array( "pedido_id" => $pedido_id )
             );
           } else {
             $result  = array(
-              "success" => false,
+              "status" => false,
               "mensagem" => "Falha de comunicação (Erro 0)",
               "dados" => array( "pedido_id" => $pedido_id )
             );
@@ -971,6 +971,7 @@ class Pagamento extends CI_Controller {
   }
   
 }
+
 
 
 

@@ -151,6 +151,34 @@ class Info extends CI_Controller {
     
     $response = json_decode( $Response, true );
     
+    $this->load->model("produto_parceiro_campo_model", "produto_parceiro_campo");
+    $campos = $this->produto_parceiro_campo->with_campo()->with_campo_tipo()->filter_by_produto_parceiro( $this->produto_parceiro_id )->filter_by_campo_tipo_slug( "dados_segurado" )->order_by( "ordem", "ASC" )->get_all();
+
+    $erros = array();
+
+    $validacao = array();
+    foreach( $campos as $campo ) {
+      $validacao[] = array(
+        "field" => $campo["campo_nome_banco"],
+        "label" => $campo["campo_nome"],
+        "rules" => $campo["validacoes"],
+        "groups" => "cotacao",
+        "value" => isset($response[$campo["campo_nome_banco"]]) ? $response[$campo["campo_nome_banco"]] : ""
+      );
+    }
+
+    $validacao_ok = true;
+    foreach( $validacao as $check ) {
+      if( strpos( $check["rules"], "enriquecimento" ) !== false && $check["value"] == "" ) {
+        $validacao_ok = false;
+        $erros[] = $check;
+      }
+    }
+
+    if( !$validacao_ok ) {
+      die( json_encode( array( "status" => false, "message" => "Erro de validação", "erros" => $erros ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+    }
+    
     if( isset( $response["TipoRetorno"] ) && intval( $response["TipoRetorno"] ) == 0 ) {
       $this->updateBase( $pessoa["base_pessoa_id"], $response );
       $pessoa = $this->base_pessoa->getByDoc( $CPF, $this->produto_parceiro_id, "ifaro_pf" );
@@ -496,6 +524,7 @@ class validaEmail {
   }
   
 }
+
 
 
 

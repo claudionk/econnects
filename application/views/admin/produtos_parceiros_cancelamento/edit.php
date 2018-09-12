@@ -152,6 +152,7 @@ if($_POST)
                                                                                    value="E" <?php if (isset($row[$field_name]) && $row[$field_name] == 'E') echo 'checked="checked"'; ?> />
                                                                             Específico
                                                                         </label>
+                                                                      
                                                                     </div>
 
                                                                     <div class="row cancelamento_especial">
@@ -194,6 +195,24 @@ if($_POST)
                                                                             <div class="col-md-2"><input class="form-control inputmask-moeda" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
                                                                         </div>
                                                                     </div>
+                                                                  
+                                                                  <div class="row reembolso_cancelamento">
+                                                                    <label class="col-md-2 control-label" for="123">Reembolso</label>
+                                                                    <?php $field_name = 'indenizacao_hab';?>
+                                                                    <div class="form-group">
+                                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Habilitado *</label>
+                                                                        <label class="radio-inline radio-styled radio-primary">
+                                                                            <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                                   value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
+                                                                            Sim
+                                                                        </label>
+                                                                        <label class="radio-inline radio-styled radio-primary">
+                                                                            <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                                   value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
+                                                                            Não
+                                                                        </label>
+                                                                    </div>
+                                                                  </div>
 
                                                                     <br>
                                                                     <br>
@@ -280,29 +299,6 @@ if($_POST)
                                                                         <div class="col-md-2"><input class="form-control inputmask-moeda" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
                                                                     </div>
 
-
-                                                                    <br>
-                                                                    <br>
-                                                                    <h4>Reembolso em caso de cancelamento</h4>
-                                                                    <hr>
-                                                                    <br>
-
-
-                                                                    <?php $field_name = 'indenizacao_hab';?>
-                                                                    <div class="form-group">
-                                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Habilitado *</label>
-                                                                        <label class="radio-inline radio-styled radio-primary">
-                                                                            <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                                                                   value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
-                                                                            Sim
-                                                                        </label>
-                                                                        <label class="radio-inline radio-styled radio-primary">
-                                                                            <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                                                                   value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
-                                                                            Não
-                                                                        </label>
-                                                                    </div>
-
                                                                 </div>
                                                                 <!-- End Tab content -->
 
@@ -355,3 +351,4 @@ if($_POST)
         </div>
     </div>
 </div>
+

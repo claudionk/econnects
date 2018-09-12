@@ -76,14 +76,16 @@
                                         <ul class="dropdown-menu dropdown-menu-right" role="menu">
                                             <?php if( $row['precificacao_tipo_id'] == 1 || $row['precificacao_tipo_id'] == 5 || $row['precificacao_tipo_id'] == 6 ) : ?>
                                                 <li><a href="<?php echo base_url("admin/produtos_parceiros_planos_precificacao_itens/index/{$row[$primary_key]}")?>" >Tabela de Preços </a></li>
+                                                <li><a href="<?php echo base_url("admin/produtos_parceiros_planos_precificacao/edit/{$row[$primary_key]}")?>"> Precificação </a></li>
+                                                <li><a href="<?php echo base_url("admin/produtos_parceiros_planos_origem_destino/edit/{$row[$primary_key]}")?>"> Origem e Destino </a></li>
+                                                <li><a href="<?php echo base_url("admin/produtos_parceiros_planos_faixa_salarial/edit/{$row[$primary_key]}")?>"> Faixa Salarial </a></li>
                                             <?php endif; ?>
                                             <?php if($row['precificacao_tipo_id'] == 4) : ?>
                                                 <li><a href="<?php echo base_url("admin/produtos_parceiros_planos_precificacao_servico/index/{$row[$primary_key]}")?>" >Tabela de Preços </a></li>
                                             <?php endif; ?>
-                                            <li><a href="<?php echo base_url("admin/produtos_parceiros_planos_precificacao/edit/{$row[$primary_key]}")?>"> Precificação </a></li>
-                                            <li><a href="<?php echo base_url("admin/produtos_parceiros_planos_origem_destino/edit/{$row[$primary_key]}")?>"> Origem e Destino </a></li>
-                                            <li><a href="<?php echo base_url("admin/produtos_parceiros_planos_faixa_salarial/edit/{$row[$primary_key]}")?>"> Faixa Salarial </a></li>
+                                            <?php if($row['precificacao_tipo_id'] == 2) : ?>
                                             <li><a href="<?php echo base_url("admin/cobertura_plano/index/{$row[$primary_key]}")?>"> Coberturas </a></li>
+                                            <?php endif; ?>
                                         </ul>
                                     </div>
                                     <a href="<?php echo base_url("{$current_controller_uri}/edit/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Editar </a>
@@ -107,3 +109,4 @@
         </div>
     </div>
 </div>
+

@@ -283,7 +283,7 @@ Class Parceiro_Model extends MY_Model
      * @param int $offset
      * @return mixed
      */
-  
+  /*
     public function get_all($limit = 0, $offset = 0, $processa = true) {
         if($processa)
         {
@@ -293,6 +293,9 @@ Class Parceiro_Model extends MY_Model
         }
         return parent::get_all($limit, $offset);
     }
+    
+    */
+  
     /**
      * Retorna todos
      * @return mixed
@@ -310,6 +313,7 @@ Class Parceiro_Model extends MY_Model
     }
 
 }
+
 
 
 

@@ -1142,8 +1142,7 @@ class Venda_Equipamento extends Admin_Controller {
   /**
      * Efetua calculo, retorna JSON
      */
-  public function calculo()
-  {
+  public function calculo() {
     $this->load->model('produto_parceiro_campo_model', 'campo');
     $this->load->model('pedido_model', 'pedido');
     $this->load->model('produto_parceiro_plano_model', 'plano');
@@ -1994,6 +1993,8 @@ class Venda_Equipamento extends Admin_Controller {
   }
 
 }
+
+
 
 
 
