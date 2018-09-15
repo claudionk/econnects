@@ -151,4 +151,14 @@ class Api extends Site_Controller
         return;
     }
 
+    public function apolice(){
+        $json = file_get_contents( "php://input" );
+        $retorno = $this->execute($this->url."apolice", "PUT", $json);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output($retorno);
+        return;
+    }
+
 }

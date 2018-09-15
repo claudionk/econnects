@@ -279,6 +279,7 @@ Class Integracao_Model extends MY_Model
     public function run_r($integracao_id){
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
+        $this->load->model('integracao_log_detalhe_campo_model', 'integracao_log_detalhe_campo');
         $this->load->model('integracao_layout_model', 'integracao_layout');
 
 
@@ -309,6 +310,7 @@ Class Integracao_Model extends MY_Model
 
             $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
             $result_file = $this->getFile($result, $file);
+            // $result_file["file"] = "/var/www/webroot/ROOT/econnects/application/helpers/../../assets/uploads/integracao/15/R/RF2119597741TR20180421.TXT";
 
             if(!empty($result_file['file'])){
                 $this->processFileIntegracao($result, $result_file['file']);
@@ -348,10 +350,13 @@ Class Integracao_Model extends MY_Model
         if($result){
             $result = $result[0];
             $dados_integracao = array();
-            $dados_integracao['status'] = 'L';
-            $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            // $dados_integracao['status'] = 'L';
+            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             $result_file = $this->createFileIntegracao($result);
+
+            echo "FIM - S";
+            exit();
 
             $this->sendFile($result, $result_file['file']);
 
@@ -495,16 +500,25 @@ Class Integracao_Model extends MY_Model
         $this->ftp->close();
     }
 
-    private function processLine($multiplo, $layout, $registro, $integracao_log) {
+    private function processLine($multiplo, $layout, $registro, $integracao_log, $integracao_log_detalhe_id) {
         $this->data_template_script['totalRegistros']++;
         if (!empty($multiplo)) $this->data_template_script['totalItens']++;
-        return $this->getLinha($layout, $registro, $integracao_log);
+        
+        $line = $this->getLinha($layout, $registro, $integracao_log, $integracao_log_detalhe_id);
+        if (empty($line)){
+            $this->data_template_script['totalRegistros']--;
+            if (!empty($multiplo)) $this->data_template_script['totalItens']--;
+        }
+
+        return $line;
     }
 
     private function processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao) {
         if (!empty($layout_m)){
 
             foreach ($registros as $registro) {
+
+                $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $this->data_template_script['totalRegistros']+1, $registro[$integracao['campo_chave']]);
 
                 foreach ($layout_m as $lm) {
 
@@ -520,18 +534,19 @@ Class Integracao_Model extends MY_Model
                         if (!empty($reg)) {
                             foreach ($reg as $r) {
                                 $registro = array_merge($registro, $r);
-                                $linhas[] = $this->processLine($lm['multiplo'], $lm['dados'], $registro, $integracao_log);
+                                $line = $this->processLine($lm['multiplo'], $lm['dados'], $registro, $integracao_log, $integracao_log_detalhe_id);
+                                if (!empty($line)) $linhas[] = $line;
                             }
                         }
                     }
 
                     if ($inserir) {
-                        $linhas[] = $this->processLine($lm['multiplo'], $lm['dados'], $registro, $integracao_log);
+                        $line = $this->processLine($lm['multiplo'], $lm['dados'], $registro, $integracao_log, $integracao_log_detalhe_id);
+                        if (!empty($line)) $linhas[] = $line;
                     }
 
                 }
 
-                $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], count($linhas), $registro[$integracao['campo_chave']]);
             }
         }
 
@@ -542,6 +557,7 @@ Class Integracao_Model extends MY_Model
 
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
+        $this->load->model('integracao_log_detalhe_campo_model', 'integracao_log_detalhe_campo');
         $this->load->model('integracao_layout_model', 'integracao_layout');
         $this->load->model('integracao_detalhe_model', 'integracao_det');
 
@@ -584,11 +600,10 @@ Class Integracao_Model extends MY_Model
             $layout[$qtdeAux]['dados'][] = $item;
         }
 
-
         // Trata o nome do arquivo
         $idxF = $this->search( $layout, 'F', 'tipo' );
         if ( $idxF >= 0 ) {
-            $filename = $this->getLinha($layout[$idxF]['dados'], $registros, $integracao_log);
+            $filename = $this->getLinha($layout[$idxF]['dados'], $registros, $integracao_log, null);
             $filename = $filename[0];
             unset($layout[$idxF]);
         }
@@ -598,11 +613,11 @@ Class Integracao_Model extends MY_Model
             if ($lay['multiplo'] == 0) {
                 $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
                 $layout_m = [];
-                $linhas[] = $this->processLine($lay['multiplo'], $lay['dados'], $registros, $integracao_log);
+                $line = $this->processLine($lay['multiplo'], $lay['dados'], $registros, $integracao_log, null);
+                if (!empty($line)) $linhas[] = $line;
             } else {
                 $layout_m[] = $lay;
             }
-
         }
 
         // echo "<pre>";print_r($linhas);echo "</pre>";
@@ -655,7 +670,6 @@ Class Integracao_Model extends MY_Model
         $detail = array();
         $trailler = array();
         $num_registro = 0;
-        $chave = '';
 
         while (!feof($fh)) #INICIO DO WHILE NO ARQUIVO
         {
@@ -679,10 +693,6 @@ Class Integracao_Model extends MY_Model
                         'linha' => $linhas,
                     );
                 }
-
-                // echo $layout_detail[0]['chave'] ."<br>";
-                // if ($layout_detail[0]['chave'] == 1)
-                //     $chave =  substr($linhas,($item_d['inicio'])-1,$item_d['tamanho']);
 
                 $detail[] = $sub_detail;
                 $num_registro++;
@@ -715,16 +725,14 @@ Class Integracao_Model extends MY_Model
                     $data_row[$row['layout']['nome_banco']] = trim($row['valor']);
                 }
                 if ($row['layout']['campo_log'] == 1) {
-                    $id_log = $row['valor'];
+                    $id_log = trim($row['valor']);
 
                     if(function_exists($row['layout']['function'])){
 
                         $id_log = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor']));
                     }
 
-                    // gera log
-                    // if (!empty($chave))
-                    //     $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $chave, $id_log);
+                    $data_row['id_log'] = $id_log;
                 }
             }
             $data[] = $data_row;
@@ -734,14 +742,29 @@ Class Integracao_Model extends MY_Model
         // echo "<pre>";print_r($data);echo "</pre>";
         $num_linha = 1;
         foreach ($data as $index => $datum) {
+
+            // gera log
+            $integracao_log_detalhe_id = null;
+            $integracao_log_status_id = 4;
+
+            if (!empty($datum['id_log'])) {
+                $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $datum['id_log'], addslashes(json_encode($datum)));
+            }
+
             //execute before detail
             if (!empty($integracao['before_detail']) ) {
-                $funcs = explode(";", $integracao['before_detail']);
-                foreach ($funcs as $f) {
-                    if ( function_exists($f) ) {
-                        $callFuncReturn = call_user_func($f, null, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
-                        if (!empty($callFuncReturn) && is_array($callFuncReturn)){
-                            $datum = $callFuncReturn;
+                if ( function_exists($integracao['before_detail']) ) {
+                    $callFuncReturn = call_user_func($integracao['before_detail'], null, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
+                    if ( !empty($callFuncReturn) && !empty($integracao_log_detalhe_id) ){
+
+                        if ( empty($callFuncReturn->status) ){
+                            // seta para erro
+                            $integracao_log_status_id = 5;
+
+                            foreach ($callFuncReturn->msg as $er) {
+                                $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, $er['id'], $er['msg'], $er['slug']);
+                            }
+
                         }
                     }
                 }
@@ -755,13 +778,6 @@ Class Integracao_Model extends MY_Model
                 $this->_database->query($sql, $datum);
                 $ultimo_id = $this->_database->insert_id();
                 $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $ultimo_id);
-            // } else {
-            //     $ultimo_id = $id_log;
-            //     if (!empty($ultimo_id)) {
-            //         foreach ($datum as $key => $value) {
-            //             $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $ultimo_id);
-            //         }
-            //     }
             }
 
 
@@ -771,6 +787,16 @@ Class Integracao_Model extends MY_Model
             if((!empty($integracao['after_detail'])) && (function_exists($integracao['after_detail']))){
                 call_user_func($integracao['after_detail'], null, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => $ultimo_id));
             }
+
+            if (!empty($integracao_log_detalhe_id) ){
+                // seta para erro
+                $this->integracao_log_detalhe->update_by(
+                    array('integracao_log_detalhe_id' =>$integracao_log_detalhe_id),array(
+                        'integracao_log_status_id' => $integracao_log_status_id
+                    )
+                );
+            }
+
         }
 
 
@@ -779,26 +805,6 @@ Class Integracao_Model extends MY_Model
         $dados_log['integracao_log_status_id'] = 4;
 
         $this->integracao_log->update($integracao_log['integracao_log_id'], $dados_log, TRUE);
-        $this->integracao_log_detalhe->update_by(
-            array('integracao_log_id' =>$integracao_log['integracao_log_id']),array(
-                'integracao_log_status_id' => 4
-            )
-        );
-
-
-        if($id_log){
-            $dados_log = array();
-            $dados_log['integracao_log_status_id'] = 4;
-
-            $this->integracao_log->update($id_log, $dados_log, TRUE);
-            $this->integracao_log_detalhe->update_by(
-                array('integracao_log_id' =>$id_log),array(
-                    'integracao_log_status_id' => 4
-                )
-            );
-        }
-
-
     }
 
     private function trataRetorno($txt) {
@@ -807,44 +813,79 @@ Class Integracao_Model extends MY_Model
         return $txt;
     }
 
-    private function getLinha($layout, $registro = array(), $log = array()){
+    private function getLinha($layout, $registro = array(), $log = array(), $integracao_log_detalhe_id){
 
         $result = "";
-        $arResult = []; 
+        $arResult = [];
+        $integracao_log_status_id = 4;
 
         foreach ($layout as $ind => $item) {
-   
+
+            // TODO: se for obrigatório precisa validar e retornar erro para gerar log de retorno
+            if ($item['obrigatorio'] == 1){
+                if ( !empty($item['nome_banco']) && (!isset($registro[$item['nome_banco']]) || empty($registro[$item['nome_banco']]) ) ){
+                    // seta para erro
+                    $integracao_log_status_id = 5;
+
+                    // gera log do erro
+                    $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, 1, "O campo {$item['nome']} é obrigatório", $item['nome_banco']);
+
+                    // não gera a linha
+                    continue;
+                }
+            }
+
+            $campo = null;
             $pre_result = '';
+            $qnt_valor_padrao = $item['tamanho'];
+
             if(strlen($item['valor_padrao']) > 0 && $item['qnt_valor_padrao'] > 0){
-                $field = '';
+                $campo = '';
+                $qnt_valor_padrao = $item['qnt_valor_padrao'];
+
                 if (!empty($item['nome_banco'])){
                     if(isset($registro[$item['nome_banco']])){
-                        $field = app_remove_especial_caracteres($registro[$item['nome_banco']]);
+                        $campo = app_remove_especial_caracteres($registro[$item['nome_banco']]);
                     }elseif(isset($log[$item['nome_banco']])){
-                        $field = $log[$item['nome_banco']];
+                        $campo = $log[$item['nome_banco']];
                     }
                 }
-                $pre_result .= mb_str_pad($field, $item['qnt_valor_padrao'], $item['valor_padrao'], $item['str_pad']);
+
             }elseif (!empty($item['function'])){
+
                 if(function_exists($item['function'])){
-                    $pre_result .= mb_str_pad(call_user_func($item['function'], $item['formato'], array('item' => $item, 'registro' => $registro, 'log' => $log, 'global' => $this->data_template_script)), $item['tamanho'], $item['valor_padrao'], $item['str_pad']);
+                    $campo = call_user_func($item['function'], $item['formato'], array('item' => $item, 'registro' => $registro, 'log' => $log, 'global' => $this->data_template_script));
                 }
+
             }elseif (!empty($item['nome_banco'])){
 
                 if(isset($registro[$item['nome_banco']])){
-                    $registro[$item['nome_banco']] = app_remove_especial_caracteres($registro[$item['nome_banco']]);
-                    $pre_result .= mb_str_pad($registro[$item['nome_banco']], $item['tamanho'], isempty($item['valor_padrao'],' '), $item['str_pad']);
+                    $registro[$item['nome_banco']] = $campo = app_remove_especial_caracteres($registro[$item['nome_banco']]);
                 }elseif(isset($log[$item['nome_banco']])){
-                    $pre_result .= mb_str_pad($log[$item['nome_banco']], $item['tamanho'], isempty($item['valor_padrao'],' '), $item['str_pad']);
+                    $campo = $log[$item['nome_banco']];
                 }else{
-                    $pre_result .= mb_str_pad('', $item['tamanho'], isempty($item['valor_padrao'],' '), $item['str_pad']);
+                    $campo = '';
                 }
+
+            }
+
+            if (!is_null($campo)){
+                $pre_result .= mb_str_pad($campo, $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
             }
 
             $result .= mb_substr($pre_result,0,$item['tamanho']);
         }
 
-        $arResult[] = $this->trataRetorno($result);
+        if ($integracao_log_status_id == 5){
+            $this->integracao_log_detalhe->update_by(
+                array('integracao_log_detalhe_id' =>$integracao_log_detalhe_id),array(
+                    'integracao_log_status_id' => $integracao_log_status_id
+                )
+            );
+        } else {
+            $arResult[] = $this->trataRetorno($result);
+        }
+
         return $arResult;
     }
 

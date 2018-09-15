@@ -522,9 +522,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
         if (!empty($cpf)) {
             $cpf = substr($cpf, -11);
-
             $enriquecido = app_get_api("enriqueceCPF/$cpf/". $acesso->produto_parceiro_id);
-            // echo "<pre>";print_r($enriquecido);echo "</pre>";
 
             if (!empty($enriquecido['status'])){
                 $enriquecido = $enriquecido['response'];
@@ -539,6 +537,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                 $ExtraEnderecos = $enriquecido->endereco;
                 if( sizeof( $ExtraEnderecos ) ) {
                     $dados['registro']['endereco'] = $ExtraEnderecos[0]->{"endereco"};
+                    $dados['registro']['endereco_logradouro'] = $ExtraEnderecos[0]->{"endereco"};
                     $dados['registro']['endereco_numero'] = $ExtraEnderecos[0]->{"endereco_numero"};
                     $dados['registro']['complemento'] = $ExtraEnderecos[0]->{"endereco_complemento"};
                     $dados['registro']['endereco_bairro'] = $ExtraEnderecos[0]->{"endereco_bairro"};
@@ -588,9 +587,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
         if (!empty($ean)) {
             $ean = (int)$ean;
-
             $enriquecido = app_get_api("enriqueceEAN/$ean");
-            // echo "<pre>";print_r($enriquecido);echo "</pre>";
 
             if (!empty($enriquecido['status'])){
                 $enriquecido = $enriquecido['response'];
@@ -608,29 +605,22 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
         // Validar Regras
         $validaRegra = app_integracao_valida_regras($dados);
-        echo "<pre>";print_r($validaRegra);echo "</pre>";
+
         if (!empty($validaRegra->status)) {
             $dados['registro']['cotacao_id'] = $validaRegra->cotacao_id;
             $emissao = app_integracao_emissao($formato, $dados);
-            echo "<pre>";print_r($emissao);echo "</pre>";
 
             if (empty($emissao->status)) {
                 $response->msg[] = $emissao->msg;
             } else {
                 $response->status = true;
             }
+
         } else {
             $response->msg = $validaRegra->errors;
         }
 
-        // gera arquivo retorno
-        if (empty($response->status)) {
-            echo "validou com erro";
-            echo "<pre>";print_r($response);echo "</pre>";
-            // exit();
-        }
-
-        return;
+        return $response;
     }
 
 }
@@ -680,7 +670,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
         // echo "<pre>";print_r($dados);echo "</pre>";
 
         // Emissão
-        if ($dados['tipo_transacao'] == 'NS') {
+        if ( in_array($dados['tipo_transacao'], ['NS','XP']) ) {
 
             // Campos para cotação
             $camposCotacao = app_get_api("cotacao_campos/". $dados['produto_parceiro_id']);
@@ -713,7 +703,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                                     $errors[] = ['id' => 2, 'msg' => "Campo {$campo->label} deve ser um CPF válido", 'slug' => $campo->nome_banco];
                                 break;
                             case "validate_data":
-                                if( !isset( $dados[$campo->nome_banco] ) || !app_validate_data($dados[$campo->nome_banco]) )
+                                if( !isset( $dados[$campo->nome_banco] ) || !app_validate_data_americana($dados[$campo->nome_banco]) )
                                     $errors[] = ['id' => 3, 'msg' => "Campo {$campo->label} deve ser uma Data válida", 'slug' => $campo->nome_banco];
                                 break;
                         }
@@ -752,6 +742,10 @@ if ( ! function_exists('app_integracao_valida_regras'))
 
                 $fields['produto_parceiro_id'] = $dados['produto_parceiro_id'];
                 $fields['produto_parceiro_plano_id'] = $dados['produto_parceiro_plano_id'];
+                $fields['endereco_logradouro'] = $dados['endereco'];
+                $fields['endereco_estado'] = $dados['endereco_uf'];
+                $fields['equipamento_marca_id'] = $dados['equipamento_marca_id'];
+                $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
 
                 // Cotação
                 $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields));
@@ -785,12 +779,15 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 return $response;
             }
 
-            // echo "<pre>";print_r($errors);echo "</pre>";
-            // echo "<pre>";print_r($fields);echo "</pre>";
-
          // Cancelamento
         } else if ( in_array($dados['tipo_transacao'], ['XS','XI','XX']) ) {
             // TODO: CANCELAMENTO
+            // Até 7 dias da compra = devolução integral (prêmio bruto de IOF) 
+            // A partir do 8o dia = Pró‐rata (prêmio líquido)
+
+            // Calculo do cancelamento
+
+
             $response->msg = "A DESENVOLVER CANCELAMENTO";
             return $response;
         }
@@ -810,21 +807,12 @@ if ( ! function_exists('app_integracao_emissao'))
         }
 
         $dados = $dados['registro'];
+        $cotacao_id = $dados["cotacao_id"];
+        $certificado = $dados["certificado"];
         // echo "<pre>";print_r($dados);echo "</pre>";
 
         // Emissão
-        if ($dados['tipo_transacao'] == 'NS') {
-
-            // Cotação
-            $cotacao = app_get_api("insereCotacao", "PUT", json_encode($dados));
-            // echo "<pre>";print_r($cotacao);echo "</pre>";
-            if (empty($cotacao['status'])) {
-                $response->msg = "Cotação Error ". $cotacao['response'];
-                return $response;
-            }
-
-            $cotacao = $cotacao['response'];
-            $cotacao_id = $cotacao->cotacao_id;
+        if ( in_array($dados['tipo_transacao'], ['NS','XP']) ) {
 
             // Formas de Pagamento
             $formPagto = app_get_api("forma_pagamento_cotacao/$cotacao_id");
@@ -842,7 +830,7 @@ if ( ! function_exists('app_integracao_emissao'))
 
             foreach ($formPagto as $fPagto) {
 
-                if ($fPagto->tipo->slug != 'faturado') 
+                if ($fPagto->tipo->slug != 'cobranca_terceiros') 
                     continue;
 
                 $forma_pagamento_id = $fPagto->pagamento[0]->forma_pagamento_id;
@@ -857,15 +845,24 @@ if ( ! function_exists('app_integracao_emissao'))
                 ];
 
                 $efetuaPagto = app_get_api("pagamento_pagar", "POST", json_encode($camposPagto));
-                // echo "<pre>";print_r($efetuaPagto);echo "</pre>";
-
-                if (!empty($efetuaPagto['status'])) {
-
-                    $response->msg = "Emissão realizada com sucesso";
-                    $response->pedido_id = $efetuaPagto['response']->dados->pedido_id;
-
-                } else {
+                if (empty($efetuaPagto['status'])) {
                     $response->msg = "Efetua Pagto Error: ($cotacao_id / $forma_pagamento_id) ". $efetuaPagto['response'];
+                    return $response;
+                }
+
+                $response->msg = $efetuaPagto['response']->mensagem;
+                $response->pedido_id = $efetuaPagto['response']->dados->pedido_id;
+                $response->apolice_id = $efetuaPagto['response']->dados->apolice_id;
+
+                // método para salvar a apólice
+                $fieldApolice = [
+                    "apolice_id" => $response->apolice_id,
+                    "num_apolice" => $certificado,
+                ];
+
+                $getApolice = app_get_api("apolice", "POST", json_encode($fieldApolice));
+                if (empty($getApolice['status'])) {
+                    $response->msg = "Apolice Error: ({$response->apolice_id} / {$certificado}) ". $getApolice['response'];
                     return $response;
                 }
 
@@ -880,6 +877,7 @@ if ( ! function_exists('app_integracao_emissao'))
         // Cancelamento
         } else if ( in_array($dados['tipo_transacao'], ['XS','XI','XX']) ) {
             // TODO: CANCELAMENTO
+            // chamada da API para cancelamento
         }
 
         $response->status = true;

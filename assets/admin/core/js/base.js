@@ -26,6 +26,10 @@ $(function(){
         buscaDadosEAN();
     });
 
+    $('#imei').on('blur',function() {
+        // buscaDadosIMEI();
+    });
+
     $.extend($.inputmask.defaults, {
         'autounmask': true
     });

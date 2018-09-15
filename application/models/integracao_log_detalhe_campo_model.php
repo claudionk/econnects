@@ -1,9 +1,9 @@
 <?php
-Class Integracao_Log_Detalhe_Model extends MY_Model
+Class Integracao_Log_Detalhe_Campo_Model extends MY_Model
 {
     //Dados da tabela e chave primária
-    protected $_table = 'integracao_log_detalhe';
-    protected $primary_key = 'integracao_log_detalhe_id';
+    protected $_table = 'integracao_log_detalhe_campo';
+    protected $primary_key = 'integracao_log_detalhe_campo_id';
 
     //Configurações
     protected $return_type = 'array';
@@ -30,32 +30,20 @@ Class Integracao_Log_Detalhe_Model extends MY_Model
     
     );
 
-
-    public function insLogDetalhe($integracao_log_id, $num_linha = 0, $valor_chave = '', $retorno = ''){
-
-
+    public function insLogDetalheCampo($integracao_log_detalhe_id, $integracao_erros_id, $msg = '', $slug = ''){
 
         $dados_log = array();
 
-        $dados_log['integracao_log_status_id'] = 2;
-        $dados_log['integracao_log_id'] = $integracao_log_id;
-        $dados_log['num_linha'] = $num_linha;
-        $dados_log['chave'] = $valor_chave;
-        $dados_log['retorno'] = $retorno;
-        $dados_log['retorno_codigo'] = '';
+        $dados_log['integracao_log_detalhe_id'] = $integracao_log_detalhe_id;
+        $dados_log['integracao_erros_id'] = $integracao_erros_id;
+        $dados_log['msg'] = $msg;
+        $dados_log['slug'] = $slug;
 
-        $integracao_log_detalhe_id = $this->insert($dados_log, TRUE);
-
-
-        // $result = $this->get($integracao_log_detalhe_id);
-
-        return $integracao_log_detalhe_id;
-
-
+        return $this->insert($dados_log, TRUE);
     }
 
     function filterByLogID($integracao_log_id){
-        $this->_database->where("integracao_log_detalhe.integracao_log_id", $integracao_log_id);
+        $this->_database->where("integracao_log_detalhe_campo.integracao_log_detalhe_id", $integracao_log_id);
         return $this;
     }
 

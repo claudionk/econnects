@@ -1375,6 +1375,25 @@ class CI_Form_validation {
 		return str_replace(array('<?php', '<?PHP', '<?', '?>'),  array('&lt;?php', '&lt;?PHP', '&lt;?', '?&gt;'), $str);
 	}
 
+	/**
+	 * Validate IMEI
+	 *
+	 * @access	public
+	 * @param	string
+	 * @return	bool
+	 */
+	public function validate_imei($str)
+	{
+		if ( ! is_array($str))
+		{
+			return (trim($str) == '') ? FALSE : TRUE;
+		}
+		else
+		{
+			return ( ! empty($str));
+		}
+	}
+
 }
 // END Form Validation Class
 

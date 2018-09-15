@@ -1300,6 +1300,18 @@ function app_validate_data($date)
     }
 }
 
+function app_validate_data_americana($date)
+{
+    if(@checkdate(substr($date, 5, 2), substr($date, 8, 2), substr($date, 0, 4)))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 function app_validate_mobile_phone($phone) {
     $exp_regular = '/^(\(11\) (9\d{4})-\d{4})|((\(1[2-9]{1}\)|\([2-9]{1}\d{1}\)) [5-9]\d{3}-\d{4})$/';
     $ret = preg_match($exp_regular, $phone);
