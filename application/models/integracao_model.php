@@ -358,17 +358,25 @@ Class Integracao_Model extends MY_Model
             echo "FIM - S";
             exit();
 
-            $this->sendFile($result, $result_file['file']);
+            // se gerou conteúdo no arquivo
+            $filename = $result_file['file'];
+            $integracao_log_status_id = 5;
+
+            if (!empty($filename)){
+                $filename = basename($filename);
+                $integracao_log_status_id = 3;
+                $this->sendFile($result, $filename);
+            }
 
             $dados_log = array();
             $dados_log['processamento_fim'] = date('Y-m-d H:i:s');
-            $dados_log['nome_arquivo'] = basename($result_file['file']);
-            $dados_log['integracao_log_status_id'] = 3;
+            $dados_log['nome_arquivo'] = $filename;
+            $dados_log['integracao_log_status_id'] = $integracao_log_status_id;
 
             $this->integracao_log->update($result_file['integracao_log_id'], $dados_log, TRUE);
             $this->integracao_log_detalhe->update_by(
                 array('integracao_log_id' =>$result_file['integracao_log_id']),array(
-                    'integracao_log_status_id' => 3
+                    'integracao_log_status_id' => $integracao_log_status_id
                 )
             );
 
@@ -563,13 +571,16 @@ Class Integracao_Model extends MY_Model
 
         $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
 
-
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
 
         $integracao['script_sql'] = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
         $registros = $this->_database->query($integracao['script_sql'])->result_array();
 
         $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], count($registros));
+        $arRet = ['file' => '', 'integracao_log_id' => $integracao_log['integracao_log_id']];
+
+        if (empty($registros))
+            return $arRet;
 
         //busca layout
         $query = $this->_database->query("
@@ -621,6 +632,9 @@ Class Integracao_Model extends MY_Model
         }
 
         // echo "<pre>";print_r($linhas);echo "</pre>";
+        if (empty($linhas) || count($linhas) <= 2)
+            return $arRet;
+
         $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
 
         if(!file_exists($diretorio)){
@@ -633,10 +647,10 @@ Class Integracao_Model extends MY_Model
             $concat = "\n";
         }
 
-        //$filename = 'Intercontinental_Remessa_'. date('dmY');
         file_put_contents("{$diretorio}/{$filename}", $content);
 
-        return array('file' => "{$diretorio}/{$filename}", 'integracao_log_id' => $integracao_log['integracao_log_id']);
+        $arRet['file'] = "{$diretorio}/{$filename}";
+        return $arRet;
     }
 
     private function processFileIntegracao($integracao = array(), $file){
@@ -821,9 +835,9 @@ Class Integracao_Model extends MY_Model
 
         foreach ($layout as $ind => $item) {
 
-            // TODO: se for obrigatório precisa validar e retornar erro para gerar log de retorno
-            if ($item['obrigatorio'] == 1){
-                if ( !empty($item['nome_banco']) && (!isset($registro[$item['nome_banco']]) || empty($registro[$item['nome_banco']]) ) ){
+            // Se for obrigatório precisa validar e retornar erro para gerar log de retorno
+            if ($item['obrigatorio'] == 1 && !empty($item['nome_banco']) ){
+                if ( !isset($registro[$item['nome_banco']]) || strlen(trim($registro[$item['nome_banco']])) == 0){
                     // seta para erro
                     $integracao_log_status_id = 5;
 

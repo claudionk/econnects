@@ -6,8 +6,6 @@
  * Time: 17:27
  */
 
-
-
 if ( ! function_exists('app_integracao_date')) {
     function app_integracao_date($formato, $dados = array())
     {
@@ -16,7 +14,6 @@ if ( ! function_exists('app_integracao_date')) {
 
     }
 }
-
 
 if ( ! function_exists('app_integracao_get_sequencial')) {
     function app_integracao_get_sequencial($formato, $dados = array())
@@ -312,8 +309,8 @@ if ( ! function_exists('app_integracao_format_decimal_pad')) {
         $valor = (!empty($dados[$a[0]][$a[1]])) ? $dados[$a[0]][$a[1]] : 0;
         $valor = ($valor == 0) ? '0.0' : $valor;
         $valor = explode('.', $valor);
-        $valor[1] = ((isset($valor[1])) || (empty(isset($valor[1]))) ) ? '00' : $valor[1];
-        return str_pad($valor[0],  ($a[2]-3), '0', STR_PAD_LEFT) .$a[3]. str_pad($valor[1], 2, '0', STR_PAD_LEFT);
+        $valor[1] = ((!isset($valor[1])) || (empty(isset($valor[1]))) ) ? '00' : $valor[1];
+        return str_pad($valor[0], ($dados['item']['tamanho']-($a[2]+1)), $dados['item']['valor_padrao'], STR_PAD_LEFT) .$a[3]. str_pad($valor[1], $a[2], '0', STR_PAD_LEFT);
 
     }
 
@@ -882,5 +879,28 @@ if ( ! function_exists('app_integracao_emissao'))
 
         $response->status = true;
         return $response;
+    }
+}
+
+if ( ! function_exists('app_integracao_apolice')) {
+    function app_integracao_apolice($formato, $dados = array())
+    {
+        $num_apolice = $dados['registro']['num_apolice'];
+        if (!is_numeric($num_apolice))
+            return $num_apolice;
+
+        $num_apolice_aux = $dados['registro']['cod_sucursal'] . $dados['registro']['cod_ramo'] . $dados['registro']['cod_tpa'];
+        $num_apolice_aux .= str_pad(substr($num_apolice, 7, 8), 8, '0', STR_PAD_LEFT);
+
+        return $num_apolice_aux;
+    }
+}
+if ( ! function_exists('app_integracao_id_transacao')) {
+    function app_integracao_id_transacao($formato, $dados = array())
+    {
+        $num_apolice = app_integracao_apolice($formato, $dados);
+        $num_apolice_aux = $num_apolice.$dados['registro']['num_endosso'].$dados['registro']['cod_ramo'].$dados['registro']['num_parcela'];
+
+        return $num_apolice_aux;
     }
 }
