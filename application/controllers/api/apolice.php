@@ -38,10 +38,29 @@ class Apolice extends CI_Controller {
     $this->load->helper("api_helper");
   }
 
+  private function update( $apolice_id, $num_apolice ) {
+    $this->db->query("UPDATE apolice SET num_apolice='$num_apolice' WHERE apolice_id=$apolice_id" );
+    $result = $this->db->query("SELECT * FROM apolice WHERE apolice_id=$apolice_id" )->result_array();
+    die( json_encode( array( "status" => (bool)sizeof($result), "apolice" => $result ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+  }
+  
   public function index() {
     if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
       $GET = $_GET;
     } else {
+      if( $_SERVER["REQUEST_METHOD"] === "PUT" ) {
+        $PUT = json_decode( file_get_contents( "php://input" ), true );
+        if( !isset( $PUT["apolice_id"] ) ) {
+          die( json_encode( array( "status" => false, "message" => "Campo apolice_id é obrigatório" ) ) );
+        }
+        if( !isset( $PUT["num_apolice"] ) ) {
+          die( json_encode( array( "status" => false, "message" => "Campo num_apolice é obrigatório" ) ) );
+        }
+        $apolice_id = $PUT["apolice_id"];
+        $num_apolice = $PUT["num_apolice"];
+          
+        $this->update( $apolice_id, $num_apolice );
+      }
       die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
     }
     
@@ -124,11 +143,11 @@ class Apolice extends CI_Controller {
     } else {
       die( json_encode( array( "status" => false, "message" => "Parâmetros inválidos" ) ) );
     }
-
-    echo $response->getJSON();
   }
 
 }
+
+
 
 
 

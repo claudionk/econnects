@@ -817,6 +817,7 @@ class Pagamento extends CI_Controller {
         $pedido_data["num_parcela"] = 1;
         $pedido_data["bandeira"] = $produto_parceiro_pagamento_id;
       }
+      
       if($pedido_id == 0 || $pedido_id == "" ) {
         $result = $this->db->query( "SELECT * FROM pedido WHERE cotacao_id=$cotacao_id" )->result_array();
         if( sizeof( $result ) > 0 ) {
@@ -841,11 +842,25 @@ class Pagamento extends CI_Controller {
       
       if( $pedido_id && $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_FATURADO || $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_TERCEIROS ) {
         $status = $this->pedido->mudaStatus( $pedido_id, "pagamento_confirmado" );
-        $result  = array(
-          "status" => true,
-          "mensagem" => "Pedido confirmado",
-          "dados" => array( "pedido_id" => $pedido_id )
-        );
+        $this->load->model('apolice_model', 'apolice');
+        $this->apolice->insertApolice( $pedido_id );
+        $apolice = $this->apolice->get_by( "pedido_id", $pedido_id );
+        if( $apolice ) {
+          $result  = array(
+            "status" => true,
+            "mensagem" => "Pedido confirmado",
+            "dados" => array( "pedido_id" => $pedido_id, "apolice_id" => $apolice["apolice_id"] )
+          );
+        } else {
+          $result  = array(                
+            "status" => false, 
+            "cotacao_id" => $cotacao_id, 
+            "produto_parceiro_id" => $produto_parceiro_id, 
+            "forma_pagamento_id" => $forma_pagamento_id, 
+            "nome" => $forma_pagamento["nome"], 
+            "erros" => "Não foi possível criar a apólice"
+          );
+        }
         die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
       }
       
@@ -971,6 +986,9 @@ class Pagamento extends CI_Controller {
   }
   
 }
+
+
+
 
 
 

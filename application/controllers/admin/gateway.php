@@ -19,7 +19,8 @@ class Gateway extends Admin_Controller
   const FORMA_PAGAMENTO_BOLETO = 8;
   const FORMA_PAGAMENTO_FATURADO = 9;
   const FORMA_PAGAMENTO_CHECKOUT_PAGMAX = 10;
-
+  const FORMA_PAGAMENTO_TERCEIROS = 11;
+  
   public function __construct(){
     parent::__construct();
 
@@ -847,6 +848,7 @@ class Gateway extends Admin_Controller
 
 
 }
+
 
 
 

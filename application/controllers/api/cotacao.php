@@ -44,7 +44,6 @@ class Cotacao extends CI_Controller {
       $this->load->model( "usuario_webservice_model", "webservice" );
 
       $webservice = $this->webservice->checkKeyExpiration( $this->api_key );
-      $this->usuario_id = $webservice["usuario_id"];
       if( !sizeof( $webservice ) ) {
         die( json_encode( array( "status" => false, "message" => "APIKEY is invalid" ) ) );
       }
@@ -159,7 +158,6 @@ class Cotacao extends CI_Controller {
       $cotacao["message"] = "Validação OK"; 
       die( json_encode( $cotacao, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     } else {
-      //error_log( "ERROS: " . json_encode( array( "status" => false, "erros" => $erros ) ) . "\n", 3, "/var/log/httpd/myapp.log" );
       die( json_encode( array( "status" => false, "message" => "Erro de validação", "erros" => $erros ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
   }
@@ -1408,6 +1406,7 @@ class Cotacao extends CI_Controller {
   }
 
 }
+
 
 
 

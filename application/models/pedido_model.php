@@ -31,7 +31,8 @@ Class Pedido_Model extends MY_Model
   const FORMA_PAGAMENTO_BOLETO = 9;
   const FORMA_PAGAMENTO_FATURADO = 10;
   const FORMA_PAGAMENTO_CHECKOUT_PAGMAX = 11;
-  
+  const FORMA_PAGAMENTO_TERCEIROS = 12;
+
 
   //Dados
   public $validate = array(
@@ -1147,6 +1148,9 @@ Class Pedido_Model extends MY_Model
     }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_FATURADO ) {
       $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_FATURADO)->limit(1)->get_all();
       $item = $item[0];
+    }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_TERCEIROS ) {
+      $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_TERCEIROS)->limit(1)->get_all();
+      $item = $item[0];
     }elseif ($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_BOLETO ) {
       $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_BOLETO)->limit(1)->get_all();
       $item = $item[0];
@@ -1290,6 +1294,9 @@ Class Pedido_Model extends MY_Model
       $item = $this->produto_pagamento->get_by_id($dados['bandeira_debito']);
     }elseif($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_FATURADO){
       $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_FATURADO)->limit(1)->get_all();
+      $item = $item[0];
+    }elseif($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_TERCEIROS){
+      $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_TERCEIROS)->limit(1)->get_all();
       $item = $item[0];
     }elseif ($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_BOLETO){
       $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_BOLETO)->limit(1)->get_all();
@@ -1460,6 +1467,7 @@ Class Pedido_Model extends MY_Model
 
   }
 }
+
 
 
 
