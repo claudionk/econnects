@@ -1757,26 +1757,24 @@ class MY_Model extends CI_Model
     }
 
 
-    public function processa_parceiros_permitidos($campo)
-    {
+    public function processa_parceiros_permitidos( $campo ) {
         $parceiro_id = $this->session->userdata('parceiro_id');
         $parceiros_permitidos = $this->session->userdata("parceiros_permitidos");
         $parceiro_selecionado = $this->session->userdata("parceiro_selecionado");
 
 
-        if($parceiro_id){
-            if($parceiro_selecionado){
-                $this->where($campo, '=', $parceiro_selecionado);
-            }else if($parceiros_permitidos){
+        if( $parceiro_id ) {
+            if( $parceiro_selecionado ) {
+                $this->where( $campo, '=', $parceiro_selecionado );
+            } else if( $parceiros_permitidos ) {
                 $sql = "";
                 //Busca pelos filhos
-                foreach($parceiros_permitidos as $parceiro_id)
-                {
+                foreach( $parceiros_permitidos as $parceiro_id ) {
                     $sql .= " OR {$campo} = {$parceiro_id}";
                 }
                 $sql = substr($sql, 3);
                 $this->_database->where("($sql)");
-            }else{
+            } else {
                 $this->where($campo, '=', $parceiro_id);
             }
         }
@@ -1788,3 +1786,4 @@ class MY_Model extends CI_Model
     }
 
 }
+

@@ -120,20 +120,20 @@ if($_POST)
                                                     </div>
                                                     <?php $field_name = 'mostrar';?>
                                                     <div class="form-group">
-                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Exibição *</label>
+                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Precificação *</label>
                                                         <div class="col-md-4">
                                                             <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
                                                                 <option name="" value="preco"
                                                                     <?php if(isset($row[$field_name])){if($row[$field_name] == 'preco') {echo " selected ";};}; ?> >
-                                                                    Valor da cobertura
-                                                                </option>
-                                                                <option name="" value="descricao"
-                                                                    <?php if(isset($row[$field_name])){if($row[$field_name] == 'descricao') {echo " selected ";};}; ?> >
-                                                                    Descrição
+                                                                    VALOR DA COBERTURA
                                                                 </option>
                                                                 <option name="" value="importancia_segurada"
                                                                     <?php if(isset($row[$field_name])){if($row[$field_name] == 'importancia_segurada') {echo " selected ";};}; ?> >
-                                                                    Importância Segurada
+                                                                    TAXA SOBRE IMPORTÂNCIA SEGURADA
+                                                                </option>
+                                                                <option name="" value="descricao"
+                                                                    <?php if(isset($row[$field_name])){if($row[$field_name] == 'descricao') {echo " selected ";};}; ?> >
+                                                                    SOMENTE DESCRIÇÃO
                                                                 </option>
                                                             </select>
                                                         </div>
@@ -145,15 +145,14 @@ if($_POST)
                                                     </div>
                                                     <?php $field_name = 'preco';?>
                                                     <div class="form-group <?php echo $field_name ?>">
-                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Valor</label>
+                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Valor (Preço)</label>
                                                         <div class="col-md-8"><input class="form-control inputmask-moeda2" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo (isset($row[$field_name]) && !empty($row[$field_name]))  ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
-                                                    <!--
                                                     <?php $field_name = 'porcentagem';?>
                                                     <div class="form-group <?php echo $field_name ?>">
-                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Porcentagem (%) *</label>
+                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Taxa (%) </label>
                                                         <div class="col-md-8"><input class="form-control inputmask-moeda" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
-                                                    </div>-->
+                                                    </div>
                                                     <div class="form-group">
                                                         <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Tipo Custo *</label>
                                                         <?php $field_name = 'cobertura_custo';?>
@@ -161,10 +160,10 @@ if($_POST)
                                                             <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
                                                                 <option name="" value="">Selecione</option>
                                                                 <option name="" value="valor"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'valor') {echo " selected ";};}; ?> >Valor Fixo
+                                                                    <?php if(isset($row)){if($row[$field_name] == 'valor') {echo " selected ";};}; ?> >VALOR FIXO
                                                                 </option>
                                                                 <option name="" value="porcentagem"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'porcentagem') {echo " selected ";};}; ?> >Porcentagem sobre valor da cobertura
+                                                                    <?php if(isset($row)){if($row[$field_name] == 'porcentagem') {echo " selected ";};}; ?> >PERCENTUAL SOBRE VALOR DA COBERTURA
                                                                 </option>
                                                             </select>
                                                         </div>
@@ -210,3 +209,4 @@ if($_POST)
         </div>
     </div>
 </div>
+

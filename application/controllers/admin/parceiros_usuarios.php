@@ -66,8 +66,8 @@ class Parceiros_Usuarios extends Admin_Controller
         $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data );
     }
 
-    public function add($parceiro_id) //Função que adiciona registro
-    {
+    public function add($parceiro_id) {
+      
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
 
@@ -89,20 +89,24 @@ class Parceiros_Usuarios extends Admin_Controller
         $data['bancos'] = $this->banco->get_all();
 
         //Caso post
-        if($_POST)
-        {
+        if($_POST) {
             //Valida formulário
-            if($this->current_model->validate_form('add_parceiro'))
-            {
+            if($this->current_model->validate_form('add_parceiro')) {
+              if( isset( $_POST["usuario_acl_tipo_id"] ) && $_POST["usuario_acl_tipo_id"] != "" && $_POST["usuario_acl_tipo_id"] == "3" ) {
+                $usuario_acl_tipo_id = $_POST["usuario_acl_tipo_id"];
+                $result = $this->db->query( "SELECT usuario_acl_tipo_id FROM usuario WHERE parceiro_id=$parceiro_id AND usuario_acl_tipo_id=$usuario_acl_tipo_id AND deletado=0" )->result_array();
+                if( sizeof( $result ) > 0 ) {
+                  $this->session->set_flashdata('fail_msg', 'Já existe um usuário de Acesso Externo cadastrado para esse parceiro.');
+                  redirect("$this->controller_uri/view/{$parceiro_id}");
+                }
+              }
+
                 //Insere form
                 $insert_id = $this->current_model->insert_form();
-                if($insert_id)
-                {
+                if($insert_id) {
                     //Caso inserido com sucesso
                     $this->session->set_flashdata('succ_msg', 'Os dados foram salvos corretamente.'); //Mensagem de sucesso
-                }
-                else
-                {
+                } else {
                     //Mensagem de erro
                     $this->session->set_flashdata('fail_msg', 'Não foi possível salvar o Registro.');
                 }
@@ -116,8 +120,7 @@ class Parceiros_Usuarios extends Admin_Controller
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
-    public function edit($id) //Função que edita registro
-    {
+    public function edit( $id ) {
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
 
@@ -152,10 +155,17 @@ class Parceiros_Usuarios extends Admin_Controller
         $parceiro_id = $data['row']['parceiro_id'];
 
         //Caso post
-        if($_POST)
-        {
-            if($this->current_model->validate_form('edit_parceiro')) //Valida form
-            {
+        if($_POST) {
+            if($this->current_model->validate_form('edit_parceiro')) {
+              if( isset( $_POST["usuario_acl_tipo_id"] ) && $_POST["usuario_acl_tipo_id"] != "" && $_POST["usuario_acl_tipo_id"] == "3" ) {
+                $usuario_acl_tipo_id = $_POST["usuario_acl_tipo_id"];
+                $result = $this->db->query( "SELECT usuario_acl_tipo_id FROM usuario WHERE parceiro_id=$parceiro_id AND usuario_acl_tipo_id=$usuario_acl_tipo_id AND usuario_id <> $id AND deletado=0" )->result_array();
+                if( sizeof( $result ) > 0 ) {
+                  $this->session->set_flashdata('fail_msg', 'Já existe um usuário de Acesso Externo cadastrado para esse parceiro.');
+                  redirect("$this->controller_uri/view/{$parceiro_id}");
+                }
+              }
+              
                 //Realiza update
                 $this->current_model->update_form();
 
@@ -173,8 +183,8 @@ class Parceiros_Usuarios extends Admin_Controller
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
-    public  function delete($id)
-    {
+  
+    public  function delete($id) {
         $data['row'] = $this->current_model->get($id);
 
         //Verifica se registro existe
@@ -196,3 +206,4 @@ class Parceiros_Usuarios extends Admin_Controller
 
 
 }
+

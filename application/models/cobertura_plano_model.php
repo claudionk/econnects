@@ -1,6 +1,5 @@
 <?php
-Class Cobertura_Plano_Model extends MY_Model
-{
+Class Cobertura_Plano_Model extends MY_Model {
     //Dados da tabela e chave primária
     protected $_table = 'cobertura_plano';
     protected $primary_key = 'cobertura_plano_id';
@@ -72,8 +71,7 @@ Class Cobertura_Plano_Model extends MY_Model
     );
 
     //Get dados
-    public function get_form_data($just_check = false)
-    {
+    public function get_form_data($just_check = false) {
         //Dados
         $data =  array(
             'cobertura_id' => $this->input->post('cobertura_id'),
@@ -89,13 +87,13 @@ Class Cobertura_Plano_Model extends MY_Model
         );
         return $data;
     }
-    function get_by_id($id)
-    {
+  
+    function get_by_id($id) {
         return $this->get($id);
     }
 
 
-    function  filter_by_produto_parceiro_plano($produto_parceiro_plano_id){
+    function  filter_by_produto_parceiro_plano($produto_parceiro_plano_id) {
 
         $this->_database->where("{$this->_table}.produto_parceiro_plano_id", $produto_parceiro_plano_id);
 
@@ -104,33 +102,31 @@ Class Cobertura_Plano_Model extends MY_Model
 
 
     //Agrega Coberturas
-    function with_cobertura($fields = array('nome'))
-    {
+    function with_cobertura($fields = array('nome')) {
         $this->with_simple_relation('cobertura', 'cobertura_', 'cobertura_id', $fields );
         return $this;
     }
+  
     //Agrega Coberturas
-    function with_cobertura_tipo($fields = array('cobertura_tipo.nome as cobertura_tipo'))
-    {
+    function with_cobertura_tipo($fields = array('cobertura_tipo.nome as cobertura_tipo')) {
         $this->_database->select($fields);
         $this->_database->join('cobertura_tipo', 'cobertura_tipo.cobertura_tipo_id = cobertura.cobertura_tipo_id');
         return $this;
     }
 
     //Agrega Coberturas
-    function with_parceiro($fields = array('parceiro.nome as parceiro_nome'))
-    {
+    function with_parceiro($fields = array('parceiro.nome as parceiro_nome')) {
         $this->_database->select($fields);
         $this->_database->join('parceiro', 'parceiro.parceiro_id = cobertura_plano.parceiro_id');
         return $this;
     }
 
     //Agrega Coberturas
-    function select_total_porcentagem()
-    {
+    function select_total_porcentagem() {
         $this->_database->select_sum('porcentagem');
         return $this;
     }
 
 
 }
+

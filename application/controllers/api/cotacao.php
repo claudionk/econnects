@@ -44,7 +44,6 @@ class Cotacao extends CI_Controller {
       $this->load->model( "usuario_webservice_model", "webservice" );
 
       $webservice = $this->webservice->checkKeyExpiration( $this->api_key );
-      $this->usuario_id = $webservice["usuario_id"];
       if( !sizeof( $webservice ) ) {
         die( json_encode( array( "status" => false, "message" => "APIKEY is invalid" ) ) );
       }
@@ -112,9 +111,11 @@ class Cotacao extends CI_Controller {
     $POST["parceiro_id"] = $produto["parceiro_id"];
     $POST["usuario_cotacao_id"] = $this->usuario_id;
 
-
+    
     $campos = $this->produto_parceiro_campo->with_campo()->with_campo_tipo()->filter_by_produto_parceiro( $produto_parceiro_id )->filter_by_campo_tipo_slug( "cotacao" )->order_by( "ordem", "ASC" )->get_all();
 
+    $erros = array();
+    
     $validacao = array();
     foreach( $campos as $campo ) {
       $validacao[] = array(
@@ -122,7 +123,7 @@ class Cotacao extends CI_Controller {
         "label" => $campo["campo_nome"],
         "rules" => $campo["validacoes"],
         "groups" => "cotacao",
-        "value" => $POST[$campo["campo_nome_banco"]]
+        "value" => isset($POST[$campo["campo_nome_banco"]]) ? $POST[$campo["campo_nome_banco"]] : ""
       );
     }
 
@@ -130,6 +131,7 @@ class Cotacao extends CI_Controller {
     foreach( $validacao as $check ) {
       if( strpos( $check["rules"], "required" ) !== false && $check["value"] == "" ) {
         $validacao_ok = false;
+        $erros[] = $check;
       }
     }
 
@@ -152,11 +154,11 @@ class Cotacao extends CI_Controller {
 
       $cotacao = $this->cotacao->get_by_id($cotacao_id);
       $cotacao["detalhes"] = $cotacao_itens;
-      $cotacao["success"] = true;
+      $cotacao["status"] = true;
+      $cotacao["message"] = "Validação OK"; 
       die( json_encode( $cotacao, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     } else {
-      $erros = $this->cotacao->error_array();
-      die( json_encode( $erros, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+      die( json_encode( array( "status" => false, "message" => "Erro de validação", "erros" => $erros ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
   }
 
@@ -275,7 +277,6 @@ class Cotacao extends CI_Controller {
     $this->load->model('produto_parceiro_regra_preco_model', 'regra_preco');
     $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
 
-
     $success = true;
     $messagem = '';
 
@@ -387,7 +388,7 @@ class Cotacao extends CI_Controller {
 
     if(!$valores_bruto) {
       $result  = array(
-        'success' => FALSE,
+        'status' => FALSE,
         'produto_parceiro_id' => $produto_parceiro_id,
         'repasse_comissao' => 0,
         'comissao' => 0,
@@ -496,21 +497,24 @@ class Cotacao extends CI_Controller {
       }
     }
 
-    error_log( "CALCULO_COTACAO_EQUIPAMENTO #1: " . print_r( $regra, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+    //error_log( "CALCULO_COTACAO_EQUIPAMENTO #999: " . print_r( $valores_liquido, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
 
     //Resultado
     $result  = array(
-      'success' => $success,
+      'status' => $success,
       'produto_parceiro_id' => $produto_parceiro_id,
-      'repasse_comissao' => $repasse_comissao,
-      'comissao' => $comissao_corretor,
-      'desconto_upgrade' => $desconto_upgrade,
-      'desconto_condicional_valor' => $desconto_condicional_valor,
-      'valores_bruto' => $valores_bruto,
-      'valores_cobertura_adicional' => $valores_cobertura_adicional,
-      'valores_totais_cobertura_adicional' => $valores_cobertura_adicional_total,
-      'valores_liquido' => $valores_liquido,
-      'valores_liquido_total' => $valores_liquido_total,
+      'repasse_comissao' => (float)$repasse_comissao,
+      'comissao' => (float)$comissao_corretor,
+      'desconto_upgrade' => (float)$desconto_upgrade,
+      'desconto_condicional_valor' => (float)$desconto_condicional_valor,
+      //'valores_bruto' => $valores_bruto,
+      //'valores_cobertura_adicional' => $valores_cobertura_adicional,
+      //'valores_totais_cobertura_adicional' => $valores_cobertura_adicional_total,
+      //'valores_liquido' => $valores_liquido,
+      //'valores_liquido_total' => $valores_liquido_total,
+      'premio_liquido' => (float)$valores_liquido[$plano['produto_parceiro_plano_id']],
+      'premio_liquido_total' => (float)$valores_liquido_total[$plano['produto_parceiro_plano_id']],
+      'iof' => (float)$iof,
       'mensagem' => $messagem
     );
 
@@ -531,7 +535,7 @@ class Cotacao extends CI_Controller {
       $cotacao_eqp['premio_liquido_total'] = $valores_liquido_total[$plano['produto_parceiro_plano_id']];
       $cotacao_eqp['iof'] = $iof;
 
-      error_log( "CALCULO_COTACAO_EQUIPAMENTO #2: " . print_r( $cotacao_eqp, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+      //error_log( "CALCULO_COTACAO_EQUIPAMENTO #2: " . print_r( $cotacao_eqp, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
 
       $this->cotacao_equipamento->update($cotacao_salva['cotacao_equipamento_id'], $cotacao_eqp, TRUE);
     }
@@ -566,11 +570,11 @@ class Cotacao extends CI_Controller {
 
     $valores = array();
     foreach ($arrPlanos as $plano){
-      switch ((int)$plano['precificacao_tipo_id'])
-      {
+      $valor_cobertura_plano = 0;
+      switch ((int)$plano['precificacao_tipo_id']) {
         case self::PRECO_TIPO_TABELA:
 
-          $calculo = $this->getValorTabelaFixa($plano['produto_parceiro_plano_id'], $equipamento_categora_id, $equipamento_marca_id, $valor_nota) *$quantidade;
+          $calculo = $this->getValorTabelaFixa($plano['produto_parceiro_plano_id'], $equipamento_categora_id, $equipamento_marca_id, $valor_nota) * $quantidade;
 
           if($calculo)
             $valores[$plano['produto_parceiro_plano_id']] = $calculo;
@@ -582,21 +586,30 @@ class Cotacao extends CI_Controller {
           }
           break;
         case self::PRECO_TIPO_COBERTURA:
-          $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
-          $this->load->model('produto_parceiro_plano_precificacao_model', 'produto_parceiro_plano_precificacao');
-          $this->load->model('equipamento_model', 'equipamento');
+          $this->load->model("produto_parceiro_plano_precificacao_itens_model", "produto_parceiro_plano_precificacao_itens");
+          $this->load->model("produto_parceiro_plano_precificacao_model", "produto_parceiro_plano_precificacao");
+          $this->load->model("equipamento_model", "equipamento");
+          $this->load->model("cobertura_plano_model", "plano_cobertura");
           $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
-          error_log( "PRECO_TIPO_VALOR_SEGURADO: ". print_r( $produto_parceiro_plano_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
-          $valor = $this->produto_parceiro_plano_precificacao
-            ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-            ->get_all();
-          $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
+          
+          $arrCoberturas = $this->plano_cobertura->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)->get_all();
+          foreach ($arrCoberturas as $idx => $cob) {
+            if( $arrCoberturas[$idx]["mostrar"] == "importancia_segurada" ) {
+              $valor_cobertura_plano = $valor_cobertura_plano + floatval( $valor_nota ) * ( floatval( $arrCoberturas[$idx]["porcentagem"] ) / 100 );
+            }
+            if( $arrCoberturas[$idx]["mostrar"] == "preco" ) {
+              $valor_cobertura_plano = $valor_cobertura_plano + floatval( $arrCoberturas[$idx]["preco"] );
+            }
+          }
+          
+          $valores[$produto_parceiro_plano_id] = $valor_cobertura_plano;
+          
           break;
         case self::PRECO_TIPO_VALOR_SEGURADO:
           $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
           $this->load->model('equipamento_model', 'equipamento');
           $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
-          error_log( "PRECO_TIPO_VALOR_SEGURADO: ". print_r( $produto_parceiro_plano_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+          //error_log( "PRECO_TIPO_VALOR_SEGURADO: ". print_r( $produto_parceiro_plano_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
           $valor = $this->produto_parceiro_plano_precificacao_itens
             ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
             ->filter_by_tipo_equipamento("TODOS")
@@ -607,7 +620,7 @@ class Cotacao extends CI_Controller {
           $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
           $this->load->model('equipamento_model', 'equipamento');
           $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
-          error_log( "PRECO_POR_EQUIPAMENTO: ". print_r( $produto_parceiro_plano_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+          //error_log( "PRECO_POR_EQUIPAMENTO: ". print_r( $produto_parceiro_plano_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
           $valor = $this->produto_parceiro_plano_precificacao_itens
             ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
             ->filter_by_faixa( $valor_nota )
@@ -627,7 +640,6 @@ class Cotacao extends CI_Controller {
       }
     }
     return $valores;
-
 
   }
 
@@ -656,7 +668,7 @@ class Cotacao extends CI_Controller {
      * @return mixed|null
      */
 
-  private function getValorTabelaFixa($produto_parceiro_plano_id, $equipamento_categoria_id, $equipamento_marca_id, $valor_nota){
+  private function getValorTabelaFixa($produto_parceiro_plano_id, $equipamento_categoria_id, $equipamento_marca_id, $valor_nota) {
 
 
     $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
@@ -668,7 +680,7 @@ class Cotacao extends CI_Controller {
       ->filter_by_tipo_equipamento('TODOS')
       ->get_all();
 
-    error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+    //error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
 
     if(count($valor) > 0)
     {
@@ -692,7 +704,7 @@ class Cotacao extends CI_Controller {
         ->filter_by_equipamento($equipamento_categoria_id)
         ->get_all();
 
-      error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+      //error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
 
       if(count($valor) > 0) {
         $valor = $valor[0];
@@ -727,7 +739,7 @@ class Cotacao extends CI_Controller {
         ->filter_by_equipamento($equipamento_marca_id)
         ->get_all();
 
-      error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+      //error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
 
       if(count($valor) > 0) {
         $valor = $valor[0];
@@ -891,7 +903,7 @@ class Cotacao extends CI_Controller {
     if(!$valores_bruto)
     {
       $result = array(
-        'success' => false,
+        'status' => false,
         'produto_parceiro_id' => $produto_parceiro_id,
         'repasse_comissao' => 0,
         'comissao' => 0,
@@ -975,7 +987,7 @@ class Cotacao extends CI_Controller {
 
     //Resultado
     $result  = array(
-      'success' => $success,
+      'status' => $success,
       'produto_parceiro_id' => $produto_parceiro_id,
       'repasse_comissao' => $repasse_comissao,
       'comissao' => $comissao_corretor,
@@ -1265,7 +1277,7 @@ class Cotacao extends CI_Controller {
     $cotacao_id = issetor($params['cotacao_id'], 0);
 
     $result  = array(
-      'success' => false,
+      'status' => false,
       'mensagem' => 'Contratação não finalizada',
     );
 
@@ -1273,7 +1285,7 @@ class Cotacao extends CI_Controller {
     if( $cotacao_id > 0 ) {
       if( $this->cotacao->isCotacaoValida( $cotacao_id ) == FALSE ) {
         $result  = array(
-          "success" => false,
+          "status" => false,
           "mensagem" => "Cotação inválida (001)",
           "errors" => array(),
         );
@@ -1286,7 +1298,7 @@ class Cotacao extends CI_Controller {
 
     } else {
       $result = array(
-          "success" => false,
+          "status" => false,
           "mensagem" => "Cotacao_id não informado",
           "errors" => array(),
       );
@@ -1366,7 +1378,7 @@ class Cotacao extends CI_Controller {
     }
     if( !$validacao_ok || sizeof( $erros ) > 0 ) {
       $result  = array(
-        "success" => false,
+        "status" => false,
         "mensagem" => "Cotação inválida (003)",
         "errors" => $erros,
       );
@@ -1378,7 +1390,7 @@ class Cotacao extends CI_Controller {
       //$this->cliente->atualizar( $cotacao_salva["cliente_id"], $dados_cotacao );
 
       $result  = array(
-        "success" => true,
+        "status" => true,
         "mensagem" => "Cotação finalizada. Efetuar pagamento.",
         "cotacao_id" => $cotacao_salva["cotacao_id"],
         "produto_parceiro_id" => $cotacao_salva["produto_parceiro_id"],
@@ -1394,6 +1406,9 @@ class Cotacao extends CI_Controller {
   }
 
 }
+
+
+
 
 
 

@@ -18,6 +18,7 @@ class Admin_Controller extends MY_Controller
   const FORMA_PAGAMENTO_BOLETO = 9;
   const FORMA_PAGAMENTO_FATURADO = 10;
   const FORMA_PAGAMENTO_CHECKOUT_PAGMAX = 11;
+  const FORMA_PAGAMENTO_TERCEIROS = 12;
 
   
   function __construct()
@@ -835,6 +836,7 @@ error_log( "POST: " . print_r( $data, true ) . "\n", 3, "/var/log/httpd/myapp.lo
 
 
 }
+
 
 
 

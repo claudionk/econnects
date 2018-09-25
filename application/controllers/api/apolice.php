@@ -38,10 +38,29 @@ class Apolice extends CI_Controller {
     $this->load->helper("api_helper");
   }
 
+  private function update( $apolice_id, $num_apolice ) {
+    $this->db->query("UPDATE apolice SET num_apolice='$num_apolice' WHERE apolice_id=$apolice_id" );
+    $result = $this->db->query("SELECT * FROM apolice WHERE apolice_id=$apolice_id" )->result_array();
+    die( json_encode( array( "status" => (bool)sizeof($result), "apolice" => $result ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+  }
+  
   public function index() {
     if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
       $GET = $_GET;
     } else {
+      if( $_SERVER["REQUEST_METHOD"] === "PUT" ) {
+        $PUT = json_decode( file_get_contents( "php://input" ), true );
+        if( !isset( $PUT["apolice_id"] ) ) {
+          die( json_encode( array( "status" => false, "message" => "Campo apolice_id é obrigatório" ) ) );
+        }
+        if( !isset( $PUT["num_apolice"] ) ) {
+          die( json_encode( array( "status" => false, "message" => "Campo num_apolice é obrigatório" ) ) );
+        }
+        $apolice_id = $PUT["apolice_id"];
+        $num_apolice = $PUT["num_apolice"];
+          
+        $this->update( $apolice_id, $num_apolice );
+      }
       die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
     }
     
@@ -124,11 +143,164 @@ class Apolice extends CI_Controller {
     } else {
       die( json_encode( array( "status" => false, "message" => "Parâmetros inválidos" ) ) );
     }
+  }
+  
+  function cancelar() {
+    if( $_SERVER["REQUEST_METHOD"] === "POST" ) {
+      $POST = json_decode( file_get_contents( "php://input" ), true );
+    } else {
+      die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
+    }
+    
+    $apolice_id = null;
+    if( isset( $POST["apolice_id"] ) ) {
+      $apolice_id = $POST["apolice_id"];
+      $params["apolice_id"] = $apolice_id;
+    } else {
+      die( json_encode( array( "status" => false, "message" => "Campo apolice_id é obrigatório" ) ) );
+    }
 
-    echo $response->getJSON();
+    
+    $vigente = false;
+    $ins_movimentacao = true;
+
+    $this->load->model("produto_parceiro_cancelamento_model", "cancelamento");
+    $this->load->model("apolice_model", "apolice");
+    $this->load->model("fatura_model", "fatura");
+    $this->load->model("apolice_equipamento_model", "apolice_equipamento");
+    $this->load->model("apolice_generico_model", "apolice_generico");
+    $this->load->model("apolice_seguro_viagem_model", "apolice_seguro_viagem");
+    $this->load->model("pedido_transacao_model", "pedido_transacao");
+    $this->load->model("pedido_model", "pedido");
+    $this->load->model("apolice_movimentacao_model", "movimentacao");
+    $this->load->model( "produto_parceiro_model", "produto_parceiro" );
+
+    $pedido = $this->db->query( "SELECT pedido_id FROM apolice WHERE apolice_id=$apolice_id" )->result_array();
+    if(!$pedido) {
+      die( json_encode( array( "status" => false, "message" => "Apólice não encontrada" ) ) );
+    }
+
+    $pedido_id = $pedido[0]["pedido_id"];
+    
+    $pedido = $this->pedido->get($pedido_id);
+
+    //pega as configurações de cancelamento do pedido
+    $produto_parceiro = $this->pedido->getPedidoProdutoParceiro($pedido_id);
+
+
+    $produto_parceiro = $produto_parceiro[0];
+    $produto_parceiro_cancelamento = $this->pedido->cancelamento->filter_by_produto_parceiro($produto_parceiro["produto_parceiro_id"])->get_all();
+    
+    $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro["produto_parceiro_id"] );
+
+
+    $produto_parceiro_cancelamento = $produto_parceiro_cancelamento[0];
+
+    $apolices = $this->apolice->getApolicePedido($pedido_id);
+
+    $apolice = $apolices[0];
+
+    $valor_estorno_total = 0;
+
+    if($vigente == FALSE){
+      //FAZ CALCULO DO VALOR COMPLETO
+
+      foreach ($apolices as $apolice) {
+
+        $valor_premio = $apolice["valor_premio_total"];
+
+        $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento["seg_antes_calculo"], $produto_parceiro_cancelamento["seg_antes_valor"], $valor_premio);
+
+        $dados_apolice = array();
+
+        $dados_apolice["data_cancelamento"] = date("Y-m-d H:i:s");
+        $dados_apolice["valor_estorno"] = $valor_estorno;
+        $valor_estorno_total += $valor_estorno;
+        
+        if( $produto ) {
+          $produto_slug = $produto["produto_slug"];
+          switch( $produto_slug ) {
+            case "seguro_viagem":
+              $this->apolice_seguro_viagem->update($apolice["apolice_seguro_viagem_id"],  $dados_apolice, TRUE);
+              break;
+            case "equipamento":
+              $this->apolice_equipamento->update($apolice["apolice_equipamento_id"],  $dados_apolice, TRUE);
+              break;
+            case "generico":
+            case "seguro_saude":
+              $this->apolice_generico->update($apolice["apolice_generico_id"],  $dados_apolice, TRUE);
+              break;
+          }
+        }
+
+
+        if($ins_movimentacao) {
+          $this->movimentacao->insMovimentacao("C", $apolice["apolice_id"]);
+        }
+
+      }
+
+
+    } else {
+      //FAZ CALCULO DO VALOR PARCIAL
+
+      $dias_restantes = app_date_get_diff_dias(date("d/m/Y"), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]), "D");
+      $dias_utilizado = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), date("d/m/Y"),  "D") + 1;
+      $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]),  "D") + 1;
+
+      $porcento_nao_utilziado = (($dias_restantes / $dias_total) * 100);
+
+
+      foreach ($apolices as $apolice) {
+
+        $valor_premio = $apolice["valor_premio_total"];
+
+        $valor_premio = (($porcento_nao_utilziado / 100) * $valor_premio);
+
+
+        $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento["seg_depois_calculo"], $produto_parceiro_cancelamento["seg_depois_valor"], $valor_premio);
+
+        $dados_apolice = array();
+
+        $dados_apolice["data_cancelamento"] = date("Y-m-d H:i:s");
+        $dados_apolice["valor_estorno"] = $valor_estorno;
+        $valor_estorno_total += $valor_estorno;
+        if( $produto ) {
+          $produto_slug = $produto["produto_slug"];
+          switch( $produto_slug ) {
+            case "seguro_viagem":
+              $this->apolice_seguro_viagem->update($apolice["apolice_seguro_viagem_id"],  $dados_apolice, TRUE);
+              break;
+            case "equipamento":
+              $this->apolice_equipamento->update($apolice["apolice_equipamento_id"],  $dados_apolice, TRUE);
+              break;
+            case "generico":
+            case "seguro_saude":
+              $this->apolice_generico->update($apolice["apolice_generico_id"],  $dados_apolice, TRUE);
+              break;
+          }
+        }
+
+        $this->movimentacao->insMovimentacao("C", $apolice["apolice_id"]);
+
+      }
+
+      
+    }
+
+
+    $this->pedido_transacao->insStatus($pedido_id, "cancelado", "PEDIDO CANCELADO COM SUCESSO");
+
+    $this->fatura->insertFaturaEstorno($pedido_id, $valor_estorno_total);
+    
+    die( json_encode( array( "status" => true, "message" => "Apólice cancelada com sucesso" ) ) );
+
   }
 
 }
+
+
+
 
 
 

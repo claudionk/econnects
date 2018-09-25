@@ -19,7 +19,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-route.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.4/angular-material.min.js"></script>
-    <script src="https://code.angularjs.org/1.5.5/i18n/angular-locale_pt-br.js"></script>    
+    <script src="https://code.angularjs.org/1.5.5/i18n/angular-locale_pt-br.js"></script>
     
     <!--<script src="<?php echo app_assets_url('template/js/libs/jquery/jquery-1.12.4.min.js', 'admin');?>"></script>-->
     <script src="<?php echo app_assets_url('template/js/libs/jquery/jquery-migrate-1.2.1.min.js', 'admin');?>"></script>
@@ -238,3 +238,4 @@
     <!-- END JAVASCRIPT -->
   </body>
 </html>
+

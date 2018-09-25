@@ -716,3 +716,4 @@ Class Cotacao_Equipamento_Model extends MY_Model
 
 
 
+

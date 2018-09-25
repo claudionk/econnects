@@ -810,15 +810,19 @@ function app_get_firt_word($string){
 function app_unformat_currency($value){
 
     $clearValue = preg_replace('/([^0-9\.,])/i', '', $value);
+  
+    $clearValue = str_replace( ".", "", $clearValue );
+    $clearValue = str_replace( ",", ".", $clearValue );
 
-    return str_replace(',', '.', str_replace('.', '', $clearValue));
+    return $clearValue;
 }
 
 function app_unformat_percent($value){
 
     $clearValue = preg_replace('/([^0-9\.,])/i', '', $value);
-
-    return str_replace(',', '.', $clearValue);
+    $clearValue = str_replace( ".", "", $clearValue );
+    $clearValue = str_replace( ",", ".", $clearValue );
+    return $clearValue;
 }
 
 function app_word_cut($string, $limit, $append =  '...'){
@@ -1513,3 +1517,4 @@ if ( ! function_exists('app_get_token'))
         return $response->api_key;
     }
 }
+
