@@ -594,7 +594,7 @@ Class Integracao_Model extends MY_Model
 
         // monta na estrutura hierarquica
         $tipoReg="";
-        $layout = $layout_m = $linhas = [];
+        $layout = $layout_m = $linhas = $lH = [];
         $qtdeAux=-1;
         foreach ($layout_all as $key => $item) {
             if($tipoReg != $item['tipo']) {
@@ -619,6 +619,13 @@ Class Integracao_Model extends MY_Model
             unset($layout[$idxF]);
         }
 
+        // Trata o header
+        $idxH = $this->search( $layout, 'H', 'tipo' );
+        if ( $idxH >= 0 ) {
+            $lH = $layout[$idxH];
+            unset($layout[$idxH]);
+        }
+
         //gera todas as linhas
         foreach ($layout as $lay) {
             if ($lay['multiplo'] == 0) {
@@ -634,6 +641,15 @@ Class Integracao_Model extends MY_Model
         // echo "<pre>";print_r($linhas);echo "</pre>";
         if (empty($linhas) || count($linhas) <= 2)
             return $arRet;
+
+        // Trata o header
+        if ( $idxH >= 0 ) {
+            $this->data_template_script['totalRegistros']++;
+            if (!empty($multiplo)) $this->data_template_script['totalItens']++;
+
+            $header = $this->getLinha($lH['dados'], $registros, $integracao_log, null);
+            $linhas = array_merge([$header], $linhas);
+        }
 
         $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
 
@@ -721,6 +737,7 @@ Class Integracao_Model extends MY_Model
             }
 
         }
+
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
         $integracao['script_sql']  = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
         $sql = $integracao['script_sql']; 
@@ -774,9 +791,13 @@ Class Integracao_Model extends MY_Model
                         if ( empty($callFuncReturn->status) ){
                             // seta para erro
                             $integracao_log_status_id = 5;
+                            // echo "<pre>";print_r($callFuncReturn);echo "</pre>";
 
                             foreach ($callFuncReturn->msg as $er) {
-                                $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, $er['id'], $er['msg'], $er['slug']);
+                                $ErroID = !empty($er['id']) ? $er['id'] : -1;
+                                $ErroMSG = !empty($er['msg']) ? $er['msg'] : $er;
+                                $ErroSLUG = !empty($er['slug']) ? $er['slug'] : "";
+                                $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, $ErroID, $ErroMSG, $ErroSLUG);
                             }
 
                         }
@@ -793,7 +814,6 @@ Class Integracao_Model extends MY_Model
                 $ultimo_id = $this->_database->insert_id();
                 $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $ultimo_id);
             }
-
 
             $num_linha++;
 
@@ -813,7 +833,6 @@ Class Integracao_Model extends MY_Model
 
         }
 
-
         $dados_log = array();
         $dados_log['processamento_fim'] = date('Y-m-d H:i:s');
         $dados_log['integracao_log_status_id'] = 4;
@@ -832,12 +851,16 @@ Class Integracao_Model extends MY_Model
         $result = "";
         $arResult = [];
         $integracao_log_status_id = 4;
+        $v = 0;
 
         foreach ($layout as $ind => $item) {
 
             // Se for obrigatório precisa validar e retornar erro para gerar log de retorno
             if ($item['obrigatorio'] == 1 && !empty($item['nome_banco']) ){
-                if ( !isset($registro[$item['nome_banco']]) || strlen(trim($registro[$item['nome_banco']])) == 0){
+                if ( !isset($registro[$item['nome_banco']]) || strlen(trim($registro[$item['nome_banco']])) == 0 
+                    || ( $item['campo_tipo']=='M' && !($registro[$item['nome_banco']] > 0) ) 
+                    // || ( $item['campo_tipo']=='D' && !($registro[$item['nome_banco']] > 0) ) 
+                ) {
                     // seta para erro
                     $integracao_log_status_id = 5;
 

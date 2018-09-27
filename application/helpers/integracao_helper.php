@@ -73,9 +73,8 @@ if ( ! function_exists('app_integracao_get_valor_total')) {
 if ( ! function_exists('app_integracao_mapfre_rf_total_registro')) {
     function app_integracao_mapfre_rf_total_registro($formato, $dados = array())
     {
-
+        $total = isset($dados['global']['totalRegistros']) ? $dados['global']['totalRegistros'] : 0;
         return str_pad($dados['global']['totalRegistros'], $formato, '0', STR_PAD_LEFT);
-
     }
 }
 
@@ -83,7 +82,7 @@ if ( ! function_exists('app_integracao_mapfre_rf_total_itens')) {
     function app_integracao_mapfre_rf_total_itens($formato, $dados = array())
     {
 
-          return str_pad($dados['global']['totalItens'], $formato, '0', STR_PAD_LEFT);
+        return str_pad(count($dados['registro'])+2, $formato, '0', STR_PAD_LEFT);
 
     }
 }
@@ -460,6 +459,14 @@ if ( ! function_exists('app_integracao_format_file_name_generali')) {
     }
 
 }
+if ( ! function_exists('app_integracao_format_file_name_generali_conciliacao')) {
+
+    function app_integracao_format_file_name_generali_conciliacao($formato, $dados = array())
+    {
+        return date('Ymd') ."_GBS.TXT";
+    }
+
+}
 if ( ! function_exists('app_integracao_sequencia_mapfre_rf')) {
 
     function app_integracao_sequencia_mapfre_rf($formato, $dados = array())
@@ -592,19 +599,55 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
                 $dados['registro']['equipamento_id'] = $enriquecido->equipamento_id;
                 $dados['registro']['equipamento_nome'] = $enriquecido->nome;
-                // $dados['registro']['equipamento_marca'] = $enriquecido->marca;
                 $dados['registro']['equipamento_marca_id'] = $enriquecido->equipamento_marca_id;
                 $dados['registro']['equipamento_categoria_id'] = $enriquecido->equipamento_categoria_id;
                 $dados['registro']['equipamento_sub_categoria_id'] = $enriquecido->equipamento_sub_categoria_id;
                 $dados['registro']['imei'] = "";
+            } else {
+                $CI =& get_instance();
+
+                // usar a pesquisa por nome
+                $CI->load->model("equipamento_model", "equipamento");
+
+                //Faz o MATCH para consulta do Equipamento
+                $indiceMax = 20;
+                $enriquecido = $CI->equipamento->match($dados['registro']['equipamento_nome']);
+
+                //se encontrou algum parecido
+                if (!empty($enriquecido)) {
+
+                    //se o indice e maior do que o minimo estipulado de 30%
+                    if($enriquecido->indice / $indiceMax > 0.3){
+                        $response->ean = $enriquecido;
+
+                        $dados['registro']['equipamento_id'] = $enriquecido->equipamento_id;
+                        $dados['registro']['equipamento_nome'] = $enriquecido->nome;
+                        $dados['registro']['equipamento_marca_id'] = $enriquecido->equipamento_marca_id;
+                        $dados['registro']['equipamento_categoria_id'] = $enriquecido->equipamento_categoria_id;
+                        $dados['registro']['imei'] = "";
+                    }
+
+                }
+
             }
         }
 
+        // echo "****************** CPF: $cpf<br>";
+        // Campos para cotação
+        $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id);
+        if (empty($camposCotacao['status'])){
+            $response->msg[] = "Campos da Cotação Error: ".$camposCotacao['response'];
+            return $response;
+        }
+
+        $camposCotacao = $camposCotacao['response'];
+
         // Validar Regras
-        $validaRegra = app_integracao_valida_regras($dados);
+        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao);
+        // echo "<pre>";print_r($validaRegra);echo "</pre>";
 
         if (!empty($validaRegra->status)) {
-            $dados['registro']['cotacao_id'] = $validaRegra->cotacao_id;
+            $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
             $emissao = app_integracao_emissao($formato, $dados);
 
             if (empty($emissao->status)) {
@@ -654,7 +697,7 @@ if ( ! function_exists('app_get_api'))
 }
 if ( ! function_exists('app_integracao_valida_regras'))
 {
-    function app_integracao_valida_regras($dados){
+    function app_integracao_valida_regras($dados, $camposCotacao){
 
         $response = (object) ['status' => false, 'msg' => '', 'errors' => []];
 
@@ -669,14 +712,6 @@ if ( ! function_exists('app_integracao_valida_regras'))
         // Emissão
         if ( in_array($dados['tipo_transacao'], ['NS','XP']) ) {
 
-            // Campos para cotação
-            $camposCotacao = app_get_api("cotacao_campos/". $dados['produto_parceiro_id']);
-            if (empty($camposCotacao['status'])){
-                $response->msg = "Campos da Cotação Error: ".$camposCotacao['response'];
-                return $response;
-            }
-
-            $camposCotacao = $camposCotacao['response'];
             $errors = $fields = [];
 
             // Valida campos obrigatórios na cotação
@@ -712,16 +747,16 @@ if ( ! function_exists('app_integracao_valida_regras'))
             $now = new DateTime(date('Y-m-d'));
 
             // VIGÊNCIA
-            if (empty($dados["data_venda_canc"])){
-                $errors[] = ['id' => 4, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser obrigatório", 'slug' => "data_venda_canc"];
+            if (empty($dados["nota_fiscal_data"])){
+                $errors[] = ['id' => 4, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser obrigatório", 'slug' => "nota_fiscal_data"];
             } else {
-                $d1 = new DateTime($dados["data_venda_canc"]);
+                $d1 = new DateTime($dados["nota_fiscal_data"]);
                 $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
 
                 // Período de Vigência: 12 meses
                 $diff = $now->diff($d1);
                 if ($diff->m >= 12 && $diff->d > 0) {
-                    $errors[] = ['id' => 5, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser inferior ou igual à 12 meses", 'slug' => "data_venda_canc"];
+                    $errors[] = ['id' => 5, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser inferior ou igual à 12 meses", 'slug' => "nota_fiscal_data"];
                 }
             }
 
@@ -730,8 +765,8 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $d1 = new DateTime($dados["data_nascimento"]);
 
                 $diff = $now->diff($d1);
-                if ($diff->y <= 18) {
-                    $errors[] = ['id' => 6, 'msg' => "A DATA DE NASCIMENTO deve ser superior à 18 anos", 'slug' => "data_nascimento"];
+                if ($diff->y < 18) {
+                    $errors[] = ['id' => 6, 'msg' => "A DATA DE NASCIMENTO deve ser igual ou superior à 18 anos", 'slug' => "data_nascimento"];
                 }
             }
 
@@ -741,8 +776,12 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $fields['produto_parceiro_plano_id'] = $dados['produto_parceiro_plano_id'];
                 $fields['endereco_logradouro'] = $dados['endereco'];
                 $fields['endereco_estado'] = $dados['endereco_uf'];
+                $fields['equipamento_nome'] = $dados['equipamento_nome'];
                 $fields['equipamento_marca_id'] = $dados['equipamento_marca_id'];
                 $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
+                $fields['ean'] = $dados['ean'];
+                $fields['cod_loja'] = $dados['cod_loja'];
+                $fields['codigo_produto_sap'] = $dados['codigo_produto_sap'];
 
                 // Cotação
                 $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields));
@@ -783,7 +822,6 @@ if ( ! function_exists('app_integracao_valida_regras'))
             // A partir do 8o dia = Pró‐rata (prêmio líquido)
 
             // Calculo do cancelamento
-
 
             $response->msg = "A DESENVOLVER CANCELAMENTO";
             return $response;

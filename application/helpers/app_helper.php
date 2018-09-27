@@ -29,7 +29,17 @@ if ( ! function_exists('mb_str_pad')) {
     function mb_str_pad( $input, $pad_length, $pad_string = ' ', $pad_type = STR_PAD_RIGHT)
     {
         $diff = strlen( $input ) - mb_strlen( $input );
-        return str_pad( $input, $pad_length + $diff, $pad_string, $pad_type );
+        $ret=$input;
+        if ($pad_length < strlen( $input )){
+            if ($pad_type) {
+                $ret = right($input, $pad_length);
+            } else {
+                $ret = left($input, $pad_length);
+            }
+        } else {
+            $ret = str_pad( $input, $pad_length + $diff, $pad_string, $pad_type );
+        }
+        return $ret;
     }
 }
 if ( ! function_exists('right')) {
