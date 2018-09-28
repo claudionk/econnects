@@ -134,7 +134,6 @@ Class Parceiro_Model extends MY_Model
     //Get dados
     public function get_form_data($just_check = false)
     {
-
         //Dados
         $data =  array(
             'nome' => $this->input->post('nome'),
@@ -175,10 +174,12 @@ Class Parceiro_Model extends MY_Model
             'api_key' => $this->input->post('api_key'),
             'api_senha' => $this->input->post('api_senha'),
 
-
-
-
         );
+
+      if( $this->input->post("parceiro_pai_id") == "" || intval( $this->input->post("parceiro_pai_id") ) == 0 ) {
+        $parceiro_id = $this->session->userdata('parceiro_id');
+        $data["parceiro_pai_id"] = $parceiro_id;
+      }
 
 
         return $data;
@@ -283,7 +284,6 @@ Class Parceiro_Model extends MY_Model
      * @param int $offset
      * @return mixed
      */
-  /*
     public function get_all($limit = 0, $offset = 0, $processa = true) {
         if($processa)
         {
@@ -293,9 +293,7 @@ Class Parceiro_Model extends MY_Model
         }
         return parent::get_all($limit, $offset);
     }
-    
-    */
-  
+      
     /**
      * Retorna todos
      * @return mixed
@@ -313,6 +311,9 @@ Class Parceiro_Model extends MY_Model
     }
 
 }
+
+
+
 
 
 

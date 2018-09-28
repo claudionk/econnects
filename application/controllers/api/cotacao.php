@@ -278,7 +278,7 @@ class Cotacao extends CI_Controller {
     $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
 
     $success = true;
-    $messagem = '';
+    $mensagem = "";
 
 
     //print_r($_POST);
@@ -394,11 +394,11 @@ class Cotacao extends CI_Controller {
         'comissao' => 0,
         'desconto_upgrade' => 0,
         'desconto_condicional_valor' => 0,
-        'valores_bruto' => 0,
-        'valores_cobertura_adicional' => 0,
-        'valores_totais_cobertura_adicional' => 0,
-        'valores_liquido' => 0,
-        'valores_liquido_total' => 0,
+        //'valores_bruto' => 0,
+        //'valores_cobertura_adicional' => 0,
+        //'valores_totais_cobertura_adicional' => 0,
+        //'valores_liquido' => 0,
+        //'valores_liquido_total' => 0,
         'mensagem' => 'TABELA DE PREÇO NÃO CONFIGURADA',
         'quantidade' => $quantidade,
       );
@@ -497,8 +497,6 @@ class Cotacao extends CI_Controller {
       }
     }
 
-    //error_log( "CALCULO_COTACAO_EQUIPAMENTO #999: " . print_r( $valores_liquido, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
-
     //Resultado
     $result  = array(
       'status' => $success,
@@ -514,8 +512,7 @@ class Cotacao extends CI_Controller {
       //'valores_liquido_total' => $valores_liquido_total,
       'premio_liquido' => (float)$valores_liquido[$plano['produto_parceiro_plano_id']],
       'premio_liquido_total' => (float)$valores_liquido_total[$plano['produto_parceiro_plano_id']],
-      'iof' => (float)$iof,
-      'mensagem' => $messagem
+      'iof' => (float)$iof
     );
 
     //Salva cotação
@@ -535,9 +532,44 @@ class Cotacao extends CI_Controller {
       $cotacao_eqp['premio_liquido_total'] = $valores_liquido_total[$plano['produto_parceiro_plano_id']];
       $cotacao_eqp['iof'] = $iof;
 
-      //error_log( "CALCULO_COTACAO_EQUIPAMENTO #2: " . print_r( $cotacao_eqp, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+      $coberturas = $this->db->query( "SELECT 
+    								   * 
+                                     FROM 
+                                       cobertura_plano cp 
+                                       INNER JOIN cobertura c ON (c.cobertura_id=cp.cobertura_id) 
+                                     WHERE 
+                                       produto_parceiro_plano_id IN 
+                                       (SELECT produto_parceiro_plano_id FROM produto_parceiro_plano WHERE produto_parceiro_id=$produto_parceiro_id and deletado=0) 
+                                       AND cobertura_tipo_id=1" )->result_array();
 
-      $this->cotacao_equipamento->update($cotacao_salva['cotacao_equipamento_id'], $cotacao_eqp, TRUE);
+
+      $pedido = $this->db->query( "SELECT * FROM pedido WHERE cotacao_id=$cotacao_id AND deletado=0" )->result_array();
+      if( $pedido && 1 == 2) {
+        die( json_encode( array( "status" => false, "message" => "Não foi possível efetuar o calculo. Motivo: já existe um pedido para essa cotação." ) ) );
+      } else {
+        $this->cotacao_equipamento->update($cotacao_salva['cotacao_equipamento_id'], $cotacao_eqp, TRUE);
+        $this->db->query( "DELETE FROM cotacao_cobertura WHERE cotacao_id=$cotacao_id" );
+        for( $i = 0; $i < sizeof( $coberturas ); $i++ ) {
+          $cobertura = $coberturas[$i];
+          $cobertura_plano_id = $cobertura["cobertura_plano_id"];
+          $importancia_segurada = floatval( $cotacao["nota_fiscal_valor"] );
+          $percentagem = 0;
+          $valor_cobertura = 0;
+          if( $cobertura["mostrar"] == "importancia_segurada" ) {
+            $percentagem = floatval($cobertura["porcentagem"]);
+            $valor_cobertura = ( $importancia_segurada * $percentagem ) / 100;
+          }elseif( $cobertura["mostrar"] == "preco" || $cobertura["mostrar"] == "descricao" ) {
+            $percentagem = 0;
+            $valor_cobertura = floatval($cobertura["preco"]);
+          }
+          $coberturas[$i]["valor_cobertura"] = $valor_cobertura;
+          
+          $this->db->query( "INSERT INTO cotacao_cobertura (cotacao_id, cobertura_plano_id, valor, criacao ) values( $cotacao_id, $cobertura_plano_id, $valor_cobertura, '" . date("Y-m-d H:i:s") . "')" );
+        }
+      }
+      $result["importancia_segurada"] = $cotacao["nota_fiscal_valor"];
+      $result["coberturas"] = $coberturas;
+      $result["mensagem"] = $mensagem;
     }
 
     return $result;
@@ -609,7 +641,6 @@ class Cotacao extends CI_Controller {
           $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
           $this->load->model('equipamento_model', 'equipamento');
           $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
-          //error_log( "PRECO_TIPO_VALOR_SEGURADO: ". print_r( $produto_parceiro_plano_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
           $valor = $this->produto_parceiro_plano_precificacao_itens
             ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
             ->filter_by_tipo_equipamento("TODOS")
@@ -620,14 +651,12 @@ class Cotacao extends CI_Controller {
           $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
           $this->load->model('equipamento_model', 'equipamento');
           $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
-          //error_log( "PRECO_POR_EQUIPAMENTO: ". print_r( $produto_parceiro_plano_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
           $valor = $this->produto_parceiro_plano_precificacao_itens
             ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
             ->filter_by_faixa( $valor_nota )
             ->filter_by_tipo_equipamento("CATEGORIA")
             ->filter_by_equipamento($equipamento_categora_id)
             ->get_all();
-
 
           $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
 
@@ -773,7 +802,7 @@ class Cotacao extends CI_Controller {
 
 
     $success = true;
-    $messagem = '';
+    $mensagem = "";
 
 
     //print_r($_POST);
@@ -998,7 +1027,7 @@ class Cotacao extends CI_Controller {
       'valores_totais_cobertura_adicional' => $valores_cobertura_adicional_total,
       'valores_liquido' => $valores_liquido,
       'valores_liquido_total' => $valores_liquido_total,
-      'mensagem' => $messagem,
+      'mensagem' => $mensagem,
       'quantidade' => $quantidade,
     );
 
@@ -1406,6 +1435,9 @@ class Cotacao extends CI_Controller {
   }
 
 }
+
+
+
 
 
 

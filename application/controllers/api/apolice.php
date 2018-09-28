@@ -162,6 +162,8 @@ class Apolice extends CI_Controller {
 
     
     $vigente = false;
+    
+    
     $ins_movimentacao = true;
 
     $this->load->model("produto_parceiro_cancelamento_model", "cancelamento");
@@ -183,6 +185,11 @@ class Apolice extends CI_Controller {
     $pedido_id = $pedido[0]["pedido_id"];
     
     $pedido = $this->pedido->get($pedido_id);
+    
+    $ja_tem_pedido_cancelado = sizeof( $this->db->query( "SELECT * FROM fatura WHERE pedido_id=$pedido_id AND tipo='ESTORNO' AND deletado=0" )->result_array() ) > 0;
+    if( $ja_tem_pedido_cancelado ) {
+      die( json_encode( array( "status" => false, "message" => "Não é possível cancelar essa apólice. Motivo: a apólice já está cancelada." ) ) );
+    }
 
     //pega as configurações de cancelamento do pedido
     $produto_parceiro = $this->pedido->getPedidoProdutoParceiro($pedido_id);
@@ -193,6 +200,21 @@ class Apolice extends CI_Controller {
     
     $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro["produto_parceiro_id"] );
 
+    if( $produto ) {
+      $produto_slug = $produto["produto_slug"];
+      switch( $produto_slug ) {
+        case "seguro_viagem":
+          $vigente = sizeof( $this->db->query( "SELECT * FROM apolice_seguro_viagem WHERE apolice_id=$apolice_id AND STR_TO_DATE('" . date( "Y-m-d" ). "','%Y-%m-%d') BETWEEN data_ini_vigencia AND data_fim_vigencia" )->result_array() ) > 0;
+          break;
+        case "equipamento":
+          $vigente = sizeof( $this->db->query( "SELECT * FROM apolice_equipamento WHERE apolice_id=$apolice_id AND STR_TO_DATE('" . date( "Y-m-d" ). "','%Y-%m-%d') BETWEEN data_ini_vigencia AND data_fim_vigencia" )->result_array() ) > 0;
+          break;
+        case "generico":
+        case "seguro_saude":
+          $vigente = sizeof( $this->db->query( "SELECT * FROM apolice_generico WHERE apolice_id=$apolice_id AND STR_TO_DATE('" . date( "Y-m-d" ). "','%Y-%m-%d') BETWEEN data_ini_vigencia AND data_fim_vigencia" )->result_array() ) > 0;
+          break;
+      }
+    }
 
     $produto_parceiro_cancelamento = $produto_parceiro_cancelamento[0];
 
@@ -244,21 +266,34 @@ class Apolice extends CI_Controller {
     } else {
       //FAZ CALCULO DO VALOR PARCIAL
 
-      $dias_restantes = app_date_get_diff_dias(date("d/m/Y"), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]), "D");
-      $dias_utilizado = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), date("d/m/Y"),  "D") + 1;
-      $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]),  "D") + 1;
+      $dias_restantes = app_date_get_diff_dias(date("d/m/Y"), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]), "D") + 1 ;
+      $dias_utilizados = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), date("d/m/Y"),  "D") + 1;
+      $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]),  "D");
 
-      $porcento_nao_utilziado = (($dias_restantes / $dias_total) * 100);
+      $porcento_nao_utilizado = ((($dias_restantes) / $dias_total) * 100);
+      
+      $ret = array();
+      $ret["dias_restantes"] = $dias_restantes;
+      $ret["dias_utilizados"] = $dias_utilizados;
+      $ret["dias_total"] = $dias_total;
+      $ret["soma_restantes_utilizados"] = $dias_restantes + $dias_utilizados;
+      $ret["porcento_nao_utilizado"] = $porcento_nao_utilizado;
 
 
       foreach ($apolices as $apolice) {
 
         $valor_premio = $apolice["valor_premio_total"];
+        
+        $ret["valor_premio"] = $valor_premio;
 
-        $valor_premio = (($porcento_nao_utilziado / 100) * $valor_premio);
+        $valor_premio = $valor_premio / $dias_total * $dias_restantes; // (($porcento_nao_utilizado / 100) * $valor_premio);
+        
+        $ret["valor_premio_restante"] = $valor_premio;
 
 
         $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento["seg_depois_calculo"], $produto_parceiro_cancelamento["seg_depois_valor"], $valor_premio);
+        
+        $ret["valor_estorno"] = $valor_estorno;
 
         $dados_apolice = array();
 
@@ -293,11 +328,12 @@ class Apolice extends CI_Controller {
 
     $this->fatura->insertFaturaEstorno($pedido_id, $valor_estorno_total);
     
-    die( json_encode( array( "status" => true, "message" => "Apólice cancelada com sucesso" ) ) );
+    die( json_encode( array( "status" => true, "message" => "Apólice cancelada com sucesso", "ret" => $ret ) ) );
 
   }
 
 }
+
 
 
 

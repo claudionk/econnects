@@ -136,7 +136,9 @@ if($_POST)
                                         <?php $field_name = 'seg_antes_valor';?>
                                         <div class="form-group antes_habilitado">
                                           <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Valor</label>
-                                          <div class="col-md-2"><input class="form-control inputmask-moeda" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
+                                          <div class="col-md-2">
+                                            <input ng-model="seg_antes_valor" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/>
+                                          </div>
                                         </div>
                                         <hr>
                                         <?php $field_name = 'seg_depois_hab';
@@ -163,7 +165,7 @@ if($_POST)
                                             <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Quantidade máxima de dias</label>
                                             <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
                                           </div>
-                                          
+
                                           <?php $field_name = 'calculo_tipo';?>
                                           <div class="form-group">
                                             <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Forma de Cálculo *</label>
@@ -203,7 +205,9 @@ if($_POST)
                                             <?php $field_name = 'seg_depois_valor';?>
                                             <div class="form-group">
                                               <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Valor</label>
-                                              <div class="col-md-2"><input class="form-control inputmask-moeda" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
+                                              <div class="col-md-2">
+                                                <input ng-model="seg_depois_valor" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/>
+                                              </div>
                                             </div>
                                           </fieldset>
                                         </fieldset>
@@ -227,64 +231,66 @@ if($_POST)
                                           </label>
                                         </div>
                                         <fieldset ng-show="inad_hab=='1'">
-                                        <?php $field_name = 'inad_max_dias';?>
-                                        <div class="form-group inadimplencia_habilitado">
-                                          <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Quantidade máxima de dias em aberto</label>
-                                          <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
-                                        </div>
-                                        <?php $field_name = 'inad_max_parcela';?>
-                                        <div class="form-group inadimplencia_habilitado">
-                                          <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Quantidade máxima de parcelas em aberto</label>
-                                          <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
-                                        </div>
+                                          <?php $field_name = 'inad_max_dias';?>
+                                          <div class="form-group inadimplencia_habilitado">
+                                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Quantidade máxima de dias em aberto</label>
+                                            <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
+                                          </div>
+                                          <?php $field_name = 'inad_max_parcela';?>
+                                          <div class="form-group inadimplencia_habilitado">
+                                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Quantidade máxima de parcelas em aberto</label>
+                                            <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
+                                          </div>
 
-                                        <?php $field_name = 'inad_reativacao_hab';?>
-                                        <div class="form-group">
-                                          <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Permite reativar *</label>
-                                          <label class="radio-inline radio-styled radio-primary">
-                                            <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                                   value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
-                                            Sim
-                                          </label>
-                                          <label class="radio-inline radio-styled radio-primary">
-                                            <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                                   value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
-                                            Não
-                                          </label>
-                                        </div>
-                                        <?php $field_name = 'inad_reativacao_max_dias';?>
-                                        <div class="form-group inadimplencia_reativacao">
-                                          <label class="col-md-2 control-label" for="<?php echo $field_name;?>">No máximo quantos dias depois de cancelado</label>
-                                          <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
-                                        </div>
+                                          <?php $field_name = 'inad_reativacao_hab';?>
+                                          <div class="form-group">
+                                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Permite reativar *</label>
+                                            <label class="radio-inline radio-styled radio-primary">
+                                              <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                     value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
+                                              Sim
+                                            </label>
+                                            <label class="radio-inline radio-styled radio-primary">
+                                              <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                     value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
+                                              Não
+                                            </label>
+                                          </div>
+                                          <?php $field_name = 'inad_reativacao_max_dias';?>
+                                          <div class="form-group inadimplencia_reativacao">
+                                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">No máximo quantos dias depois de cancelado</label>
+                                            <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
+                                          </div>
 
-                                        <?php $field_name = 'inad_reativacao_max_parcela';?>
-                                        <div class="form-group inadimplencia_reativacao">
-                                          <label class="col-md-2 control-label" for="<?php echo $field_name;?>">No máximo quantas parcelas depois de cancelado</label>
-                                          <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
-                                        </div>
+                                          <?php $field_name = 'inad_reativacao_max_parcela';?>
+                                          <div class="form-group inadimplencia_reativacao">
+                                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">No máximo quantas parcelas depois de cancelado</label>
+                                            <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
+                                          </div>
 
 
 
-                                        <?php $field_name = 'inad_reativacao_calculo';?>
-                                        <div class="form-group inadimplencia_reativacao">
-                                          <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Forma de cálculo da Penalidade *</label>
-                                          <label class="radio-inline radio-styled radio-primary">
-                                            <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                                   value="PORCENTAGEM" <?php if (isset($row[$field_name]) && $row[$field_name] == 'PORCENTAGEM') echo 'checked="checked"'; ?> />
-                                            Porcentagem (%)
-                                          </label>
-                                          <label class="radio-inline radio-styled radio-primary">
-                                            <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                                   value="MONETARIO" <?php if (isset($row[$field_name]) && $row[$field_name] == 'MONETARIO') echo 'checked="checked"'; ?> />
-                                            Monetário (R$)
-                                          </label>
-                                        </div>
-                                        <?php $field_name = 'inad_reativacao_valor';?>
-                                        <div class="form-group inadimplencia_reativacao">
-                                          <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Valor</label>
-                                          <div class="col-md-2"><input class="form-control inputmask-moeda" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
-                                        </div>
+                                          <?php $field_name = 'inad_reativacao_calculo';?>
+                                          <div class="form-group inadimplencia_reativacao">
+                                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Forma de cálculo da Penalidade *</label>
+                                            <label class="radio-inline radio-styled radio-primary">
+                                              <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                     value="PORCENTAGEM" <?php if (isset($row[$field_name]) && $row[$field_name] == 'PORCENTAGEM') echo 'checked="checked"'; ?> />
+                                              Porcentagem (%)
+                                            </label>
+                                            <label class="radio-inline radio-styled radio-primary">
+                                              <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                     value="MONETARIO" <?php if (isset($row[$field_name]) && $row[$field_name] == 'MONETARIO') echo 'checked="checked"'; ?> />
+                                              Monetário (R$)
+                                            </label>
+                                          </div>
+                                          <?php $field_name = 'inad_reativacao_valor';?>
+                                          <div class="form-group inadimplencia_reativacao">
+                                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Valor</label>
+                                            <div class="col-md-2">
+                                              <input ng-model="inad_reativacao_valor" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/>
+                                            </div>
+                                          </div>
                                         </fieldset>
                                       </div>
                                       <!-- End Tab content -->
@@ -343,6 +349,11 @@ if($_POST)
   AppController.controller("AppController", ['$scope', '$http', '$filter', '$mdDialog', function ( $scope, $http, $filter, $mdDialog ) {
     $scope.seg_depois_hab = "<?php echo $seg_depois_hab; ?>";
     $scope.inad_hab = "<?php echo $inad_hab; ?>";
+    
+    $scope.seg_antes_valor = parseFloat( "<?php echo isset($row['seg_antes_valor']) ? $row['seg_antes_valor'] : '0'; ?>" );
+    $scope.seg_depois_valor = parseFloat( "<?php echo isset($row['seg_depois_valor']) ? $row['seg_depois_valor'] : '0'; ?>" );
+    $scope.inad_reativacao_valor = parseFloat( "<?php echo isset($row['inad_reativacao_valor']) ? $row['inad_reativacao_valor'] : '0'; ?>" );
   }]);
 </script>
+
 

@@ -401,7 +401,6 @@ function populaSelectCategoria(id){
         type: "GET",
         dataType: "json",
         success: function(data){
-            console.log('retornou', data.items);
 
             $(".js-categorias-ajax").select2("trigger", "select", {
                 data: data.items
@@ -418,7 +417,6 @@ function populaSelectMarca(id){
         type: "GET",
         dataType: "json",
         success: function(data){
-            console.log('retornou', data.items);
 
             $(".js-equipamento_marca_id-ajax").select2("trigger", "select", {
                 data: data.items
@@ -435,7 +433,6 @@ function populaSelectModelo(id){
         type: "GET",
         dataType: "json",
         success: function(data){
-            console.log('retornou', data.items);
 
             $(".js-equipamento_id-ajax").select2("trigger", "select", {
                 data: data.items
@@ -499,3 +496,4 @@ function formatRepoEquipamento (repo) {
 
     return markup;
 }
+

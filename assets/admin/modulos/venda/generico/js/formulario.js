@@ -49,7 +49,6 @@ $(document).ready(function(){
             type: "GET",
             dataType: "json",
             success: function(data){
-                console.log('retornou', data.items);
 
                 $(".js-equipamento_id-ajax").select2("trigger", "select", {
                     data: data.items
@@ -97,4 +96,5 @@ function formatRepoEquipamento (repo) {
 function formatRepoSelectionEquipamento (repo) {
     return repo.nome || repo.ean;
 }
+
 

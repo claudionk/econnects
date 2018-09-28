@@ -85,6 +85,7 @@ class Parceiros extends Admin_Controller
         $data = array();
         $data['primary_key'] = $this->current_model->primary_key();
         $data['new_record'] = '0';
+        $data['parceiro_pai_id'] = (isset($parceiro_pai_id) ? $parceiro_pai_id : "");
         $data['form_action'] =  base_url("$this->controller_uri/add");
 
         //Configurações ckeditor
@@ -124,10 +125,14 @@ class Parceiros extends Admin_Controller
             {
                 //Insere form
                 $insert_id = $this->current_model->insert_form();
+              error_log( print_r( $this->session->userdata("parceiros_permitidos"), true ), 3, "/var/log/httpd/myapp.log" );
                 if($insert_id)
                 {
+                  	$parceiros_permitidos = $this->session->userdata("parceiros_permitidos");
+                  	array_push( $parceiros_permitidos, $insert_id );
+                    $this->session->set_userdata( "parceiros_permitidos", $parceiros_permitidos );
                     //Caso inserido com sucesso
-                    $this->session->set_flashdata('succ_msg', 'Os dados foram salvos corretamente.'); //Mensagem de sucesso
+                    $this->session->set_flashdata( "succ_msg", "Os dados foram salvos corretamente."); //Mensagem de sucesso
                 }
                 else
                 {
@@ -316,3 +321,4 @@ class Parceiros extends Admin_Controller
     }
 
 }
+
