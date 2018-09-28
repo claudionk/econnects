@@ -1381,17 +1381,45 @@ class Venda_Generico extends Admin_Controller
         //Salva cotação
 
         if($cotacao_id) {
-            $cotacao_salva = $this->cotacao->with_cotacao_generico()
-                ->filterByID($cotacao_id)
-                ->get_all();
+          $cotacao_salva = $this->cotacao->with_cotacao_generico()
+            ->filterByID($cotacao_id)
+            ->get_all();
 
-                $cotacao_salva = $cotacao_salva[0];
-                $data_cotacao = array();
-                $data_cotacao['repasse_comissao'] = $repasse_comissao;
-                $data_cotacao['comissao_corretor'] = $comissao_corretor;
-                $data_cotacao['desconto_condicional'] = $desconto_condicional;
-                $data_cotacao['desconto_condicional_valor'] = $desconto_condicional_valor;
-                $this->cotacao_generico->update($cotacao_salva['cotacao_generico_id'], $data_cotacao, TRUE);
+          $cotacao_salva = $cotacao_salva[0];
+          $data_cotacao = array();
+          $data_cotacao['repasse_comissao'] = $repasse_comissao;
+          $data_cotacao['comissao_corretor'] = $comissao_corretor;
+          $data_cotacao['desconto_condicional'] = $desconto_condicional;
+          $data_cotacao['desconto_condicional_valor'] = $desconto_condicional_valor;
+          $this->cotacao_generico->update($cotacao_salva['cotacao_generico_id'], $data_cotacao, TRUE);
+          
+          $coberturas = $this->db->query( "SELECT 
+    								   * 
+                                     FROM 
+                                       cobertura_plano cp 
+                                       INNER JOIN cobertura c ON (c.cobertura_id=cp.cobertura_id) 
+                                     WHERE 
+                                       produto_parceiro_plano_id IN 
+                                       (SELECT produto_parceiro_plano_id FROM produto_parceiro_plano WHERE produto_parceiro_id=$produto_parceiro_id and deletado=0) 
+                                       AND cobertura_tipo_id=1" )->result_array();
+
+
+
+          $this->cotacao_equipamento->update($cotacao_salva['cotacao_equipamento_id'], $cotacao_eqp, TRUE);
+          $this->db->query( "DELETE FROM cotacao_cobertura WHERE cotacao_id=$cotacao_id" );
+          for( $i = 0; $i < sizeof( $coberturas ); $i++ ) {
+            $cobertura = $coberturas[$i];
+            $cobertura_plano_id = $cobertura["cobertura_plano_id"];
+            $importancia_segurada = floatval( $cotacao["nota_fiscal_valor"] );
+            $percentagem = 0;
+            $valor_cobertura = 0;
+            if( $cobertura["mostrar"] == "preco" || $cobertura["mostrar"] == "descricao" ) {
+              $percentagem = 0;
+              $valor_cobertura = floatval($cobertura["preco"]);
+            }
+            $this->db->query( "INSERT INTO cotacao_cobertura (cotacao_id, cobertura_plano_id, valor, criacao ) values( $cotacao_id, $cobertura_plano_id, $valor_cobertura, '" . date("Y-m-d H:i:s") . "')" );
+          }
+          
         }
 
         //Seta sessão
@@ -2062,3 +2090,4 @@ class Venda_Generico extends Admin_Controller
     }
 
 }
+

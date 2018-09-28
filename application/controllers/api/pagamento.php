@@ -2,7 +2,7 @@
 if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 /**
- * Class Apolice
+ * Class Pagamento
  */
 class Pagamento extends CI_Controller {
   public $api_key;
@@ -844,6 +844,7 @@ class Pagamento extends CI_Controller {
         $status = $this->pedido->mudaStatus( $pedido_id, "pagamento_confirmado" );
         $this->load->model('apolice_model', 'apolice');
         $this->apolice->insertApolice( $pedido_id );
+        
         $apolice = $this->apolice->get_by( "pedido_id", $pedido_id );
         if( $apolice ) {
           $result  = array(
@@ -861,6 +862,17 @@ class Pagamento extends CI_Controller {
             "erros" => "Não foi possível criar a apólice"
           );
         }
+        
+        $this->db->query( "DELETE FROM cotacao_cobertura WHERE cotacao_id=$cotacao_id" );
+        $coberturas = $this->db->query( "SELECT * FROM cotacao_cobertura WHERE cotacao_id=$cotacao_id" );
+        foreach( $coberturas as $cobertura ) {
+          $apolice_id = $apolice["apolice_id"];
+          $cobertura_plano_id = $cobertura["cobertura_plano_id"];
+          $valor_cobertura = $cobertura["valor"];
+          $this->db->query( "INSERT INTO apolice_cobertura (cotacao_id, pedido_id, apolice_id, cobertura_plano_id, valor, criacao ) values( $cotacao_id, $pedido_id, $apolice_id, $cobertura_plano_id, $valor_cobertura, '" . date("Y-m-d H:i:s") . "')" );
+        }
+
+        
         die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
       }
       
@@ -986,6 +998,8 @@ class Pagamento extends CI_Controller {
   }
   
 }
+
+
 
 
 

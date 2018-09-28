@@ -3,8 +3,7 @@
 /**
  * @property mixed template
  */
-class Login extends Admin_Controller
-{
+class Login extends Admin_Controller {
     protected $noLogin = true;
 
     function __construct()
@@ -15,8 +14,8 @@ class Login extends Admin_Controller
         $this->load->model('parceiro_model', 'parceiro');
     }
 
-    public function index($parceiro = null)
-    {
+    public function index($parceiro = null) {
+        
         $redirect = urlencode($this->input->get('redirect'));
 
         if($parceiro)
@@ -83,14 +82,14 @@ class Login extends Admin_Controller
                 $usuario = $this->usuario->get($usuario_id);
                 $colaborador = $this->colaborador->get($usuario['colaborador_id']);
 
-                if($parceiro_id)
-                {
+                if($parceiro_id) {
                     $this->input->cookie('login_parceiro_id', $parceiro_id);
 
 
                     $parceiro = $this->parceiro->get($parceiro_id);
 
-                    $this->session->set_userdata("parceiro_termo", $parceiro['termo_aceite_usuario']);
+                    $this->session->set_userdata("parceiro_termo", $parceiro["termo_aceite_usuario"]);
+                    $this->session->set_userdata("parceiro_pai_id", $parceiro["parceiro_pai_id"]);
 
                     //Busca relacionamento
                     $parceiro_relacionamento = $this->parceiro_relacionamento
@@ -99,7 +98,8 @@ class Login extends Admin_Controller
                         ->get_many_by(
                         array("produto_parceiro.parceiro_id" => $parceiro_id)
                     );
-
+                  
+                  $parceiro_relacionamento = $this->db->query( "SELECT * FROM parceiro WHERE parceiro_pai_id=$parceiro_id AND deletado=0" )->result_array();
 
                     $parceiros_permitidos[] = $parceiro_id;
 
@@ -230,3 +230,7 @@ class Login extends Admin_Controller
     }
 
 }
+
+
+
+

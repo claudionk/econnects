@@ -1393,7 +1393,37 @@ class Venda_Equipamento extends Admin_Controller {
       $cotacao_eqp['premio_liquido'] = $valores_liquido[$plano['produto_parceiro_plano_id']];
       $cotacao_eqp['premio_liquido_total'] = $valores_liquido_total[$plano['produto_parceiro_plano_id']];
 
+      $coberturas = $this->db->query( "SELECT 
+    								   * 
+                                     FROM 
+                                       cobertura_plano cp 
+                                       INNER JOIN cobertura c ON (c.cobertura_id=cp.cobertura_id) 
+                                     WHERE 
+                                       produto_parceiro_plano_id IN 
+                                       (SELECT produto_parceiro_plano_id FROM produto_parceiro_plano WHERE produto_parceiro_id=$produto_parceiro_id and deletado=0) 
+                                       AND cobertura_tipo_id=1" )->result_array();
+
       $this->cotacao_equipamento->update($cotacao_salva['cotacao_equipamento_id'], $cotacao_eqp, TRUE);
+      $this->db->query( "DELETE FROM cotacao_cobertura WHERE cotacao_id=$cotacao_id" );
+      for( $i = 0; $i < sizeof( $coberturas ); $i++ ) {
+        $cobertura = $coberturas[$i];
+        $cobertura_plano_id = $cobertura["cobertura_plano_id"];
+        $importancia_segurada = floatval( $cotacao["nota_fiscal_valor"] );
+        $percentagem = 0;
+        $valor_cobertura = 0;
+        if( $cobertura["mostrar"] == "importancia_segurada" ) {
+          $percentagem = floatval($cobertura["porcentagem"]);
+          $valor_cobertura = ( $importancia_segurada * $percentagem ) / 100;
+        }elseif( $cobertura["mostrar"] == "preco" || $cobertura["mostrar"] == "descricao" ) {
+          $percentagem = 0;
+          $valor_cobertura = floatval($cobertura["preco"]);
+        }
+        $this->db->query( "INSERT INTO cotacao_cobertura (cotacao_id, cobertura_plano_id, valor, criacao ) values( $cotacao_id, $cobertura_plano_id, $valor_cobertura, '" . date("Y-m-d H:i:s") . "')" );
+      }
+      $result["importancia_segurada"] = $cotacao["nota_fiscal_valor"];
+      $result["coberturas"] = $coberturas;
+      //$result["mensagem"] = $mensagem;
+
 
       error_log( "Cotação: " . print_r( $cotacao_salva, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
     }
@@ -1401,6 +1431,7 @@ class Venda_Equipamento extends Admin_Controller {
     //Seta sessão
     // $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $cotacao);
 
+    ob_clean();
     //Output
     $this->output
       ->set_content_type('application/json')
@@ -1414,7 +1445,7 @@ class Venda_Equipamento extends Admin_Controller {
      * @param int $num_passageiro
      * @return array
      */
-  private function getValoresPlano($produto_parceiro_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1){
+  private function getValoresPlano( $produto_parceiro_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1 ){
 
     $this->load->model('produto_parceiro_plano_model', 'plano');
     $this->load->model('moeda_model', 'moeda');
@@ -1440,6 +1471,7 @@ class Venda_Equipamento extends Admin_Controller {
 
     $valores = array();
     foreach ($arrPlanos as $plano){
+      $valor_cobertura_plano = 0;
       switch ((int)$plano['precificacao_tipo_id']) {
         case self::PRECO_TIPO_TABELA:
 
@@ -1453,16 +1485,25 @@ class Venda_Equipamento extends Admin_Controller {
           if($moeda_padrao['moeda_id'] != $plano['moeda_id']){
             $valores[$plano['produto_parceiro_plano_id']] = $this->moeda_cambio->getValor($plano['moeda_id'], $valores[$plano['produto_parceiro_plano_id']]);
           }
+          
           break;
         case self::PRECO_TIPO_COBERTURA:
-          $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
-          $this->load->model('produto_parceiro_plano_precificacao_model', 'produto_parceiro_plano_precificacao');
-          $this->load->model('equipamento_model', 'equipamento');
+          
+          $this->load->model("produto_parceiro_plano_precificacao_itens_model", "produto_parceiro_plano_precificacao_itens");
+          $this->load->model("produto_parceiro_plano_precificacao_model", "produto_parceiro_plano_precificacao");
+          $this->load->model("equipamento_model", "equipamento");
+          $this->load->model("cobertura_plano_model", "plano_cobertura");
           $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
-          $valor = $this->produto_parceiro_plano_precificacao
-            ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-            ->get_all();
-          $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
+          $arrCoberturas = $this->plano_cobertura->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)->get_all();
+          foreach ($arrCoberturas as $idx => $cob) {
+            if( $arrCoberturas[$idx]["mostrar"] == "importancia_segurada" ) {
+              $valor_cobertura_plano = $valor_cobertura_plano + floatval( $valor_nota ) * ( floatval( $arrCoberturas[$idx]["porcentagem"] ) / 100 );
+            }
+            if( $arrCoberturas[$idx]["mostrar"] == "preco" ) {
+              $valor_cobertura_plano = $valor_cobertura_plano + floatval( $arrCoberturas[$idx]["preco"] );
+            }
+          }
+          $valores[$produto_parceiro_plano_id] = $valor_cobertura_plano;
           break;
         case self::PRECO_TIPO_VALOR_SEGURADO:
           $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
@@ -1473,13 +1514,11 @@ class Venda_Equipamento extends Admin_Controller {
             ->filter_by_tipo_equipamento("TODOS")
             ->get_all();
           $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
-          error_log( "PRECO_TIPO_VALOR_SEGURADO: ". print_r( $valores, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
           break;
         case self::PRECO_POR_EQUIPAMENTO;
           $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
           $this->load->model('equipamento_model', 'equipamento');
           $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
-          error_log( "PRECO_POR_EQUIPAMENTO: ". print_r( $produto_parceiro_plano_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
           $valor = $this->produto_parceiro_plano_precificacao_itens
             ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
             ->filter_by_faixa( $valor_nota )
@@ -1487,11 +1526,8 @@ class Venda_Equipamento extends Admin_Controller {
             ->filter_by_equipamento($equipamento_categora_id)
             ->get_all();
 
-
           $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
 
-          error_log( "PRECO_POR_EQUIPAMENTO (VALOR): ". print_r( $valor, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
-          error_log( "PRECO_POR_EQUIPAMENTO: $valor_nota\n", 3, "/var/log/httpd/myapp.log" );
           break;
         default:
           break;
@@ -1993,6 +2029,7 @@ class Venda_Equipamento extends Admin_Controller {
   }
 
 }
+
 
 
 

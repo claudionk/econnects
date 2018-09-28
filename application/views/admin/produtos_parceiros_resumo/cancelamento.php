@@ -17,7 +17,7 @@
         <?php $field_name = 'seg_antes_valor';?>
         <div class="form-group antes_habilitado">
             <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Valor</label>
-            <div class="col-md-2"><input readonly class="form-control inputmask-moeda" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row['cancelamento'][$field_name]) ? $row['cancelamento'][$field_name] : ''; ?>" /></div>
+            <div class="col-md-2"><input ng-disabled ng-model="seg_antes_valor" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/></div>
         </div>
         <?php else : ?>
 
@@ -55,7 +55,9 @@
             <?php $field_name = 'seg_depois_valor';?>
             <div class="form-group">
                 <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Valor</label>
-                <div class="col-md-2"><input readonly class="form-control inputmask-moeda" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row['cancelamento'][$field_name]) ? $row['cancelamento'][$field_name] : '0'; ?>" /></div>
+                <div class="col-md-2">
+                  <input ng-model="seg_depois_valor" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/>
+              </div>
             </div>
         </div>
         <?php else : ?>
@@ -113,7 +115,7 @@
         <?php $field_name = 'inad_reativacao_valor';?>
         <div class="form-group inadimplencia_reativacao">
             <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Valor</label>
-            <div class="col-md-2"><input readonly class="form-control inputmask-moeda" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row['cancelamento'][$field_name]) ? $row['cancelamento'][$field_name] : '0'; ?>" /></div>
+            <div class="col-md-2"><input ng-model="inad_reativacao_valor" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/></div>
         </div>
         <?php else : ?>
 
