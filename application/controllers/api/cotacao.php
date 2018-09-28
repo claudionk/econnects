@@ -372,8 +372,8 @@ class Cotacao extends CI_Controller {
 
     $valores_cobertura_adicional_total = array();
     $valores_cobertura_adicional = array();
+    
     if($coberturas_adicionais){
-
       foreach ($coberturas_adicionais as $coberturas_adicional) {
         $cobertura = explode(';', $coberturas_adicional);
         $vigencia = $this->plano->getInicioFimVigencia($cobertura[0], $cotacao['nota_fiscal_data']);
@@ -381,9 +381,7 @@ class Cotacao extends CI_Controller {
         $valor = $this->getValorCoberturaAdicional($cobertura[0], $cobertura[1], $vigencia['dias']);
         $valores_cobertura_adicional_total[$cobertura[0]] = (isset($valores_cobertura_adicional_total[$cobertura[0]])) ? ($valores_cobertura_adicional_total[$cobertura[0]] + $valor) : $valor;
         $valores_cobertura_adicional[$cobertura[0]][] = $valor;
-
       }
-
     }
 
     if(!$valores_bruto) {
@@ -544,7 +542,7 @@ class Cotacao extends CI_Controller {
 
 
       $pedido = $this->db->query( "SELECT * FROM pedido WHERE cotacao_id=$cotacao_id AND deletado=0" )->result_array();
-      if( $pedido && 1 == 2) {
+      if( $pedido ) {
         die( json_encode( array( "status" => false, "message" => "Não foi possível efetuar o calculo. Motivo: já existe um pedido para essa cotação." ) ) );
       } else {
         $this->cotacao_equipamento->update($cotacao_salva['cotacao_equipamento_id'], $cotacao_eqp, TRUE);
@@ -1266,6 +1264,10 @@ class Cotacao extends CI_Controller {
     $desconto_condicional = 0;
     if( isset( $POST["desconto_condicional"] ) )
       $desconto_condicional = $POST["desconto_condicional"];
+
+    $data_inicio_vigencia = "";
+    if( isset( $POST["data_inicio_vigencia"] ) )
+      $data_inicio_vigencia = $POST["data_inicio_vigencia"];
     
     $result = array();
 
@@ -1277,6 +1279,7 @@ class Cotacao extends CI_Controller {
     $params["coberturas"] = $coberturas;
     $params["repasse_comissao"] = $repasse_comissao;
     $params["desconto_condicional"] = $desconto_condicional;
+    $params["data_inicio_vigencia"] = $data_inicio_vigencia;
 
     if( $produto["produto_slug"] == "equipamento" ) {
       unset( $params["coberturas"] );
@@ -1415,6 +1418,7 @@ class Cotacao extends CI_Controller {
       $dados_cotacao["step"] = 4;
       $this->campo->setDadosCampos( $produto_parceiro_id, "equipamento", "dados_segurado", $produto_parceiro_plano_id,  $dados_cotacao );
       $dados_cotacao["produto_parceiro_plano_id"] = $produto_parceiro_plano_id;
+      
       $this->cotacao_equipamento->update( $cotacao_salva["cotacao_equipamento_id"], $dados_cotacao, true );
       //$this->cliente->atualizar( $cotacao_salva["cliente_id"], $dados_cotacao );
 
@@ -1435,6 +1439,7 @@ class Cotacao extends CI_Controller {
   }
 
 }
+
 
 
 

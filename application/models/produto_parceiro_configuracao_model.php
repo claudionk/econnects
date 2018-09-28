@@ -149,6 +149,7 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
                 'venda_multiplo_cartao' => $this->input->post('venda_multiplo_cartao'),
                 'calculo_tipo_id' => $this->input->post('calculo_tipo_id'),
                 'apolice_sequencia' => $this->input->post('apolice_sequencia'),
+              	'apolice_vigencia' => $this->input->post('apolice_vigencia'),
                 'salvar_cotacao_formulario' => $this->input->post('salvar_cotacao_formulario'),
                 'quantidade_cobertura' => $this->input->post('quantidade_cobertura'),
                 'quantidade_cobertura_front' => $this->input->post('quantidade_cobertura_front'),
@@ -194,6 +195,7 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
                 'padrao_repasse_comissao' => $this->input->post('padrao_repasse_comissao'),
                 'padrao_repasse_maximo' => app_unformat_currency($this->input->post('padrao_repasse_maximo')),
                 'apolice_sequencia' => $this->input->post('apolice_sequencia'),
+              	'apolice_vigencia' => $this->input->post('apolice_vigencia'),
                 'salvar_cotacao_formulario' => $this->input->post('salvar_cotacao_formulario'),
                 'pagamento_tipo' => $this->input->post('pagamento_tipo'),
                 'pagamento_periodicidade_unidade' => $this->input->post('pagamento_periodicidade_unidade'),
@@ -238,3 +240,4 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
 
 
 }
+
