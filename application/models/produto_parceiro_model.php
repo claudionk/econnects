@@ -98,7 +98,7 @@ Class Produto_Parceiro_Model extends MY_Model
     $this->_database->select($this->_table.'.produto_parceiro_id');
     $this->_database->select($this->_table.'.parceiro_id');
     $this->_database->select($this->_table.'.produto_id');
-    $this->_database->select($this->_table.'.nome');
+    $this->_database->select($this->_table.'.nome as nome_prod_parc');
     $this->_database->select('produto.slug, produto.nome');
     $this->_database->select('parceiro.nome as parceiro_nome');
     $this->_database->select('parceiro.nome_fantasia as parceiro_nome_fantasia');

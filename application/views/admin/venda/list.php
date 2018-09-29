@@ -15,7 +15,10 @@
         <div class="col-md-4">
             <div class="card card-type-pricing">
                 <div class="card-body card-produto text-center style-gray">
-                    <h2 class="text-light"><?php echo $row['nome'];?></h2>
+                    <div class="prod-description">
+                        <h2 class="text-light"><?php echo $row['nome'];?></h2>
+                        <label><?php echo $row['nome_prod_parc'];?></label>
+                    </div>
                     <div class="price">
                         <img src="<?php echo app_assets_url('core/images/ico/ico_' . $row['slug']. '.png' , 'admin'); ?>">
                     </div>

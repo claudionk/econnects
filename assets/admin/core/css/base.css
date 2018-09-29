@@ -78,7 +78,7 @@ table.dataTable thead .sorting_asc:after, table.dataTable thead .sorting_desc:af
     display: none;
 }
 
-.card-produto h2.text-light{
+.card-produto .prod-description{
     min-height: 80px;
     height: auto;
 }
