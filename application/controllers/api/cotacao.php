@@ -332,7 +332,6 @@ class Cotacao extends CI_Controller {
       $configuracao = array();
     }
 
-
     $markup = 0;
     if($row['parceiro_id'] != $parceiro_id){
 

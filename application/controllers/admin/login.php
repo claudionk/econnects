@@ -35,8 +35,7 @@ class Login extends Admin_Controller {
         $this->template->load('admin/layouts/login', 'admin/login/form', $data);
     }
 
-    public function proccess($parceiro = null)
-    {
+    public function proccess($parceiro = null) {
         //Carrega models necessários
         $this->load->model('colaborador_model', 'colaboradores');
         $redirect = urldecode($this->input->get('redirect'));
@@ -230,6 +229,7 @@ class Login extends Admin_Controller {
     }
 
 }
+
 
 
 

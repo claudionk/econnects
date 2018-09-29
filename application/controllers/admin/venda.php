@@ -157,7 +157,10 @@ class Venda extends Admin_Controller {
       $relacionamento = $this->current_model->get_produtos_venda_admin_parceiros($parceiro_id);
       $data["rows"] = array_merge( $produtos, $relacionamento );
     }
-
+    //echo "<pre>";
+    //print_r( $data["rows"] );
+    //echo "</pre>";
+    //die();
     //busca pedidos para o carrinho
     $data["carrinho"] = $this->pedido->getPedidoCarrinho($this->session->userdata('usuario_id'));
 
@@ -2889,6 +2892,7 @@ Array
   }
 
 }
+
 
 
 

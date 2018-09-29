@@ -159,8 +159,9 @@ Class Produto_Parceiro_Model extends MY_Model
                                     pp.produto_parceiro_id,
                                     pp.parceiro_id,
                                     pp.produto_id,
-                                    pp.nome,
+                                    pp.nome as nome_prod_parc,
                                     pr.slug,
+                                    pr.nome,
                                     p.nome as parceiro_nome,
                                     p.nome_fantasia as parceiro_nome_fantasia,
                                     ppc.venda_carrinho_compras, 
@@ -210,6 +211,7 @@ Class Produto_Parceiro_Model extends MY_Model
   }
 
 }
+
 
 
 

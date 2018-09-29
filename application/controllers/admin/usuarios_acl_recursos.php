@@ -48,8 +48,7 @@ class Usuarios_Acl_Recursos extends Admin_Controller {
     }
 
 
-	public function index()
-	{
+	public function index() {
 
 
         $pai_id = (int)$this->input->post('pai_id');
@@ -76,10 +75,9 @@ class Usuarios_Acl_Recursos extends Admin_Controller {
         $data['list_pai'] =  $arrSelectPai;
         $data['pai_id'] =  $pai_id;
 
-/*
-        $arrSelectPai = array();
-        $this->current_model->getRecursosUsuario(0, 0, $arrSelectPai);
-        print_r($arrSelectPai);exit; */
+        //$arrSelectPai = array();
+        //$this->current_model->getRecursosUsuario(0, 0, $arrSelectPai);
+        //die( print_r($arrSelectPai) );
 
         $arrMenu = array();
         $user = $this->session->all_userdata();
@@ -89,8 +87,7 @@ class Usuarios_Acl_Recursos extends Admin_Controller {
         $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data );
 	}
 
-    public function add()
-    {
+    public function add() {
 
         $this->load->library('form_validation');
 
@@ -131,8 +128,7 @@ class Usuarios_Acl_Recursos extends Admin_Controller {
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
 
-    public function edit($id)
-    {
+    public function edit($id) {
         $this->load->library('form_validation');
 
         $this->template->set('page_title_info', '');
@@ -176,6 +172,7 @@ class Usuarios_Acl_Recursos extends Admin_Controller {
 
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
+  
     public  function delete($id){
 
         $this->current_model->delete($id);
@@ -185,3 +182,4 @@ class Usuarios_Acl_Recursos extends Admin_Controller {
 
 
 }
+
