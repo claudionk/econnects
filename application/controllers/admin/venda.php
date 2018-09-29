@@ -153,7 +153,7 @@ class Venda extends Admin_Controller {
 
     $produtos = $this->current_model->get_produtos_venda_admin($parceiro_id);
     $data["rows"] = $produtos;
-    if( $this->session->userdata("parceiro_pai_id") != $this->session->userdata("parceiro_pai_id") ) {
+    if( $this->session->userdata("parceiro_id") != $this->session->userdata("parceiro_pai_id") ) {
       $relacionamento = $this->current_model->get_produtos_venda_admin_parceiros($parceiro_id);
       $data["rows"] = array_merge( $produtos, $relacionamento );
     }
@@ -2889,6 +2889,7 @@ Array
   }
 
 }
+
 
 
 

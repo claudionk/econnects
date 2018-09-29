@@ -129,7 +129,7 @@ Class Produto_Parceiro_Model extends MY_Model
     return array();
   }
 
-  function get_produtos_venda_admin_parceiros($parceiro_id){
+  function get_produtos_venda_admin_parceiros($parceiro_id) {
 
 
         $this->_database->select($this->_table.'.produto_parceiro_id');
@@ -154,10 +154,26 @@ Class Produto_Parceiro_Model extends MY_Model
         $this->_database->order_by('produto.nome', 'ASC');
 
     $query = $this->_database->get();
-
-
-    //exit($this->_database->last_query());
-
+    
+    $query = $this->db->query( "SELECT
+                                    pp.produto_parceiro_id,
+                                    pp.parceiro_id,
+                                    pp.produto_id,
+                                    pp.nome,
+                                    pr.slug,
+                                    p.nome as parceiro_nome,
+                                    p.nome_fantasia as parceiro_nome_fantasia,
+                                    ppc.venda_carrinho_compras, 
+                                    ppc.venda_multiplo_cartao
+                                FROM 
+                                    parceiro p
+                                    INNER JOIN produto_parceiro pp ON (pp.parceiro_id=p.parceiro_id AND pp.deletado=0)
+                                    INNER JOIN parceiro_relacionamento_produto prp ON (prp.produto_parceiro_id=pp.produto_parceiro_id AND prp.deletado=0)
+                                    INNER JOIN produto pr ON (pr.produto_id=pp.produto_id AND pr.deletado=0)
+                                    INNER JOIN produto_parceiro_configuracao ppc ON (ppc.produto_parceiro_id=pp.produto_parceiro_id AND ppc.venda_habilitada_admin=1 AND ppc.deletado=0)
+                                WHERE
+                                    prp.parceiro_id=$parceiro_id 
+                                    AND prp.deletado=0" );
 
 
     if($query->num_rows() > 0)
@@ -194,6 +210,7 @@ Class Produto_Parceiro_Model extends MY_Model
   }
 
 }
+
 
 
 

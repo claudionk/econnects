@@ -178,11 +178,21 @@ Class Produto_Parceiro_Plano_Model extends MY_Model
      */
 
   public function getInicioFimVigencia($produto_parceiro_plano_id, $data_base){
+    
+    $config = $this->db->query( "SELECT ppc.* FROM produto_parceiro_plano ppp INNER JOIN produto_parceiro pp ON (pp.produto_parceiro_id=ppp.produto_parceiro_id) INNER JOIN produto_parceiro_configuracao ppc ON (ppc.produto_parceiro_id=pp.produto_parceiro_id) WHERE ppp.produto_parceiro_plano_id=$produto_parceiro_plano_id" )->result_array();
+    if( $config ) {
+      $config = $config[0];
+      if( $config["apolice_vigencia"] != "C" ) {
+        if( $config["apolice_vigencia"] == "S" ) {
+          $data_base = date("Y-m-d");
+        }
+      }
+    }
 
     $produto_parceiro_plano = $this->get($produto_parceiro_plano_id);
 
     $data_base = explode('-', $data_base);
-
+    
     if(($produto_parceiro_plano['unidade_tempo'] == 'MES')) {
       $date_inicio = date('Y-m-d', mktime(0,0,0, $data_base[1] + $produto_parceiro_plano['inicio_vigencia'], $data_base[2], $data_base[0]));
       $data_base2 = explode('-', $date_inicio);
@@ -207,5 +217,6 @@ Class Produto_Parceiro_Plano_Model extends MY_Model
 
   }
 }
+
 
 

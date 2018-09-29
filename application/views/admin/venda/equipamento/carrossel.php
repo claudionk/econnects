@@ -143,14 +143,26 @@
                                                                                         //$plano["cobertura"][$key]["mostrar"];
                                                                                         if( $plano["precificacao_tipo_id"] == 2 ) {
                                                                                           if( $plano["cobertura"][$key]["mostrar"] == "preco" ) {
-                                                                                            echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                            if( isset( $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']] ) ) {
+                                                                                              echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                            } else {
+                                                                                              echo "<font color=\"red\">Configuração Inválida</font>";
+                                                                                            }
                                                                                           } elseif( $plano["cobertura"][$key]["mostrar"] == "importancia_segurada" ) {
                                                                                             echo "Até R$" . number_format( $cotacao_salva["nota_fiscal_valor"], 2, ",", "." );
                                                                                           } else {
-                                                                                            echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                            if( isset( $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']] ) ) {
+                                                                                              echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                            } else {
+                                                                                              echo "<font color=\"red\">Configuração Inválida</font>";
+                                                                                            }
                                                                                           }
                                                                                         } else {
-                                                                                          echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                          if( isset( $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']] ) ) {
+                                                                                            echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                          } else {
+                                                                                            echo "<font color=\"red\">Configuração Inválida</font>";
+                                                                                          }
                                                                                         }
                                                                                       }
                                                                                     ?>
@@ -163,7 +175,7 @@
                                                                                             <label>
                                                                                                 <?php $coberturas_selecionadas = (isset($carrinho_hidden['cobertura_adicional'])) ? explode(';', $carrinho_hidden['cobertura_adicional']) : array(); ?>
                                                                                                 <input class="ck-cobertura-adicional" name="ck_cobertura_adicional[]" type="checkbox" value="<?php echo "{$plano['produto_parceiro_plano_id']};{$plano['cobertura'][$key]['cobertura_plano_id']}"; ?>" <?php if(isset($carrinho_hidden['plano']) && $carrinho_hidden['plano'] == $plano['produto_parceiro_plano_id'] && isset($carrinho_hidden['cobertura_adicional']) && in_array($plano['cobertura'][$key]['cobertura_plano_id'], $coberturas_selecionadas)) {echo ' checked'; } ?>>
-                                                                                                <span class="sp-cobertura-adicional_<?php echo "{$plano['produto_parceiro_plano_id']}_{$plano['cobertura'][$key]['cobertura_plano_id']}"; ?>" ><?php echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']]; ?></span>
+                                                                                                <span class="sp-cobertura-adicional_<?php echo "{$plano['produto_parceiro_plano_id']}_{$plano['cobertura'][$key]['cobertura_plano_id']}"; ?>" ><?php if( isset($plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']]) ) { echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']]; } else { echo "<font color=\"red\">Configuração Inválida</font>"; }?></span>
                                                                                             </label>
                                                                                         </div>
                                                                                     <?php endif;?>
@@ -205,14 +217,27 @@
                                                                                         //$plano["cobertura"][$key]["mostrar"];
                                                                                         if( $plano["precificacao_tipo_id"] == 2 ) {
                                                                                           if( $plano["cobertura"][$key]["mostrar"] == "preco" ) {
-                                                                                            echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                            if( isset( $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']] ) ) {
+                                                                                              echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                            } else {
+                                                                                              echo "<font color=\"red\">Configuração Inválida</font>";
+                                                                                            }
+                                                                                            
                                                                                           } elseif( $plano["cobertura"][$key]["mostrar"] == "importancia_segurada" ) {
                                                                                             echo "Até R$" . number_format( $cotacao_salva["nota_fiscal_valor"], 2, ",", "." );
                                                                                           } else {
-                                                                                            echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                            if( isset( $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']] ) ) {
+                                                                                              echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                            } else {
+                                                                                              echo "<font color=\"red\">Configuração Inválida</font>";
+                                                                                            }
                                                                                           }
                                                                                         } else {
-                                                                                          echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                          if( isset( $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']] ) ) {
+                                                                                            echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']];
+                                                                                          } else {
+                                                                                            echo "<font color=\"red\">Configuração Inválida</font>";
+                                                                                          }
                                                                                         }
                                                                                       }
                                                                                     ?>
@@ -225,7 +250,7 @@
                                                                                             <label>
                                                                                                 <?php $coberturas_selecionadas = (isset($carrinho_hidden['cobertura_adicional'])) ? explode(';', $carrinho_hidden['cobertura_adicional']) : array(); ?>
                                                                                                 <input class="ck-cobertura-adicional" name="ck_cobertura_adicional[]" type="checkbox" value="<?php echo "{$plano['produto_parceiro_plano_id']};{$plano['cobertura'][$key]['cobertura_plano_id']}"; ?>" <?php if(isset($carrinho_hidden['plano']) && $carrinho_hidden['plano'] == $plano['produto_parceiro_plano_id'] && isset($carrinho_hidden['cobertura_adicional']) && in_array($plano['cobertura'][$key]['cobertura_plano_id'], $coberturas_selecionadas)) {echo ' checked'; } ?>>
-                                                                                                <span class="sp-cobertura-adicional_<?php echo "{$plano['produto_parceiro_plano_id']}_{$plano['cobertura'][$key]['cobertura_plano_id']}"; ?>" ><?php echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']]; ?></span>
+                                                                                                <span class="sp-cobertura-adicional_<?php echo "{$plano['produto_parceiro_plano_id']}_{$plano['cobertura'][$key]['cobertura_plano_id']}"; ?>" ><?php if( isset($plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']]) ) { echo $plano['cobertura'][$key][$plano['cobertura'][$key]['mostrar']]; } else { echo "<font color=\"red\">Configuração Inválida</font>"; }?></span>
                                                                                             </label>
                                                                                         </div>
                                                                                     <?php endif;?>
@@ -763,6 +788,7 @@
     
   }]);
 </script>
+
 
 
 

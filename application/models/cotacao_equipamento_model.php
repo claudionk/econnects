@@ -286,6 +286,12 @@ Class Cotacao_Equipamento_Model extends MY_Model
       'rules' => '',
       'groups' => 'default'
     ),
+    array(
+      'field' => 'data_inicio_vigencia',
+      'label' => 'data_inicio_vigencia',
+      'rules' => '',
+      'groups' => 'default'
+    ),
   );
 
   public function __construct(){
@@ -318,8 +324,6 @@ Class Cotacao_Equipamento_Model extends MY_Model
     $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
 
     $carrossel = $this->session->userdata("carrossel_{$produto_parceiro_id}");
-
-    //error_log( "Carrosel: " . print_r( $carrossel, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
 
 
     if($cotacao_id) {
@@ -363,6 +367,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
     }
 
 
+    
     //faz o Insert ou UPdate do Cliente
 
     $cliente = $this->cliente->cotacao_insert_update($cotacao);
@@ -375,6 +380,9 @@ Class Cotacao_Equipamento_Model extends MY_Model
       $dt_cotacao['usuario_venda_id'] = 0;
       $dt_cotacao['cotacao_status_id'] = 1;
       $dt_cotacao['alteracao_usuario_id'] = 1;
+      if( isset( $cotacao["data_inicio_vigencia"] ) ) {
+        $dt_cotacao["data_inicio_vigencia"] = $cotacao["data_inicio_vigencia"];
+      }
 
       $this->cotacao->update($cotacao_id,  $dt_cotacao, TRUE);
     }
@@ -382,7 +390,6 @@ Class Cotacao_Equipamento_Model extends MY_Model
     $data_cotacao = array();
     $data_cotacao['step'] = $step;
     $data_cotacao['produto_parceiro_id'] = $produto_parceiro_id;
-
 
 
     if(isset($carrossel['plano'])) {
@@ -601,7 +608,6 @@ Class Cotacao_Equipamento_Model extends MY_Model
       $data_cotacao['premio_liquido_total'] = app_unformat_currency($cotacao['premio_liquido_total']);
     }
 
-
     if($cotacao_salva) {
       $cotacao_id = $cotacao_salva['cotacao_id'];
       $this->update($cotacao_salva['cotacao_equipamento_id'], $data_cotacao, TRUE);
@@ -622,10 +628,16 @@ Class Cotacao_Equipamento_Model extends MY_Model
         $dt_cotacao["usuario_cotacao_id"] = $cotacao["usuario_cotacao_id"];
       }
 
+      if( isset( $cotacao["data_inicio_vigencia"] ) ) {
+        $data_cotacao["data_inicio_vigencia"] = $cotacao["data_inicio_vigencia"];
+        $dt_cotacao["data_inicio_vigencia"] = $cotacao["data_inicio_vigencia"];
+      }
+
 
       $cotacao_id = $this->cotacao->insert($dt_cotacao, TRUE);
       $data_cotacao['cotacao_id'] = $cotacao_id;
       $cotacao_equipamento_id = $this->insert($data_cotacao, TRUE);
+      
 
     }
 
@@ -710,6 +722,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
   }
 
 }
+
 
 
 

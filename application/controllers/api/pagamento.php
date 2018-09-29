@@ -818,7 +818,7 @@ class Pagamento extends CI_Controller {
         $pedido_data["bandeira"] = $produto_parceiro_pagamento_id;
       }
       
-      if($pedido_id == 0 || $pedido_id == "" ) {
+      if( ( $pedido_id == 0 || $pedido_id == "" ) ) {
         $result = $this->db->query( "SELECT * FROM pedido WHERE cotacao_id=$cotacao_id" )->result_array();
         if( sizeof( $result ) > 0 ) {
           die( 
@@ -863,13 +863,14 @@ class Pagamento extends CI_Controller {
           );
         }
         
-        $this->db->query( "DELETE FROM cotacao_cobertura WHERE cotacao_id=$cotacao_id" );
-        $coberturas = $this->db->query( "SELECT * FROM cotacao_cobertura WHERE cotacao_id=$cotacao_id" );
+        $this->db->query( "DELETE FROM apolice_cobertura WHERE cotacao_id=$cotacao_id" );
+        $coberturas = $this->db->query( "SELECT * FROM cotacao_cobertura WHERE cotacao_id=$cotacao_id" )->result_array();
+        //die( print_r( $coberturas, true ) );
         foreach( $coberturas as $cobertura ) {
           $apolice_id = $apolice["apolice_id"];
           $cobertura_plano_id = $cobertura["cobertura_plano_id"];
           $valor_cobertura = $cobertura["valor"];
-          $this->db->query( "INSERT INTO apolice_cobertura (cotacao_id, pedido_id, apolice_id, cobertura_plano_id, valor, criacao ) values( $cotacao_id, $pedido_id, $apolice_id, $cobertura_plano_id, $valor_cobertura, '" . date("Y-m-d H:i:s") . "')" );
+          $this->db->query( "INSERT INTO apolice_cobertura(cotacao_id, pedido_id, apolice_id, cobertura_plano_id, valor, criacao ) values( $cotacao_id, $pedido_id, $apolice_id, $cobertura_plano_id, $valor_cobertura, '" . date("Y-m-d H:i:s") . "')" );
         }
 
         
@@ -998,6 +999,8 @@ class Pagamento extends CI_Controller {
   }
   
 }
+
+
 
 
 
