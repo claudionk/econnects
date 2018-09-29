@@ -895,22 +895,15 @@ Class Pedido_Model extends MY_Model
 
     $pedido = $this->get($pedido_id);
 
-
-
-
     //pega as configurações de cancelamento do pedido
     $produto_parceiro = $this->getPedidoProdutoParceiro($pedido_id);
 
 
     $produto_parceiro = $produto_parceiro[0];
     $produto_parceiro_cancelamento = $this->cancelamento->filter_by_produto_parceiro($produto_parceiro['produto_parceiro_id'])->get_all();
-
     $produto_parceiro_cancelamento = $produto_parceiro_cancelamento[0];
 
-
-
     $apolices = $this->apolice->getApolicePedido($pedido_id);
-
     $apolice = $apolices[0];
 
     $valor_estorno_total = 0;
@@ -937,23 +930,26 @@ Class Pedido_Model extends MY_Model
 
       }
 
-
     }else{
-      //FAZ CALCULO DO VALOR PARCIAL
 
+      //FAZ CALCULO DO VALOR PARCIAL
       $dias_restantes = app_date_get_diff_dias(date('d/m/Y'), app_dateonly_mysql_to_mask($apolice['data_fim_vigencia']), 'D');
       $dias_utilizado = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), date('d/m/Y'),  'D') + 1;
       $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), app_dateonly_mysql_to_mask($apolice['data_fim_vigencia']),  'D') + 1;
 
-      $porcento_nao_utilziado = (($dias_restantes / $dias_total) * 100);
+      $porcento_nao_utilziado = 0;
+      if ( !empty($produto_parceiro_cancelamento['seg_depois_dias']) && !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_utilizado <= $produto_parceiro_cancelamento['seg_depois_dias_carencia']) {
+          $porcento_nao_utilziado = 100;
+      }
 
+      if ($porcento_nao_utilziado == 0) {
+        $porcento_nao_utilziado = (($dias_restantes / $dias_total) * 100);
+      }
 
       foreach ($apolices as $apolice) {
 
         $valor_premio = $apolice['valor_premio_total'];
-
         $valor_premio = (($porcento_nao_utilziado / 100) * $valor_premio);
-
 
         $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento['seg_depois_calculo'], $produto_parceiro_cancelamento['seg_depois_valor'], $valor_premio);
 

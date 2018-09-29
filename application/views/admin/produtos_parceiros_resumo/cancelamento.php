@@ -47,6 +47,11 @@
                 <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Quantidade máxima de dias</label>
                 <div class="col-md-2"><input readonly class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row['cancelamento'][$field_name]) ? $row['cancelamento'][$field_name] : '0'; ?>" /></div>
             </div>
+            <?php $field_name = 'seg_depois_dias_carencia';?>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Carência de dias p/ utilização do cálculo</label>
+                <div class="col-md-2"><input readonly class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row['cancelamento'][$field_name]) ? $row['cancelamento'][$field_name] : '0'; ?>" /></div>
+            </div>
             <?php $field_name = 'seg_depois_calculo';?>
             <div class="form-group">
                 <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Forma de cálculo da Penalidade *</label>

@@ -166,6 +166,12 @@ if($_POST)
                                             <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
                                           </div>
 
+                                          <?php $field_name = 'seg_depois_dias_carencia';?>
+                                          <div class="form-group">
+                                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Carência de dias p/ utilização do cálculo</label>
+                                            <div class="col-md-2"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
+                                          </div>
+
                                           <?php $field_name = 'calculo_tipo';?>
                                           <div class="form-group">
                                             <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Forma de Cálculo *</label>

@@ -22,13 +22,7 @@ class Produtos_Parceiros_Cancelamento extends Admin_Controller
         //Carrega modelos
         $this->load->model('produto_parceiro_cancelamento_model', 'current_model');
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
-
-
-
-
     }
-
-
 
     public function edit($produto_parceiro_id) //Função que edita registro
     {
@@ -79,6 +73,7 @@ class Produtos_Parceiros_Cancelamento extends Admin_Controller
             $data['row']['seg_antes_valor'] = '000,000';
             $data['row']['seg_depois_hab'] = 0;
             $data['row']['seg_depois_dias'] = 0;
+            $data['row']['seg_depois_dias_carencia'] = 0;
             $data['row']['seg_depois_valor'] = '000,000';
             $data['row']['inad_hab'] = 0;
             $data['row']['inad_max_dias'] = 0;

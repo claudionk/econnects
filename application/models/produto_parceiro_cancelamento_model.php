@@ -63,6 +63,12 @@ Class Produto_Parceiro_Cancelamento_Model extends MY_Model
             'groups' => 'default'
         ),
         array(
+            'field' => 'seg_depois_dias_carencia',
+            'label' => 'Carência de dias p/ utilização do cálculo',
+            'rules' => 'required',
+            'groups' => 'default'
+        ),
+        array(
             'field' => 'seg_depois_calculo',
             'label' => 'Modulo de cálculo para multa de cancelamento depois do cancelamento',
             'rules' => 'required',
@@ -143,6 +149,7 @@ Class Produto_Parceiro_Cancelamento_Model extends MY_Model
             'seg_antes_valor' => app_unformat_currency($this->input->post('seg_antes_valor')),
             'seg_depois_hab' => $this->input->post('seg_depois_hab'),
             'seg_depois_dias' => $this->input->post('seg_depois_dias'),
+            'seg_depois_dias_carencia' => $this->input->post('seg_depois_dias_carencia'),
             'seg_depois_calculo' => $this->input->post('seg_depois_calculo'),
             'seg_depois_valor' => app_unformat_currency($this->input->post('seg_depois_valor')),
             'inad_hab' => $this->input->post('inad_hab'),
