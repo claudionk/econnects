@@ -845,6 +845,7 @@ if ( ! function_exists('app_integracao_emissao'))
         $cotacao_id = $dados["cotacao_id"];
         $certificado = $dados["certificado"];
         $fields = $dados["fields"];
+        $fields['cotacao_id'] = $cotacao_id;
         // echo "<pre>";print_r($fields);echo "</pre>";
 
         // Emissão
@@ -853,7 +854,7 @@ if ( ! function_exists('app_integracao_emissao'))
             // Cotação Contratar
             $cotacao = app_get_api("cotacao_contratar", "POST", json_encode($fields));
             if (empty($cotacao['status'])) {
-                $response->msg = "Cotacao Contratar Error: ($cotacao_id) ". $cotacao['response'];
+                $response->msg = "Cotacao Contratar Error ". $cotacao['response'];
                 return $response;
             }
 
