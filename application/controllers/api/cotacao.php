@@ -314,6 +314,7 @@ class Cotacao extends CI_Controller {
     $cotacao = $this->cotacao->with_cotacao_equipamento()->filterByID($cotacao_id)->get_all(0,0,false);
     $cotacao = $cotacao[0];
 
+    $produto_parceiro_plano_id = $cotacao["produto_parceiro_plano_id"];
 
     $row =  $this->current_model->get_by_id($produto_parceiro_id);
 
@@ -444,37 +445,32 @@ class Cotacao extends CI_Controller {
     //verifica o limite da vigencia dos planos
     $fail_msg = '';
 
-    /**
-         * FAZ O CÁLCULO DO PLANO
-         */
     $desconto_condicional_valor = 0;
     foreach ($arrPlanos as $plano){
       //precificacao_tipo_id
 
-      switch ((int)$configuracao['calculo_tipo_id'])
-      {
-        case self::TIPO_CALCULO_NET:
-          $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
-          $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
-          $valor = ($valor/(1-(($markup + $comissao_corretor)/100)));
-          $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
-          $valor -= $desconto_condicional_valor;
-          $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
-          break;
-        case self::TIPO_CALCULO_BRUTO:
-          $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
-          $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
-          $valor = ($valor) - (($valor) * (($markup + $comissao_corretor)/100));
-          $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
-          $valor -= $desconto_condicional_valor;
-          $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
-          break;
-        default:
-          break;
-
-
+      if( $plano['produto_parceiro_plano_id'] == $produto_parceiro_plano_id ) {
+        switch ((int)$configuracao['calculo_tipo_id']) {
+          case self::TIPO_CALCULO_NET:
+            $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
+            $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
+            $valor = ($valor/(1-(($markup + $comissao_corretor)/100)));
+            $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
+            $valor -= $desconto_condicional_valor;
+            $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
+            break;
+          case self::TIPO_CALCULO_BRUTO:
+            $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
+            $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
+            $valor = ($valor) - (($valor) * (($markup + $comissao_corretor)/100));
+            $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
+            $valor -= $desconto_condicional_valor;
+            $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
+            break;
+          default:
+            break;
+        }
       }
-
     }
 
 
@@ -508,11 +504,11 @@ class Cotacao extends CI_Controller {
       //'valores_totais_cobertura_adicional' => $valores_cobertura_adicional_total,
       //'valores_liquido' => $valores_liquido,
       //'valores_liquido_total' => $valores_liquido_total,
-      'premio_liquido' => (float)$valores_liquido[$plano['produto_parceiro_plano_id']],
-      'premio_liquido_total' => (float)$valores_liquido_total[$plano['produto_parceiro_plano_id']],
+      'premio_liquido' => (float)$valores_liquido[$produto_parceiro_plano_id],
+      'premio_liquido_total' => (float)$valores_liquido_total[$produto_parceiro_plano_id],
       'iof' => (float)$iof
     );
-
+    
     //Salva cotação
 
     if($cotacao_id) {
@@ -526,8 +522,8 @@ class Cotacao extends CI_Controller {
       $cotacao_eqp['comissao_corretor'] = $comissao_corretor;
       $cotacao_eqp['desconto_condicional'] = $desconto_condicional;
       $cotacao_eqp['desconto_condicional_valor'] = $desconto_condicional_valor;
-      $cotacao_eqp['premio_liquido'] = $valores_liquido[$plano['produto_parceiro_plano_id']];
-      $cotacao_eqp['premio_liquido_total'] = $valores_liquido_total[$plano['produto_parceiro_plano_id']];
+      $cotacao_eqp['premio_liquido'] = $valores_liquido[$produto_parceiro_plano_id];
+      $cotacao_eqp['premio_liquido_total'] = $valores_liquido_total[$produto_parceiro_plano_id];
       $cotacao_eqp['iof'] = $iof;
 
       $coberturas = $this->db->query( "SELECT 
