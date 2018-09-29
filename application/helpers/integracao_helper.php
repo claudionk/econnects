@@ -493,11 +493,10 @@ if ( ! function_exists('app_integracao_generali_dados')) {
     function app_integracao_generali_dados()
     {
         $dados = (object)[
-            "email" => "generali@econnects.com.br",
-            "parceiro_id" => 32,
+            "email" => "lasa@econnects.com.br",
+            "parceiro_id" => 30,
             "produto_parceiro_id" => 57,
             "produto_parceiro_plano_id" => 49,
-            // "cobertura_plano_id" => 281,
         ];
 
          if ( empty(app_get_userdata("email")) ) {
