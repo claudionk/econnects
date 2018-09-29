@@ -646,6 +646,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
         if (!empty($validaRegra->status)) {
             $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
+            $dados['registro']['fields'] = $validaRegra->fields;
             $emissao = app_integracao_emissao($formato, $dados);
 
             if (empty($emissao->status)) {
@@ -696,7 +697,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
 {
     function app_integracao_valida_regras($dados, $camposCotacao){
 
-        $response = (object) ['status' => false, 'msg' => '', 'errors' => []];
+        $response = (object) ['status' => false, 'msg' => '', 'errors' => [], 'fields' => []];
 
         if (empty($dados['registro'])){
             $response->msg = 'Nenhum dado recebido para validação';
@@ -710,6 +711,33 @@ if ( ! function_exists('app_integracao_valida_regras'))
         if ( in_array($dados['tipo_transacao'], ['NS']) ) {
 
             $errors = $fields = [];
+
+            $now = new DateTime(date('Y-m-d'));
+
+            // VIGÊNCIA
+            if (empty($dados["nota_fiscal_data"])){
+                $errors[] = ['id' => 4, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser obrigatório", 'slug' => "nota_fiscal_data"];
+            } else {
+                $d1 = new DateTime($dados["nota_fiscal_data"]);
+                $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
+                $dados["data_inicio_vigencia"] = $d1->format('Y-m-d');
+
+                // Período de Vigência: 12 meses
+                $diff = $now->diff($d1);
+                if ($diff->m >= 12 && $diff->d > 0) {
+                    $errors[] = ['id' => 5, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser inferior ou igual à 12 meses", 'slug' => "nota_fiscal_data"];
+                }
+            }
+
+            // IDADE - Pessoa física maior de 18 anos
+            if (!empty($dados["data_nascimento"])){
+                $d1 = new DateTime($dados["data_nascimento"]);
+
+                $diff = $now->diff($d1);
+                if ($diff->y < 18) {
+                    $errors[] = ['id' => 6, 'msg' => "A DATA DE NASCIMENTO deve ser igual ou superior à 18 anos", 'slug' => "data_nascimento"];
+                }
+            }
 
             // Valida campos obrigatórios na cotação
             foreach ($camposCotacao as $TipoCampos) {
@@ -740,34 +768,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
 
                 }
             }
-
-            $now = new DateTime(date('Y-m-d'));
-
-            // VIGÊNCIA
-            if (empty($dados["nota_fiscal_data"])){
-                $errors[] = ['id' => 4, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser obrigatório", 'slug' => "nota_fiscal_data"];
-            } else {
-                $d1 = new DateTime($dados["nota_fiscal_data"]);
-                $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
-                $dados["data_inicio_vigencia"] = $d1->format('Y-m-d');
-
-                // Período de Vigência: 12 meses
-                $diff = $now->diff($d1);
-                if ($diff->m >= 12 && $diff->d > 0) {
-                    $errors[] = ['id' => 5, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser inferior ou igual à 12 meses", 'slug' => "nota_fiscal_data"];
-                }
-            }
-
-            // IDADE - Pessoa física maior de 18 anos
-            if (!empty($dados["data_nascimento"])){
-                $d1 = new DateTime($dados["data_nascimento"]);
-
-                $diff = $now->diff($d1);
-                if ($diff->y < 18) {
-                    $errors[] = ['id' => 6, 'msg' => "A DATA DE NASCIMENTO deve ser igual ou superior à 18 anos", 'slug' => "data_nascimento"];
-                }
-            }
-
+            
             if (empty($errors)) {
 
                 $fields['produto_parceiro_id'] = $dados['produto_parceiro_id'];
@@ -802,10 +803,11 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $calcPremio = $calcPremio['response'];
                 $valor_premio = $calcPremio->premio_liquido;
 
-                if ($valor_premio != $dados["premio_liquido"]) {
-                    // $errors[] = ['id' => 6, 'msg' => "Campo PREMIO DE SEGUROS TOTAL difere do valor calculado [". $valor_premio ." x ". $dados["premio_liquido"] ."]", 'slug' => "data_nascimento"];
-                }
+                // if ($valor_premio != $dados["premio_liquido"]) {
+                //     $errors[] = ['id' => 6, 'msg' => "Campo PREMIO DE SEGUROS TOTAL difere do valor calculado [". $valor_premio ." x ". $dados["premio_liquido"] ."]", 'slug' => "data_nascimento"];
+                // }
 
+                $response->fields = $fields;
             }
 
             if (!empty($errors)) {
@@ -842,13 +844,14 @@ if ( ! function_exists('app_integracao_emissao'))
         $dados = $dados['registro'];
         $cotacao_id = $dados["cotacao_id"];
         $certificado = $dados["certificado"];
-        // echo "<pre>";print_r($dados);echo "</pre>";
+        $fields = $dados["fields"];
+        // echo "<pre>";print_r($fields);echo "</pre>";
 
         // Emissão
         if ( in_array($dados['tipo_transacao'], ['NS']) ) {
 
             // Cotação Contratar
-            $cotacao = app_get_api("cotacao_contratar", "POST", json_encode($dados));
+            $cotacao = app_get_api("cotacao_contratar", "POST", json_encode($fields));
             if (empty($cotacao['status'])) {
                 $response->msg = "Cotacao Contratar Error: ($cotacao_id) ". $cotacao['response'];
                 return $response;
