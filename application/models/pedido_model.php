@@ -888,9 +888,12 @@ Class Pedido_Model extends MY_Model
     $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
     $this->load->model("apolice_model", "apolice");
     $this->load->model("fatura_model", "fatura");
+    $this->load->model("apolice_equipamento_model", "apolice_equipamento");
+    $this->load->model("apolice_generico_model", "apolice_generico");
     $this->load->model("apolice_seguro_viagem_model", "apolice_seguro_viagem");
     $this->load->model('pedido_transacao_model', 'pedido_transacao');
     $this->load->model('apolice_movimentacao_model', 'movimentacao');
+    $this->load->model( "produto_parceiro_model", "produto_parceiro" );
 
 
     $pedido = $this->get($pedido_id);
@@ -908,6 +911,8 @@ Class Pedido_Model extends MY_Model
 
     $valor_estorno_total = 0;
 
+    $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro["produto_parceiro_id"] );
+
     if($vigente == FALSE){
       //FAZ CALCULO DO VALOR COMPLETO
 
@@ -922,7 +927,22 @@ Class Pedido_Model extends MY_Model
         $dados_apolice['data_cancelamento'] = date('Y-m-d H:i:s');
         $dados_apolice['valor_estorno'] = $valor_estorno;
         $valor_estorno_total += $valor_estorno;
-        $this->apolice_seguro_viagem->update($apolice['apolice_seguro_viagem_id'],  $dados_apolice, TRUE);
+
+        if( $produto ) {
+          $produto_slug = $produto["produto_slug"];
+          switch( $produto_slug ) {
+            case "seguro_viagem":
+              $this->apolice_seguro_viagem->update($apolice["apolice_seguro_viagem_id"],  $dados_apolice, TRUE);
+              break;
+            case "equipamento":
+              $this->apolice_equipamento->update($apolice["apolice_equipamento_id"],  $dados_apolice, TRUE);
+              break;
+            case "generico":
+            case "seguro_saude":
+              $this->apolice_generico->update($apolice["apolice_generico_id"],  $dados_apolice, TRUE);
+              break;
+          }
+        }
 
         if($ins_movimentacao) {
           $this->movimentacao->insMovimentacao('C', $apolice['apolice_id']);
@@ -938,7 +958,7 @@ Class Pedido_Model extends MY_Model
       $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), app_dateonly_mysql_to_mask($apolice['data_fim_vigencia']),  'D') + 1;
 
       $porcento_nao_utilziado = 0;
-      if ( !empty($produto_parceiro_cancelamento['seg_depois_dias']) && !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_utilizado <= $produto_parceiro_cancelamento['seg_depois_dias_carencia']) {
+      if ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_utilizado <= $produto_parceiro_cancelamento['seg_depois_dias_carencia']) {
           $porcento_nao_utilziado = 100;
       }
 
@@ -958,7 +978,22 @@ Class Pedido_Model extends MY_Model
         $dados_apolice['data_cancelamento'] = date('Y-m-d H:i:s');
         $dados_apolice['valor_estorno'] = $valor_estorno;
         $valor_estorno_total += $valor_estorno;
-        $this->apolice_seguro_viagem->update($apolice['apolice_seguro_viagem_id'],  $dados_apolice, TRUE);
+
+        if( $produto ) {
+          $produto_slug = $produto["produto_slug"];
+          switch( $produto_slug ) {
+            case "seguro_viagem":
+              $this->apolice_seguro_viagem->update($apolice["apolice_seguro_viagem_id"],  $dados_apolice, TRUE);
+              break;
+            case "equipamento":
+              $this->apolice_equipamento->update($apolice["apolice_equipamento_id"],  $dados_apolice, TRUE);
+              break;
+            case "generico":
+            case "seguro_saude":
+              $this->apolice_generico->update($apolice["apolice_generico_id"],  $dados_apolice, TRUE);
+              break;
+          }
+        }
 
         $this->movimentacao->insMovimentacao('C', $apolice['apolice_id']);
 

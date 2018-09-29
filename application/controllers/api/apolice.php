@@ -271,7 +271,10 @@ class Apolice extends CI_Controller {
       $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]),  "D");
 
       $porcento_nao_utilizado = ((($dias_restantes) / $dias_total) * 100);
-      
+      if ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_utilizados <= $produto_parceiro_cancelamento['seg_depois_dias_carencia']) {
+        $dias_restantes = $dias_total;
+      }
+
       $ret = array();
       $ret["dias_restantes"] = $dias_restantes;
       $ret["dias_utilizados"] = $dias_utilizados;
@@ -279,20 +282,15 @@ class Apolice extends CI_Controller {
       $ret["soma_restantes_utilizados"] = $dias_restantes + $dias_utilizados;
       $ret["porcento_nao_utilizado"] = $porcento_nao_utilizado;
 
-
       foreach ($apolices as $apolice) {
 
         $valor_premio = $apolice["valor_premio_total"];
-        
         $ret["valor_premio"] = $valor_premio;
 
         $valor_premio = $valor_premio / $dias_total * $dias_restantes; // (($porcento_nao_utilizado / 100) * $valor_premio);
-        
         $ret["valor_premio_restante"] = $valor_premio;
 
-
         $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento["seg_depois_calculo"], $produto_parceiro_cancelamento["seg_depois_valor"], $valor_premio);
-        
         $ret["valor_estorno"] = $valor_estorno;
 
         $dados_apolice = array();
@@ -319,10 +317,8 @@ class Apolice extends CI_Controller {
         $this->movimentacao->insMovimentacao("C", $apolice["apolice_id"]);
 
       }
-
       
     }
-
 
     $this->pedido_transacao->insStatus($pedido_id, "cancelado", "PEDIDO CANCELADO COM SUCESSO");
 
