@@ -114,6 +114,18 @@ class Api extends Site_Controller
         return;
     }
 
+    public function cotacao_contratar(){
+        // $this->stop=true;
+        $json = file_get_contents( "php://input" );
+
+        $retorno = $this->execute($this->url."cotacao/contratar", 'POST', $json);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output($retorno);
+        return;
+    }
+
     public function forma_pagamento_cotacao($cotacao_id){
         $retorno = $this->execute($this->url."pagamento/forma_pagamento_cotacao?cotacao_id=$cotacao_id");
 

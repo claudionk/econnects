@@ -493,11 +493,11 @@ if ( ! function_exists('app_integracao_generali_dados')) {
     function app_integracao_generali_dados()
     {
         $dados = (object)[
-            "email" => "lasa@econnects.com.br",
-            "parceiro_id" => 30,
+            "email" => "generali@econnects.com.br",
+            "parceiro_id" => 32,
             "produto_parceiro_id" => 57,
             "produto_parceiro_plano_id" => 49,
-            "cobertura_plano_id" => 281,
+            // "cobertura_plano_id" => 281,
         ];
 
          if ( empty(app_get_userdata("email")) ) {
@@ -517,8 +517,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
         $cpf = $dados['registro']['cpf'];
         $ean = $dados['registro']['ean'];
-        // $ean = "7898058473500"; //****** REMOVER ****
-        // $dados['registro']['email'] = "teste@gmail.com"; //****** REMOVER ****
 
         $acesso = app_integracao_generali_dados();
         $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
@@ -710,7 +708,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
         // echo "<pre>";print_r($dados);echo "</pre>";
 
         // Emissão
-        if ( in_array($dados['tipo_transacao'], ['NS','XP']) ) {
+        if ( in_array($dados['tipo_transacao'], ['NS']) ) {
 
             $errors = $fields = [];
 
@@ -731,12 +729,12 @@ if ( ! function_exists('app_integracao_valida_regras'))
                                     $errors[] = ['id' => 1, 'msg' => "Campo {$campo->label} é obrigatório", 'slug' => $campo->nome_banco];
                                 break;
                             case "validate_cpf":
-                                if( !isset( $dados[$campo->nome_banco] ) || !app_validate_cpf($dados[$campo->nome_banco]) )
-                                    $errors[] = ['id' => 2, 'msg' => "Campo {$campo->label} deve ser um CPF válido", 'slug' => $campo->nome_banco];
+                                if( !empty($dados[$campo->nome_banco]) && !app_validate_cpf($dados[$campo->nome_banco]) )
+                                    $errors[] = ['id' => 2, 'msg' => "Campo {$campo->label} deve ser um CPF válido [{$dados[$campo->nome_banco]}]", 'slug' => $campo->nome_banco];
                                 break;
                             case "validate_data":
-                                if( !isset( $dados[$campo->nome_banco] ) || !app_validate_data_americana($dados[$campo->nome_banco]) )
-                                    $errors[] = ['id' => 3, 'msg' => "Campo {$campo->label} deve ser uma Data válida", 'slug' => $campo->nome_banco];
+                                if( !empty($dados[$campo->nome_banco]) && !app_validate_data_americana($dados[$campo->nome_banco]) )
+                                    $errors[] = ['id' => 3, 'msg' => "Campo {$campo->label} deve ser uma Data válida [{$dados[$campo->nome_banco]}]", 'slug' => $campo->nome_banco];
                                 break;
                         }
                     }
@@ -781,7 +779,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
                 $fields['ean'] = $dados['ean'];
                 $fields['cod_loja'] = $dados['cod_loja'];
-                $fields['codigo_produto_sap'] = $dados['codigo_produto_sap'];
+                $fields['codigo_produto_sap'] = $dados['cod_produto_sap'];
 
                 // Cotação
                 $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields));
@@ -847,11 +845,17 @@ if ( ! function_exists('app_integracao_emissao'))
         // echo "<pre>";print_r($dados);echo "</pre>";
 
         // Emissão
-        if ( in_array($dados['tipo_transacao'], ['NS','XP']) ) {
+        if ( in_array($dados['tipo_transacao'], ['NS']) ) {
+
+            // Cotação Contratar
+            $cotacao = app_get_api("cotacao_contratar", "POST", json_encode($dados));
+            if (empty($cotacao['status'])) {
+                $response->msg = "Cotacao Contratar Error: ($cotacao_id) ". $cotacao['response'];
+                return $response;
+            }
 
             // Formas de Pagamento
             $formPagto = app_get_api("forma_pagamento_cotacao/$cotacao_id");
-            // echo "<pre>";print_r($formPagto);echo "</pre>";
             if (empty($formPagto['status'])) {
                 $response->msg = "Formas de Pagto Error: ($cotacao_id) ". $formPagto['response'];
                 return $response;
