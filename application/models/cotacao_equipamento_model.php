@@ -380,6 +380,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
       $dt_cotacao['usuario_venda_id'] = 0;
       $dt_cotacao['cotacao_status_id'] = 1;
       $dt_cotacao['alteracao_usuario_id'] = 1;
+      $dt_cotacao["data_inicio_vigencia"] = null;
       if( isset( $cotacao["data_inicio_vigencia"] ) ) {
         $dt_cotacao["data_inicio_vigencia"] = $cotacao["data_inicio_vigencia"];
       }
@@ -624,10 +625,14 @@ Class Cotacao_Equipamento_Model extends MY_Model
       $dt_cotacao['cotacao_status_id'] = 1;
       $dt_cotacao['alteracao_usuario_id'] = $this->session->userdata('usuario_id');
       $dt_cotacao['produto_parceiro_id'] = $produto_parceiro_id;
+      $dt_cotacao["usuario_cotacao_id"] = null;
       if( $dt_cotacao["usuario_cotacao_id"] == "" ) {
         $dt_cotacao["usuario_cotacao_id"] = $cotacao["usuario_cotacao_id"];
       }
-
+      
+      $dt_cotacao["data_inicio_vigencia"] = null;
+      $data_cotacao["data_inicio_vigencia"] = null;
+      
       if( isset( $cotacao["data_inicio_vigencia"] ) ) {
         $data_cotacao["data_inicio_vigencia"] = $cotacao["data_inicio_vigencia"];
         $dt_cotacao["data_inicio_vigencia"] = $cotacao["data_inicio_vigencia"];
@@ -722,6 +727,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
   }
 
 }
+
 
 
 

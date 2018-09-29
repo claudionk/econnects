@@ -415,6 +415,9 @@ class Pagamento extends CI_Controller {
         break;
       case "equipamento":
         $valor_total = $this->cotacao_equipamento->getValorTotal( $cotacao_id );
+        if( !$this->db->query( "SELECT cotacao_equipamento_id FROM cotacao_equipamento WHERE cotacao_id=$cotacao_id AND step=4" )->result_array() ) {
+          die( json_encode( array( "status" => false, "message" => "Não é possível efetuar o pagamento. É necessário confirmar a contratação da apólice antes de efetuar seu pagamento." ) ) );
+        }
         break;
       default:
         $valor_total = $this->cotacao_generico->getValorTotal( $cotacao_id );
@@ -999,6 +1002,7 @@ class Pagamento extends CI_Controller {
   }
   
 }
+
 
 
 

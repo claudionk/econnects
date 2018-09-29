@@ -1343,14 +1343,10 @@ class Cotacao extends CI_Controller {
 
     $cotacao_salva = $cotacao_salva[0];
     
-    // die( json_encode( $cotacao_salva, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
-
     $validacao = $this->campo->setValidacoesCamposPlano( $produto_parceiro_id, "dados_segurado", $produto_parceiro_plano_id );
     
     $campos = $this->produto_parceiro_campo->with_campo()->with_campo_tipo()->filter_by_produto_parceiro( $produto_parceiro_id )->filter_by_campo_tipo_slug( "dados_segurado" )->order_by( "ordem", "ASC" )->get_all();
 
-    //die( json_encode( $campos, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
-    
     $erros = array();
     $validacao_ok = true;
     foreach( $campos as $campo ) {
@@ -1366,8 +1362,6 @@ class Cotacao extends CI_Controller {
       return $erros;
     }
     
-    //die( json_encode( $erros, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
-
     $validacao = array();
     foreach( $campos as $campo ) {
       $rule_check = "OK";
@@ -1375,28 +1369,29 @@ class Cotacao extends CI_Controller {
         $rule_check = "O preenchimento do campo " . $campo["campo_nome_banco_equipamento"] . " é obrigatório";
         $erros[] = $rule_check;
       } else {
-        if( strpos( $campo["validacoes"], "validate_data" ) !== false ) {
-          $valida_data = date_parse_from_format("Y-m-d", $cotacao_salva[$campo["campo_nome_banco_equipamento"]]);
-          if( !checkdate( $valida_data["month"], $valida_data["day"], $valida_data["year"] ) ) {
-            $rule_check = "Data inválida (" . $campo["campo_nome_banco_equipamento"] . ")";
-            $erros[] = $rule_check;
+        if( $cotacao_salva[$campo["campo_nome_banco_equipamento"]] != "" && $cotacao_salva[$campo["campo_nome_banco_equipamento"]] != "0000-00-00" && !is_null( $cotacao_salva[$campo["campo_nome_banco_equipamento"]] )  ) {
+          if( strpos( $campo["validacoes"], "validate_data" ) !== false ) {
+            $valida_data = date_parse_from_format("Y-m-d", $cotacao_salva[$campo["campo_nome_banco_equipamento"]]);
+            if( !checkdate( $valida_data["month"], $valida_data["day"], $valida_data["year"] ) ) {
+              $rule_check = "Data inválida (" . $campo["campo_nome_banco_equipamento"] . ")";
+              $erros[] = $rule_check;
+            }
+          }
+          if( strpos( $campo["validacoes"], "validate_email" ) !== false ) {
+            $valida_email = filter_var( $cotacao_salva[$campo["campo_nome_banco_equipamento"]], FILTER_VALIDATE_EMAIL );
+            if( !$valida_email ) {
+              $rule_check = "E-mail inválido (" . $campo["campo_nome_banco_equipamento"] . ")";
+              $erros[] = $rule_check;
+            }
+          }
+          if( strpos( $campo["validacoes"], "validate_celular" ) !== false ) {
+            $valida_celular = preg_match( "#^\(\d{2}\) 9?[6789]\d{3}-\d{4}$#", $this->celular( $cotacao_salva[$campo["campo_nome_banco_equipamento"]] ) );
+            if( $valida_celular ) {
+              $rule_check = "Número de telefone celular inválido (" . $campo["campo_nome_banco_equipamento"] . ")";
+              $erros[] = $rule_check;
+            }
           }
         }
-        if( strpos( $campo["validacoes"], "validate_email" ) !== false ) {
-          $valida_email = filter_var( $cotacao_salva[$campo["campo_nome_banco_equipamento"]], FILTER_VALIDATE_EMAIL );
-          if( !$valida_email ) {
-            $rule_check = "E-mail inválido (" . $campo["campo_nome_banco_equipamento"] . ")";
-            $erros[] = $rule_check;
-          }
-        }
-        if( strpos( $campo["validacoes"], "validate_celular" ) !== false ) {
-          $valida_celular = preg_match( "#^\(\d{2}\) 9?[6789]\d{3}-\d{4}$#", $this->celular( $cotacao_salva[$campo["campo_nome_banco_equipamento"]] ) );
-          if( $valida_celular ) {
-            $rule_check = "Número de telefone celular inválido (" . $campo["campo_nome_banco_equipamento"] . ")";
-            $erros[] = $rule_check;
-          }
-        }
-        
       }
       
       $validacao[] = array(
@@ -1439,6 +1434,7 @@ class Cotacao extends CI_Controller {
   }
 
 }
+
 
 
 
