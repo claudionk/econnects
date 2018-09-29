@@ -749,6 +749,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
             } else {
                 $d1 = new DateTime($dados["nota_fiscal_data"]);
                 $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
+                $dados["data_inicio_vigencia"] = $d1->format('Y-m-d');
 
                 // Período de Vigência: 12 meses
                 $diff = $now->diff($d1);
