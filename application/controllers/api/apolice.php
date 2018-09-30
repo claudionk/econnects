@@ -48,7 +48,9 @@ class Apolice extends CI_Controller {
     if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
       $GET = $_GET;
     } else {
-      if( $_SERVER["REQUEST_METHOD"] === "PUT" ) {
+      if ($_SERVER["REQUEST_METHOD"] === "POST" ){
+        $GET = $_POST;
+      } elseif( $_SERVER["REQUEST_METHOD"] === "PUT" ) {
         $PUT = json_decode( file_get_contents( "php://input" ), true );
         if( !isset( $PUT["apolice_id"] ) ) {
           die( json_encode( array( "status" => false, "message" => "Campo apolice_id é obrigatório" ) ) );
@@ -60,8 +62,9 @@ class Apolice extends CI_Controller {
         $num_apolice = $PUT["num_apolice"];
           
         $this->update( $apolice_id, $num_apolice );
+      } else {
+        die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
       }
-      die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
     }
     
     $apolice_id = null;
@@ -101,6 +104,8 @@ class Apolice extends CI_Controller {
         ->filterNotCarrinho()
         ->filterAPI($params)
         ->get_all();
+      //   print_r($this->db->last_query());exit;
+      // echo "<pre>";print_r($pedidos);echo "</pre>";
 
       if($pedidos) {
 

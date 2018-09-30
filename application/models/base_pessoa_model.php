@@ -108,8 +108,9 @@ Class Base_Pessoa_Model extends MY_Model
     if( $info_service == "ifaro_pf" ) {
       $this->load->library("Ifaro", array('produto_parceiro_id' => $produto_parceiro_id));
       $ifaro = $this->ifaro->getBasePessoaPF( app_retorna_numeros( $documento ) );
-      $DataNascimento = date_create_from_format( "d/m/Y", $ifaro["DataNascimento"] );
-      $result["DADOS_CADASTRAIS"] = array( "CPF" => $ifaro["CPF"],
+      if (!empty($ifaro)) {
+        $DataNascimento = date_create_from_format( "d/m/Y", $ifaro["DataNascimento"] );
+        $result["DADOS_CADASTRAIS"] = array( "CPF" => $ifaro["CPF"],
                                            "NOME" => $ifaro["Nome"],
                                            "NOME_ULTIMO" => trim( strrchr( $ifaro["Nome"], " " ) ),
                                            "SEXO" => $ifaro["Sexo"],
@@ -120,22 +121,22 @@ Class Base_Pessoa_Model extends MY_Model
                                            "RG" => $ifaro["RG"],
                                            "SITUACAO_RECEITA" => "REGULAR" );
       
-      $iTelefones = $ifaro["Telefones"];
-      foreach( $iTelefones as $row ) {
-        $Telefones[] = array("TELEFONE" => "(" . trim( $row["DD"] ) . ") " . $row["Numero"], 
-                             "RANKING" => ( $row["Tipo"] == "TELEFONE MÓVEL" ? 90 : $row["Ranking"] ) );
-      }
-      $result["TELEFONES"] = $Telefones;
+        $iTelefones = $ifaro["Telefones"];
+        foreach( $iTelefones as $row ) {
+          $Telefones[] = array("TELEFONE" => "(" . trim( $row["DD"] ) . ") " . $row["Numero"], 
+                               "RANKING" => ( $row["Tipo"] == "TELEFONE MÓVEL" ? 90 : $row["Ranking"] ) );
+        }
+        $result["TELEFONES"] = $Telefones;
 
-      $iEmails = $ifaro["Emails"];
-      foreach( $iEmails as $row ) {
-        $Emails[] = array( "EMAIL" => trim( $row["EmailEndereco"] ), "RANKING" => $row["Ranking"] );
-      }
-      $result["EMAILS"] = $Emails;
+        $iEmails = $ifaro["Emails"];
+        foreach( $iEmails as $row ) {
+          $Emails[] = array( "EMAIL" => trim( $row["EmailEndereco"] ), "RANKING" => $row["Ranking"] );
+        }
+        $result["EMAILS"] = $Emails;
 
-      $iEnderecos = $ifaro["Enderecos"];
-      foreach( $iEnderecos as $row ) {
-        $Enderecos[] = array("LOGRADOURO" => trim( $row["Logadouro"] ), 
+        $iEnderecos = $ifaro["Enderecos"];
+        foreach( $iEnderecos as $row ) {
+          $Enderecos[] = array("LOGRADOURO" => trim( $row["Logadouro"] ), 
                              "NUMERO" => trim( $row["Numero"] ), 
                              "COMPLEMENTO" => trim( $row["Complemento"] ), 
                              "BAIRRO" => trim( $row["Bairro"] ), 
@@ -143,12 +144,13 @@ Class Base_Pessoa_Model extends MY_Model
                              "UF" => trim( $row["UF"] ), 
                              "CEP" => trim( $row["CEP"] ), 
                              "RANKING" => $row["Ranking"] );
+        }
+        $result["ENDERECOS"] = $Enderecos;
+        //die( print_r( $result, true ) );
       }
-      $result["ENDERECOS"] = $Enderecos;
-      //die( print_r( $result, true ) );
     }
 
-    if( $result && isset( $result["DADOS_CADASTRAIS"] ) ) {
+    if( isset($result) && isset( $result["DADOS_CADASTRAIS"] ) ) {
       if( $base_pessoa_id > 0 ) {
         $this->base_pessoa_contato->delete_by( array( "base_pessoa_id" => $base_pessoa_id ) );
         $this->base_pessoa_empresa->delete_by( array( "base_pessoa_id" => $base_pessoa_id ) );
