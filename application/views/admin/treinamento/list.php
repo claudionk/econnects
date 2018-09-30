@@ -15,7 +15,7 @@
     <div class="row row-app">
         <!-- col -->
         <div class="col-md-12">
-            <iframe src="https://novogestao.woli.com.br/pt-BR/Login/Index?returnUrl='/'&idUnidadeHierarquica=1&redirecionaIndex=1&login=23814358325" frameborder="0" id="treinamento" ></iframe>
+            <iframe src="<?= $url ?>" frameborder="0" id="treinamento" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         </div>
     </div>
 </div>
