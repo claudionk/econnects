@@ -6,7 +6,7 @@
 }
 @media (max-width: 1024px) {
 	#treinamento {
-		width: 104%;
+		position: initial;
 	}
 }
 </style>
