@@ -1195,7 +1195,8 @@ class Venda_Equipamento extends Admin_Controller {
     $cotacao = $this->cotacao->with_cotacao_equipamento()->filterByID($cotacao_id)->get_all();
     $cotacao = $cotacao[0];
 
-
+    $produto_parceiro_plano_id = $cotacao["produto_parceiro_plano_id"];
+    
     $row =  $this->current_model->get_by_id($produto_parceiro_id);
 
     if(count($desconto) > 0){
@@ -1214,11 +1215,11 @@ class Venda_Equipamento extends Admin_Controller {
 
 
     $markup = 0;
-    if($row['parceiro_id'] != $parceiro_id){
+    
+    if($row["parceiro_id"] != $parceiro_id) {
 
 
       $rel = $this->relacionamento->get_comissao($produto_parceiro_id, $parceiro_id);
-
       $configuracao['repasse_comissao'] =  $rel['repasse_comissao'];
       $configuracao['repasse_maximo'] = $rel['repasse_maximo'];
       $configuracao['comissao'] = $rel['comissao'];
@@ -1226,7 +1227,6 @@ class Venda_Equipamento extends Admin_Controller {
 
       //buscar o markup
       $markup = $this->relacionamento->get_comissao_markup($produto_parceiro_id, $parceiro_id);
-
 
       $rel_desconto = $this->relacionamento->get_desconto($produto_parceiro_id, $parceiro_id);
       if(count($rel_desconto) > 0){
@@ -1269,8 +1269,7 @@ class Venda_Equipamento extends Admin_Controller {
 
 
 
-    if(!$valores_bruto)
-    {
+    if(!$valores_bruto) {
       return null;
     }
 
@@ -1280,19 +1279,10 @@ class Venda_Equipamento extends Admin_Controller {
         ->with_produto_parceiro()
         ->with_produto();
 
-      if((isset($cotacao['origem_id'])) && ($cotacao['origem_id'])){
-        $arrPlanos->with_origem($cotacao['origem_id']);
-      }
-      if((isset($cotacao['destino_id'])) && ($cotacao['destino_id'])){
-        $arrPlanos->with_destino($cotacao['destino_id']);
-      }
-      if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
-        $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
-      }
-
       $arrPlanos = $arrPlanos
         ->get_many_by(array(
-          'produto_parceiro.venda_agrupada' => 1
+          'produto_parceiro.venda_agrupada' => 1,
+          //'produto_parceiro_plano.produto_parceiro_id' => $produto_parceiro_id,
         ));
 
     }else {
@@ -1319,11 +1309,9 @@ class Venda_Equipamento extends Admin_Controller {
          * FAZ O CÁLCULO DO PLANO
          */
     $desconto_condicional_valor = 0;
-    foreach ($arrPlanos as $plano){
+    foreach( $arrPlanos as $plano ) {
       //precificacao_tipo_id
-
-      switch ((int)$configuracao['calculo_tipo_id'])
-      {
+      switch ((int)$configuracao['calculo_tipo_id']) {
         case self::TIPO_CALCULO_NET:
           $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
           $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
@@ -1335,17 +1323,22 @@ class Venda_Equipamento extends Admin_Controller {
         case self::TIPO_CALCULO_BRUTO:
           $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
           $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
-          $valor = ($valor) - (($valor) * (($markup + $comissao_corretor)/100));
+          //$valor = ($valor) - (($valor) * (($markup + $comissao_corretor)/100));
           $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
           $valor -= $desconto_condicional_valor;
           $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
           break;
         default:
           break;
-
-
       }
     }
+    
+    //ob_clean();
+    //die( print_r( $valores_liquido, true ) );
+
+    
+    //ob_clean();
+    //die( print_r( $valores_liquido, true ) );
 
 
     $regra_preco = $this->regra_preco->with_regra_preco()
@@ -2029,6 +2022,7 @@ class Venda_Equipamento extends Admin_Controller {
   }
 
 }
+
 
 
 

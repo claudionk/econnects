@@ -7,6 +7,7 @@ if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 class Cotacao extends CI_Controller {
   public $api_key;
   public $usuario_id;
+  public $parceiro_id;
 
   const PRECO_TIPO_TABELA = 1;
   const PRECO_TIPO_COBERTURA = 2;
@@ -45,12 +46,15 @@ class Cotacao extends CI_Controller {
 
       $webservice = $this->webservice->checkKeyExpiration( $this->api_key );
       if( !sizeof( $webservice ) ) {
+        ob_clean();
         die( json_encode( array( "status" => false, "message" => "APIKEY is invalid" ) ) );
       }
     } else {
+      ob_clean();
       die( json_encode( array( "status" => false, "message" => "APIKEY is missing" ) ) );
     }
     $this->usuario_id = $webservice["usuario_id"];
+    $this->parceiro_id = $webservice["parceiro_id"];
     $this->load->database('default');
 
     $this->load->model( "campo_model", "campos" );
@@ -75,6 +79,7 @@ class Cotacao extends CI_Controller {
           $PUT = json_decode( file_get_contents( "php://input" ), true );
           $x = $this->post( $PUT );
         } else {
+          ob_clean();
           die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
         }
       }
@@ -89,6 +94,7 @@ class Cotacao extends CI_Controller {
     $this->load->model('produto_parceiro_campo_model', 'produto_parceiro_campo');
 
     if( !isset( $POST["produto_parceiro_id"] ) ) {
+      ob_clean();
       die( json_encode( array( "status" => false, "message" => "Campo produto_parceiro_id é obrigatório" ) ) );
     }
 
@@ -98,6 +104,7 @@ class Cotacao extends CI_Controller {
     
     if( $_SERVER["REQUEST_METHOD"] === "PUT" ) {
       if( !isset( $POST["cotacao_id"] ) ) {
+        ob_clean();
         die( json_encode( array( "status" => false, "message" => "Campo cotacao_id é obrigatório no método PUT" ) ) );
       }
       $cotacao_id = $POST["cotacao_id"];
@@ -156,8 +163,10 @@ class Cotacao extends CI_Controller {
       $cotacao["detalhes"] = $cotacao_itens;
       $cotacao["status"] = true;
       $cotacao["message"] = "Validação OK"; 
+      ob_clean();
       die( json_encode( $cotacao, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     } else {
+      ob_clean();
       die( json_encode( array( "status" => false, "message" => "Erro de validação", "erros" => $erros ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
   }
@@ -165,6 +174,7 @@ class Cotacao extends CI_Controller {
   private function get( $GET ) {
     $cotacao_id = null;
     if( !isset( $GET["cotacao_id"] ) ) {
+      ob_clean();
       die( json_encode( array( "status" => false, "message" => "Campo produto_parceiro_id é obrigatório" ) ) );
     } else {
       $cotacao_id = $GET["cotacao_id"];
@@ -181,8 +191,10 @@ class Cotacao extends CI_Controller {
             $cotacao_itens = $this->cotacao_generico->get_by( array( "cotacao_id" => $cotacao_id ) );
             break;
         }
+        ob_clean();
         die( json_encode( $cotacao_itens, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
       }
+      ob_clean();
       die( json_encode( $cotacao, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
   }
@@ -194,6 +206,7 @@ class Cotacao extends CI_Controller {
   
   public function calculo() {
     if( $_SERVER["REQUEST_METHOD"] !== "GET" ) {
+      ob_clean();
       die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
     }
     
@@ -205,6 +218,7 @@ class Cotacao extends CI_Controller {
 
     $cotacao_id = null;
     if( !isset( $GET["cotacao_id"] ) ) {
+      ob_clean();
       die( json_encode( array( "status" => false, "message" => "Campo cotacao_id é obrigatório" ) ) );
     }
     $cotacao_id = $GET["cotacao_id"];
@@ -261,6 +275,7 @@ class Cotacao extends CI_Controller {
     }elseif( $produto["produto_slug"] == "generico" ){
       $result = $this->calculo_cotacao_generico( $params );
     }
+    ob_clean();
     die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
   }
 
@@ -284,7 +299,7 @@ class Cotacao extends CI_Controller {
     //print_r($_POST);
 
     $produto_parceiro_id = issetor($params['produto_parceiro_id'], 0);
-    $parceiro_id = issetor($params['parceiro_id'], 0);
+    //$parceiro_id = issetor($params['parceiro_id'], 0);
     $equipamento_marca_id = issetor($params['equipamento_marca_id'], 0);
     $equipamento_categoria_id = issetor($params['equipamento_categoria_id'], 0);
     $quantidade = issetor($params['quantidade'], 0);
@@ -333,10 +348,9 @@ class Cotacao extends CI_Controller {
     }
 
     $markup = 0;
-    if($row['parceiro_id'] != $parceiro_id){
+    if( $row["parceiro_id"] != $this->parceiro_id ){
 
-
-      $rel = $this->relacionamento->get_comissao($produto_parceiro_id, $parceiro_id);
+      $rel = $this->relacionamento->get_comissao( $produto_parceiro_id, $this->parceiro_id );
 
       $configuracao["repasse_comissao"] =  floatval($rel["repasse_comissao"]);
       $configuracao["repasse_maximo"] = $rel["repasse_maximo"];
@@ -344,10 +358,10 @@ class Cotacao extends CI_Controller {
 
 
       //buscar o markup
-      $markup = $this->relacionamento->get_comissao_markup($produto_parceiro_id, $parceiro_id);
+      $markup = $this->relacionamento->get_comissao_markup( $produto_parceiro_id, $this->parceiro_id );
 
 
-      $rel_desconto = $this->relacionamento->get_desconto($produto_parceiro_id, $parceiro_id);
+      $rel_desconto = $this->relacionamento->get_desconto( $produto_parceiro_id, $this->parceiro_id );
       if(count($rel_desconto) > 0){
         $desconto['data_ini'] = $rel_desconto['desconto_data_ini'];
         $desconto['data_fim'] = $rel_desconto['desconto_data_fim'];
@@ -355,8 +369,6 @@ class Cotacao extends CI_Controller {
       }else{
         $desconto = array('habilitado' => 0);
       }
-
-
 
     }
 
@@ -461,7 +473,7 @@ class Cotacao extends CI_Controller {
           case self::TIPO_CALCULO_BRUTO:
             $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
             $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
-            $valor = ($valor) - (($valor) * (($markup + $comissao_corretor)/100));
+            //$valor = ($valor) - (($valor) * (($markup + $comissao_corretor)/100));
             $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
             $valor -= $desconto_condicional_valor;
             $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
@@ -471,8 +483,7 @@ class Cotacao extends CI_Controller {
         }
       }
     }
-
-
+    
     $regra_preco = $this->regra_preco->with_regra_preco()
       ->filter_by_produto_parceiro($produto_parceiro_id)
       ->get_all();
@@ -538,6 +549,7 @@ class Cotacao extends CI_Controller {
 
       $pedido = $this->db->query( "SELECT * FROM pedido WHERE cotacao_id=$cotacao_id AND deletado=0" )->result_array();
       if( $pedido ) {
+        ob_clean();
         die( json_encode( array( "status" => false, "message" => "Não foi possível efetuar o calculo. Motivo: já existe um pedido para essa cotação." ) ) );
       } else {
         $this->cotacao_equipamento->update($cotacao_salva['cotacao_equipamento_id'], $cotacao_eqp, TRUE);
@@ -802,7 +814,7 @@ class Cotacao extends CI_Controller {
 
 
     $produto_parceiro_id = issetor($params['produto_parceiro_id'], 0);
-    $parceiro_id = issetor($params['parceiro_id'], 0);
+    //$parceiro_id = issetor($params['parceiro_id'], 0);
     $equipamento_marca_id = issetor($params['equipamento_marca_id'], 0);
     $equipamento_categoria_id = issetor($params['equipamento_categoria_id'], 0);
     $quantidade = issetor($params['quantidade'], 0);
@@ -856,10 +868,10 @@ class Cotacao extends CI_Controller {
 
 
     $markup = 0;
-    if($row['parceiro_id'] != $parceiro_id){
+    if( $row["parceiro_id"] != $this->parceiro_id ) {
 
 
-      $rel = $this->relacionamento->get_comissao($produto_parceiro_id, $parceiro_id);
+      $rel = $this->relacionamento->get_comissao( $produto_parceiro_id, $this->parceiro_id );
 
       $configuracao['repasse_comissao'] =  $rel['repasse_comissao'];
       $configuracao['repasse_maximo'] = $rel['repasse_maximo'];
@@ -867,11 +879,11 @@ class Cotacao extends CI_Controller {
 
 
       //buscar o markup
-      $markup = $this->relacionamento->get_comissao_markup($produto_parceiro_id, $parceiro_id);
+      $markup = $this->relacionamento->get_comissao_markup( $produto_parceiro_id, $this->parceiro_id );
 
 
 
-      $rel_desconto = $this->relacionamento->get_desconto($produto_parceiro_id, $parceiro_id);
+      $rel_desconto = $this->relacionamento->get_desconto( $produto_parceiro_id, $this->parceiro_id );
       if(count($rel_desconto) > 0){
         $desconto['data_ini'] = $rel_desconto['desconto_data_ini'];
         $desconto['data_fim'] = $rel_desconto['desconto_data_fim'];
@@ -987,12 +999,8 @@ class Cotacao extends CI_Controller {
           break;
         default:
           break;
-
-
       }
-
     }
-
 
     $regra_preco = $this->regra_preco->with_regra_preco()
       ->filter_by_produto_parceiro($produto_parceiro_id)
@@ -1213,10 +1221,12 @@ class Cotacao extends CI_Controller {
     if( $_SERVER["REQUEST_METHOD"] === "POST" ) {
       $POST = json_decode( file_get_contents( "php://input" ), true );
     } else {
+      ob_clean();
       die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
     }
     
     if( !isset( $POST["cotacao_id"] ) ) {
+      ob_clean();
       die( json_encode( array( "status" => false, "message" => "Campo cotacao_id é obrigatório" ) ) );
     }
     $cotacao_id = $POST["cotacao_id"];
@@ -1284,6 +1294,7 @@ class Cotacao extends CI_Controller {
     } elseif( $produto["produto_slug"] == "generico" || $produto["produto_slug"] == "seguro_saude" ) {
       $result = $this->contratar_generico( $params );
     }
+    ob_clean();
     die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
   }
 
@@ -1296,7 +1307,7 @@ class Cotacao extends CI_Controller {
 
     $produto_parceiro_id = issetor($params['produto_parceiro_id'], 0);
     $produto_parceiro_plano_id = issetor($params['produto_parceiro_plano_id'], 0);
-    $parceiro_id = issetor($params['parceiro_id'], 0);
+    //$parceiro_id = issetor($params['parceiro_id'], 0);
 
     $repasse_comissao = $params["repasse_comissao"];
     $desconto_condicional= $params["desconto_condicional"];
@@ -1429,6 +1440,7 @@ class Cotacao extends CI_Controller {
   }
 
 }
+
 
 
 

@@ -192,24 +192,21 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
     $this->_database->where("produto_parceiro_id", $produto_parceiro_id);
     $this->_database->where("parceiro_id", $parceiro_id);
     $rows = $this->get_all();
-
     if($rows){
       $row = $rows[0];
-      $soma = 0;
-      while ((int)$row['pai_id'] != 0){
-        $rows = $this->get($row['pai_id']);
-        print_r( $rows );
-        if($rows){
-          $row = $rows;
-          $soma += $row['comissao'];
-        }else{
-          $row['pai_id'] = 0;
+      $soma = $row["comissao"];
+      while( intval( $row["pai_id"] ) != 0 ) {
+        $linha = $this->get( $row["pai_id"] );
+        if( $linha ) {
+          $row = $linha;
+          $soma += $linha["comissao"];
+        } else {
+          $row["pai_id"] = 0;
         }
       }
       return $soma;
-      die( print_r( $soma, true ) );
 
-    }else{
+    } else {
       return 0;
     }
 
@@ -304,6 +301,7 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
   }
 
 }
+
 
 
 
