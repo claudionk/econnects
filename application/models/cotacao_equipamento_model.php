@@ -418,6 +418,10 @@ Class Cotacao_Equipamento_Model extends MY_Model
 
     }
 
+    $data_cotacao = array_merge( $cotacao, $data_cotacao );
+    unset( $data_cotacao["parceiro_id"] );
+    unset( $data_cotacao["usuario_cotacao_id"] );
+    
     if(isset($cotacao['produto_parceiro_plano_id'])){
       $data_cotacao['produto_parceiro_plano_id'] = $cotacao['produto_parceiro_plano_id'];
     }
@@ -437,17 +441,6 @@ Class Cotacao_Equipamento_Model extends MY_Model
     if(isset($cotacao['equipamento_categoria_id'])){
       $data_cotacao['equipamento_categoria_id'] = $cotacao['equipamento_categoria_id'];
     }
-    /*
-    if(isset($cotacao['equipamento_id'])){
-      $data_cotacao['equipamento_nome'] = $cotacao['equipamento_id'];
-    }
-    if(isset($cotacao['equipamento_marca_id'])){
-      $data_cotacao['equipamento_marca_id'] = $cotacao['equipamento_marca_id'];
-    }
-    if(isset($cotacao['equipamento_categoria_id'])){
-      $data_cotacao['equipamento_categoria_id'] = $cotacao['equipamento_categoria_id'];
-    }
-    */
     if(isset($cotacao['nome'])){
       $data_cotacao['nome'] = $cotacao['nome'];
     }
@@ -605,6 +598,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
     if(isset($cotacao['iof'])){
       $data_cotacao['iof'] = app_unformat_currency($cotacao['iof']);
     }
+    
     if(isset($cotacao['premio_liquido_total'])){
       $data_cotacao['premio_liquido_total'] = app_unformat_currency($cotacao['premio_liquido_total']);
     }
@@ -727,6 +721,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
   }
 
 }
+
 
 
 
