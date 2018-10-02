@@ -622,6 +622,9 @@ Class Integracao_Model extends MY_Model
         // Trata o header
         $idxH = $this->search( $layout, 'H', 'tipo' );
         if ( $idxH >= 0 ) {
+            $this->data_template_script['totalRegistros']++;
+            if (!empty($multiplo)) $this->data_template_script['totalItens']++;
+
             $lH = $layout[$idxH];
             unset($layout[$idxH]);
         }
@@ -644,9 +647,6 @@ Class Integracao_Model extends MY_Model
 
         // Trata o header
         if ( $idxH >= 0 ) {
-            $this->data_template_script['totalRegistros']++;
-            if (!empty($multiplo)) $this->data_template_script['totalItens']++;
-
             $header = $this->getLinha($lH['dados'], $registros, $integracao_log, null);
             $linhas = array_merge([$header], $linhas);
         }
