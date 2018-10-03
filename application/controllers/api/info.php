@@ -117,9 +117,9 @@ class Info extends CI_Controller {
     if( isset( $pessoa["ultima_atualizacao"] ) ) {
       $ultima_atualizacao = date_create($pessoa["ultima_atualizacao"]);
       $proxima_atualizacao = date_add( $ultima_atualizacao, date_interval_create_from_date_string( "3 months" ) );
-    }
-    if( strtotime( date( "Y-m-d H:i:s" ) ) < strtotime( $proxima_atualizacao->format( "Y-m-d H:i:s" ) ) ) {
-      die( json_encode( $pessoa, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+      if( strtotime( date( "Y-m-d H:i:s" ) ) < strtotime( $proxima_atualizacao->format( "Y-m-d H:i:s" ) ) ) {
+        die( json_encode( $pessoa, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+      }
     }
     
     $Antes = new DateTime();
@@ -524,6 +524,7 @@ class validaEmail {
   }
   
 }
+
 
 
 

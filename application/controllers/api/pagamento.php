@@ -821,7 +821,7 @@ class Pagamento extends CI_Controller {
         $pedido_data["bandeira"] = $produto_parceiro_pagamento_id;
       }
       
-      if( ( $pedido_id == 0 || $pedido_id == "" ) ) {
+      if( $pedido_id == 0 || $pedido_id == "" ) {
         $result = $this->db->query( "SELECT * FROM pedido WHERE cotacao_id=$cotacao_id" )->result_array();
         if( sizeof( $result ) > 0 ) {
           die( 
@@ -841,7 +841,23 @@ class Pagamento extends CI_Controller {
       } else {
         $this->pedido->updatePedido($pedido_id, $pedido_data);
       }
-
+      
+      $pedido  = $this->db->query( "SELECT * FROM pedido WHERE cotacao_id=$cotacao_id AND deletado=0" )->result_array();
+      if( $pedido ) {
+        $pedido_id = $pedido[0]["pedido_id"];
+      } else { 
+        die( 
+          json_encode( 
+            array( 
+              "success" => false, 
+              "cotacao_id" => $dados["cotacao_id"], 
+              "produto_parceiro_id" => $dados["produto_parceiro_id"], 
+              "forma_pagamento_id" => $dados["forma_pagamento_id"], 
+              "erros" => "Falha na criação do pedido"
+            ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES 
+          ) 
+        );
+      }
       
       if( $pedido_id && $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_FATURADO || $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_TERCEIROS ) {
         $status = $this->pedido->mudaStatus( $pedido_id, "pagamento_confirmado" );
@@ -849,6 +865,10 @@ class Pagamento extends CI_Controller {
         $this->apolice->insertApolice( $pedido_id );
         
         $apolice = $this->apolice->get_by( "pedido_id", $pedido_id );
+        $apolice  = $this->db->query( "SELECT * FROM apolice WHERE pedido_id=$pedido_id AND deletado=0" )->result_array();
+        if( sizeof( $apolice ) ) {
+          $apolice = $apolice[0];
+        }
         if( $apolice ) {
           $result  = array(
             "status" => true,
@@ -864,11 +884,12 @@ class Pagamento extends CI_Controller {
             "nome" => $forma_pagamento["nome"], 
             "erros" => "Não foi possível criar a apólice"
           );
+          die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
         }
         
         $this->db->query( "DELETE FROM apolice_cobertura WHERE cotacao_id=$cotacao_id" );
         $coberturas = $this->db->query( "SELECT * FROM cotacao_cobertura WHERE cotacao_id=$cotacao_id" )->result_array();
-        //die( print_r( $coberturas, true ) );
+        
         foreach( $coberturas as $cobertura ) {
           $apolice_id = $apolice["apolice_id"];
           $cobertura_plano_id = $cobertura["cobertura_plano_id"];
@@ -1002,6 +1023,7 @@ class Pagamento extends CI_Controller {
   }
   
 }
+
 
 
 
