@@ -632,7 +632,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         // echo "****************** CPF: $cpf<br>";
         // Campos para cotação
         $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id);
-        if (!empty($camposCotacao['status'])){
+        if (empty($camposCotacao['status'])){
             $response->msg[] = ['id' => -1, 'msg' => $camposCotacao['response'], 'slug' => "cotacao_campos"];
             return $response;
         }
