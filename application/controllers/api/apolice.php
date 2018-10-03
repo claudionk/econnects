@@ -182,15 +182,24 @@ class Apolice extends CI_Controller {
     $this->load->model("apolice_movimentacao_model", "movimentacao");
     $this->load->model( "produto_parceiro_model", "produto_parceiro" );
 
-    $pedido = $this->db->query( "SELECT pedido_id FROM apolice WHERE apolice_id=$apolice_id" )->result_array();
+    $pedido = $this->db->query( "SELECT a.pedido_id, p.pedido_status_id FROM apolice a INNER JOIN pedido p ON (p.pedido_id=a.pedido_id) WHERE a.apolice_id=$apolice_id" )->result_array();
     if(!$pedido) {
       die( json_encode( array( "status" => false, "message" => "Apólice não encontrada" ) ) );
     }
+    $pedido = $pedido[0];
 
-    $pedido_id = $pedido[0]["pedido_id"];
+    $pedido_id = $pedido["pedido_id"];
+    if( $pedido["pedido_status_id"] != 3 && $pedido["pedido_status_id"] != 8 && $pedido["pedido_status_id"] == 12 ) {
+      die( json_encode( array( "status" => false, "message" => "Não é possível cancelar essa apólice. Motivo: o Pedido ainda não foi pago/faturado." ) ) );
+    }
     
     $pedido = $this->pedido->get($pedido_id);
     
+    $apolice_ja_cancelada = sizeof( $this->db->query( "SELECT * FROM apolice WHERE apolice_status_id=2 AND deletado=0" )->result_array() ) > 0;
+    if( $apolice_ja_cancelada ) {
+      die( json_encode( array( "status" => false, "message" => "Não é possível cancelar essa apólice. Motivo: a apólice já está cancelada." ) ) );
+    }
+
     $ja_tem_pedido_cancelado = sizeof( $this->db->query( "SELECT * FROM fatura WHERE pedido_id=$pedido_id AND tipo='ESTORNO' AND deletado=0" )->result_array() ) > 0;
     if( $ja_tem_pedido_cancelado ) {
       die( json_encode( array( "status" => false, "message" => "Não é possível cancelar essa apólice. Motivo: a apólice já está cancelada." ) ) );
@@ -199,9 +208,15 @@ class Apolice extends CI_Controller {
     //pega as configurações de cancelamento do pedido
     $produto_parceiro = $this->pedido->getPedidoProdutoParceiro($pedido_id);
 
-
     $produto_parceiro = $produto_parceiro[0];
-    $produto_parceiro_cancelamento = $this->pedido->cancelamento->filter_by_produto_parceiro($produto_parceiro["produto_parceiro_id"])->get_all();
+    $produto_parceiro_cancelamento = $this->pedido->cancelamento( $pedido_id );
+    //$produto_parceiro_cancelamento = $this->pedido->cancelamento->filter_by_produto_parceiro($produto_parceiro["produto_parceiro_id"])->get_all();
+    
+    if( isset( $produto_parceiro_cancelamento["result"] ) && $produto_parceiro_cancelamento["result"] == false ) {
+      die( json_encode( array( "status" => false, "message" => $produto_parceiro_cancelamento["mensagem"] ) ) );
+    } else {
+      die( json_encode( array( "status" => true, "message" => "Apólice cancelada com sucesso" ) ) );
+    }
     
     $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro["produto_parceiro_id"] );
 
@@ -259,8 +274,6 @@ class Apolice extends CI_Controller {
               break;
           }
         }
-
-
         if($ins_movimentacao) {
           $this->movimentacao->insMovimentacao("C", $apolice["apolice_id"]);
         }
@@ -334,6 +347,7 @@ class Apolice extends CI_Controller {
   }
 
 }
+
 
 
 

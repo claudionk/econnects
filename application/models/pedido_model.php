@@ -437,7 +437,33 @@ Class Pedido_Model extends MY_Model
 
   function getPedidoProdutoParceiro( $pedido_id = 0 ){
 
-
+    $pedidos = $this->db->query( "SELECT
+                                      pedido.pedido_id, 
+                                      pedido.cotacao_id, 
+                                      pedido.produto_parceiro_pagamento_id,
+                                      pedido.num_parcela, 
+                                      pedido.valor_parcela,
+                                      cotacao.produto_parceiro_id, 
+                                      produto.slug,
+                                      produto_parceiro.parceiro_id,
+                                      produto_parceiro_apolice.template as template_apolice
+                                  FROM
+                                      pedido
+                                      INNER JOIN cotacao ON ( cotacao.cotacao_id = pedido.cotacao_id )
+                                      INNER JOIN  produto_parceiro ON ( cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id)
+                                      INNER JOIN produto ON (produto.produto_id = produto_parceiro.produto_id)
+                                      LEFT JOIN produto_parceiro_apolice ON ( produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id)
+                                      LEFT JOIN cotacao_seguro_viagem ON ( cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id)
+                                      LEFT JOIN cotacao_equipamento ON ( cotacao_equipamento.cotacao_id = cotacao.cotacao_id)
+                                      LEFT JOIN cotacao_generico ON ( cotacao_generico.cotacao_id = cotacao.cotacao_id)
+                                  WHERE
+                                      pedido.pedido_id IN ($pedido_id) LIMIT 1" )->result_array();
+    if( $pedidos ) {
+      $pedido = $pedidos;
+    } else {
+      $pedido = array();
+    }
+    return $pedido;
 
     $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.produto_parceiro_pagamento_id,pedido.num_parcela, pedido.valor_parcela")
       ->select("cotacao.produto_parceiro_id, produto.slug")
@@ -499,49 +525,9 @@ Class Pedido_Model extends MY_Model
 
       return ($pedidos) ? $pedidos : array();
 
-    }else{
+    } else {
       return array();
     }
-
-
-    /*
-        if($pedidos){
-            $pedido = $pedidos[0];
-
-
-
-            $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.produto_parceiro_pagamento_id,pedido.num_parcela, pedido.valor_parcela,")
-                ->select("cotacao.produto_parceiro_id")
-                ->join("cotacao", "cotacao.cotacao_id = pedido.cotacao_id", 'inner')
-                ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
-                ->where_in("pedido.pedido_id", $pedido_id);
-
-
-            $pedidos = $this->get_all();
-        }else{
-            return array();
-        }
-
-
-
-        $pedido_id = (int)$pedido_id;
-
-        $sql = "
-                SELECT pedido.pedido_id, pedido.cotacao_id, pedido.produto_parceiro_pagamento_id,pedido.num_parcela, pedido.valor_parcela, 
-
-
-                ,
-                ,
-                (SELECT produto_parceiro_apolice.template FROM produto_parceiro_apolice where produto_parceiro_apolice.produto_parceiro_id = cotacao_seguro_viagem.produto_parceiro_id and produto_parceiro_apolice.deletado = 0 LIMIT 1) as template_apolice
-                from pedido
-                inner JOIN cotacao ON cotacao.cotacao_id = pedido.cotacao_id
-                inner JOIN cotacao_seguro_viagem ON cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id
-                inner join produto_parceiro ON produto_parceiro.produto_parceiro_id = cotacao_seguro_viagem.produto_parceiro_id
-                WHERE pedido.pedido_id = {$pedido_id} and cotacao_seguro_viagem.deletado = 0 and cotacao.deletado = 0
-        ";
-
-        return $this->_database->query($sql)->result_array();*/
-
   }
 
 
@@ -661,32 +647,20 @@ Class Pedido_Model extends MY_Model
     $pedido = $this->get($pedido_id);
 
     if($pedido){
-
-
       if(($pedido['pedido_status_id'] == 3) || ($pedido['pedido_status_id'] == 8) || ($pedido['pedido_status_id'] == 12) ) {
-
         $apolices = $this->apolice->getApolicePedido($pedido_id);
-
-
-        if ($apolices) {
-
+        if( $apolices ) {
           foreach ($apolices as $apolice) {
             $fim_vigencia = explode('-', $apolice['data_fim_vigencia']);
             $fim_vigencia = mktime(0, 0, 0, $fim_vigencia[1], $fim_vigencia[2], $fim_vigencia[0]);
             if (mktime(0, 0, 0, date('m'), date('d'), date('Y')) < $fim_vigencia) {
               $result = TRUE;
             }
-
           }
-
-
         }
       }
-
     }
-
     return $result;
-
   }
 
   function isPermiteUpgrade($pedido_id){
@@ -746,7 +720,6 @@ Class Pedido_Model extends MY_Model
       'redirect' => "admin/pedido/index",
     );
 
-
     $pedido = $this->get($pedido_id);
 
 
@@ -754,7 +727,7 @@ Class Pedido_Model extends MY_Model
     //varifica se existe o registro
     if(!$pedido){
       $result['result'] = FALSE;
-      $result['mensagem'] = 'Não foi possível encontrar o registro.';
+      $result['mensagem'] = 'Não foi possível encontrar o pedido informado.';
       $result['redirect'] = "admin/pedido/index";
       return $result;
     }
@@ -762,9 +735,9 @@ Class Pedido_Model extends MY_Model
 
     //varifica se é permitido cancelar
     if(!$this->isPermiteCancelar($pedido_id)){
-      $result['result'] = FALSE;
-      $result['mensagem'] = 'Não foi possível cancelar esse PEDIDO.';
-      $result['redirect'] = "admin/pedido/view/{$pedido_id}";
+      $result["result"] = FALSE;
+      $result["mensagem"] = "Não foi possível efetuar o cancelamento desse Pedido/Apólice. Motivo: fora de vigência";
+      $result["redirect"] = "admin/pedido/view/{$pedido_id}";
       return $result;
     }
 
@@ -775,7 +748,7 @@ Class Pedido_Model extends MY_Model
 
     if(!$produto_parceiro){
       $result['result'] = FALSE;
-      $result['mensagem'] = 'Produto não encontrado.';
+      $result['mensagem'] = 'Não foi possível encontrar o produto relacionado a esse pedido.';
       $result['redirect'] = "admin/pedido/view/{$pedido_id}";
       return $result;
     }
@@ -812,12 +785,9 @@ Class Pedido_Model extends MY_Model
     $inicio_vigencia = explode('-', $apolice['data_ini_vigencia']);
     $inicio_vigencia = mktime(0, 0, 0, $inicio_vigencia[1], $inicio_vigencia[2], $inicio_vigencia[0]);
 
-
     $hoje = mktime(0, 0, 0, date('m'), date('d'), date('Y'));
 
-    //exit("$hoje > $inicio_vigencia");
-
-    if ($hoje >= $inicio_vigencia) {
+    if ( $hoje >= $inicio_vigencia && $hoje <= $fim_vigencia ) {
       //Já comeceu a vigencia
       if($produto_parceiro_cancelamento['seg_depois_hab'] == 0){
         //não pode executar cancelamento antes do início da vigência
@@ -844,32 +814,29 @@ Class Pedido_Model extends MY_Model
       }
 
 
-    }elseif ($hoje < $inicio_vigencia){
-      //Ainda não começo a vigência
+    } elseif ( $hoje < $inicio_vigencia ) {
       if($produto_parceiro_cancelamento['seg_antes_hab'] == 0){
-        //não pode executar cancelamento antes do início da vigência
         $result['result'] = FALSE;
         $result['mensagem'] = 'Cancelamento não permitido antes do início da vigência';
         $result['redirect'] = "admin/pedido/view/{$pedido_id}";
         return $result;
-      }else{
-        // pode efetuar o cancelamento antes do início da vigência
+      } else {
         if($produto_parceiro_cancelamento['seg_antes_dias'] != 0){
-          // verifica a quantidade de dias que pode executar o cancelamento antes do inicio da vigência
           $qnt_dias = app_date_get_diff_dias(date('d/m/Y'), app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), 'D');
           if($qnt_dias < $produto_parceiro_cancelamento['seg_antes_dias']){
-            //não pode executar cancelamento com limite de dias antes do início da vigência
             $result['result'] = FALSE;
             $result['mensagem'] = "Cancelamento só é permitido até {$produto_parceiro_cancelamento['seg_antes_dias']} dia(s) antes do início da vigência";
             $result['redirect'] = "admin/pedido/view/{$pedido_id}";
             return $result;
           }
         }
-
-        // efetuar o cancelamento
         $this->executa_extorno_cancelamento($pedido_id, FALSE);
       }
-
+    } else {
+      $result['result'] = FALSE;
+      $result['mensagem'] = 'Cancelamento não permitido fora do período de vigência';
+      $result['redirect'] = "admin/pedido/view/{$pedido_id}";
+      return $result;
     }
 
 
@@ -914,14 +881,9 @@ Class Pedido_Model extends MY_Model
     $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro["produto_parceiro_id"] );
 
     if($vigente == FALSE){
-      //FAZ CALCULO DO VALOR COMPLETO
-
       foreach ($apolices as $apolice) {
-
-        $valor_premio = $apolice['valor_premio_total'];
-
-        $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento['seg_antes_calculo'], $produto_parceiro_cancelamento['seg_antes_valor'], $valor_premio);
-
+        $valor_premio = $apolice["valor_premio_total"];
+        $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento["seg_antes_calculo"], $produto_parceiro_cancelamento["seg_antes_valor"], $valor_premio);
         $dados_apolice = array();
 
         $dados_apolice['data_cancelamento'] = date('Y-m-d H:i:s');
@@ -943,38 +905,39 @@ Class Pedido_Model extends MY_Model
               break;
           }
         }
-
         if($ins_movimentacao) {
           $this->movimentacao->insMovimentacao('C', $apolice['apolice_id']);
         }
-
       }
 
     }else{
-
       //FAZ CALCULO DO VALOR PARCIAL
-      $dias_restantes = app_date_get_diff_dias(date('d/m/Y'), app_dateonly_mysql_to_mask($apolice['data_fim_vigencia']), 'D');
-      $dias_utilizado = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), date('d/m/Y'),  'D') + 1;
-      $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), app_dateonly_mysql_to_mask($apolice['data_fim_vigencia']),  'D') + 1;
 
-      $porcento_nao_utilziado = 0;
-      if ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_utilizado <= $produto_parceiro_cancelamento['seg_depois_dias_carencia']) {
-          $porcento_nao_utilziado = 100;
+      $dias_restantes = app_date_get_diff_dias(date("d/m/Y"), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]), "D") + 1 ;
+      $dias_utilizados = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), date("d/m/Y"),  "D") + 1;
+      $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]),  "D");
+
+      $porcento_nao_utilizado = ((($dias_restantes) / $dias_total) * 100);
+      if ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_utilizados <= $produto_parceiro_cancelamento['seg_depois_dias_carencia']) {
+        $dias_restantes = $dias_total;
       }
 
-      if ($porcento_nao_utilziado == 0) {
-        $porcento_nao_utilziado = (($dias_restantes / $dias_total) * 100);
+      $porcento_nao_utilizado = 0;
+      if ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_utilizados <= $produto_parceiro_cancelamento['seg_depois_dias_carencia']) {
+        $porcento_nao_utilizado = 100;
+      }
+
+      if ($porcento_nao_utilizado == 0) {
+        $porcento_nao_utilizado = (($dias_restantes / $dias_total) * 100);
       }
 
       foreach ($apolices as $apolice) {
 
         $valor_premio = $apolice['valor_premio_total'];
-        $valor_premio = (($porcento_nao_utilziado / 100) * $valor_premio);
-
+        $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
         $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento['seg_depois_calculo'], $produto_parceiro_cancelamento['seg_depois_valor'], $valor_premio);
 
         $dados_apolice = array();
-
         $dados_apolice['data_cancelamento'] = date('Y-m-d H:i:s');
         $dados_apolice['valor_estorno'] = $valor_estorno;
         $valor_estorno_total += $valor_estorno;
@@ -994,11 +957,8 @@ Class Pedido_Model extends MY_Model
               break;
           }
         }
-
         $this->movimentacao->insMovimentacao('C', $apolice['apolice_id']);
-
       }
-
     }
 
 
@@ -1225,13 +1185,13 @@ Class Pedido_Model extends MY_Model
       }
     }
 
-    
+
     if( isset( $dados["bandeira"] ) && $dados["bandeira"] != "" ) {
       $dados_bandeira = "_" . $dados['bandeira'];
     } else {
       $dados_bandeira = "_" . $item["produto_parceiro_pagamento_id"];
     }
-    
+
     if( !isset( $dados["parcelamento{$dados_bandeira}"] ) && isset( $dados["num_parcela"] ) ) {
       $dados["parcelamento{$dados_bandeira}"] = $dados["num_parcela"];
     }
@@ -1250,7 +1210,7 @@ Class Pedido_Model extends MY_Model
       );
     }
     //die( json_encode( $dados, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );    
-    
+
     $dados_pedido = array();
     $dados_pedido["cotacao_id"] = $dados["cotacao_id"];
     $dados_pedido["produto_parceiro_pagamento_id"] = isset( $item["produto_parceiro_pagamento_id"] ) ? $item["produto_parceiro_pagamento_id"] : "";
@@ -1261,16 +1221,16 @@ Class Pedido_Model extends MY_Model
     $dados_pedido["num_parcela"] = $dados["parcelamento{$dados_bandeira}"];
     $dados_pedido["valor_parcela"] = $parcelamento[$dados["parcelamento{$dados_bandeira}"]];
     $dados_pedido["alteracao_usuario_id"] = $this->session->userdata("usuario_id");
-    
+
     //die( json_encode( $dados_pedido, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
-    
+
     $pedido_id = $this->insert( $dados_pedido, true );
     $this->pedido_transacao->insStatus( $pedido_id, "criado" );
 
     unset( $dados["parcelamento{$dados_bandeira}"] );
     $dados_bandeira = $dados["bandeira"];
     unset( $dados["bandeira"] );
-    
+
     $this->fatura->insFaturaParcelas( $pedido_id, $dados["cotacao_id"], 1, $valor_total, $dados_pedido["num_parcela"], $dados_pedido["valor_parcela"], $dados["produto_parceiro_id"] );
     $faturas = $this->fatura->filterByPedido($pedido_id)->get_all();
     if( $faturas ) {
@@ -1282,14 +1242,14 @@ Class Pedido_Model extends MY_Model
         $dados["fatura_parcela_id"] = $fatura_parcela["fatura_parcela_id"];
       }
     }
-    
+
     //die( json_encode( $dados, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
-    
+
     $dados["bandeira"] = $dados_bandeira;
     $this->insDadosPagamento( $dados, $pedido_id );
 
     $this->cotacao->update( $dados["cotacao_id"], array( "cotacao_status_id" => 2 ), true );
-
+    //ob_clean();
     return $pedido_id;
 
   }
@@ -1438,7 +1398,7 @@ Class Pedido_Model extends MY_Model
 
       $this->pedido_cartao->insert($dados_cartao, true);
       $this->pedido_transacao->insStatus($pedido_id, "Aguardando_pagamento");
-      
+
     }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_DEBITO){
 
       $this->load->library("encrypt");
@@ -1468,27 +1428,27 @@ Class Pedido_Model extends MY_Model
       if( isset( $dados["cotacao_id"] ) ) {
         unset( $dados["cotacao_id"] );
       }
-      
+
       if( isset( $dados["produto_parceiro_id"] ) ) {
         unset( $dados["produto_parceiro_id"] );
       }
-      
+
       if( isset( $dados["pedido_id"] ) ) {
         unset( $dados["pedido_id"] );
       }
-      
+
       if( isset( $dados["forma_pagamento_id"] ) ) {
         unset( $dados["forma_pagamento_id"] );
       }
-      
+
       if( isset( $dados["forma_pagamento_tipo_id"] ) ) {
         unset( $dados["forma_pagamento_tipo_id"] );
       }
-      
+
       if( isset( $dados["num_parcela"] ) ) {
         unset( $dados["num_parcela"] );
       }
-      
+
       $dados_boleto = $dados;
 
       $dados_boleto["processado"] = 0;
@@ -1498,6 +1458,7 @@ Class Pedido_Model extends MY_Model
 
   }
 }
+
 
 
 
