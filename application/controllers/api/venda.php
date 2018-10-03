@@ -716,7 +716,7 @@ class Venda extends Api_Controller
         case self::TIPO_CALCULO_BRUTO:
           $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
           $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
-          $valor = ($valor) - (($valor) * (($markup + $comissao_corretor)/100));
+          //$valor = ($valor) - (($valor) * (($markup + $comissao_corretor)/100));
           $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
           $valor -= $desconto_condicional_valor;
           $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
@@ -814,7 +814,6 @@ class Venda extends Api_Controller
       $arrPlanos = $this->plano->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
     }
 
-
     $valores = array();
     error_log( "PRECO_POR_EQUIPAMENTO (equipamento_categora_id): ". print_r( $equipamento_categora_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
     error_log( "PRECO_POR_EQUIPAMENTO (arrPlanos): ". print_r( $arrPlanos, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
@@ -835,6 +834,22 @@ class Venda extends Api_Controller
           }
           break;
         case self::PRECO_TIPO_COBERTURA:
+          
+          $this->load->model("produto_parceiro_plano_precificacao_itens_model", "produto_parceiro_plano_precificacao_itens");
+          $this->load->model("produto_parceiro_plano_precificacao_model", "produto_parceiro_plano_precificacao");
+          $this->load->model("equipamento_model", "equipamento");
+          $this->load->model("cobertura_plano_model", "plano_cobertura");
+          $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
+          $arrCoberturas = $this->plano_cobertura->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)->get_all();
+          foreach ($arrCoberturas as $idx => $cob) {
+            if( $arrCoberturas[$idx]["mostrar"] == "importancia_segurada" ) {
+              $valor_cobertura_plano = $valor_cobertura_plano + floatval( $valor_nota ) * ( floatval( $arrCoberturas[$idx]["porcentagem"] ) / 100 );
+            }
+            if( $arrCoberturas[$idx]["mostrar"] == "preco" ) {
+              $valor_cobertura_plano = $valor_cobertura_plano + floatval( $arrCoberturas[$idx]["preco"] );
+            }
+          }
+          $valores[$produto_parceiro_plano_id] = $valor_cobertura_plano;
           break;
         case self::PRECO_TIPO_VALOR_SEGURADO:
           $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
@@ -872,6 +887,7 @@ class Venda extends Api_Controller
       }
     }
     error_log( "GENÉRICO (VALORES): ". print_r( $valores, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+    
     return $valores;
 
 
@@ -1193,7 +1209,7 @@ error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) 
         case self::TIPO_CALCULO_BRUTO:
           $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
           $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
-          $valor = ($valor) - (($valor) * (($markup + $comissao_corretor)/100));
+          //$valor = ($valor) - (($valor) * (($markup + $comissao_corretor)/100));
           $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
           $valor -= $desconto_condicional_valor;
           $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
@@ -1988,6 +2004,8 @@ error_log( "Valor nota: $valor_nota\nTipo cobranca: " . print_r( $valor, true ) 
   }
 
 }
+
+
 
 
 

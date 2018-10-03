@@ -768,12 +768,12 @@ class Venda extends Admin_Controller {
           $data_pessoa['sexo'] = $this->input->post("plano_{$plano}_sexo");
           $data_pessoa['contato_telefone'] = $this->input->post("plano_{$plano}_contato_telefone");
           $data_pessoa['endereco_cep'] = $this->input->post("plano_{$plano}_endereco_cep");
-          $data_pessoa['endereco'] = $this->input->post("plano_{$plano}_endereco");
+          $data_pessoa['endereco_logradouro'] = $this->input->post("plano_{$plano}_endereco_logradouro");
           $data_pessoa['endereco_numero'] = $this->input->post("plano_{$plano}_endereco_numero");
           $data_pessoa['endereco_complemento'] = $this->input->post("plano_{$plano}_endereco_complemento");
           $data_pessoa['endereco_bairro'] = $this->input->post("plano_{$plano}_endereco_bairro");
           $data_pessoa['endereco_cidade'] = $this->input->post("plano_{$plano}_endereco_cidade");
-          $data_pessoa['endereco_uf'] = $this->input->post("plano_{$plano}_endereco_uf");
+          $data_pessoa['endereco_estado'] = $this->input->post("plano_{$plano}_endereco_estado");
 
           $this->pessoa->insert($data_pessoa, TRUE);
 
@@ -800,12 +800,12 @@ class Venda extends Admin_Controller {
 
             $data_pessoa['contato_telefone'] = $this->input->post("plano_{$plano}_contato_telefone");
             $data_pessoa['endereco_cep'] = $this->input->post("plano_{$plano}_endereco_cep");
-            $data_pessoa['endereco'] = $this->input->post("plano_{$plano}_endereco");
+            $data_pessoa['endereco_logradouro'] = $this->input->post("plano_{$plano}_endereco_logradouro");
             $data_pessoa['endereco_numero'] = $this->input->post("plano_{$plano}_endereco_numero");
             $data_pessoa['endereco_complemento'] = $this->input->post("plano_{$plano}_endereco_complemento");
             $data_pessoa['endereco_bairro'] = $this->input->post("plano_{$plano}_endereco_bairro");
             $data_pessoa['endereco_cidade'] = $this->input->post("plano_{$plano}_endereco_cidade");
-            $data_pessoa['endereco_uf'] = $this->input->post("plano_{$plano}_endereco_uf");
+            $data_pessoa['endereco_estado'] = $this->input->post("plano_{$plano}_endereco_estado");
             $data_pessoa['email'] = $cotacao_seguro_viagem['email'];
 
             $this->pessoa->insert($data_pessoa, TRUE);
@@ -2619,12 +2619,12 @@ class Venda extends Admin_Controller {
           $data_dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_data_nascimento"] = app_dateonly_mysql_to_mask($row['data_nascimento']);
           $data_dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_contato_telefone"] = $row['contato_telefone'];
           $data_dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_endereco_cep"] = $row['endereco_cep'];
-          $data_dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_endereco"] = $row['endereco'];
+          $data_dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_endereco_logradouro"] = $row['endereco_logradouro'];
           $data_dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_endereco_numero"] = $row['endereco_numero'];
           $data_dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_endereco_complemento"] = $row['endereco_complemento'];
           $data_dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_endereco_bairro"] = $row['endereco_bairro'];
           $data_dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_endereco_cidade"] = $row['endereco_cidade'];
-          $data_dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_endereco_uf"] = $row['endereco_uf'];
+          $data_dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_endereco_estado"] = $row['endereco_estado'];
         }else{
           $data_dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_{$num_passageiro}_passageiro_nome"] = $row['nome'];
           $data_dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_{$num_passageiro}_sexo"] = $row['sexo'];
@@ -2892,6 +2892,7 @@ Array
   }
 
 }
+
 
 
 

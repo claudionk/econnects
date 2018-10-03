@@ -421,6 +421,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
     $data_cotacao = array_merge( $cotacao, $data_cotacao );
     unset( $data_cotacao["parceiro_id"] );
     unset( $data_cotacao["usuario_cotacao_id"] );
+    unset( $data_cotacao["url_busca_cliente"] );
     
     if(isset($cotacao['produto_parceiro_plano_id'])){
       $data_cotacao['produto_parceiro_plano_id'] = $cotacao['produto_parceiro_plano_id'];
@@ -636,8 +637,6 @@ Class Cotacao_Equipamento_Model extends MY_Model
       $cotacao_id = $this->cotacao->insert($dt_cotacao, TRUE);
       $data_cotacao['cotacao_id'] = $cotacao_id;
       $cotacao_equipamento_id = $this->insert($data_cotacao, TRUE);
-      
-
     }
 
     $cobertura_adicional = (!empty($carrossel['cobertura_adicional'])) ? explode(';', $carrossel['cobertura_adicional']) : array();
@@ -721,6 +720,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
   }
 
 }
+
 
 
 

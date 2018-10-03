@@ -16,7 +16,7 @@ Class Cotacao_Seguro_Viagem_Pessoa_Model extends MY_Model
 
     //campos para transformação em maiusculo e minusculo
     protected $fields_lowercase = array();
-    protected $fields_uppercase = array('nome', 'endereco', 'endereco_complemento', 'endereco_bairro', 'endereco_cidade', 'endereco_uf');
+    protected $fields_uppercase = array('nome', 'endereco_logradouro', 'endereco_complemento', 'endereco_bairro', 'endereco_cidade', 'endereco_estado');
     
     //Dados
     public $validate = array(
@@ -39,3 +39,4 @@ Class Cotacao_Seguro_Viagem_Pessoa_Model extends MY_Model
         return $this->get_by($this->primary_key, $id);
     }
 }
+

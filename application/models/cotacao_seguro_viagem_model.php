@@ -421,12 +421,12 @@ Class Cotacao_Seguro_Viagem_Model extends MY_Model
         $this->_database->select('cotacao_seguro_viagem_pessoa.rg');
         $this->_database->select('cotacao_seguro_viagem_pessoa.data_nascimento');
         $this->_database->select('cotacao_seguro_viagem_pessoa.endereco_cep');
-        $this->_database->select('cotacao_seguro_viagem_pessoa.endereco');
+        $this->_database->select('cotacao_seguro_viagem_pessoa.endereco_logradouro');
         $this->_database->select('cotacao_seguro_viagem_pessoa.endereco_numero');
         $this->_database->select('cotacao_seguro_viagem_pessoa.endereco_complemento');
         $this->_database->select('cotacao_seguro_viagem_pessoa.endereco_bairro');
         $this->_database->select('cotacao_seguro_viagem_pessoa.endereco_cidade');
-        $this->_database->select('cotacao_seguro_viagem_pessoa.endereco_uf');
+        $this->_database->select('cotacao_seguro_viagem_pessoa.endereco_estado');
         $this->_database->select('cotacao_seguro_viagem_pessoa.contato_telefone');
         $this->_database->select('cotacao_seguro_viagem_pessoa.sexo');
         $this->_database->select('cotacao_seguro_viagem_pessoa.email');
@@ -454,3 +454,4 @@ Class Cotacao_Seguro_Viagem_Model extends MY_Model
         return $this->get_by($this->primary_key, $id);
     }
 }
+

@@ -747,12 +747,12 @@ Class Apolice_Model extends MY_Model
             $dados_seguro_viagem['data_nascimento'] = $cotacao_pessoa['data_nascimento'];
             $dados_seguro_viagem['sexo'] = $cotacao_pessoa['sexo'];
             $dados_seguro_viagem['email'] = $cotacao_pessoa['email'];
-            $dados_seguro_viagem['endereco'] = $cotacao_pessoa['endereco'];
+            $dados_seguro_viagem['endereco'] = $cotacao_pessoa['endereco_logradouro'];
             $dados_seguro_viagem['endereco_numero'] = $cotacao_pessoa['endereco_numero'];
             $dados_seguro_viagem['endereco_complemento'] = $cotacao_pessoa['endereco_complemento'];
             $dados_seguro_viagem['endereco_bairro'] = $cotacao_pessoa['endereco_bairro'];
             $dados_seguro_viagem['endereco_cidade'] = $cotacao_pessoa['endereco_cidade'];
-            $dados_seguro_viagem['endereco_estado'] = $cotacao_pessoa['endereco_uf'];
+            $dados_seguro_viagem['endereco_estado'] = $cotacao_pessoa['endereco_estado'];
             $dados_seguro_viagem['endereco_cep'] = $cotacao_pessoa['endereco_cep'];
             $dados_seguro_viagem['contato_telefone'] = $cotacao_pessoa['contato_telefone'];
             $dados_seguro_viagem['origem_id'] = $cotacao_salva['origem_id'];
@@ -1290,6 +1290,7 @@ Class Apolice_Model extends MY_Model
 
 
 }
+
 
 
 
