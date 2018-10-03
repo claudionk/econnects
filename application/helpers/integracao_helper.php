@@ -538,13 +538,12 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                 // Endereço
                 $ExtraEnderecos = $enriquecido->endereco;
                 if( sizeof( $ExtraEnderecos ) ) {
-                    $dados['registro']['endereco'] = $ExtraEnderecos[0]->{"endereco"};
                     $dados['registro']['endereco_logradouro'] = $ExtraEnderecos[0]->{"endereco"};
                     $dados['registro']['endereco_numero'] = $ExtraEnderecos[0]->{"endereco_numero"};
                     $dados['registro']['complemento'] = $ExtraEnderecos[0]->{"endereco_complemento"};
                     $dados['registro']['endereco_bairro'] = $ExtraEnderecos[0]->{"endereco_bairro"};
                     $dados['registro']['endereco_cidade'] = $ExtraEnderecos[0]->{"endereco_cidade"};
-                    $dados['registro']['endereco_uf'] = $ExtraEnderecos[0]->{"endereco_uf"};
+                    $dados['registro']['endereco_estado'] = $ExtraEnderecos[0]->{"endereco_uf"};
                     $dados['registro']['endereco_cep'] = str_replace("-", "", $ExtraEnderecos[0]->{"endereco_cep"});
                     $dados['registro']['pais'] = "BRASIL";
                 }
@@ -633,8 +632,8 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         // echo "****************** CPF: $cpf<br>";
         // Campos para cotação
         $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id);
-        if (empty($camposCotacao['status'])){
-            $response->msg[] = "Campos da Cotação Error: ".$camposCotacao['response'];
+        if (!empty($camposCotacao['status'])){
+            $response->msg[] = ['id' => -1, 'msg' => $camposCotacao['response'], 'slug' => "cotacao_campos"];
             return $response;
         }
 
@@ -650,7 +649,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $emissao = app_integracao_emissao($formato, $dados);
 
             if (empty($emissao->status)) {
-                $response->msg[] = $emissao->msg;
+                $response->msg = $emissao->msg;
             } else {
                 $response->status = true;
             }
@@ -768,24 +767,22 @@ if ( ! function_exists('app_integracao_valida_regras'))
 
                 }
             }
-            
+
             if (empty($errors)) {
 
                 $fields['produto_parceiro_id'] = $dados['produto_parceiro_id'];
                 $fields['produto_parceiro_plano_id'] = $dados['produto_parceiro_plano_id'];
-                $fields['endereco_logradouro'] = $dados['endereco'];
-                $fields['endereco_estado'] = $dados['endereco_uf'];
                 $fields['equipamento_nome'] = $dados['equipamento_nome'];
-                $fields['equipamento_marca_id'] = $dados['equipamento_marca_id'];
+                if (!empty($dados['equipamento_marca_id']))
+                    $fields['equipamento_marca_id'] = $dados['equipamento_marca_id'];
+                if (!empty($dados['equipamento_categoria_id']))
                 $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
                 $fields['ean'] = $dados['ean'];
-                $fields['cod_loja'] = $dados['cod_loja'];
-                $fields['codigo_produto_sap'] = $dados['cod_produto_sap'];
 
                 // Cotação
                 $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields));
                 if (empty($cotacao['status'])) {
-                    $response->msg = "Cotação Error: ".$cotacao['response'];
+                    $response->errors = ['id' => -1, 'msg' => $cotacao['response'], 'slug' => "insere_cotacao"];
                     return $response;
                 }
 
@@ -796,7 +793,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 // Cálculo do prêmio
                 $calcPremio = app_get_api("calculo_premio/". $cotacao_id);
                 if (empty($calcPremio['status'])){
-                    $response->msg = "Calculo do Premio Error: ".$calcPremio['response'];
+                    $response->errors = ['id' => -1, 'msg' => $calcPremio['response'], 'slug' => "calcula_premio"];
                     return $response;
                 }
 
@@ -816,15 +813,6 @@ if ( ! function_exists('app_integracao_valida_regras'))
             }
 
          // Cancelamento
-        } else if ( in_array($dados['tipo_transacao'], ['XS','XI','XX']) ) {
-            // TODO: CANCELAMENTO
-            // Até 7 dias da compra = devolução integral (prêmio bruto de IOF) 
-            // A partir do 8o dia = Pró‐rata (prêmio líquido)
-
-            // Calculo do cancelamento
-
-            $response->msg = "A DESENVOLVER CANCELAMENTO";
-            return $response;
         }
 
         $response->status = true;
@@ -843,7 +831,7 @@ if ( ! function_exists('app_integracao_emissao'))
 
         $dados = $dados['registro'];
         $cotacao_id = $dados["cotacao_id"];
-        $certificado = $dados["certificado"];
+        $num_apolice = $dados["num_apolice"];
         $fields = $dados["fields"];
         $fields['cotacao_id'] = $cotacao_id;
         // echo "<pre>";print_r($fields);echo "</pre>";
@@ -854,20 +842,20 @@ if ( ! function_exists('app_integracao_emissao'))
             // Cotação Contratar
             $cotacao = app_get_api("cotacao_contratar", "POST", json_encode($fields));
             if (empty($cotacao['status'])) {
-                $response->msg = "Cotacao Contratar Error ". $cotacao['response'];
+                $response->msg[] = ['id' => -1, 'msg' => $cotacao['response'], 'slug' => "cotacao_contratar"];
                 return $response;
             }
 
             // Formas de Pagamento
             $formPagto = app_get_api("forma_pagamento_cotacao/$cotacao_id");
             if (empty($formPagto['status'])) {
-                $response->msg = "Formas de Pagto Error: ($cotacao_id) ". $formPagto['response'];
+                $response->msg[] = ['id' => -1, 'msg' => $formPagto['response'], 'slug' => "forma_pagamento_cotacao"];
                 return $response;
             }
 
             $formPagto = $formPagto['response'];
             if (empty($formPagto)) {
-                $response->msg = "Nenhum Meio de Pagamento encontrado";
+                $response->msg[] = ['id' => -1, 'msg' => 'Nenhum Meio de Pagamento encontrado', 'slug' => "forma_pagamento_cotacao"];
                 return $response;
             }
 
@@ -889,7 +877,7 @@ if ( ! function_exists('app_integracao_emissao'))
 
                 $efetuaPagto = app_get_api("pagamento_pagar", "POST", json_encode($camposPagto));
                 if (empty($efetuaPagto['status'])) {
-                    $response->msg = "Efetua Pagto Error: ($cotacao_id / $forma_pagamento_id) ". $efetuaPagto['response'];
+                    $response->msg[] = ['id' => -1, 'msg' => $efetuaPagto['response'], 'slug' => "pagamento_pagar"];
                     return $response;
                 }
 
@@ -900,12 +888,12 @@ if ( ! function_exists('app_integracao_emissao'))
                 // método para salvar a apólice
                 $fieldApolice = [
                     "apolice_id" => $response->apolice_id,
-                    "num_apolice" => $certificado,
+                    "num_apolice" => $num_apolice,
                 ];
 
                 $getApolice = app_get_api("apolice", "POST", json_encode($fieldApolice));
                 if (empty($getApolice['status'])) {
-                    $response->msg = "Apolice Error: ({$response->apolice_id} / {$certificado}) ". $getApolice['response'];
+                    $response->msg[] = ['id' => -1, 'msg' => $getApolice['response'], 'slug' => "apolice_get"];
                     return $response;
                 }
 
@@ -913,14 +901,43 @@ if ( ! function_exists('app_integracao_emissao'))
             }
 
             if (empty($response->pedido_id)) {
-                $response->msg = "Meio de Pagamento não configurado";
+                $response->msg[] = ['id' => -1, 'msg' => "Meio de Pagamento não configurado", 'slug' => "forma_pagamento_cotacao"];
                 return $response;
             }
 
         // Cancelamento
         } else if ( in_array($dados['tipo_transacao'], ['XS','XI','XX']) ) {
-            // TODO: CANCELAMENTO
-            // chamada da API para cancelamento
+            
+            // verifica se existe a emissão do certificado para gerar o cancelamento
+            $CI =& get_instance();
+            $acesso = app_integracao_generali_dados();
+
+            // usar a pesquisa por nome
+            $CI->load->model("apolice_model", "apolice");
+
+            //Faz o MATCH para consulta do Equipamento
+            $apolice = $CI->apolice->getApoliceByNumero($dados['num_apolice'], $acesso->parceiro_id);
+            // echo "<pre>";print_r($apolice);echo "</pre>";
+
+            //se encontrou algum parecido
+            if (empty($apolice)) {
+                $response->msg[] = ['id' => -1, 'msg' => "Apólice não encontrada", 'slug' => "cancelamento"];
+                return $response;
+            } else {
+                $apolice = $apolice[0];
+                if ($apolice['apolice_status_id'] != 1) {
+                    $response->msg[] = ['id' => -1, 'msg' => "Apólice {$apolice['nome']}", 'slug' => "cancelamento"];
+                    return $response;
+                }
+            }
+
+            // Cancelamento
+            $cancelaApolice = app_get_api("cancelar", "POST", json_encode(["apolice_id" => $apolice['apolice_id']]));
+            if (empty($cancelaApolice['status'])) {
+                $response->msg[] = ['id' => -1, 'msg' => $cancelaApolice['response'], 'slug' => "cancelamento"];
+                return $response;
+            }
+
         }
 
         $response->status = true;

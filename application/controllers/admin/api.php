@@ -45,6 +45,8 @@ class Api extends Site_Controller
         if (isset($retornoJson->status) && empty($retornoJson->status)) {
             header('X-Error-Message: '. $retornoJson->message, true, 500);
             $retorno["response"] = $retornoJson->message;
+            if (isset($retornoJson->erros))
+            $retorno["response"] .= print_r($retornoJson->erros, true);
         }
 
         return $retorno["response"];
@@ -173,4 +175,14 @@ class Api extends Site_Controller
         return;
     }
 
+    public function cancelar(){
+        // $this->stop=true;
+        $json = file_get_contents( "php://input" );
+        $retorno = $this->execute($this->url."apolice/cancelar", 'POST', $json);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output($retorno);
+        return;
+    }
 }
