@@ -138,11 +138,22 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         $this->_database->select("{$this->_table}.opcoes");
         $this->_database->select("{$this->_table}.validacoes");
         $this->_database->select("campo.nome");
-        $this->_database->select("campo.nome_banco");
+        $this->_database->select("CASE produto.slug 
+            WHEN 'equipamento' THEN
+                campo.nome_banco_equipamento
+            WHEN 'seguro_viagem' THEN
+                campo.nome_banco_viagem
+            WHEN 'generico' THEN
+                campo.nome_banco_generico
+            ELSE
+                campo.nome_banco
+        END AS nome_banco,", FALSE);
         $this->_database->select("campo.slug");
         $this->_database->select("campo.classes");
         $this->_database->join('campo', "campo.campo_id = {$this->_table}.campo_id", 'inner');
         $this->_database->join('campo_tipo', "campo_tipo.campo_tipo_id = {$this->_table}.campo_tipo_id", 'inner');
+        $this->_database->join('produto_parceiro', "produto_parceiro.produto_parceiro_id = {$this->_table}.produto_parceiro_id", 'inner');
+        $this->_database->join('produto', "produto_parceiro.produto_id = produto.produto_id", 'inner');
 
         $this->_database->where("campo_tipo.campo_tipo_id", $campo_tipo_id);
         $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
