@@ -959,7 +959,7 @@ if ( ! function_exists('app_integracao_emissao'))
             }
 
         // Cancelamento
-        } else if ( in_array($dados['tipo_transacao'], ['XS','XI','XX']) ) {
+        } else if ( in_array($dados['tipo_transacao'], ['XS','XX']) ) {
             
             // verifica se existe a emissão do certificado para gerar o cancelamento
             $CI =& get_instance();
@@ -1015,7 +1015,7 @@ if ( ! function_exists('app_integracao_id_transacao')) {
     function app_integracao_id_transacao($formato, $dados = array())
     {
         $num_apolice = app_integracao_apolice($formato, $dados);
-        $num_apolice .= $dados['registro']['num_endosso'].$dados['registro']['cod_ramo'].right('00'.$dados['registro']['num_parcela'], 2);
+        $num_apolice .= $dados['registro']['num_endosso'].$dados['registro']['cod_ramo'].$dados['registro']['num_parcela'];
         return $num_apolice;
     }
 }
