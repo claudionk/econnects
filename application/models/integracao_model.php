@@ -295,8 +295,8 @@ Class Integracao_Model extends MY_Model
         if($result){
             $result = $result[0];
             $dados_integracao = array();
-            // $dados_integracao['status'] = 'L';
-            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            $dados_integracao['status'] = 'L';
+            $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
@@ -316,8 +316,8 @@ Class Integracao_Model extends MY_Model
                 $this->processFileIntegracao($result, $result_file['file']);
             }
 
-            echo "FIM - R";
-            exit();
+            // echo " FIM - R";
+            // exit();
 
             $dados_integracao = array();
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
@@ -350,27 +350,26 @@ Class Integracao_Model extends MY_Model
         if($result){
             $result = $result[0];
             $dados_integracao = array();
-            // $dados_integracao['status'] = 'L';
-            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            $dados_integracao['status'] = 'L';
+            $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             $result_file = $this->createFileIntegracao($result);
 
-            echo "FIM - S";
-            exit();
+            // echo " FIM - S";
+            // exit();
 
             // se gerou conteúdo no arquivo
             $filename = $result_file['file'];
             $integracao_log_status_id = 5;
 
             if (!empty($filename)){
-                $filename = basename($filename);
                 $integracao_log_status_id = 3;
                 $this->sendFile($result, $filename);
             }
 
             $dados_log = array();
             $dados_log['processamento_fim'] = date('Y-m-d H:i:s');
-            $dados_log['nome_arquivo'] = $filename;
+            $dados_log['nome_arquivo'] = basename($filename);
             $dados_log['integracao_log_status_id'] = $integracao_log_status_id;
 
             $this->integracao_log->update($result_file['integracao_log_id'], $dados_log, TRUE);
@@ -455,7 +454,8 @@ Class Integracao_Model extends MY_Model
         $filename = "{$file}*";
 
         $this->ftp->connect($config);
-        $list = $this->ftp->list_files("{$integracao['diretorio']}{$filename}");
+        // $list = $this->ftp->list_files("{$integracao['diretorio']}{$filename}");
+        $list = $this->ftp->list_files("{$integracao['diretorio']}");
 
         $result = array(
             'file' => ''
@@ -463,15 +463,18 @@ Class Integracao_Model extends MY_Model
         $file_processar = '';
         if($list) {
             foreach ($list as $index => $item) {
+                if ( strpos($item, ".") === FALSE )
+                    continue;
+
                 $total = $this->integracao_log
                     ->filter_by_integracao($integracao['integracao_id'])
                     ->filter_by_file(basename($item))
                     ->get_total();
 
-                // if ((int)$total == 0) {
+                if ((int)$total == 0) {
                     $file_processar = $item;
                     break;
-                // }
+                }
             }
         }
 
@@ -501,7 +504,7 @@ Class Integracao_Model extends MY_Model
         $config['username'] = $integracao['usuario'];
         $config['password'] = $integracao['senha'];
         $config['port'] = $integracao['porta'];
-        $config['debug']	= TRUE;
+        $config['debug']    = TRUE;
         $filename = basename($file);
         $this->ftp->connect($config);
         $this->ftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);

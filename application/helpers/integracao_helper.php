@@ -460,6 +460,30 @@ if ( ! function_exists('app_integracao_format_file_name_generali')) {
     }
 
 }
+if ( ! function_exists('app_integracao_format_file_name_ret_sis')) {
+
+    function app_integracao_format_file_name_ret_sis($formato, $dados = array())
+    {
+
+        if(isset($dados['item']['integracao_id'])){
+
+            $CI =& get_instance();
+            $CI->load->model('integracao_model');
+            $num_sequencia = (int)$CI->integracao_model->get($dados['item']['integracao_id'])['sequencia'];
+            $num_sequencia++;
+            $CI->integracao_model->update($dados['item']['integracao_id'], array('sequencia' => $num_sequencia), TRUE);
+        }else{
+            $num_sequencia = 1;
+        }
+
+        $data = date('Ymd');
+        $num_sequencia = str_pad($num_sequencia,4, '0',STR_PAD_LEFT);
+
+        $file = "{$formato}_{$num_sequencia}_{$data}.TXT";
+        return  $file;
+    }
+
+}
 if ( ! function_exists('app_integracao_format_file_name_generali_conciliacao')) {
 
     function app_integracao_format_file_name_generali_conciliacao($formato, $dados = array())
