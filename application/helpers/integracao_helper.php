@@ -584,6 +584,35 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                 }
 
             }
+
+            // Regras DE/PARA
+            if (empty($dados['registro']['endereco_estado']))
+                $dados['registro']['endereco_estado'] = "SP";
+
+            if (empty($dados['registro']['endereco_cidade']))
+                $dados['registro']['endereco_cidade'] = "BARUERI";
+
+            if (empty($dados['registro']['endereco_bairro']))
+                $dados['registro']['endereco_bairro'] = $dados['registro']['endereco_cidade'];
+
+            if (empty($dados['registro']['endereco_logradouro']))
+                $dados['registro']['endereco_logradouro'] = "ALAMEDA RIO NEGRO";
+
+            if (empty($dados['registro']['endereco_numero']))
+                $dados['registro']['endereco_numero'] = '0';
+
+            if (empty($dados['registro']['endereco_cep']))
+                $dados['registro']['endereco_cep'] = '06454000';
+
+            if (empty($dados['registro']['data_nascimento'])) {
+                $dados['registro']['data_nascimento'] = '2000-01-01';
+            } elseif (!app_validate_data_americana($dados['registro']['data_nascimento'])) {
+                $dados['registro']['data_nascimento'] = '2000-01-01';
+            }
+
+            if (empty($dados['registro']['sexo']))
+                $dados['registro']['sexo'] = 'M';
+
         }
 
         if (!empty($ean)) {
@@ -729,7 +758,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
             }
 
             // IDADE - Pessoa física maior de 18 anos
-            if (!empty($dados["data_nascimento"])){
+            if (!empty($dados["data_nascimento"]) && $dados["data_nascimento"] != '2000-01-01'){
                 $d1 = new DateTime($dados["data_nascimento"]);
 
                 $diff = $now->diff($d1);
@@ -751,7 +780,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
 
                         switch ($val) {
                             case "required":
-                                if( !isset( $dados[$campo->nome_banco] ) || empty( trim($dados[$campo->nome_banco]) ) )
+                                if( !isset( $dados[$campo->nome_banco] ) || ( empty( trim($dados[$campo->nome_banco]) ) && $dados[$campo->nome_banco] != '0') )
                                     $errors[] = ['id' => 1, 'msg' => "Campo {$campo->label} é obrigatório", 'slug' => $campo->nome_banco];
                                 break;
                             case "validate_cpf":
@@ -801,7 +830,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $valor_premio = $calcPremio->premio_liquido;
 
                 // if ($valor_premio != $dados["premio_liquido"]) {
-                //     $errors[] = ['id' => 6, 'msg' => "Campo PREMIO DE SEGUROS TOTAL difere do valor calculado [". $valor_premio ." x ". $dados["premio_liquido"] ."]", 'slug' => "data_nascimento"];
+                //     $errors[] = ['id' => 7, 'msg' => "Campo PREMIO DE SEGUROS TOTAL difere do valor calculado [". $valor_premio ." x ". $dados["premio_liquido"] ."]", 'slug' => "premio_liquido"];
                 // }
 
                 $response->fields = $fields;
@@ -962,8 +991,7 @@ if ( ! function_exists('app_integracao_id_transacao')) {
     function app_integracao_id_transacao($formato, $dados = array())
     {
         $num_apolice = app_integracao_apolice($formato, $dados);
-        $num_apolice_aux = $num_apolice.$dados['registro']['num_endosso'].$dados['registro']['cod_ramo'].$dados['registro']['num_parcela'];
-
-        return $num_apolice_aux;
+        $num_apolice .= $dados['registro']['num_endosso'].$dados['registro']['cod_ramo'].right('00'.$dados['registro']['num_parcela'], 2);
+        return $num_apolice;
     }
 }
