@@ -713,7 +713,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
         return $response;
     }
-
 }
 if ( ! function_exists('app_get_api'))
 {
@@ -732,7 +731,7 @@ if ( ! function_exists('app_get_api'))
             exit();
         }
 
-        $ret = ['status' => false, 'response' => 'Falha na chamada do serviço'];
+        $ret = ['status' => false, 'response' => "Falha na chamada do serviço ($service)", 'ret' => $retorno];
         $response = (!empty($retorno["response"])) ? json_decode($retorno["response"]) : '';
         if (!empty($retorno["response"])){
             $response = json_decode($retorno["response"]);
@@ -853,9 +852,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $calcPremio = $calcPremio['response'];
                 $valor_premio = $calcPremio->premio_liquido;
 
-                // if ($valor_premio != $dados["premio_liquido"]) {
-                //     $errors[] = ['id' => 7, 'msg' => "Campo PREMIO DE SEGUROS TOTAL difere do valor calculado [". $valor_premio ." x ". $dados["premio_liquido"] ."]", 'slug' => "premio_liquido"];
-                // }
+                if ($valor_premio != $dados["premio_liquido"]) {
+                    $errors[] = ['id' => 7, 'msg' => "Campo PREMIO DE SEGUROS TOTAL difere do valor calculado [". $valor_premio ." x ". $dados["premio_liquido"] ."]", 'slug' => "premio_liquido"];
+                }
 
                 $response->fields = $fields;
             }
@@ -997,7 +996,6 @@ if ( ! function_exists('app_integracao_emissao'))
         return $response;
     }
 }
-
 if ( ! function_exists('app_integracao_apolice')) {
     function app_integracao_apolice($formato, $dados = array())
     {
