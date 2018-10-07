@@ -119,18 +119,13 @@ Class Comissao_Gerada_Model extends MY_Model {
     foreach ($result as $item) {
 
       //retira o IOF da compra
-      $premio_liquido_total = $item["premio_liquido_total"] * ((100-($item["iof"]))/100);
-
-
-
+      $premio_liquido_total = $item["premio_liquido"];
       $relacionamento = array();
 
       $parceiro_relacionamento = $this->parceiro_relacionamento_produto
         ->filter_by_produto_parceiro($item['produto_parceiro_id'])
         //->filter_by_parceiro($item['parceiro_id'])
         ->get_all();
-
-
 
       foreach( $parceiro_relacionamento as $parceiro ) {
         if( $parceiro["pai_id"] != 0 ) {
