@@ -43,8 +43,7 @@ Class Comissao_Gerada_Model extends MY_Model {
                   cotacao_equipamento.iof, 
                   cotacao_equipamento.premio_liquido_total,
                   cotacao_equipamento.comissao_corretor 
-              FROM
-                  pedido
+              FROM pedido
               INNER JOIN cotacao ON pedido.cotacao_id = cotacao.cotacao_id
               INNER JOIN cotacao_equipamento ON cotacao_equipamento.cotacao_id = cotacao.cotacao_id
               WHERE 
@@ -61,10 +60,7 @@ Class Comissao_Gerada_Model extends MY_Model {
     foreach ($result as $item) {
 
       //retira o IOF da compra
-      //$premio_liquido_total = $item['premio_liquido_total'] -  ($item['premio_liquido_total'] * ($item['iof']/100));
-      $premio_liquido_total = $item["premio_liquido_total"] * ((100-($item["iof"]))/100);
-
-
+      $premio_liquido_total = $item["premio_liquido"];
       $comissao_venda =  ($item['comissao_corretor']/100) * $premio_liquido_total;
 
       $data_comissao = array();
