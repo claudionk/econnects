@@ -179,11 +179,12 @@ Class Apolice_Model extends MY_Model
     $this->load->model('pedido_model', 'pedido');
     $this->load->model('cotacao_model', 'cotacao');
     $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento');
+    $this->load->model('cotacao_cobertura_model', 'cotacao_cobertura');
 
     $this->load->model('apolice_numero_seq_model', 'apolice_seq');
     $this->load->model('apolice_equipamento_model', 'apolice_equipamento');
     $this->load->model('produto_parceiro_apolice_range_model', 'apolice_range');
-
+    $this->load->model('apolice_cobertura_model', 'apolice_cobertura');
 
     $this->load->model('produto_parceiro_desconto_model', 'parceiro_desconto');
     $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
@@ -361,6 +362,26 @@ Class Apolice_Model extends MY_Model
       $evento['mensagem']['apolices'] .= "Nome: {$dados_equipamento['nome']} - Apólice código: {$apolice_id} <br>";
       $evento['mensagem']['apolice_codigo'] = $this->get_codigo_apolice($apolice_id);
       $evento['mensagem']['anexos'][] = $this->certificado($apolice_id, 'pdf_file');
+
+      $this->apolice_cobertura->deleteByCotacao($pedido['cotacao_id']);
+
+      $coberturas = $this->cotacao_cobertura
+        ->filterByID($pedido['cotacao_id'])
+        ->get_all();
+
+      foreach( $coberturas as $cobertura ) {
+
+        $dados_apolice_cobertura = [
+          'cotacao_id' => $pedido['cotacao_id'],
+          'pedido_id' => $pedido_id,
+          'apolice_id' => $apolice_id,
+          'cobertura_plano_id' => $cobertura["cobertura_plano_id"],
+          'valor' => $cobertura["valor"],
+          'criacao' => date("Y-m-d H:i:s")
+        ];
+
+        $this->apolice_cobertura->insert($dados_apolice_cobertura, TRUE);
+      }
     }
 
     if (isset($cotacao_salvas[0])) {

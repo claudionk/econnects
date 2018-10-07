@@ -887,17 +887,6 @@ class Pagamento extends CI_Controller {
           die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
         }
         
-        $this->db->query( "DELETE FROM apolice_cobertura WHERE cotacao_id=$cotacao_id" );
-        $coberturas = $this->db->query( "SELECT * FROM cotacao_cobertura WHERE cotacao_id=$cotacao_id" )->result_array();
-        
-        foreach( $coberturas as $cobertura ) {
-          $apolice_id = $apolice["apolice_id"];
-          $cobertura_plano_id = $cobertura["cobertura_plano_id"];
-          $valor_cobertura = $cobertura["valor"];
-          $this->db->query( "INSERT INTO apolice_cobertura(cotacao_id, pedido_id, apolice_id, cobertura_plano_id, valor, criacao ) values( $cotacao_id, $pedido_id, $apolice_id, $cobertura_plano_id, $valor_cobertura, '" . date("Y-m-d H:i:s") . "')" );
-        }
-
-        
         die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
       }
       
