@@ -654,7 +654,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                 print_r($enriquecido);
                 echo "</pre>";
 
-                $response->msg[] = ['id' => 10, 'msg' => $cpfErroMsg, 'slug' => "enriquece_cpf"];
+                $response->msg[] = ['id' => 10, 'msg' => $cpfErroMsg ." [{$cpf}]", 'slug' => "enriquece_cpf"];
                 return $response;
             }
 
@@ -711,7 +711,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                 print_r($EANenriquecido);
                 echo "</pre>";
 
-                $response->msg[] = ['id' => 11, 'msg' => $eanErroMsg, 'slug' => "enriquece_ean"];
+                $response->msg[] = ['id' => 11, 'msg' => $eanErroMsg ." [{$ean}]", 'slug' => "enriquece_ean"];
                 return $response;
             }
         }
