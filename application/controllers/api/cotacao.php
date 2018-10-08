@@ -514,8 +514,8 @@ class Cotacao extends CI_Controller {
       //'valores_totais_cobertura_adicional' => $valores_cobertura_adicional_total,
       //'valores_liquido' => $valores_liquido,
       //'valores_liquido_total' => $valores_liquido_total,
-      'premio_liquido' => app_format_currency((float)$valores_liquido[$produto_parceiro_plano_id]),
-      'premio_liquido_total' => app_format_currency((float)$valores_liquido_total[$produto_parceiro_plano_id]),
+      'premio_liquido' => number_format((float)$valores_liquido[$produto_parceiro_plano_id], 2, '.' , ''),
+      'premio_liquido_total' => number_format((float)$valores_liquido_total[$produto_parceiro_plano_id], 2, '.' , ''),
       'iof' => (float)$iof
     );
     

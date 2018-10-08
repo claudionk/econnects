@@ -887,7 +887,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 }
 
                 $calcPremio = $calcPremio['response'];
-                $valor_premio = $calcPremio->premio_liquido;
+                $valor_premio = $calcPremio->premio_liquido_total;
 
                 if ($valor_premio != $dados["premio_liquido"]) {
                     $errors[] = ['id' => 7, 'msg' => "Campo PREMIO DE SEGUROS TOTAL difere do valor calculado [". $valor_premio ." x ". $dados["premio_liquido"] ."]", 'slug' => "premio_liquido"];
