@@ -970,7 +970,7 @@ class Venda_Equipamento extends Admin_Controller {
       $arrCoberturas = $this->plano_cobertura->filter_by_produto_parceiro_plano($plano['produto_parceiro_plano_id'])->get_all();
       foreach ($arrCoberturas as $idx => $cob) {
         $arrCoberturas[$idx]['preco'] = app_format_currency($arrCoberturas[$idx]['preco'], true, 3);
-        $arrCoberturas[$idx]['porcentagem'] = app_format_currency($arrCoberturas[$idx]['porcentagem'], false, 3) . ' %';
+        $arrCoberturas[$idx]['porcentagem'] = app_format_currency($arrCoberturas[$idx]['porcentagem'], false, 5) . ' %';
       }
       $plano['cobertura'] = $arrCoberturas;
       $data['planos'][] = $plano;

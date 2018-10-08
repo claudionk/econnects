@@ -154,7 +154,7 @@ if($_POST)
                           <div class="form-group <?php echo $field_name ?>">
                             <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Taxa (%) </label>
                             <div class="col-md-4">
-                              <input ng-model="porcentagem" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/>
+                              <input ng-model="porcentagem" ui-number-mask="5" class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/>
                             </div>
                           </div>
                           <div class="form-group">

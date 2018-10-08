@@ -104,7 +104,7 @@
                     	if($row["mostrar"] == "preco" ) {
                           echo "R$" . number_format( $row["preco"], 2, ",", "." );
                         } elseif($row["mostrar"] == "importancia_segurada") {
-                          echo number_format( $row["porcentagem"], 2, ",", "." ) . "%";
+                          echo number_format( $row["porcentagem"], 5, ",", "." ) . "%";
                         } else {
                           echo "N/A";
                         }
