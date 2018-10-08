@@ -575,6 +575,7 @@ Class Integracao_Model extends MY_Model
         $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
 
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
+        $this->data_template_script['parceiro_id'] = $integracao['parceiro_id'];
 
         $integracao['script_sql'] = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
         $registros = $this->_database->query($integracao['script_sql'])->result_array();

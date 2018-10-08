@@ -545,12 +545,15 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         $acesso = app_integracao_generali_dados();
         $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
         $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
+        $cpfErro = $eanErro = true;
+        $cpfErroMsg = $eanErroMsg = "";
 
         if (!empty($cpf)) {
             $cpf = substr($cpf, -11);
             $enriquecido = app_get_api("enriqueceCPF/$cpf/". $acesso->produto_parceiro_id);
 
             if (!empty($enriquecido['status'])){
+                $cpfErro = false;
                 $enriquecido = $enriquecido['response'];
                 $response->cpf = $enriquecido;
 
@@ -607,6 +610,8 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                     }
                 }
 
+            } else {
+                $cpfErroMsg = $enriquecido['response'];
             }
 
             // Regras DE/PARA
@@ -641,40 +646,45 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
         if (!empty($ean)) {
             $ean = (int)$ean;
-            $enriquecido = app_get_api("enriqueceEAN/$ean");
+            $EANenriquecido = app_get_api("enriqueceEAN/$ean");
 
-            if (!empty($enriquecido['status'])){
-                $enriquecido = $enriquecido['response'];
-                $response->ean = $enriquecido;
+            if (!empty($EANenriquecido['status'])){
+                $EANenriquecido = $EANenriquecido['response'];
+                $response->ean = $EANenriquecido;
+                $eanErro = false;
 
-                $dados['registro']['equipamento_id'] = $enriquecido->equipamento_id;
-                $dados['registro']['equipamento_nome'] = $enriquecido->nome;
-                $dados['registro']['equipamento_marca_id'] = $enriquecido->equipamento_marca_id;
-                $dados['registro']['equipamento_categoria_id'] = $enriquecido->equipamento_categoria_id;
-                $dados['registro']['equipamento_sub_categoria_id'] = $enriquecido->equipamento_sub_categoria_id;
+                $dados['registro']['equipamento_id'] = $EANenriquecido->equipamento_id;
+                $dados['registro']['equipamento_nome'] = $EANenriquecido->nome;
+                $dados['registro']['equipamento_marca_id'] = $EANenriquecido->equipamento_marca_id;
+                $dados['registro']['equipamento_categoria_id'] = $EANenriquecido->equipamento_categoria_id;
+                $dados['registro']['equipamento_sub_categoria_id'] = $EANenriquecido->equipamento_sub_categoria_id;
                 $dados['registro']['imei'] = "";
             } else {
                 $CI =& get_instance();
+                $eanErroMsg = $EANenriquecido['response'];
 
                 // usar a pesquisa por nome
                 $CI->load->model("equipamento_model", "equipamento");
 
                 //Faz o MATCH para consulta do Equipamento
                 $indiceMax = 20;
-                $enriquecido = $CI->equipamento->match($dados['registro']['equipamento_nome']);
+                $EANenriquecido = $CI->equipamento->match($dados['registro']['equipamento_nome']);
 
                 //se encontrou algum parecido
-                if (!empty($enriquecido)) {
+                if (!empty($EANenriquecido)) {
 
                     //se o indice e maior do que o minimo estipulado de 30%
-                    if($enriquecido->indice / $indiceMax > 0.3){
-                        $response->ean = $enriquecido;
+                    if($EANenriquecido->indice / $indiceMax > 0.3){
+                        $response->ean = $EANenriquecido;
+                        $eanErro = false;
 
-                        $dados['registro']['equipamento_id'] = $enriquecido->equipamento_id;
-                        $dados['registro']['equipamento_nome'] = $enriquecido->nome;
-                        $dados['registro']['equipamento_marca_id'] = $enriquecido->equipamento_marca_id;
-                        $dados['registro']['equipamento_categoria_id'] = $enriquecido->equipamento_categoria_id;
+                        $dados['registro']['equipamento_id'] = $EANenriquecido->equipamento_id;
+                        $dados['registro']['equipamento_nome'] = $EANenriquecido->nome;
+                        $dados['registro']['equipamento_marca_id'] = $EANenriquecido->equipamento_marca_id;
+                        $dados['registro']['equipamento_categoria_id'] = $EANenriquecido->equipamento_categoria_id;
                         $dados['registro']['imei'] = "";
+                    } else {
+                        $eanErroMsg = "Equipamento não identificado - [{$dados['registro']['equipamento_nome']}]";
                     }
 
                 }
@@ -682,7 +692,26 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             }
         }
 
-        // echo "****************** CPF: $cpf<br>";
+        echo "****************** CPF: $cpf<br>";
+        // Emissão
+        if ( in_array($dados['registro']['tipo_transacao'], ['NS']) ) {
+            if ($cpfErro){
+                echo "<pre>";
+                print_r($enriquecido);
+                echo "</pre>";
+
+                $response->msg[] = ['id' => 10, 'msg' => $cpfErroMsg, 'slug' => "enriquece_cpf"];
+            }
+
+            if ($eanErro){
+                echo "<pre>";
+                print_r($EANenriquecido);
+                echo "</pre>";
+
+                $response->msg[] = ['id' => 11, 'msg' => $eanErroMsg, 'slug' => "enriquece_cpf"];
+            }
+        }
+
         // Campos para cotação
         $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id);
         if (empty($camposCotacao['status'])){
@@ -708,7 +737,11 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             }
 
         } else {
-            $response->msg = $validaRegra->errors;
+            if (!empty($response->msg)) {
+                $response->msg = array_merge($validaRegra->errors, $response->msg);
+            } else {
+                $response->msg = $validaRegra->errors;
+            }
         }
 
         return $response;
@@ -864,7 +897,6 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 return $response;
             }
 
-         // Cancelamento
         }
 
         $response->status = true;
@@ -973,12 +1005,12 @@ if ( ! function_exists('app_integracao_emissao'))
 
             //se encontrou algum parecido
             if (empty($apolice)) {
-                $response->msg[] = ['id' => -1, 'msg' => "Apólice não encontrada", 'slug' => "cancelamento"];
+                $response->msg[] = ['id' => 8, 'msg' => "Apólice não encontrada [{$dados['num_apolice']}]", 'slug' => "cancelamento"];
                 return $response;
             } else {
                 $apolice = $apolice[0];
                 if ($apolice['apolice_status_id'] != 1) {
-                    $response->msg[] = ['id' => -1, 'msg' => "Apólice {$apolice['nome']}", 'slug' => "cancelamento"];
+                    $response->msg[] = ['id' => 8, 'msg' => "Apólice {$apolice['nome']} [{$dados['num_apolice']}]", 'slug' => "cancelamento"];
                     return $response;
                 }
             }
@@ -986,7 +1018,7 @@ if ( ! function_exists('app_integracao_emissao'))
             // Cancelamento
             $cancelaApolice = app_get_api("cancelar", "POST", json_encode(["apolice_id" => $apolice['apolice_id']]));
             if (empty($cancelaApolice['status'])) {
-                $response->msg[] = ['id' => -1, 'msg' => $cancelaApolice['response'], 'slug' => "cancelamento"];
+                $response->msg[] = ['id' => 9, 'msg' => $cancelaApolice['response'], 'slug' => "cancelamento"];
                 return $response;
             }
 

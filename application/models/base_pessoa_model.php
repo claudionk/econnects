@@ -129,6 +129,7 @@ Class Base_Pessoa_Model extends MY_Model
         $result["TELEFONES"] = $Telefones;
 
         $iEmails = $ifaro["Emails"];
+        $Emails = [];
         foreach( $iEmails as $row ) {
           $Emails[] = array( "EMAIL" => trim( $row["EmailEndereco"] ), "RANKING" => $row["Ranking"] );
         }
