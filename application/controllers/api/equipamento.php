@@ -141,7 +141,7 @@ class Equipamento extends CI_Controller {
         if (empty($retorno))
             die( json_encode( array( "status" => false, "message" => "Não foram localizados equipamentos com o modelo informado ({$modelo})" ) ) );
 
-        die( json_encode( array( "status" => true, "dados" => $retorno) , JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+        die( json_encode( array( "status" => true, "modelo_informado" => $modelo, "dados" => $retorno) , JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
 
     }
 
