@@ -51,6 +51,7 @@ $route['segurado/parceiro/(:any)'] = "segurado/login/index/$1";
 
 
 $route['venda-online/(:any)'] = "admin/$1?front=true";
+$route['api/endereco/cep/(:num)'] = 'api/endereco/cep/$1';
 
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */
