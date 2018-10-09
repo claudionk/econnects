@@ -650,9 +650,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
             // Caso não tenha enriquecido o CPF
             if ($cpfErro){
-                echo "<pre>";
-                print_r($enriquecido);
-                echo "</pre>";
+                echo "<pre>";print_r($enriquecido);echo "</pre>";
 
                 $response->msg[] = ['id' => 10, 'msg' => $cpfErroMsg ." [{$cpf}]", 'slug' => "enriquece_cpf"];
                 return $response;
@@ -661,8 +659,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             if (!empty($ean)) {
                 $ean = (int)$ean;
                 $EANenriquecido = app_get_api("enriqueceEAN/$ean");
-                echo "ean ***<br>";
-                echo "<pre>";print_r($EANenriquecido);echo "</pre>";
+                // echo "<pre>";print_r($EANenriquecido);echo "</pre>";
 
                 if (!empty($EANenriquecido['status'])){
                     $EANenriquecido = $EANenriquecido['response'];
@@ -681,15 +678,14 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                         'quantidade' => 1
                     ];
 
-                    echo "modelo ***<br>";
                     $EANenriquecido = app_get_api("enriqueceModelo", "POST", json_encode($inputField));
-                    echo "<pre>";print_r($EANenriquecido);echo "</pre>";
-                    die();
+                    // echo "<pre>";print_r($EANenriquecido);echo "</pre>";
 
                     if (!empty($EANenriquecido['status'])){
-                        $EANenriquecido = $EANenriquecido['response']["dados"][0];
+                        $EANenriquecido = $EANenriquecido['response']->dados[0];
                         $response->ean = $EANenriquecido;
                         $eanErro = false;
+                        die();
 
                         $dados['registro']['equipamento_id'] = $EANenriquecido->equipamento_id;
                         $dados['registro']['equipamento_nome'] = $EANenriquecido->nome;
