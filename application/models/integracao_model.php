@@ -309,8 +309,8 @@ Class Integracao_Model extends MY_Model
                 ->get_all();
 
             $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
-            $result_file = $this->getFile($result, $file);
-            // $result_file["file"] = "/var/www/webroot/ROOT/econnects/application/helpers/../../assets/uploads/integracao/15/R/RF2119597741TR20180421.TXT";
+            // $result_file = $this->getFile($result, $file);
+            $result_file["file"] = "/var/www/webroot/ROOT/econnects/application/helpers/../../assets/uploads/integracao/15/R/RF2119597741TR20181004.TXT";
 
             if(!empty($result_file['file'])){
                 $this->processFileIntegracao($result, $result_file['file']);
@@ -616,7 +616,7 @@ Class Integracao_Model extends MY_Model
         }
 
         // Trata o nome do arquivo
-        $idxF = $this->search( $layout, 'F', 'tipo' );
+        $idxF = app_search( $layout, 'F', 'tipo' );
         if ( $idxF >= 0 ) {
             $filename = $this->getLinha($layout[$idxF]['dados'], $registros, $integracao_log, null);
             $filename = $filename[0];
@@ -624,7 +624,7 @@ Class Integracao_Model extends MY_Model
         }
 
         // Trata o header
-        $idxH = $this->search( $layout, 'H', 'tipo' );
+        $idxH = app_search( $layout, 'H', 'tipo' );
         if ( $idxH >= 0 ) {
             $this->data_template_script['totalRegistros']++;
             if (!empty($multiplo)) $this->data_template_script['totalItens']++;
@@ -940,24 +940,4 @@ Class Integracao_Model extends MY_Model
         return $this;
     }
 
-    public function search( $haystack, $needle, $index = NULL ) {
-        if( is_null( $haystack ) ) {
-            return -1;
-        }
-
-        $arrayIterator = new \RecursiveArrayIterator( $haystack );
-        $iterator = new \RecursiveIteratorIterator( $arrayIterator );
-
-        while( $iterator -> valid() ) {
-            if( ( ( isset( $index ) and ( $iterator -> key() == $index ) ) or
-                ( ! isset( $index ) ) ) and ( $iterator -> current() == $needle ) ) {
-
-                return $arrayIterator -> key();
-            }
-
-            $iterator -> next();
-        }
-
-        return -1;
-    }
 }

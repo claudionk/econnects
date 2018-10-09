@@ -165,7 +165,7 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
 
         $produto_parceiro_id = $this->input->post('produto_parceiro_id');
 
-        $soma = $this->relacionamento->get_todas_comissoes($produto_parceiro_id);
+        $soma = $this->relacionamento->get_todas_comissoes($produto_parceiro_id, 0, 0, true);
 
         $this->form_validation->set_message('check_markup_relacionamento', 'O Valor do campo markup deve ser inferior ou igual as somas de todas as comissões dos parceiros relacionados para esse produto. Soma total: ' . app_format_currency($soma, false, 2));
 

@@ -212,96 +212,152 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
 
   }
 
+    public function get_todas_comissoes($produto_parceiro_id, $parceiro_relacionamento_produto_id = 0, $parceiro_id = 0, $down = false){
 
+        $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
 
-  public function get_todas_comissoes($produto_parceiro_id, $parceiro_relacionamento_produto_id = 0){
+        if((int)$parceiro_relacionamento_produto_id > 0){
+            $this->_database->where('parceiro_relacionamento_produto_id <>', $parceiro_relacionamento_produto_id);
+        
+            if((int)$parceiro_id > 0){
 
+                // apenas os parceiros do relacionamento acima
+                $this->_database->where("parceiro_relacionamento_produto_id IN(
+                    SELECT prp.parceiro_relacionamento_produto_id
+                    FROM parceiro p 
+                    INNER JOIN parceiro pb ON p.parceiro_pai_id = pb.parceiro_pai_id
+                    INNER JOIN parceiro_relacionamento_produto prp ON p.parceiro_id = prp.parceiro_id
+                    INNER JOIN parceiro_relacionamento_produto prpb ON prpb.parceiro_id = pb.parceiro_id AND prp.produto_parceiro_id = prpb.produto_parceiro_id
+                    WHERE pb.parceiro_id = {$parceiro_id}
+                    AND prp.produto_parceiro_id = {$produto_parceiro_id}
+                    AND p.deletado = 0
+                    AND prp.pai_id < prpb.pai_id
+                )");
 
-    $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
+            }
+        }
 
-    if((int)$parceiro_relacionamento_produto_id > 0){
-      $this->_database->where('parceiro_relacionamento_produto_id <>', $parceiro_relacionamento_produto_id);
+        $rows = $this->get_all();
+        $soma = 0;
+        if($rows){
+
+            if ($down) {
+                $totais = $guarda = [];
+                do {
+                    $ignora = [];
+                    $soma = 0;
+
+                    foreach ($rows as $row) {
+                        if (!empty($ignora)) {
+                            $idx = app_search( $ignora, $row['parceiro_id'], 'parceiro_id' );
+                            if ( $idx >= 0 ) {
+                                unset($ignora[$idx]);
+                                continue;
+                            }
+                        }
+
+                        $soma += $row['comissao'];
+                        // echo "comissao: $soma prpid: {$row["parceiro_relacionamento_produto_id"]}<br><br>";
+
+                        $result = $this->filter_by_pai($row["parceiro_relacionamento_produto_id"])->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
+                        // echo $this->db->last_query() ."<br>";
+
+                        if (empty($result)) {
+                            // echo "nao encontrou<br>";
+                            $totais[] = $soma;
+                            continue;
+                        } else {
+                            // echo "encontrou<br>";
+                            if (count($result) > 1){
+                                // echo "maior que 1<br>";
+                                if (!isset($guarda['parceiro_id']) || $idx = app_search( $result, $guarda['parceiro_id'], 'parceiro_id' ) < 0){
+                                    // echo "guarda vazio<br>";
+                                    $guarda = $result[0];
+                                    unset($result[0]);
+
+                                    $ignora = $result;
+
+                                } else {
+                                    // echo "tem conteudo em guarda<br>";
+                                    $guarda = [];
+                                    $ignora = $result[$idx];
+                                    continue;
+                                }
+                            }
+                        }
+
+                    }
+
+                } while (!empty($guarda));
+
+                $soma = 0;
+                foreach ($totais as $val) {
+                    if ($val > $soma)
+                        $soma = $val;
+                }
+            } else {
+                foreach ($rows as $row) {
+                    $soma += $row['comissao'];
+                }
+            }
+
+        }
+
+        return $soma;
     }
 
-    $rows = $this->get_all();
-
-    $soma = 0;
-    if($rows){
-
-      foreach ($rows as $row) {
-        $soma += $row['comissao'];
-      }
-
-    }
-    return $soma;
-
-  }
-
-
-  function  filter_by_pai($pai_id){
-
-    $this->_database->where('pai_id', $pai_id);
-
-    return $this;
-  }
-
-  function  filter_by_produto_parceiro($produto_parceiro_id){
-
-    $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
-
-    return $this;
-  }
-
-
-  function  filter_by_parceiro($parceiro_id){
-
-    $this->_database->where('parceiro_id', $parceiro_id);
-
-    return $this;
-  }
-
-  public function getRelacionamentoProduto($produto_parceiro_id = 0, $pai_id = 0, &$arr){
-
-    $this->load->model('parceiro_model', 'parceiro');
-
-    $relacionamentos = $this->filter_by_pai($pai_id)->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
-
-
-    if($relacionamentos){
-
-      foreach ($relacionamentos as $relacionamento) {
-        $relacionamento['itens'] = array();
-        $relacionamento['parceiro'] = $this->parceiro->get($relacionamento['parceiro_id']);
-        $this->getRelacionamentoProduto($produto_parceiro_id, $relacionamento['parceiro_relacionamento_produto_id'], $relacionamento['itens']);
-        $arr[] = $relacionamento;
-      }
+    function filter_by_pai($pai_id){
+        $this->_database->where('pai_id', $pai_id);
+        return $this;
     }
 
-
-  }
-
-  public function get_all($limit = 0, $offset = 0, $processa = true) {
-    if($processa) {
-      $parceiro_id = $this->session->userdata('parceiro_id');
-
-      $this->processa_parceiros_permitidos("{$this->_table}.parceiro_id");
+    function filter_by_produto_parceiro($produto_parceiro_id){
+        $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
+        return $this;
     }
-    return parent::get_all($limit, $offset);
-  }
 
-
-  public function get_total($processa = true) {
-    if($processa) {
-      //Efetua join com cotação
-      //$this->_database->join("parceiro as cotacao_filtro","cotacao_filtro.cotacao_id = {$this->_table}.cotacao_id");
-
-      $this->processa_parceiros_permitidos("{$this->_table}.parceiro_id");
+    function filter_by_parceiro($parceiro_id){
+        $this->_database->where('parceiro_id', $parceiro_id);
+        return $this;
     }
-    return parent::get_total(); // TODO: Change the autogenerated stub
-  }
+
+    public function getRelacionamentoProduto($produto_parceiro_id = 0, $pai_id = 0, &$arr){
+
+        $this->load->model('parceiro_model', 'parceiro');
+        $relacionamentos = $this->filter_by_pai($pai_id)->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
+
+        if($relacionamentos){
+            foreach ($relacionamentos as $relacionamento) {
+                $relacionamento['itens'] = array();
+                $relacionamento['parceiro'] = $this->parceiro->get($relacionamento['parceiro_id']);
+                $this->getRelacionamentoProduto($produto_parceiro_id, $relacionamento['parceiro_relacionamento_produto_id'], $relacionamento['itens']);
+                $arr[] = $relacionamento;
+            }
+        }
+
+    }
+
+    public function get_all($limit = 0, $offset = 0, $processa = true, $order_by = null) {
+        if($processa) {
+            $parceiro_id = $this->session->userdata('parceiro_id');
+            $this->processa_parceiros_permitidos("{$this->_table}.parceiro_id");
+        }
+        if (!empty($order_by)) {
+            $this->order_by("{$this->_table}.pai_id", $order_by);
+        }
+
+        return parent::get_all($limit, $offset);
+    }
+
+    public function get_total($processa = true) {
+        if($processa) {
+            //Efetua join com cotação
+            //$this->_database->join("parceiro as cotacao_filtro","cotacao_filtro.cotacao_id = {$this->_table}.cotacao_id");
+
+            $this->processa_parceiros_permitidos("{$this->_table}.parceiro_id");
+        }
+        return parent::get_total(); // TODO: Change the autogenerated stub
+    }
 
 }
-
-
-
 
