@@ -95,6 +95,18 @@ class Api extends Site_Controller
         return;
     }
 
+    public function enriqueceModelo(){
+        // $this->stop=true;
+        $json = file_get_contents( "php://input" );
+
+        $retorno = $this->execute($this->url."equipamento/modelo", 'POST', $json);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output($retorno);
+        return;
+    }
+
     public function cotacao_campos($produto_parceiro_id){
         $retorno = $this->execute($this->url."campos?produto_parceiro_id=$produto_parceiro_id");
 

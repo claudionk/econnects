@@ -661,6 +661,8 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             if (!empty($ean)) {
                 $ean = (int)$ean;
                 $EANenriquecido = app_get_api("enriqueceEAN/$ean");
+                echo "ean ***<br>";
+                echo "<pre>";print_r($EANenriquecido);echo "</pre>";
 
                 if (!empty($EANenriquecido['status'])){
                     $EANenriquecido = $EANenriquecido['response'];
@@ -674,42 +676,36 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                     $dados['registro']['equipamento_sub_categoria_id'] = $EANenriquecido->equipamento_sub_categoria_id;
                     $dados['registro']['imei'] = "";
                 } else {
-                    $CI =& get_instance();
-                    $eanErroMsg = $EANenriquecido['response'];
+                    $inputField = [
+                        'modelo' => $dados['registro']['equipamento_nome'],
+                        'quantidade' => 1
+                    ];
 
-                    // usar a pesquisa por nome
-                    $CI->load->model("equipamento_model", "equipamento");
+                    echo "modelo ***<br>";
+                    $EANenriquecido = app_get_api("enriqueceModelo", "POST", json_encode($inputField));
+                    echo "<pre>";print_r($EANenriquecido);echo "</pre>";
+                    die();
 
-                    //Faz o MATCH para consulta do Equipamento
-                    $indiceMax = 20;
-                    $EANenriquecido = $CI->equipamento->match($dados['registro']['equipamento_nome']);
+                    if (!empty($EANenriquecido['status'])){
+                        $EANenriquecido = $EANenriquecido['response']["dados"][0];
+                        $response->ean = $EANenriquecido;
+                        $eanErro = false;
 
-                    //se encontrou algum parecido
-                    if (!empty($EANenriquecido)) {
-
-                        //se o indice e maior do que o minimo estipulado de 30%
-                        if($EANenriquecido->indice / $indiceMax > 0.3){
-                            $response->ean = $EANenriquecido;
-                            $eanErro = false;
-
-                            $dados['registro']['equipamento_id'] = $EANenriquecido->equipamento_id;
-                            $dados['registro']['equipamento_nome'] = $EANenriquecido->nome;
-                            $dados['registro']['equipamento_marca_id'] = $EANenriquecido->equipamento_marca_id;
-                            $dados['registro']['equipamento_categoria_id'] = $EANenriquecido->equipamento_categoria_id;
-                            $dados['registro']['imei'] = "";
-                        } else {
-                            $eanErroMsg = "Equipamento não identificado - [{$dados['registro']['equipamento_nome']}]";
-                        }
-
+                        $dados['registro']['equipamento_id'] = $EANenriquecido->equipamento_id;
+                        $dados['registro']['equipamento_nome'] = $EANenriquecido->nome;
+                        $dados['registro']['equipamento_marca_id'] = $EANenriquecido->equipamento_marca_id;
+                        $dados['registro']['equipamento_categoria_id'] = $EANenriquecido->equipamento_categoria_id;
+                        $dados['registro']['equipamento_sub_categoria_id'] = $EANenriquecido->equipamento_sub_categoria_id;
+                        $dados['registro']['imei'] = "";
+                    } else {
+                        $eanErroMsg = "Equipamento não identificado - [{$dados['registro']['equipamento_nome']}]";
                     }
 
                 }
             }
 
             if ($eanErro){
-                echo "<pre>";
-                print_r($EANenriquecido);
-                echo "</pre>";
+                echo "<pre>";print_r($EANenriquecido);echo "</pre>";
 
                 $response->msg[] = ['id' => 11, 'msg' => $eanErroMsg ." [{$ean}]", 'slug' => "enriquece_ean"];
                 return $response;
@@ -1003,7 +999,7 @@ if ( ! function_exists('app_integracao_emissao'))
             // usar a pesquisa por nome
             $CI->load->model("apolice_model", "apolice");
 
-            //Faz o MATCH para consulta do Equipamento
+            //Busca a apólice pelo número
             $apolice = $CI->apolice->getApoliceByNumero($dados['num_apolice'], $acesso->parceiro_id);
             // echo "<pre>";print_r($apolice);echo "</pre>";
 
