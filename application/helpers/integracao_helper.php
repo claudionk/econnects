@@ -81,28 +81,22 @@ if ( ! function_exists('app_integracao_mapfre_rf_total_registro')) {
 if ( ! function_exists('app_integracao_mapfre_rf_total_itens')) {
     function app_integracao_mapfre_rf_total_itens($formato, $dados = array())
     {
-
         $total = isset($dados['global']['totalItens']) ? $dados['global']['totalItens'] : 0;
         return str_pad($total, $formato, '0', STR_PAD_LEFT);
-
     }
 }
 
 if ( ! function_exists('app_integracao_mapfre_rf_total_certificado')) {
     function app_integracao_mapfre_rf_total_certificado($formato, $dados = array())
     {
-
-          return str_pad((count($dados['registro'])), $formato, '0', STR_PAD_LEFT);
-
+        return str_pad( count($dados['registro']), $formato, '0', STR_PAD_LEFT);
     }
 }
 
 if ( ! function_exists('app_integracao_get_total_registro')) {
     function app_integracao_get_total_registro($formato, $dados = array())
     {
-
-          return str_pad(count($dados['registro']), $formato, '0', STR_PAD_LEFT);
-
+        return str_pad(count($dados['registro']), $formato, '0', STR_PAD_LEFT);
     }
 }
 if ( ! function_exists('app_integracao_get_total_titulos')) {
