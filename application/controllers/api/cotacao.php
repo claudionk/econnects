@@ -115,7 +115,8 @@ class Cotacao extends CI_Controller {
     }
 
     $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro_id );
-    $POST["parceiro_id"] = $produto["parceiro_id"];
+    // $POST["parceiro_id"] = $produto["parceiro_id"];
+    $POST["parceiro_id"] = $this->parceiro_id;
     $POST["usuario_cotacao_id"] = $this->usuario_id;
 
     
