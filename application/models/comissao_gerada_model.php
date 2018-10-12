@@ -35,7 +35,8 @@ Class Comissao_Gerada_Model extends MY_Model {
 
     $sql = "SELECT 
                   cotacao.cotacao_id,
-                  cotacao.parceiro_id,
+                  #cotacao.parceiro_id,
+                  produto_parceiro.parceiro_id,
                   pedido.pedido_id,
                   pedido.codigo,
                   cotacao_equipamento.produto_parceiro_id,
@@ -46,11 +47,12 @@ Class Comissao_Gerada_Model extends MY_Model {
               FROM pedido
               INNER JOIN cotacao ON pedido.cotacao_id = cotacao.cotacao_id
               INNER JOIN cotacao_equipamento ON cotacao_equipamento.cotacao_id = cotacao.cotacao_id
+              INNER JOIN produto_parceiro ON produto_parceiro.produto_parceiro_id = cotacao.produto_parceiro_id
               WHERE 
                  pedido.pedido_status_id IN (3,8) 
               AND cotacao_equipamento.deletado = 0
               AND cotacao.deletado = 0
-              AND pedido.deletado = 0		
+              AND pedido.deletado = 0
               AND pedido.pedido_id NOT IN (SELECT comissao_gerada.pedido_id FROM comissao_gerada WHERE comissao_gerada.deletado = 0 AND comissao_gerada.comissao_classe_id = 1 )";
 
     $result = $this->_database->query($sql)->result_array();
