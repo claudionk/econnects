@@ -563,8 +563,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
         //Busca a apólice pelo número
         $apolice = $CI->apolice->getApoliceByNumero($num_apolice, $acesso->parceiro_id);
-        echo $CI->db->last_query() ."<br>";
-        echo "<pre>";print_r($apolice);echo "</pre>";
 
         // Emissão
         if ( in_array($dados['registro']['tipo_transacao'], ['NS']) ) {
@@ -749,6 +747,8 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                     $response->msg[] = ['id' => 8, 'msg' => "Apólice {$apolice['nome']} [{$num_apolice}]", 'slug' => "cancelamento"];
                     return $response;
                 }
+
+                $dados['registro']['apolice_id'] = $apolice['apolice_id'];
             }
 
         }
@@ -982,8 +982,6 @@ if ( ! function_exists('app_integracao_emissao'))
 
             // Formas de Pagamento
             $formPagto = app_get_api("forma_pagamento_cotacao/$cotacao_id");
-            echo "forma_pagamento_cotacao/$cotacao_id";
-            echo "<pre>";print_r($formPagto);echo "</pre>";
             if (empty($formPagto['status'])) {
                 $response->msg[] = ['id' => -1, 'msg' => $formPagto['response'], 'slug' => "forma_pagamento_cotacao"];
                 return $response;
@@ -1013,8 +1011,6 @@ if ( ! function_exists('app_integracao_emissao'))
                 ];
 
                 $efetuaPagto = app_get_api("pagamento_pagar", "POST", json_encode($camposPagto));
-                echo "pagamento_pagar";
-                echo "<pre>";print_r($efetuaPagto);echo "</pre>";
                 if (empty($efetuaPagto['status'])) {
                     $response->msg[] = ['id' => -1, 'msg' => $efetuaPagto['response'], 'slug' => "pagamento_pagar"];
                     return $response;
@@ -1032,8 +1028,6 @@ if ( ! function_exists('app_integracao_emissao'))
                 ];
 
                 $getApolice = app_get_api("apolice", "POST", json_encode($fieldApolice));
-                echo "apolice";
-                echo "<pre>";print_r($getApolice);echo "</pre>";
                 if (empty($getApolice['status'])) {
                     $response->msg[] = ['id' => -1, 'msg' => $getApolice['response'], 'slug' => "apolice_get"];
                     return $response;
@@ -1050,31 +1044,8 @@ if ( ! function_exists('app_integracao_emissao'))
         // Cancelamento
         } else if ( in_array($dados['tipo_transacao'], ['XS','XX']) ) {
             
-            // verifica se existe a emissão do certificado para gerar o cancelamento
-            $CI =& get_instance();
-            $acesso = app_integracao_generali_dados();
-
-            // usar a pesquisa por nome
-            $CI->load->model("apolice_model", "apolice");
-
-            //Busca a apólice pelo número
-            $apolice = $CI->apolice->getApoliceByNumero($dados['num_apolice'], $acesso->parceiro_id);
-            // echo "<pre>";print_r($apolice);echo "</pre>";
-
-            //se encontrou algum parecido
-            if (empty($apolice)) {
-                $response->msg[] = ['id' => 8, 'msg' => "Apólice não encontrada [{$dados['num_apolice']}]", 'slug' => "cancelamento"];
-                return $response;
-            } else {
-                $apolice = $apolice[0];
-                if ($apolice['apolice_status_id'] != 1) {
-                    $response->msg[] = ['id' => 8, 'msg' => "Apólice {$apolice['nome']} [{$dados['num_apolice']}]", 'slug' => "cancelamento"];
-                    return $response;
-                }
-            }
-
             // Cancelamento
-            $cancelaApolice = app_get_api("cancelar", "POST", json_encode(["apolice_id" => $apolice['apolice_id'], "emailAPI" => app_get_userdata("email")]));
+            $cancelaApolice = app_get_api("cancelar", "POST", json_encode(["apolice_id" => $dados['apolice_id'], "emailAPI" => app_get_userdata("email")]));
             if (empty($cancelaApolice['status'])) {
                 $response->msg[] = ['id' => 9, 'msg' => $cancelaApolice['response'], 'slug' => "cancelamento"];
                 return $response;
