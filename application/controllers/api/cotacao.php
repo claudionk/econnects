@@ -115,11 +115,10 @@ class Cotacao extends CI_Controller {
     }
 
     $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro_id );
-    // $POST["parceiro_id"] = $produto["parceiro_id"];
     $POST["parceiro_id"] = $this->parceiro_id;
     $POST["usuario_cotacao_id"] = $this->usuario_id;
 
-    
+
     $campos = $this->produto_parceiro_campo->with_campo()->with_campo_tipo()->filter_by_produto_parceiro( $produto_parceiro_id )->filter_by_campo_tipo_slug( "cotacao" )->order_by( "ordem", "ASC" )->get_all();
 
     $erros = array();
@@ -148,7 +147,7 @@ class Cotacao extends CI_Controller {
 
     if( $validacao_ok ) {
       $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $POST );
-
+      
       $cotacao_id = (int)$cotacao_id;
 
       if( $produto["produto_slug"] == "equipamento" ) {
@@ -262,7 +261,7 @@ class Cotacao extends CI_Controller {
     
     $params["cotacao_id"] = $cotacao_id;
     $params["produto_parceiro_id"] = $produto_parceiro_id;
-    $params["parceiro_id"] = $produto['parceiro_id'];
+    $params["parceiro_id"] = $this->parceiro_id;
     $params["equipamento_marca_id"] = $equipamento_marca_id;
     $params["equipamento_categoria_id"] = $equipamento_categoria_id;
     $params["quantidade"] = $quantidade;
@@ -1280,7 +1279,7 @@ class Cotacao extends CI_Controller {
     $params["cotacao_id"] = $cotacao_id;
     $params["produto_parceiro_id"] = $produto_parceiro_id;
     $params["produto_parceiro_plano_id"] = $produto_parceiro_plano_id;
-    $params["parceiro_id"] = $produto['parceiro_id'];
+    $params["parceiro_id"] = $this->parceiro_id;
     $params["quantidade"] = $quantidade;
     $params["coberturas"] = $coberturas;
     $params["repasse_comissao"] = $repasse_comissao;

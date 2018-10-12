@@ -705,7 +705,8 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                 } else {
                     $inputField = [
                         'modelo' => $dados['registro']['equipamento_nome'],
-                        'quantidade' => 1
+                        'quantidade' => 1,
+                        'emailAPI' => app_get_userdata("email"),
                     ];
 
                     $EANenriquecido = app_get_api("enriqueceModelo", "POST", json_encode($inputField));
@@ -790,6 +791,13 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 if ( ! function_exists('app_get_api'))
 {
     function app_get_api($service, $method = 'GET', $fields = [], $print = false){
+
+        if (!empty(app_get_userdata("email"))) {
+            $acesso = app_integracao_generali_dados();
+
+            $CI =& get_instance();
+            $CI->session->set_userdata("email", $acesso->email);
+        }
 
         $retorno = soap_curl([
             'url' => "http://econnects-h.jelastic.saveincloud.net/admin/api/{$service}",
@@ -903,6 +911,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 if (!empty($dados['equipamento_categoria_id']))
                 $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
                 $fields['ean'] = $dados['ean'];
+                $fields['emailAPI'] = app_get_userdata("email");
 
                 // Cotação
                 $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields));
@@ -964,6 +973,7 @@ if ( ! function_exists('app_integracao_emissao'))
         if ( in_array($dados['tipo_transacao'], ['NS']) ) {
 
             // Cotação Contratar
+            $fields['emailAPI'] = app_get_userdata("email");
             $cotacao = app_get_api("cotacao_contratar", "POST", json_encode($fields));
             if (empty($cotacao['status'])) {
                 $response->msg[] = ['id' => -1, 'msg' => $cotacao['response'], 'slug' => "cotacao_contratar"];
@@ -972,6 +982,8 @@ if ( ! function_exists('app_integracao_emissao'))
 
             // Formas de Pagamento
             $formPagto = app_get_api("forma_pagamento_cotacao/$cotacao_id");
+            echo "forma_pagamento_cotacao/$cotacao_id";
+            echo "<pre>";print_r($formPagto);echo "</pre>";
             if (empty($formPagto['status'])) {
                 $response->msg[] = ['id' => -1, 'msg' => $formPagto['response'], 'slug' => "forma_pagamento_cotacao"];
                 return $response;
@@ -997,9 +1009,12 @@ if ( ! function_exists('app_integracao_emissao'))
                     "forma_pagamento_id" => $forma_pagamento_id,
                     "produto_parceiro_pagamento_id" => $produto_parceiro_pagamento_id,
                     "campos" => [],
+                    "emailAPI" => app_get_userdata("email"),
                 ];
 
                 $efetuaPagto = app_get_api("pagamento_pagar", "POST", json_encode($camposPagto));
+                echo "pagamento_pagar";
+                echo "<pre>";print_r($efetuaPagto);echo "</pre>";
                 if (empty($efetuaPagto['status'])) {
                     $response->msg[] = ['id' => -1, 'msg' => $efetuaPagto['response'], 'slug' => "pagamento_pagar"];
                     return $response;
@@ -1013,9 +1028,12 @@ if ( ! function_exists('app_integracao_emissao'))
                 $fieldApolice = [
                     "apolice_id" => $response->apolice_id,
                     "num_apolice" => $num_apolice,
+                    "emailAPI" => app_get_userdata("email"),
                 ];
 
                 $getApolice = app_get_api("apolice", "POST", json_encode($fieldApolice));
+                echo "apolice";
+                echo "<pre>";print_r($getApolice);echo "</pre>";
                 if (empty($getApolice['status'])) {
                     $response->msg[] = ['id' => -1, 'msg' => $getApolice['response'], 'slug' => "apolice_get"];
                     return $response;
@@ -1056,7 +1074,7 @@ if ( ! function_exists('app_integracao_emissao'))
             }
 
             // Cancelamento
-            $cancelaApolice = app_get_api("cancelar", "POST", json_encode(["apolice_id" => $apolice['apolice_id']]));
+            $cancelaApolice = app_get_api("cancelar", "POST", json_encode(["apolice_id" => $apolice['apolice_id'], "emailAPI" => app_get_userdata("email")]));
             if (empty($cancelaApolice['status'])) {
                 $response->msg[] = ['id' => 9, 'msg' => $cancelaApolice['response'], 'slug' => "cancelamento"];
                 return $response;

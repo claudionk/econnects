@@ -16,7 +16,7 @@ class Api extends Site_Controller
         $this->stop = false;
     }
     
-    private function execute($url, $method = 'GET', $fields = []){
+    private function execute($url, $method = 'GET', $fields = [], $email = null, $senha = null){
         $retorno = soap_curl([
             'url' => $url,
             'method' => $method,
@@ -24,7 +24,7 @@ class Api extends Site_Controller
             'header' => [
                 "accept: application/json",
                 "Content-Type: application/json",
-                "APIKEY: ". app_get_token()
+                "APIKEY: ". app_get_token($email, $senha)
             ]
         ]);
 
@@ -52,7 +52,20 @@ class Api extends Site_Controller
         return $retorno["response"];
     }
 
-    public function equipamento($ean){
+    private function extractEmail($json){
+        $email = null;
+
+        $json = json_decode($json);
+        if (!empty($json->emailAPI)) {
+            $email = $json->emailAPI;
+            unset($json->emailAPI);
+        }
+        $json = json_encode($json);
+
+        return (object) ['json' => $json, 'email' => $email];
+    }
+
+    public function equipamento($ean, $email = null){
         $retorno = $this->execute($this->url."equipamento?ean=". $ean);
 
         $this->output
@@ -98,8 +111,11 @@ class Api extends Site_Controller
     public function enriqueceModelo(){
         // $this->stop=true;
         $json = file_get_contents( "php://input" );
+        $trat = $this->extractEmail($json);
+        $json = $trat->json;
+        $email = $trat->email;
 
-        $retorno = $this->execute($this->url."equipamento/modelo", 'POST', $json);
+        $retorno = $this->execute($this->url."equipamento/modelo", 'POST', $json, $email);
 
         $this->output
             ->set_content_type('application/json')
@@ -119,8 +135,11 @@ class Api extends Site_Controller
     public function insereCotacao(){
         // $this->stop=true;
         $json = file_get_contents( "php://input" );
+        $trat = $this->extractEmail($json);
+        $json = $trat->json;
+        $email = $trat->email;
 
-        $retorno = $this->execute($this->url."cotacao", 'POST', $json);
+        $retorno = $this->execute($this->url."cotacao", 'POST', $json, $email);
 
         $this->output
             ->set_content_type('application/json')
@@ -131,8 +150,11 @@ class Api extends Site_Controller
     public function cotacao_contratar(){
         // $this->stop=true;
         $json = file_get_contents( "php://input" );
+        $trat = $this->extractEmail($json);
+        $json = $trat->json;
+        $email = $trat->email;
 
-        $retorno = $this->execute($this->url."cotacao/contratar", 'POST', $json);
+        $retorno = $this->execute($this->url."cotacao/contratar", 'POST', $json, $email);
 
         $this->output
             ->set_content_type('application/json')
@@ -160,7 +182,10 @@ class Api extends Site_Controller
 
     public function pagamento_pagar(){
         $json = file_get_contents( "php://input" );
-        $retorno = $this->execute($this->url."pagamento/pagar", "POST", $json);
+        $trat = $this->extractEmail($json);
+        $json = $trat->json;
+        $email = $trat->email;
+        $retorno = $this->execute($this->url."pagamento/pagar", "POST", $json, $email);
 
         $this->output
             ->set_content_type('application/json')
@@ -179,7 +204,10 @@ class Api extends Site_Controller
 
     public function apolice(){
         $json = file_get_contents( "php://input" );
-        $retorno = $this->execute($this->url."apolice", "PUT", $json);
+        $trat = $this->extractEmail($json);
+        $json = $trat->json;
+        $email = $trat->email;
+        $retorno = $this->execute($this->url."apolice", "PUT", $json, $email);
 
         $this->output
             ->set_content_type('application/json')
@@ -190,7 +218,10 @@ class Api extends Site_Controller
     public function cancelar(){
         // $this->stop=true;
         $json = file_get_contents( "php://input" );
-        $retorno = $this->execute($this->url."apolice/cancelar", 'POST', $json);
+        $trat = $this->extractEmail($json);
+        $json = $trat->json;
+        $email = $trat->email;
+        $retorno = $this->execute($this->url."apolice/cancelar", 'POST', $json, $email);
 
         $this->output
             ->set_content_type('application/json')
