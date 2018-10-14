@@ -202,10 +202,6 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
         $this->somatoria = [];
         $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
 
-        if((int)$parceiro_relacionamento_produto_id > 0){
-            $this->_database->where('parceiro_relacionamento_produto_id <>', $parceiro_relacionamento_produto_id);
-        }
-
         $rows = $this->get_all(0, 0, true, 'ASC');
 
         if(!empty($rows)){
@@ -213,8 +209,18 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
             $parceiro_id_pai = 0;
 
             foreach ($rows as $row) {
+                // echo "id = ".$row["parceiro_relacionamento_produto_id"] ." - ". $row['parceiro_id'] ." - ". $row['pai_id'] ."<br>";
 
-                if ( $row['pai_id'] > 0 ){
+                if ( $row['pai_id'] == 0 ){
+
+                    $parceiro_id_pai = $row['parceiro_id'];
+                    $oArray = [
+                        $parceiro_id_pai => [
+                            "comissao" => $row['comissao']
+                        ]
+                    ];
+
+                } else {
 
                     $result = $this->filter_by_pai($row["parceiro_relacionamento_produto_id"])->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
 
@@ -228,13 +234,6 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
                         }
                     }
 
-                } else {
-                    $parceiro_id_pai = $row['parceiro_id'];
-                    $oArray = [
-                        $parceiro_id_pai => [
-                            "comissao" => $row['comissao']
-                        ]
-                    ];
                 }
 
             }
@@ -250,15 +249,17 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
 
         foreach ($oArray as $key => $value) {
 
+            $this->soma = (isset($this->somatoria[$nivel-1])) ? $this->somatoria[$nivel-1] : 0;
+
             if (!empty($parceiro_id) && $parceiro_id == $key) {
                 $break = true;
                 return $this->soma;
             }
 
             // echo "<b>KEY:{$key} - NIVEL: {$nivel} </b> <br>";
-            $this->soma = (isset($this->somatoria[$nivel-1])) ? $this->somatoria[$nivel-1] : 0;
             $this->soma += $value['comissao'];
             $this->somatoria[$nivel] = $this->soma;
+            // echo $this->soma . "<br>";
 
             unset($value['comissao']);
 
