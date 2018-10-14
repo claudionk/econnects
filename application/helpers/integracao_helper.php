@@ -792,16 +792,15 @@ if ( ! function_exists('app_get_api'))
 {
     function app_get_api($service, $method = 'GET', $fields = [], $print = false){
 
+        $CI =& get_instance();
         if (!empty(app_get_userdata("email"))) {
             $acesso = app_integracao_generali_dados();
 
-            $CI =& get_instance();
             $CI->session->set_userdata("email", $acesso->email);
         }
 
         $retorno = soap_curl([
-            'url' => "http://econnects-h.jelastic.saveincloud.net/admin/api/{$service}",
-            // 'url' => "http://localhost/econnects/admin/api/{$service}",
+            'url' => $CI->config->item("URL_sisconnects") ."admin/api/{$service}",
             'method' => $method,
             'fields' => $fields,
             'header' => ["Content-Type: application/json"]

@@ -11,8 +11,7 @@ class Api extends Site_Controller
     public function __construct() 
     {
         parent::__construct();
-        $this->url = "http://econnects-h.jelastic.saveincloud.net/api/";
-        // $this->url = "http://localhost/econnects/api/";
+        $this->url = $this->config->item("URL_sisconnects") ."api/";
         $this->stop = false;
     }
     
