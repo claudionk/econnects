@@ -1077,3 +1077,14 @@ if ( ! function_exists('app_integracao_id_transacao')) {
         return $num_apolice;
     }
 }
+if ( ! function_exists('app_integracao_id_transacao_canc')) {
+    function app_integracao_id_transacao_canc($formato, $dados = array())
+    {
+        $id_transacao = '';
+        if ($dados['registro']['cod_motivo_cobranca'] == '02') {
+            $id_transacao = app_integracao_apolice($formato, $dados);
+            $id_transacao .= $dados['registro']['num_endosso'].$dados['registro']['cod_ramo'].$dados['registro']['num_parcela'];
+        }
+        return $id_transacao;
+    }
+}
