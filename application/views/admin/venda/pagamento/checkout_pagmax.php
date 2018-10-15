@@ -43,7 +43,7 @@
       "PhoneNumber" => preg_replace( "/[^0-9]/", "", $cotacao["telefone"] )
     ),
     "Sale" => array(
-      "Reference" => "SEGURO DE VIDA",
+      "Reference" => "SEGUROS",
       "Amount" => floatval( preg_replace( "/[^0-9]/", "", $cotacao["premio_liquido_total"] ) / 100 )
     ),
     "Transaction" => array(
