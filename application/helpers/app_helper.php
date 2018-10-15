@@ -1494,7 +1494,7 @@ if ( ! function_exists('soap_curl'))
 
 if ( ! function_exists('app_get_token'))
 {
-    function app_get_token(){
+    function app_get_token($email = null, $senha = null){
 
         // solicitar outro token quando a API tiver vencida
         if ( !empty(app_get_userdata("tokenAPIvalid")) && app_get_userdata("tokenAPIvalid") > date("Y-m-d H:i:s"))
@@ -1502,7 +1502,9 @@ if ( ! function_exists('app_get_token'))
 
         $CI =& get_instance();
 
-        $email = app_get_userdata("email");
+        if (empty($email))
+            $email = app_get_userdata("email");
+
         if (empty($email))
             $email = "mdiorio@econnects.com.br";
 

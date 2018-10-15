@@ -91,9 +91,7 @@ class Gateway extends Admin_Controller
     $integracao = $this->integracao->get_by_slug('pagmax');
     log_message('debug', 'BUSCANDO INTEGRAÇÃO - '.count($integracao));
 
-
     foreach ($pedidos as $index => $pedido) {
-
 
       log_message('debug', 'PEDIDO ' .$pedido['pedido_id']);
       //verifica se exite cartão não processado
@@ -138,7 +136,6 @@ class Gateway extends Admin_Controller
             $this->pagmax_efetuar_pagamento($cartao['pedido_cartao_id']);
           }
 
-
         }
 
         log_message('debug', 'UNLOCK NO PEDIDO ' . $pedido['pedido_id']);
@@ -151,16 +148,7 @@ class Gateway extends Admin_Controller
       }
     }
 
-
-
-
-
   }
-
-
-
-
-
 
   public function ins_apolice(){
     $pedidos = func_get_args();

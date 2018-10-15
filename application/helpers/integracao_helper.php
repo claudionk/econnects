@@ -535,6 +535,19 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
         $cpf = $dados['registro']['cpf'];
         $ean = $dados['registro']['ean'];
+        $num_apolice = $dados['registro']['num_apolice'];
+
+        echo "****************** CPF: $cpf - {$dados['registro']['tipo_transacao']}<br>";
+
+        if ( !in_array($dados['registro']['tipo_transacao'], ['NS','XS','XX']) ) {
+            $response->status = true;
+            return $response;
+        }
+
+        if (empty($num_apolice)){
+            $response->msg[] = ['id' => 8, 'msg' => "Apólice não informada", 'slug' => "apolice"];
+            return $response;
+        }
 
         $acesso = app_integracao_generali_dados();
         $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
@@ -542,103 +555,124 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         $cpfErro = $eanErro = true;
         $cpfErroMsg = $eanErroMsg = "";
 
-        echo "****************** CPF: $cpf - {$dados['registro']['tipo_transacao']}<br>";
+        // verifica se existe a emissão do certificado para gerar o cancelamento
+        $CI =& get_instance();
+
+        // usar a pesquisa por nome
+        $CI->load->model("apolice_model", "apolice");
+
+        //Busca a apólice pelo número
+        $apolice = $CI->apolice->getApoliceByNumero($num_apolice, $acesso->parceiro_id);
 
         // Emissão
         if ( in_array($dados['registro']['tipo_transacao'], ['NS']) ) {
+            
+            if (!empty($apolice)) {
+                $response->msg[] = ['id' => 8, 'msg' => "Apólice já utilizada [{$num_apolice}]", 'slug' => "emissao"];
+                return $response;
+            }
+
             if (!empty($cpf)) {
                 $cpf = substr($cpf, -11);
-                $enriquecido = app_get_api("enriqueceCPF/$cpf/". $acesso->produto_parceiro_id);
 
-                if (!empty($enriquecido['status'])){
-                    $cpfErro = false;
-                    $enriquecido = $enriquecido['response'];
-                    $response->cpf = $enriquecido;
+                if( !app_validate_cpf($cpf) ){
+                    $response->msg[] = ['id' =>  2, 'msg' => "Campo CPF deve ser um CPF válido [{$cpf}]", 'slug' => 'cnpj_cpf'];
+                    return $response;
+                } else {
 
-                    $dados['registro']['nome'] = $enriquecido->nome;
-                    $dados['registro']['sexo'] = $enriquecido->sexo;
-                    $dados['registro']['data_nascimento'] = $enriquecido->data_nascimento;
-                    $dados['registro']['cnpj_cpf'] = $cpf;
+                    $enriquecido = app_get_api("enriqueceCPF/$cpf/". $acesso->produto_parceiro_id);
 
-                    // Endereço
-                    $ExtraEnderecos = $enriquecido->endereco;
-                    if( sizeof( $ExtraEnderecos ) ) {
-                        $dados['registro']['endereco_logradouro'] = $ExtraEnderecos[0]->{"endereco"};
-                        $dados['registro']['endereco_numero'] = $ExtraEnderecos[0]->{"endereco_numero"};
-                        $dados['registro']['complemento'] = $ExtraEnderecos[0]->{"endereco_complemento"};
-                        $dados['registro']['endereco_bairro'] = $ExtraEnderecos[0]->{"endereco_bairro"};
-                        $dados['registro']['endereco_cidade'] = $ExtraEnderecos[0]->{"endereco_cidade"};
-                        $dados['registro']['endereco_estado'] = $ExtraEnderecos[0]->{"endereco_uf"};
-                        $dados['registro']['endereco_cep'] = str_replace("-", "", $ExtraEnderecos[0]->{"endereco_cep"});
-                        $dados['registro']['pais'] = "BRASIL";
-                    }
+                    if (!empty($enriquecido['status'])){
+                        $cpfErro = false;
+                        $enriquecido = $enriquecido['response'];
+                        $response->cpf = $enriquecido;
 
-                    // Contatos
-                    $ExtraContatos = $enriquecido->contato;
-                    $getTelefone = $getCelular = $getEmail = true;
+                        $dados['registro']['nome'] = $enriquecido->nome;
+                        $dados['registro']['sexo'] = $enriquecido->sexo;
+                        $dados['registro']['data_nascimento'] = $enriquecido->data_nascimento;
+                        $dados['registro']['cnpj_cpf'] = $cpf;
 
-                    if( sizeof( $ExtraContatos ) ) {
-                        foreach ($ExtraContatos as $contato) {
-                            if (!$getTelefone && !$getCelular && !$getEmail)
-                                break;
+                        // Endereço
+                        $ExtraEnderecos = $enriquecido->endereco;
+                        if( sizeof( $ExtraEnderecos ) ) {
+                            $dados['registro']['endereco_logradouro'] = $ExtraEnderecos[0]->{"endereco"};
+                            $dados['registro']['endereco_numero'] = $ExtraEnderecos[0]->{"endereco_numero"};
+                            $dados['registro']['complemento'] = $ExtraEnderecos[0]->{"endereco_complemento"};
+                            $dados['registro']['endereco_bairro'] = $ExtraEnderecos[0]->{"endereco_bairro"};
+                            $dados['registro']['endereco_cidade'] = $ExtraEnderecos[0]->{"endereco_cidade"};
+                            $dados['registro']['endereco_estado'] = $ExtraEnderecos[0]->{"endereco_uf"};
+                            $dados['registro']['endereco_cep'] = str_replace("-", "", $ExtraEnderecos[0]->{"endereco_cep"});
+                            $dados['registro']['pais'] = "BRASIL";
+                        }
 
-                            // Telefone Residencial
-                            if ($contato->contato_tipo_id == 3 && $getTelefone ){ //TELEFONE RESIDENCIAL
-                                $getTelefone=false;
-                                $dados['registro']['ddd_residencial'] = left($contato->contato,2);
-                                $dados['registro']['telefone_residencial'] = trim(right($contato->contato, strlen($contato->contato)-2));
-                                $dados['registro']['telefone'] = trim($contato->contato);
-                                continue;
-                            }
+                        // Contatos
+                        $ExtraContatos = $enriquecido->contato;
+                        $getTelefone = $getCelular = $getEmail = true;
 
-                            // Celular
-                            if ($contato->contato_tipo_id == 2 && $getCelular ){ // CELULAR
-                                $getCelular=false;
-                                $dados['registro']['ddd_celular'] = left($contato->contato,2);
-                                $dados['registro']['telefone_celular'] = trim(right($contato->contato, strlen($contato->contato)-2));
-                                continue;
-                            }
+                        if( sizeof( $ExtraContatos ) ) {
+                            foreach ($ExtraContatos as $contato) {
+                                if (!$getTelefone && !$getCelular && !$getEmail)
+                                    break;
 
-                            // Email
-                            if ($contato->contato_tipo_id == 1 && $getEmail ){ // CELULAR
-                                $getEmail=false;
-                                $dados['registro']['email'] = $contato->contato;
-                                continue;
+                                // Telefone Residencial
+                                if ($contato->contato_tipo_id == 3 && $getTelefone ){ //TELEFONE RESIDENCIAL
+                                    $getTelefone=false;
+                                    $dados['registro']['ddd_residencial'] = left($contato->contato,2);
+                                    $dados['registro']['telefone_residencial'] = trim(right($contato->contato, strlen($contato->contato)-2));
+                                    $dados['registro']['telefone'] = trim($contato->contato);
+                                    continue;
+                                }
+
+                                // Celular
+                                if ($contato->contato_tipo_id == 2 && $getCelular ){ // CELULAR
+                                    $getCelular=false;
+                                    $dados['registro']['ddd_celular'] = left($contato->contato,2);
+                                    $dados['registro']['telefone_celular'] = trim(right($contato->contato, strlen($contato->contato)-2));
+                                    continue;
+                                }
+
+                                // Email
+                                if ($contato->contato_tipo_id == 1 && $getEmail ){ // CELULAR
+                                    $getEmail=false;
+                                    $dados['registro']['email'] = $contato->contato;
+                                    continue;
+                                }
                             }
                         }
+
+                    } else {
+                        $cpfErroMsg = $enriquecido['response'];
                     }
 
-                } else {
-                    $cpfErroMsg = $enriquecido['response'];
+                    // Regras DE/PARA
+                    if (empty($dados['registro']['endereco_estado']))
+                        $dados['registro']['endereco_estado'] = "SP";
+
+                    if (empty($dados['registro']['endereco_cidade']))
+                        $dados['registro']['endereco_cidade'] = "BARUERI";
+
+                    if (empty($dados['registro']['endereco_bairro']))
+                        $dados['registro']['endereco_bairro'] = $dados['registro']['endereco_cidade'];
+
+                    if (empty($dados['registro']['endereco_logradouro']))
+                        $dados['registro']['endereco_logradouro'] = "ALAMEDA RIO NEGRO";
+
+                    if (empty($dados['registro']['endereco_numero']))
+                        $dados['registro']['endereco_numero'] = '0';
+
+                    if (empty($dados['registro']['endereco_cep']))
+                        $dados['registro']['endereco_cep'] = '06454000';
+
+                    if (empty($dados['registro']['data_nascimento'])) {
+                        $dados['registro']['data_nascimento'] = '2000-01-01';
+                    } elseif (!app_validate_data_americana($dados['registro']['data_nascimento'])) {
+                        $dados['registro']['data_nascimento'] = '2000-01-01';
+                    }
+
+                    if (empty($dados['registro']['sexo']))
+                        $dados['registro']['sexo'] = 'M';
+
                 }
-
-                // Regras DE/PARA
-                if (empty($dados['registro']['endereco_estado']))
-                    $dados['registro']['endereco_estado'] = "SP";
-
-                if (empty($dados['registro']['endereco_cidade']))
-                    $dados['registro']['endereco_cidade'] = "BARUERI";
-
-                if (empty($dados['registro']['endereco_bairro']))
-                    $dados['registro']['endereco_bairro'] = $dados['registro']['endereco_cidade'];
-
-                if (empty($dados['registro']['endereco_logradouro']))
-                    $dados['registro']['endereco_logradouro'] = "ALAMEDA RIO NEGRO";
-
-                if (empty($dados['registro']['endereco_numero']))
-                    $dados['registro']['endereco_numero'] = '0';
-
-                if (empty($dados['registro']['endereco_cep']))
-                    $dados['registro']['endereco_cep'] = '06454000';
-
-                if (empty($dados['registro']['data_nascimento'])) {
-                    $dados['registro']['data_nascimento'] = '2000-01-01';
-                } elseif (!app_validate_data_americana($dados['registro']['data_nascimento'])) {
-                    $dados['registro']['data_nascimento'] = '2000-01-01';
-                }
-
-                if (empty($dados['registro']['sexo']))
-                    $dados['registro']['sexo'] = 'M';
 
             }
 
@@ -669,7 +703,8 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                 } else {
                     $inputField = [
                         'modelo' => $dados['registro']['equipamento_nome'],
-                        'quantidade' => 1
+                        'quantidade' => 1,
+                        'emailAPI' => app_get_userdata("email"),
                     ];
 
                     $EANenriquecido = app_get_api("enriqueceModelo", "POST", json_encode($inputField));
@@ -679,7 +714,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                         $EANenriquecido = $EANenriquecido['response']->dados[0];
                         $response->ean = $EANenriquecido;
                         $eanErro = false;
-                        die();
 
                         $dados['registro']['equipamento_id'] = $EANenriquecido->equipamento_id;
                         $dados['registro']['equipamento_nome'] = $EANenriquecido->nome;
@@ -700,6 +734,23 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                 $response->msg[] = ['id' => 11, 'msg' => $eanErroMsg ." [{$ean}]", 'slug' => "enriquece_ean"];
                 return $response;
             }
+        
+        // Cancelamento
+        } else if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX']) ) {
+
+            if (empty($apolice)) {
+                $response->msg[] = ['id' => 8, 'msg' => "Apólice não encontrada [{$num_apolice}]", 'slug' => "cancelamento"];
+                return $response;
+            } else {
+                $apolice = $apolice[0];
+                if ($apolice['apolice_status_id'] != 1) {
+                    $response->msg[] = ['id' => 8, 'msg' => "Apólice {$apolice['nome']} [{$num_apolice}]", 'slug' => "cancelamento"];
+                    return $response;
+                }
+
+                $dados['registro']['apolice_id'] = $apolice['apolice_id'];
+            }
+
         }
 
         // Campos para cotação
@@ -741,9 +792,15 @@ if ( ! function_exists('app_get_api'))
 {
     function app_get_api($service, $method = 'GET', $fields = [], $print = false){
 
+        $CI =& get_instance();
+        if (!empty(app_get_userdata("email"))) {
+            $acesso = app_integracao_generali_dados();
+
+            $CI->session->set_userdata("email", $acesso->email);
+        }
+
         $retorno = soap_curl([
-            'url' => "http://econnects-h.jelastic.saveincloud.net/admin/api/{$service}",
-            // 'url' => "http://localhost/econnects/admin/api/{$service}",
+            'url' => $CI->config->item("URL_sisconnects") ."admin/api/{$service}",
             'method' => $method,
             'fields' => $fields,
             'header' => ["Content-Type: application/json"]
@@ -853,6 +910,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 if (!empty($dados['equipamento_categoria_id']))
                 $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
                 $fields['ean'] = $dados['ean'];
+                $fields['emailAPI'] = app_get_userdata("email");
 
                 // Cotação
                 $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields));
@@ -914,6 +972,7 @@ if ( ! function_exists('app_integracao_emissao'))
         if ( in_array($dados['tipo_transacao'], ['NS']) ) {
 
             // Cotação Contratar
+            $fields['emailAPI'] = app_get_userdata("email");
             $cotacao = app_get_api("cotacao_contratar", "POST", json_encode($fields));
             if (empty($cotacao['status'])) {
                 $response->msg[] = ['id' => -1, 'msg' => $cotacao['response'], 'slug' => "cotacao_contratar"];
@@ -947,6 +1006,7 @@ if ( ! function_exists('app_integracao_emissao'))
                     "forma_pagamento_id" => $forma_pagamento_id,
                     "produto_parceiro_pagamento_id" => $produto_parceiro_pagamento_id,
                     "campos" => [],
+                    "emailAPI" => app_get_userdata("email"),
                 ];
 
                 $efetuaPagto = app_get_api("pagamento_pagar", "POST", json_encode($camposPagto));
@@ -963,6 +1023,7 @@ if ( ! function_exists('app_integracao_emissao'))
                 $fieldApolice = [
                     "apolice_id" => $response->apolice_id,
                     "num_apolice" => $num_apolice,
+                    "emailAPI" => app_get_userdata("email"),
                 ];
 
                 $getApolice = app_get_api("apolice", "POST", json_encode($fieldApolice));
@@ -982,31 +1043,8 @@ if ( ! function_exists('app_integracao_emissao'))
         // Cancelamento
         } else if ( in_array($dados['tipo_transacao'], ['XS','XX']) ) {
             
-            // verifica se existe a emissão do certificado para gerar o cancelamento
-            $CI =& get_instance();
-            $acesso = app_integracao_generali_dados();
-
-            // usar a pesquisa por nome
-            $CI->load->model("apolice_model", "apolice");
-
-            //Busca a apólice pelo número
-            $apolice = $CI->apolice->getApoliceByNumero($dados['num_apolice'], $acesso->parceiro_id);
-            // echo "<pre>";print_r($apolice);echo "</pre>";
-
-            //se encontrou algum parecido
-            if (empty($apolice)) {
-                $response->msg[] = ['id' => 8, 'msg' => "Apólice não encontrada [{$dados['num_apolice']}]", 'slug' => "cancelamento"];
-                return $response;
-            } else {
-                $apolice = $apolice[0];
-                if ($apolice['apolice_status_id'] != 1) {
-                    $response->msg[] = ['id' => 8, 'msg' => "Apólice {$apolice['nome']} [{$dados['num_apolice']}]", 'slug' => "cancelamento"];
-                    return $response;
-                }
-            }
-
             // Cancelamento
-            $cancelaApolice = app_get_api("cancelar", "POST", json_encode(["apolice_id" => $apolice['apolice_id']]));
+            $cancelaApolice = app_get_api("cancelar", "POST", json_encode(["apolice_id" => $dados['apolice_id'], "emailAPI" => app_get_userdata("email")]));
             if (empty($cancelaApolice['status'])) {
                 $response->msg[] = ['id' => 9, 'msg' => $cancelaApolice['response'], 'slug' => "cancelamento"];
                 return $response;

@@ -124,7 +124,7 @@ class Cron extends Admin_Controller {
   public function comissao() {
 
     $this->load->model('comissao_gerada_model', 'comissao_gerada');
-    $this->comissao_gerada->gerar_comissao_parceiro();
+    // $this->comissao_gerada->gerar_comissao_parceiro();
     $this->comissao_gerada->gerar_comissao_parceiro_relacionamento();
     error_log( date("Y-m-d H:i:s") . " - Comissão gerada\n", 3, "/var/log/httpd/econnects.log" );
 
