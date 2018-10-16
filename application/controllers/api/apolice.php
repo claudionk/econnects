@@ -175,7 +175,7 @@ class Apolice extends CI_Controller {
     function cancelar() {
         $validacao = $this->validarDadosEntrada();
         $pedido_id = $validacao['pedido_id'];
-        $dados_bancarios = $validacao['dados']['dados_bancarios'];
+        $dados_bancarios = !empty($validacao['dados']['dados_bancarios']) ? $validacao['dados']['dados_bancarios'] : [];
 
         //pega as configurações de cancelamento do pedido
         $produto_parceiro_cancelamento = $this->pedido->cancelamento( $pedido_id, $dados_bancarios);
