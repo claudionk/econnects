@@ -615,6 +615,12 @@ Class Pedido_Model extends MY_Model
     return $this;
   }
 
+  function filter_by_apolice($apolice_id)
+  {
+    $this->_database->where('apolice.apolice_id', $apolice_id);
+    return $this;
+  }
+
   function filter_by_cotacao($cotacao_id)
   {
     $this->_database->where('pedido.cotacao_id', $cotacao_id);

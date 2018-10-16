@@ -163,6 +163,12 @@ class Apolice extends CI_Controller {
 
         $this->load->model("pedido_model", "pedido");
 
+        $pedido = $this->pedido->with_apolice()->filter_by_apolice($apolice_id)->get_all();
+        if(!$pedido) {
+            die( json_encode( array( "status" => false, "message" => "Apólice não encontrada" ) ) );
+        }
+        $pedido_id = $pedido[0]["pedido_id"];
+
         //pega as configurações de cancelamento do pedido
         $produto_parceiro_cancelamento = $this->pedido->cancelamento( $pedido_id );
 
@@ -190,6 +196,12 @@ class Apolice extends CI_Controller {
         }
 
         $this->load->model("pedido_model", "pedido");
+
+        $pedido = $this->pedido->with_apolice()->filter_by_apolice($apolice_id)->get_all();
+        if(!$pedido) {
+            die( json_encode( array( "status" => false, "message" => "Apólice não encontrada" ) ) );
+        }
+        $pedido_id = $pedido[0]["pedido_id"];
 
         //pega as configurações de cancelamento do pedido
         $produto_parceiro_cancelamento = $this->pedido->cancelamento_calculo( $pedido_id );
