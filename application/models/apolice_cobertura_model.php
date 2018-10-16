@@ -48,7 +48,6 @@ Class Apolice_Cobertura_Model extends MY_Model
         $valor_base = floatval( $valor_base );
 
         foreach ($coberturas as $cobertura) {
-            $cobertura_plano_id = ;
             $percentagem = $valor_cobertura = $valor_config = 0;
             if( $cobertura["mostrar"] == "importancia_segurada" ) {
                 $percentagem = $valor_config = floatval($cobertura["valor_config"]);
@@ -66,6 +65,7 @@ Class Apolice_Cobertura_Model extends MY_Model
             $dados['mostrar'] = $cobertura["mostrar"];
             $dados['valor_config'] = $valor_config;
             $dados['criacao'] = date("Y-m-d H:i:s");
+
             $this->insert($dados, TRUE);
         }
 
