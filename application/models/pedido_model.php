@@ -989,7 +989,7 @@ Class Pedido_Model extends MY_Model
 
     $apolices = $this->apolice->getApolicePedido($pedido_id);
     $apolice = $apolices[0];
-
+    $data_cancelamento = date('Y-m-d H:i:s');
     $valor_estorno_total = 0;
     $retorno = [];
 
@@ -1001,7 +1001,7 @@ Class Pedido_Model extends MY_Model
         $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento["seg_antes_calculo"], $produto_parceiro_cancelamento["seg_antes_valor"], $valor_premio);
 
         $dados_apolice = array();
-        $dados_apolice['data_cancelamento'] = date('Y-m-d H:i:s');
+        $dados_apolice['data_cancelamento'] = $data_cancelamento;
         $dados_apolice['valor_estorno'] = $valor_estorno;
         $valor_estorno_total += $valor_estorno;
 
@@ -1017,19 +1017,18 @@ Class Pedido_Model extends MY_Model
 
     }else{
       //FAZ CALCULO DO VALOR PARCIAL
+      // $apolice["data_ini_vigencia"] = '2018-01-01';
+      // $apolice["data_fim_vigencia"] = '2019-01-01';
+      // $data_cancelamento = '2018-01-30';
 
-      $dias_restantes = app_date_get_diff_dias(date("d/m/Y"), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]), "D") + 1 ;
-      $dias_utilizados = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), date("d/m/Y"),  "D") + 1;
+      $dias_restantes = app_date_get_diff_dias(app_dateonly_mysql_to_mask($data_cancelamento), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]), "D");
+      $dias_utilizados = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
       $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]),  "D");
-
-      $porcento_nao_utilizado = ((($dias_restantes) / $dias_total) * 100);
-      if ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_utilizados <= $produto_parceiro_cancelamento['seg_depois_dias_carencia']) {
-        $dias_restantes = $dias_total;
-      }
 
       $porcento_nao_utilizado = 0;
       if ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_utilizados <= $produto_parceiro_cancelamento['seg_depois_dias_carencia']) {
         $porcento_nao_utilizado = 100;
+        $dias_restantes = $dias_total;
       }
 
       if ($porcento_nao_utilizado == 0) {
@@ -1038,7 +1037,7 @@ Class Pedido_Model extends MY_Model
 
       foreach ($apolices as $apolice) {
 
-        $valor_premio = $apolice['valor_premio_total'];
+        $valor_premio = $apolice['valor_premio_net'];
         $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
         $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento['seg_depois_calculo'], $produto_parceiro_cancelamento['seg_depois_valor'], $valor_premio);
 
