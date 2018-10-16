@@ -46,6 +46,11 @@ Class Fatura_Model extends MY_Model
         return $this;
     }
 
+    function filterByDeletado($deletado){
+        $this->_database->where("fatura.deletado", $deletado);
+        return $this;
+    }
+
     function insertFaturaEstorno($pedido_id, $valor_total){
 
         $this->load->model('fatura_parcela_model', 'fatura_parcela');

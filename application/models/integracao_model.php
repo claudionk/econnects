@@ -309,8 +309,8 @@ Class Integracao_Model extends MY_Model
                 ->get_all();
 
             $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
-            // $result_file = $this->getFile($result, $file);
-            $result_file["file"] = "/var/www/webroot/ROOT/econnects/application/helpers/../../assets/uploads/integracao/15/R/RF2119597741TR20181004.TXT";
+            $result_file = $this->getFile($result, $file);
+            // $result_file["file"] = "/var/www/webroot/ROOT/econnects/application/helpers/../../assets/uploads/integracao/15/R/RF2119597741TR20181010.TXT";
 
             if(!empty($result_file['file'])){
                 $this->processFileIntegracao($result, $result_file['file']);

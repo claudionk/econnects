@@ -709,10 +709,11 @@ Class Pedido_Model extends MY_Model
 
   }
 
-  function cancelamento($pedido_id){
+  function criticas_cancelamento($pedido_id, $executa = true){
 
     $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
     $this->load->model("apolice_model", "apolice");
+    $this->load->model("fatura_model", "fatura");
 
     $result = array(
       'result' => FALSE,
@@ -722,8 +723,6 @@ Class Pedido_Model extends MY_Model
 
     $pedido = $this->get($pedido_id);
 
-
-
     //varifica se existe o registro
     if(!$pedido){
       $result['result'] = FALSE;
@@ -731,7 +730,6 @@ Class Pedido_Model extends MY_Model
       $result['redirect'] = "admin/pedido/index";
       return $result;
     }
-
 
     //varifica se é permitido cancelar
     if(!$this->isPermiteCancelar($pedido_id)){
@@ -741,10 +739,15 @@ Class Pedido_Model extends MY_Model
       return $result;
     }
 
+    if ( !empty($this->fatura->filterByPedido($pedido_id)->filterByTipo('ESTORNO')->filterByDeletado(0)->get_all()) ) {
+      $result["result"] = FALSE;
+      $result["mensagem"] = "Não foi possível efetuar o cancelamento desse Pedido/Apólice. Motivo: Apólice já está cancelada";
+      $result["redirect"] = "admin/pedido/view/{$pedido_id}";
+      return $result;
+    }
 
     //pega as configurações de cancelamento do pedido
     $produto_parceiro = $this->getPedidoProdutoParceiro($pedido_id);
-
 
     if(!$produto_parceiro){
       $result['result'] = FALSE;
@@ -756,7 +759,6 @@ Class Pedido_Model extends MY_Model
     $produto_parceiro = $produto_parceiro[0];
     $produto_parceiro_cancelamento = $this->cancelamento->filter_by_produto_parceiro($produto_parceiro['produto_parceiro_id'])->get_all();
 
-
     if(!$produto_parceiro_cancelamento){
       $result['result'] = FALSE;
       $result['mensagem'] = 'Não existe regras de cancelamento configuradas para esse produto';
@@ -765,18 +767,25 @@ Class Pedido_Model extends MY_Model
     }
 
     $produto_parceiro_cancelamento = $produto_parceiro_cancelamento[0];
-
-
     $apolices = $this->apolice->getApolicePedido($pedido_id);
 
     if(!$apolices){
       $result['result'] = FALSE;
-      $result['mensagem'] = 'Apólices não encontrada';
+      $result['mensagem'] = 'Apólice não encontrada';
       $result['redirect'] = "admin/pedido/view/{$pedido_id}";
       return $result;
     }
 
     $apolice = $apolices[0];
+
+    if( $apolice['apolice_status_id'] == 2 ) {
+      $result['result'] = FALSE;
+      $result["mensagem"] = "Não foi possível efetuar o cancelamento desse Pedido/Apólice. Motivo: Apólice já está cancelada";
+      $result['redirect'] = "admin/pedido/view/{$pedido_id}";
+      return $result;
+    }
+
+    $vigencia = FALSE;
 
     //pega início e fim da vigencia
     $fim_vigencia = explode('-', $apolice['data_fim_vigencia']);
@@ -809,10 +818,8 @@ Class Pedido_Model extends MY_Model
           }
         }
 
-        // efetuar o cancelamento
-        $this->executa_extorno_cancelamento($pedido_id, TRUE);
+        $vigencia = TRUE;
       }
-
 
     } elseif ( $hoje < $inicio_vigencia ) {
       if($produto_parceiro_cancelamento['seg_antes_hab'] == 0){
@@ -830,7 +837,8 @@ Class Pedido_Model extends MY_Model
             return $result;
           }
         }
-        $this->executa_extorno_cancelamento($pedido_id, FALSE);
+
+        $vigencia = FALSE;
       }
     } else {
       $result['result'] = FALSE;
@@ -839,18 +847,46 @@ Class Pedido_Model extends MY_Model
       return $result;
     }
 
-
     $result['result'] = TRUE;
     $result['mensagem'] = 'Pedido cancelado com sucesso.';
     $result['redirect'] = "admin/pedido/view/{$pedido_id}";
+    $result['vigencia'] = $vigencia;
     return $result;
-
-
   }
 
+  function cancelamento($pedido_id){
 
-  function executa_extorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE){
+    $criticas = $this->criticas_cancelamento($pedido_id);
 
+    if (!empty($criticas['result'])) {
+      // efetuar o cancelamento
+      $this->executa_estorno_cancelamento($pedido_id, $criticas['vigencia']);
+    }
+    
+    return $criticas;
+  }
+
+  function cancelamento_calculo($pedido_id){
+
+    $result = [
+      'mensagem' => '',
+      'status' => false,
+      'valor_estorno_total' => 0, 
+    ];
+
+    $criticas = $this->criticas_cancelamento($pedido_id);
+
+    if (!empty($criticas['result'])) {
+      // efetuar o cancelamento
+      $result = $this->calcula_estorno_cancelamento($pedido_id, $criticas['vigencia']);
+    } else {
+      $result['mensagem'] = $criticas['mensagem'];
+    }
+
+    return $result;
+  }
+
+  function calcula_estorno_cancelamento($pedido_id, $vigente = FALSE){
 
     $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
     $this->load->model("apolice_model", "apolice");
@@ -877,6 +913,7 @@ Class Pedido_Model extends MY_Model
     $apolice = $apolices[0];
 
     $valor_estorno_total = 0;
+    $retorno = [];
 
     $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro["produto_parceiro_id"] );
 
@@ -884,29 +921,20 @@ Class Pedido_Model extends MY_Model
       foreach ($apolices as $apolice) {
         $valor_premio = $apolice["valor_premio_total"];
         $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento["seg_antes_calculo"], $produto_parceiro_cancelamento["seg_antes_valor"], $valor_premio);
-        $dados_apolice = array();
 
+        $dados_apolice = array();
         $dados_apolice['data_cancelamento'] = date('Y-m-d H:i:s');
         $dados_apolice['valor_estorno'] = $valor_estorno;
+        $dados_apolice['apolice_status_id'] = 2;
         $valor_estorno_total += $valor_estorno;
 
         if( $produto ) {
           $produto_slug = $produto["produto_slug"];
-          switch( $produto_slug ) {
-            case "seguro_viagem":
-              $this->apolice_seguro_viagem->update($apolice["apolice_seguro_viagem_id"],  $dados_apolice, TRUE);
-              break;
-            case "equipamento":
-              $this->apolice_equipamento->update($apolice["apolice_equipamento_id"],  $dados_apolice, TRUE);
-              break;
-            case "generico":
-            case "seguro_saude":
-              $this->apolice_generico->update($apolice["apolice_generico_id"],  $dados_apolice, TRUE);
-              break;
-          }
-        }
-        if($ins_movimentacao) {
-          $this->movimentacao->insMovimentacao('C', $apolice['apolice_id']);
+          $retorno[] = [
+            'slug' => $produto_slug,
+            'dados_apolice' => $dados_apolice,
+            'apolices' => $apolice,
+          ];
         }
       }
 
@@ -940,11 +968,46 @@ Class Pedido_Model extends MY_Model
         $dados_apolice = array();
         $dados_apolice['data_cancelamento'] = date('Y-m-d H:i:s');
         $dados_apolice['valor_estorno'] = $valor_estorno;
+        $dados_apolice['apolice_status_id'] = 2;
         $valor_estorno_total += $valor_estorno;
 
         if( $produto ) {
           $produto_slug = $produto["produto_slug"];
-          switch( $produto_slug ) {
+          $retorno[] = [
+            'slug' => $produto_slug,
+            'dados_apolice' => $dados_apolice,
+            'apolices' => $apolice,
+          ];
+        }
+
+      }
+
+    }
+
+    return [
+      'status' => (!empty($retorno)),
+      'mensagem' => (!empty($retorno)) ? 'Cálculo realizado com sucesso' : 'Não foi possível realizar o cálculo para Cancelamento',
+      'valor_estorno_total' => $valor_estorno_total, 
+      'dados' => $retorno,
+    ];
+  }
+
+  function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE){
+
+    $this->load->model("apolice_equipamento_model", "apolice_equipamento");
+    $this->load->model("apolice_generico_model", "apolice_generico");
+    $this->load->model("apolice_seguro_viagem_model", "apolice_seguro_viagem");
+
+    $calculo = $this->calcula_estorno_cancelamento($pedido_id, $vigente);
+
+    if (!empty($calculo['status'])) {
+
+      foreach ($calculo['dados'] as $row) {
+        foreach ($row['apolices'] as $apolice) {
+
+          $dados_apolice = $row['dados_apolice'];
+
+          switch( $row['slug'] ) {
             case "seguro_viagem":
               $this->apolice_seguro_viagem->update($apolice["apolice_seguro_viagem_id"],  $dados_apolice, TRUE);
               break;
@@ -956,16 +1019,17 @@ Class Pedido_Model extends MY_Model
               $this->apolice_generico->update($apolice["apolice_generico_id"],  $dados_apolice, TRUE);
               break;
           }
+
+          if($ins_movimentacao) {
+            $this->movimentacao->insMovimentacao('C', $apolice['apolice_id']);
+          }
         }
-        $this->movimentacao->insMovimentacao('C', $apolice['apolice_id']);
       }
+
     }
 
-
     $this->pedido_transacao->insStatus($pedido_id, 'cancelado', "PEDIDO CANCELADO COM SUCESSO");
-
-    $this->fatura->insertFaturaEstorno($pedido_id, $valor_estorno_total);
-
+    $this->fatura->insertFaturaEstorno($pedido_id, $calculo['valor_estorno_total']);
   }
 
   function executa_extorno_upgrade($pedido_id){
