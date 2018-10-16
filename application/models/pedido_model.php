@@ -931,7 +931,6 @@ Class Pedido_Model extends MY_Model
         $dados_apolice = array();
         $dados_apolice['data_cancelamento'] = date('Y-m-d H:i:s');
         $dados_apolice['valor_estorno'] = $valor_estorno;
-        $dados_apolice['apolice_status_id'] = 2;
         $valor_estorno_total += $valor_estorno;
 
         if( $produto ) {
@@ -974,7 +973,6 @@ Class Pedido_Model extends MY_Model
         $dados_apolice = array();
         $dados_apolice['data_cancelamento'] = date('Y-m-d H:i:s');
         $dados_apolice['valor_estorno'] = $valor_estorno;
-        $dados_apolice['apolice_status_id'] = 2;
         $valor_estorno_total += $valor_estorno;
 
         if( $produto ) {
@@ -1000,6 +998,7 @@ Class Pedido_Model extends MY_Model
 
   function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE){
 
+    $this->load->model("apolice_model", "apolice");
     $this->load->model("apolice_equipamento_model", "apolice_equipamento");
     $this->load->model("apolice_generico_model", "apolice_generico");
     $this->load->model("apolice_seguro_viagem_model", "apolice_seguro_viagem");
@@ -1009,27 +1008,28 @@ Class Pedido_Model extends MY_Model
     if (!empty($calculo['status'])) {
 
       foreach ($calculo['dados'] as $row) {
-        foreach ($row['apolices'] as $apolice) {
+        $apolice = $row['apolices'];
+        $dados_apolice = $row['dados_apolice'];
 
-          $dados_apolice = $row['dados_apolice'];
-
-          switch( $row['slug'] ) {
-            case "seguro_viagem":
-              $this->apolice_seguro_viagem->update($apolice["apolice_seguro_viagem_id"],  $dados_apolice, TRUE);
-              break;
-            case "equipamento":
-              $this->apolice_equipamento->update($apolice["apolice_equipamento_id"],  $dados_apolice, TRUE);
-              break;
-            case "generico":
-            case "seguro_saude":
-              $this->apolice_generico->update($apolice["apolice_generico_id"],  $dados_apolice, TRUE);
-              break;
-          }
-
-          if($ins_movimentacao) {
-            $this->movimentacao->insMovimentacao('C', $apolice['apolice_id']);
-          }
+        switch( $row['slug'] ) {
+          case "seguro_viagem":
+            $this->apolice_seguro_viagem->update($apolice["apolice_seguro_viagem_id"],  $dados_apolice, TRUE);
+            break;
+          case "equipamento":
+            $this->apolice_equipamento->update($apolice["apolice_equipamento_id"],  $dados_apolice, TRUE);
+            break;
+          case "generico":
+          case "seguro_saude":
+            $this->apolice_generico->update($apolice["apolice_generico_id"],  $dados_apolice, TRUE);
+            break;
         }
+
+        $this->apolice->update($apolice["apolice_id"], ['apolice_status_id' => 2], TRUE);
+
+        if($ins_movimentacao) {
+          $this->movimentacao->insMovimentacao('C', $apolice['apolice_id']);
+        }
+
       }
 
     }
@@ -1040,7 +1040,6 @@ Class Pedido_Model extends MY_Model
 
   function executa_extorno_upgrade($pedido_id){
 
-
     $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
     $this->load->model("apolice_model", "apolice");
     $this->load->model("fatura_model", "fatura");
@@ -1049,20 +1048,15 @@ Class Pedido_Model extends MY_Model
     $this->load->model('pedido_transacao_model', 'pedido_transacao');
     $this->load->model('apolice_movimentacao_model', 'movimentacao');
 
-
-
     $apolices = $this->apolice->getApolicePedido($pedido_id);
-
     $apolice = $apolices[0];
 
     $produto = $this->getPedidoProdutoParceiro($pedido_id);
-
     $produto = $produto[0];
 
     $valor_estorno_total = 0;
 
     foreach ($apolices as $apolice) {
-
 
       if($produto['slug'] == 'seguro_viagem') {
         $valor_premio = $apolice['valor_premio_total'];
@@ -1082,9 +1076,7 @@ Class Pedido_Model extends MY_Model
         $this->apolice_seguro_viagem->update($apolice['apolice_equipamento_id'], $dados_apolice, TRUE);
       }
 
-
     }
-
 
     $this->fatura->insertFaturaEstorno($pedido_id, $valor_estorno_total);
 
