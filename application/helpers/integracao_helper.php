@@ -518,10 +518,10 @@ if ( ! function_exists('app_integracao_generali_dados')) {
             "produto_parceiro_plano_id" => 49,
         ];
 
-         if ( empty(app_get_userdata("email")) ) {
-            $CI =& get_instance();
-            $CI->session->set_userdata("email", $dados->email);
-        }
+        $CI =& get_instance();
+        $CI->session->set_userdata("email", $dados->email);
+
+        $dados->apikey = app_get_token($dados->email);
 
         return $dados;
     }
@@ -792,18 +792,16 @@ if ( ! function_exists('app_get_api'))
 {
     function app_get_api($service, $method = 'GET', $fields = [], $print = false){
 
-        $CI =& get_instance();
-        if (!empty(app_get_userdata("email"))) {
-            $acesso = app_integracao_generali_dados();
+        $acesso = app_integracao_generali_dados();
 
-            $CI->session->set_userdata("email", $acesso->email);
-        }
+        $CI =& get_instance();
+        $CI->session->set_userdata("email", $acesso->email);
 
         $retorno = soap_curl([
             'url' => $CI->config->item("URL_sisconnects") ."admin/api/{$service}",
             'method' => $method,
             'fields' => $fields,
-            'header' => ["Content-Type: application/json"]
+            'header' => ["Content-Type: application/json", "APIKEY: {$acesso->apikey}"]
         ]);
 
         if ($print){

@@ -715,7 +715,7 @@ Class Pedido_Model extends MY_Model
 
   }
 
-  function criticas_cancelamento($pedido_id, $executa = true){
+  function criticas_cancelamento($pedido_id, $executar = false, $dados_bancarios = []){
 
     $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
     $this->load->model("apolice_model", "apolice");
@@ -731,7 +731,6 @@ Class Pedido_Model extends MY_Model
 
     //varifica se existe o registro
     if(!$pedido){
-      $result['result'] = FALSE;
       $result['mensagem'] = 'Não foi possível encontrar o pedido informado.';
       $result['redirect'] = "admin/pedido/index";
       return $result;
@@ -739,14 +738,12 @@ Class Pedido_Model extends MY_Model
 
     //varifica se é permitido cancelar
     if(!$this->isPermiteCancelar($pedido_id)){
-      $result["result"] = FALSE;
       $result["mensagem"] = "Não foi possível efetuar o cancelamento desse Pedido/Apólice. Motivo: fora de vigência";
       $result["redirect"] = "admin/pedido/view/{$pedido_id}";
       return $result;
     }
 
     if ( !empty($this->fatura->filterByPedido($pedido_id)->filterByTipo('ESTORNO')->filterByDeletado(0)->get_all()) ) {
-      $result["result"] = FALSE;
       $result["mensagem"] = "Não foi possível efetuar o cancelamento desse Pedido/Apólice. Motivo: Apólice já está cancelada";
       $result["redirect"] = "admin/pedido/view/{$pedido_id}";
       return $result;
@@ -756,7 +753,6 @@ Class Pedido_Model extends MY_Model
     $produto_parceiro = $this->getPedidoProdutoParceiro($pedido_id);
 
     if(!$produto_parceiro){
-      $result['result'] = FALSE;
       $result['mensagem'] = 'Não foi possível encontrar o produto relacionado a esse pedido.';
       $result['redirect'] = "admin/pedido/view/{$pedido_id}";
       return $result;
@@ -766,7 +762,6 @@ Class Pedido_Model extends MY_Model
     $produto_parceiro_cancelamento = $this->cancelamento->filter_by_produto_parceiro($produto_parceiro['produto_parceiro_id'])->get_all();
 
     if(!$produto_parceiro_cancelamento){
-      $result['result'] = FALSE;
       $result['mensagem'] = 'Não existe regras de cancelamento configuradas para esse produto';
       $result['redirect'] = "admin/pedido/view/{$pedido_id}";
       return $result;
@@ -776,7 +771,6 @@ Class Pedido_Model extends MY_Model
     $apolices = $this->apolice->getApolicePedido($pedido_id);
 
     if(!$apolices){
-      $result['result'] = FALSE;
       $result['mensagem'] = 'Apólice não encontrada';
       $result['redirect'] = "admin/pedido/view/{$pedido_id}";
       return $result;
@@ -785,7 +779,6 @@ Class Pedido_Model extends MY_Model
     $apolice = $apolices[0];
 
     if( $apolice['apolice_status_id'] == 2 ) {
-      $result['result'] = FALSE;
       $result["mensagem"] = "Não foi possível efetuar o cancelamento desse Pedido/Apólice. Motivo: Apólice já está cancelada";
       $result['redirect'] = "admin/pedido/view/{$pedido_id}";
       return $result;
@@ -806,7 +799,6 @@ Class Pedido_Model extends MY_Model
       //Já comeceu a vigencia
       if($produto_parceiro_cancelamento['seg_depois_hab'] == 0){
         //não pode executar cancelamento antes do início da vigência
-        $result['result'] = FALSE;
         $result['mensagem'] = 'Cancelamento não permitido após o início da vigência';
         $result['redirect'] = "admin/pedido/view/{$pedido_id}";
         return $result;
@@ -817,7 +809,6 @@ Class Pedido_Model extends MY_Model
           $qnt_dias = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), date('d/m/Y'), 'D');
           if($qnt_dias > $produto_parceiro_cancelamento['seg_depois_dias']){
             //não pode executar cancelamento com limite de dias antes do início da vigência
-            $result['result'] = FALSE;
             $result['mensagem'] = "Cancelamento só é permitido até {$produto_parceiro_cancelamento['seg_depois_dias']} dia(s) após o início da vigência";
             $result['redirect'] = "admin/pedido/view/{$pedido_id}";
             return $result;
@@ -829,7 +820,6 @@ Class Pedido_Model extends MY_Model
 
     } elseif ( $hoje < $inicio_vigencia ) {
       if($produto_parceiro_cancelamento['seg_antes_hab'] == 0){
-        $result['result'] = FALSE;
         $result['mensagem'] = 'Cancelamento não permitido antes do início da vigência';
         $result['redirect'] = "admin/pedido/view/{$pedido_id}";
         return $result;
@@ -837,7 +827,6 @@ Class Pedido_Model extends MY_Model
         if($produto_parceiro_cancelamento['seg_antes_dias'] != 0){
           $qnt_dias = app_date_get_diff_dias(date('d/m/Y'), app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), 'D');
           if($qnt_dias < $produto_parceiro_cancelamento['seg_antes_dias']){
-            $result['result'] = FALSE;
             $result['mensagem'] = "Cancelamento só é permitido até {$produto_parceiro_cancelamento['seg_antes_dias']} dia(s) antes do início da vigência";
             $result['redirect'] = "admin/pedido/view/{$pedido_id}";
             return $result;
@@ -847,10 +836,22 @@ Class Pedido_Model extends MY_Model
         $vigencia = FALSE;
       }
     } else {
-      $result['result'] = FALSE;
       $result['mensagem'] = 'Cancelamento não permitido fora do período de vigência';
       $result['redirect'] = "admin/pedido/view/{$pedido_id}";
       return $result;
+    }
+
+    if (!empty($executar)) {
+
+      if($produto_parceiro_cancelamento['indenizacao_hab'] == 1) {
+        $valDadosBanc = $this->validaDadosBancarios($dados_bancarios);
+        if (empty($valDadosBanc['status'])) {
+          $result['mensagem'] = $valDadosBanc['mensagem'];
+          $result['redirect'] = "admin/pedido/view/{$pedido_id}";
+          return $result;
+        }
+      }
+
     }
 
     $result['result'] = TRUE;
@@ -860,15 +861,87 @@ Class Pedido_Model extends MY_Model
     return $result;
   }
 
-  function cancelamento($pedido_id){
+  public function validaDadosBancarios($dados_bancarios = [])
+  {
+    $msg = [];
+    $retorno = [
+      'status' => false,
+      'mensagem' => ''
+    ];
 
-    $criticas = $this->criticas_cancelamento($pedido_id);
+    //Verifica se está válido
+    if (empty($dados_bancarios)) {
+      $msg[] = "Nenhum Dado Bancário foi enviado para realizar o Cancelamento";
+    } else {
+
+      // caso possua conta
+      if (empty($dados_bancarios['nao_possuo_conta'])) {
+
+        $this->load->model('banco_model', 'banco');
+
+        if (!isset($dados_bancarios['conta_terceiro']))
+          $msg[] = "O campo Conta bancária é obrigatório";
+
+        if (empty($dados_bancarios['tipo_conta']))
+          $msg[] = "O campo Tipo de conta é obrigatório. ['corrente': Conta Corrente, 'poupanca': Conta Poupança]";
+        elseif (!in_array($dados_bancarios['tipo_conta'], ['corrente','poupanca']))
+          $msg[] = "O campo Conta bancária deve ter um dos seguintes valores ['S': Segurado, 'T': Terceiro]";
+
+        if (empty($dados_bancarios['favo_nome']))
+          $msg[] = "O campo Nome do favorecido é obrigatório";
+
+        if (empty($dados_bancarios['favo_doc']))
+          $msg[] = "O campo Documento do favorecido é obrigatório";
+
+        if ( !app_validate_cpf_cnpj($dados_bancarios['favo_doc']) )
+          $msg[] = "O campo Documento deve ser um CPF/CNPJ válido";
+
+        if (strlen(trim($dados_bancarios['favo_bco_num'])) == 0)
+          $msg[] = "O campo Código do Banco do favorecido é obrigatório";
+        elseif (!is_numeric($dados_bancarios['favo_bco_num']))
+          $msg[] = "O campo Código do Banco do favorecido deve ser numérico";
+        elseif ( empty($this->banco->get_by( ['codigo' => $dados_bancarios['favo_bco_num']] ) ) )
+          $msg[] = "O campo Código do Banco não é válido";
+
+        if (strlen(trim($dados_bancarios['favo_bco_ag'])) == 0)
+          $msg[] = "O campo Agência é obrigatório";
+
+        if (!is_numeric($dados_bancarios['favo_bco_ag']))
+          $msg[] = "O campo Agência deve ser numérico";
+
+        if (strlen(trim($dados_bancarios['favo_bco_cc'])) == 0)
+          $msg[] = "O campo Número da conta é obrigatório";
+
+        if (!is_numeric($dados_bancarios['favo_bco_cc']))
+          $msg[] = "O campo Número da conta deve ser numérico";
+
+        if (strlen(trim($dados_bancarios['favo_bco_cc_dg'])) == 0)
+          $msg[] = "O campo Dígito da conta é obrigatório";
+        
+        if (!is_numeric($dados_bancarios['favo_bco_cc_dg']))
+          $msg[] = "O campo Dígito da conta deve ser numérico";
+
+      }
+
+    }
+
+    if (empty($msg)) {
+      $retorno['status'] = true;
+    } else {
+      $retorno['mensagem'] = $msg;
+    }
+    return $retorno;
+  }
+
+  function cancelamento($pedido_id, $dados_bancarios = []){
+
+    $criticas = $this->criticas_cancelamento($pedido_id, true, $dados_bancarios);
 
     if (!empty($criticas['result'])) {
-      // efetuar o cancelamento
-      $this->executa_estorno_cancelamento($pedido_id, $criticas['vigencia']);
+        // efetuar o cancelamento
+        $this->executa_estorno_cancelamento($pedido_id, $criticas['vigencia'], TRUE, $dados_bancarios);
     }
-    
+
     return $criticas;
   }
 
@@ -996,7 +1069,7 @@ Class Pedido_Model extends MY_Model
     ];
   }
 
-  function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE){
+  function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $dados_bancarios = []){
 
     $this->load->model("apolice_model", "apolice");
     $this->load->model("apolice_equipamento_model", "apolice_equipamento");
@@ -1036,6 +1109,44 @@ Class Pedido_Model extends MY_Model
 
     $this->pedido_transacao->insStatus($pedido_id, 'cancelado', "PEDIDO CANCELADO COM SUCESSO");
     $this->fatura->insertFaturaEstorno($pedido_id, $calculo['valor_estorno_total']);
+    $this->atualizarDadosBancarios($pedido_id, $dados_bancarios);
+  }
+
+  public function atualizarDadosBancarios($pedido_id, $dados_bancarios = []) {
+
+    if (empty($dados_bancarios))
+      return;
+
+    //Resgata dados do post
+    $data = array();
+
+    if (empty($dados_bancarios['nao_possuo_conta'])) {
+      $this->load->model('banco_model', 'banco');
+
+      $data['nao_possui_conta_bancaria'] = "S";
+
+      $data['conta_terceiro'] = empty($dados_bancarios['conta_terceiro']) ? "S" : "T";
+      $data['favo_tipo']      = (strlen($dados_bancarios['favo_doc']) == 14) ? "PJ" : "PF";
+      $data['tipo_conta']     = $dados_bancarios['tipo_conta'];
+      $data['favo_nome']      = $dados_bancarios['favo_nome'];
+      $data['favo_doc']       = $dados_bancarios['favo_doc'];
+      $data['favo_bco_num']   = $dados_bancarios['favo_bco_num'];
+      $data['favo_bco_cc']    = $dados_bancarios['favo_bco_cc'];
+      $data['favo_bco_cc_dg'] = $dados_bancarios['favo_bco_cc_dg'];
+      $data['favo_bco_ag'] = $dados_bancarios['favo_bco_ag'];
+
+      $banco = $this->banco->get_by( ['codigo' => $data['favo_bco_num']] );
+
+      $data['favo_bco_nome'] = $banco['nome'];
+      $data['favo_bco_cc'] .= "-{$data['favo_bco_cc_dg']}";
+
+    } else {
+      $data['nao_possui_conta_bancaria'] = "N";
+    }
+
+    //Atualiza dados bancários
+    $this->update($pedido_id, $data, TRUE);
+
   }
 
   function executa_extorno_upgrade($pedido_id){

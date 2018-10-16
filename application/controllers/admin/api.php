@@ -16,6 +16,8 @@ class Api extends Site_Controller
     }
     
     private function execute($url, $method = 'GET', $fields = [], $email = null, $senha = null){
+        $APIKEY = ( isset( $_SERVER["HTTP_APIKEY"] ) ) ? $_SERVER["HTTP_APIKEY"] : app_get_token($email, $senha);
+
         $retorno = soap_curl([
             'url' => $url,
             'method' => $method,
@@ -23,7 +25,7 @@ class Api extends Site_Controller
             'header' => [
                 "accept: application/json",
                 "Content-Type: application/json",
-                "APIKEY: ". app_get_token($email, $senha)
+                "APIKEY: ". $APIKEY
             ]
         ]);
 

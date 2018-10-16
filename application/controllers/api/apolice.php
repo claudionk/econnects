@@ -146,7 +146,8 @@ class Apolice extends CI_Controller {
         }
     }
 
-    function cancelar() {
+    public function validarDadosEntrada()
+    {
         if( $_SERVER["REQUEST_METHOD"] === "POST" ) {
             $POST = json_decode( file_get_contents( "php://input" ), true );
         } else {
@@ -167,10 +168,17 @@ class Apolice extends CI_Controller {
         if(!$pedido) {
             die( json_encode( array( "status" => false, "message" => "Apólice não encontrada" ) ) );
         }
-        $pedido_id = $pedido[0]["pedido_id"];
+
+        return [ 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
+    }
+
+    function cancelar() {
+        $validacao = $this->validarDadosEntrada();
+        $pedido_id = $validacao['pedido_id'];
+        $dados_bancarios = $validacao['dados']['dados_bancarios'];
 
         //pega as configurações de cancelamento do pedido
-        $produto_parceiro_cancelamento = $this->pedido->cancelamento( $pedido_id );
+        $produto_parceiro_cancelamento = $this->pedido->cancelamento( $pedido_id, $dados_bancarios);
 
         if( isset( $produto_parceiro_cancelamento["result"] ) && $produto_parceiro_cancelamento["result"] == false ) {
             die( json_encode( array( "status" => false, "message" => $produto_parceiro_cancelamento["mensagem"] ) ) );
@@ -181,27 +189,8 @@ class Apolice extends CI_Controller {
     }
 
     function calculoCancelar() {
-        if( $_SERVER["REQUEST_METHOD"] === "POST" ) {
-            $POST = json_decode( file_get_contents( "php://input" ), true );
-        } else {
-            die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
-        }
-
-        $apolice_id = null;
-        if( isset( $POST["apolice_id"] ) ) {
-            $apolice_id = $POST["apolice_id"];
-            $params["apolice_id"] = $apolice_id;
-        } else {
-            die( json_encode( array( "status" => false, "message" => "Campo apolice_id é obrigatório" ) ) );
-        }
-
-        $this->load->model("pedido_model", "pedido");
-
-        $pedido = $this->pedido->with_apolice()->filter_by_apolice($apolice_id)->get_all();
-        if(!$pedido) {
-            die( json_encode( array( "status" => false, "message" => "Apólice não encontrada" ) ) );
-        }
-        $pedido_id = $pedido[0]["pedido_id"];
+        $validacao = $this->validarDadosEntrada();
+        $pedido_id = $validacao['pedido_id'];
 
         //pega as configurações de cancelamento do pedido
         $produto_parceiro_cancelamento = $this->pedido->cancelamento_calculo( $pedido_id );

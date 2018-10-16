@@ -337,7 +337,7 @@ function app_verifica_cpf_cnpj ($cpf_cnpj) {
     elseif ( strlen( $cpf_cnpj ) === 14 ) {
         return 'CNPJ';
     }
-    // NÃ£o retorna nada
+    // Não retorna nada
     else {
         return false;
     }
@@ -395,6 +395,21 @@ function app_get_value($field, $default = ''){
     }
 
 
+}
+
+function app_validate_cpf_cnpj ($cpf_cnpj) {
+    // Verifica CPF
+    if ( strlen($cpf_cnpj ) === 11 ) {
+        return app_validate_cpf($cpf_cnpj);
+    }
+    // Verifica CNPJ
+    elseif ( strlen( $cpf_cnpj ) === 14 ) {
+        return app_validate_cnpj($cpf_cnpj);
+    }
+    // Não retorna nada
+    else {
+        return false;
+    }
 }
 
 function app_validate_cpf($cpf) {
@@ -1500,17 +1515,13 @@ if ( ! function_exists('app_get_token'))
         if ( !empty(app_get_userdata("tokenAPIvalid")) && app_get_userdata("tokenAPIvalid") > date("Y-m-d H:i:s"))
             return app_get_userdata("tokenAPI");
 
-        $CI =& get_instance();
-
         if (empty($email))
             $email = app_get_userdata("email");
 
-        if (empty($email))
-            $email = "mdiorio@econnects.com.br";
+        $CI =& get_instance();
 
         $retorno = soap_curl([
-            'url' => "http://econnects-h.jelastic.saveincloud.net/api/acesso?email=". $email,
-            // 'url' => "http://localhost/econnects/api/acesso?email=". $email,
+            'url' => $CI->config->item("URL_sisconnects") ."api/acesso?email={$email}",
             'method' => 'GET',
             'fields' => '',
             'header' => array(
@@ -1523,9 +1534,11 @@ if ( ! function_exists('app_get_token'))
         if (empty($retorno["response"])) return;
 
         $response = json_decode($retorno["response"]);
+        if (empty($response->status)) return;
+
         $CI->session->set_userdata("tokenAPI", $response->api_key);
         $CI->session->set_userdata("tokenAPIvalid", $response->validade);
-        // print_r($response);exit;
+
         return $response->api_key;
     }
 }
