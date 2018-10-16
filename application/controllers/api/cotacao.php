@@ -286,6 +286,7 @@ class Cotacao extends CI_Controller {
     $this->load->model('cobertura_plano_model', 'plano_cobertura');
     $this->load->model('cobertura_model', 'cobertura');
     $this->load->model('cotacao_model', 'cotacao');
+    $this->load->model('cotacao_cobertura_model', 'cotacao_cobertura');
     $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento');
     $this->load->model('produto_parceiro_desconto_model', 'desconto');
     $this->load->model('produto_parceiro_configuracao_model', 'configuracao');
@@ -536,41 +537,15 @@ class Cotacao extends CI_Controller {
       $cotacao_eqp['premio_liquido_total'] = $valores_liquido_total[$produto_parceiro_plano_id];
       $cotacao_eqp['iof'] = $iof;
 
-      $coberturas = $this->db->query( "SELECT 
-    								   * 
-                                     FROM 
-                                       cobertura_plano cp 
-                                       INNER JOIN cobertura c ON (c.cobertura_id=cp.cobertura_id) 
-                                     WHERE 
-                                       produto_parceiro_plano_id IN 
-                                       (SELECT produto_parceiro_plano_id FROM produto_parceiro_plano WHERE produto_parceiro_id=$produto_parceiro_id and deletado=0) 
-                                       AND cobertura_tipo_id=1" )->result_array();
-
-
+      $coberturas = [];
       $pedido = $this->db->query( "SELECT * FROM pedido WHERE cotacao_id=$cotacao_id AND deletado=0" )->result_array();
       if( $pedido ) {
         ob_clean();
         die( json_encode( array( "status" => false, "message" => "Não foi possível efetuar o calculo. Motivo: já existe um pedido para essa cotação." ) ) );
       } else {
         $this->cotacao_equipamento->update($cotacao_salva['cotacao_equipamento_id'], $cotacao_eqp, TRUE);
-        $this->db->query( "DELETE FROM cotacao_cobertura WHERE cotacao_id=$cotacao_id" );
-        for( $i = 0; $i < sizeof( $coberturas ); $i++ ) {
-          $cobertura = $coberturas[$i];
-          $cobertura_plano_id = $cobertura["cobertura_plano_id"];
-          $importancia_segurada = floatval( $cotacao["nota_fiscal_valor"] );
-          $percentagem = 0;
-          $valor_cobertura = 0;
-          if( $cobertura["mostrar"] == "importancia_segurada" ) {
-            $percentagem = floatval($cobertura["porcentagem"]);
-            $valor_cobertura = ( $importancia_segurada * $percentagem ) / 100;
-          }elseif( $cobertura["mostrar"] == "preco" || $cobertura["mostrar"] == "descricao" ) {
-            $percentagem = 0;
-            $valor_cobertura = floatval($cobertura["preco"]);
-          }
-          $coberturas[$i]["valor_cobertura"] = $valor_cobertura;
-          
-          $this->db->query( "INSERT INTO cotacao_cobertura (cotacao_id, cobertura_plano_id, valor, criacao ) values( $cotacao_id, $cobertura_plano_id, $valor_cobertura, '" . date("Y-m-d H:i:s") . "')" );
-        }
+
+        $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $cotacao["nota_fiscal_valor"]);
       }
       $result["importancia_segurada"] = $cotacao["nota_fiscal_valor"];
       $result["coberturas"] = $coberturas;

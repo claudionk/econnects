@@ -31,9 +31,45 @@ Class Apolice_Cobertura_Model extends MY_Model
 
     }
 
+    function filterByPedidoID($pedido_id){
+        $this->_database->where("pedido_id", $pedido_id);
+        $this->_database->where("deletado", 0);
+        return $this;
+    }
+
     function get_by_id($id)
     {
         return $this->get($id);
+    }
+
+    public function geraDadosCancelamento($pedido_id, $valor_base) {
+
+        $coberturas = $this->filterByPedidoID($pedido_id)->get_all();
+        $valor_base = floatval( $valor_base );
+
+        foreach ($coberturas as $cobertura) {
+            $cobertura_plano_id = ;
+            $percentagem = $valor_cobertura = $valor_config = 0;
+            if( $cobertura["mostrar"] == "importancia_segurada" ) {
+                $percentagem = $valor_config = floatval($cobertura["valor_config"]);
+                $valor_cobertura = ( $valor_base * $percentagem ) / 100;
+            }elseif( $cobertura["mostrar"] == "preco" || $cobertura["mostrar"] == "descricao" ) {
+                $percentagem = 0;
+                $valor_cobertura = $valor_config = floatval($cobertura["valor_config"]);
+            }
+
+            $dados['cotacao_id'] = $cobertura["cotacao_id"];
+            $dados['pedido_id'] = $cobertura["pedido_id"];
+            $dados['apolice_id'] = $cobertura["apolice_id"];
+            $dados['cobertura_plano_id'] = $cobertura["cobertura_plano_id"];
+            $dados['valor'] = $valor_cobertura*-1;
+            $dados['mostrar'] = $cobertura["mostrar"];
+            $dados['valor_config'] = $valor_config;
+            $dados['criacao'] = date("Y-m-d H:i:s");
+            $this->insert($dados, TRUE);
+        }
+
+        return true;
     }
 
 }

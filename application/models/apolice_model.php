@@ -377,6 +377,8 @@ Class Apolice_Model extends MY_Model
           'apolice_id' => $apolice_id,
           'cobertura_plano_id' => $cobertura["cobertura_plano_id"],
           'valor' => $cobertura["valor"],
+          'mostrar' => $cobertura["mostrar"],
+          'valor_config' => $cobertura['valor_config'],
           'criacao' => date("Y-m-d H:i:s")
         ];
 

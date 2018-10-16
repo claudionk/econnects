@@ -861,8 +861,7 @@ Class Pedido_Model extends MY_Model
     return $result;
   }
 
-  public function validaDadosBancarios($dados_bancarios = [])
-  {
+  public function validaDadosBancarios($dados_bancarios = []) {
     $msg = [];
     $retorno = [
       'status' => false,
@@ -1072,6 +1071,7 @@ Class Pedido_Model extends MY_Model
   function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $dados_bancarios = []){
 
     $this->load->model("apolice_model", "apolice");
+    $this->load->model("apolice_cobertura_model", "apolice_cobertura");
     $this->load->model("apolice_equipamento_model", "apolice_equipamento");
     $this->load->model("apolice_generico_model", "apolice_generico");
     $this->load->model("apolice_seguro_viagem_model", "apolice_seguro_viagem");
@@ -1107,9 +1107,10 @@ Class Pedido_Model extends MY_Model
 
     }
 
+    $this->atualizarDadosBancarios($pedido_id, $dados_bancarios);
     $this->pedido_transacao->insStatus($pedido_id, 'cancelado', "PEDIDO CANCELADO COM SUCESSO");
     $this->fatura->insertFaturaEstorno($pedido_id, $calculo['valor_estorno_total']);
-    $this->atualizarDadosBancarios($pedido_id, $dados_bancarios);
+    $this->apolice_cobertura->geraDadosCancelamento($pedido_id, $calculo['valor_estorno_total']);
   }
 
   public function atualizarDadosBancarios($pedido_id, $dados_bancarios = []) {
