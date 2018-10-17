@@ -137,7 +137,7 @@ class Emissao extends CI_Controller {
 
         // Separando o produto do parceiro
         $r = $this->produto_parceiro->filter_by_produto_parceiro($produto_parceiro_id)->filter_by_slug($parametros["plano_slug"])->get_all();
-        if(!empty($r))
+        if(!empty($r)){
           $this->produto_parceiro_plano_id = $r[0]['produto_parceiro_plano_id'];
         }
         else
