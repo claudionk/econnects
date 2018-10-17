@@ -74,11 +74,7 @@ class Emissao extends CI_Controller {
       }
   }
   
-  public function index() { /*$this->etapas('cotacao');*/  }
-
-  public function inicio()
-  {   
-    
+  public function index() {
 
     $POST = json_decode( file_get_contents( "php://input" ), true );
     
@@ -124,7 +120,7 @@ class Emissao extends CI_Controller {
 
         $this->load->model( "produto_parceiro_model", "produto_parceiro" );
         $this->load->model( "produto_parceiro_plano_model", "produto_parceiro_plano" );
-        
+
         $produtos = $this->produto_parceiro->get_produtos_venda_admin_parceiros( $parceiro_id, $parametros['produto_slug'] );
 
         if(!empty($produtos))
