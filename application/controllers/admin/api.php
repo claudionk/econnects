@@ -15,7 +15,7 @@ class Api extends Site_Controller
         $this->stop = false;
     }
     
-    private function execute($url, $method = 'GET', $fields = [], $email = null, $senha = null){
+    public function execute($url, $method = 'GET', $fields = [], $email = null, $senha = null){
         $APIKEY = ( isset( $_SERVER["HTTP_APIKEY"] ) ) ? $_SERVER["HTTP_APIKEY"] : app_get_token($email, $senha);
 
         $retorno = soap_curl([
@@ -44,8 +44,13 @@ class Api extends Site_Controller
         }
 
         if (isset($retornoJson->status) && empty($retornoJson->status)) {
-            header('X-Error-Message: '. $retornoJson->message, true, 500);
-            $retorno["response"] = $retornoJson->message;
+            if(isset($retornoJson->message))
+                $messagem = $retornoJson->message;
+            else
+                $messagem = $retornoJson->mensagem;
+
+            header('X-Error-Message: '. $messagem, true, 500);
+            $retorno["response"] = $messagem;
             if (isset($retornoJson->erros))
             $retorno["response"] .= print_r($retornoJson->erros, true);
         }
