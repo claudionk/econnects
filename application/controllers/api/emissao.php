@@ -123,6 +123,8 @@ class Emissao extends CI_Controller {
         $parceiro_id =  $this->parceiro_id;
 
         $this->load->model( "produto_parceiro_model", "produto_parceiro" );
+        $this->load->model( "produto_parceiro_plano_model", "produto_parceiro_plano" );
+        
         $produtos = $this->produto_parceiro->get_produtos_venda_admin_parceiros( $parceiro_id, $parametros['produto_slug'] );
 
         if(!empty($produtos))
@@ -136,7 +138,8 @@ class Emissao extends CI_Controller {
         }
 
         // Separando o produto do parceiro
-        $r = $this->produto_parceiro->filter_by_produto_parceiro($this->produto_parceiro_id)->filter_by_slug($parametros["plano_slug"])->get_all();
+        $r = $this->produto_parceiro_plano->coreSelectPlanosProdutoParceiro($this->produto_parceiro_id)->filter_by_slug($parametros["plano_slug"])->get_all_select();
+
         if(!empty($r)){
           $this->produto_parceiro_plano_id = $r[0]['produto_parceiro_plano_id'];
         }

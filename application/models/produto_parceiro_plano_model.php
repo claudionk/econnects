@@ -135,9 +135,16 @@ Class Produto_Parceiro_Plano_Model extends MY_Model
     return $this;
   }
 
-  function  filter_by_produto_parceiro($produto_parceiro_id){
+  function filter_by_produto_parceiro($produto_parceiro_id){
 
     $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
+
+    return $this;
+  }
+
+  function filter_by_slug($slug){
+
+    $this->_database->where('slug_plano', $slug);
 
     return $this;
   }
