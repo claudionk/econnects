@@ -54,7 +54,7 @@ Class Apolice_Cobertura_Model extends MY_Model
             $percentagem = $valor_cobertura = $valor_config = 0;
             if( $cobertura["mostrar"] == "importancia_segurada" ) {
                 $percentagem = $valor_config = floatval(round($cobertura["valor"] / $cobertura['valor_premio_net'],2));
-                $valor_cobertura = ( $valor_base * $percentagem ) / 100;
+                $valor_cobertura = $valor_base * $percentagem;
             }elseif( $cobertura["mostrar"] == "preco" || $cobertura["mostrar"] == "descricao" ) {
                 $percentagem = 0;
                 $valor_cobertura = $valor_config = floatval($cobertura["valor_config"]);
