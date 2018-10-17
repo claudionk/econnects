@@ -15,18 +15,6 @@ class Apolice extends CI_Controller {
             die();
         }
 
-        if( isset( $_SERVER["HTTP_APIKEY"] ) ) {
-            $this->api_key = $_SERVER["HTTP_APIKEY"];
-            $this->load->model( "usuario_webservice_model", "webservice" );
-
-            $webservice = $this->webservice->checkKeyExpiration( $this->api_key );
-            if( !sizeof( $webservice ) ) {
-                die( json_encode( array( "status" => false, "message" => "APIKEY is invalid" ) ) );
-            }
-        } else {
-            die( json_encode( array( "status" => false, "message" => "APIKEY is missing" ) ) );
-        }
-        $this->usuario_id = $webservice["usuario_id"];
         $this->load->database('default');
 
         $this->load->model('apolice_model', 'apolice');
@@ -38,13 +26,25 @@ class Apolice extends CI_Controller {
         $this->load->helper("api_helper");
     }
 
-    private function update( $apolice_id, $num_apolice ) {
-        $this->db->query("UPDATE apolice SET num_apolice='$num_apolice' WHERE apolice_id=$apolice_id" );
-        $result = $this->db->query("SELECT * FROM apolice WHERE apolice_id=$apolice_id" )->result_array();
-        die( json_encode( array( "status" => (bool)sizeof($result), "apolice" => $result ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+    private function checkKey() {
+        if( !isset( $_SERVER["HTTP_APIKEY"] ) ) {
+            die( json_encode( array( "status" => false, "message" => "APIKEY is missing" ) ) );
+        }
+
+        $this->api_key = $_SERVER["HTTP_APIKEY"];
+        $this->load->model( "usuario_webservice_model", "webservice" );
+
+        $webservice = $this->webservice->checkKeyExpiration( $this->api_key );
+        if( !sizeof( $webservice ) ) {
+            die( json_encode( array( "status" => false, "message" => "APIKEY is invalid" ) ) );
+        }
+
+        $this->usuario_id = $webservice["usuario_id"];
+        return $webservice;
     }
 
     public function index() {
+
         if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
             $GET = $_GET;
         } else {
@@ -72,7 +72,6 @@ class Apolice extends CI_Controller {
             $apolice_id = $GET["apolice_id"];
         } 
 
-
         $num_apolice = null;
         if( isset( $GET["num_apolice"] ) ) {
             $num_apolice = $GET["num_apolice"];
@@ -89,7 +88,6 @@ class Apolice extends CI_Controller {
         }
 
         $params = array();
-
         $params["apolice_id"] = $apolice_id;
         $params["num_apolice"] = $num_apolice;
         $params["documento"] = $documento;
@@ -100,11 +98,11 @@ class Apolice extends CI_Controller {
             ->with_pedido_status()
             ->with_cotacao_cliente_contato()
             ->with_apolice()
-            ->with_fatura()
+            // ->with_fatura()
             ->filterNotCarrinho()
             ->filterAPI($params)
             ->get_all();
-            //   print_r($this->db->last_query());exit;
+            // print_r($this->db->last_query());exit;
             // echo "<pre>";print_r($pedidos);echo "</pre>";
 
             if($pedidos) {
@@ -113,7 +111,6 @@ class Apolice extends CI_Controller {
                     //Monta resposta da apólice
                     $apolice = $this->apolice->getApolicePedido( $pedido["pedido_id"] );
                     $apolice[0]["inadimplente"] = ($this->pedido->isInadimplente( $pedido["pedido_id"] ) === false ) ? 0 : 1;
-
 
                     $faturas = $this->fatura->filterByPedido($pedido["pedido_id"])
                     ->with_fatura_status()
@@ -146,6 +143,12 @@ class Apolice extends CI_Controller {
         }
     }
 
+    private function update( $apolice_id, $num_apolice ) {
+        $this->db->query("UPDATE apolice SET num_apolice='$num_apolice' WHERE apolice_id=$apolice_id" );
+        $result = $this->db->query("SELECT * FROM apolice WHERE apolice_id=$apolice_id" )->result_array();
+        die( json_encode( array( "status" => (bool)sizeof($result), "apolice" => $result ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+    }
+
     public function validarDadosEntrada()
     {
         if( $_SERVER["REQUEST_METHOD"] === "POST" ) {
@@ -172,7 +175,9 @@ class Apolice extends CI_Controller {
         return [ 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
     }
 
-    function cancelar() {
+    public function cancelar() {
+        $this->checkKey();
+
         $validacao = $this->validarDadosEntrada();
         $pedido_id = $validacao['pedido_id'];
         $dados_bancarios = !empty($validacao['dados']['dados_bancarios']) ? $validacao['dados']['dados_bancarios'] : [];
@@ -188,7 +193,9 @@ class Apolice extends CI_Controller {
 
     }
 
-    function calculoCancelar() {
+    public function calculoCancelar() {
+        $this->checkKey();
+
         $validacao = $this->validarDadosEntrada();
         $pedido_id = $validacao['pedido_id'];
 
@@ -196,7 +203,6 @@ class Apolice extends CI_Controller {
         $produto_parceiro_cancelamento = $this->pedido->cancelamento_calculo( $pedido_id );
 
         die( json_encode( $produto_parceiro_cancelamento ) );
-
     }
 
 }

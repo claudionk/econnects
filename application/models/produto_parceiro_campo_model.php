@@ -196,13 +196,18 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
             ->order_by("ordem", "asc")
             ->get_all();
 
-
-
         if($campos){
-            foreach ($campos as $index => $campo) {
-                if($this->input->post("plano_{$plano}_{$campo['campo_nome_banco']}")){
 
+            foreach ($campos as $index => $campo) {
+
+                if($this->input->post("plano_{$plano}_{$campo['campo_nome_banco']}")){
                     $value = $this->input->post("plano_{$plano}_{$campo['campo_nome_banco']}");
+
+                    if($campo['campo_nome_banco'] == 'nota_fiscal_valor'){
+                        if( strpos( $value, "," ) !== false || strpos( $value, "_" ) !== false )
+                            $value = app_unformat_currency($value);
+                    }
+
                     if(($campo['campo_function_salvar']) && (function_exists($campo['campo_function_salvar']))){
                         $value = call_user_func($campo['campo_function_salvar'], $value);
                     }

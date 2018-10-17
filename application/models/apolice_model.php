@@ -903,8 +903,13 @@ Class Apolice_Model extends MY_Model
       ->select("apolice.produto_parceiro_plano_id, apolice.apolice_status_id, apolice_status.nome as apolice_status_nome")
       ->select("apolice_status.slug as apolice_status_slug")
       ->select("produto_parceiro_plano.produto_parceiro_id")
+      ->select("produto_parceiro.parceiro_id as parceiro_seg_id")
+      ->select("parceiro.slug as slug_parceiro")
+      ->select("produto_parceiro.slug_produto")
       ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
-      ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner');
+      ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner')
+      ->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
+      ->join("parceiro", "parceiro.parceiro_id = produto_parceiro.parceiro_id", 'inner');
 
     if($pedido){
       $pedido = $pedido[0];

@@ -352,16 +352,16 @@ Class Pedido_Model extends MY_Model
         if (!empty($value)) {
           switch ($key) {
             case "apolice_id":
-              $this->_database->like('apolice.apolice_id', $value);
+              $this->_database->where('apolice.apolice_id', $value);
               break;
             case "num_apolice":
-              $this->_database->like('apolice.num_apolice', $value);
+              $this->_database->where('apolice.num_apolice', $value);
               break;
             case "documento":
               $this->_database->like('cliente.cnpj_cpf', $value);
               break;
             case "pedido_id":
-              $this->_database->like('pedido.pedido_id', $value);
+              $this->_database->where('pedido.pedido_id', $value);
               break;                        
           }
 
