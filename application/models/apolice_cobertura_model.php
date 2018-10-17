@@ -32,8 +32,10 @@ Class Apolice_Cobertura_Model extends MY_Model
     }
 
     function filterByPedidoID($pedido_id){
-        $this->_database->where("pedido_id", $pedido_id);
-        $this->_database->where("deletado", 0);
+        $this->_database->select("{$this->_table}.*, apolice_equipamento.valor_premio_net");
+        $this->_database->join("apolice_equipamento","apolice_equipamento.apolice_id = {$this->_table}.apolice_id");
+        $this->_database->where("{$this->_table}.pedido_id", $pedido_id);
+        $this->_database->where("{$this->_table}.deletado", 0);
         return $this;
     }
 
@@ -48,9 +50,10 @@ Class Apolice_Cobertura_Model extends MY_Model
         $valor_base = floatval( $valor_base );
 
         foreach ($coberturas as $cobertura) {
+
             $percentagem = $valor_cobertura = $valor_config = 0;
             if( $cobertura["mostrar"] == "importancia_segurada" ) {
-                $percentagem = $valor_config = floatval($cobertura["valor_config"]);
+                $percentagem = $valor_config = floatval(round($cobertura["valor"] / $cobertura['valor_premio_net'],2));
                 $valor_cobertura = ( $valor_base * $percentagem ) / 100;
             }elseif( $cobertura["mostrar"] == "preco" || $cobertura["mostrar"] == "descricao" ) {
                 $percentagem = 0;
