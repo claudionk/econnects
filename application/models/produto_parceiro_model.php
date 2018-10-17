@@ -124,12 +124,13 @@ Class Produto_Parceiro_Model extends MY_Model
 
     $query = $this->_database->get();
 
+
     if($query->num_rows() > 0)
       return $query->result_array();
     return array();
   }
 
-  function get_produtos_venda_admin_parceiros($parceiro_id) {
+  function get_produtos_venda_admin_parceiros($parceiro_id, $slug_produto = null) {
 
 
         $this->_database->select($this->_table.'.produto_parceiro_id');
@@ -147,6 +148,9 @@ Class Produto_Parceiro_Model extends MY_Model
         $this->_database->where('produto_parceiro_configuracao.deletado', 0);
         $this->_database->where('produto_parceiro_configuracao.venda_habilitada_admin', 1);
         $this->_database->where('produto.deletado', 0);
+        if( !is_null( $slug_produto ) ) {
+          $this->_database->where($this->_table.'.slug_produto', $slug_produto );
+        }
         $this->_database->join('produto', 'produto.produto_id = '.$this->_table.'.produto_id', 'inner');
         $this->_database->join('produto_parceiro_configuracao', $this->_table. '.produto_parceiro_id = produto_parceiro_configuracao.produto_parceiro_id', 'inner');
         $this->_database->join('parceiro_relacionamento_produto', $this->_table. '.produto_parceiro_id = parceiro_relacionamento_produto.produto_parceiro_id', 'inner');
@@ -154,6 +158,12 @@ Class Produto_Parceiro_Model extends MY_Model
         $this->_database->order_by('produto.nome', 'ASC');
 
     $query = $this->_database->get();
+
+
+    $where = '';
+    if( !is_null( $slug_produto ) ) {
+      $where = "AND pp.slug_produto = '$slug_produto'";
+    }
     
     $query = $this->db->query( "SELECT
                                     pp.produto_parceiro_id,
@@ -174,7 +184,10 @@ Class Produto_Parceiro_Model extends MY_Model
                                     INNER JOIN produto_parceiro_configuracao ppc ON (ppc.produto_parceiro_id=pp.produto_parceiro_id AND ppc.venda_habilitada_admin=1 AND ppc.deletado=0)
                                 WHERE
                                     prp.parceiro_id=$parceiro_id 
-                                    AND prp.deletado=0" );
+                                    AND prp.deletado=0 ".
+                                    $where
+                                     ); 
+
 
 
     if($query->num_rows() > 0)
@@ -186,6 +199,21 @@ Class Produto_Parceiro_Model extends MY_Model
   function  filter_by_parceiro($parceiro_id){
 
     $this->_database->where('parceiro_id', $parceiro_id);
+
+    return $this;
+  }
+
+  function  filter_by_produto_parceiro($produto_parceiro_id){
+
+    $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
+
+    return $this;
+  }
+
+  // Criado - ALR
+  function  filter_by_slug($slug){
+
+    $this->_database->where('slug_produto', $slug);
 
     return $this;
   }
