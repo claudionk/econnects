@@ -34,7 +34,7 @@ class Emissao extends CI_Controller {
     header( "Access-Control-Allow-Origin: *" );
     header( "Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS" );
     header( "Access-Control-Allow-Headers: Cache-Control, APIKEY, apikey, Content-Type" );
-    //header( "Content-Type: application/json");
+    header( "Content-Type: application/json");
 
     $method = $_SERVER["REQUEST_METHOD"];
     if( $method == "OPTIONS" ) {
