@@ -156,6 +156,7 @@ Class Produto_Parceiro_Plano_Model extends MY_Model
     $this->_database->select("{$this->_table}.descricao");
     $this->_database->select("{$this->_table}.codigo_operadora");
     $this->_database->select("{$this->_table}.limite_vigencia");
+    $this->_database->select("{$this->_table}.slug_plano");
     $this->_database->select("{$this->_table}.unidade_tempo as limite_vigencia_unidade ");
     if( !is_null( $produto_parceiro_id ) ) {
       $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id );

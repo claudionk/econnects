@@ -137,6 +137,7 @@ Class Produto_Parceiro_Model extends MY_Model
         $this->_database->select($this->_table.'.parceiro_id');
         $this->_database->select($this->_table.'.produto_id');
         $this->_database->select($this->_table.'.nome');
+        $this->_database->select($this->_table.'.slug_produto');
         $this->_database->select('produto.slug, produto.nome');
         $this->_database->select('parceiro.nome as parceiro_nome');
         $this->_database->select('parceiro.nome_fantasia as parceiro_nome_fantasia');
@@ -175,7 +176,8 @@ Class Produto_Parceiro_Model extends MY_Model
                                     p.nome as parceiro_nome,
                                     p.nome_fantasia as parceiro_nome_fantasia,
                                     ppc.venda_carrinho_compras, 
-                                    ppc.venda_multiplo_cartao
+                                    ppc.venda_multiplo_cartao,
+                                    pp.slug_produto
                                 FROM 
                                     parceiro p
                                     INNER JOIN produto_parceiro pp ON (pp.parceiro_id=p.parceiro_id AND pp.deletado=0)
