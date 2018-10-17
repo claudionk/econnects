@@ -310,7 +310,7 @@ Class Integracao_Model extends MY_Model
 
             $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
             $result_file = $this->getFile($result, $file);
-            // $result_file["file"] = "/var/www/webroot/ROOT/econnects/application/helpers/../../assets/uploads/integracao/15/R/RF2119597741TR20181010.TXT";
+            // $result_file["file"] = "/var/www/webroot/ROOT/econnects/application/helpers/../../assets/uploads/integracao/15/R/RF2119597741TR20181011.TXT";
 
             if(!empty($result_file['file'])){
                 $this->processFileIntegracao($result, $result_file['file']);
@@ -524,12 +524,26 @@ Class Integracao_Model extends MY_Model
         return $line;
     }
 
+    private function geraCampoChave($campo_chave, $registro) {
+        $result = explode("|", $campo_chave);
+        $under = $campo_chave = '';
+
+        foreach ($result as $r) {
+            if (isset($registro[$r])) {
+                $campo_chave .= $under.$registro[$r];
+                $under = '|';
+            }
+        }
+
+        return $campo_chave;
+    }
+
     private function processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao) {
         if (!empty($layout_m)){
 
             foreach ($registros as $registro) {
 
-                $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $this->data_template_script['totalRegistros']+1, $registro[$integracao['campo_chave']]);
+                $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $this->data_template_script['totalRegistros']+1, $this->geraCampoChave($integracao['campo_chave'], $registro));
 
                 foreach ($layout_m as $lm) {
 
