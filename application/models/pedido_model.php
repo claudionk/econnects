@@ -1063,6 +1063,7 @@ Class Pedido_Model extends MY_Model
       'status' => (!empty($retorno)),
       'mensagem' => (!empty($retorno)) ? 'Cálculo realizado com sucesso' : 'Não foi possível realizar o cálculo para Cancelamento',
       'valor_estorno_total' => $valor_estorno_total, 
+      'dias_utilizados' => (isset($dias_utilizados)) ? $dias_utilizados : '',
       'dados' => $retorno,
     ];
   }
