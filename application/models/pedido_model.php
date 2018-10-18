@@ -878,13 +878,13 @@ Class Pedido_Model extends MY_Model
 
         $this->load->model('banco_model', 'banco');
 
-        if (!isset($dados_bancarios['conta_terceiro']))
-          $msg[] = "O campo Conta bancária é obrigatório";
-
         if (empty($dados_bancarios['tipo_conta']))
           $msg[] = "O campo Tipo de conta é obrigatório. ['corrente': Conta Corrente, 'poupanca': Conta Poupança]";
         elseif (!in_array($dados_bancarios['tipo_conta'], ['corrente','poupanca']))
-          $msg[] = "O campo Conta bancária deve ter um dos seguintes valores ['S': Segurado, 'T': Terceiro]";
+          $msg[] = "O campo Tipo de conta deve ter um dos seguintes valores ['corrente': Conta Corrente, 'poupanca': Conta Poupança]";
+
+        if (!empty($dados_bancarios['conta_terceiro']) && !in_array($dados_bancarios['conta_terceiro'], ['S','T']))
+          $msg[] = "O campo `Conta bancária Pertence` deve ter um dos seguintes valores ['S': Segurado, 'T': Terceiro]";
 
         if (empty($dados_bancarios['favo_nome']))
           $msg[] = "O campo Nome do favorecido é obrigatório";
