@@ -132,7 +132,7 @@ class Apolice extends CI_Controller {
                     );
                 }
 
-                die( json_encode( array("status" => false, "dados" => $resposta), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+                die( json_encode( array("status" => true, "dados" => $resposta), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
             } else {
                 die( json_encode( array( "status" => false, "message" => "Não foi possível localizar a apólice com os parâmetros informados" ) ) );
                 $response->setStatus(false);
