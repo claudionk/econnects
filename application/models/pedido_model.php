@@ -1044,6 +1044,7 @@ Class Pedido_Model extends MY_Model
         $dados_apolice = array();
         $dados_apolice['data_cancelamento'] = date('Y-m-d H:i:s');
         $dados_apolice['valor_estorno'] = $valor_estorno;
+        $dados_apolice['dias_utilizados'] = $dias_utilizados;
         $valor_estorno_total += $valor_estorno;
 
         if( $produto ) {
