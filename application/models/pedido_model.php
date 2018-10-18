@@ -1044,7 +1044,6 @@ Class Pedido_Model extends MY_Model
         $dados_apolice = array();
         $dados_apolice['data_cancelamento'] = date('Y-m-d H:i:s');
         $dados_apolice['valor_estorno'] = $valor_estorno;
-        $dados_apolice['dias_utilizados'] = $dias_utilizados;
         $valor_estorno_total += $valor_estorno;
 
         if( $produto ) {
@@ -1064,6 +1063,7 @@ Class Pedido_Model extends MY_Model
       'status' => (!empty($retorno)),
       'mensagem' => (!empty($retorno)) ? 'Cálculo realizado com sucesso' : 'Não foi possível realizar o cálculo para Cancelamento',
       'valor_estorno_total' => $valor_estorno_total, 
+      'dias_utilizados' => (isset($dias_utilizados)) ? $dias_utilizados : '',
       'dados' => $retorno,
     ];
   }
