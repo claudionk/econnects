@@ -1212,7 +1212,7 @@ Class Apolice_Model extends MY_Model
     $data_template['segurado_nome'] =  $apolice['nome'];
     $data_template['segurado_cnpj_cpf'] = $apolice['cnpj_cpf']; // (app_verifica_cpf_cnpj($apolice['cnpj_cpf']) == 'CPF') ? app_cpf_to_mask($apolice['cnpj_cpf']) : app_cnpj_to_mask($apolice['cnpj_cpf']);
     $data_template['segurado_data_nascimento'] =  app_dateonly_mysql_to_mask($apolice['data_nascimento']);
-    $data_template['segurado_endereco'] = $apolice['endereco'];
+    $data_template['segurado_endereco'] = $apolice['endereco_logradouro'];
     $data_template['segurado_numero'] = $apolice['endereco_numero'];
     $data_template['segurado_bairro'] = $apolice['endereco_bairro'];
     $data_template['segurado_cidade'] = $apolice['endereco_cidade'];
