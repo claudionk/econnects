@@ -434,11 +434,11 @@ if ( ! function_exists('app_integracao_format_file_name_generali')) {
 
     function app_integracao_format_file_name_generali($formato, $dados = array())
     {
-
-        if(isset($dados['item']['integracao_id']) && isset($dados['global']['parceiro_id'])){
+        if(isset($dados['item']['integracao_id'])){
             $CI =& get_instance();
             $CI->load->model('integracao_model');
-            $num_sequencia = (int)$CI->integracao_model->max_seq_by_parceiro_id($dados['global']['parceiro_id']);
+            $num_sequencia = (int)$CI->integracao_model->get($dados['item']['integracao_id'])['sequencia'];
+            $num_sequencia++;
             $CI->integracao_model->update($dados['item']['integracao_id'], array('sequencia' => $num_sequencia), TRUE);
         }else{
             $num_sequencia = 1;
