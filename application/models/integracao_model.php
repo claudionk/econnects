@@ -294,9 +294,9 @@ Class Integracao_Model extends MY_Model
 
         if($result){
             $result = $result[0];
-            $dados_integracao = array();
-            $dados_integracao['status'] = 'L';
-            $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            // $dados_integracao = array();
+            // $dados_integracao['status'] = 'L';
+            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
@@ -312,8 +312,9 @@ Class Integracao_Model extends MY_Model
             $result_file = $this->getFile($result, $file);
             // $result_file["file"] = "/var/www/webroot/ROOT/econnects/application/helpers/../../assets/uploads/integracao/15/R/RF2119597741TR20181011.TXT";
 
+            $result_process = [];
             if(!empty($result_file['file'])){
-                $this->processFileIntegracao($result, $result_file['file']);
+                $result_process = $this->processFileIntegracao($result, $result_file['file']);
             }
 
             // echo " FIM - R";
@@ -327,7 +328,7 @@ Class Integracao_Model extends MY_Model
 
             //execute before execute
             if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
-                call_user_func($result['after_execute'], null, array('item' => $result, 'registro' => $result_file, 'log' => array(), 'valor' => null));
+                call_user_func($result['after_execute'], null, array('item' => $result, 'registro' => $result_file, 'log' => $result_process, 'valor' => null));
             }
 
         }
@@ -440,9 +441,7 @@ Class Integracao_Model extends MY_Model
     private function getFileFTP($integracao = array(), $file){
 
         $this->load->model('integracao_log_model', 'integracao_log');
-
         $this->load->library('ftp');
-
 
         $config['hostname'] = $integracao['host'];
         $config['username'] = $integracao['usuario'];
@@ -450,21 +449,20 @@ Class Integracao_Model extends MY_Model
         $config['port'] = $integracao['porta'];
         $config['debug']	= TRUE;
 
-        //$filename = basename($file);
-        $filename = "{$file}*";
-
         $this->ftp->connect($config);
-        // $list = $this->ftp->list_files("{$integracao['diretorio']}{$filename}");
         $list = $this->ftp->list_files("{$integracao['diretorio']}");
 
         $result = array(
-            'file' => ''
+            'file' => '',
+            'fileget' => '',
         );
         $file_processar = '';
         if($list) {
             foreach ($list as $index => $item) {
                 if ( strpos($item, ".") === FALSE )
                     continue;
+
+                echo $item. "<br>";
 
                 $total = $this->integracao_log
                     ->filter_by_integracao($integracao['integracao_id'])
@@ -487,7 +485,8 @@ Class Integracao_Model extends MY_Model
             $fileget = basename($file_processar);
             if($this->ftp->download($file_processar, "{$diretorio}/{$fileget}", 'binary')){
                 $result = array(
-                    'file' => "{$diretorio}/{$fileget}"
+                    'file' => "{$diretorio}/{$fileget}",
+                    'fileget' => $fileget,
                 );
             }
 
@@ -757,7 +756,7 @@ Class Integracao_Model extends MY_Model
         }
 
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
-        $integracao['script_sql']  = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
+        $integracao['script_sql'] = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
         $sql = $integracao['script_sql']; 
 
         $data = array();
@@ -856,6 +855,8 @@ Class Integracao_Model extends MY_Model
         $dados_log['integracao_log_status_id'] = 4;
 
         $this->integracao_log->update($integracao_log['integracao_log_id'], $dados_log, TRUE);
+
+        return $integracao_log;
     }
 
     private function trataRetorno($txt) {
@@ -967,6 +968,55 @@ Class Integracao_Model extends MY_Model
         }
 
         return $sequencia;
+    }
+
+    function update_log_sucess($file){
+        // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
+        $sql = "
+            UPDATE integracao_log a
+            INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
+            INNER JOIN integracao_log il ON a.integracao_id = il.integracao_id 
+            INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id AND b.chave = ild.chave
+            SET ild.integracao_log_status_id = 4 
+            WHERE a.nome_arquivo like '{$file}%'
+            AND a.integracao_log_status_id = 3 
+            AND ild.integracao_log_status_id NOT IN(4,5)
+        ";
+        $sqlX = "
+            SELECT * 
+            FROM integracao_log a 
+            INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
+            INNER JOIN integracao_log il ON a.integracao_id = il.integracao_id 
+            INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id AND b.chave = ild.chave
+            WHERE a.nome_arquivo like '{$file}%'
+            AND a.integracao_log_status_id = 3 
+            AND ild.integracao_log_status_id NOT IN(4,5)
+        ";
+        die($sqlX);
+        $query = $this->_database->query($sql);
+    }
+
+    function update_log_fail($file, $chave){
+        // marca o registro como erro (5) para que possa ser corrigido manualmente (6) e depois feito um novo envio (3)
+        $sql = "
+            UPDATE integracao_log il
+            INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id 
+            SET ild.integracao_log_status_id = 5
+            WHERE il.nome_arquivo like '{$file}%'
+            AND il.integracao_log_status_id = 3
+            AND ild.integracao_log_status_id NOT IN(4,5)
+        ";
+
+        $sqlX = "
+            SELECT * 
+            FROM integracao_log il
+            INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id 
+            WHERE il.nome_arquivo like '{$file}%'
+            AND il.integracao_log_status_id = 3
+            AND ild.integracao_log_status_id NOT IN(4,5)
+        ";
+        die($sqlX);
+        $query = $this->_database->query($sql);
     }
 
 }

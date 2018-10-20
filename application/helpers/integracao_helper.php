@@ -1084,3 +1084,91 @@ if ( ! function_exists('app_integracao_id_transacao_canc')) {
         return $id_transacao;
     }
 }
+if ( ! function_exists('app_integracao_retorno_generali_fail')) {
+
+    function app_integracao_retorno_generali_fail($formato, $dados = array())
+    {
+        $response = (object) ['status' => false, 'msg' => []];
+
+        echo "<pre>";
+        print_r($dados['registro']);
+
+        if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
+            $response->msg[] = 'Nome do Arquivo inválido';
+            return $response;
+        }
+
+        $file = str_replace("-RT-", "-EV-", $dados['log']['nome_arquivo']);
+        $result_file = explode("-", $file);
+        $file = $result_file[0]."-".$result_file[1]."-".$result_file[2]."-";
+
+        $chave = '';
+        if (!empty($dados['registro']['num_apolice'])) {
+            $chave = $dados['registro']['num_apolice'];
+        }elseif (!empty($dados['registro']['cod_cliente'])) {
+            $chave = $dados['registro']['cod_cliente'];
+        }elseif (!empty($dados['registro']['cod_sinistro'])) {
+            $chave = $dados['registro']['cod_sinistro'];
+        }
+
+        if (empty($chave)) {
+            $response->msg[] = 'Chave não identificada';
+            return $response;
+        }
+
+
+        // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
+        $CI =& get_instance();
+        $CI->load->model('integracao_model');
+        $CI->integracao_model->update_log_fail($file, $chave);
+
+        die($file);
+        return true;
+
+        // Validar Regras
+        // $validaRegra = app_integracao_valida_regras($dados, $camposCotacao);
+        // // echo "<pre>";print_r($validaRegra);echo "</pre>";
+
+        // if (!empty($validaRegra->status)) {
+        //     $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
+        //     $dados['registro']['fields'] = $validaRegra->fields;
+        //     $emissao = app_integracao_emissao($formato, $dados);
+
+        //     if (empty($emissao->status)) {
+        //         $response->msg = $emissao->msg;
+        //     } else {
+        //         $response->status = true;
+        //     }
+
+        // } else {
+        //     if (!empty($response->msg)) {
+        //         $response->msg = array_merge($validaRegra->errors, $response->msg);
+        //     } else {
+        //         $response->msg = $validaRegra->errors;
+        //     }
+        // }
+
+        return $response;
+    }
+}
+if ( ! function_exists('app_integracao_retorno_generali_success')) {
+
+    function app_integracao_retorno_generali_success($formato, $dados = array())
+    {
+        if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
+            return false;
+        }
+
+        $file = str_replace("-RT-", "-EV-", $dados['log']['nome_arquivo']);
+        $result_file = explode("-", $file);
+
+        $file = $result_file[0]."-".$result_file[1]."-".$result_file[2]."-";
+
+        // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
+        $CI =& get_instance();
+        $CI->load->model('integracao_model');
+        $CI->integracao_model->update_log_sucess($file);
+
+        return true;
+    }
+}
