@@ -660,7 +660,7 @@ Class Integracao_Model extends MY_Model
         }
 
         // echo "<pre>";print_r($linhas);echo "</pre>";
-        if (empty($linhas) || count($linhas) <= 2)
+        if (empty($linhas) || count($linhas) < 2)
             return $arRet;
 
         // Trata o header
@@ -945,13 +945,28 @@ Class Integracao_Model extends MY_Model
     }
 
     function filter_by_rotina_pronta(){
-
         $this->_database->where('integracao.periodicidade_unidade <>', 'C');
         $this->_database->where('integracao.habilitado', 1);
         $this->_database->where('integracao.status', 'A');
         $this->_database->where('integracao.proxima_execucao > ', date('Y-m-d H:i:s'));
 
         return $this;
+    }
+
+    function max_seq_by_parceiro_id($parceiro_id){
+        $sequencia = 1;
+
+        $this->_database->select_max('integracao.sequencia', 'seq_max');
+        $this->_database->where('integracao.parceiro_id', $parceiro_id);
+        $this->_database->where('integracao.habilitado', 1);
+        $this->_database->where('integracao.deletado', 0);
+        $result = $this->get_all();
+
+        if (!empty($result)) {
+            $sequencia += $result[0]['seq_max'];
+        }
+
+        return $sequencia;
     }
 
 }
