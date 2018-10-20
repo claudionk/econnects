@@ -294,9 +294,9 @@ Class Integracao_Model extends MY_Model
 
         if($result){
             $result = $result[0];
-            // $dados_integracao = array();
-            // $dados_integracao['status'] = 'L';
-            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            $dados_integracao = array();
+            $dados_integracao['status'] = 'L';
+            $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
@@ -461,8 +461,6 @@ Class Integracao_Model extends MY_Model
             foreach ($list as $index => $item) {
                 if ( strpos($item, ".") === FALSE )
                     continue;
-
-                echo $item. "<br>";
 
                 $total = $this->integracao_log
                     ->filter_by_integracao($integracao['integracao_id'])
