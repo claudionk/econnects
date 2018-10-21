@@ -13,7 +13,17 @@ if ( ! function_exists('app_assets_url'))
 
     }
 }
-
+if ( ! function_exists('app_assets_protocol'))
+{
+    function app_assets_protocol(){
+        if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ){
+            $protocol = (empty($_SERVER['HTTP_X_FORWARDED_PROTO']) OR strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) !== 'https') ? 'http' : 'https';
+        }else{
+            $protocol = (empty($_SERVER['HTTPS']) OR strtolower($_SERVER['HTTPS']) === 'off') ? 'http' : 'https';
+        }
+        return $protocol;
+    }
+}
 if ( ! function_exists('app_assets_dir'))
 {
     function app_assets_dir($uri = '', $context = 'site'){

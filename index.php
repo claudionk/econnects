@@ -1,6 +1,6 @@
 <?php
 $host_servers['production'] = array(
-    'alfa.econnects.com.br',
+    'sisconnects.com.br',
 );
 $host_servers['homologacao'] = array(
     'sis.econnects.com.br',

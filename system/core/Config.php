@@ -68,7 +68,11 @@ class CI_Config {
 		{
 			if (isset($_SERVER['HTTP_HOST']))
 			{
-				$base_url = (empty($_SERVER['HTTPS']) OR strtolower($_SERVER['HTTPS']) === 'off') ? 'http' : 'https';
+				if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ){
+					$base_url = (empty($_SERVER['HTTP_X_FORWARDED_PROTO']) OR strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) !== 'https') ? 'http' : 'https';
+				}else{
+					$base_url = (empty($_SERVER['HTTPS']) OR strtolower($_SERVER['HTTPS']) === 'off') ? 'http' : 'https';
+				}
 				$base_url .= '://'. $_SERVER['HTTP_HOST'];
 				$base_url .= str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
 			}
