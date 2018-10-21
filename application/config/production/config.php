@@ -376,5 +376,5 @@ function __autoload($class)
 /* End of file config.php */
 /* Location: ./application/config/config.php */
 
-$config["URL_sisconnects"] = "http://econnects-h.jelastic.saveincloud.net/";
-// $config["URL_sisconnects"] = "http://localhost/econnects/";
+$config["URL_sisconnects"] = "https://www.sisconnects.com.br/";
+

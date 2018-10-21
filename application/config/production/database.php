@@ -48,10 +48,10 @@
 $active_group = 'default';
 $active_record = TRUE;
 
-$db['default']['hostname'] = '192.168.23.25';
-$db['default']['username'] = 'root';
-$db['default']['password'] = 'pUs6Ucan8V';
-$db['default']['database'] = 'gestao';
+$db['default']['hostname'] = '191.243.196.9';
+$db['default']['username'] = 'sissolucoes1';
+$db['default']['password'] = 'sis#@123';
+$db['default']['database'] = 'sisconnects';
 $db['default']['dbdriver'] = 'mysqli';
 $db['default']['dbprefix'] = '';
 $db['default']['pconnect'] = FALSE;
