@@ -777,7 +777,7 @@
     console.log( "Cotação: " + $scope.cotacao_id );
     console.log( "Token: " + $scope.Token );
     
-    var URL = "http://econnects-h.jelastic.saveincloud.net/api/cotacao/calculo?cotacao_id=" + $scope.cotacao_id;
+    var URL = "<?= $this->config->item('base_url') ?>/api/cotacao/calculo?cotacao_id=" + $scope.cotacao_id;
     $http.get( URL, { headers: $scope.AuthHeaders } )
       .success( function( data ) {
       $scope.Calculo = data;

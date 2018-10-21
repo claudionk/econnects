@@ -247,7 +247,7 @@ class Gateway extends Admin_Controller
       
       
       $isdebit = ($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) ? TRUE : FALSE; //ReturnURL
-      $return_url = ($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) ? "http://econnects-h.jelastic.saveincloud.net/index.php/pagmax360/retorno?pedido_id={$pedido['pedido_id']}" : "";
+      $return_url = ($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) ? $this->config->item('base_url') ."/index.php/pagmax360/retorno?pedido_id={$pedido['pedido_id']}" : "";
         
         //base_url("admin/venda/seguro_viagem/41/5/{$pedido['pedido_id']}/?retorno=pagmax") : '';
 
