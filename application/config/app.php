@@ -20,10 +20,9 @@ $config['app_assets_ver'] = (ENVIRONMENT == 'development') ? date('ymdhis') :  '
 | App Name
 |
 */
-$config['app_name'] = 'Corcovado';
-
-$config['app_email_from'] = 'contato@zazz.com.br';
-$config['app_email_name'] = 'Corcovado';
+$config['app_name'] = 'Sisconnects';
+$config['app_email_from'] = 'tisistema@sissolucoes.com.br';
+$config['app_email_name'] = 'Sisconnects';
 
 
 
