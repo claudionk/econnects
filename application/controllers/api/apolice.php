@@ -5,6 +5,8 @@ class Apolice extends CI_Controller {
     public function __construct() {
         parent::__construct();
 
+        $_SERVER['HTTP_APIKEY'] = 'e7fb97c286e442f084be7792f4933422bf0f61694e7540f01ca210dd412c6e5e';        
+
         header( "Access-Control-Allow-Origin: *" );
         header( "Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS" );
         header( "Access-Control-Allow-Headers: Cache-Control, APIKEY, apikey, Content-type" );
@@ -152,10 +154,15 @@ class Apolice extends CI_Controller {
     public function validarDadosEntrada()
     {
         if( $_SERVER["REQUEST_METHOD"] === "POST" ) {
-            $POST = json_decode( file_get_contents( "php://input" ), true );
+
+            // $POST = json_decode( file_get_contents( "php://input" ), true );
+            print_r(json_decode(file_get_contents( "php://input" ),false));
+            die('humm-aki');
+
         } else {
             die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
         }
+
 
         $apolice_id = null;
         if( isset( $POST["apolice_id"] ) ) {

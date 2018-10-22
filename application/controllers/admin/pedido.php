@@ -292,7 +292,8 @@ class Pedido extends Admin_Controller
 
 
     public  function cancelar($pedido_id){
-
+        echo $pedido_id;
+        die('Pedido - aki - cancelar');
         $result = $this->current_model->cancelamento($pedido_id);
 
 
@@ -314,6 +315,8 @@ class Pedido extends Admin_Controller
 
     public  function cancelar_aprovacao($pedido_id){
 
+        echo $pedido_id;
+        die('aki - cancelar_aprovacao');
 
         $this->load->model("pedido_transacao_model", "pedido_transacao");
 

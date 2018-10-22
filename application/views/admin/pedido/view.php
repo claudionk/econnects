@@ -474,7 +474,7 @@
         <?php endif; ?>
 
         <?php if($cancelamento == 1) : ?>
-            <a href="<?php echo base_url("{$current_controller_uri}/cancelar/{$pedido_id}")?>" class="btn  btn-app btn-primary">
+            <a id="btnCancelar" href="javascript:void(0)" class="btn  btn-app btn-primary">
                 <i class="fa fa-exclamation-circle"></i> Cancelar
             </a>
             <a href="<?php echo base_url("{$current_controller_uri}/cancelar_aprovacao/{$pedido_id}")?>" class="btn  btn-app btn-primary">
@@ -489,3 +489,21 @@
         <?php endif; ?>
     </div>
 </div>
+<?php $arrApolice = json_encode(["apolice_id"=>$pedido_id]); ?>
+<script type="text/javascript">
+    $("#btnCancelar").click(function(){
+        $.ajax({
+            url: "http://econnects.local/api/apolice/calculoCancelar",
+            method: "post",
+            dataType: 'json',
+            data: <?php echo $arrApolice; ?>,
+            success: function(data){
+                console.log(data);
+            },
+            error: function(data){
+                alert('erro');
+                console.log(data);
+            }
+        });
+    });
+</script>
