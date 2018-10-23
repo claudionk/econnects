@@ -1,6 +1,11 @@
 
 <?php $this->load->view("admin/partials/page_head"); ?>
-
+<style type="text/css">
+    .carregando { 
+        display: none; width: 100%; height:100%; text-align:center; position:absolute; left:0; top:0; z-index: 1000; background-color:transparent; opacity:0.85 
+    }
+    .engrenagem { color: #191A1A; position: relative; font-size: 192px; top: 25%; z-index: 999  }
+</style>
 <div class="card">
     <div class="card-body">
         <a href="<?php echo base_url("{$current_controller_uri}/index")?>" class="btn  btn-app btn-primary">
@@ -10,7 +15,6 @@
 </div>
 
 <div class="row">
-
     <div class="col-md-12">
         <div class="card card-underline">
             <div class="card-head">
@@ -489,21 +493,200 @@
         <?php endif; ?>
     </div>
 </div>
-<?php $arrApolice = json_encode(["apolice_id"=>$pedido_id]); ?>
+
+<!-- MODALS -->
+
+<div class="modal fade" id="viewModalCancelamento" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">CANCELAMENTO</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div style="text-align:center;font-size:15px;margin:20px 0;">O valor a ser devolvido é de <strong id="vldevolucao" style="color:red;"></strong></div>
+        <div style="text-align:center;margin: 20px 0;"><b>Data vigência:</b> <u id="dtvigenciaini"></u> <b>a</b> <u id="dtvigenciafim"></u></div>
+        <div style="text-align:center;margin: 0 0 20px 0;">Quantidade de dias utilizados: <b><u id="qtdutilizados"></u></b></div>
+      </div>
+      <div class="modal-footer">
+        <div style="font-size: 15px;text-align: center;margin: 10px 0 20px 0;color: red;">Tem certeza que deseja continuar?</div>
+        <button id="btnNao" type="button" class="btn btn-secondary" data-dismiss="modal">NÃO</button>
+        <button id="btnSim" type="button" class="btn btn-primary" >SIM</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FIM MODALS -->
+
+<!-- DADOS BANCÁRIOS -->
+<div class="modal fade" id="formulario_conta_bancaria" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" >
+    <div class="modal-dialog" role="document">
+        <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" action="/admin/pedido/adicionar_dados_bancarios" autocomplete="off">
+            <input type="hidden" class="form-control" name="pedido_id" value="<?php echo $pedido_id; ?>">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">CANCELAMENTO</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group">
+                            <label for="">A conta bancária pertence ao</label>
+                            <select id="segurado" name="segurado" class="form-control conta_terceiro">
+                                <option value="S" selected>Segurado</option>
+                                <option value="T">Terceiro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group">
+                            <label for="">Tipo de favorecido</label>
+                            <select id="tipofavorecido" name="tipofavorecido" class="form-control">
+                                <option value="PF">Pessoa física</option>
+                                <option value="PJ">Pessoa jurídica</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group">
+                            <label for="">Tipo de conta</label>
+                            <select id="" name="tipoconta" class="form-control">
+                                <option value="corrente">Conta Corrente</option>
+                                <option value="poupanca">Conta Poupança</option>
+                                <option value="conta_facil">Conta Fácil</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group">
+                            <label for="">Nome do favorecido</label>
+                            <input required type="text" class="form-control" name="nome" value="">
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group">
+                            <label for="">CPF/CNPJ Favorecido</label>
+                            <input required type="text" class="form-control" name="cpf_cnpj" value="">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group">
+                            <label for="">Banco do favorecido</label>
+                            <select required id="banco" name="banco" class="form-control">
+                                <option value="" style="display:none">Selecione o banco</option>
+                                <?php foreach ($bancos as $banco) :  ?>
+                                    <option value="<?php echo $banco->codigo ?>"><?php echo $banco->nome ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-8 no-padding">
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <label for="">Agência</label>
+                                <input required type="number" class="form-control" id="" name="agencia" value="">
+                            </div>
+                            <div class="col-md-2" style="display: none">
+                                <label for="">Dígito</label>
+                                <input pattern="[a-zA-Z0-9]+" maxlength="1" type="text" class="form-control" id="digito" name="digito" value="">
+                            </div>
+                            <div class="col-sm-4">
+                                <label for="">Conta</label>
+                                <input required type="number" class="form-control" id="conta" name="conta" value="">
+                            </div>
+                            <div class="col-sm-2 ">
+                                <label for="">Dígito</label>
+                                <input pattern="[a-zA-Z0-9]+" maxlength="1" required type="text" class="form-control" id="digito" name="digito" value="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <br>
+                        <font color="red"><b>Importante: </b></font>Preencha os dados corretamente.
+                        <br>
+                        <br>
+                    </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Sair</button>
+                <button type="submit" class="btn btn-primary">Confirmar Cancelamento</button>
+              </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="aviso_ordem_pagamento" class="hidden">
+    <div class="row">
+        <div class="col-sm-12">
+            <?php if( $this->session->userdata('seg_cli') == 18 ) { ?>
+                <p class="text-danger">O pagamento será realizado através de ordem de pagamento.</p>
+            <?php } ?>
+        </div>
+    </div>
+</div>
+<!-- FIM DADOS BANCARIOS -->
+<!-- LOADING -->
+<div class="carregando">
+    <div class="engrenagem"><i class="fa fa-gear fa-spin" aria-hidden="true"></i></div>
+</div>
+<!-- FIM LOADING -->
 <script type="text/javascript">
+jQuery(function($){
+    
+
+    $("#btnSim").click(function(e){
+        e.preventDefault();
+        $(".carregando").show();
+        $('#viewModalCancelamento').modal('hide');
+        $("#formulario_conta_bancaria").modal();
+        $(".carregando").hide();
+    });
+
     $("#btnCancelar").click(function(){
+        // $("#viewProsseguirCancelamento").modal('show');
+        var pedido_id  = "<?php echo $pedido_id; ?>";
+        var apolice_id = "<?php echo $apolices[0]['apolice_id']; ?>";
         $.ajax({
-            url: "http://econnects.local/api/apolice/calculoCancelar",
-            method: "post",
-            dataType: 'json',
-            data: <?php echo $arrApolice; ?>,
+            type: "post",
+            //url: "http://econnects.local/api/apolice/calculoCancelar",
+            url: "<?php echo $this->config->item('URL_sisconnects'); ?>api/apolice/calculoCancelar",
+            data: JSON.stringify({ apolice_id : apolice_id }),
+            headers: {
+                "apikey": "<?php echo app_get_token() ?>",
+                "content-type": "application/json",
+                "cache-control": "no-cache"
+            },
+            beforeSend: function(){
+                $(".carregando").show();
+            },
             success: function(data){
-                console.log(data);
+                $(".carregando").hide();
+                $("#vldevolucao").html("").append(data.valor_estorno_total);
+                $("#dtvigenciaini").html("").append(data.dados[0].apolices.data_ini_vigencia);
+                $("#dtvigenciafim").html("").append(data.dados[0].apolices.data_fim_vigencia);
+                $("#qtdutilizados").html("").append(data.dias_utilizados);
+                $('#viewModalCancelamento').modal('show');                 
             },
             error: function(data){
-                alert('erro');
                 console.log(data);
+            },
+            complete: function(){
+                $(".carregando").hide();
             }
         });
     });
+});
 </script>

@@ -5,8 +5,6 @@ class Apolice extends CI_Controller {
     public function __construct() {
         parent::__construct();
 
-        $_SERVER['HTTP_APIKEY'] = 'e7fb97c286e442f084be7792f4933422bf0f61694e7540f01ca210dd412c6e5e';        
-
         header( "Access-Control-Allow-Origin: *" );
         header( "Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS" );
         header( "Access-Control-Allow-Headers: Cache-Control, APIKEY, apikey, Content-type" );
@@ -154,15 +152,10 @@ class Apolice extends CI_Controller {
     public function validarDadosEntrada()
     {
         if( $_SERVER["REQUEST_METHOD"] === "POST" ) {
-
-            // $POST = json_decode( file_get_contents( "php://input" ), true );
-            print_r(json_decode(file_get_contents( "php://input" ),false));
-            die('humm-aki');
-
+            $POST = json_decode( file_get_contents( "php://input" ), true );
         } else {
             die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
         }
-
 
         $apolice_id = null;
         if( isset( $POST["apolice_id"] ) ) {
@@ -175,14 +168,19 @@ class Apolice extends CI_Controller {
         $this->load->model("pedido_model", "pedido");
 
         $pedido = $this->pedido->with_apolice()->filter_by_apolice($apolice_id)->get_all();
+
         if(!$pedido) {
             die( json_encode( array( "status" => false, "message" => "Apólice não encontrada" ) ) );
         }
+        
 
         return [ 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
     }
 
     public function cancelar() {
+        
+        die('aki - cancelar');
+
         $this->checkKey();
 
         $validacao = $this->validarDadosEntrada();
@@ -204,6 +202,8 @@ class Apolice extends CI_Controller {
         $this->checkKey();
 
         $validacao = $this->validarDadosEntrada();
+
+
         $pedido_id = $validacao['pedido_id'];
 
         //pega as configurações de cancelamento do pedido
