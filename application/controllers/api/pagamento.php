@@ -873,7 +873,7 @@ class Pagamento extends CI_Controller {
           $result  = array(
             "status" => true,
             "mensagem" => "Pedido confirmado",
-            "dados" => array( "pedido_id" => $pedido_id, "apolice_id" => $apolice["apolice_id"] )
+            "dados" => array( "pedido_id" => $pedido_id, "apolice_id" => $apolice["apolice_id"], "num_apolice" => $apolice["num_apolice"] )
           );
         } else {
           $result  = array(                

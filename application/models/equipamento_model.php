@@ -80,13 +80,20 @@ Class Equipamento_Model extends MY_Model
         )
     );
 
-    public function match($equipamento, $limit = 10)
+    public function match($equipamento, $marca = null, $limit = 10)
     {
+        $where='';
+        if (!empty($marca)) {
+            $where .= " AND em.nome like '%". str_replace("'", "\'", $marca) ."%' ";
+        }
+
         $equipamento_tratado = $this->trata_string_match($equipamento);
         $equip = $this->_database->query("
-            SELECT MATCH(nome) against('{$equipamento_tratado}' IN BOOLEAN MODE) as indice, equipamento_id, equipamento_marca_id, equipamento_categoria_id, nome, ean, equipamento_sub_categoria_id
-            FROM equipamento
-            WHERE MATCH(nome) AGAINST('{$equipamento_tratado}' IN BOOLEAN MODE) > 0
+            SELECT MATCH(e.nome) against('{$equipamento_tratado}' IN BOOLEAN MODE) as indice, e.equipamento_id, e.equipamento_marca_id, e.equipamento_categoria_id, e.nome, e.ean, e.equipamento_sub_categoria_id
+            FROM equipamento e
+            INNER JOIN equipamento_marca em on e.equipamento_marca_id = em.equipamento_marca_id
+            WHERE MATCH(e.nome) AGAINST('{$equipamento_tratado}' IN BOOLEAN MODE) > 0
+                {$where}
             ORDER BY 1 DESC
             LIMIT {$limit}
         ");
