@@ -5,6 +5,10 @@
         display: none; width: 100%; height:100%; text-align:center; position:absolute; left:0; top:0; z-index: 1000; background-color:transparent; opacity:0.85 
     }
     .engrenagem { color: #191A1A; position: relative; font-size: 192px; top: 25%; z-index: 999  }
+    .ajsSel { height: 42px !important; }
+    .ajsRow { margin-left: 0px !important; margin-right: 0px !important; }
+    #banco option { text-transform: uppercase !important; }
+    #formulario_conta_bancaria label { color:#353132 !important; opacity: 0.5; }
 </style>
 <div class="card">
     <div class="card-body">
@@ -296,7 +300,7 @@
                             <!-- Table heading -->
                             <thead>
                             <tr>
-                                <th  width='10%' class="center">ID</th>
+                                <th width='10%' class="center">ID</th>
                                 <th width='20%'>Bandeira</th>
                                 <th width='30%'>Número</th>
                                 <th width='10%'>Vencimento</th>
@@ -512,8 +516,8 @@
       </div>
       <div class="modal-footer">
         <div style="font-size: 15px;text-align: center;margin: 10px 0 20px 0;color: red;">Tem certeza que deseja continuar?</div>
-        <button id="btnNao" type="button" class="btn btn-secondary" data-dismiss="modal">NÃO</button>
-        <button id="btnSim" type="button" class="btn btn-primary" >SIM</button>
+        <button id="btnNao" type="button" class="btn btn-primary" data-dismiss="modal">NÃO</button>
+        <button id="btnSim" type="button" class="btn btn-secondary" >SIM</button>
       </div>
     </div>
   </div>
@@ -523,8 +527,8 @@
 
 <!-- DADOS BANCÁRIOS -->
 <div class="modal fade" id="formulario_conta_bancaria" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" >
-    <div class="modal-dialog" role="document">
-        <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" action="/admin/pedido/adicionar_dados_bancarios" autocomplete="off">
+    <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" action="/admin/pedido/adicionar_dados_bancarios" autocomplete="off">
+        <div class="modal-dialog" role="document">
             <input type="hidden" class="form-control" name="pedido_id" value="<?php echo $pedido_id; ?>">
             <div class="modal-content">
               <div class="modal-header">
@@ -534,11 +538,11 @@
                 </button>
               </div>
               <div class="modal-body">
-                <div class="row">
+                <div class="row ajsRow">
                     <div class="col-sm-4">
                         <div class="form-group">
                             <label for="">A conta bancária pertence ao</label>
-                            <select id="segurado" name="segurado" class="form-control conta_terceiro">
+                            <select required id="segurado" name="segurado" class="form-control conta_terceiro">
                                 <option value="S" selected>Segurado</option>
                                 <option value="T">Terceiro</option>
                             </select>
@@ -547,7 +551,7 @@
                     <div class="col-sm-4">
                         <div class="form-group">
                             <label for="">Tipo de favorecido</label>
-                            <select id="tipofavorecido" name="tipofavorecido" class="form-control">
+                            <select required id="tipofavorecido" name="tipofavorecido" class="form-control">
                                 <option value="PF">Pessoa física</option>
                                 <option value="PJ">Pessoa jurídica</option>
                             </select>
@@ -556,15 +560,15 @@
                     <div class="col-sm-4">
                         <div class="form-group">
                             <label for="">Tipo de conta</label>
-                            <select id="" name="tipoconta" class="form-control">
+                            <select required name="tipoconta" class="form-control">
                                 <option value="corrente">Conta Corrente</option>
-                                <option value="poupanca">Conta Poupança</option>
                                 <option value="conta_facil">Conta Fácil</option>
+                                <option value="poupanca">Conta Poupança</option>
                             </select>
                         </div>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row ajsRow">
                     <div class="col-sm-4">
                         <div class="form-group">
                             <label for="">Nome do favorecido</label>
@@ -578,11 +582,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row ajsRow">
                     <div class="col-sm-4">
                         <div class="form-group">
                             <label for="">Banco do favorecido</label>
-                            <select required id="banco" name="banco" class="form-control">
+                            <select required id="banco" name="banco" class="form-control ajsSel">
                                 <option value="" style="display:none">Selecione o banco</option>
                                 <?php foreach ($bancos as $banco) :  ?>
                                     <option value="<?php echo $banco->codigo ?>"><?php echo $banco->nome ?></option>
@@ -594,15 +598,11 @@
                         <div class="form-group">
                             <div class="col-md-3">
                                 <label for="">Agência</label>
-                                <input required type="number" class="form-control" id="" name="agencia" value="">
-                            </div>
-                            <div class="col-md-2" style="display: none">
-                                <label for="">Dígito</label>
-                                <input pattern="[a-zA-Z0-9]+" maxlength="1" type="text" class="form-control" id="digito" name="digito" value="">
+                                <input required type="number" min="0"  pattern="[0-9]+" maxlength="4" class="form-control" id="" name="agencia" value="">
                             </div>
                             <div class="col-sm-4">
                                 <label for="">Conta</label>
-                                <input required type="number" class="form-control" id="conta" name="conta" value="">
+                                <input required type="number" min="0" class="form-control" id="conta" name="conta" value="">
                             </div>
                             <div class="col-sm-2 ">
                                 <label for="">Dígito</label>
@@ -611,7 +611,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row ajsRow">
                     <div class="col-sm-12">
                         <br>
                         <font color="red"><b>Importante: </b></font>Preencha os dados corretamente.
@@ -621,12 +621,12 @@
                 </div>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Sair</button>
-                <button type="submit" class="btn btn-primary">Confirmar Cancelamento</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Sair</button>
+                <button type="submit" class="btn btn-secondary">Confirmar Cancelamento</button>
               </div>
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
 </div>
 <div id="aviso_ordem_pagamento" class="hidden">
     <div class="row">
@@ -645,8 +645,6 @@
 <!-- FIM LOADING -->
 <script type="text/javascript">
 jQuery(function($){
-    
-
     $("#btnSim").click(function(e){
         e.preventDefault();
         $(".carregando").show();
@@ -687,6 +685,20 @@ jQuery(function($){
                 $(".carregando").hide();
             }
         });
+    });
+
+    $('input[name="cpf_cnpj"]').mask('000.000.000-00', {reverse: true});
+    $('input[name="agencia"]').mask('0000', {reverse: true});
+    $("#tipofavorecido").change(function(e){
+       if($("#tipofavorecido option:selected").val() == 'PJ')
+       {    
+            $('input[name="cpf_cnpj"]').val('');
+            $('input[name="cpf_cnpj"]').mask('00.000.000/0000-00', {reverse: true});  
+       } 
+       else if ($("#tipofavorecido option:selected").val() == 'PF'){
+            $('input[name="cpf_cnpj"]').val('');
+            $('input[name="cpf_cnpj"]').mask('000.000.000-00', {reverse: true});
+       }
     });
 });
 </script>

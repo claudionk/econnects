@@ -23,18 +23,46 @@ Class Pedido_Dados_Bancarios_Model extends MY_Model
     public $validate = array(
         array(
             'field' => 'nome',
-            'label' => 'Nome',
+            'label' => 'nome',
             'rules' => 'required',
             'groups' => 'default',
         ),
-        /*
         array(
-            'field' => 'slug',
-            'label' => 'Slug',
+            'field' => 'segurado',
+            'label' => 'segurado',
             'rules' => 'required',
             'groups' => 'default',
         ),
-        */
+        array(
+            'field' => 'tipofavorecido',
+            'label' => 'tipofavorecido',
+            'rules' => 'required',
+            'groups' => 'default',
+        ),
+        array(
+            'field' => 'tipoconta',
+            'label' => 'tipoconta',
+            'rules' => 'required',
+            'groups' => 'default',
+        ),
+        array(
+            'field' => 'banco',
+            'label' => 'banco',
+            'rules' => 'required',
+            'groups' => 'default',
+        ),
+        array(
+            'field' => 'agencia',
+            'label' => 'agencia',
+            'rules' => 'required',
+            'groups' => 'default',
+        ),
+        array(
+            'field' => 'conta',
+            'label' => 'conta',
+            'rules' => 'required',
+            'groups' => 'default',
+        ),      
     );
 
     //Retorna por slug

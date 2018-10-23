@@ -134,6 +134,28 @@ class Pedido extends Admin_Controller
         //Caso post
         if($_POST)
         {
+            if(isset($_POST['cpf_cnpj']))
+                $_POST['cpf_cnpj'] = app_retorna_numeros($_POST['cpf_cnpj']);
+
+            if($_POST['tipofavorecido'] == 'PF')
+            {
+                if(!app_validate_cpf($_POST['cpf_cnpj']))
+                {
+                    //Mensagem de erro
+                    $this->session->set_flashdata('fail_msg', 'CPF - inválido');
+                    redirect("$this->controller_uri/view/{$_POST['pedido_id']}");
+                }
+            } 
+            if($_POST['tipofavorecido'] == 'PJ'){
+                if(!app_validate_cnpj($_POST['cpf_cnpj']))
+                {
+                    //Mensagem de erro
+                    $this->session->set_flashdata('fail_msg', 'CNPJ - inválido');
+                    redirect("$this->controller_uri/view/{$_POST['pedido_id']}");
+                }
+            }
+               
+
             //Valida formulário
             if($this->pedido_dados_bancario->validate_form())
             {
@@ -162,9 +184,9 @@ class Pedido extends Admin_Controller
 
                     $produto_parceiro_cancelamento = $this->pedido->cancelamento( $_POST['pedido_id'], $arrApolice);
 
-                        if( isset( $produto_parceiro_cancelamento["result"] ) && $produto_parceiro_cancelamento["result"] == false ) {
-                            $this->session->set_flashdata('fail_msg', $produto_parceiro_cancelamento["mensagem"]);
-                        } 
+                    if( isset( $produto_parceiro_cancelamento["result"] ) && $produto_parceiro_cancelamento["result"] == false ) {
+                        $this->session->set_flashdata('fail_msg', $produto_parceiro_cancelamento["mensagem"]);
+                    } 
 
                     $this->session->set_flashdata('succ_msg', 'Apólice cancelada com sucesso.');
                 }
@@ -174,37 +196,16 @@ class Pedido extends Admin_Controller
                     $this->session->set_flashdata('fail_msg', 'Não foi possível salvar o Registro.');
                 }
 
-
-
                 redirect("$this->controller_uri/view/{$_POST['pedido_id']}");
-
-                
-                
-                
-                /*
-                $this->pedido_dados_bancario
-                    ->where("pedido_id", "=", $id)
-                    ->update_all(array(
-                        'ativo' => false,
-                    ));
-                */
-                
-                //Insere form
-                /*
-                $add = $this->pedido_dados_bancario->insert_cartao($id, $_POST);
-
-                if($add)
-                {
-                    //Caso inserido com sucesso
-                    $this->session->set_flashdata('succ_msg', 'Os dados foram salvos corretamente.'); //Mensagem de sucesso
-                }
-                else
-                {
-                    //Mensagem de erro
-                    $this->session->set_flashdata('fail_msg', 'Não foi possível salvar o Registro.');
-                }
-                */
             }
+            else
+            {
+                //Mensagem de erro
+                $this->session->set_flashdata('fail_msg', 'Não foi possível salvar o Registro. Reveja os dados informados');
+                redirect("$this->controller_uri/view/{$_POST['pedido_id']}");
+            }
+            
+            
         }
     }
 
@@ -361,7 +362,7 @@ class Pedido extends Admin_Controller
             'pedido_id' => $id
         ));
 
-        $bco = $this->db->query("select banco_id, codigo, nome from banco where deletado = 0")->result();
+        $bco = $this->db->query("select banco_id, codigo, nome from banco where deletado = 0 order by nome asc")->result();
         $data['bancos'] = $bco;
         // echo '<pre>';
         // print_r($bco);  die;
