@@ -52,7 +52,7 @@ class Api extends Site_Controller
             header('X-Error-Message: '. $messagem, true, 500);
             $retorno["response"] = $messagem;
             if (isset($retornoJson->erros))
-            $retorno["response"] .= print_r($retornoJson->erros, true);
+                $retorno["validations"] = $retornoJson->erros;
         }
 
         return $retorno["response"];

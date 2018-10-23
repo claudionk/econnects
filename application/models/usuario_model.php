@@ -252,6 +252,23 @@ Class Usuario_Model extends MY_Model {
 
   }
 
+  function get_user_externo( $parceiro_id ) {
+    $this->_database->select($this->_table.'.email, '.$this->_table.'.senha');
+    $this->_database->from( $this->_table);
+    $this->_database->where( $this->_table. '.usuario_acl_tipo_id', 3);
+    $this->_database->where( $this->_table. '.parceiro_id', $parceiro_id);
+    $this->_database->where( $this->_table. '.deletado', 0);
+
+    $query = $this->_database->get();
+
+    if ($query->num_rows() > 0) {
+      return $query->result_array();
+    } else {
+      return null;
+    }
+
+  }
+
   /**
      * Verifica se tem algum usuario ativo com esse endereço de mail
      *

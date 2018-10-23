@@ -113,8 +113,9 @@ class Equipamento extends CI_Controller {
         //Faz o MATCH para consulta do Equipamento
         $indiceMax = 20;
         $modelo = $payload->modelo;
+        $marca = !empty($payload->marca) ? $payload->marca : null;
         $qtdeRegistros = ( isset($payload->quantidade) && (int)$payload->quantidade > 0) ? $payload->quantidade : 10;
-        $result = $this->equipamento->match($modelo, $qtdeRegistros);
+        $result = $this->equipamento->match($modelo, $marca, $qtdeRegistros);
 
         //se encontrou algum parecido
         if (empty($result)) {
