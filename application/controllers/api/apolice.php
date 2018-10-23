@@ -168,14 +168,19 @@ class Apolice extends CI_Controller {
         $this->load->model("pedido_model", "pedido");
 
         $pedido = $this->pedido->with_apolice()->filter_by_apolice($apolice_id)->get_all();
+
         if(!$pedido) {
             die( json_encode( array( "status" => false, "message" => "Apólice não encontrada" ) ) );
         }
+        
 
         return [ 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
     }
 
     public function cancelar() {
+        
+        die('aki - cancelar');
+
         $this->checkKey();
 
         $validacao = $this->validarDadosEntrada();
@@ -197,6 +202,8 @@ class Apolice extends CI_Controller {
         $this->checkKey();
 
         $validacao = $this->validarDadosEntrada();
+
+
         $pedido_id = $validacao['pedido_id'];
 
         //pega as configurações de cancelamento do pedido

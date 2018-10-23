@@ -571,6 +571,7 @@ Class Pedido_Model extends MY_Model
 */
   }
 
+
   public function with_pedido_status(){
 
     return $this->with_simple_relation('pedido_status', 'pedido_status_', 'pedido_status_id', array('nome'), 'inner');

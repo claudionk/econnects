@@ -125,6 +125,90 @@ class Pedido extends Admin_Controller
         redirect("$this->controller_uri/view/{$id}");
 
     }
+
+    public function adicionar_dados_bancarios()
+    {
+        $this->load->model("pedido_dados_bancarios_model", "pedido_dados_bancario");
+        $this->load->model("pedido_model", "pedido");
+
+        //Caso post
+        if($_POST)
+        {
+            //Valida formulário
+            if($this->pedido_dados_bancario->validate_form())
+            {
+                // pedido
+                $existe = $this->db->query("select pedido_id from pedido_dados_bancarios where pedido_id = ".$_POST['pedido_id']."")->result();
+
+
+                if(count($existe)>0){
+                    // Atualiza o campo deletado
+                    $this->db->query("UPDATE pedido_dados_bancarios SET deletado = 1 WHERE pedido_id = ".$_POST['pedido_id']."");
+                }
+
+                // Inserir
+                $sql = "INSERT INTO `pedido_dados_bancarios` (`pedido_id`, `conta_pertence`, `tipo_favorecido`, `tipo_conta`, `nome_favorecido`, `cpf_cnpj`, `banco`,`agencia`,`conta`,`digito`,`deletado` ) VALUES ('".$_POST['pedido_id']."','".$_POST['segurado']."','".$_POST['tipofavorecido']."','".$_POST['tipoconta']."','".$_POST['nome']."','".$_POST['cpf_cnpj']."','".$_POST['banco']."','".$_POST['agencia']."','".$_POST['conta']."','".$_POST['digito']."','0');";
+                if($this->db->query($sql)){
+
+                    $arrApolice = [];
+                    $arrApolice['conta_terceiro'] = $_POST['segurado'];
+                    $arrApolice['tipo_conta']     = $_POST['tipoconta'];
+                    $arrApolice['favo_nome']      = $_POST['nome'];
+                    $arrApolice['favo_doc']       = $_POST['cpf_cnpj'];
+                    $arrApolice['favo_bco_num']   = $_POST['banco'];
+                    $arrApolice['favo_bco_ag']    = $_POST['agencia'];
+                    $arrApolice['favo_bco_cc']    = $_POST['conta'];
+                    $arrApolice['favo_bco_cc_dg'] = $_POST['digito'];
+
+                    $produto_parceiro_cancelamento = $this->pedido->cancelamento( $_POST['pedido_id'], $arrApolice);
+
+                        if( isset( $produto_parceiro_cancelamento["result"] ) && $produto_parceiro_cancelamento["result"] == false ) {
+                            $this->session->set_flashdata('fail_msg', $produto_parceiro_cancelamento["mensagem"]);
+                        } 
+
+                    $this->session->set_flashdata('succ_msg', 'Apólice cancelada com sucesso.');
+                }
+                else
+                {
+                    //Mensagem de erro
+                    $this->session->set_flashdata('fail_msg', 'Não foi possível salvar o Registro.');
+                }
+
+
+
+                redirect("$this->controller_uri/view/{$_POST['pedido_id']}");
+
+                
+                
+                
+                /*
+                $this->pedido_dados_bancario
+                    ->where("pedido_id", "=", $id)
+                    ->update_all(array(
+                        'ativo' => false,
+                    ));
+                */
+                
+                //Insere form
+                /*
+                $add = $this->pedido_dados_bancario->insert_cartao($id, $_POST);
+
+                if($add)
+                {
+                    //Caso inserido com sucesso
+                    $this->session->set_flashdata('succ_msg', 'Os dados foram salvos corretamente.'); //Mensagem de sucesso
+                }
+                else
+                {
+                    //Mensagem de erro
+                    $this->session->set_flashdata('fail_msg', 'Não foi possível salvar o Registro.');
+                }
+                */
+            }
+        }
+    }
+
+
  
     /**
      * Visualizar pedido
@@ -144,6 +228,7 @@ class Pedido extends Admin_Controller
         $this->load->model('forma_pagamento_bandeira_model', 'forma_pagamento_bandeira');
         $this->load->model("pedido_cartao_transacao_model", "pedido_cartao_transacao");
         $this->load->model("capitalizacao_model", "capitalizacao");
+        
 
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
@@ -162,6 +247,7 @@ class Pedido extends Admin_Controller
         $data['produto'] = $data['produto'][0];
         $data['bandeiras'] = $this->forma_pagamento_bandeira->get_all();
         $data['capitalizacoes'] = $this->capitalizacao->get_titulos_pedido($id);
+
 /*
         $pedido_cartao = $this->pedido_cartao
             ->get_by(array(
@@ -275,6 +361,11 @@ class Pedido extends Admin_Controller
             'pedido_id' => $id
         ));
 
+        $bco = $this->db->query("select banco_id, codigo, nome from banco where deletado = 0")->result();
+        $data['bancos'] = $bco;
+        // echo '<pre>';
+        // print_r($bco);  die;
+
 
         $data['cancelamento'] = ($this->current_model->isPermiteCancelar($id)) ? '1' : '0';
         $data['cancelamento_aprovar'] = ($data['pedido']['pedido_status_id'] == 11) ? '1' : '0';
@@ -283,6 +374,7 @@ class Pedido extends Admin_Controller
         $data['pedido_id'] = $id;
         $data['new_record'] = '0';
         $data['form_action'] =  base_url("$this->controller_uri/view/{$id}");
+        $data['apolice_id'] = (isset($data['apolices'][0]['apolice_id'])) ? $data['apolices'][0]['apolice_id'] : '';
 
 
         //Carrega template
@@ -292,7 +384,8 @@ class Pedido extends Admin_Controller
 
 
     public  function cancelar($pedido_id){
-
+        echo $pedido_id;
+        die('Pedido - aki - cancelar');
         $result = $this->current_model->cancelamento($pedido_id);
 
 
@@ -314,6 +407,8 @@ class Pedido extends Admin_Controller
 
     public  function cancelar_aprovacao($pedido_id){
 
+        echo $pedido_id;
+        die('aki - cancelar_aprovacao');
 
         $this->load->model("pedido_transacao_model", "pedido_transacao");
 
