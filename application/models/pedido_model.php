@@ -597,7 +597,7 @@ Class Pedido_Model extends MY_Model
     $this->_database->select("(SELECT contato FROM cliente_contato INNER JOIN contato on contato.contato_id = cliente_contato.contato_id WHERE cliente_contato.deletado = 0 AND contato.deletado = 0 AND contato.contato_tipo_id = 3 AND cliente_contato.cliente_id = cliente.cliente_id LIMIT 1) AS telefone");
     $this->_database->join('cotacao', 'cotacao.cotacao_id = pedido.cotacao_id', 'inner');
     $this->_database->join('cliente', 'cliente.cliente_id = cotacao.cliente_id', 'inner');
-    $this->_database->join('base_pessoa', 'base_pessoa.cliente_id = cliente.cliente_id', 'inner');
+    $this->_database->join('base_pessoa', 'base_pessoa.documento = cliente.cnpj_cpf', 'inner');
     $this->_database->join("cotacao_equipamento", "cotacao_equipamento.cotacao_id = cotacao.cotacao_id", 'left');
     $this->_database->join("equipamento_marca", "equipamento_marca.equipamento_marca_id = cotacao_equipamento.equipamento_marca_id", 'left');
     $this->_database->join("equipamento_categoria", "equipamento_categoria.equipamento_categoria_id = cotacao_equipamento.equipamento_categoria_id", 'left');
