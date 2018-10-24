@@ -196,9 +196,12 @@ class Comunicacao_model extends MY_Model
     if($processa) {
       $parceiro_id = $this->session->userdata('parceiro_id');
       
-      $this->_database->join("produto_parceiro_comunicacao","produto_parceiro_comunicacao.produto_parceiro_comunicacao_id=comunicacao.produto_parceiro_comunicacao_id");
+      // $this->_database->join("produto_parceiro_comunicacao","produto_parceiro_comunicacao.produto_parceiro_comunicacao_id=comunicacao.produto_parceiro_comunicacao_id");
       $this->_database->join("produto_parceiro","produto_parceiro.produto_parceiro_id=produto_parceiro_comunicacao.produto_parceiro_id");
-      $this->_database->where("(produto_parceiro.parceiro_id=$parceiro_id)");
+      if (!empty($parceiro_id)) {
+        $this->_database->where("(produto_parceiro.parceiro_id=$parceiro_id)");
+      }
+        
     }
     return parent::get_all($limit, $offset);
   }
