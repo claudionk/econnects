@@ -307,7 +307,7 @@ function busca_cliente(){
             $('#data_nascimento').val(result.data_nascimento);
             $('#data_nascimento').datepicker('setDate', result.data_nascimento);
 
-            $('#email').val(result.email);
+            // $('#email').val(result.email);
             console.log('telefone', $('#telefone').val());
             if(!$('#telefone').val()){
                 $('#telefone').val(result.telefone);
