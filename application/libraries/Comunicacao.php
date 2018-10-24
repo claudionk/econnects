@@ -194,6 +194,7 @@ class Comunicacao
 
     $mensagem['mensagem_to'] = "+55".app_retorna_numeros($mensagem['mensagem_to']);
     $text = html_entity_decode(strip_tags($mensagem['mensagem']));
+    $text = preg_replace( "/\r|\t|\n/", "", $text );
     $config = array(
             'urlCurl' => 'https://api.infobip.com/sms/1/text/single',
             'methodCurl' => 'POST', 
