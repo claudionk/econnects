@@ -446,7 +446,25 @@ Class Pedido_Model extends MY_Model
                                       cotacao.produto_parceiro_id, 
                                       produto.slug,
                                       produto_parceiro.parceiro_id,
-                                      produto_parceiro_apolice.template as template_apolice
+                                      produto_parceiro_apolice.template as template_apolice,
+                                      CASE produto.slug 
+                                        WHEN 'equipamento' THEN
+                                          cotacao_equipamento.iof
+                                        WHEN 'generico' THEN
+                                          cotacao_generico.iof
+                                        ELSE
+                                          cotacao_seguro_viagem.iof
+                                        END 
+                                      AS iof,
+                                      CASE produto.slug 
+                                        WHEN 'equipamento' THEN
+                                          cotacao_equipamento.premio_liquido_total
+                                        WHEN 'generico' THEN
+                                          cotacao_generico.premio_liquido_total
+                                        ELSE
+                                          cotacao_seguro_viagem.premio_liquido_total
+                                        END 
+                                      AS premio_liquido_total
                                   FROM
                                       pedido
                                       INNER JOIN cotacao ON ( cotacao.cotacao_id = pedido.cotacao_id )
