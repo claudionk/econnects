@@ -1175,7 +1175,6 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
     {
         $d = $dados['registro'];
         $integracao_log_detalhe_id = $formato;
-        print_r($d);
 
         $CI =& get_instance();
         $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) VALUES ({$d['id_exp']}, NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$d['vlr_movimento']}) ");
