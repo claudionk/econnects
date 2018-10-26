@@ -81,9 +81,9 @@ class Emissao extends CI_Controller {
         if(!empty($POST))
         {
             // Validação dos dados
-            if(empty($POST['produto_slug'])){
-                die(json_encode(array("status"=>false,"message"=>"Atributo 'produto_slug' não informado"),JSON_UNESCAPED_UNICODE));
-            }
+            // if(empty($POST['produto_slug'])){
+            //     die(json_encode(array("status"=>false,"message"=>"Atributo 'produto_slug' não informado"),JSON_UNESCAPED_UNICODE));
+            // }
             if(empty($POST['plano_slug'])){
                 die(json_encode(array("status"=>false,"message"=>"Atributo 'plano_slug' não informado"),JSON_UNESCAPED_UNICODE));
             }
@@ -127,23 +127,26 @@ class Emissao extends CI_Controller {
                 $produtos = $this->produto_parceiro->get_produtos_venda_admin_parceiros( $parceiro_id, $parametros['produto_slug'] );
                 if(!empty($produtos))
                 {
-                    $this->produto_parceiro_id = $produtos[0]['produto_parceiro_id'];
-                    $this->parceiro_id_pai     = $produtos[0]['parceiro_id'];
+                    foreach ($produtos as $prod) {
+
+                        // Separando o produto do parceiro
+                        $r = $this->produto_parceiro_plano->coreSelectPlanosProdutoParceiro($prod['produto_parceiro_id'])->filter_by_slug($parametros["plano_slug"])->get_all();
+
+                        if(!empty($r)){
+                            $this->produto_parceiro_id = $prod['produto_parceiro_id'];
+                            $this->parceiro_id_pai     = $prod['parceiro_id'];
+                            $this->produto_parceiro_plano_id = $r[0]['produto_parceiro_plano_id'];
+                        }
+
+                    }
+
+                    if (empty($this->produto_parceiro_id)) {
+                        die(json_encode(array("status"=>false,"message"=>"Não foi possível identificar o Plano"),JSON_UNESCAPED_UNICODE));
+                    }
                 } 
                 else 
                 {
-                    die(json_encode(array("status"=>false,"message"=>"Não foi possível identificar o produto"),JSON_UNESCAPED_UNICODE));
-                }
-
-                // Separando o produto do parceiro
-                $r = $this->produto_parceiro_plano->coreSelectPlanosProdutoParceiro($this->produto_parceiro_id)->filter_by_slug($parametros["plano_slug"])->get_all();
-
-                if(!empty($r)){
-                    $this->produto_parceiro_plano_id = $r[0]['produto_parceiro_plano_id'];
-                }
-                else
-                {
-                    die(json_encode(array("status"=>false,"message"=>"Não foi possível identificar o produto_parceiro_plano_id"),JSON_UNESCAPED_UNICODE));
+                    die(json_encode(array("status"=>false,"message"=>"Não foi possível identificar o Produto"),JSON_UNESCAPED_UNICODE));
                 }
 
                 // Campos da cotação
