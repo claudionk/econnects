@@ -222,6 +222,9 @@ class Emissao extends CI_Controller {
                     $arrOptions["equipamento_marca_id"] = $retorno->{"equipamento_marca_id"};
                     $arrOptions["equipamento_categoria_id"] = $retorno->{"equipamento_categoria_id"};
                     $arrOptions["ean"] = $retorno->{"ean"};
+                    if (empty($arrOptions["equipamento_nome"])) 
+                        $arrOptions["equipamento_nome"] = $retorno->{"nome"};
+
                     $this->campos_estrutura = $arrOptions;
                     $this->equipamento_nome = $retorno->{"nome"};
                     $this->ean = $retorno->{"ean"};
@@ -233,7 +236,11 @@ class Emissao extends CI_Controller {
                 if(!empty($r))
                 {
                     // pegando o ID da cotação
-                    $retorno = json_decode($r);
+                    if (is_array($r))
+                        $retorno = $r;
+                    else
+                        $retorno = json_decode($r);
+
                     if(!empty($retorno->{"status"}))
                     {
                         $this->cotacao_id = $retorno->{"cotacao_id"};
@@ -244,7 +251,11 @@ class Emissao extends CI_Controller {
                     } 
                     else 
                     {
-                        die(json_encode(array("status"=>false,"message"=>$r),JSON_UNESCAPED_UNICODE));
+                        if (is_array($r))
+                            $retorno = array("status"=>false,"message"=>$r['mensagem'],"erros"=>$r['erros']);
+                        else
+                            $retorno = array("status"=>false,"message"=>$r);
+                        die(json_encode($retorno,JSON_UNESCAPED_UNICODE));
                     }
                 }
                 else

@@ -51,8 +51,12 @@ class Api extends Site_Controller
 
             header('X-Error-Message: '. $messagem, true, 500);
             $retorno["response"] = $messagem;
-            if (isset($retornoJson->erros))
-                $retorno["validations"] = $retornoJson->erros;
+            if (isset($retornoJson->erros)) {
+                $retorno["response"] = [
+                    'mensagem' => $messagem,
+                    'erros' => $retornoJson->erros
+                ];
+            }
         }
 
         return $retorno["response"];
