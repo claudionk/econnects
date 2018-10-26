@@ -252,7 +252,7 @@ class Emissao extends CI_Controller {
                     else 
                     {
                         if (is_array($r))
-                            $retorno = array("status"=>false,"message"=>$r['mensagem'],"erros"=>$r['erros']);
+                            $retorno = array("status"=>false,"message"=>$r['mensagem'],"error"=>$r['erros']);
                         else
                             $retorno = array("status"=>false,"message"=>$r);
                         die(json_encode($retorno,JSON_UNESCAPED_UNICODE));
