@@ -32,8 +32,6 @@ Class Integracao_Log_Model extends MY_Model
 
     public function insLog($integracao_id, $qnt_registros = 0, $file = ''){
 
-
-
         $dados_log = array();
 
         $dados_log['integracao_log_status_id'] = 1;
@@ -49,8 +47,6 @@ Class Integracao_Log_Model extends MY_Model
         $result = $this->get($integracao_log_id);
 
         return $result;
-
-
     }
 
     function get_next_sequencia($integracao_id)

@@ -30,10 +30,7 @@ Class Integracao_Log_Detalhe_Model extends MY_Model
     
     );
 
-
     public function insLogDetalhe($integracao_log_id, $num_linha = 0, $valor_chave = '', $retorno = ''){
-
-
 
         $dados_log = array();
 
@@ -50,8 +47,6 @@ Class Integracao_Log_Detalhe_Model extends MY_Model
         // $result = $this->get($integracao_log_detalhe_id);
 
         return $integracao_log_detalhe_id;
-
-
     }
 
     function filterByLogID($integracao_log_id){
@@ -63,4 +58,5 @@ Class Integracao_Log_Detalhe_Model extends MY_Model
     {
         return $this->get_by($this->primary_key, $id);
     }
+
 }

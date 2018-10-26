@@ -359,29 +359,36 @@ Class Integracao_Model extends MY_Model
             // echo " FIM - S";
             // exit();
 
-            // se gerou conteúdo no arquivo
             $filename = $result_file['file'];
-            $integracao_log_status_id = 5;
+            $integracao_log_status_id = 5; // Falha
 
+            // gerou arquivo ou não havia registros para enviar
+            if (!empty($filename) || $result_file['qtde_reg'] == 0){
+                $integracao_log_status_id = 3; // Sucesso
+            }
+
+            // se gerou conteúdo no arquivo
             if (!empty($filename)){
-                $integracao_log_status_id = 3;
                 $this->sendFile($result, $filename);
             }
 
             $dados_log = array();
             $dados_log['processamento_fim'] = date('Y-m-d H:i:s');
             $dados_log['nome_arquivo'] = basename($filename);
+            $dados_log['quantidade_registros'] = $result_file['qtde_reg'];
             $dados_log['integracao_log_status_id'] = $integracao_log_status_id;
 
             $this->integracao_log->update($result_file['integracao_log_id'], $dados_log, TRUE);
+            unset($dados_log['quantidade_registros']);
+
             $this->integracao_log_detalhe->update_by(
-                array('integracao_log_id' =>$result_file['integracao_log_id']),array(
+                array('integracao_log_id' => $result_file['integracao_log_id']), array(
                     'integracao_log_status_id' => $integracao_log_status_id
                 )
             );
 
             $dados_integracao = array();
-            $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
+            $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']); 
             $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');
             $dados_integracao['status'] = 'A';
             $this->update($result['integracao_id'], $dados_integracao, TRUE);
@@ -413,7 +420,6 @@ Class Integracao_Model extends MY_Model
 
     }
 
-
     private function getFile($integracao = array(), $file){
         try{
 
@@ -436,7 +442,6 @@ Class Integracao_Model extends MY_Model
         }
 
     }
-
 
     private function getFileFTP($integracao = array(), $file){
 
@@ -508,11 +513,11 @@ Class Integracao_Model extends MY_Model
         $this->ftp->close();
     }
 
-    private function processLine($multiplo, $layout, $registro, $integracao_log, $integracao_log_detalhe_id) {
+    private function processLine($multiplo, $layout, $registro, $integracao_log, $integracao_log_detalhe_id = null, $integracao = null) {
         $this->data_template_script['totalRegistros']++;
         if (!empty($multiplo)) $this->data_template_script['totalItens']++;
         
-        $line = $this->getLinha($layout, $registro, $integracao_log, $integracao_log_detalhe_id);
+        $line = $this->getLinha($layout, $registro, $integracao_log, $integracao_log_detalhe_id, $integracao);
         if (empty($line)){
             $this->data_template_script['totalRegistros']--;
             if (!empty($multiplo)) $this->data_template_script['totalItens']--;
@@ -540,7 +545,7 @@ Class Integracao_Model extends MY_Model
 
             foreach ($registros as $registro) {
 
-                $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $this->data_template_script['totalRegistros']+1, $this->geraCampoChave($integracao['campo_chave'], $registro));
+                $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $this->data_template_script['totalRegistros']+1, $this->geraCampoChave($integracao['campo_chave'], $registro), null, $this->geraCampoChave($integracao['parametros'], $registro));
 
                 foreach ($layout_m as $lm) {
 
@@ -556,14 +561,14 @@ Class Integracao_Model extends MY_Model
                         if (!empty($reg)) {
                             foreach ($reg as $r) {
                                 $registro = array_merge($registro, $r);
-                                $line = $this->processLine($lm['multiplo'], $lm['dados'], $registro, $integracao_log, $integracao_log_detalhe_id);
+                                $line = $this->processLine($lm['multiplo'], $lm['dados'], $registro, $integracao_log, $integracao_log_detalhe_id, $integracao);
                                 if (!empty($line)) $linhas[] = $line;
                             }
                         }
                     }
 
                     if ($inserir) {
-                        $line = $this->processLine($lm['multiplo'], $lm['dados'], $registro, $integracao_log, $integracao_log_detalhe_id);
+                        $line = $this->processLine($lm['multiplo'], $lm['dados'], $registro, $integracao_log, $integracao_log_detalhe_id, $integracao);
                         if (!empty($line)) $linhas[] = $line;
                     }
 
@@ -592,7 +597,7 @@ Class Integracao_Model extends MY_Model
         $registros = $this->_database->query($integracao['script_sql'])->result_array();
 
         $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], count($registros));
-        $arRet = ['file' => '', 'integracao_log_id' => $integracao_log['integracao_log_id']];
+        $arRet = ['file' => '', 'integracao_log_id' => $integracao_log['integracao_log_id'], 'qtde_reg' => count($registros)];
 
         if (empty($registros))
             return $arRet;
@@ -629,7 +634,7 @@ Class Integracao_Model extends MY_Model
         // Trata o nome do arquivo
         $idxF = app_search( $layout, 'F', 'tipo' );
         if ( $idxF >= 0 ) {
-            $filename = $this->getLinha($layout[$idxF]['dados'], $registros, $integracao_log, null);
+            $filename = $this->getLinha($layout[$idxF]['dados'], $registros, $integracao_log);
             $filename = $filename[0];
             unset($layout[$idxF]);
         }
@@ -649,7 +654,7 @@ Class Integracao_Model extends MY_Model
             if ($lay['multiplo'] == 0) {
                 $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
                 $layout_m = [];
-                $line = $this->processLine($lay['multiplo'], $lay['dados'], $registros, $integracao_log, null);
+                $line = $this->processLine($lay['multiplo'], $lay['dados'], $registros, $integracao_log);
                 if (!empty($line)) $linhas[] = $line;
             } else {
                 $layout_m[] = $lay;
@@ -662,7 +667,7 @@ Class Integracao_Model extends MY_Model
 
         // Trata o header
         if ( $idxH >= 0 ) {
-            $header = $this->getLinha($lH['dados'], $registros, $integracao_log, null);
+            $header = $this->getLinha($lH['dados'], $registros, $integracao_log);
             $linhas = array_merge([$header], $linhas);
         }
 
@@ -678,6 +683,7 @@ Class Integracao_Model extends MY_Model
             $concat = "\n";
         }
 
+        $arRet['qtde_reg'] = count($linhas);
         file_put_contents("{$diretorio}/{$filename}", $content);
 
         $arRet['file'] = "{$diretorio}/{$filename}";
@@ -863,7 +869,7 @@ Class Integracao_Model extends MY_Model
         return $txt;
     }
 
-    private function getLinha($layout, $registro = array(), $log = array(), $integracao_log_detalhe_id){
+    private function getLinha($layout, $registro = array(), $log = array(), $integracao_log_detalhe_id = null, $integracao = null){
 
         $result = "";
         $arResult = [];
@@ -938,6 +944,11 @@ Class Integracao_Model extends MY_Model
             );
         } else {
             $arResult[] = $this->trataRetorno($result);
+
+            //execute before detail
+            if((!empty($integracao['after_detail'])) && (function_exists($integracao['after_detail']))){
+                call_user_func($integracao['after_detail'], $integracao_log_detalhe_id, array('item' => $layout, 'registro' => $registro, 'log' => $log));
+            }
         }
 
         return $arResult;
