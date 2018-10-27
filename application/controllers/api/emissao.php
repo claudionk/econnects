@@ -401,7 +401,8 @@ class Emissao extends CI_Controller {
                         {
                             if (!empty($this->equipamento_nome)) $retorno->modelo = $this->equipamento_nome;
                             if (!empty($this->ean)) $retorno->ean = $this->ean;
-                            die(json_encode(array($retorno),JSON_PRETTY_PRINT));
+
+                            $this->etapas('exibeapolice', $retorno);
                         }
                         else
                         {
@@ -416,6 +417,38 @@ class Emissao extends CI_Controller {
                 else
                 {
                     die(json_encode(array("status"=>false,"message"=>"Não foi possível retornar os dados da contratação"),JSON_UNESCAPED_UNICODE));
+                }
+
+                break;  
+
+            case 'exibeapolice':
+
+                if($parametros->status)
+                {
+                    $url = $this->config->item("URL_sisconnects") ."api/apolice?pedido_id=". $parametros->dados->pedido_id;
+                    $obj = new Api();
+                    $r = $obj->execute($url, 'GET');
+
+                    if(!empty($r))
+                    {
+                        $retorno = json_decode($r);
+                        if($retorno->{"status"})
+                        {
+                            die(json_encode($retorno,JSON_PRETTY_PRINT));
+                        }
+                        else
+                        {
+                            die(json_encode(array("status"=>false,"message"=>"Não foi realizar o pagamento"),JSON_UNESCAPED_UNICODE));
+                        }           
+                    }
+                    else
+                    {
+                        die(json_encode(array("status"=>true,"message"=>"O pedido foi confirmado, mas não foi possível exibir os dados da apólice", 'dados' => $parametros->dados),JSON_UNESCAPED_UNICODE));
+                    }
+                }
+                else
+                {
+                    die(json_encode(array("status"=>false,"message"=>"Não foi possível retornar os dados da efetivação do pagamento"),JSON_UNESCAPED_UNICODE));
                 }
 
                 break;  
