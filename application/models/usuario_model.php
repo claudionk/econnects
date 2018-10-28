@@ -426,26 +426,6 @@ Class Usuario_Model extends MY_Model {
   function login($login, $password) {
     $this->load->model('usuario_acl_recurso_model', 'recursos');
 
-    $this->_database->select($this->_table. '.*');
-    $this->_database->select('colaborador.colaborador_cargo_id');
-    $this->_database->select('colaborador.banco_id');
-    $this->_database->select('colaborador.nome as nome_colaborador');
-    $this->_database->select('colaborador.telefone');
-    $this->_database->select('colaborador.celular');
-    $this->_database->select('colaborador.email as email_colaborador');
-    $this->_database->select('colaborador.data_nascimento');
-    $this->_database->select('colaborador.cpf');
-    $this->_database->select('colaborador.agencia');
-    $this->_database->select('colaborador.conta');
-    $this->_database->select('colaborador.foto');
-    $this->_database->from($this->_table);
-    $this->_database->where($this->_table. '.email', $login);
-    $this->_database->where($this->_table. '.senha', MD5($this->salt.$password));
-    $this->_database->where($this->_table. '.ativo', 1);
-    $this->_database->where($this->_table. '.deletado', 0);
-    $this->_database->join('colaborador', 'colaborador.colaborador_id = '.$this->_table.'.colaborador_id', 'left');
-    $this->_database->limit(1);
-
     $usuario = $this->find_login($login, $password);
     if (!empty($usuario)) {
       $usuario['nome'] = empty($usuario['nome_colaborador']) ? $usuario['nome'] : $usuario['nome_colaborador'];
