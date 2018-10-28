@@ -614,6 +614,7 @@ Class Integracao_Model extends MY_Model
         $tipoReg="";
         $layout = $layout_m = $linhas = $lH = [];
         $qtdeAux=-1;
+        $rmQtdeLine=0;
         foreach ($layout_all as $key => $item) {
             if($tipoReg != $item['tipo']) {
                 $qtdeAux++;
@@ -643,6 +644,8 @@ Class Integracao_Model extends MY_Model
             $this->data_template_script['totalRegistros']++;
             if (!empty($multiplo)) $this->data_template_script['totalItens']++;
 
+            $rmQtdeLine++;
+
             $lH = $layout[$idxH];
             unset($layout[$idxH]);
         }
@@ -660,14 +663,15 @@ Class Integracao_Model extends MY_Model
         }
 
         // echo "<pre>";print_r($linhas);echo "</pre>";
-        if (empty($linhas) || count($linhas) < 2)
-            return $arRet;
-
         // Trata o header
         if ( $idxH >= 0 ) {
+            $rmQtdeLine++;
             $header = $this->getLinha($lH['dados'], $registros, $integracao_log);
             $linhas = array_merge([$header], $linhas);
         }
+
+        if (empty($linhas) || count($linhas) <= $rmQtdeLine)
+            return $arRet;
 
         $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
 
@@ -681,7 +685,7 @@ Class Integracao_Model extends MY_Model
             $concat = "\n";
         }
 
-        $arRet['qtde_reg'] = count($linhas);
+        $arRet['qtde_reg'] = count($linhas)-$rmQtdeLine;
         file_put_contents("{$diretorio}/{$filename}", $content);
 
         $arRet['file'] = "{$diretorio}/{$filename}";
