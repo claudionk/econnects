@@ -1065,6 +1065,13 @@ if ( ! function_exists('app_integracao_apolice')) {
         return $num_apolice_aux;
     }
 }
+if ( ! function_exists('app_integracao_apolice_revert')) {
+    function app_integracao_apolice_revert($formato, $dados = array())
+    {
+        $num_apolice = $dados['valor'];
+        return "7840001".right($num_apolice, 8);
+    }
+}
 if ( ! function_exists('app_integracao_id_transacao')) {
     function app_integracao_id_transacao($formato, $dados = array())
     {
@@ -1088,12 +1095,10 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
     function app_integracao_retorno_generali_fail($formato, $dados = array())
     {
         $response = (object) ['status' => false, 'msg' => []];
-
-        echo "<pre>";
-        print_r($dados['registro']);
+        // echo "<pre>";print_r($dados['registro']);
 
         if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
-            $response->msg[] = 'Nome do Arquivo inválido';
+            $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
             return $response;
         }
 
@@ -1101,51 +1106,37 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
         $result_file = explode("-", $file);
         $file = $result_file[0]."-".$result_file[1]."-".$result_file[2]."-";
 
+        $tipo_file = explode(".", $result_file[0]);
+        $tipo_file = $tipo_file[2];
+
         $chave = '';
-        if (!empty($dados['registro']['num_apolice'])) {
-            $chave = $dados['registro']['num_apolice'];
-        }elseif (!empty($dados['registro']['cod_cliente'])) {
-            $chave = $dados['registro']['cod_cliente'];
-        }elseif (!empty($dados['registro']['cod_sinistro'])) {
-            $chave = $dados['registro']['cod_sinistro'];
+        switch ($tipo_file) {
+            case 'CLIENTE':
+                $chave = !empty($dados['registro']['cod_cliente']) ? (int)$dados['registro']['cod_cliente'] : '';
+                break;
+            case 'PARCEMS':
+            case 'EMSCMS':
+            case 'LCTCMS':
+            case 'COBRANCA':
+                $chave = !empty($dados['registro']['num_apolice']) ? trim($dados['registro']['num_apolice']) ."|" : '';
+                break;
+            case 'SINISTRO':
+                $chave = !empty($dados['registro']['cod_sinistro']) ? (int)$dados['registro']['cod_sinistro'] ."|". (int)$dados['registro']['cod_movimento'] : '';
+                break;
         }
 
+        // echo "chave = $chave<br>";
         if (empty($chave)) {
-            $response->msg[] = 'Chave não identificada';
+            $response->msg[] = ['id' => 12, 'msg' => 'Chave não identificada', 'slug' => "erro_interno"];
             return $response;
         }
-
 
         // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
         $CI =& get_instance();
         $CI->load->model('integracao_model');
         $CI->integracao_model->update_log_fail($file, $chave);
 
-        die($file);
-        return true;
-
-        // Validar Regras
-        // $validaRegra = app_integracao_valida_regras($dados, $camposCotacao);
-        // // echo "<pre>";print_r($validaRegra);echo "</pre>";
-
-        // if (!empty($validaRegra->status)) {
-        //     $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
-        //     $dados['registro']['fields'] = $validaRegra->fields;
-        //     $emissao = app_integracao_emissao($formato, $dados);
-
-        //     if (empty($emissao->status)) {
-        //         $response->msg = $emissao->msg;
-        //     } else {
-        //         $response->status = true;
-        //     }
-
-        // } else {
-        //     if (!empty($response->msg)) {
-        //         $response->msg = array_merge($validaRegra->errors, $response->msg);
-        //     } else {
-        //         $response->msg = $validaRegra->errors;
-        //     }
-        // }
+        $response->msg[] = ['id' => 12, 'msg' => $dados['registro']['cod_erro'] ." - ". $dados['registro']['descricao_erro'], 'slug' => "erro_retorno"];
 
         return $response;
     }
@@ -1153,19 +1144,21 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
 if ( ! function_exists('app_integracao_retorno_generali_success')) {
     function app_integracao_retorno_generali_success($formato, $dados = array())
     {
+
         if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
             return false;
         }
 
         $file = str_replace("-RT-", "-EV-", $dados['log']['nome_arquivo']);
         $result_file = explode("-", $file);
-
+        $tipo_file = explode(".", $result_file[0]);
         $file = $result_file[0]."-".$result_file[1]."-".$result_file[2]."-";
+        $sinistro = ($tipo_file[2] == 'SINISTRO');
 
         // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
         $CI =& get_instance();
         $CI->load->model('integracao_model');
-        $CI->integracao_model->update_log_sucess($file);
+        $CI->integracao_model->update_log_sucess($file, $sinistro);
 
         return true;
     }
@@ -1175,10 +1168,24 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
     {
         $d = $dados['registro'];
         $integracao_log_detalhe_id = $formato;
+        $valor = $d['vlr_movimento'];
+        // Ajuste a menor
+        if ($d['cod_tipo_mov'] == '2') {
+            $valor *= -1;
+        }
 
         $CI =& get_instance();
-        $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) VALUES ({$d['id_exp']}, NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$d['vlr_movimento']}) ");
+        $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) VALUES ({$d['id_exp']}, NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$valor}) ");
         $id_exp_hist_carga = $CI->db->insert_id();
+
+        if ($d['tipo_expediente'] == 'ABE') {
+            $q = $CI->db->query("SELECT id_exp FROM sissolucoes1.sis_exp_complemento WHERE id_exp = {$d['id_exp']}");
+            if (empty($q->num_rows())) {
+                $CI->db->query("INSERT INTO sissolucoes1.sis_exp_complemento (id_exp, id_sinistro_generali, id_usuario, dt_log, vcmotivolog) VALUES ({$d['id_exp']}, '{$d['cod_sinistro']}', 10058, NOW(), '{$d['desc_expediente']}') ");
+            } else {
+                $CI->db->query("UPDATE sissolucoes1.sis_exp_complemento SET id_sinistro_generali = '{$d['cod_sinistro']}', id_usuario = 10058, dt_log = NOW(), vcmotivolog = '{$d['desc_expediente']}' WHERE id_exp = {$d['id_exp']}");
+            }
+        }
 
         return $id_exp_hist_carga;
     }

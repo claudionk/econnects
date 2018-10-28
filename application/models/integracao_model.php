@@ -271,10 +271,7 @@ Class Integracao_Model extends MY_Model
             }
 
         }
-
-
     }
-
 
     public function run_r($integracao_id){
         $this->load->model('integracao_log_model', 'integracao_log');
@@ -296,7 +293,7 @@ Class Integracao_Model extends MY_Model
             $result = $result[0];
             $dados_integracao = array();
             $dados_integracao['status'] = 'L';
-            $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
@@ -309,8 +306,9 @@ Class Integracao_Model extends MY_Model
                 ->get_all();
 
             $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
-            $result_file = $this->getFile($result, $file);
+            // $result_file = $this->getFile($result, $file);
             // $result_file["file"] = "/var/www/webroot/ROOT/econnects/application/helpers/../../assets/uploads/integracao/15/R/RF2119597741TR20181011.TXT";
+            $result_file["file"] = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/14/R/C01.LASA.SINISTRO-RT-0176-20181026.TXT";
 
             $result_process = [];
             if(!empty($result_file['file'])){
@@ -324,7 +322,7 @@ Class Integracao_Model extends MY_Model
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
             $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');
             $dados_integracao['status'] = 'A';
-            $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             //execute before execute
             if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
@@ -784,7 +782,8 @@ Class Integracao_Model extends MY_Model
                         $id_log = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor']));
                     }
 
-                    $data_row['id_log'] = $id_log;
+                    if (!empty($id_log))
+                        $data_row['id_log'] = $id_log;
                 }
             }
             $data[] = $data_row;
@@ -807,6 +806,8 @@ Class Integracao_Model extends MY_Model
             if (!empty($integracao['before_detail']) ) {
                 if ( function_exists($integracao['before_detail']) ) {
                     $callFuncReturn = call_user_func($integracao['before_detail'], null, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
+                    // echo "<pre>";print_r($callFuncReturn);echo "</pre>";
+                    // die();
                     if ( !empty($callFuncReturn) && !empty($integracao_log_detalhe_id) ){
 
                         if ( empty($callFuncReturn->status) ){
@@ -979,7 +980,8 @@ Class Integracao_Model extends MY_Model
         return $sequencia;
     }
 
-    function update_log_sucess($file){
+    function update_log_sucess($file, $sinistro = false){
+
         // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
         $sql = "
             UPDATE integracao_log a
@@ -987,45 +989,55 @@ Class Integracao_Model extends MY_Model
             INNER JOIN integracao_log il ON a.integracao_id = il.integracao_id 
             INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id AND b.chave = ild.chave
             SET ild.integracao_log_status_id = 4 
-            WHERE a.nome_arquivo like '{$file}%'
+            WHERE a.nome_arquivo LIKE '{$file}%'
             AND a.integracao_log_status_id = 3 
             AND ild.integracao_log_status_id NOT IN(4,5)
         ";
-        $sqlX = "
-            SELECT * 
-            FROM integracao_log a 
-            INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
-            INNER JOIN integracao_log il ON a.integracao_id = il.integracao_id 
-            INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id AND b.chave = ild.chave
-            WHERE a.nome_arquivo like '{$file}%'
-            AND a.integracao_log_status_id = 3 
-            AND ild.integracao_log_status_id NOT IN(4,5)
-        ";
-        die($sqlX);
         $query = $this->_database->query($sql);
+
+        $sql = "
+            UPDATE integracao_log il
+            SET il.integracao_log_status_id = IF((SELECT 1 FROM integracao_log_detalhe ild WHERE ild.integracao_log_id = il.integracao_log_id AND ild.integracao_log_status_id = 5 LIMIT 1) = 1, 5, 4)
+            WHERE il.nome_arquivo LIKE '{$file}%'
+                AND il.integracao_log_status_id = 3 
+        ";
+        $query = $this->_database->query($sql);
+
+        if ($sinistro) {
+            $sql = "
+                INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, data_retorno, tipo_expediente, id_controle_arquivo_registros, valor, status) 
+                SELECT ec.id_exp, NOW(), NOW(), ehc.tipo_expediente, 0, ehc.valor, 'C'
+                FROM integracao_log a
+                INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
+                INNER JOIN integracao_log il ON a.integracao_id = il.integracao_id 
+                INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id AND b.chave = ild.chave
+                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(ild.chave, LOCATE('|', ild.chave)-1)
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
+                WHERE a.nome_arquivo LIKE '{$file}%'
+                AND ild.integracao_log_status_id = 4
+            ";
+            $query = $this->_database->query($sql);
+        }
+
+        return true;
+
     }
 
     function update_log_fail($file, $chave){
+
         // marca o registro como erro (5) para que possa ser corrigido manualmente (6) e depois feito um novo envio (3)
         $sql = "
             UPDATE integracao_log il
             INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id 
             SET ild.integracao_log_status_id = 5
-            WHERE il.nome_arquivo like '{$file}%'
+            WHERE il.nome_arquivo LIKE '{$file}%'
             AND il.integracao_log_status_id = 3
             AND ild.integracao_log_status_id NOT IN(4,5)
+            AND ild.chave LIKE '{$chave}%'
         ";
-
-        $sqlX = "
-            SELECT * 
-            FROM integracao_log il
-            INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id 
-            WHERE il.nome_arquivo like '{$file}%'
-            AND il.integracao_log_status_id = 3
-            AND ild.integracao_log_status_id NOT IN(4,5)
-        ";
-        die($sqlX);
         $query = $this->_database->query($sql);
+
+        return true;
     }
 
 }
