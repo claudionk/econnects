@@ -249,7 +249,7 @@ class Venda_Equipamento extends Admin_Controller {
 
     $api_key = app_get_token();
 
-    $Url = $this->config->item('base_url') ."/api/campos?produto_parceiro_id={$data['produto_parceiro_id']}&slug={$data['slug']}";
+    $Url = $this->config->item('base_url') ."api/campos?produto_parceiro_id={$data['produto_parceiro_id']}&slug={$data['slug']}";
     $myCurl = curl_init();
     curl_setopt( $myCurl, CURLOPT_URL, $Url );
     curl_setopt( $myCurl, CURLOPT_FRESH_CONNECT, 1 );
