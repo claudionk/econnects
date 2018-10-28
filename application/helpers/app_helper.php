@@ -1525,13 +1525,18 @@ if ( ! function_exists('app_get_token'))
         if ( !empty(app_get_userdata("tokenAPIvalid")) && app_get_userdata("tokenAPIvalid") > date("Y-m-d H:i:s"))
             return app_get_userdata("tokenAPI");
 
+        $url = '';
+
         if (empty($email))
             $email = app_get_userdata("email");
+
+        if (empty($senha))
+            $url = '&forceEmail=1';
 
         $CI =& get_instance();
 
         $retorno = soap_curl([
-            'url' => $CI->config->item("URL_sisconnects") ."api/acesso?email={$email}",
+            'url' => $CI->config->item("URL_sisconnects") ."api/acesso?email={$email}&senha={$senha}&url={$url}",
             'method' => 'GET',
             'fields' => '',
             'header' => array(

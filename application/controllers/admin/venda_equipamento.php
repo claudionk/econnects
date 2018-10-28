@@ -247,22 +247,7 @@ class Venda_Equipamento extends Admin_Controller {
       $data["row"] = array();
     }
 
-    $Url = $this->config->item('base_url') ."/api/acesso?email=teste@econnects.com.br";
-    $myCurl = curl_init();
-    curl_setopt( $myCurl, CURLOPT_URL, $Url );
-    curl_setopt( $myCurl, CURLOPT_FRESH_CONNECT, 1 );
-    curl_setopt( $myCurl, CURLOPT_POST, 0 );
-    curl_setopt( $myCurl, CURLOPT_VERBOSE, 0);
-    curl_setopt( $myCurl, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt( $myCurl, CURLOPT_HTTPHEADER, array( "Content-Type: application/json" ) );
-    //curl_setopt( $myCurl, CURLOPT_POSTFIELDS, $Json );
-    curl_setopt( $myCurl, CURLOPT_TIMEOUT, 15 );
-    curl_setopt( $myCurl, CURLOPT_CONNECTTIMEOUT, 15 );
-    $Response = curl_exec( $myCurl );
-    curl_close( $myCurl );
-
-    $Response = json_decode( $Response, true );
-    $api_key = ( isset( $Response["api_key"] ) ? $Response["api_key"] : "" );
+    $api_key = app_get_token();
 
     $Url = $this->config->item('base_url') ."/api/campos?produto_parceiro_id={$data['produto_parceiro_id']}&slug={$data['slug']}";
     $myCurl = curl_init();

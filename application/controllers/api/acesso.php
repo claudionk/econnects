@@ -36,13 +36,19 @@ class Acesso extends CI_Controller {
             $email = $GET["email"];
         }
 
-        if( !isset( $GET["senha"] ) ) {
-            die( json_encode( array( "status" => false, "message" => "Campo senha é obrigatório" ) ) );
+        $senha = null;
+        if( !isset( $GET["forceEmail"] ) ) {
+            if ( !isset( $GET["senha"] ) ) {
+                die( json_encode( array( "status" => false, "message" => "Campo senha é obrigatório" ) ) );
+            } else {
+                $senha = $GET["senha"];
+            }
+
+            $usuario = $this->usuario->find_login($email, $senha);
         } else {
-            $senha = $GET["senha"];
+            $usuario = $this->usuario->get_by( array( "email" => $email ) ); 
         }
 
-        $usuario = $this->usuario->find_login($email, $senha);
         if( empty($usuario) ) {
             die( json_encode( array( "status" => false, "message" => "Usuário não cadastrado" ) ) );
         }
