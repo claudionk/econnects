@@ -39,9 +39,9 @@ Class Cotacao_Cobertura_Model extends MY_Model
         $this->db->delete($this->_table);
     }
 
-    public function geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $importancia_segurada) {
+    public function geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $produto_parceiro_plano_id = null, $importancia_segurada) {
 
-        $coberturas = $this->plano_cobertura->with_prod_parc($produto_parceiro_id)->get_all();
+        $coberturas = $this->plano_cobertura->with_prod_parc($produto_parceiro_id, $produto_parceiro_plano_id)->get_all();
         $importancia_segurada = floatval( $importancia_segurada );
 
         // limpa os dados

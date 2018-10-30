@@ -117,8 +117,6 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
         $cotacao = $this->cotacao->with_cotacao_equipamento()->filterByID($cotacao_id)->get_all();
         $cotacao = $cotacao[0];
-
-        // print_r($cotacao);
         $produto_parceiro_plano_id = $cotacao["produto_parceiro_plano_id"];
 
         $row =  $this->produto_parceiro->get_by_id($produto_parceiro_id);
@@ -201,43 +199,38 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             return $result;
         }
 
+        $valores_liquido = $planoActual = $aFilter = array();
+
+        $arrPlanos = $this->plano
+            ->distinct()
+            ->wtih_plano_habilitado($parceiro_id);
+
         if($row['venda_agrupada']){
-            $arrPlanos = $this->plano->distinct()
+            $arrPlanos = $arrPlanos
                 ->with_produto_parceiro()
                 ->with_produto();
 
-            if((isset($cotacao['origem_id'])) && ($cotacao['origem_id'])){
-                $arrPlanos->with_origem($cotacao['origem_id']);
-            }
-            if((isset($cotacao['destino_id'])) && ($cotacao['destino_id'])){
-                $arrPlanos->with_destino($cotacao['destino_id']);
-            }
-            if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
-                $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
-            }
-
-            $arrPlanos = $arrPlanos
-                ->get_many_by(array(
-                    'produto_parceiro.venda_agrupada' => 1,
-                    //'produto_parceiro_plano.produto_parceiro_id' => $produto_parceiro_id,
-            ));
+            $aFilter = array(
+                'produto_parceiro.venda_agrupada' => 1,
+                //'produto_parceiro_plano.produto_parceiro_id' => $produto_parceiro_id,
+            );
 
         }else {
-            $arrPlanos = $this->plano->filter_by_produto_parceiro($produto_parceiro_id);
-
-            if((isset($cotacao['origem_id'])) && ($cotacao['origem_id'])){
-                $arrPlanos->with_origem($cotacao['origem_id']);
-            }
-            if((isset($cotacao['destino_id'])) && ($cotacao['destino_id'])){
-                $arrPlanos->with_destino($cotacao['destino_id']);
-            }
-            if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
-                $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
-            }
-
-            $arrPlanos = $arrPlanos->get_all();
+            $arrPlanos = $arrPlanos
+                ->filter_by_produto_parceiro($produto_parceiro_id);
         }
-        $valores_liquido = $planoActual = array();
+
+        if((isset($cotacao['origem_id'])) && ($cotacao['origem_id'])){
+            $arrPlanos->with_origem($cotacao['origem_id']);
+        }
+        if((isset($cotacao['destino_id'])) && ($cotacao['destino_id'])){
+            $arrPlanos->with_destino($cotacao['destino_id']);
+        }
+        if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
+            $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
+        }
+
+        $arrPlanos = $arrPlanos->get_many_by($aFilter);
 
         //verifica o limite da vigencia dos planos
         $fail_msg = '';
@@ -342,7 +335,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                 if (!empty($produto_parceiro_plano_id)){
                     $this->cotacao_equipamento->update($cotacao_salva['cotacao_equipamento_id'], $cotacao_eqp, TRUE);
                 }
-                $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $cotacao["nota_fiscal_valor"]);
+                $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $produto_parceiro_plano_id, $cotacao["nota_fiscal_valor"]);
             }
 
             $result["importancia_segurada"] = $cotacao["nota_fiscal_valor"];

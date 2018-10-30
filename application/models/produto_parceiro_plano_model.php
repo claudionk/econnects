@@ -157,8 +157,7 @@ Class Produto_Parceiro_Plano_Model extends MY_Model
     // $this->load->model('produto_parceiro_model', 'produto_parceiro');
     // $result = $this->produto_parceiro->getPlanosHabilitados($parceiro_id);
     
-    $subQuery =  $this->_database->get_compiled_select(
-      "
+    $subQuery =  "
             SELECT h.produto_parceiro_plano_id FROM (
                 SELECT parceiro_id, produto_parceiro_plano_id FROM parceiro_plano where deletado = 0
                 UNION
@@ -169,10 +168,9 @@ Class Produto_Parceiro_Plano_Model extends MY_Model
             ) AS h
             INNER JOIN produto_parceiro_plano ON h.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id
             WHERE h.parceiro_id = $parceiro_id
-            AND produto_parceiro_plano.deletado = 0"
-    );
+            AND produto_parceiro_plano.deletado = 0";
 
-    $this->_database->join("($subQuery) t", "{$this->_table}.produto_parceiro_plano_id = t.produto_parceiro_plano_id", 'inner');
+    $this->_database->join("($subQuery) t", "{$this->_table}.produto_parceiro_plano_id = t.produto_parceiro_plano_id");
     return $this;
   }
 

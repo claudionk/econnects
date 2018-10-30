@@ -127,7 +127,7 @@ Class Cobertura_Plano_Model extends MY_Model {
         return $this;
     }
 
-    function with_prod_parc($produto_parceiro_id){
+    function with_prod_parc($produto_parceiro_id, $produto_parceiro_plano_id = null){
 
         $this->_database->select("{$this->_table}.*, cobertura.*, produto_parceiro_plano.*");
         $this->_database->join("cobertura", "cobertura.cobertura_id = {$this->_table}.cobertura_id");
@@ -136,7 +136,9 @@ Class Cobertura_Plano_Model extends MY_Model {
         $this->_database->where("produto_parceiro_plano.produto_parceiro_id", $produto_parceiro_id);
         $this->_database->where("produto_parceiro_plano.deletado", 0);
         $this->_database->where("cobertura.cobertura_tipo_id", 1);
-        
+        if (!empty($produto_parceiro_plano_id)) {
+            $this->_database->where("produto_parceiro_plano.produto_parceiro_plano_id", $produto_parceiro_plano_id);
+        }
 
         return $this;
     }

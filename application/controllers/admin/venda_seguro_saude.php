@@ -1318,7 +1318,7 @@ class Venda_Seguro_Saude extends Admin_Controller {
       $this->cotacao_generico->update($cotacao_salva['cotacao_generico_id'], $data_cotacao, TRUE);
       $this->cotacao_equipamento->update($cotacao_salva['cotacao_equipamento_id'], $cotacao_eqp, TRUE);
 
-      $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $cotacao["nota_fiscal_valor"]);
+      $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, null, $cotacao["nota_fiscal_valor"]);
 
     }
 
