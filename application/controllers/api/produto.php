@@ -46,24 +46,12 @@ class Produto extends CI_Controller {
     } else {
       die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
     }
-    
+
     $parceiro_id = $this->parceiro_id;
-    //if( !isset( $GET["parceiro_id"] ) ) {
-    //  die( json_encode( array( "status" => false, "message" => "Campo parceiro_id é obrigatório" ) ) );
-    //}
-    //$parceiro_id = $GET["parceiro_id"];
-    
-    if( isset( $GET["produto_id"] ) ) {
-      $produto_id = $GET["produto_id"];
-      $produtos = $this->produto_parceiro->get_produtos_venda_admin( $parceiro_id, $produto_id );
-    } else {
-      $produtos = $this->produto_parceiro->get_produtos_venda_admin( $parceiro_id );
-    }
+    $produto_id = ( isset( $GET["produto_id"] ) ) ? $GET["produto_id"] : null;
+    $result = $this->produto_parceiro->getProdutosByParceiro($parceiro_id, $produto_id);
 
-    $relacionamento = $this->produto_parceiro->get_produtos_venda_admin_parceiros( $parceiro_id );
-
-    if( $produtos || $relacionamento ) {
-      $result = array_merge($produtos, $relacionamento);
+    if( !empty($result) ) {
       die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     } else {
       die( json_encode( array( "status" => false, "message" => "Não foram localizados produtos do parceiro $parceiro_id" ) ) );

@@ -69,6 +69,8 @@
                                         <a href="<?php echo base_url("admin/parceiros_cobranca/view/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Cobrança </a>
                                     <?php } ?>
 
+                                    <a href="<?php echo base_url("admin/parceiros_planos/edit/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Planos Habilitados </a>
+
                                     <a href="<?php echo base_url("$current_controller_uri/delete/{$row[$primary_key]}")?>" class="btn btn-sm btn-danger deleteRowButton"> <i class="fa fa-eraser"></i> Excluir </a>
                                 </td>
                             </tr>

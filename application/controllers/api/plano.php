@@ -7,6 +7,7 @@ if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 class Plano extends CI_Controller {
   public $api_key;
   public $usuario_id;
+  public $parceiro_id;
 
   public function __construct() {
     parent::__construct();
@@ -33,6 +34,7 @@ class Plano extends CI_Controller {
       die( json_encode( array( "status" => false, "message" => "APIKEY is missing" ) ) );
     }
     $this->usuario_id = $webservice["usuario_id"];
+    $this->parceiro_id = $webservice["parceiro_id"];
     $this->load->database('default');
     
     
@@ -55,7 +57,10 @@ class Plano extends CI_Controller {
     } else {
       $produto_parceiro_id = $GET["produto_parceiro_id"];
       
-      $planos = $this->produto_parceiro_plano->coreSelectPlanosProdutoParceiro($produto_parceiro_id)->get_all_select();
+      $planos = $this->produto_parceiro_plano
+        ->wtih_plano_habilitado($this->parceiro_id)
+        ->coreSelectPlanosProdutoParceiro($produto_parceiro_id)
+        ->get_all_select();
 
       $i = 0; 
       foreach ($planos as $plano) {

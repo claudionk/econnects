@@ -82,12 +82,11 @@ class Venda_Equipamento extends Admin_Controller {
         //Carrega models
         $this->load->model("cotacao_equipamento_model", "cotacao_equipamento");
         $this->load->model("pedido_model", "pedido_model");
+        $this->load->library('form_validation');
 
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', 'Venda');
         $this->template->set_breadcrumb('Venda', base_url("$this->controller_uri/index"));
-
-        $this->load->library('form_validation');
 
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
 
@@ -785,108 +784,54 @@ class Venda_Equipamento extends Admin_Controller {
             ->filter_by_produto_parceiro($produto_parceiro_id)
             ->get_all();
 
-
         /**
         * Busca Planos e coberturas
         */
         $data['coberturas'] = $this->cobertura->getCoberturasProdutoParceiroPlano($produto_parceiro_id);
+        $arrPlanos = $this->plano->distinct();
+
+        if($data['row']['venda_agrupada']) {
+            $arrPlanos = $arrPlanos
+                ->with_produto_parceiro()
+                ->with_produto();
+
+            $aFilter = array(
+                'produto_parceiro.venda_agrupada' => 1,
+                'produto_parceiro.deletado' => 0
+            );
+        }else{
+            $aFilter = array('produto_parceiro_id' => $produto_parceiro_id);
+        }
 
         if(isset($cotacao_antiga) && $cotacao_antiga)
         {
             $cotacao_antiga = $this->cotacao->with_cotacao_equipamento()->get($cotacao_antiga['cotacao_id']);
-
-            if($data['row']['venda_agrupada']) {
-                $arrPlanos = $this->plano
-                    ->distinct()
-                    ->with_produto_parceiro()
-                    ->with_produto()
+            $arrPlanos = $arrPlanos
                     ->where("produto_parceiro_plano.produto_parceiro_plano_id", "!=", $cotacao_antiga['produto_parceiro_plano_id']);
-
-                if((isset($cotacao['origem_id'])) && ($cotacao['origem_id'])){
-                    $arrPlanos->with_origem($cotacao['origem_id']);
-                }
-                if((isset($cotacao['destino_id'])) && ($cotacao['destino_id'])){
-                    $arrPlanos->with_destino($cotacao['destino_id']);
-                }
-                if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
-                    $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
-                }
-
-                $arrPlanos = $arrPlanos
-                    ->get_many_by(array('produto_parceiro.venda_agrupada' => 1));
-            }else{
-                $arrPlanos = $this->plano
-                    ->distinct()
-                    ->where("produto_parceiro_plano.produto_parceiro_plano_id", "!=", $cotacao_antiga['produto_parceiro_plano_id']);
-
-                if((isset($cotacao['origem_id'])) && ($cotacao['origem_id'])){
-                    $arrPlanos->with_origem($cotacao['origem_id']);
-                }
-                if((isset($cotacao['destino_id'])) && ($cotacao['destino_id'])){
-                    $arrPlanos->with_destino($cotacao['destino_id']);
-                }
-                if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
-                    $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
-                }
-
-                $arrPlanos = $arrPlanos
-                    ->get_many_by(array('produto_parceiro_id' => $produto_parceiro_id));
-            }
         }
-        else
-        {
-            if($data['row']['venda_agrupada']) {
-                $arrPlanos = $this->plano
-                    ->distinct()
-                    ->with_produto_parceiro()
-                    ->with_produto();
 
-                if((isset($cotacao['origem_id'])) && ($cotacao['origem_id'])){
-                    $arrPlanos->with_origem($cotacao['origem_id']);
-                }
-                if((isset($cotacao['destino_id'])) && ($cotacao['destino_id'])){
-                    $arrPlanos->with_destino($cotacao['destino_id']);
-                }
-                if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
-                    $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
-                }
-
-                $arrPlanos = $arrPlanos
-                    ->get_many_by(array(
-                        'produto_parceiro.venda_agrupada' => 1,
-                        'produto_parceiro.deletado' => 0
-                    ));
-
-            }else{
-                $arrPlanos = $this->plano
-                ->distinct();
-
-                if((isset($cotacao['origem_id'])) && ($cotacao['origem_id'])){
-                    $arrPlanos->with_origem($cotacao['origem_id']);
-                }
-                if((isset($cotacao['destino_id'])) && ($cotacao['destino_id'])){
-                    $arrPlanos->with_destino($cotacao['destino_id']);
-                }
-                if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
-                    $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
-                }
-
-                $arrPlanos = $arrPlanos
-                    ->get_many_by(array('produto_parceiro_id' => $produto_parceiro_id));
-
-            }
+        if((isset($cotacao['origem_id'])) && ($cotacao['origem_id'])){
+            $arrPlanos->with_origem($cotacao['origem_id']);
         }
+        if((isset($cotacao['destino_id'])) && ($cotacao['destino_id'])){
+            $arrPlanos->with_destino($cotacao['destino_id']);
+        }
+        if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
+            $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
+        }
+
+        $arrPlanos = $arrPlanos
+            ->wtih_plano_habilitado($data['parceiro_id'])
+            ->get_many_by($aFilter);
 
         $fail_msg = '';
         if(!$arrPlanos)
         {
             $this->session->set_flashdata('fail_msg', 'Não existem planos para este Equipamento.');
-
             redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/1");
         }
 
         $data['planos'] = array();
-
         foreach ($arrPlanos as $plano)
         {
             $arrCoberturas = $this->plano_cobertura->filter_by_produto_parceiro_plano($plano['produto_parceiro_plano_id'])->get_all();

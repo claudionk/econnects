@@ -150,13 +150,8 @@ class Venda extends Admin_Controller {
     $data = array();
     $data['primary_key'] = $this->current_model->primary_key();
 
-
-    $produtos = $this->current_model->get_produtos_venda_admin($parceiro_id);
+    $produtos = $this->current_model->getProdutosByParceiro($parceiro_id);
     $data["rows"] = $produtos;
-    if( $this->session->userdata("parceiro_id") != $this->session->userdata("parceiro_pai_id") ) {
-      $relacionamento = $this->current_model->get_produtos_venda_admin_parceiros($parceiro_id);
-      $data["rows"] = array_merge( $produtos, $relacionamento );
-    }
 
     //busca pedidos para o carrinho
     $data["carrinho"] = $this->pedido->getPedidoCarrinho($this->session->userdata('usuario_id'));
@@ -165,7 +160,6 @@ class Venda extends Admin_Controller {
     $this->template->load("admin/layouts/{$this->layout}", "$this->controller_uri/list", $data );
   }
 
-
   public function continuar($cotacao_id){
 
     $this->load->model('cotacao_model', 'cotacao');
@@ -173,8 +167,6 @@ class Venda extends Admin_Controller {
     //Carrega dados para a página
     $row = $this->cotacao->get_cotacao_produto($cotacao_id);
     //$seguro_viagem = $this->seguro_viagem->getCotacaoLead($cotacao_id);
-
-
 
     //Verifica se registro existe
     if(!$row) {

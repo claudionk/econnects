@@ -153,6 +153,29 @@ Class Produto_Parceiro_Plano_Model extends MY_Model
     return $this;
   }
 
+  function wtih_plano_habilitado($parceiro_id){
+    // $this->load->model('produto_parceiro_model', 'produto_parceiro');
+    // $result = $this->produto_parceiro->getPlanosHabilitados($parceiro_id);
+    
+    $subQuery =  $this->_database->get_compiled_select(
+      "
+            SELECT h.produto_parceiro_plano_id FROM (
+                SELECT parceiro_id, produto_parceiro_plano_id FROM parceiro_plano where deletado = 0
+                UNION
+                SELECT parceiro_produto.parceiro_id, produto_parceiro_plano.produto_parceiro_plano_id
+                FROM parceiro_produto 
+                INNER JOIN produto_parceiro_plano ON produto_parceiro_plano.produto_parceiro_id = parceiro_produto.produto_parceiro_id 
+                WHERE parceiro_produto.deletado = 0 AND produto_parceiro_plano.deletado = 0
+            ) AS h
+            INNER JOIN produto_parceiro_plano ON h.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id
+            WHERE h.parceiro_id = $parceiro_id
+            AND produto_parceiro_plano.deletado = 0"
+    );
+
+    $this->_database->join("($subQuery) t", "{$this->_table}.produto_parceiro_plano_id = t.produto_parceiro_plano_id", 'inner');
+    return $this;
+  }
+
   function with_produto(){
     $this->_database->join("produto", "produto_parceiro.produto_id = produto.produto_id");
     $this->_database->where("produto.deletado = 0");
@@ -160,16 +183,12 @@ Class Produto_Parceiro_Plano_Model extends MY_Model
   }
 
   function filter_by_produto_parceiro($produto_parceiro_id){
-
     $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
-
     return $this;
   }
 
   function filter_by_slug($slug){
-
     $this->_database->where('slug_plano', $slug);
-
     return $this;
   }
 
