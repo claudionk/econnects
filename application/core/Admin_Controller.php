@@ -249,7 +249,7 @@ class Admin_Controller extends MY_Controller
           $parcelamento = array();
           for($i = 1; $i <= $item['parcelamento_maximo'];$i++){
             if($i <= $item['parcelamento_maximo_sem_juros']) {
-              $parcelamento[$i] = array( "Parcelas" => $i, "Valor" => round( $valor_total/$i, 2 ), "Descricao" => "{$i} X ". app_format_currency(round($valor_total/$i)) . " sem juros" );
+              $parcelamento[$i] = array( "Parcelas" => $i, "Valor" => round( $valor_total/$i, 2 ), "Descricao" => "{$i} X ". app_format_currency(round($valor_total/$i, 2)) . " sem juros" );
               //$parcelamento[$i] = "{$i} X ". app_format_currency($valor_total/$i) . " sem juros";
             }else{
               //$valor = (( $item['juros_parcela'] / 100 ) * ($valor_total/$i)) + ($valor_total/$i);

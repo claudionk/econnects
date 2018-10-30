@@ -37,7 +37,6 @@ $(function(){
     var planoSliderOneLock = false;
 
     function startCycleOne(){
-        // debugger;
         $( '#plano_slider_one' ).cycle({
             slides: ' > li',
             startinSlide: 0,
@@ -129,7 +128,6 @@ $(function(){
     });
 
     $('.plano_header').on('click', function(e){
-        // debugger;
         if(planoSliderOneLock){
 
             destroyTwo();
@@ -433,7 +431,6 @@ $(function(){
 
     $('.add-car').on('click',function()
     {
-
         clear_carrinho();
         var plano = $(this).data('plano');
         var planos = $('#plano').val().split(';');
@@ -488,7 +485,6 @@ $(function(){
             valor = valor.split(';');
         }
 
-
         var coberturas_adicionas = []
         $('.ck-cobertura-adicional:checked').each(function() {
             var cobertura = $(this).val().split(';');
@@ -501,7 +497,7 @@ $(function(){
         $('#cobertura_adicional_valor_total').val($('.valor_cobertura_adicional_one_'+plano).html());
         $('#cobertura_adicional_valor').val($('#cobertura_adicional_valores_one_'+plano).val());
 
-        valor.push($('.premio_bruto_one_'+plano).html());
+        valor.push($('.premio_liquido_one_'+plano).html());
         $('#valor').val(valor.join(';'));
 
 

@@ -9,8 +9,6 @@
 class Produtos_Parceiros_Planos extends Admin_Controller
 {
 
-
-
     public function __construct()
     {
         parent::__construct();
@@ -56,9 +54,6 @@ class Produtos_Parceiros_Planos extends Admin_Controller
     public function view_by_produto_parceiro($produto_parceiro_id , $offset = 0)
     {
 
-
-
-
         //Carrega bibliotecas
         $this->load->library('pagination');
 
@@ -70,7 +65,6 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $this->template->set('page_subtitle', "Planos");
         $this->template->set_breadcrumb("Planos", base_url("$this->controller_uri/view_by_produto_parceiro/{$produto_parceiro_id}"));
 
-
         $produto_parceiro = $this->produto_parceiro->with_produto()->get($produto_parceiro_id);
 
         //Verifica se registro existe
@@ -80,9 +74,6 @@ class Produtos_Parceiros_Planos extends Admin_Controller
             $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
             redirect("admin/parceiros/index");
         }
-
-
-
 
         //Inicializa tabela
         $config['base_url'] = base_url("$this->controller_uri/view_by_produto_parceiro/{$produto_parceiro_id}");
@@ -104,10 +95,8 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $data['produto_parceiro_id'] = $produto_parceiro_id;
         $data['produto_parceiro'] = $produto_parceiro;
 
-
         $data['primary_key'] = $this->current_model->primary_key();
         $data["pagination_links"] = $this->pagination->create_links();
-
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/view_by_produto_parceiro", $data );
@@ -225,18 +214,16 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         }
 
 
-
         $data['produto_parceiro_id'] = $produto_parceiro['produto_parceiro_id'];
         $data['produto_parceiro'] = $produto_parceiro;
         $data['precificacao_tipo'] = $this->precificacao_tipo->get_all();
         $data['comissao_tipo'] = $this->comissao_tipo->get_all();
         $data['moeda'] = $this->moeda->get_all();
 
-
-
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
+
     public  function delete($id)
     {
         $row = $this->current_model->get($id);

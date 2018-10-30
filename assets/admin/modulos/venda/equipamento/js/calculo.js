@@ -1,15 +1,10 @@
 $(document).ready(function(){
 
-
-
-
     $(".inputmask-porcento").inputmask('99,99'); //, { numericInput: true, rightAlignNumerics: false, greedy: true});
     $(".inputmask-numero").inputmask('integer'); //, { numericInput: true, rightAlignNumerics: false, greedy: true});
     $(".inputmask-date").inputmask("d/m/y",{ "placeholder": "__/__/____" });
 
-
     calculo_preco();
-
 
     $('.repasse_comissao').on('blur',function() {
 
@@ -17,7 +12,6 @@ $(document).ready(function(){
 
         calculo_preco();
     });
-
 
     $('.desconto_condicional').on('blur',function() {
 
@@ -82,7 +76,6 @@ function calculo_preco()
     });
 
     var url = $('#url_calculo').val();
-
     console.log('calculo:', data);
 
     /**
@@ -97,9 +90,10 @@ function calculo_preco()
         .done(function( result )
         {
             console.log('result', result);
+            // debugger;
 
             //Se sucesso
-            if(result.sucess == true)
+            if(result.status == true)
             {
                 //Seta diferença dos dias
                 $('.comissao_corretor').html(numeroParaMoeda(result.comissao, 2, ',', ''));
@@ -179,7 +173,11 @@ function calculo_preco()
 
 
             }
-        });
+        }
+        // .error(function(x){
+        //     debugger;
+        // })
+        );
 }
 
 

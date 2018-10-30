@@ -121,6 +121,7 @@ Class Produto_Parceiro_Model extends MY_Model
     $this->_database->join('produto_parceiro_configuracao', $this->_table. '.produto_parceiro_id = produto_parceiro_configuracao.produto_parceiro_id', 'inner');
     $this->_database->join('parceiro', $this->_table. '.parceiro_id = parceiro.parceiro_id', 'inner');
     $this->_database->order_by('produto.nome', 'ASC');
+    $this->_database->order_by($this->_table.'.nome', 'ASC');
 
     $query = $this->_database->get();
 
@@ -157,6 +158,7 @@ Class Produto_Parceiro_Model extends MY_Model
         $this->_database->join('parceiro_relacionamento_produto', $this->_table. '.produto_parceiro_id = parceiro_relacionamento_produto.produto_parceiro_id', 'inner');
         $this->_database->join('parceiro', $this->_table. '.parceiro_id = parceiro.parceiro_id', 'inner');
         $this->_database->order_by('produto.nome', 'ASC');
+        $this->_database->order_by($this->_table.'.nome', 'ASC');
 
     $query = $this->_database->get();
 

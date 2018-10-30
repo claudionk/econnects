@@ -439,7 +439,6 @@ if ( ! function_exists('app_integracao_format_file_name_generali')) {
             $CI->load->model('integracao_model');
             $num_sequencia = (int)$CI->integracao_model->max_seq_by_parceiro_id($dados['global']['parceiro_id']);
             $num_sequencia++;
-            $CI->integracao_model->update($dados['item']['integracao_id'], array('sequencia' => $num_sequencia), TRUE);
         }else{
             $num_sequencia = 1;
         }
@@ -495,12 +494,12 @@ if ( ! function_exists('app_integracao_sequencia_mapfre_rf')) {
             $CI->load->model('integracao_model');
             $num_sequencia = (int)$CI->integracao_model->get($dados['item']['integracao_id'])['sequencia'];
             $num_sequencia++;
+            $CI->integracao_model->update($dados['item']['integracao_id'], array('sequencia' => $num_sequencia), TRUE);
         }else{
             $num_sequencia = 1;
         }
 
         $num_sequencia = str_pad($num_sequencia,6, '0',STR_PAD_LEFT);
-
         return $num_sequencia;
     }
 
@@ -1121,7 +1120,8 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
                 $chave = !empty($dados['registro']['num_apolice']) ? trim($dados['registro']['num_apolice']) ."|" : '';
                 break;
             case 'SINISTRO':
-                $chave = !empty($dados['registro']['cod_sinistro']) ? (int)$dados['registro']['cod_sinistro'] ."|". (int)$dados['registro']['cod_movimento'] : '';
+                // $chave = !empty($dados['registro']['cod_sinistro']) ? (int)$dados['registro']['cod_sinistro'] ."|". (int)$dados['registro']['cod_movimento'] : '';
+                $chave = !empty($dados['registro']['cod_sinistro']) ? (int)$dados['registro']['cod_sinistro'] .'|' : '';
                 break;
         }
 

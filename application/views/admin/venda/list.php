@@ -17,7 +17,7 @@
                 <div class="card-body card-produto text-center style-gray">
                     <div class="prod-description">
                         <h2 class="text-light"><?php echo $row['nome'];?></h2>
-                        <label><?php echo $row['nome_prod_parc'];?></label>
+                        <label style="display: block;height: 72px;"><?php echo $row['nome_prod_parc'];?></label>
                     </div>
                     <div class="price">
                         <img src="<?php echo app_assets_url('core/images/ico/ico_' . $row['slug']. '.png' , 'admin'); ?>">

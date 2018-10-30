@@ -320,11 +320,8 @@ Class Cotacao_Equipamento_Model extends MY_Model
     $this->load->model('produto_parceiro_regra_preco_model', 'produto_parceiro_regra_preco');
     $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
 
-
     $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
-
     $carrossel = $this->session->userdata("carrossel_{$produto_parceiro_id}");
-
 
     if($cotacao_id) {
       $cotacao_salva = $this->cotacao->with_cotacao_equipamento()->filterByID($cotacao_id)->get_all(0,0,false);
@@ -342,7 +339,6 @@ Class Cotacao_Equipamento_Model extends MY_Model
     }else{
       $configuracao = array();
     }
-
 
     if($produto_parceiro['parceiro_id'] != $this->session->userdata('parceiro_id')){
       $rel = $this->relacionamento->get_comissao($produto_parceiro_id, $this->session->userdata('parceiro_id'));
@@ -363,15 +359,11 @@ Class Cotacao_Equipamento_Model extends MY_Model
 
     $iof = 0;
     if($regra_preco && isset($regra_preco[0]) && isset($regra_preco[0]['parametros'])){
-      $iof = $regra_preco[0]['parametros'];
+      $iof = app_format_currency($regra_preco[0]['parametros']);
     }
 
-
-    
     //faz o Insert ou UPdate do Cliente
-
     $cliente = $this->cliente->cotacao_insert_update($cotacao);
-
 
     if($cotacao_id){
       $dt_cotacao = array();
@@ -391,7 +383,6 @@ Class Cotacao_Equipamento_Model extends MY_Model
     $data_cotacao = array();
     $data_cotacao['step'] = $step;
     $data_cotacao['produto_parceiro_id'] = $produto_parceiro_id;
-
 
     if(isset($carrossel['plano'])) {
 
@@ -415,7 +406,28 @@ Class Cotacao_Equipamento_Model extends MY_Model
       $data_cotacao['premio_liquido_total'] = app_unformat_currency($valores_totais[0]);
       $data_cotacao['iof'] = app_unformat_percent($iof);
 
-
+    } else {
+      if(isset($cotacao['repasse_comissao'])){
+        $data_cotacao['repasse_comissao'] = app_unformat_currency($cotacao['repasse_comissao']);
+      }
+      if(isset($cotacao['comissao_corretor'])){
+        $data_cotacao['comissao_corretor'] = app_unformat_currency($cotacao['comissao_corretor']);
+      }
+      if(isset($cotacao['desconto_condicional'])){
+        $data_cotacao['desconto_condicional'] = app_unformat_currency($cotacao['desconto_condicional']);
+      }
+      if(isset($cotacao['desconto_condicional_valor'])){
+        $data_cotacao['desconto_condicional_valor'] = app_unformat_currency($cotacao['desconto_condicional_valor']);
+      }
+      if(isset($cotacao['iof'])){
+        $data_cotacao['iof'] = app_unformat_currency($cotacao['iof']);
+      }
+      if(isset($cotacao['premio_liquido']) && !empty($cotacao['premio_liquido'])){
+        $data_cotacao['premio_liquido'] = app_unformat_currency($cotacao['premio_liquido']);
+      }
+      if(isset($cotacao['premio_liquido_total']) && !empty($cotacao['premio_liquido_total'])){
+        $data_cotacao['premio_liquido_total'] = app_unformat_currency($cotacao['premio_liquido_total']);
+      }
     }
 
     $data_cotacao = array_merge( $cotacao, $data_cotacao );
@@ -540,7 +552,6 @@ Class Cotacao_Equipamento_Model extends MY_Model
       $data_cotacao['rg_data_expedicao'] = app_dateonly_mask_to_mysql($cotacao['rg_data_expedicao']);
     }
 
-
     if(isset($cotacao['aux_01'])){
       $data_cotacao['aux_01'] = $cotacao['aux_01'];
     }
@@ -578,30 +589,6 @@ Class Cotacao_Equipamento_Model extends MY_Model
 
     if(isset($cotacao['aux_10'])){
       $data_cotacao['aux_10'] = $cotacao['aux_10'];
-    }
-
-
-    if(isset($cotacao['repasse_comissao'])){
-      $data_cotacao['repasse_comissao'] = app_unformat_currency($cotacao['repasse_comissao']);
-    }
-    if(isset($cotacao['comissao_corretor'])){
-      $data_cotacao['comissao_corretor'] = app_unformat_currency($cotacao['comissao_corretor']);
-    }
-    if(isset($cotacao['desconto_condicional'])){
-      $data_cotacao['desconto_condicional'] = app_unformat_currency($cotacao['desconto_condicional']);
-    }
-    if(isset($cotacao['desconto_condicional_valor'])){
-      $data_cotacao['desconto_condicional_valor'] = app_unformat_currency($cotacao['desconto_condicional_valor']);
-    }
-    if(isset($cotacao['premio_liquido'])){
-      $data_cotacao['premio_liquido'] = app_unformat_currency($cotacao['premio_liquido']);
-    }
-    if(isset($cotacao['iof'])){
-      $data_cotacao['iof'] = app_unformat_currency($cotacao['iof']);
-    }
-    
-    if(isset($cotacao['premio_liquido_total'])){
-      $data_cotacao['premio_liquido_total'] = app_unformat_currency($cotacao['premio_liquido_total']);
     }
 
     if($cotacao_salva) {
@@ -668,13 +655,28 @@ Class Cotacao_Equipamento_Model extends MY_Model
      */
   public function verifica_possui_desconto($cotacao_id)
   {
-    $cotacao = $this->get($cotacao_id);
-    if($cotacao && $cotacao['desconto_condicional'] > 0){
+    $cotacao = $this->filterByCotacao($cotacao_id)->get_all();
+    if($cotacao && $cotacao[0]['desconto_condicional'] > 0){
       return true;
     }else{
       return false;
     }
 
+  }
+
+  public function verifica_tempo_limite_de_uso($cotacao_id)
+  {
+    $cotacao = $this->filterByCotacao($cotacao_id)->get_all();
+    
+    if($cotacao) {
+      $cotacao = $cotacao[0];
+      if ($cotacao['produto_parceiro_plano_id'] > 0){
+        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
+        return $this->produto_parceiro_plano->verifica_tempo_limite_de_uso($cotacao['produto_parceiro_id'], $cotacao['produto_parceiro_plano_id'], $cotacao['nota_fiscal_data']);
+      }
+    }
+
+    return null;
   }
 
   /**

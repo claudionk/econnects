@@ -33,6 +33,12 @@ Class Produto_Parceiro_Plano_Model extends MY_Model
       'groups' => 'default'
     ),
     array(
+      'field' => 'slug_plano',
+      'label' => 'Slug',
+      'rules' => 'required',
+      'groups' => 'default'
+    ),
+    array(
       'field' => 'codigo_operadora',
       'label' => 'Código Operadora',
       'rules' => 'required',
@@ -67,6 +73,24 @@ Class Produto_Parceiro_Plano_Model extends MY_Model
     array(
       'field' => 'limite_vigencia',
       'label' => 'Limite de Vigência',
+      'rules' => 'required',
+      'groups' => 'default'
+    ),
+    array(
+      'field' => 'possui_limite_tempo',
+      'label' => 'Possui limite de Tempo de Uso',
+      'rules' => 'required',
+      'groups' => 'default'
+    ),
+    array(
+      'field' => 'unidade_limite_tempo',
+      'label' => 'Unidade de Tempo de Uso',
+      'rules' => 'required',
+      'groups' => 'default'
+    ),
+    array(
+      'field' => 'limite_tempo',
+      'label' => 'Limite de Tempo de Uso',
       'rules' => 'required',
       'groups' => 'default'
     ),
@@ -153,10 +177,13 @@ Class Produto_Parceiro_Plano_Model extends MY_Model
     $this->_database->select("{$this->_table}.produto_parceiro_plano_id");
     $this->_database->select("{$this->_table}.produto_parceiro_id");
     $this->_database->select("{$this->_table}.nome");
+    $this->_database->select("{$this->_table}.slug_plano");
     $this->_database->select("{$this->_table}.descricao");
     $this->_database->select("{$this->_table}.codigo_operadora");
     $this->_database->select("{$this->_table}.limite_vigencia");
-    $this->_database->select("{$this->_table}.slug_plano");
+    $this->_database->select("{$this->_table}.possui_limite_tempo");
+    $this->_database->select("{$this->_table}.limite_tempo");
+    $this->_database->select("{$this->_table}.unidade_limite_tempo");
     $this->_database->select("{$this->_table}.unidade_tempo as limite_vigencia_unidade ");
     if( !is_null( $produto_parceiro_id ) ) {
       $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id );
@@ -205,15 +232,48 @@ Class Produto_Parceiro_Plano_Model extends MY_Model
       $date_fim = date('Y-m-d', mktime(0,0,0, $data_base2[1], $data_base2[2] + $produto_parceiro_plano['limite_vigencia'], $data_base2[0]));
     }
 
-
     return array(
       'inicio_vigencia' => $date_inicio,
       'fim_vigencia' => $date_fim,
       'dias' => app_date_get_diff_mysql($date_inicio, $date_fim, 'D')
     );
-
-
   }
+
+  public function verifica_tempo_limite_de_uso($produto_parceiro_id, $produto_parceiro_plano_id, $data) {
+
+    $result = $this->coreSelectPlanosProdutoParceiro($produto_parceiro_id, $produto_parceiro_plano_id)->get_all();
+
+    if (!empty($result)) {
+      $result = $result[0];
+
+      if (!empty($result['possui_limite_tempo'])) {
+        $desc = '';
+        switch ($result['unidade_limite_tempo']) {
+          case 'DIA':
+            $base = 'D';
+            $desc = 'Dia(s)';
+            break;
+          case 'MES':
+            $base = 'M';
+            $desc = 'Mes(es)';
+            break;
+          case 'ANO':
+            $base = 'Y';
+            $desc = 'Ano(s)';
+            break;
+        }
+
+        $d = app_date_get_diff_mysql($data, date('Y-m-d'), $base);
+        if ($d > $result['limite_tempo'])
+          return "O plano {$result['nome']} requer que o Equipamento tenha um prazo máximo de uso de {$result['limite_tempo']} {$desc}";
+
+      }
+
+    }
+
+    return null;
+  }
+
 }
 
 

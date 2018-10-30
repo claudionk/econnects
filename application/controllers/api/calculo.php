@@ -9,6 +9,7 @@ class Calculo extends CI_Controller {
   const PRECO_TIPO_COBERTURA = 2;
   const PRECO_TIPO_VALOR_SEGURADO = 3;
   const PRECO_POR_EQUIPAMENTO = 5;
+  const PRECO_POR_LINHA = 6;
 
   const TIPO_CALCULO_NET = 1;
   const TIPO_CALCULO_BRUTO = 2;
@@ -389,7 +390,7 @@ class Calculo extends CI_Controller {
             $valores[$produto_parceiro_plano_id] = 0;
           }
           break;
-        case self::PRECO_POR_EQUIPAMENTO;
+        case self::PRECO_POR_LINHA;
           $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
           $this->load->model('equipamento_model', 'equipamento');
           $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];

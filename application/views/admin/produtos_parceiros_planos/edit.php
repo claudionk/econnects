@@ -72,6 +72,12 @@ if($_POST)
                                                         <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
 
+                                                    <?php $field_name = 'slug_plano';?>
+                                                    <div class="form-group">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Slug *</label>
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                    </div>
+
                                                     <?php $field_name = 'codigo_operadora';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Código Parceiro</label>
@@ -141,6 +147,42 @@ if($_POST)
                                                         </div>
                                                     </div>
 
+                                                    <?php $field_name = 'possui_limite_tempo';?>
+                                                    <div class="form-group">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Limite de Tempo de Uso *</label>
+                                                        <label class="radio-inline radio-styled radio-primary">
+                                                            <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                   value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
+                                                            Sim
+                                                        </label>
+                                                        <label class="radio-inline radio-styled radio-primary">
+                                                            <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                   value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
+                                                            Não
+                                                        </label>
+                                                    </div>
+
+                                                    <?php $field_name = 'limite_tempo';?>
+                                                    <div class="form-group hidden limite_tempo">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Prazo Limite de Uso *</label>
+                                                        <div class="col-md-4"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                        <?php $field_name = 'unidade_limite_tempo';?>
+                                                        <div class="col-md-4">
+                                                            <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
+                                                                <option name="" value="">Selecione</option>
+                                                                <option name="" value="DIA"
+                                                                    <?php if(isset($row)){if($row[$field_name] == 'DIA') {echo " selected ";};}; ?> >Dia
+                                                                </option>
+                                                                <option name="" value="MES"
+                                                                    <?php if(isset($row)){if($row[$field_name] == 'MES') {echo " selected ";};}; ?> >Mês
+                                                                </option>
+                                                                <option name="" value="ANO"
+                                                                    <?php if(isset($row)){if($row[$field_name] == 'ANO') {echo " selected ";};}; ?> >Ano
+                                                                </option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    
                                                     <?php $field_name = 'passivel_upgrade';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Passível de Upgrade *</label>
@@ -199,3 +241,19 @@ if($_POST)
         </div>
     </div>
 </div>
+
+<script type="text/javascript">
+jQuery(function($){
+    $('input[name=possui_limite_tempo]').change(function(){
+        if($(this).val() == 1){
+            $('.limite_tempo').removeClass('hidden');
+        } else {
+            $('.limite_tempo').addClass('hidden');
+        }
+    });
+
+    if ($('input[name=possui_limite_tempo][value=1]').attr('checked') == 'checked') {
+        $('.limite_tempo').removeClass('hidden');
+    }
+});
+</script>
