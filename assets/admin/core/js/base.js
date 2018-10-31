@@ -428,15 +428,36 @@ function populaSelectMarca(id){
     });
 }
 function populaSelectModelo(id){
+
+    var $data = {}, url='/'+encodeURI(id);
+    if (String(id).indexOf(",") >= 0) {
+        id = id.replace(/'/g, '');
+        var x = id.split(",");
+
+        if (x.length > 1) {
+            $data = Object.assign({}, x), url = '';
+        } else {
+            url='/'+encodeURI(x[0]);
+        }
+    }
+
     $.ajax({
-        url: base_url + "admin/equipamento/service/" + encodeURI(id),
-        type: "GET",
+        url: base_url + "admin/equipamento/service"+ url,
+        type: "POST",
+        data: $data,
         dataType: "json",
         success: function(data){
 
-            $(".js-equipamento_id-ajax").select2("trigger", "select", {
-                data: data.items
-            });
+            var vet = data.items;
+            if (typeof data.items.length == 'undefined') {
+                var vet = {0: data.items};
+            }
+
+            for (var key in vet) {
+                $(".js-equipamento_id-ajax").select2("trigger", "select", {
+                    data: vet[key]
+                });
+            }
         },
         error: function(error){
             console.log("Error:", error);

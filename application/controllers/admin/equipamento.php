@@ -170,8 +170,29 @@ class Equipamento extends Admin_Controller
      */
     public function service($equipamento_id = 0)
     {
-
         $json = array();
+
+        if (empty($equipamento_id)){
+            if (isset($_POST['0'])) {
+
+                $data = $this->current_model->with_foreign()->whith_multiples_ids($_POST)->get_all();
+                foreach ($data as $index => $item) {
+                    $data[$index]['id'] = $item['equipamento_id'];
+                }
+
+                // $itens['id'] = $equipamento_id;
+                $json['total_count'] = count($data);
+                $json['incomplete_results'] = FALSE;
+                $json['items'] = $data;
+
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_output(json_encode($json));
+                return;
+            }
+
+        }
+
         if($equipamento_id > 0){
             $itens = $this->current_model->with_foreign()->get($equipamento_id);
             $itens['id'] = $equipamento_id;

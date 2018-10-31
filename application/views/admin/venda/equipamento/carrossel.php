@@ -37,10 +37,10 @@
                    value="<?php echo base_url("{$current_controller_uri}/calculo"); ?>"/>
             <input type="hidden" id="produto_parceiro_plano_id" name="produto_parceiro_plano_id" value="0"/>
             <input type="hidden" id="parceiro_id" name="parceiro_id" value="<?php echo $parceiro_id; ?>"/>
-            <input type="hidden" id="cotacao_id" name="cotacao_id"
-                   value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
-            <input type="hidden" id="equipamento_id" name="equipamento_id"
-                   value="<?php if (isset($equipamento_id)) echo $equipamento_id; ?>"/>
+            <input type="hidden" id="cotacao_id" name="cotacao_id" value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
+            <input type="hidden" id="equipamento_id" name="equipamento_id" value="<?php if (isset($equipamento_id)) echo $equipamento_id; ?>"/>
+            <input type="hidden" id="equipamento_marca_id" name="equipamento_marca_id" value="<?php if (isset($equipamento_marca_id)) echo $equipamento_marca_id; ?>"/>
+            <input type="hidden" id="equipamento_categoria_id" name="equipamento_categoria_id" value="<?php if (isset($equipamento_categoria_id)) echo $equipamento_categoria_id; ?>"/>
             <input type="hidden" id="salvar_cotacao" name="salvar_cotacao" value=""/>
             <?php $configuracao['quantidade_cobertura'] = ((isset($configuracao['quantidade_cobertura'])) && ($configuracao['quantidade_cobertura'] < count($coberturas) )) ? $configuracao['quantidade_cobertura']  : count($coberturas); ?>
             <input type="hidden" id="quantidade_cobertura" name="quantidade_cobertura" value="<?php  echo (isset($configuracao['quantidade_cobertura'])) ? $configuracao['quantidade_cobertura'] : 10;  ?>"/>

@@ -93,6 +93,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
         $produto_parceiro_id = issetor($params['produto_parceiro_id'], 0);
         $parceiro_id = issetor($params['parceiro_id'], 0);
+        $equipamento_id = issetor($params['equipamento_id'], 0);
         $equipamento_marca_id = issetor($params['equipamento_marca_id'], 0);
         $equipamento_categoria_id = issetor($params['equipamento_categoria_id'], 0);
         $quantidade = issetor($params['quantidade'], 0);
@@ -160,7 +161,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
         $repasse_comissao = str_pad(number_format((double)$repasse_comissao, 2, '.', ''), 5, "0", STR_PAD_LEFT);
         $comissao_corretor = ($configuracao['comissao'] - $repasse_comissao);
-        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($produto_parceiro_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento']);
+        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($produto_parceiro_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_id);
 
         $valores_cobertura_adicional_total = array();
         $valores_cobertura_adicional = array();

@@ -21,6 +21,7 @@ $lang['is_unique'] 			= "O campo %s deve conter um valor único.";
 $lang['is_natural']			= "O campo %s deve conter apenas números positivos.";
 $lang['is_natural_no_zero']	= "O campo %s deve conter apenas números maiores que zero.";
 $lang['decimal']			= "O campo %s deve conter um número decimal.";
+$lang['numericOrDecimal']	= "O campo %s deve conter apenas números ou ser um número decimal.";
 $lang['less_than']			= "O campo %s deve conter um número menor que %s.";
 $lang['greater_than']		= "O campo %s deve conter um número maior que %s.";
 $lang['in_list']		    = "O campo %s deve conter um número maior.";

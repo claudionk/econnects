@@ -80,6 +80,12 @@ Class Equipamento_Model extends MY_Model
         )
     );
 
+    public function whith_multiples_ids($values = []) {
+        $this->db->where_in('equipamento_id', $values);
+        return $this;
+    }
+
+
     public function match($equipamento, $marca = null, $limit = 10)
     {
         $where='';

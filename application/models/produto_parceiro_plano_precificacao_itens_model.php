@@ -18,12 +18,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     protected $fields_lowercase = array();
     protected $fields_uppercase = array();
 
-    const PRECO_TIPO_TABELA = 1;
-    const PRECO_TIPO_COBERTURA = 2;
-    const PRECO_TIPO_VALOR_SEGURADO = 3;
-    const PRECO_POR_EQUIPAMENTO = 5;
-    const PRECO_POR_LINHA = 6;
-
     //Dados
     public $validate = array(
 
@@ -49,13 +43,13 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         array(
             'field' => 'inicial',
             'label' => 'Inicial',
-            'rules' => 'required|numeric',
+            'rules' => 'required|numericOrDecimal',
             'groups' => 'default'
         ),
         array(
             'field' => 'final',
             'label' => 'Final',
-            'rules' => 'required|numeric',
+            'rules' => 'required|numericOrDecimal',
             'groups' => 'default'
         ),
         array(
@@ -89,14 +83,23 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
             'produto_parceiro_plano_id' => $this->input->post('produto_parceiro_plano_id'),
             'tipo' => $this->input->post('tipo'),
             'unidade_tempo' => $this->input->post('unidade_tempo'),
-            'inicial' => $this->input->post('inicial'),
-            'final' => $this->input->post('final'),
+            'inicial' => app_unformat_currency($this->input->post('inicial')),
+            'final' => app_unformat_currency($this->input->post('final')),
             'valor' => app_unformat_currency($this->input->post('valor')),
-            'equipamento' => $this->input->post('equipamento'),
+            'equipamento' => '',
+            'cobranca' => "VALOR",
         );
-        if( $data["equipamento"] != "" ) {
-          $data["cobranca"] = "PORCENTAGEM";
-          $data["tipo_equipamento"] = "CATEGORIA";
+
+        if( !empty($this->input->post('equipamento')) ) {
+            $data['equipamento'] = "'" . implode ( "','", $this->input->post('equipamento') ) . "'";
+            // $data["cobranca"] = "PORCENTAGEM";
+            if ($this->input->post('precificacao_tipo_id') == 5){
+                $data["tipo_equipamento"] = "EQUIPAMENTO";
+            }
+
+            if ($this->input->post('precificacao_tipo_id') == 6) {
+                $data["tipo_equipamento"] = "CATEGORIA";
+            }
         }
         return $data;
     }
@@ -104,7 +107,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     {
         return $this->get($id);
     }
-
 
     function  filter_by_produto_parceiro_plano($produto_parceiro_plano_id){
 
@@ -172,12 +174,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param $equipamento_nome
     * @return mixed|null
     */
-    public function getValorTabelaFixa($produto_parceiro_plano_id, $equipamento_categoria_id, $equipamento_marca_id, $valor_nota = null, $data_nascimento = null){
-
-        $valor = $this
-            ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-            ->filter_by_tipo_equipamento('TODOS')
-            ->get_all();
+    public function getValorTabelaFixa($valor, $valor_nota = null, $data_nascimento = null){
 
         $valores = [];
 
@@ -215,57 +212,59 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                 }
             }
 
-        }else{
-
-            //BUSCA POR CATEGORIA / LINHA
-            $valor = $this
-                ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-                ->filter_by_tipo_equipamento('CATEGORIA')
-                ->filter_by_equipamento($equipamento_categoria_id)
-                ->get_all();
-
-            if(count($valor) > 0) {
-                $valor = $valor[0];
-                if($valor['cobranca'] == 'PORCENTAGEM'){
-                    return app_calculo_porcentagem($valor['valor'], $valor_nota);
-                }else{
-                    return $valor['valor'];
-                }
-            }
-
             /*
-            $this->load->model('equipamento_model', 'equipamento');
-            //BUSCA POR SUB CATEGORIA CATEGORIA / LINHA
-            $valor = $this
-                ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-                ->filter_by_tipo_equipamento('POR CATEGORIA / LINHA')
-                ->filter_by_equipamento($equipamento['equipamento_sub_categoria_id'])
-                ->get_all();
-
-            if(count($valor) > 0) {
-                $valor = $valor[0];
-                if($valor['cobranca'] == 'PORCENTAGEM'){
-                    return app_calculo_porcentagem($valor['valor'], $valor_nota);
                 }else{
-                    return $valor['valor'];
-                }
-            }*/
 
-            //BUSCA POR MARCA
-            $valor = $this
-                ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-                ->filter_by_tipo_equipamento('MARCA')
-                ->filter_by_equipamento($equipamento_marca_id)
-                ->get_all();
+                //BUSCA POR CATEGORIA / LINHA
+                $valor = $this
+                    ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
+                    ->filter_by_tipo_equipamento('CATEGORIA')
+                    ->filter_by_equipamento($equipamento_categoria_id)
+                    ->get_all();
 
-            if(count($valor) > 0) {
-                $valor = $valor[0];
-                if($valor['cobranca'] == 'PORCENTAGEM'){
-                    return app_calculo_porcentagem($valor['valor'], $valor_nota);
-                }else{
-                    return $valor['valor'];
+                if(count($valor) > 0) {
+                    $valor = $valor[0];
+                    if($valor['cobranca'] == 'PORCENTAGEM'){
+                        return app_calculo_porcentagem($valor['valor'], $valor_nota);
+                    }else{
+                        return $valor['valor'];
+                    }
+                }*/
+
+                /*
+                $this->load->model('equipamento_model', 'equipamento');
+                //BUSCA POR SUB CATEGORIA CATEGORIA / LINHA
+                $valor = $this
+                    ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
+                    ->filter_by_tipo_equipamento('POR CATEGORIA / LINHA')
+                    ->filter_by_equipamento($equipamento['equipamento_sub_categoria_id'])
+                    ->get_all();
+
+                if(count($valor) > 0) {
+                    $valor = $valor[0];
+                    if($valor['cobranca'] == 'PORCENTAGEM'){
+                        return app_calculo_porcentagem($valor['valor'], $valor_nota);
+                    }else{
+                        return $valor['valor'];
+                    }
+                }*/
+
+                //BUSCA POR MARCA
+                /*$valor = $this
+                    ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
+                    ->filter_by_tipo_equipamento('MARCA')
+                    ->filter_by_equipamento($equipamento_marca_id)
+                    ->get_all();
+
+                if(count($valor) > 0) {
+                    $valor = $valor[0];
+                    if($valor['cobranca'] == 'PORCENTAGEM'){
+                        return app_calculo_porcentagem($valor['valor'], $valor_nota);
+                    }else{
+                        return $valor['valor'];
+                    }
                 }
-            }
+            */
         }
 
         return null;
@@ -278,7 +277,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param int $num_passageiro
     * @return array
     */
-    public function getValoresPlano( $produto_parceiro_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null ){
+    public function getValoresPlano( $produto_parceiro_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_id = NULL){
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
@@ -302,25 +301,35 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         }
 
         $valores = array();
+        // echo "<pre>";
         foreach ($arrPlanos as $plano){
 
+            // echo $plano['precificacao_tipo_id']."-";
             $valor_cobertura_plano = 0;
             switch ((int)$plano['precificacao_tipo_id']) {
-                case self::PRECO_TIPO_TABELA:
+                case $this->config->item("PRECO_TIPO_TABELA"):
 
-                    $calculo = $this->getValorTabelaFixa($plano['produto_parceiro_plano_id'], $equipamento_categora_id, $equipamento_marca_id, $valor_nota, $data_nascimento) * $quantidade;
+                    $valor = $this
+                        ->filter_by_produto_parceiro_plano($plano['produto_parceiro_plano_id'])
+                        ->filter_by_tipo_equipamento('TODOS')
+                        ->get_all();
 
-                    if($calculo)
+                    $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $data_nascimento) * $quantidade;
+                    // print_r($calculo);
+                    // die();
+
+                    if($calculo) {
                         $valores[$plano['produto_parceiro_plano_id']] = $calculo;
-                    else
-                        return null;
+                    // else
+                    //     return null;
 
-                    if($moeda_padrao['moeda_id'] != $plano['moeda_id']){
-                        $valores[$plano['produto_parceiro_plano_id']] = $this->moeda_cambio->getValor($plano['moeda_id'], $valores[$plano['produto_parceiro_plano_id']]);
+                        if($moeda_padrao['moeda_id'] != $plano['moeda_id']){
+                            $valores[$plano['produto_parceiro_plano_id']] = $this->moeda_cambio->getValor($plano['moeda_id'], $valores[$plano['produto_parceiro_plano_id']]);
+                        }
                     }
 
                     break;
-                case self::PRECO_TIPO_COBERTURA:
+                case $this->config->item("PRECO_TIPO_COBERTURA"):
 
                     $this->load->model("produto_parceiro_plano_precificacao_model", "produto_parceiro_plano_precificacao");
                     $this->load->model("equipamento_model", "equipamento");
@@ -337,7 +346,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     }
                     $valores[$produto_parceiro_plano_id] = $valor_cobertura_plano;
                     break;
-                case self::PRECO_TIPO_VALOR_SEGURADO:
+                case $this->config->item("PRECO_TIPO_VALOR_SEGURADO"):
                     $this->load->model('equipamento_model', 'equipamento');
                     $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
                     $valor = $this
@@ -346,7 +355,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     ->get_all();
                     $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
                     break;
-                case self::PRECO_POR_LINHA;
+                case $this->config->item("PRECO_POR_LINHA");
                     $this->load->model('equipamento_model', 'equipamento');
                     $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
                     $valor = $this
@@ -359,11 +368,33 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
 
                     break;
+                case $this->config->item("PRECO_POR_EQUIPAMENTO");
+
+                    $this->load->model('equipamento_model', 'equipamento');
+                    $valor = $this
+                        ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
+                        ->filter_by_faixa( $valor_nota )
+                        ->filter_by_tipo_equipamento("EQUIPAMENTO")
+                        ->filter_by_equipamento($equipamento_id)
+                        ->get_all();
+
+                    $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $data_nascimento) * $quantidade;
+
+                    if($calculo) {
+                        $valores[$plano['produto_parceiro_plano_id']] = $calculo;
+
+                        if($moeda_padrao['moeda_id'] != $plano['moeda_id']){
+                            $valores[$plano['produto_parceiro_plano_id']] = $this->moeda_cambio->getValor($plano['moeda_id'], $valores[$plano['produto_parceiro_plano_id']]);
+                        }
+                    }
+
+                    break;
                 default:
                     break;
                 }
             }
 
+        // print_r($valores);
         return $valores;
 
     }

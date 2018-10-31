@@ -378,3 +378,9 @@ function __autoload($class)
 
 $config["URL_sisconnects"] = "https://www.sisconnects.com.br/";
 
+$config['PRECO_TIPO_TABELA'] = 1;
+$config['PRECO_TIPO_COBERTURA'] = 2;
+$config['PRECO_TIPO_VALOR_SEGURADO'] = 3;
+$config['PRECO_POR_EQUIPAMENTO'] = 5;
+$config['PRECO_POR_LINHA'] = 6;
+

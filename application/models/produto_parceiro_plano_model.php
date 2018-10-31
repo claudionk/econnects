@@ -85,13 +85,13 @@ Class Produto_Parceiro_Plano_Model extends MY_Model
     array(
       'field' => 'unidade_limite_tempo',
       'label' => 'Unidade de Tempo de Uso',
-      'rules' => 'required',
+      // 'rules' => 'required',
       'groups' => 'default'
     ),
     array(
       'field' => 'limite_tempo',
       'label' => 'Limite de Tempo de Uso',
-      'rules' => 'required',
+      // 'rules' => 'required',
       'groups' => 'default'
     ),
     array(

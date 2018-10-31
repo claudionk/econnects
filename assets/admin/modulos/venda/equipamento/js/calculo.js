@@ -65,6 +65,8 @@ function calculo_preco()
         parceiro_id: $('#parceiro_id').val(), //parceiro logado
         quantidade: $('.quantidade').val(),
         equipamento_id: $('#equipamento_id').val(),
+        equipamento_categoria_id: $('#equipamento_categoria_id').val(),
+        equipamento_marca_id: $('#equipamento_marca_id').val(),
         repasse_comissao: $('.repasse_comissao').val(),
         desconto_condicional: $('.desconto_condicional').val(),
         cotacao_id: $('#cotacao_id').val(),
@@ -82,102 +84,97 @@ function calculo_preco()
      * Efetua post para retornar cálculo de cotação
      */
     $.ajax({
-            type: "POST",
-            url: url,
-            cache: false,
-            data: data,
-        })
-        .done(function( result )
+        type: "POST",
+        url: url,
+        cache: false,
+        data: data,
+    })
+    .done(function( result ){
+        console.log('result', result);
+        // debugger;
+
+        //Se sucesso
+        if(result.status == true)
         {
-            console.log('result', result);
-            // debugger;
+            //Seta diferença dos dias
+            $('.comissao_corretor').html(numeroParaMoeda(result.comissao, 2, ',', ''));
+            $('.desconto_upgrade').html('-' + numeroParaMoeda(result.desconto_upgrade, 2, ',', ''));
+            $('.repasse_comissao').val(result.repasse_comissao);
+            $('.desconto_condicional_valor').val(result.desconto_condicional_valor);
 
-            //Se sucesso
-            if(result.status == true)
+            $.each(result.valores_bruto, function (idx, obj)
             {
-                //Seta diferença dos dias
-                $('.comissao_corretor').html(numeroParaMoeda(result.comissao, 2, ',', ''));
-                $('.desconto_upgrade').html('-' + numeroParaMoeda(result.desconto_upgrade, 2, ',', ''));
-                $('.repasse_comissao').val(result.repasse_comissao);
-                $('.desconto_condicional_valor').val(result.desconto_condicional_valor);
+                $('.premio_bruto_one_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
+                $('.premio_bruto_two_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
 
-                $.each(result.valores_bruto, function (idx, obj)
+                $('.valor_cobertura_adicional_one_'+idx).html('00,00');
+                $('.valor_cobertura_adicional_two_'+idx).html('00,00');
+
+            });
+
+            $.each(result.valores_liquido, function (idx, obj)
+            {
+                $('.premio_liquido_one_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
+                $('.premio_liquido_two_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
+            });
+
+            var tudo_igual = true;
+
+            $.each(result.valores_liquido_total, function (idx, obj)
+            {
+                //Verifica se bruto e líquido é igual
+                if(obj != result.valores_bruto[idx])
                 {
-                    $('.premio_bruto_one_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
-                    $('.premio_bruto_two_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
-
-                    $('.valor_cobertura_adicional_one_'+idx).html('00,00');
-                    $('.valor_cobertura_adicional_two_'+idx).html('00,00');
-
-                });
-
-                $.each(result.valores_liquido, function (idx, obj)
-                {
-                    $('.premio_liquido_one_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
-                    $('.premio_liquido_two_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
-                });
-
-                var tudo_igual = true;
-
-                $.each(result.valores_liquido_total, function (idx, obj)
-                {
-                    //Verifica se bruto e líquido é igual
-                    if(obj != result.valores_bruto[idx])
-                    {
-                        tudo_igual = false;
-                    }
-
-                    $('.premio_total_one_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
-                    $('.premio_total_two_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
-                });
-
-                console.log('coberturas; ', result.valores_cobertura_adicional);
-
-                $.each(result.valores_totais_cobertura_adicional, function (idx, obj)
-                {
-                    $('.valor_cobertura_adicional_one_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
-                    $('.valor_cobertura_adicional_two_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
-                });
-
-                $.each(result.valores_cobertura_adicional, function (idx, obj)
-                {
-
-                    $('#cobertura_adicional_valores_one_'+idx).val(obj.join(';'));
-                    $('#cobertura_adicional_valores_two_'+idx).val(obj.join(';'));
-                });
-
-
-                //Se o valor bruto e líquido for igual, esconde os campos
-                if(tudo_igual)
-                {
-                    /*
-                    $(".premio_liquido").closest("tr").hide();
-                    $(".premio_bruto").closest("tr").hide();
-                    $(".li_premio_liquido").hide();
-                    $(".li_premio_liquido_total").hide();*/
-
-                    $(".premio_liquido").closest("tr").hide();
-                    // $(".premio_bruto").closest("tr").hide();
-                    //
-                    $(".li_premio_liquido").hide();
+                    tudo_igual = false;
                 }
 
+                $('.premio_total_one_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
+                $('.premio_total_two_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
+            });
 
-                toastr.success("Calculo efetuado com sucesso!", "Calcular cotação");
-                $('.td-add-car').show();
-            }else{
-                toastr.error(result.mensagem, "Atenção!");
+            console.log('coberturas; ', result.valores_cobertura_adicional);
 
-                $('.td-add-car').hide();
-                $('#' + result.campo).focus();
+            $.each(result.valores_totais_cobertura_adicional, function (idx, obj)
+            {
+                $('.valor_cobertura_adicional_one_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
+                $('.valor_cobertura_adicional_two_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
+            });
+
+            $.each(result.valores_cobertura_adicional, function (idx, obj)
+            {
+
+                $('#cobertura_adicional_valores_one_'+idx).val(obj.join(';'));
+                $('#cobertura_adicional_valores_two_'+idx).val(obj.join(';'));
+            });
 
 
+            //Se o valor bruto e líquido for igual, esconde os campos
+            if(tudo_igual)
+            {
+                /*
+                $(".premio_liquido").closest("tr").hide();
+                $(".premio_bruto").closest("tr").hide();
+                $(".li_premio_liquido").hide();
+                $(".li_premio_liquido_total").hide();*/
+
+                $(".premio_liquido").closest("tr").hide();
+                // $(".premio_bruto").closest("tr").hide();
+                //
+                $(".li_premio_liquido").hide();
             }
+
+
+            toastr.success("Calculo efetuado com sucesso!", "Calcular cotação");
+            $('.td-add-car').show();
+        }else{
+            toastr.error(result.mensagem, "Atenção!");
+
+            $('.td-add-car').hide();
+            $('#' + result.campo).focus();
+
+
         }
-        // .error(function(x){
-        //     debugger;
-        // })
-        );
+    });
 }
 
 

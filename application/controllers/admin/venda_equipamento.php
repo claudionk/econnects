@@ -700,6 +700,9 @@ class Venda_Equipamento extends Admin_Controller {
 
                 $cotacao_salva = $cotacao_salva[0];
 
+                $data['equipamento_id'] = $cotacao_salva['equipamento_id'];
+                $data['equipamento_marca_id'] = $cotacao_salva['equipamento_marca_id'];
+                $data['equipamento_categoria_id'] = $cotacao_salva['equipamento_categoria_id'];
                 $data['equipamento_nome'] = $cotacao_salva['equipamento_nome'];
                 $data['cotacao_codigo'] = $cotacao_salva['codigo'];
                 $data['carrossel']['repasse_comissao'] = $cotacao_salva['repasse_comissao'];

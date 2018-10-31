@@ -286,6 +286,7 @@ class CI_Form_validation {
 			return FALSE;
 		}
 
+
 		// Does the _field_data array containing the validation rules exist?
 		// If not, we look to see if they were assigned via a config file
 		if (count($this->_field_data) == 0)
@@ -537,7 +538,6 @@ class CI_Form_validation {
 		}
 
 		// --------------------------------------------------------------------
-
 		// Cycle through each rule and run it
 		foreach ($rules As $rule)
 		{
@@ -1183,7 +1183,19 @@ class CI_Form_validation {
 	 */
 	public function decimal($str)
 	{
-		return (bool) preg_match('/^[\-+]?[0-9]+\.[0-9]+$/', $str);
+		return (bool) preg_match('/^[\-+]?[0-9]+[\.|\,][0-9]+$/', $str);
+	}
+
+	/**
+	 * Numeric or Decimal number
+	 *
+	 * @access	public
+	 * @param	string
+	 * @return	bool
+	 */
+	public function numericOrDecimal($str)
+	{
+		return (bool) ($this->numeric($str) || $this->decimal($str));
 	}
 
 	// --------------------------------------------------------------------

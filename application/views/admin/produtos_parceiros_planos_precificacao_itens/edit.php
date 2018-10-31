@@ -127,33 +127,25 @@ if($_POST)
                                                         <div class="col-md-8"><input class="form-control inputmask-moeda" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
 
-                                                  <?php // if($produto_parceiro_plano['precificacao_tipo_id'] == 5) :  ?>
-                                                  <?php $field_name = 'equipamento'; ?>
-                                                  <div class="form-group">
-                                                    <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Categoria</label>
+                                                  <?php 
+                                                  if (!empty($descTipo)) {
 
-                                                    <div class="col-md-8"><select name="<?php echo $field_name;?>" data-selected="<?php echo isset($row[$field_name]) ?  $row[$field_name] : ''; ?>" id="js-categorias-ajax" class="form-control js-categorias-ajax" style="width: 100%;">
-                                                      <option value="">Todas</option>
-                                                      <?php
-                                                      foreach( $categorias as $categoria ) {
-                                                        echo "<option value=\"'" . $categoria["equipamento_categoria_id"] . "'\"";
-                                                        if( isset( $row ) ) {
-                                                          if( strpos( $row["equipamento"], "'".$categoria["equipamento_categoria_id"]."'" ) !== false ) {
-                                                            echo " selected=\"selected\"";
-                                                          }
-                                                        }
-                                                        echo ">" . $categoria["nome"] . "</option>";
-                                                      }
-                                                      ?>
+                                                  $field_name = 'equipamento'; ?>
+                                                  <div class="form-group">
+                                                    <label class="col-md-4 control-label" for="<?php echo $field_name;?>"><?= $descTipo ?></label>
+
+                                                    <div class="col-md-8"><select name="<?php echo $field_name;?>[]" data-selected="<?php echo isset($row[$field_name]) ?  $row[$field_name] : ''; ?>" id="js-<?= $descSelect ?>-ajax" class="form-control js-<?= $descSelect ?>-ajax" style="width: 100%;" multiple="multiple">
                                                       </select>
+
                                                     </div>
                                                     <?php echo app_get_form_error($field_name); ?>
                                                   </div>
+                                                <?php } ?>
+
+                                                <input type="hidden" name="precificacao_tipo_id" id="precificacao_tipo_id" value="<?= $precificacao_tipo_id ?>">
+
                                               </div>
 
-                                              <?php //endif; ?>
-
-                                                  
                                                 </div>
                                                 <!-- // Column END -->
                                             </div>
