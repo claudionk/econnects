@@ -54,8 +54,6 @@ $(document).ready(function(){
  */
 function calculo_preco()
 {
-
-
     toastr.clear();
 
     //Dados para post

@@ -556,9 +556,6 @@ $(function(){
         valor_total.push($('.premio_total_one_'+plano ).html());
         $('#valor_total').val(valor_total.join(';'));
 
-        //Adiciona carrinho
-        toastr.success("O item foi adicionado ao carrinho com sucesso!");
-
         window.scroll({
             top: 5000,
             left: 0,
@@ -569,25 +566,19 @@ $(function(){
 
     });
 
-
-
     function updateCarrinho(){
-
-
-
-
         var tr_vazio = '<tr><td colspan="5">Seu Carrinho esta vazio</td></tr>';
         $('.body-carrinho tr').remove();
 
-        var plano = $('#plano').val().split(';');
-        if(plano.length == 0) {
-            $('.body-carrinho').append(tr_vazio);
-        }else {
-            for (i = 0; i < plano.length; i++) {
-                var nome = $('#plano_nome').val().split(';');
-                var quantidade = $('#quantidade').val().split(';');
-                var valor_total = $('#valor_total').val().split(';');
-                var tr = '<tr class="plano-carrinho-'+ plano[i] +'">';
+        var plano = $('#plano').val().split(';'), tr = '';
+        for (i = 0; i < plano.length; i++) {
+            var nome = $('#plano_nome').val().split(';');
+            var quantidade = $('#quantidade').val().split(';');
+            var valor_total = $('#valor_total').val().split(';');
+            if (parseFloat(valor_total[i]) == 0) {
+                toastr.error("Tabela de Preço não configurada para o Plano "+ nome[i], "Atenção!");
+            } else {
+                tr = '<tr class="plano-carrinho-'+ plano[i] +'">';
                 tr += '<td>'+ (i+1) +'</td>';
                 tr += '<td>'+ nome[i] +'</td>';
                 tr += '<td>'+ quantidade[i] +'</td>';
@@ -596,7 +587,13 @@ $(function(){
                 tr += '</tr>';
                 $('.body-carrinho').append(tr);
 
+                //Adiciona carrinho
+                toastr.success("O plano "+ nome[i] +" foi adicionado ao carrinho com sucesso!");
             }
+        }
+
+        if(tr == '') {
+            $('.body-carrinho').append(tr_vazio);
         }
 
         $('.delete-carrinho').on('click',function() {
@@ -639,11 +636,9 @@ $(function(){
 
             }
 
-
         });
 
     }
-
 
     $('.btn_dados_segurado').on('click',function() {
         $('#validateSubmitForm').submit();
@@ -697,7 +692,6 @@ $(function(){
 
         }
 
-
     });
 
     function clear_carrinho(){
@@ -717,5 +711,3 @@ $(function(){
 
     }
 });
-
-
