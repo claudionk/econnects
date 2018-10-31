@@ -172,24 +172,26 @@ class Emissao extends CI_Controller {
                         die(json_encode(array("status"=>false,"message"=>"Os atributos 'ean/marca/modelo' não foram informados"),JSON_UNESCAPED_UNICODE));
                     }
 
+                    $validaModelo = true;
                     // Se passou o EAN
                     if(!empty($parametros['ean'])){
                         // pesquisa por ean
                         $url = $this->config->item("URL_sisconnects") ."api/equipamento?ean=". $parametros['ean'];
                         $r = $obj->execute($url);
 
-                        if(empty($r)) {
-                            die(json_encode(array("status"=>false,"message"=>"Não foi possível realizar a consulta do equipamento por EAN"),JSON_UNESCAPED_UNICODE));
-                        }
-
-                        $retorno = json_decode($r);
-                        if(empty($retorno->{"status"})) {
-                            die(json_encode(array("status"=>false,"message"=>$r),JSON_UNESCAPED_UNICODE));
+                        if(!empty($r)) {
+                            $retorno = json_decode($r);
+                            if(!empty($retorno->{"status"})) {
+                                $validaModelo = false;
+                                // die(json_encode(array("status"=>false,"message"=>$r),JSON_UNESCAPED_UNICODE));
+                            }
                         }
 
                         // variavel retorno já está no padrão
 
-                    } else {
+                    } 
+
+                    if ($validaModelo) {
                         if(empty($parametros['marca'])){
                             die(json_encode(array("status"=>false,"message"=>"Atributo 'marca' não informado"),JSON_UNESCAPED_UNICODE));
                         }
