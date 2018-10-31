@@ -173,6 +173,8 @@ class Emissao extends CI_Controller {
                     }
 
                     $validaModelo = true;
+                    $msgBuscaEqip = "";
+
                     // Se passou o EAN
                     if(!empty($parametros['ean'])){
                         // pesquisa por ean
@@ -184,19 +186,27 @@ class Emissao extends CI_Controller {
                             if(!empty($retorno->{"status"})) {
                                 $validaModelo = false;
                                 // die(json_encode(array("status"=>false,"message"=>$r),JSON_UNESCAPED_UNICODE));
+                            } else {
+                                $msgBuscaEqip = $r;
                             }
+                        } else {
+                            $msgBuscaEqip = "";
                         }
-
-                        // variavel retorno já está no padrão
 
                     } 
 
                     if ($validaModelo) {
                         if(empty($parametros['marca'])){
-                            die(json_encode(array("status"=>false,"message"=>"Atributo 'marca' não informado"),JSON_UNESCAPED_UNICODE));
+                            if (!empty($msgBuscaEqip))
+                                die(json_encode(array("status"=>false,"message"=>$msgBuscaEqip .". Informe o atributo `marca` para realizar a pesquisa alternativa."),JSON_UNESCAPED_UNICODE));
+                            else
+                                die(json_encode(array("status"=>false,"message"=>"Atributo 'marca' não informado"),JSON_UNESCAPED_UNICODE));
                         }
                         if(empty($parametros['modelo'])){
-                            die(json_encode(array("status"=>false,"message"=>"Atributo 'modelo' não informado"),JSON_UNESCAPED_UNICODE));
+                            if (!empty($msgBuscaEqip))
+                                die(json_encode(array("status"=>false,"message"=>$msgBuscaEqip .". Informe o atributo `modelo` para realizar a pesquisa alternativa."),JSON_UNESCAPED_UNICODE));
+                            else
+                                die(json_encode(array("status"=>false,"message"=>"Atributo 'modelo' não informado"),JSON_UNESCAPED_UNICODE));
                         }
 
                         // pesquisa por marca e modelo
@@ -219,7 +229,7 @@ class Emissao extends CI_Controller {
                         }
 
                         // adapta variável de retorno para o padrão
-                        $retorno = $retorno->{"dados"};
+                        $retorno = $retorno->{"dados"}[0];
 
                     }
 
