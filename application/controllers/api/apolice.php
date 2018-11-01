@@ -48,9 +48,7 @@ class Apolice extends CI_Controller {
         if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
             $GET = $_GET;
         } else {
-            if ($_SERVER["REQUEST_METHOD"] === "POST" ){
-                $GET = $_POST;
-            } elseif( $_SERVER["REQUEST_METHOD"] === "PUT" ) {
+            if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "PUT" ) {
                 $PUT = json_decode( file_get_contents( "php://input" ), true );
                 if( !isset( $PUT["apolice_id"] ) ) {
                     die( json_encode( array( "status" => false, "message" => "Campo apolice_id é obrigatório" ) ) );
