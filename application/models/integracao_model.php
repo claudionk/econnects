@@ -293,7 +293,7 @@ Class Integracao_Model extends MY_Model
             $result = $result[0];
             $dados_integracao = array();
             $dados_integracao['status'] = 'L';
-            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
@@ -306,9 +306,9 @@ Class Integracao_Model extends MY_Model
                 ->get_all();
 
             $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
-            // $result_file = $this->getFile($result, $file);
+            $result_file = $this->getFile($result, $file);
             // $result_file["file"] = "/var/www/webroot/ROOT/econnects/application/helpers/../../assets/uploads/integracao/15/R/RF2119597741TR20181011.TXT";
-            $result_file["file"] = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/14/R/C01.LASA.SINISTRO-RT-0176-20181026.TXT";
+            // $result_file["file"] = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/14/R/C01.LASA.SINISTRO-RT-0176-20181026.TXT";
 
             $result_process = [];
             if(!empty($result_file['file'])){
@@ -322,7 +322,7 @@ Class Integracao_Model extends MY_Model
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
             $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');
             $dados_integracao['status'] = 'A';
-            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             //execute before execute
             if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
