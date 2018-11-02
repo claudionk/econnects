@@ -154,7 +154,7 @@ Class Equipamento_Model extends MY_Model
         $string = str_replace( " ", "* ", strtoupper( $string ) );
 
         //$string = preg_replace('/\s+/', '$1* ', $string);
-        $string = preg_replace('/\s+[\W|\w]\s+/', '$1', ' '.$string.' ');
+        $string = preg_replace('/\s+[\W]\s+/', '$1', ' '.$string.' ');
 
         $string = trim($string);
         $string .= (isset($string) && substr($string, -1) != "*") ? "*" : "";

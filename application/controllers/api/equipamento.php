@@ -114,6 +114,16 @@ class Equipamento extends CI_Controller {
         $indiceMax = 20;
         $modelo = $payload->modelo;
         $marca = !empty($payload->marca) ? $payload->marca : null;
+
+        if (!empty($payload->marca)) {
+            $marca = $payload->marca;
+            if (strpos($modelo, $marca) === FALSE) {
+                $modelo = $marca." ".$modelo;
+            }
+        } else {
+            $marca = null;
+        }
+
         $qtdeRegistros = ( isset($payload->quantidade) && (int)$payload->quantidade > 0) ? $payload->quantidade : 10;
         $result = $this->equipamento->match($modelo, $marca, $qtdeRegistros);
 
