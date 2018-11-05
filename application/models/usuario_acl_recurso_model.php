@@ -110,6 +110,7 @@ Class Usuario_Acl_Recurso_Model extends MY_Model
     public function getRecursosUsuario($usuario_id = 0, $pai_id = 0, &$arr, $exibir_menu = 1 )
     {
         $this->load->model("usuario_acl_permissao_model", "usuario_acl_permissao");
+        $this->load->model("usuario_acl_recurso_acao_model", "usuario_acl_recurso_acao");
         $this->load->model("usuario_model", "usuario");
 
         $usuario = $this->usuario->get($usuario_id);
@@ -126,9 +127,11 @@ Class Usuario_Acl_Recurso_Model extends MY_Model
         {
             foreach ($acesso as $linha)
             {
+                /*2018-11-05 rcarpi - incluido filtro para acabo com base no recurso*/
+                $acao = $this->usuario_acl_recurso_acao->get_by(array("usuario_acl_recurso_id" => $linha['usuario_acl_recurso_id'] ) );
                 $permissao = $this->usuario_acl_permissao->get_by(array(
                     'usuario_acl_recurso_id' => $linha['usuario_acl_recurso_id'],
-                    'usuario_acl_acao_id' => 1,
+                    'usuario_acl_acao_id' => $acao['usuario_acl_acao_id'],
                     'usuario_acl_tipo_id' => $usuario['usuario_acl_tipo_id']
                 ));
 
