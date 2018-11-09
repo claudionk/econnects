@@ -61,8 +61,10 @@ class Equipamento extends CI_Controller {
                 "equipamento_categoria_id" => $Equipamento[0]["equipamento_categoria_id"],
                 "equipamento_sub_categoria_id" => $Equipamento[0]["equipamento_sub_categoria_id"]
             ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
-        } else {
-            die( json_encode( array( "status" => false, "message" => "Não foram localizados equipamentos com esse EAN ($ean)" ) ) );
+        } else {          	
+        	if( !isset( $GET["ret"] ) ) { /*rcarpi - gambiarra para nao gerar erro no header ao consumit o metodo*/
+            	die( json_encode( array( "status" => false, "message" => "Não foram localizados equipamentos com esse EAN ($ean)" ) ) );
+            }
         }    
     }
 
@@ -149,11 +151,14 @@ class Equipamento extends CI_Controller {
 
         }
 
-        if (empty($retorno))
+        if (empty($retorno)){
             die( json_encode( array( "status" => false, "message" => "Não foram localizados equipamentos com o modelo informado ({$modelo})" ) ) );
+        }
 
         die( json_encode( array( "status" => true, "modelo_informado" => $modelo, "dados" => $retorno) , JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
 
     }
 
 }
+
+

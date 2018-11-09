@@ -1347,6 +1347,16 @@ Class Apolice_Model extends MY_Model
 
     }
 
+    public function search_apolice_produto_parceiro_plano_id($num_apolice,$produto_parceiro_plano_id){
+       $sql = "
+                    SELECT apolice_id
+                    FROM apolice
+                    WHERE num_apolice = '{$num_apolice}' and produto_parceiro_plano_id = '{$produto_parceiro_plano_id}'
+                    LIMIT 1
+        ";
+        return (int)$this->_database->query($sql)->num_rows() == 1 ;
+    }
+
 }
 
 
