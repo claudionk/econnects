@@ -295,6 +295,7 @@ class Venda extends Api_Controller
       $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $_POST);
       $cotacao_id = (int)$this->input->post('cotacao_id');
 
+      	$result['slug'] = $produto['produto_slug'];
       if($produto['produto_slug'] == 'equipamento'){
         $cotacao_id = $this->cotacao_equipamento->insert_update($produto_parceiro_id, $cotacao_id);
       }elseif($produto['produto_slug'] == 'generico'){
