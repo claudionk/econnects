@@ -177,8 +177,6 @@ class Apolice extends CI_Controller {
 
     public function cancelar() {
         
-        die('aki - cancelar');
-
         $this->checkKey();
 
         $validacao = $this->validarDadosEntrada();
