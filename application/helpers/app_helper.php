@@ -211,6 +211,8 @@ function app_date_mask_to_mysql($date){
 
 function app_date_only_numbers_to_mysql($date)
 {
+    $date = str_replace("/", "", $date);
+    $date = str_replace("-", "", $date);
     if(strlen($date) == 8)
     {
         $dia = substr($date, 0, 2);

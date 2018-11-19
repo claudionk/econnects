@@ -1249,8 +1249,12 @@ Class Pedido_Model extends MY_Model
      */
   public function extrairRelatorioVendas()
   {
-    $this->_database->select("{$this->_table}.*, csv.*, c.*, ps.nome as status, p.nome_fantasia,
-                                  pp.nome as nome_produto_parceiro, pr.nome as nome_produto, ppp.nome as plano_nome");
+    $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.nome_fantasia,
+                                  pp.nome as nome_produto_parceiro, pr.nome as nome_produto, ppp.nome as plano_nome, {$this->_table}.valor_parcela, {$this->_table}.codigo ");
+
+    $this->_database->select("IF(pr.slug = 'generico', cg.premio_liquido, IF(pr.slug = 'seguro_viagem', csv.premio_liquido, ce.premio_liquido)) as premio_liquido", FALSE);
+    $this->_database->select("IF(pr.slug = 'generico', cg.premio_liquido_total, IF(pr.slug = 'seguro_viagem', csv.premio_liquido_total, ce.premio_liquido_total)) as premio_liquido_total", FALSE);
+    $this->_database->select("IF(pr.slug = 'generico', cg.comissao_corretor, IF(pr.slug = 'seguro_viagem', csv.comissao_corretor, ce.comissao_corretor)) as comissao_corretor", FALSE);
 
     $this->_database->from($this->_table);
 
@@ -1258,10 +1262,12 @@ Class Pedido_Model extends MY_Model
     $this->_database->join("cotacao_status cs", "cs.cotacao_status_id = c.cotacao_status_id", "inner");
     $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
     $this->_database->join("parceiro p", "p.parceiro_id = c.parceiro_id", "inner");
+    $this->_database->join("produto_parceiro pp", "pp.produto_parceiro_id = c.produto_parceiro_id", "inner");
+    $this->_database->join("produto pr", "pr.produto_id = pp.produto_id", "inner");
     $this->_database->join("cotacao_seguro_viagem csv", "csv.cotacao_id = {$this->_table}.cotacao_id and csv.deletado = 0", "left");
-    $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = csv.produto_parceiro_plano_id", "left");
-    $this->_database->join("produto_parceiro pp", "pp.produto_parceiro_id = csv.produto_parceiro_id", "left");
-    $this->_database->join("produto pr", "pr.produto_id = pp.produto_id", "left");
+    $this->_database->join("cotacao_equipamento ce", "ce.cotacao_id = {$this->_table}.cotacao_id and ce.deletado = 0", "left");
+    $this->_database->join("cotacao_generico cg", "cg.cotacao_id = {$this->_table}.cotacao_id and cg.deletado = 0", "left");
+    $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = IF(pr.slug = 'generico', cg.produto_parceiro_plano_id, IF(pr.slug = 'seguro_viagem', csv.produto_parceiro_plano_id, ce.produto_parceiro_plano_id))", "inner");
 
     $this->_database->where("cs.slug = 'finalziada'"); /* @TODO MUDAR PARA finalizada */
     $query = $this->_database->get();
