@@ -165,13 +165,14 @@ class Emissao extends CI_Controller {
                     $this->campos_estrutura = $arrOptions;
                 }
 
-
                 $this->load->model( "apolice_model", "apolice" );
-                if( $this->apolice->search_apolice_produto_parceiro_plano_id( $parametros['num_apolice'] , $this->produto_parceiro_plano_id ) ){
+                if( !empty($parametros['num_apolice']) && $this->apolice->search_apolice_produto_parceiro_plano_id( $parametros['num_apolice'] , $this->produto_parceiro_plano_id ) ){
                     die(json_encode(array("status"=>false,"message"=>"Já existe uma apólice na base"),JSON_UNESCAPED_UNICODE));
                 }
+
                 $obj = new Api();
-                $validaModelo = true ;
+                $validaModelo = true;
+
                 // Caso não tenha sido informado os ID dos equipamentos
                 if ( empty($this->campos_estrutura["equipamento_id"]) || empty($this->campos_estrutura["equipamento_marca_id"]) || empty($this->campos_estrutura["equipamento_categoria_id"]) || empty($this->campos_estrutura["ean"]) ) {
 
