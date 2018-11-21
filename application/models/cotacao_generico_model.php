@@ -279,8 +279,6 @@ Class Cotacao_Generico_Model extends MY_Model
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $carrossel = $this->session->userdata("carrossel_{$produto_parceiro_id}");
 
-
-
         if($cotacao_id) {
             $cotacao_salva = $this->cotacao->with_cotacao_generico()->filterByID($cotacao_id)->get_all();
             $cotacao_salva = $cotacao_salva[0];

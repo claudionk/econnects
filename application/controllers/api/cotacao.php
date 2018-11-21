@@ -784,6 +784,7 @@ class Cotacao extends CI_Controller {
     $params["produto_parceiro_id"] = $produto_parceiro_id;
     $params["produto_parceiro_plano_id"] = $produto_parceiro_plano_id;
     $params["parceiro_id"] = $this->parceiro_id;
+    $params["usuario_cotacao_id"] = $this->usuario_id;
     $params["quantidade"] = $quantidade;
     $params["coberturas"] = $coberturas;
     $params["repasse_comissao"] = $repasse_comissao;

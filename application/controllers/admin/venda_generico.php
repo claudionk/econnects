@@ -89,12 +89,12 @@ class Venda_Generico extends Admin_Controller
         //Carrega models
         $this->load->model("cotacao_generico_model", "cotacao_generico");
         $this->load->model("pedido_model");
+        $this->load->library('form_validation');
 
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', 'Venda');
         $this->template->set_breadcrumb('Venda', base_url("$this->controller_uri/index"));
 
-        $this->load->library('form_validation');
 
         if($step == 1)
         {
@@ -229,11 +229,13 @@ class Venda_Generico extends Admin_Controller
         $this->load->model('localidade_estado_model', 'estado');
         $this->load->model('faixa_salarial_model', 'faixa_salarial');
         $this->load->model("servico_produto_model", "servico_produto");
+        $this->load->library('api');
 
         //Dados para template
         $data = array();
         $data['primary_key'] = $this->current_model->primary_key();
         $data['produto_parceiro_id'] = $produto_parceiro_id;
+        $data["slug"] = "cotacao";
 
         //Verifica cotação
         if($cotacao_id > 0)
@@ -264,6 +266,16 @@ class Venda_Generico extends Admin_Controller
             $data['row'] = array();
         }
 
+        $obj = new Api();
+        $url = base_url() ."api/campos?produto_parceiro_id={$data['produto_parceiro_id']}&slug={$data['slug']}";
+        $r = $obj->execute($url);
+
+        if ( !empty($r) ) {
+            $Response = json_decode($r,true);
+            $Response = $Response[0];
+            $data["campos"] = ( isset( $Response["campos"] ) ? $Response["campos"] : array() );
+        }
+
         $data['cotacao_id'] = $cotacao_id;
         $data['list'] = array();
         $data['list']['destino_id'] = $this->localidade->get_by_parceiro($produto_parceiro_id, 'destino');
@@ -275,18 +287,7 @@ class Venda_Generico extends Admin_Controller
         if($_POST)
         {
 
-            $validacao = array();
-            foreach ($data['campos'] as $campo) {
-
-
-                $validacao[] = array(
-                    'field' => "{$campo['campo_nome_banco']}",
-                    'label' => "{$campo['campo_nome']}",
-                    'rules' => $campo['validacoes'],
-                    'groups' => 'cotacao'
-                );
-            }
-
+            $validacao = $this->campo->setValidacoesCampos($produto_parceiro_id, "cotacao");
             $this->cotacao->setValidate($validacao);
 
             //Verifica válido form

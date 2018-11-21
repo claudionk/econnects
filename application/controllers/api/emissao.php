@@ -251,19 +251,12 @@ class Emissao extends CI_Controller {
                         }
                     }
 
-                    //$arrOptions["equipamento_id"] = $retorno->{"equipamento_id"};
-                    //$arrOptions["equipamento_marca_id"] = $retorno->{"equipamento_marca_id"};
-                    //$arrOptions["equipamento_categoria_id"] = $retorno->{"equipamento_categoria_id"};
-                    //$arrOptions["ean"] = $retorno->{"ean"};
-                    //if (empty($arrOptions["equipamento_nome"])) 
-                    //    $arrOptions["equipamento_nome"] = $retorno->{"nome"};
-
                     $this->campos_estrutura = $arrOptions;
                     //$this->equipamento_nome = $retorno->{"nome"};
                     //$this->ean = $retorno->{"ean"};
                 }
 
-                $url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/cotacao";
+                $url = base_url() ."api/cotacao";
                 $r = $obj->execute($url, 'POST', json_encode($arrOptions));
 
                 if(!empty($r))
@@ -333,16 +326,13 @@ class Emissao extends CI_Controller {
 
             case 'contratarcotacao':
 
-
                 if($parametros->{"status"})
                 {
                     // Montando os dados - $this->campos_estrutura
-                    
                     $this->campos_estrutura["data_inicio_vigencia"] = '0000-00-00';
-                    $url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/cotacao/contratar";
+                    $url = base_url() ."api/cotacao/contratar";
                     $obj = new Api();
                     $r = $obj->execute($url, 'POST', json_encode($this->campos_estrutura));
-
 
                     if(!empty($r))
                     {
@@ -425,7 +415,7 @@ class Emissao extends CI_Controller {
                     ]; 
 
 
-                    $url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/pagamento/pagar";
+                    $url = base_url() ."api/pagamento/pagar";
                     $obj = new Api();
                     $r = $obj->execute($url, 'POST', json_encode($arrOptions));
 

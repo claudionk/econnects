@@ -436,7 +436,7 @@ Class Cliente_Model extends MY_Model {
       $data_cliente = array();
       $data_cliente['tipo_cliente'] = (app_verifica_cpf_cnpj(app_retorna_numeros($data['cnpj_cpf'])) == 'CNPJ') ? 'CO' : 'CF';
       $data_cliente['cnpj_cpf'] = app_retorna_numeros($data['cnpj_cpf']);
-      $data_cliente['ie_rg'] = $data['rg'];
+      $data_cliente['ie_rg'] = issetor($data['rg'], '');
       $data_cliente['codigo'] = $this->cliente_codigo->get_codigo_cliente_formatado($data_cliente['tipo_cliente']);
       $data_cliente['colaborador_id'] = 1;
       $data_cliente['colaborador_comercial_id'] = 1;
