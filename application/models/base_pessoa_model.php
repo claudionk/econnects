@@ -122,6 +122,7 @@ Class Base_Pessoa_Model extends MY_Model
                                            "SITUACAO_RECEITA" => "REGULAR" );
       
         $iTelefones = $ifaro["Telefones"];
+        $Telefones = [];
         foreach( $iTelefones as $row ) {
           $Telefones[] = array("TELEFONE" => "(" . trim( $row["DD"] ) . ") " . $row["Numero"], 
                                "RANKING" => ( $row["Tipo"] == "TELEFONE MÓVEL" ? 90 : $row["Ranking"] ) );
@@ -136,6 +137,7 @@ Class Base_Pessoa_Model extends MY_Model
         $result["EMAILS"] = $Emails;
 
         $iEnderecos = $ifaro["Enderecos"];
+        $Enderecos = [];
         foreach( $iEnderecos as $row ) {
           $Enderecos[] = array("LOGRADOURO" => trim( $row["Logadouro"] ), 
                              "NUMERO" => trim( $row["Numero"] ), 
@@ -147,7 +149,6 @@ Class Base_Pessoa_Model extends MY_Model
                              "RANKING" => $row["Ranking"] );
         }
         $result["ENDERECOS"] = $Enderecos;
-        //die( print_r( $result, true ) );
       }
     }
 
