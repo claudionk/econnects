@@ -487,12 +487,10 @@ if ( ! function_exists('app_integracao_sequencia_mapfre_rf')) {
 
     function app_integracao_sequencia_mapfre_rf($formato, $dados = array())
     {
-
-        if(isset($dados['item']['integracao_id'])){
-
+        if(isset($dados['item']['integracao_id']) && isset($dados['global']['parceiro_id'])){
             $CI =& get_instance();
             $CI->load->model('integracao_model');
-            $num_sequencia = (int)$CI->integracao_model->get($dados['item']['integracao_id'])['sequencia'];
+            $num_sequencia = (int)$CI->integracao_model->max_seq_by_parceiro_id($dados['global']['parceiro_id']);
             $num_sequencia++;
             $CI->integracao_model->update($dados['item']['integracao_id'], array('sequencia' => $num_sequencia), TRUE);
         }else{

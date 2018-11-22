@@ -969,7 +969,7 @@ Class Integracao_Model extends MY_Model
     }
 
     function max_seq_by_parceiro_id($parceiro_id){
-        $sequencia = 1;
+        $sequencia = 0;
 
         $this->_database->select_max('integracao.sequencia', 'seq_max');
         $this->_database->where('integracao.parceiro_id', $parceiro_id);
@@ -978,7 +978,7 @@ Class Integracao_Model extends MY_Model
         $result = $this->get_all();
 
         if (!empty($result)) {
-            $sequencia += $result[0]['seq_max'];
+            $sequencia = $result[0]['seq_max'];
         }
 
         return $sequencia;
