@@ -225,7 +225,9 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
                     $result = $this->filter_by_pai($row["parceiro_relacionamento_produto_id"])->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
 
                     if ( !empty($result) ) {
-                        $oArray[$parceiro_id_pai][$row['parceiro_id']]['comissao'] = $row['comissao'];
+                        $oArray[$parceiro_id_pai][$row['parceiro_id']] = [
+                            'comissao' => $row['comissao'],
+                        ];
 
                         foreach ($result as $r) {
                             $oArray[$parceiro_id_pai][$row['parceiro_id']][$r['parceiro_id']] = [
@@ -272,6 +274,38 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
         }
 
         return $this->maiorValor();
+    }
+
+    /**
+     * Retorna os ids de todos permitidos
+     * @param array retorna os parceiros habilitados
+     * @return mixed
+     */
+    public function get_parceiros_permitidos($produto_parceiro_id, $parceiro_id){
+        $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
+        $this->_database->where('parceiro_id', $parceiro_id);
+
+        $rows = $this->get_all(0, 0, true, 'ASC');
+        $oArray = [];
+
+        if(!empty($rows)){
+            $oArray = $this->getSetParc($oArray, $rows);
+        }
+
+        return $oArray;
+    }
+
+    private function getSetParc(&$oArray, $rows){
+        if ( !empty($rows) ) {
+            foreach ($rows as $row) {
+                $oArray[] = $row['parceiro_id'];
+
+                $result = $this->filter_by_pai($row["parceiro_relacionamento_produto_id"])->filter_by_produto_parceiro($row["produto_parceiro_id"])->get_all();
+                return $this->getSetParc($oArray, $result);
+            }
+        }
+
+        return $oArray;
     }
 
     private function maiorValor(){

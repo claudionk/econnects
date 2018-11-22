@@ -1249,15 +1249,22 @@ Class Pedido_Model extends MY_Model
      */
   public function extrairRelatorioVendas()
   {
-    $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.nome_fantasia,
-                                  pp.nome as nome_produto_parceiro, pr.nome as nome_produto, ppp.nome as plano_nome, {$this->_table}.valor_parcela, {$this->_table}.codigo ");
+
+    $this->_database->distinct();
+    $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.cnpj, p.nome_fantasia,
+                                  pp.nome as nome_produto_parceiro, pr.nome as nome_produto, ppp.nome as plano_nome, {$this->_table}.valor_parcela, {$this->_table}.codigo, a.num_apolice, le.sigla as UF, u.nome as vendedor, cmg.valor AS comissao_parceiro ");
 
     $this->_database->select("IF(pr.slug = 'generico', cg.premio_liquido, IF(pr.slug = 'seguro_viagem', csv.premio_liquido, ce.premio_liquido)) as premio_liquido", FALSE);
     $this->_database->select("IF(pr.slug = 'generico', cg.premio_liquido_total, IF(pr.slug = 'seguro_viagem', csv.premio_liquido_total, ce.premio_liquido_total)) as premio_liquido_total", FALSE);
     $this->_database->select("IF(pr.slug = 'generico', cg.comissao_corretor, IF(pr.slug = 'seguro_viagem', csv.comissao_corretor, ce.comissao_corretor)) as comissao_corretor", FALSE);
+    $this->_database->select("IF(pr.slug = 'generico', cg.nota_fiscal_valor, IF(pr.slug = 'seguro_viagem', csv.nota_fiscal_valor, ce.nota_fiscal_valor)) as nota_fiscal_valor", FALSE);
+
+    $this->_database->select("IF(pr.slug = 'generico', cg.nome, IF(pr.slug = 'seguro_viagem', csv.nome, ce.nome)) as segurado", FALSE);
+    $this->_database->select("IF(pr.slug = 'generico', cg.cnpj_cpf, IF(pr.slug = 'seguro_viagem', csv.cnpj_cpf, ce.cnpj_cpf)) as documento", FALSE);
 
     $this->_database->from($this->_table);
 
+    $this->_database->join("apolice a", "a.pedido_id = {$this->_table}.pedido_id", "inner");
     $this->_database->join("cotacao c", "c.cotacao_id = {$this->_table}.cotacao_id", "inner");
     $this->_database->join("cotacao_status cs", "cs.cotacao_status_id = c.cotacao_status_id", "inner");
     $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
@@ -1268,20 +1275,44 @@ Class Pedido_Model extends MY_Model
     $this->_database->join("cotacao_equipamento ce", "ce.cotacao_id = {$this->_table}.cotacao_id and ce.deletado = 0", "left");
     $this->_database->join("cotacao_generico cg", "cg.cotacao_id = {$this->_table}.cotacao_id and cg.deletado = 0", "left");
     $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = IF(pr.slug = 'generico', cg.produto_parceiro_plano_id, IF(pr.slug = 'seguro_viagem', csv.produto_parceiro_plano_id, ce.produto_parceiro_plano_id))", "inner");
+    $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
+    $this->_database->join("usuario u", "u.usuario_id = c.usuario_cotacao_id", "left");
+    $this->_database->join("comissao_gerada cmg", "cmg.pedido_id = {$this->_table}.pedido_id AND cmg.parceiro_id = p.parceiro_id", "left");
+    
+    // colaborador só visualiza os próprios pedidos
+    if ( $this->session->userdata('usuario_acl_tipo_id') == 2 ) {
+      $this->_database->where("c.usuario_cotacao_id", $this->session->userdata('usuario_id'));
+    }
 
     $this->_database->where("cs.slug = 'finalziada'"); /* @TODO MUDAR PARA finalizada */
     $query = $this->_database->get();
-
+    $resp = [];
 
     if($query->num_rows() > 0)
     {
-      return $query->result_array();
+      $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
+
+      $resp = $query->result_array();
+      $parc_prods = [];
+      $cont=0;
+
+      if (!empty($this->session->userdata('parceiro_id'))) {
+        foreach ($resp as $row) {
+          if ( !in_array($row['produto_parceiro_id'], $parc_prods) ) {
+            $parc_prods[$row['produto_parceiro_id']] = $this->relacionamento->get_parceiros_permitidos($row['produto_parceiro_id'], $this->session->userdata('parceiro_id'));
+          }
+
+          if ( !in_array($row['parceiro_id'], $parc_prods[$row['produto_parceiro_id']]) ) {
+            unset($resp[$cont]);
+          }
+          $cont++;
+        }
+      }
+
     }
-    return array();
+    return $resp;
 
   }
-
-
 
   /**
      * Muda status do pedido

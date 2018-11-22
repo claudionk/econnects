@@ -209,7 +209,7 @@ function app_date_mask_to_mysql($date){
 
 }
 
-function app_date_only_numbers_to_mysql($date)
+function app_date_only_numbers_to_mysql($date, $start = true)
 {
     $date = str_replace("/", "", $date);
     $date = str_replace("-", "", $date);
@@ -219,7 +219,9 @@ function app_date_only_numbers_to_mysql($date)
         $mes = substr($date, 2, 2);
         $ano = substr($date, 4, 4);
 
-        return "$ano-$mes-$dia 00:00:00";
+        $date = "$ano-$mes-$dia ";
+        $hour = ($start) ? "00:00:00" : "23:59:59";
+        return $date.$hour;
     }
     return "";
 }
