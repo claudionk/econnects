@@ -686,6 +686,7 @@ Class Integracao_Model extends MY_Model
         }
 
         $arRet['qtde_reg'] = count($linhas)-$rmQtdeLine;
+        $content = iconv( mb_detect_encoding( $content ), 'Windows-1252//TRANSLIT', $content );
         file_put_contents("{$diretorio}/{$filename}", $content);
 
         $arRet['file'] = "{$diretorio}/{$filename}";
