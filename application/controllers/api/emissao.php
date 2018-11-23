@@ -450,8 +450,12 @@ class Emissao extends CI_Controller {
                 // Aqui verifico a apolice passada.
                 if($parametros->status)
                 {                 
+                  	// Verificando se veio apólice 
+                    if(!empty($this->num_apolice))
+                    {
+                        $this->db->query("UPDATE apolice SET num_apolice='".$this->num_apolice."' WHERE pedido_id='".$parametros->dados->pedido_id."'" );  
+                    }
                   
-                    $this->db->query("UPDATE apolice SET num_apolice='".$this->num_apolice."' WHERE pedido_id='".$parametros->dados->pedido_id."'" );  
                     $url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/apolice?pedido_id={$parametros->dados->pedido_id}" ;
                     $obj = new Api();
                     $r = $obj->execute($url, 'GET');
@@ -498,6 +502,7 @@ class Emissao extends CI_Controller {
 
 }
 ?>
+
 
 
 
