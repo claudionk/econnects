@@ -1293,7 +1293,7 @@ Class Pedido_Model extends MY_Model
       $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
 
       $resp = $query->result_array();
-      $parc_prods = [];
+      $parc_prods = $retorno = [];
       $cont=0;
 
       if (!empty($this->session->userdata('parceiro_id'))) {
@@ -1302,11 +1302,13 @@ Class Pedido_Model extends MY_Model
             $parc_prods[$row['produto_parceiro_id']] = $this->relacionamento->get_parceiros_permitidos($row['produto_parceiro_id'], $this->session->userdata('parceiro_id'));
           }
 
-          if ( !in_array($row['parceiro_id'], $parc_prods[$row['produto_parceiro_id']]) ) {
-            array_splice($resp, $cont, 1);
+          if ( in_array($row['parceiro_id'], $parc_prods[$row['produto_parceiro_id']]) ) {
+            $retorno[] = $resp[$cont];
           }
           $cont++;
         }
+
+        $resp = $retorno;
       }
 
     }
