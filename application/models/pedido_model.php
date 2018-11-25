@@ -1303,7 +1303,7 @@ Class Pedido_Model extends MY_Model
           }
 
           if ( !in_array($row['parceiro_id'], $parc_prods[$row['produto_parceiro_id']]) ) {
-            array_splice($resp, $cont);
+            array_splice($resp, $cont, 1);
           }
           $cont++;
         }
