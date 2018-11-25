@@ -27,7 +27,7 @@ function parseData(data)
         data[i].comissao_corretor = parseNumero(val.comissao_corretor);
     })
 }
-
+ 
 $(function() {
     /**
      * Filtrar
