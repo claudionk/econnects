@@ -39,9 +39,10 @@ $(function() {
             'data_fim' : $("#data_fim").val()
         };
 
+        var action = ($('#action').length == 0 || $('#action').val() == '') ? 'getRelatorio' : $('#action').val();
         $.ajax({
-            url: base_url + 'admin/relatorios/getRelatorio',
-            method: "get",
+            url: base_url + 'admin/relatorios/'+ action,
+            method: "post",
             dataType: 'json',
             data: post
         })

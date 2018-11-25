@@ -12,17 +12,11 @@ class Relatorios extends Admin_Controller
     {
 
         //Carrega React e Orb (relatórios)
-        $this->template->js(app_assets_url("core/js/react.js", "admin"));
-        $this->template->js(app_assets_url("core/js/orb.min.js", "admin"));
-        $this->template->js(app_assets_url("modulos/relatorios/vendas/core.js", "admin"));
-        $this->template->js(app_assets_url("template/js/libs/toastr/toastr.js", "admin"));
-
-        $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/toastr/toastr.css", "admin"));
-        $this->template->css(app_assets_url("core/css/orb.min.css", "admin"));
+        $this->loadLibraries();
         $this->template->js(app_assets_url("modulos/relatorios/vendas/venda.js", "admin"));
 
         //Dados para template
-        $data = array();
+        $data = [];
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data);
@@ -34,6 +28,7 @@ class Relatorios extends Admin_Controller
         $data = array();
         $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
         $data['data_fim'] = date("d/m/Y");
+        $data['title'] = 'Relatório 01 de Vendas';
         $data['columns'] = [
             'Data da Venda',
             'Cliente',
@@ -82,6 +77,7 @@ class Relatorios extends Admin_Controller
         $data = array();
         $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
         $data['data_fim'] = date("d/m/Y");
+        $data['title'] = 'Relatório 04 de Vendas';
         $data['columns'] = [
             'Data da Venda',
             'Cliente',
@@ -138,6 +134,7 @@ class Relatorios extends Admin_Controller
         $data = array();
         $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
         $data['data_fim'] = date("d/m/Y");
+        $data['title'] = 'Relatório 05 de Vendas';
         $data['columns'] = [
             'Data da Venda',
             'Cliente',
@@ -188,6 +185,102 @@ class Relatorios extends Admin_Controller
         $this->template->load("admin/layouts/base", "$this->controller_uri/vendas5", $data);
     }
 
+    public function mapa_repasse_lasa()
+    {
+        //Carrega React e Orb (relatórios)
+        // $this->loadLibraries();
+        // $this->template->js(app_assets_url("modulos/relatorios/vendas/mapa_repasse_lasa.js", "admin"));
+
+        //Dados para template
+        $data = array();
+        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_fim'] = date("d/m/Y");
+        $data['action'] = $this->uri->segment(3);
+        $data['src'] = $this->controller_uri;
+        $data['title'] = 'Relatório de Mapa de Repasse LASA';
+        $data['layout'] = 'mapa_analitico';
+        $data['columns'] = [
+            'Operacao',
+            'Grupo',
+            'Data da Venda',
+            'Inicio Vigencia',
+            'Fim Vigencia',
+            'Num Bilhete',
+            'Segurado',
+            'Documento',
+            'Equipamento',
+            'Marca',
+            'Modelo',
+            'IMEI',
+            'Produto',
+            'Importancia Segurada',
+            'Num Endosso',
+            'Vigencia Parcela',
+            'Parcela',
+            'Status Parcela',
+            'Data Cancelamento',
+            'Valor Parcela',
+            'Premio Bruto Roubo Furto',
+            'Premio Liquido Roubo Furto',
+            'Premio Bruto Quebra',
+            'Premio Liquido Quebra',
+            'Pro Labore',
+            'Comissao Corretagem',
+
+        ];
+
+        if ($_POST) {
+            $result = $this->getMapaRepasse(FALSE);
+            $data['result'] = $result['data'];
+
+            if (!empty($_POST['btnExcel'])) {
+
+                $rows = [];
+                foreach ($data['result'] as $row) {
+                    $rows[] = [
+                        $row['operacao'],
+                        $row['grupo'],
+                        $row['data_emissao'],
+                        $row['ini_vigencia'],
+                        $row['fim_vigencia'],
+                        $row['num_apolice'],
+                        $row['segurado_nome'],
+                        $row['documento'],
+                        $row['equipamento'],
+                        $row['marca'],
+                        $row['modelo'],
+                        $row['imei'],
+                        $row['nome_produto_parceiro'],
+                        $row['importancia_segurada'],
+                        $row['num_endosso'],
+                        $row['vigencia_parcela'],
+                        $row['parcela'],
+                        $row['status_parcela'],
+                        $row['data_cancelamento'],
+                        app_format_currency($row['valor_parcela'], true),
+                        app_format_currency($row['PB_RF'], true),
+                        app_format_currency($row['PL_RF'], true),
+                        app_format_currency($row['PB_QA'], true),
+                        app_format_currency($row['PL_QA'], true),
+                        app_format_currency($row['pro_labore'], true),
+                        app_format_currency($row['valor_comissao'], true),
+                    ];
+                }
+                $this->exportExcel($data['columns'], $rows);
+            }
+
+            //Dados via GET
+            $data['data_inicio'] = $this->input->get_post('data_inicio');
+            $data['data_fim'] = $this->input->get_post('data_fim');
+            if (!empty($this->input->get_post('layout'))) {
+                $data['layout'] = $this->input->get_post('layout');
+            }
+        }
+
+        //Carrega template
+        $this->template->load("admin/layouts/base", "{$this->controller_uri}/{$data['action']}" , $data);
+    }
+
     /**
      * Retorna resultado
      */
@@ -210,6 +303,36 @@ class Relatorios extends Admin_Controller
 
 
         $resultado['data'] = $this->pedido->extrairRelatorioVendas();
+        $resultado['status'] = true;
+
+        if ($ajax)
+            echo json_encode($resultado);
+        else
+            return $resultado;
+    }
+
+    /**
+     * Retorna resultado
+     */
+    public function getMapaRepasse ($ajax = TRUE)
+    {
+        $this->load->model("pedido_model", "pedido");
+
+        $resultado = array();
+        $resultado['status'] = false;
+        // $pedidos = $this->pedido;
+
+        //Dados via GET
+        $data_inicio = $this->input->get_post('data_inicio');
+        $data_fim = $this->input->get_post('data_fim');
+
+        if(isset($data_inicio) && !empty($data_inicio))
+            $this->pedido->where("status_data", ">=", app_date_only_numbers_to_mysql($data_inicio));
+        if(isset($data_fim) && !empty($data_fim))
+            $this->pedido->where("status_data", "<=", app_date_only_numbers_to_mysql($data_fim, FALSE));
+
+
+        $resultado['data'] = $this->pedido->extrairRelatorioMapaRepasse();
         $resultado['status'] = true;
 
         if ($ajax)
@@ -272,5 +395,16 @@ class Relatorios extends Admin_Controller
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
         $objWriter->save('php://output');
         exit;
+    }
+
+    private function loadLibraries() {
+        //Carrega React e Orb (relatórios)
+        $this->template->js(app_assets_url("core/js/react.js", "admin"));
+        $this->template->js(app_assets_url("core/js/orb.min.js", "admin"));
+        $this->template->js(app_assets_url("modulos/relatorios/vendas/core.js", "admin"));
+        $this->template->js(app_assets_url("template/js/libs/toastr/toastr.js", "admin"));
+
+        $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/toastr/toastr.css", "admin"));
+        $this->template->css(app_assets_url("core/css/orb.min.css", "admin"));
     }
 }

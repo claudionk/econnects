@@ -1317,6 +1317,156 @@ Class Pedido_Model extends MY_Model
   }
 
   /**
+     * Extrai relatório de Mapa de Repasse
+     */
+  public function extrairRelatorioMapaRepasse()
+  {
+
+    /*
+      #, cb.nome as cobertura
+      #, FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2) as PB_cob
+      #, FORMAT(ac.valor / ae.valor_premio_net * ae.pro_labore, 2) AS iof_cob
+      #, ac.valor as PL_cob
+    */
+
+    $this->_database->distinct();
+    $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.cnpj, p.nome_fantasia,
+                                  pp.nome as nome_produto_parceiro, pr.nome as nome_produto, ppp.nome as plano_nome, {$this->_table}.valor_parcela, {$this->_table}.codigo, a.num_apolice, le.sigla as UF, u.nome as vendedor ");
+    $this->_database->select("IF(pp.cod_tpa = '007', 'LASA NOVOS', 'LASA USADOS') AS operacao
+      , pp.produto_parceiro_id
+      , parc.nome as grupo
+      , {$this->_table}.pedido_id
+      , DATE_FORMAT({$this->_table}.status_data, '%d/%m/%Y') AS data_emissao
+      , DATE_FORMAT(ae.data_ini_vigencia, '%d/%m/%Y') AS ini_vigencia
+      , DATE_FORMAT(ae.data_fim_vigencia, '%d/%m/%Y') AS fim_vigencia
+      , CONCAT(p.codigo_sucursal, '71', pp.cod_tpa, LPAD(substr(a.num_apolice, 8, LENGTH(a.num_apolice) ),8,'0')) AS num_apolice
+      , bp.nome AS segurado_nome
+      , bp.documento
+      , ec.nome as equipamento
+      , em.nome as marca
+      , ae.equipamento_nome as modelo
+      , ae.imei
+      , pp.nome as nome_produto_parceiro
+      , ae.nota_fiscal_valor as importancia_segurada
+      , IF(a.apolice_status_id = 2, CONCAT(p.codigo_sucursal, '71', LPAD(1,7,'0')), '0') AS num_endosso
+      , DATE_FORMAT({$this->_table}.status_data, '%b/%y') AS vigencia_parcela
+      , '1|1' as parcela
+      , 'PAGO' as status_parcela
+      , DATE_FORMAT(ae.data_cancelamento, '%d/%m/%Y') AS data_cancelamento
+
+      , ae.valor_premio_total as valor_parcela
+      , ae.valor_premio_total as PremioBruto 
+      , ae.valor_premio_net AS PremioLiquido
+
+      , (
+          SELECT FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
+          FROM apolice_cobertura ac 
+          INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+          INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+          WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 39
+          LIMIT 1
+      ) AS PB_RF
+      , (
+          SELECT ac.valor
+          FROM apolice_cobertura ac 
+          INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+          INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+          WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 39
+          LIMIT 1
+      ) AS PL_RF
+      , (
+          SELECT FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
+          FROM apolice_cobertura ac 
+          INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+          INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+          WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 71
+          LIMIT 1
+      ) AS PB_QA
+      , (
+          SELECT ac.valor
+          FROM apolice_cobertura ac 
+          INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+          INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+          WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 71
+          LIMIT 1
+      ) AS PL_QA
+
+      , (
+          SELECT FORMAT(cmg.valor, 2)
+          FROM comissao_gerada cmg
+          INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
+          WHERE cmg.pedido_id = {$this->_table}.pedido_id AND parc_com.parceiro_tipo_id = 3
+          LIMIT 1
+      ) AS pro_labore
+      , (
+          SELECT FORMAT(cmg.valor, 2)
+          FROM comissao_gerada cmg
+          INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
+          WHERE cmg.pedido_id = {$this->_table}.pedido_id AND parc_com.parceiro_tipo_id = 2
+          LIMIT 1
+      ) AS valor_comissao
+      
+    ", FALSE);
+
+    $this->_database->from($this->_table);
+    $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
+    $this->_database->join("apolice a", "a.pedido_id = {$this->_table}.pedido_id", "inner");
+    $this->_database->join("cotacao c", "c.cotacao_id = {$this->_table}.cotacao_id", "inner");
+    $this->_database->join("cotacao_status cs", "cs.cotacao_status_id = c.cotacao_status_id", "inner");
+    $this->_database->join("cotacao_equipamento ce", "ce.cotacao_id = {$this->_table}.cotacao_id and ce.deletado = 0", "inner");
+    $this->_database->join("produto_parceiro pp", "pp.produto_parceiro_id = c.produto_parceiro_id", "inner");
+    $this->_database->join("parceiro p", "p.parceiro_id = pp.parceiro_id", "inner");
+    $this->_database->join("parceiro parc", "parc.parceiro_id = a.parceiro_id", "inner");
+    $this->_database->join("produto pr", "pr.produto_id = pp.produto_id", "inner");
+    $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "inner");
+    $this->_database->join("base_pessoa bp", "replace(replace(ae.cnpj_cpf,'-',''),'.','') = bp.documento", "inner", FALSE);
+    // $this->_database->join("comissao_gerada cmg", "cmg.pedido_id = {$this->_table}.pedido_id AND cmg.parceiro_id = a.parceiro_id", "left");
+    // $this->_database->join("parceiro parc_com", "parc_com.parceiro_id = cmg.parceiro_id", "left");
+    $this->_database->join("equipamento_categoria ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "inner");
+    $this->_database->join("equipamento_marca em", "em.equipamento_marca_id = ae.equipamento_marca_id", "inner");
+    $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = ce.produto_parceiro_plano_id", "inner");
+    $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
+    $this->_database->join("usuario u", "u.usuario_id = c.usuario_cotacao_id", "left");
+    
+    // colaborador só visualiza os próprios pedidos
+    if ( $this->session->userdata('usuario_acl_tipo_id') == 2 ) {
+      $this->_database->where("c.usuario_cotacao_id", $this->session->userdata('usuario_id'));
+    }
+
+    $this->_database->where("parc.slug IN('lojasamericanas')");
+    $this->_database->where("cs.slug = 'finalziada'"); /* @TODO MUDAR PARA finalizada */
+    $query = $this->_database->get();
+    $resp = [];
+
+    if($query->num_rows() > 0)
+    {
+      $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
+
+      $resp = $query->result_array();
+      $parc_prods = $retorno = [];
+      $cont=0;
+
+      /*if (!empty($this->session->userdata('parceiro_id'))) {
+        foreach ($resp as $row) {
+          if ( !in_array($row['produto_parceiro_id'], $parc_prods) ) {
+            $parc_prods[$row['produto_parceiro_id']] = $this->relacionamento->get_parceiros_permitidos($row['produto_parceiro_id'], $this->session->userdata('parceiro_id'));
+          }
+
+          if ( in_array($row['parceiro_id'], $parc_prods[$row['produto_parceiro_id']]) ) {
+            $retorno[] = $resp[$cont];
+          }
+          $cont++;
+        }
+
+        $resp = $retorno;
+      }*/
+
+    }
+    return $resp;
+
+  }
+
+  /**
      * Muda status do pedido
      * @param $id_pedido
      * @param $status

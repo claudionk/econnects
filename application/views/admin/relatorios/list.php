@@ -27,17 +27,18 @@
                 <?php $field_name = "data_inicio"; $field_label = "Data inicial: " ?>
                 <div class="col-md-3 col-sm-4 form-group">
                     <label class="control-label" for="<?php echo $field_name;?>"><?php echo $field_label ?></label>
-                    <input class="form-control inputmask-date" placeholder="__/__/____" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo date("d/m/Y",strtotime("-1 month")) ?> ?>" />
+                    <input class="form-control inputmask-date" placeholder="__/__/____" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?= $data_inicio ?>" />
                 </div>
 
                 <?php $field_name = "data_fim"; $field_label = "Data final: " ?>
                 <div class="col-md-3 col-sm-4 form-group">
                     <label class="control-label" for="<?php echo $field_name;?>"><?php echo $field_label ?></label>
-                    <input class="form-control inputmask-date" placeholder="__/__/____" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo date("d/m/Y") ?> ?>" />
+                    <input class="form-control inputmask-date" placeholder="__/__/____" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?= $data_fim ?>" />
                 </div>
 
                 <div class="col-md-2 col-sm-4">
                     <button id="btnFiltro" class="btn btn-primary btnFiltrarResultadoRelatorios"><i class="fa fa-search"> </i>  Filtrar dados</button>
+                    <input type="hidden" name="action" id="action" value="<?= issetor($action, '') ?>">
                 </div>
 
             </div>
