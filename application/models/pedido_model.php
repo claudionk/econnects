@@ -1291,7 +1291,7 @@ Class Pedido_Model extends MY_Model
     if(isset($data_fim) && !empty($data_fim))
         $this->_database->where("status_data <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
 
-    $this->_database->where("cs.slug = 'finalziada'"); /* @TODO MUDAR PARA finalizada */
+    $this->_database->where("cs.slug = 'finalizada'");
     $query = $this->_database->get();
     $resp = [];
 
@@ -1441,7 +1441,7 @@ Class Pedido_Model extends MY_Model
         $this->_database->where("status_data <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
 
     $this->_database->where("parc.slug IN('lojasamericanas')");
-    $this->_database->where("cs.slug = 'finalziada'"); /* @TODO MUDAR PARA finalizada */
+    $this->_database->where("cs.slug = 'finalizada'");
     $query = $this->_database->get();
     $resp = [];
 
@@ -1586,7 +1586,7 @@ Class Pedido_Model extends MY_Model
                 LEFT JOIN `localidade_estado` le ON `le`.`localidade_estado_id` = `p`.`localidade_estado_id`
                 LEFT JOIN `usuario` u ON `u`.`usuario_id` = `c`.`usuario_cotacao_id`
                 WHERE `parc`.`slug` IN('lojasamericanas')
-                    AND `cs`.`slug` = 'finalziada'
+                    AND `cs`.`slug` = 'finalizada'
                     {$where}
                 ORDER BY pp.cod_tpa
             ) AS x
