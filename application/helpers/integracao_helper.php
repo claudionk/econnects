@@ -802,7 +802,7 @@ if ( ! function_exists('app_get_api'))
         $CI =& get_instance();
         $CI->session->set_userdata("email", $acesso->email);
 
-        $url = $CI->config->item("URL_sisconnects") ."admin/api/{$service}".
+        $url = $CI->config->item("URL_sisconnects") ."admin/api/{$service}";
         $header = ["Content-Type: application/json", "APIKEY: {$acesso->apikey}"];
 
         $retorno = soap_curl([
