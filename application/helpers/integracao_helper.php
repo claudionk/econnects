@@ -528,6 +528,18 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
     {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
 
+        $CI =& get_instance();
+
+        if (!empty($formato)) {
+            $geraDados = $dados['registro'];
+            $geraDados['integracao_log_detalhe_id'] = $formato;
+
+            unset($geraDados['id_log']);
+            
+            $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
+            $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
+        }
+
         $cpf = $dados['registro']['cpf'];
         $ean = $dados['registro']['ean'];
         $num_apolice = $dados['registro']['num_apolice'];
@@ -550,8 +562,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         $cpfErro = $eanErro = true;
         $cpfErroMsg = $eanErroMsg = "";
 
-        // verifica se existe a emissão do certificado para gerar o cancelamento
-        $CI =& get_instance();
 
         // usar a pesquisa por nome
         $CI->load->model("apolice_model", "apolice");

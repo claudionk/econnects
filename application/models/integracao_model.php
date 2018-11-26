@@ -810,7 +810,7 @@ Class Integracao_Model extends MY_Model
             //execute before detail
             if (!empty($integracao['before_detail']) ) {
                 if ( function_exists($integracao['before_detail']) ) {
-                    $callFuncReturn = call_user_func($integracao['before_detail'], null, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
+                    $callFuncReturn = call_user_func($integracao['before_detail'], $integracao_log_detalhe_id, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
                     // echo "<pre>";print_r($callFuncReturn);echo "</pre>";
                     // die();
                     if ( !empty($callFuncReturn) && !empty($integracao_log_detalhe_id) ){
