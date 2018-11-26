@@ -312,18 +312,44 @@ class Relatorios extends Admin_Controller
         ];
 
         $ret = [];
-        $quantidade_RF = 0;
-        $IOF_RF = 0;
-        $PL_RF = 0;
-        $PB_RF = 0;
-        $pro_labore_RF = 0;
-        $valor_comissao_RF = 0;
-        $quantidade_QA = 0;
-        $PB_QA = 0;
-        $IOF_QA = 0;
-        $PL_QA = 0;
-        $pro_labore_QA = 0;
-        $valor_comissao_QA = 0;
+        $V_quantidade_RF = 0;
+        $V_IOF_RF = 0;
+        $V_PL_RF = 0;
+        $V_PB_RF = 0;
+        $V_pro_labore_RF = 0;
+        $V_valor_comissao_RF = 0;
+        $V_quantidade_QA = 0;
+        $V_PB_QA = 0;
+        $V_IOF_QA = 0;
+        $V_PL_QA = 0;
+        $V_pro_labore_QA = 0;
+        $V_valor_comissao_QA = 0;
+
+        $C_quantidade_RF = 0;
+        $C_IOF_RF = 0;
+        $C_PL_RF = 0;
+        $C_PB_RF = 0;
+        $C_pro_labore_RF = 0;
+        $C_valor_comissao_RF = 0;
+        $C_quantidade_QA = 0;
+        $C_PB_QA = 0;
+        $C_IOF_QA = 0;
+        $C_PL_QA = 0;
+        $C_pro_labore_QA = 0;
+        $C_valor_comissao_QA = 0;
+
+        $T_quantidade_RF = 0;
+        $T_IOF_RF = 0;
+        $T_PL_RF = 0;
+        $T_PB_RF = 0;
+        $T_pro_labore_RF = 0;
+        $T_valor_comissao_RF = 0;
+        $T_quantidade_QA = 0;
+        $T_PB_QA = 0;
+        $T_IOF_QA = 0;
+        $T_PL_QA = 0;
+        $T_pro_labore_QA = 0;
+        $T_valor_comissao_QA = 0;
 
         foreach ($tpas as $tpa => $desc) { 
             $find = false;
@@ -332,18 +358,44 @@ class Relatorios extends Admin_Controller
                     $row['desc'] = $desc;
                     $ret[] = $row;
 
-                    $quantidade_RF += $row['quantidade_RF'];
-                    $IOF_RF += $row['IOF_RF'];
-                    $PL_RF += $row['PL_RF'];
-                    $PB_RF += $row['PB_RF'];
-                    $pro_labore_RF += $row['pro_labore_RF'];
-                    $valor_comissao_RF += $row['valor_comissao_RF'];
-                    $quantidade_QA += $row['quantidade_QA'];
-                    $PB_QA += $row['PB_QA'];
-                    $IOF_QA += $row['IOF_QA'];
-                    $PL_QA += $row['PL_QA'];
-                    $pro_labore_QA += $row['pro_labore_QA'];
-                    $valor_comissao_QA += $row['valor_comissao_QA'];
+                    $V_quantidade_RF += $row['V_quantidade_RF'];
+                    $V_IOF_RF += $row['V_IOF_RF'];
+                    $V_PL_RF += $row['V_PL_RF'];
+                    $V_PB_RF += $row['V_PB_RF'];
+                    $V_pro_labore_RF += $row['V_pro_labore_RF'];
+                    $V_valor_comissao_RF += $row['V_valor_comissao_RF'];
+                    $V_quantidade_QA += $row['V_quantidade_QA'];
+                    $V_PB_QA += $row['V_PB_QA'];
+                    $V_IOF_QA += $row['V_IOF_QA'];
+                    $V_PL_QA += $row['V_PL_QA'];
+                    $V_pro_labore_QA += $row['V_pro_labore_QA'];
+                    $V_valor_comissao_QA += $row['V_valor_comissao_QA'];
+
+                    $C_quantidade_RF += $row['C_quantidade_RF'];
+                    $C_IOF_RF += $row['C_IOF_RF'];
+                    $C_PL_RF += $row['C_PL_RF'];
+                    $C_PB_RF += $row['C_PB_RF'];
+                    $C_pro_labore_RF += $row['C_pro_labore_RF'];
+                    $C_valor_comissao_RF += $row['C_valor_comissao_RF'];
+                    $C_quantidade_QA += $row['C_quantidade_QA'];
+                    $C_PB_QA += $row['C_PB_QA'];
+                    $C_IOF_QA += $row['C_IOF_QA'];
+                    $C_PL_QA += $row['C_PL_QA'];
+                    $C_pro_labore_QA += $row['C_pro_labore_QA'];
+                    $C_valor_comissao_QA += $row['C_valor_comissao_QA'];
+
+                    $T_quantidade_RF += $V_quantidade_RF + $C_quantidade_RF;
+                    $T_IOF_RF += $V_IOF_RF + $C_IOF_RF;
+                    $T_PL_RF += $V_PL_RF + $C_PL_RF;
+                    $T_PB_RF += $V_PB_RF + $C_PB_RF;
+                    $T_pro_labore_RF += $V_pro_labore_RF + $C_pro_labore_RF;
+                    $T_valor_comissao_RF += $V_valor_comissao_RF + $C_valor_comissao_RF;
+                    $T_quantidade_QA += $V_quantidade_QA + $C_quantidade_QA;
+                    $T_PB_QA += $V_PB_QA + $C_PB_QA;
+                    $T_IOF_QA += $V_IOF_QA + $C_IOF_QA;
+                    $T_PL_QA += $V_PL_QA + $C_PL_QA;
+                    $T_pro_labore_QA += $V_pro_labore_QA + $C_pro_labore_QA;
+                    $T_valor_comissao_QA += $V_valor_comissao_QA + $C_valor_comissao_QA;
                     $find = true;
                     break;
                 }
@@ -352,37 +404,86 @@ class Relatorios extends Admin_Controller
             if (!$find) {
                 $ret[] = [
                     'desc' => $desc,
-                    'cod_tpa' => 0,
-                    'quantidade_RF' => 0,
-                    'IOF_RF' => 0,
-                    'PL_RF' => 0,
-                    'PB_RF' => 0,
-                    'pro_labore_RF' => 0,
-                    'valor_comissao_RF' => 0,
-                    'quantidade_QA' => 0,
-                    'PB_QA' => 0,
-                    'IOF_QA' => 0,
-                    'PL_QA' => 0,
-                    'pro_labore_QA' => 0,
-                    'valor_comissao_QA' => 0,
+                    'V_quantidade_RF' => 0,
+                    'V_IOF_RF' => 0,
+                    'V_PL_RF' => 0,
+                    'V_PB_RF' => 0,
+                    'V_pro_labore_RF' => 0,
+                    'V_valor_comissao_RF' => 0,
+                    'V_quantidade_QA' => 0,
+                    'V_PB_QA' => 0,
+                    'V_IOF_QA' => 0,
+                    'V_PL_QA' => 0,
+                    'V_pro_labore_QA' => 0,
+                    'V_valor_comissao_QA' => 0,
+
+                    'C_quantidade_RF' => 0,
+                    'C_IOF_RF' => 0,
+                    'C_PL_RF' => 0,
+                    'C_PB_RF' => 0,
+                    'C_pro_labore_RF' => 0,
+                    'C_valor_comissao_RF' => 0,
+                    'C_quantidade_QA' => 0,
+                    'C_PB_QA' => 0,
+                    'C_IOF_QA' => 0,
+                    'C_PL_QA' => 0,
+                    'C_pro_labore_QA' => 0,
+                    'C_valor_comissao_QA' => 0,
+
+                    'T_quantidade_RF' => 0,
+                    'T_IOF_RF' => 0,
+                    'T_PL_RF' => 0,
+                    'T_PB_RF' => 0,
+                    'T_pro_labore_RF' => 0,
+                    'T_valor_comissao_RF' => 0,
+                    'T_quantidade_QA' => 0,
+                    'T_PB_QA' => 0,
+                    'T_IOF_QA' => 0,
+                    'T_PL_QA' => 0,
+                    'T_pro_labore_QA' => 0,
+                    'T_valor_comissao_QA' => 0,
                 ];
             }
         }
 
         $ret[] = [
             'desc' => 'TOTAL',
-            'quantidade_RF' => $quantidade_RF,
-            'IOF_RF' => $IOF_RF,
-            'PL_RF' => $PL_RF,
-            'PB_RF' => $PB_RF,
-            'pro_labore_RF' => $pro_labore_RF,
-            'valor_comissao_RF' => $valor_comissao_RF,
-            'quantidade_QA' => $quantidade_QA,
-            'PB_QA' => $PB_QA,
-            'IOF_QA' => $IOF_QA,
-            'PL_QA' => $PL_QA,
-            'pro_labore_QA' => $pro_labore_QA,
-            'valor_comissao_QA' => $valor_comissao_QA,
+            'V_quantidade_RF' => $V_quantidade_RF,
+            'V_IOF_RF' => $V_IOF_RF,
+            'V_PL_RF' => $V_PL_RF,
+            'V_PB_RF' => $V_PB_RF,
+            'V_pro_labore_RF' => $V_pro_labore_RF,
+            'V_valor_comissao_RF' => $V_valor_comissao_RF,
+            'V_quantidade_QA' => $V_quantidade_QA,
+            'V_PB_QA' => $V_PB_QA,
+            'V_IOF_QA' => $V_IOF_QA,
+            'V_PL_QA' => $V_PL_QA,
+            'V_pro_labore_QA' => $V_pro_labore_QA,
+            'V_valor_comissao_QA' => $V_valor_comissao_QA,
+            'C_quantidade_RF' => $C_quantidade_RF,
+            'C_IOF_RF' => $C_IOF_RF,
+            'C_PL_RF' => $C_PL_RF,
+            'C_PB_RF' => $C_PB_RF,
+            'C_pro_labore_RF' => $C_pro_labore_RF,
+            'C_valor_comissao_RF' => $C_valor_comissao_RF,
+            'C_quantidade_QA' => $C_quantidade_QA,
+            'C_PB_QA' => $C_PB_QA,
+            'C_IOF_QA' => $C_IOF_QA,
+            'C_PL_QA' => $C_PL_QA,
+            'C_pro_labore_QA' => $C_pro_labore_QA,
+            'C_valor_comissao_QA' => $C_valor_comissao_QA,
+            'T_quantidade_RF' => $T_quantidade_RF,
+            'T_IOF_RF' => $T_IOF_RF,
+            'T_PL_RF' => $T_PL_RF,
+            'T_PB_RF' => $T_PB_RF,
+            'T_pro_labore_RF' => $T_pro_labore_RF,
+            'T_valor_comissao_RF' => $T_valor_comissao_RF,
+            'T_quantidade_QA' => $T_quantidade_QA,
+            'T_PB_QA' => $T_PB_QA,
+            'T_IOF_QA' => $T_IOF_QA,
+            'T_PL_QA' => $T_PL_QA,
+            'T_pro_labore_QA' => $T_pro_labore_QA,
+            'T_valor_comissao_QA' => $T_valor_comissao_QA,
         ];
 
         return $ret;
@@ -468,20 +569,30 @@ class Relatorios extends Admin_Controller
             )
         );
         $objPHPExcel->getDefaultStyle()->getFont()->setName('Arial')->setSize(10);
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:E2')->applyFromArray($styleCenter);
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:K2')->applyFromArray($styleCenter);
         
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A1', '');
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B1', '');
         $objPHPExcel->setActiveSheetIndex(0)->mergeCells('C1:E1');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C1','Vendas');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C1','VENDAS');
+        $objPHPExcel->setActiveSheetIndex(0)->mergeCells('F1:H1');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F1','CANCELAMENTOS');
+        $objPHPExcel->setActiveSheetIndex(0)->mergeCells('I1:K1');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I1','TOTAL');
 
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A2', '');
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B2', '');
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C2','Roubo ou Furto');
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D2','Quebra Acidental');
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E2','TOTAL');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F2','Roubo ou Furto');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G2','Quebra Acidental');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H2','TOTAL');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I2','Roubo ou Furto');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J2','Quebra Acidental');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K2','TOTAL');
 
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:E1')->applyFromArray(
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:K1')->applyFromArray(
             array(
                 'fill' => array(
                     'type' => PHPExcel_Style_Fill::FILL_SOLID,
@@ -494,50 +605,92 @@ class Relatorios extends Admin_Controller
         // Cria as Linhas
         foreach ($rows as $row) {
             $contRFim = $contR + 5;
-            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleCenter);
+            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':H'.$contR)->applyFromArray($styleCenter);
 
             $objPHPExcel->setActiveSheetIndex(0)->mergeCells('A'.$contR.':A'.$contRFim)->getStyle('A'.$contR.':A'.$contR)->applyFromArray($styleCenterVertic);
             $objPHPExcel->getActiveSheet()->getStyle('A'.$contR)->getAlignment()->setTextRotation(90);
             $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A'. $contR,$row['desc']);
             $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Quantidade de Registros');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, $row['quantidade_RF']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, $row['quantidade_QA']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, $row['quantidade_RF'] + $row['quantidade_QA']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, $row['V_quantidade_RF']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, $row['V_quantidade_QA']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, $row['V_quantidade_RF'] + $row['V_quantidade_QA']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F'. $contR, $row['C_quantidade_RF']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G'. $contR, $row['C_quantidade_QA']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H'. $contR, $row['C_quantidade_RF'] + $row['C_quantidade_QA']);
+
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I'. $contR, $row['V_quantidade_RF'] + $row['C_quantidade_RF']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J'. $contR, $row['V_quantidade_QA'] + $row['C_quantidade_QA']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K'. $contR, $row['V_quantidade_RF'] + $row['C_quantidade_RF'] + $row['V_quantidade_QA'] + $row['C_quantidade_QA']);
             $contR++;
 
             $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
             $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Prêmio Bruto');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['PB_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['PB_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['PB_RF'] + $row['PB_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_PB_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['V_PB_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_PB_RF'] + $row['V_PB_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F'. $contR, app_format_currency($row['C_PB_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G'. $contR, app_format_currency($row['C_PB_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H'. $contR, app_format_currency($row['C_PB_RF'] + $row['C_PB_QA'], true));
+
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I'. $contR, app_format_currency($row['V_PB_RF'] + $row['C_PB_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J'. $contR, app_format_currency($row['V_PB_QA'] + $row['C_PB_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K'. $contR, app_format_currency($row['V_PB_RF'] + $row['C_PB_RF'] + $row['V_PB_QA'] + $row['C_PB_QA'], true));
             $contR++;
 
             $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
             $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'IOF');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['IOF_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['IOF_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['IOF_RF'] + $row['IOF_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_IOF_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['V_IOF_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_IOF_RF'] + $row['V_IOF_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F'. $contR, app_format_currency($row['C_IOF_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G'. $contR, app_format_currency($row['C_IOF_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H'. $contR, app_format_currency($row['C_IOF_RF'] + $row['C_IOF_QA'], true));
+
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I'. $contR, app_format_currency($row['V_IOF_RF'] + $row['C_IOF_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J'. $contR, app_format_currency($row['V_IOF_QA'] + $row['C_IOF_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K'. $contR, app_format_currency($row['V_IOF_RF'] + $row['C_IOF_RF'] + $row['V_IOF_QA'] + $row['C_IOF_QA'], true));
             $contR++;
 
             $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
             $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Prêmio Líquido');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['PL_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['PL_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['PL_RF'] + $row['PL_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_PL_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['V_PL_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_PL_RF'] + $row['V_PL_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F'. $contR, app_format_currency($row['C_PL_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G'. $contR, app_format_currency($row['C_PL_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H'. $contR, app_format_currency($row['C_PL_RF'] + $row['C_PL_QA'], true));
+
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I'. $contR, app_format_currency($row['V_PL_RF'] + $row['C_PL_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J'. $contR, app_format_currency($row['V_PL_QA'] + $row['C_PL_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K'. $contR, app_format_currency($row['V_PL_RF'] + $row['C_PL_RF'] + $row['V_PL_QA'] + $row['C_PL_QA'], true));
             $contR++;
 
             $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
             $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Pró-labore LASA');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['pro_labore_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['pro_labore_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['pro_labore_RF'] + $row['pro_labore_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_pro_labore_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['V_pro_labore_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_pro_labore_RF'] + $row['V_pro_labore_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F'. $contR, app_format_currency($row['C_pro_labore_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G'. $contR, app_format_currency($row['C_pro_labore_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H'. $contR, app_format_currency($row['C_pro_labore_RF'] + $row['C_pro_labore_QA'], true));
+
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I'. $contR, app_format_currency($row['V_pro_labore_RF'] + $row['C_pro_labore_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J'. $contR, app_format_currency($row['V_pro_labore_QA'] + $row['C_pro_labore_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K'. $contR, app_format_currency($row['V_pro_labore_RF'] + $row['C_pro_labore_RF'] + $row['V_pro_labore_QA'] + $row['C_pro_labore_QA'], true));
             $contR++;
 
             $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
             $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Comissão de Corretagem');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['valor_comissao_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['valor_comissao_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['valor_comissao_RF'] + $row['valor_comissao_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_valor_comissao_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['V_valor_comissao_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_valor_comissao_RF'] + $row['V_valor_comissao_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F'. $contR, app_format_currency($row['C_valor_comissao_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G'. $contR, app_format_currency($row['C_valor_comissao_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H'. $contR, app_format_currency($row['C_valor_comissao_RF'] + $row['C_valor_comissao_QA'], true));
+
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I'. $contR, app_format_currency($row['V_valor_comissao_RF'] + $row['C_valor_comissao_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J'. $contR, app_format_currency($row['V_valor_comissao_QA'] + $row['C_valor_comissao_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K'. $contR, app_format_currency($row['V_valor_comissao_RF'] + $row['C_valor_comissao_RF'] + $row['V_valor_comissao_QA'] + $row['C_valor_comissao_QA'], true));
             $contR++;
         }
 

@@ -1473,22 +1473,36 @@ Class Pedido_Model extends MY_Model
 
         $query = $this->_database->query("
             SELECT cod_tpa, 
-                SUM(IF(PB_RF IS NOT NULL, 1, 0)) AS quantidade_RF,
-                SUM(IFNULL(IOF_RF,0)) AS IOF_RF, 
-                SUM(IFNULL(PL_RF,0)) AS PL_RF, 
-                SUM(IFNULL(PB_RF,0)) AS PB_RF, 
-                SUM(IFNULL(pro_labore_RF,0)) AS pro_labore_RF, 
-                SUM(IFNULL(valor_comissao_RF,0)) AS valor_comissao_RF, 
-                SUM(IF(PB_QA IS NOT NULL, 1, 0)) AS quantidade_QA,
-                SUM(IFNULL(PB_QA,0)) AS PB_QA, 
-                SUM(IFNULL(IOF_QA,0)) AS IOF_QA, 
-                SUM(IFNULL(PL_QA,0)) AS PL_QA, 
-                SUM(IFNULL(pro_labore_QA,0)) AS pro_labore_QA, 
-                SUM(IFNULL(valor_comissao_QA,0)) AS valor_comissao_QA
+                IF(apolice_status_id = 1, SUM(IF(PB_RF IS NOT NULL, 1, 0)), 0) AS V_quantidade_RF,
+                IF(apolice_status_id = 1, SUM(IFNULL(IOF_RF,0)), 0) AS V_IOF_RF, 
+                IF(apolice_status_id = 1, SUM(IFNULL(PL_RF,0)), 0) AS V_PL_RF, 
+                IF(apolice_status_id = 1, SUM(IFNULL(PB_RF,0)), 0) AS V_PB_RF, 
+                IF(apolice_status_id = 1, SUM(IFNULL(pro_labore_RF,0)), 0) AS V_pro_labore_RF, 
+                IF(apolice_status_id = 1, SUM(IFNULL(valor_comissao_RF,0)), 0) AS V_valor_comissao_RF, 
+                IF(apolice_status_id = 1, SUM(IF(PB_QA IS NOT NULL, 1, 0)), 0) AS V_quantidade_QA,
+                IF(apolice_status_id = 1, SUM(IFNULL(PB_QA,0)), 0) AS V_PB_QA, 
+                IF(apolice_status_id = 1, SUM(IFNULL(IOF_QA,0)), 0) AS V_IOF_QA, 
+                IF(apolice_status_id = 1, SUM(IFNULL(PL_QA,0)), 0) AS V_PL_QA, 
+                IF(apolice_status_id = 1, SUM(IFNULL(pro_labore_QA,0)), 0) AS V_pro_labore_QA, 
+                IF(apolice_status_id = 1, SUM(IFNULL(valor_comissao_QA,0)), 0) AS V_valor_comissao_QA,
+
+                IF(apolice_status_id = 2, SUM(IF(PB_RF IS NOT NULL, 1, 0)), 0) AS C_quantidade_RF,
+                IF(apolice_status_id = 2, SUM(IFNULL(IOF_RF,0)), 0) AS C_IOF_RF, 
+                IF(apolice_status_id = 2, SUM(IFNULL(PL_RF,0)), 0) AS C_PL_RF, 
+                IF(apolice_status_id = 2, SUM(IFNULL(PB_RF,0)), 0) AS C_PB_RF, 
+                IF(apolice_status_id = 2, SUM(IFNULL(pro_labore_RF,0)), 0) AS C_pro_labore_RF, 
+                IF(apolice_status_id = 2, SUM(IFNULL(valor_comissao_RF,0)), 0) AS C_valor_comissao_RF, 
+                IF(apolice_status_id = 2, SUM(IF(PB_QA IS NOT NULL, 1, 0)), 0) AS C_quantidade_QA,
+                IF(apolice_status_id = 2, SUM(IFNULL(PB_QA,0)), 0) AS C_PB_QA, 
+                IF(apolice_status_id = 2, SUM(IFNULL(IOF_QA,0)), 0) AS C_IOF_QA, 
+                IF(apolice_status_id = 2, SUM(IFNULL(PL_QA,0)), 0) AS C_PL_QA, 
+                IF(apolice_status_id = 2, SUM(IFNULL(pro_labore_QA,0)), 0) AS C_pro_labore_QA, 
+                IF(apolice_status_id = 2, SUM(IFNULL(valor_comissao_QA,0)), 0) AS C_valor_comissao_QA
             FROM (
                 SELECT 
                     pp.cod_tpa,
                     pedido.pedido_id,
+                    a.apolice_status_id,
                     (
                         SELECT FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
                         FROM apolice_cobertura ac 

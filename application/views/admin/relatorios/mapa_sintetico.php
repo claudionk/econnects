@@ -15,17 +15,28 @@
         border-bottom: 1px solid #c9c9c9;
         font-weight: bold;
     }
+    .divisorLeft {
+        border-right: 1px solid #c9c9c9;
+    }
 </style>
 <table class="table table-striped">
     <tr>
         <td></td>
         <td></td>
         <td colspan="3" align="center" class="baseLineTD">VENDAS</td>
+        <td colspan="3" align="center" class="baseLineTD">CANCELAMENTOS</td>
+        <td colspan="3" align="center" class="baseLineTD">TOTAL</td>
     </tr>
 
     <tr>
         <th></th>
         <th></th>
+        <th>Roubo ou Furto</th>
+        <th>Quebra Acidental</th>
+        <th>TOTAL</th>
+        <th>Roubo ou Furto</th>
+        <th>Quebra Acidental</th>
+        <th>TOTAL</th>
         <th>Roubo ou Furto</th>
         <th>Quebra Acidental</th>
         <th>TOTAL</th>
@@ -49,40 +60,88 @@ if (isset($result)) {
                 <td rowspan="6" style="vertical-align: middle;" class="baseLineTD">
                     <div class="rotate"><?= $row['desc'] ?></div>
                 </td>
-                <td>Quantidade de Registros</td>
-                <td><?= $row['quantidade_RF'] ?></td>
-                <td><?= $row['quantidade_QA'] ?></td>
-                <td><?= $row['quantidade_RF'] + $row['quantidade_QA'] ?></td>
+                <td class="divisorLeft">Quantidade de Registros</td>
+                <td><?= $row['V_quantidade_RF'] ?></td>
+                <td><?= $row['V_quantidade_QA'] ?></td>
+                <td class="divisorLeft"><?= $row['V_quantidade_RF'] + $row['V_quantidade_QA'] ?></td>
+
+                <td><?= $row['C_quantidade_RF'] ?></td>
+                <td><?= $row['C_quantidade_QA'] ?></td>
+                <td class="divisorLeft"><?= $row['C_quantidade_RF'] + $row['C_quantidade_QA'] ?></td>
+
+                <td><?= $row['V_quantidade_RF'] + $row['C_quantidade_RF'] ?></td>
+                <td><?= $row['V_quantidade_QA'] + $row['C_quantidade_QA'] ?></td>
+                <td class="divisorLeft"><?= $row['V_quantidade_RF'] + $row['C_quantidade_RF'] + $row['V_quantidade_QA'] + $row['C_quantidade_QA'] ?></td>
             </tr>
             <tr>
-                <td>Prêmio Bruto</td>
-                <td><?= app_format_currency($row['PB_RF'], true) ?></td>
-                <td><?= app_format_currency($row['PB_QA'], true) ?></td>
-                <td><?= app_format_currency($row['PB_RF'] + $row['PB_QA'], true) ?></td>
+                <td class="divisorLeft">Prêmio Bruto</td>
+                <td><?= app_format_currency($row['V_PB_RF'], true) ?></td>
+                <td><?= app_format_currency($row['V_PB_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['V_PB_RF'] + $row['V_PB_QA'], true) ?></td>
+
+                <td><?= app_format_currency($row['C_PB_RF'], true) ?></td>
+                <td><?= app_format_currency($row['C_PB_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['C_PB_RF'] + $row['C_PB_QA'], true) ?></td>
+
+                <td><?= app_format_currency($row['V_PB_RF'] + $row['C_PB_RF'], true) ?></td>
+                <td><?= app_format_currency($row['V_PB_QA'] + $row['C_PB_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['V_PB_RF'] + $row['C_PB_RF'] + $row['V_PB_QA'] + $row['C_PB_QA'], true) ?></td>
             </tr>
             <tr>
-                <td>IOF</td>
-                <td><?= app_format_currency($row['IOF_RF'], true) ?></td>
-                <td><?= app_format_currency($row['IOF_QA'], true) ?></td>
-                <td><?= app_format_currency($row['IOF_RF'] + $row['IOF_QA'], true) ?></td>
+                <td class="divisorLeft">IOF</td>
+                <td><?= app_format_currency($row['V_IOF_RF'], true) ?></td>
+                <td><?= app_format_currency($row['V_IOF_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['V_IOF_RF'] + $row['V_IOF_QA'], true) ?></td>
+
+                <td><?= app_format_currency($row['C_IOF_RF'], true) ?></td>
+                <td><?= app_format_currency($row['C_IOF_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['C_IOF_RF'] + $row['C_IOF_QA'], true) ?></td>
+
+                <td><?= app_format_currency($row['V_IOF_RF'] + $row['C_IOF_RF'], true) ?></td>
+                <td><?= app_format_currency($row['V_IOF_QA'] + $row['C_IOF_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['V_IOF_RF'] + $row['C_IOF_RF'] + $row['V_IOF_QA'] + $row['C_IOF_QA'], true) ?></td>
             </tr>
             <tr>
-                <td>Prêmio Líquido</td>
-                <td><?= app_format_currency($row['PL_RF'], true) ?></td>
-                <td><?= app_format_currency($row['PL_QA'], true) ?></td>
-                <td><?= app_format_currency($row['PL_RF'] + $row['PL_QA'], true) ?></td>
+                <td class="divisorLeft">Prêmio Líquido</td>
+                <td><?= app_format_currency($row['V_PL_RF'], true) ?></td>
+                <td><?= app_format_currency($row['V_PL_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['V_PL_RF'] + $row['V_PL_QA'], true) ?></td>
+
+                <td><?= app_format_currency($row['C_PL_RF'], true) ?></td>
+                <td><?= app_format_currency($row['C_PL_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['C_PL_RF'] + $row['C_PL_QA'], true) ?></td>
+
+                <td><?= app_format_currency($row['V_PL_RF'] + $row['C_PL_RF'], true) ?></td>
+                <td><?= app_format_currency($row['V_PL_QA'] + $row['C_PL_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['V_PL_RF'] + $row['C_PL_RF'] + $row['V_PL_QA'] + $row['C_PL_QA'], true) ?></td>
             </tr>
             <tr>
-                <td>Pró-labore LASA</td>
-                <td><?= app_format_currency($row['pro_labore_RF'], true) ?></td>
-                <td><?= app_format_currency($row['pro_labore_QA'], true) ?></td>
-                <td><?= app_format_currency($row['pro_labore_RF'] + $row['pro_labore_QA'], true) ?></td>
+                <td class="divisorLeft">Pró-labore LASA</td>
+                <td><?= app_format_currency($row['V_pro_labore_RF'], true) ?></td>
+                <td><?= app_format_currency($row['V_pro_labore_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['V_pro_labore_RF'] + $row['V_pro_labore_QA'], true) ?></td>
+
+                <td><?= app_format_currency($row['C_pro_labore_RF'], true) ?></td>
+                <td><?= app_format_currency($row['C_pro_labore_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['C_pro_labore_RF'] + $row['C_pro_labore_QA'], true) ?></td>
+
+                <td><?= app_format_currency($row['V_pro_labore_RF'] + $row['C_pro_labore_RF'], true) ?></td>
+                <td><?= app_format_currency($row['V_pro_labore_QA'] + $row['C_pro_labore_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['V_pro_labore_RF'] + $row['C_pro_labore_RF'] + $row['V_pro_labore_QA'] + $row['C_pro_labore_QA'], true) ?></td>
             </tr>
             <tr class="baseLine">
-                <td>Comissão de Corretagem</td>
-                <td><?= app_format_currency($row['valor_comissao_RF'], true) ?></td>
-                <td><?= app_format_currency($row['valor_comissao_QA'], true) ?></td>
-                <td><?= app_format_currency($row['valor_comissao_RF'] + $row['valor_comissao_QA'], true) ?></td>
+                <td class="divisorLeft">Comissão de Corretagem</td>
+                <td><?= app_format_currency($row['V_valor_comissao_RF'], true) ?></td>
+                <td><?= app_format_currency($row['V_valor_comissao_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['V_valor_comissao_RF'] + $row['V_valor_comissao_QA'], true) ?></td>
+
+                <td><?= app_format_currency($row['C_valor_comissao_RF'], true) ?></td>
+                <td><?= app_format_currency($row['C_valor_comissao_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['C_valor_comissao_RF'] + $row['C_valor_comissao_QA'], true) ?></td>
+
+                <td><?= app_format_currency($row['V_valor_comissao_RF'] + $row['C_valor_comissao_RF'], true) ?></td>
+                <td><?= app_format_currency($row['V_valor_comissao_QA'] + $row['C_valor_comissao_QA'], true) ?></td>
+                <td class="divisorLeft"><?= app_format_currency($row['V_valor_comissao_RF'] + $row['C_valor_comissao_RF'] + $row['V_valor_comissao_QA'] + $row['C_valor_comissao_QA'], true) ?></td>
             </tr>
             <?php
 
