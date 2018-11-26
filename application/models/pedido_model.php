@@ -1247,8 +1247,10 @@ Class Pedido_Model extends MY_Model
   /**
      * Extrai relatório de vendas
      */
-  public function extrairRelatorioVendas()
+  public function extrairRelatorioVendas($data_inicio = null, $data_fim = null)
   {
+
+    $this->restrictProdutos();
 
     $this->_database->distinct();
     $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.cnpj, p.nome_fantasia,
@@ -1284,50 +1286,52 @@ Class Pedido_Model extends MY_Model
       $this->_database->where("c.usuario_cotacao_id", $this->session->userdata('usuario_id'));
     }
 
+    if(isset($data_inicio) && !empty($data_inicio))
+        $this->_database->where("status_data >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
+    if(isset($data_fim) && !empty($data_fim))
+        $this->_database->where("status_data <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
+
     $this->_database->where("cs.slug = 'finalziada'"); /* @TODO MUDAR PARA finalizada */
     $query = $this->_database->get();
     $resp = [];
 
     if($query->num_rows() > 0)
     {
-      $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
-
       $resp = $query->result_array();
-      $parc_prods = $retorno = [];
-      $cont=0;
-
-      if (!empty($this->session->userdata('parceiro_id'))) {
-        foreach ($resp as $row) {
-          if ( !in_array($row['produto_parceiro_id'], $parc_prods) ) {
-            $parc_prods[$row['produto_parceiro_id']] = $this->relacionamento->get_parceiros_permitidos($row['produto_parceiro_id'], $this->session->userdata('parceiro_id'));
-          }
-
-          if ( in_array($row['parceiro_id'], $parc_prods[$row['produto_parceiro_id']]) ) {
-            $retorno[] = $resp[$cont];
-          }
-          $cont++;
-        }
-
-        $resp = $retorno;
-      }
-
     }
     return $resp;
 
   }
 
+    private function restrictProdutos($retorno = false){
+        $return = '';
+        if (!empty($this->session->userdata('parceiro_id'))) {
+
+            $this->load->model('produto_parceiro_model', 'produto_parceiro');
+            $produtos = $this->produto_parceiro->getProdutosByParceiro($this->session->userdata('parceiro_id'));
+            $newArray = array();
+
+            if (!empty($produtos)) {
+                foreach ($produtos as $entry) {
+                    $newArray[] = $entry['produto_parceiro_id'];
+                }
+                $produto_parceiro_ids = implode(',', $newArray);
+                $return = "pp.produto_parceiro_id IN($produto_parceiro_ids)";
+                if (!$retorno) $this->_database->where($return);
+                $return = " AND ". $return;
+            }
+        }
+
+        return $return;
+    }
+
   /**
      * Extrai relatório de Mapa de Repasse Analitico
      */
-  public function extrairRelatorioMapaRepasseAnalitico()
+  public function extrairRelatorioMapaRepasseAnalitico($data_inicio = null, $data_fim = null)
   {
 
-    /*
-      #, cb.nome as cobertura
-      #, FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2) as PB_cob
-      #, FORMAT(ac.valor / ae.valor_premio_net * ae.pro_labore, 2) AS iof_cob
-      #, ac.valor as PL_cob
-    */
+    $this->restrictProdutos();
 
     $this->_database->distinct();
     $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.cnpj, p.nome_fantasia,
@@ -1431,6 +1435,11 @@ Class Pedido_Model extends MY_Model
       $this->_database->where("c.usuario_cotacao_id", $this->session->userdata('usuario_id'));
     }
 
+    if(isset($data_inicio) && !empty($data_inicio))
+        $this->_database->where("status_data >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
+    if(isset($data_fim) && !empty($data_fim))
+        $this->_database->where("status_data <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
+
     $this->_database->where("parc.slug IN('lojasamericanas')");
     $this->_database->where("cs.slug = 'finalziada'"); /* @TODO MUDAR PARA finalizada */
     $query = $this->_database->get();
@@ -1438,27 +1447,7 @@ Class Pedido_Model extends MY_Model
 
     if($query->num_rows() > 0)
     {
-      $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
-
-      $resp = $query->result_array();
-      $parc_prods = $retorno = [];
-      $cont=0;
-
-      if (!empty($this->session->userdata('parceiro_id'))) {
-        foreach ($resp as $row) {
-          if ( !in_array($row['produto_parceiro_id'], $parc_prods) ) {
-            $parc_prods[$row['produto_parceiro_id']] = $this->relacionamento->get_parceiros_permitidos($row['produto_parceiro_id'], $this->session->userdata('parceiro_id'));
-          }
-
-          if ( in_array($row['parceiro_id'], $parc_prods[$row['produto_parceiro_id']]) ) {
-            $retorno[] = $resp[$cont];
-          }
-          $cont++;
-        }
-
-        $resp = $retorno;
-      }
-
+        $resp = $query->result_array();
     }
     return $resp;
 
@@ -1467,13 +1456,20 @@ Class Pedido_Model extends MY_Model
     /**
     * Extrai relatório de Mapa de Repasse Sintetico
     */
-    public function extrairRelatorioMapaRepasseSintetico($where = '')
+    public function extrairRelatorioMapaRepasseSintetico($data_inicio = null, $data_fim = null)
     {
+
+        $where = $this->restrictProdutos(true);
 
         // colaborador só visualiza os próprios pedidos
         if ( $this->session->userdata('usuario_acl_tipo_id') == 2 ) {
-          $where .= "c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}";
+          $where .= " AND c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}";
         }
+
+        if(isset($data_inicio) && !empty($data_inicio))
+            $where .= " AND status_data >= '". app_date_only_numbers_to_mysql($data_inicio) ."'";
+        if(isset($data_fim) && !empty($data_fim))
+            $where .= " AND status_data <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
 
         $query = $this->_database->query("
             SELECT cod_tpa, 
@@ -1601,31 +1597,7 @@ Class Pedido_Model extends MY_Model
 
     if($query->num_rows() > 0)
     {
-      $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
-
       $resp = $query->result_array();
-      $parc_prods = $retorno = [];
-      $cont=0;
-
-      // echo "<pre>"; print_r($this->db->last_query());
-      // die();
-
-      /*
-      if (!empty($this->session->userdata('parceiro_id'))) {
-        foreach ($resp as $row) {
-          if ( !in_array($row['produto_parceiro_id'], $parc_prods) ) {
-            $parc_prods[$row['produto_parceiro_id']] = $this->relacionamento->get_parceiros_permitidos($row['produto_parceiro_id'], $this->session->userdata('parceiro_id'));
-          }
-
-          if ( in_array($row['parceiro_id'], $parc_prods[$row['produto_parceiro_id']]) ) {
-            $retorno[] = $resp[$cont];
-          }
-          $cont++;
-        }
-
-        $resp = $retorno;
-      }*/
-
     }
     return $resp;
 

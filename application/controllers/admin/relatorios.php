@@ -264,13 +264,7 @@ class Relatorios extends Admin_Controller
         $data_inicio = $this->input->get_post('data_inicio');
         $data_fim = $this->input->get_post('data_fim');
 
-        if(isset($data_inicio) && !empty($data_inicio))
-            $this->pedido->where("status_data", ">=", app_date_only_numbers_to_mysql($data_inicio));
-        if(isset($data_fim) && !empty($data_fim))
-            $this->pedido->where("status_data", "<=", app_date_only_numbers_to_mysql($data_fim, FALSE));
-
-
-        $resultado['data'] = $this->pedido->extrairRelatorioVendas();
+        $resultado['data'] = $this->pedido->extrairRelatorioVendas($data_inicio, $data_fim);
         $resultado['status'] = true;
 
         if ($ajax)
@@ -288,28 +282,15 @@ class Relatorios extends Admin_Controller
 
         $resultado = array();
         $resultado['status'] = false;
-        $where = '';
 
         //Dados via GET
         $data_inicio = $this->input->get_post('data_inicio');
         $data_fim = $this->input->get_post('data_fim');
 
-        if(isset($data_inicio) && !empty($data_inicio))
-            if ($layout=='mapa_analitico')
-                $this->pedido->where("status_data", ">=", app_date_only_numbers_to_mysql($data_inicio));
-            else
-                $where .= " AND pedido.status_data >= '".app_date_only_numbers_to_mysql($data_inicio) ."' ";
-
-        if(isset($data_fim) && !empty($data_fim))
-            if ($layout=='mapa_analitico')
-                $this->pedido->where("status_data", "<=", app_date_only_numbers_to_mysql($data_fim, FALSE));
-            else
-                $where .= " AND pedido.status_data <= '".app_date_only_numbers_to_mysql($data_fim, FALSE) ."' ";
-
         if ($layout=='mapa_analitico') {
-            $resultado['data'] = $this->pedido->extrairRelatorioMapaRepasseAnalitico();
+            $resultado['data'] = $this->pedido->extrairRelatorioMapaRepasseAnalitico($data_inicio, $data_fim);
         } else {
-            $resultado['data'] = $this->preparaMapaRepasse($this->pedido->extrairRelatorioMapaRepasseSintetico($where));
+            $resultado['data'] = $this->preparaMapaRepasse($this->pedido->extrairRelatorioMapaRepasseSintetico($data_inicio, $data_fim));
         }
         $resultado['status'] = true;
 

@@ -355,7 +355,7 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
             $this->processa_parceiros_permitidos("{$this->_table}.parceiro_id");
         }
         if (!empty($order_by)) {
-            $this->order_by("{$this->_table}.pai_id", $order_by);
+            $this->order_by("{$this->_table}.produto_parceiro_id, {$this->_table}.pai_id", $order_by);
         }
 
         return parent::get_all($limit, $offset);
