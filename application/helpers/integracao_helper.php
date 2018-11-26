@@ -802,11 +802,14 @@ if ( ! function_exists('app_get_api'))
         $CI =& get_instance();
         $CI->session->set_userdata("email", $acesso->email);
 
+        $url = $CI->config->item("URL_sisconnects") ."admin/api/{$service}".
+        $header = ["Content-Type: application/json", "APIKEY: {$acesso->apikey}"];
+
         $retorno = soap_curl([
-            'url' => $CI->config->item("URL_sisconnects") ."admin/api/{$service}",
+            'url' => $url,
             'method' => $method,
             'fields' => $fields,
-            'header' => ["Content-Type: application/json", "APIKEY: {$acesso->apikey}"]
+            'header' => $header
         ]);
 
         if ($print){
@@ -823,6 +826,19 @@ if ( ! function_exists('app_get_api'))
             } else{
                 $ret = ['status' => true, 'response' => $response];
             }
+        }
+
+        if (empty($ret['status'])) {
+            $CI->load->model('integracao_log_detalhe_api_model', 'integracao_log_detalhe_api');
+            $insertArray = [
+                'service' => $service, 
+                'method' => $method, 
+                'url' => $url, 
+                'fields' => addslashes(print_r($fields, true)), 
+                'header' => addslashes(print_r($header, true)),
+                'response' => addslashes(print_r($retorno, true)),
+            ];
+            $CI->integracao_log_detalhe_api->geraLogApiFail($insertArray);
         }
         return $ret;
     }
