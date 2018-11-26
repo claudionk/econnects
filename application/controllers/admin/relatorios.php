@@ -16,7 +16,8 @@ class Relatorios extends Admin_Controller
         $this->template->js(app_assets_url("modulos/relatorios/vendas/venda.js", "admin"));
 
         //Dados para template
-        $data = [];
+        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_fim'] = date("d/m/Y");
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data);
@@ -187,10 +188,6 @@ class Relatorios extends Admin_Controller
 
     public function mapa_repasse_lasa()
     {
-        //Carrega React e Orb (relatórios)
-        // $this->loadLibraries();
-        // $this->template->js(app_assets_url("modulos/relatorios/vendas/mapa_repasse_lasa.js", "admin"));
-
         //Dados para template
         $data = array();
         $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));

@@ -1250,7 +1250,8 @@ Class Pedido_Model extends MY_Model
   public function extrairRelatorioVendas($data_inicio = null, $data_fim = null)
   {
 
-    $this->restrictProdutos();
+    $where = $this->restrictProdutos();
+    if (!empty($where)) $this->_database->where($where, NULL, FALSE);
 
     $this->_database->distinct();
     $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.cnpj, p.nome_fantasia,
@@ -1283,8 +1284,9 @@ Class Pedido_Model extends MY_Model
     
     // colaborador só visualiza os próprios pedidos
     if ( $this->session->userdata('usuario_acl_tipo_id') == 2 ) {
-      $this->_database->where("c.usuario_cotacao_id", $this->session->userdata('usuario_id'));
+      $this->_database->where("c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}");
     }
+
 
     if(isset($data_inicio) && !empty($data_inicio))
         $this->_database->where("status_data >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
@@ -1303,22 +1305,31 @@ Class Pedido_Model extends MY_Model
 
   }
 
-    private function restrictProdutos($retorno = false){
+    private function restrictProdutos(){
         $return = '';
         if (!empty($this->session->userdata('parceiro_id'))) {
 
             $this->load->model('produto_parceiro_model', 'produto_parceiro');
+            $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento'); 
+
             $produtos = $this->produto_parceiro->getProdutosByParceiro($this->session->userdata('parceiro_id'));
-            $newArray = array();
 
             if (!empty($produtos)) {
+                $retAnd = "AND ( ";
+                $retOr = "";
+
                 foreach ($produtos as $entry) {
-                    $newArray[] = $entry['produto_parceiro_id'];
+                    $parc_prods = $this->relacionamento->get_parceiros_permitidos($entry['produto_parceiro_id'], $this->session->userdata('parceiro_id'));
+                    if (!empty($parc_prods)) {
+                        $produto_ids = implode(',', $parc_prods);
+                        $return .= $retAnd . $retOr ."
+                            ( pp.produto_parceiro_id = {$entry['produto_parceiro_id']} AND c.parceiro_id IN($produto_ids) )
+                        ";
+                        $retAnd = '';
+                        $retOr = " OR ";
+                    }
                 }
-                $produto_parceiro_ids = implode(',', $newArray);
-                $return = "pp.produto_parceiro_id IN($produto_parceiro_ids)";
-                if (!$retorno) $this->_database->where($return);
-                $return = " AND ". $return;
+                if (!empty($return)) $return .= " ) ";
             }
         }
 
@@ -1331,7 +1342,8 @@ Class Pedido_Model extends MY_Model
   public function extrairRelatorioMapaRepasseAnalitico($data_inicio = null, $data_fim = null)
   {
 
-    $this->restrictProdutos();
+    $where = $this->restrictProdutos();
+    if (!empty($where)) $this->_database->where($where, NULL, FALSE);
 
     $this->_database->distinct();
     $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.cnpj, p.nome_fantasia,
@@ -1459,7 +1471,7 @@ Class Pedido_Model extends MY_Model
     public function extrairRelatorioMapaRepasseSintetico($data_inicio = null, $data_fim = null)
     {
 
-        $where = $this->restrictProdutos(true);
+        $where = $this->restrictProdutos();
 
         // colaborador só visualiza os próprios pedidos
         if ( $this->session->userdata('usuario_acl_tipo_id') == 2 ) {
