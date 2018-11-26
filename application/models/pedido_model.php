@@ -1315,7 +1315,7 @@ Class Pedido_Model extends MY_Model
             $produtos = $this->produto_parceiro->getProdutosByParceiro($this->session->userdata('parceiro_id'));
 
             if (!empty($produtos)) {
-                $retAnd = "AND ( ";
+                $retAnd = "1=1 AND ( ";
                 $retOr = "";
 
                 foreach ($produtos as $entry) {
@@ -1472,6 +1472,7 @@ Class Pedido_Model extends MY_Model
     {
 
         $where = $this->restrictProdutos();
+        if (!empty($where)) $where = " AND {$where}";
 
         // colaborador só visualiza os próprios pedidos
         if ( $this->session->userdata('usuario_acl_tipo_id') == 2 ) {
