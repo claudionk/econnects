@@ -805,6 +805,17 @@ if ( ! function_exists('app_get_api'))
         $url = $CI->config->item("URL_sisconnects") ."admin/api/{$service}";
         $header = ["Content-Type: application/json", "APIKEY: {$acesso->apikey}"];
 
+        $CI->load->model('integracao_log_detalhe_api_model', 'integracao_log_detalhe_api');
+        $insertArray = [
+            'service' => $service, 
+            'method' => $method, 
+            'url' => $url, 
+            'fields' => addslashes(print_r($fields, true)), 
+            'header' => addslashes(print_r($header, true)),
+            'status' => 0,
+        ];
+        $integracao_log_detalhe_api_id = $CI->integracao_log_detalhe_api->geraLogApiFail($insertArray);
+
         $retorno = soap_curl([
             'url' => $url,
             'method' => $method,
@@ -828,18 +839,12 @@ if ( ! function_exists('app_get_api'))
             }
         }
 
-        if (empty($ret['status'])) {
-            $CI->load->model('integracao_log_detalhe_api_model', 'integracao_log_detalhe_api');
-            $insertArray = [
-                'service' => $service, 
-                'method' => $method, 
-                'url' => $url, 
-                'fields' => addslashes(print_r($fields, true)), 
-                'header' => addslashes(print_r($header, true)),
-                'response' => addslashes(print_r($retorno, true)),
-            ];
-            $CI->integracao_log_detalhe_api->geraLogApiFail($insertArray);
-        }
+        $dataApi = [
+            'status' => $ret['status'],
+            'response' => addslashes(print_r($retorno, true)),
+        ];
+        $CI->integracao_log_detalhe_api->update($integracao_log_detalhe_api_id, $dataApi, TRUE);
+
         return $ret;
     }
 }
