@@ -20,6 +20,7 @@ if (isset($result)) {
             <tr>
                 <td><?= $row['operacao'] ?></td>
                 <td><?= $row['grupo'] ?></td>
+                <td><?= $row['cobertura'] ?></td>
                 <td><?= $row['data_emissao'] ?></td>
                 <td><?= $row['ini_vigencia'] ?></td>
                 <td><?= $row['fim_vigencia'] ?></td>
