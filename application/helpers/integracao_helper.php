@@ -830,7 +830,7 @@ if ( ! function_exists('app_get_api'))
         $dataApi = [
             'status' => $ret['status'],
             'response' => addslashes(print_r($retorno, true)),
-            'retorno_amigavel' => $ret['response'],
+            'retorno_amigavel' => addslashes(print_r($ret['response'], true)),
         ];
         $CI->integracao_log_detalhe_api->update($integracao_log_detalhe_api_id, $dataApi, TRUE);
 
