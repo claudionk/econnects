@@ -18,9 +18,10 @@ if (isset($result)) {
 
         foreach ($result as $row) { ?>
             <tr>
-                <td><?= $row['operacao'] ?></td>
-                <td><?= $row['grupo'] ?></td>
+                <td><?= $row['plano_nome'] ?></td>
+                <td><?= $row['representante'] ?></td>
                 <td><?= $row['cobertura'] ?></td>
+                <td><?= $row['venda_cancelamento'] ?></td>
                 <td><?= $row['data_emissao'] ?></td>
                 <td><?= $row['ini_vigencia'] ?></td>
                 <td><?= $row['fim_vigencia'] ?></td>
@@ -33,10 +34,12 @@ if (isset($result)) {
                 <td><?= $row['imei'] ?></td>
                 <td><?= $row['nome_produto_parceiro'] ?></td>
                 <td><?= $row['importancia_segurada'] ?></td>
+                <td><?= $row['forma_pagto'] ?></td>
                 <td><?= $row['num_endosso'] ?></td>
                 <td><?= $row['vigencia_parcela'] ?></td>
                 <td><?= $row['parcela'] ?></td>
                 <td><?= $row['status_parcela'] ?></td>
+                <td><?= $row['data_processamento_cli_sis'] ?></td>
                 <td><?= $row['data_cancelamento'] ?></td>
                 <td><?= app_format_currency($row['valor_parcela'], true) ?></td>
                 <td><?= app_format_currency($row['PB_RF'], true) ?></td>

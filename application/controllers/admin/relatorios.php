@@ -246,47 +246,46 @@ class Relatorios extends Admin_Controller
         $this->template->load("admin/layouts/base", "{$this->controller_uri}/{$data['action']}" , $data);
     }
 
-    public function mapa_repasse($nome_represetante = null)
-    {
-
-        $this->getParceiro();
-
+    public function mapa_repasse()
+    {     
         //Dados para template
         $data = array();
         $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
         $data['data_fim'] = date("d/m/Y");
         $data['action'] = $this->uri->segment(3);
         $data['src'] = $this->controller_uri;
-        $data['title'] = 'Relatório de Mapa de Repasse '.$nome_represetante;
+        $data['title'] = 'Relatório de Mapa de Repasse';
         $data['layout'] = 'mapa_analitico';
-        $data['flag'] =  'true';
         $data['columns'] = [
-            'Operacao',
-            'Grupo',
+            'Plano',
+            'Representante',
             'Cobertura',
-            'Data da Venda',
+            'Tipo Movimento (Emissão ou Cancelamento',
+            'Data do Movimento',
             'Inicio Vigencia',
             'Fim Vigencia',
             'Num Bilhete',
-            'Segurado',
-            'Documento',
+            'Nome',
+            'CPF',
             'Equipamento',
             'Marca',
             'Modelo',
             'IMEI',
             'Produto',
             'Importancia Segurada',
+            'Forma Pagto',
             'Num Endosso',
-            'Vigencia Parcela',
+            'Mês Parcela',
             'Parcela',
             'Status Parcela',
+            'Data processamento Cliente/SIS',
             'Data Cancelamento',
             'Valor Parcela',
             'Premio Bruto Roubo Furto',
             'Premio Liquido Roubo Furto',
             'Premio Bruto Quebra',
             'Premio Liquido Quebra',
-            'Pro Labore',
+            'Comissao Representante',
             'Comissao Corretagem',
 
         ];
@@ -294,11 +293,21 @@ class Relatorios extends Admin_Controller
         $data['flag'] = FALSE;
         if ($_POST) {
 
+            // echo '<pre>';
+            // print_r($_POST);
+            // echo '</pre>';
+            // die;
+
+            $data['title'] = "Relatório de Mapa de Repasse - (".$_POST['nomerepresentante'].")";
+
+            $data['id_parceiro'] = $_POST['representante'];
+            $data['slug'] = $_POST['slug'];
+
             if (!empty($this->input->get_post('layout'))) {
                 $data['layout'] = $this->input->get_post('layout');
                 $data['flag'] = TRUE;
             }
-            $result = $this->getMapaRepasse(FALSE, $data['layout']);
+            $result = $this->getMapaRepasse(FALSE, $data['layout'], $data['id_parceiro'], $data['slug']);
             $data['result'] = $result['data'];
 
             if (!empty($_POST['btnExcel'])) {
@@ -307,8 +316,15 @@ class Relatorios extends Admin_Controller
 
             //Dados via GET
             $data['data_inicio'] = $this->input->get_post('data_inicio');
-            $data['data_fim'] = $this->input->get_post('data_fim');          
+            $data['data_fim'] = $this->input->get_post('data_fim'); 
+
+            $data['id_parceiro'] = $_POST['representante'];
+            $data['slug'] = $_POST['slug'];
+
         }
+
+        $data['combo'] = $this->getParceiro();
+
 
         //Carrega template
         $this->template->load("admin/layouts/base", "{$this->controller_uri}/{$data['action']}" , $data);
@@ -318,16 +334,9 @@ class Relatorios extends Admin_Controller
     /* Retorno os dados para combo */
       public function getParceiro()
       {
-        $this->load->model('produto_parceiro_model', 'produto_parceiro');
-        $parceiro_produto = $this->produto_parceiro->getProdutosByParceiro($this->session->userdata('parceiro_id'));
-        /*
-        echo '<pre>';
-        print_r($parceiro_produto);
-        echo '</pre>';
-        die;
-        */
 
-        return $parceiro_produto;
+        $this->load->model('pedido_model', 'pedido');
+        return $this->pedido->getRepresentantes();
       }
 
     /**
@@ -357,7 +366,7 @@ class Relatorios extends Admin_Controller
     /**
      * Retorna resultado
      */
-    public function getMapaRepasse ($ajax = TRUE, $layout)
+    public function getMapaRepasse ($ajax = TRUE, $layout, $parceiro, $slug)
     {
         $this->load->model("pedido_model", "pedido");
 
@@ -369,7 +378,24 @@ class Relatorios extends Admin_Controller
         $data_fim = $this->input->get_post('data_fim');
 
         if ($layout=='mapa_analitico') {
-            $resultado['data'] = $this->pedido->extrairRelatorioMapaRepasseAnalitico($data_inicio, $data_fim);
+
+            // echo '<pre>';
+            // echo $data_inicio."<br>";
+            // echo $data_fim."<br>";
+            // echo $parceiro."<br>";
+            // echo $slug."<br>";
+            // echo '</pre>';
+            // die;
+            
+            $resultado['data'] = $this->pedido->extrairRelatorioMapaRepasseAnalitico2($data_inicio = null, $data_fim = null, $parceiro, $slug);
+
+
+            // resultado['data'] = $this->pedido->extrairRelatorioMapaRepasseAnalitico($data_inicio, $data_fim);
+            // echo '<pre>';
+            // print_r($resultado);
+            // echo '</pre>';
+            // die;
+            // extrairRelatorioMapaRepasseAnalitico2($data_inicio = null, $data_fim = null, $parceiro, $slug)
         } else {
             $resultado['data'] = $this->preparaMapaRepasse($this->pedido->extrairRelatorioMapaRepasseSintetico($data_inicio, $data_fim));
         }
