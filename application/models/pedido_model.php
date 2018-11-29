@@ -1305,35 +1305,38 @@ Class Pedido_Model extends MY_Model
 
   }
 
-    private function restrictProdutos(){
-        $return = '';
-        if (!empty($this->session->userdata('parceiro_id'))) {
 
-            $this->load->model('produto_parceiro_model', 'produto_parceiro');
-            $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento'); 
+  /* Regra para filtrar apenas o cliente solicitado */
+  private function restrictProdutos(){
+     
+      $return = '';
+      if (!empty($this->session->userdata('parceiro_id'))) {
 
-            $produtos = $this->produto_parceiro->getProdutosByParceiro($this->session->userdata('parceiro_id'));
+          $this->load->model('produto_parceiro_model', 'produto_parceiro');
+          $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento'); 
 
-            if (!empty($produtos)) {
-                $retAnd = "1=1 AND ( ";
-                $retOr = "";
+          $produtos = $this->produto_parceiro->getProdutosByParceiro($this->session->userdata('parceiro_id'));
 
-                foreach ($produtos as $entry) {
-                    $parc_prods = $this->relacionamento->get_parceiros_permitidos($entry['produto_parceiro_id'], $this->session->userdata('parceiro_id'));
-                    if (!empty($parc_prods)) {
-                        $produto_ids = implode(',', $parc_prods);
-                        $return .= $retAnd . $retOr ."
-                            ( pp.produto_parceiro_id = {$entry['produto_parceiro_id']} AND c.parceiro_id IN($produto_ids) )
-                        ";
-                        $retAnd = '';
-                        $retOr = " OR ";
-                    }
-                }
-                if (!empty($return)) $return .= " ) ";
-            }
-        }
+          if (!empty($produtos)) {
+              $retAnd = "1=1 AND ( ";
+              $retOr = "";
 
-        return $return;
+              foreach ($produtos as $entry) {
+                  $parc_prods = $this->relacionamento->get_parceiros_permitidos($entry['produto_parceiro_id'], $this->session->userdata('parceiro_id'));
+                  if (!empty($parc_prods)) {
+                      $produto_ids = implode(',', $parc_prods);
+                      $return .= $retAnd . $retOr ."
+                          ( pp.produto_parceiro_id = {$entry['produto_parceiro_id']} AND c.parceiro_id IN($produto_ids) )
+                      ";
+                      $retAnd = '';
+                      $retOr = " OR ";
+                  }
+              }
+              if (!empty($return)) $return .= " ) ";
+          }
+      }
+
+      return $return;
     }
 
   /**
@@ -1373,13 +1376,14 @@ Class Pedido_Model extends MY_Model
       , ae.valor_premio_total as valor_parcela
       , ae.valor_premio_total as PremioBruto 
       , ae.valor_premio_net AS PremioLiquido
+      , cb.nome as cobertura
 
       , (
           SELECT FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
           FROM apolice_cobertura ac 
           INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
           INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-          WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 39
+          -- WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 39
           LIMIT 1
       ) AS PB_RF
       , (
@@ -1387,7 +1391,7 @@ Class Pedido_Model extends MY_Model
           FROM apolice_cobertura ac 
           INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
           INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-          WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 39
+          -- WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 39
           LIMIT 1
       ) AS PL_RF
       , (
@@ -1395,7 +1399,7 @@ Class Pedido_Model extends MY_Model
           FROM apolice_cobertura ac 
           INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
           INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-          WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 71
+          -- WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 71
           LIMIT 1
       ) AS PB_QA
       , (
@@ -1427,6 +1431,13 @@ Class Pedido_Model extends MY_Model
     $this->_database->from($this->_table);
     $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
     $this->_database->join("apolice a", "a.pedido_id = {$this->_table}.pedido_id", "inner");
+    
+    /* */
+    $this->_database->join("apolice_cobertura ac", "ac.pedido_id = a.apolice_id", "inner");
+    $this->_database->join("cobertura_plano cp", "ac.cobertura_plano_id = cp.cobertura_plano_id", "inner");
+    $this->_database->join("cobertura cb", "cb.cobertura_id = cp.cobertura_id", "inner");
+    /* */
+
     $this->_database->join("cotacao c", "c.cotacao_id = {$this->_table}.cotacao_id", "inner");
     $this->_database->join("cotacao_status cs", "cs.cotacao_status_id = c.cotacao_status_id", "inner");
     $this->_database->join("cotacao_equipamento ce", "ce.cotacao_id = {$this->_table}.cotacao_id and ce.deletado = 0", "inner");
@@ -1455,6 +1466,7 @@ Class Pedido_Model extends MY_Model
     $this->_database->where("parc.slug IN('lojasamericanas')");
     $this->_database->where("cs.slug = 'finalizada'");
     $query = $this->_database->get();
+    
     $resp = [];
 
     if($query->num_rows() > 0)

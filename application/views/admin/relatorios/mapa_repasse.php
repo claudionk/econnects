@@ -71,10 +71,13 @@
 
         </div>
         </form>
-
         <div class="row">
             <div class="col-md-12 table-responsive">
-                <?php $this->load->view($src."/".$layout) ?>
+                <?php
+                    // Exibir dados 
+                    if($flag)
+                        $this->load->view($src."/".$layout) 
+                ?>
             </div>
         </div>
 
