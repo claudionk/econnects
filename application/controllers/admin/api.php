@@ -57,7 +57,7 @@ class Api extends Site_Controller
             $retorno["response"] = $messagem;
             if (isset($retornoJson->erros)) {
                 $retorno["response"] = [
-                    'mensagem' => $messagem,
+                    'mensagem' => print_r($messagem, true),
                     'erros' => $retornoJson->erros
                 ];
             }
