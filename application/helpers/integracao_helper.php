@@ -594,7 +594,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                 $dados['registro']['nome'] = $enriquecido->nome;
                 $dados['registro']['sexo'] = $enriquecido->sexo;
                 $dados['registro']['data_nascimento'] = $enriquecido->data_nascimento;
-                $dados['registro']['cnpj_cpf'] = $cpf;
 
                 // Endereço
                 $ExtraEnderecos = $enriquecido->endereco;
@@ -649,6 +648,12 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             }
 
             // Regras DE/PARA
+            $dados['registro']['cnpj_cpf'] = $cpf;
+
+            
+            if (empty($dados['registro']['nome']))
+                $dados['registro']['nome'] = "NOME SOBRENOME";
+
             if (empty($dados['registro']['endereco_estado']))
                 $dados['registro']['endereco_estado'] = "SP";
 
