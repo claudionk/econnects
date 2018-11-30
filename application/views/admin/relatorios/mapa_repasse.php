@@ -1,4 +1,18 @@
-
+<script type="text/javascript">
+function validaRepresentante() {
+    if (document.frmOpcao.representante.value == ''){
+        alert('Informe o representante');
+        return false;
+    }
+    else
+    {
+        var _slug = document.frmOpcao.representante.value;
+        $('#getslug').val($("select[name='representante'] option:selected").attr("slug"));
+        $('#getSelecionado').val($("select[name='representante'] option:selected").text());
+        return true;
+    }
+}
+</script>
 <div class="section-header">
     <ol class="breadcrumb">
         <li class="active"><?php echo app_recurso_nome();?></li>
@@ -19,14 +33,17 @@
     </div>
 
     <div class="card-body">
-
+        <form name="frmOpcao" action="" method="POST" onSubmit="return validaRepresentante()">
         <div class="row">
             <p>Selecione um representante.</p>
             <div class="col-md-12 form-group">
                 <select class="form-control" name="representante">
                     <option value="">Informe o representante</option>
-                    <option value="1">Representante 1</option>
-                    <option value="2">Representante 2</option>
+                    <?php 
+                    foreach ($combo as $k => $v) {
+                        echo "<option slug=".$v['slug']." value=".$v['parceiro_id'].">".$v['nome']."</option>";
+                    }
+                    ?>
                 </select>
             </div>
         </div>
@@ -35,7 +52,7 @@
             <p>Selecione uma data inicial e final para resgatar os registros.</p>
         </div>
 
-        <form action="" method="POST">
+        
         <div class="row">
             <div class="col-md-12 form-group">
                 <?php $field_name = "layout"; $field_label = "Visualização: " ?>
@@ -65,6 +82,8 @@
             </div>
 
             <div class="col-md-6 col-sm-4">
+                <input id="getslug" name="slug" type="hidden" value='' />
+                <input id="getSelecionado" name="nomerepresentante" type="hidden" value='' />
                 <button type="submit" id="btnFiltro" class="btn btn-primary"><i class="fa fa-search"> </i>  Filtrar dados</button>
                 <button type="submit" name="btnExcel" value="S" class="btn btn-primary btnExportExcel"><i class="fa fa-cloud-download"> </i>  Exportar Excel</button>
             </div>
