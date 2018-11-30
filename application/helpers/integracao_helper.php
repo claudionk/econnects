@@ -535,7 +535,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
             unset($geraDados['id_log']);
-            unset($geraDados['nota_fiscal_valor_aux']);
+            // unset($geraDados['nota_fiscal_valor_aux']);
             
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
             $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
@@ -972,40 +972,40 @@ if ( ! function_exists('app_integracao_valida_regras'))
                         }
 
                         // Taxa era praticada com a MAPFRE (b.)
-                        if ($percent == 23) {
-                            $premioValid = true;
-                        }
+                        // if ($percent == 23) {
+                        //     $premioValid = true;
+                        // }
 
                         // Taxa era praticada com a MAPFRE para tablets (c.)
-                        if ($percent == 19) {
-                            $premioValid = true;
-                        }
+                        // if ($percent == 19) {
+                        //     $premioValid = true;
+                        // }
                     }
 
                 }
                 
-                // Se houve falha no premio, faz a validação pelo valor de nf
-                if (!$premioValid) {
-                    $is = (float)$dados["nota_fiscal_valor_aux"];
+                // // Se houve falha no premio, faz a validação pelo valor de nf
+                // if (!$premioValid) {
+                //     $is = (float)$dados["nota_fiscal_valor_aux"];
 
-                    if ($is == 0) {
-                        $percent = 0;
-                    } else {
-                        $percent = $pb / $is * 100;
+                //     if ($is == 0) {
+                //         $percent = 0;
+                //     } else {
+                //         $percent = $pb / $is * 100;
 
-                        if ($percent >= 24.9 && $percent <= 25.99999999999999) {
-                            $premioValid = true;
-                        }
+                //         if ($percent >= 24.9 && $percent <= 25.99999999999999) {
+                //             $premioValid = true;
+                //         }
 
-                        if ($percent == 23) {
-                            $premioValid = true;
-                        }
+                //         if ($percent == 23) {
+                //             $premioValid = true;
+                //         }
 
-                        if ($percent == 19) {
-                            $premioValid = true;
-                        }
-                    }
-                }
+                //         if ($percent == 19) {
+                //             $premioValid = true;
+                //         }
+                //     }
+                // }
 
                 if (!$premioValid) {
                     $errors[] = ['id' => 7, 'msg' => "Valor do prêmio bruto [". $dados["premio_liquido"] ."] difere do prêmio calculado [". $valor_premio ."]", 'slug' => "premio_liquido"];
