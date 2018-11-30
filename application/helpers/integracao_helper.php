@@ -548,7 +548,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         echo "****************** CPF: $cpf - {$dados['registro']['tipo_transacao']}<br>";
 
         if ( !in_array($dados['registro']['tipo_transacao'], ['NS','XS','XX']) ) {
-            $response->status = true;
+            $response->status = 2;
             return $response;
         }
 
@@ -575,7 +575,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
             if (!empty($apolice)) {
                 // $response->msg[] = ['id' => 8, 'msg' => "Apólice já utilizada [{$num_apolice}]", 'slug' => "emissao"];
-                $response->status = true;
+                $response->status = 2;
                 return $response;
             }
 

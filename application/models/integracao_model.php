@@ -831,6 +831,8 @@ Class Integracao_Model extends MY_Model
                                 $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, $ErroID, $ErroMSG, $ErroSLUG);
                             }
 
+                        } elseif ( $callFuncReturn->status == 2 ) {
+                            $integracao_log_status_id = 7;
                         }
                     }
                 }
