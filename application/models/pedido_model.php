@@ -1350,40 +1350,72 @@ Class Pedido_Model extends MY_Model
   /* Regra para filtrar apenas o cliente solicitado */
   private function restrictProdutos(){
      
-      $return = '';
-      if (!empty($this->session->userdata('parceiro_id'))) {
+    $return = '';
+    if (!empty($this->session->userdata('parceiro_id'))) {
 
-          $this->load->model('produto_parceiro_model', 'produto_parceiro');
-          $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento'); 
+        $this->load->model('produto_parceiro_model', 'produto_parceiro');
+        $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento'); 
 
-          $produtos = $this->produto_parceiro->getProdutosByParceiro($this->session->userdata('parceiro_id'));
+        $produtos = $this->produto_parceiro->getProdutosByParceiro($this->session->userdata('parceiro_id'));
 
-          if (!empty($produtos)) {
-              $retAnd = "1=1 AND ( ";
-              $retOr = "";
+        if (!empty($produtos)) {
+            $retAnd = "1=1 AND ( ";
+            $retOr = "";
 
-              foreach ($produtos as $entry) {
-                  $parc_prods = $this->relacionamento->get_parceiros_permitidos($entry['produto_parceiro_id'], $this->session->userdata('parceiro_id'));
-                  if (!empty($parc_prods)) {
-                      $produto_ids = implode(',', $parc_prods);
-                      $return .= $retAnd . $retOr ."
-                          ( pp.produto_parceiro_id = {$entry['produto_parceiro_id']} AND c.parceiro_id IN($produto_ids) )
-                      ";
-                      $retAnd = '';
-                      $retOr = " OR ";
-                  }
-              }
-              if (!empty($return)) $return .= " ) ";
-          }
-      }
-
-      return $return;
+            foreach ($produtos as $entry) {
+                $parc_prods = $this->relacionamento->get_parceiros_permitidos($entry['produto_parceiro_id'], $this->session->userdata('parceiro_id'));
+                if (!empty($parc_prods)) {
+                    $produto_ids = implode(',', $parc_prods);
+                    $return .= $retAnd . $retOr ."
+                        ( pp.produto_parceiro_id = {$entry['produto_parceiro_id']} AND c.parceiro_id IN($produto_ids) )
+                    ";
+                    $retAnd = '';
+                    $retOr = " OR ";
+                }
+            }
+            if (!empty($return)) $return .= " ) ";
+        }
     }
+
+    return $return;
+  }
+
+  private function restrictProdutosPorParceiro($parceiro_id){
+   
+    $return = '';
+    if (!empty($parceiro_id)) {
+
+        $this->load->model('produto_parceiro_model', 'produto_parceiro');
+        $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento'); 
+
+        $produtos = $this->produto_parceiro->getProdutosByParceiro($parceiro_id);
+
+        if (!empty($produtos)) {
+            $retAnd = "1=1 AND ( ";
+            $retOr = "";
+
+            foreach ($produtos as $entry) {
+                $parc_prods = $this->relacionamento->get_parceiros_permitidos($entry['produto_parceiro_id'], $parceiro_id);
+                if (!empty($parc_prods)) {
+                    $produto_ids = implode(',', $parc_prods);
+                    $return .= $retAnd . $retOr ."
+                        ( pp.produto_parceiro_id = {$entry['produto_parceiro_id']} AND c.parceiro_id IN($produto_ids) )
+                    ";
+                    $retAnd = '';
+                    $retOr = " OR ";
+                }
+            }
+            if (!empty($return)) $return .= " ) ";
+        }
+    }
+
+    return $return;
+  }
 
     /**
      * Extrai relatório de Mapa de Repasse Analitico
      */
-  public function extrairRelatorioMapaRepasseAnalitico2($data_inicio = null, $data_fim = null, $_parceiro_id, $slug)
+  public function extrairRelatorioMapaRepasseAnalitico($data_inicio = null, $data_fim = null, $_parceiro_id, $slug)
   {
     
     $where = $this->restrictProdutosPorParceiro($_parceiro_id);
@@ -1526,44 +1558,11 @@ Class Pedido_Model extends MY_Model
     return $resp;
   }    
 
-  private function restrictProdutosPorParceiro($parceiro_id){
-     
-    $return = '';
-    if (!empty($parceiro_id)) {
-
-        $this->load->model('produto_parceiro_model', 'produto_parceiro');
-        $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento'); 
-
-        $produtos = $this->produto_parceiro->getProdutosByParceiro($parceiro_id);
-
-        if (!empty($produtos)) {
-            $retAnd = "1=1 AND ( ";
-            $retOr = "";
-
-            foreach ($produtos as $entry) {
-                $parc_prods = $this->relacionamento->get_parceiros_permitidos($entry['produto_parceiro_id'], $this->session->userdata('parceiro_id'));
-                if (!empty($parc_prods)) {
-                    $produto_ids = implode(',', $parc_prods);
-                    $return .= $retAnd . $retOr ."
-                        ( pp.produto_parceiro_id = {$entry['produto_parceiro_id']} AND c.parceiro_id IN($produto_ids) )
-                    ";
-                    $retAnd = '';
-                    $retOr = " OR ";
-                }
-            }
-            if (!empty($return)) $return .= " ) ";
-        }
-    }
-
-    return $return;
-  }
-
-
-
+  
   /**
      * Extrai relatório de Mapa de Repasse Analitico
      */
-  public function extrairRelatorioMapaRepasseAnalitico($data_inicio = null, $data_fim = null)
+  public function _extrairRelatorioMapaRepasseAnalitico($data_inicio = null, $data_fim = null)
   {
     
     $where = $this->restrictProdutos();
@@ -1701,10 +1700,176 @@ Class Pedido_Model extends MY_Model
     /**
     * Extrai relatório de Mapa de Repasse Sintetico
     */
-    public function extrairRelatorioMapaRepasseSintetico($data_inicio = null, $data_fim = null)
+    public function extrairRelatorioMapaRepasseSintetico($data_inicio = null, $data_fim = null, $_parceiro_id, $slug)
     {
+      $where = $this->restrictProdutosPorParceiro($_parceiro_id);
+        
+      if (!empty($where)) $where = " AND {$where}";
 
+      // colaborador só visualiza os próprios pedidos
+      if ( $this->session->userdata('usuario_acl_tipo_id') == 2 ) {
+        $where .= " AND c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}";
+      }
+
+      if(isset($data_inicio) && !empty($data_inicio))
+          $where .= " AND status_data >= '". app_date_only_numbers_to_mysql($data_inicio) ."'";
+      if(isset($data_fim) && !empty($data_fim))
+          $where .= " AND status_data <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
+
+      $query = $this->_database->query("
+        SELECT 
+            planos,
+            cod_tpa, 
+            IF(apolice_status_id = 1, SUM(IF(PB_RF IS NOT NULL, 1, 0)), 0) AS V_quantidade_RF,
+            IF(apolice_status_id = 1, SUM(IFNULL(IOF_RF,0)), 0) AS V_IOF_RF, 
+            IF(apolice_status_id = 1, SUM(IFNULL(PL_RF,0)), 0) AS V_PL_RF, 
+            IF(apolice_status_id = 1, SUM(IFNULL(PB_RF,0)), 0) AS V_PB_RF, 
+            IF(apolice_status_id = 1, SUM(IFNULL(pro_labore_RF,0)), 0) AS V_pro_labore_RF, 
+            IF(apolice_status_id = 1, SUM(IFNULL(valor_comissao_RF,0)), 0) AS V_valor_comissao_RF, 
+            IF(apolice_status_id = 1, SUM(IF(PB_QA IS NOT NULL, 1, 0)), 0) AS V_quantidade_QA,
+            IF(apolice_status_id = 1, SUM(IFNULL(PB_QA,0)), 0) AS V_PB_QA, 
+            IF(apolice_status_id = 1, SUM(IFNULL(IOF_QA,0)), 0) AS V_IOF_QA, 
+            IF(apolice_status_id = 1, SUM(IFNULL(PL_QA,0)), 0) AS V_PL_QA, 
+            IF(apolice_status_id = 1, SUM(IFNULL(pro_labore_QA,0)), 0) AS V_pro_labore_QA, 
+            IF(apolice_status_id = 1, SUM(IFNULL(valor_comissao_QA,0)), 0) AS V_valor_comissao_QA,
+
+            IF(apolice_status_id = 2, SUM(IF(PB_RF IS NOT NULL, 1, 0)), 0) AS C_quantidade_RF,
+            IF(apolice_status_id = 2, SUM(IFNULL(IOF_RF,0)), 0) AS C_IOF_RF, 
+            IF(apolice_status_id = 2, SUM(IFNULL(PL_RF,0)), 0) AS C_PL_RF, 
+            IF(apolice_status_id = 2, SUM(IFNULL(PB_RF,0)), 0) AS C_PB_RF, 
+            IF(apolice_status_id = 2, SUM(IFNULL(pro_labore_RF,0)), 0) AS C_pro_labore_RF, 
+            IF(apolice_status_id = 2, SUM(IFNULL(valor_comissao_RF,0)), 0) AS C_valor_comissao_RF, 
+            IF(apolice_status_id = 2, SUM(IF(PB_QA IS NOT NULL, 1, 0)), 0) AS C_quantidade_QA,
+            IF(apolice_status_id = 2, SUM(IFNULL(PB_QA,0)), 0) AS C_PB_QA, 
+            IF(apolice_status_id = 2, SUM(IFNULL(IOF_QA,0)), 0) AS C_IOF_QA, 
+            IF(apolice_status_id = 2, SUM(IFNULL(PL_QA,0)), 0) AS C_PL_QA, 
+            IF(apolice_status_id = 2, SUM(IFNULL(pro_labore_QA,0)), 0) AS C_pro_labore_QA, 
+            IF(apolice_status_id = 2, SUM(IFNULL(valor_comissao_QA,0)), 0) AS C_valor_comissao_QA
+        FROM (
+            SELECT 
+                ppp.nome as planos,
+                pp.cod_tpa,
+                pedido.pedido_id,
+                a.apolice_status_id,
+                (
+                    SELECT FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
+                    FROM apolice_cobertura ac 
+                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+                    WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 39
+                    LIMIT 1
+                ) AS PB_RF, (
+                    SELECT FORMAT(ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
+                    FROM apolice_cobertura ac 
+                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+                    WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 39
+                    LIMIT 1
+                ) AS IOF_RF, (
+                    SELECT ac.valor
+                    FROM apolice_cobertura ac 
+                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+                    WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 39
+                    LIMIT 1
+                ) AS PL_RF, (
+                    SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2)
+                    FROM apolice_cobertura ac 
+                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+                    INNER JOIN comissao_gerada cmg ON cmg.pedido_id = ac.pedido_id
+                    INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
+                    WHERE cmg.pedido_id = pedido.pedido_id AND cp.cobertura_id = 39 AND parc_com.parceiro_tipo_id = 3
+                    LIMIT 1
+                ) AS pro_labore_RF, (
+                    SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2)
+                    FROM apolice_cobertura ac 
+                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+                    INNER JOIN comissao_gerada cmg ON cmg.pedido_id = ac.pedido_id
+                    INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
+                    WHERE cmg.pedido_id = pedido.pedido_id AND cp.cobertura_id = 39 AND parc_com.parceiro_tipo_id = 2
+                    LIMIT 1
+                ) AS valor_comissao_RF, (
+                    SELECT FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
+                    FROM apolice_cobertura ac 
+                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+                    WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 71
+                    LIMIT 1
+                ) AS PB_QA, (
+                    SELECT FORMAT(ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
+                    FROM apolice_cobertura ac 
+                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+                    WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 71
+                    LIMIT 1
+                ) AS IOF_QA, (
+                    SELECT ac.valor
+                    FROM apolice_cobertura ac 
+                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+                    WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 71
+                    LIMIT 1
+                ) AS PL_QA, (
+                    SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2)
+                    FROM apolice_cobertura ac 
+                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+                    INNER JOIN comissao_gerada cmg ON cmg.pedido_id = ac.pedido_id
+                    INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
+                    WHERE cmg.pedido_id = pedido.pedido_id AND cp.cobertura_id = 71 AND parc_com.parceiro_tipo_id = 3
+                    LIMIT 1
+                ) AS pro_labore_QA, (
+                    SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2)
+                    FROM apolice_cobertura ac 
+                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+                    INNER JOIN comissao_gerada cmg ON cmg.pedido_id = ac.pedido_id
+                    INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
+                    WHERE cmg.pedido_id = pedido.pedido_id AND cp.cobertura_id = 71 AND parc_com.parceiro_tipo_id = 2
+                    LIMIT 1
+                ) AS valor_comissao_QA
+            FROM `pedido`
+            INNER JOIN `pedido_status` ps ON `ps`.`pedido_status_id` = `pedido`.`pedido_status_id`
+            INNER JOIN `apolice` a ON `a`.`pedido_id` = `pedido`.`pedido_id`
+            INNER JOIN `cotacao` c ON `c`.`cotacao_id` = `pedido`.`cotacao_id`
+            INNER JOIN `cotacao_status` cs ON `cs`.`cotacao_status_id` = `c`.`cotacao_status_id`
+            INNER JOIN `cotacao_equipamento` ce ON `ce`.`cotacao_id` = `pedido`.`cotacao_id` and ce.deletado = 0
+            INNER JOIN `produto_parceiro` pp ON `pp`.`produto_parceiro_id` = `c`.`produto_parceiro_id`
+            INNER JOIN `parceiro` p ON `p`.`parceiro_id` = `pp`.`parceiro_id`
+            INNER JOIN `parceiro` parc ON `parc`.`parceiro_id` = `a`.`parceiro_id`
+            INNER JOIN `produto` pr ON `pr`.`produto_id` = `pp`.`produto_id`
+            INNER JOIN `apolice_equipamento` ae ON `ae`.`apolice_id` = `a`.`apolice_id` and ae.deletado = 0
+            INNER JOIN `cliente` cli ON cli.cliente_id = c.cliente_id
+            INNER JOIN `equipamento_categoria` ec ON `ec`.`equipamento_categoria_id` = `ae`.`equipamento_categoria_id`
+            INNER JOIN `equipamento_marca` em ON `em`.`equipamento_marca_id` = `ae`.`equipamento_marca_id`
+            INNER JOIN `produto_parceiro_plano` ppp ON `ppp`.`produto_parceiro_plano_id` = `ce`.`produto_parceiro_plano_id`
+            LEFT JOIN `localidade_estado` le ON `le`.`localidade_estado_id` = `p`.`localidade_estado_id`
+            LEFT JOIN `usuario` u ON `u`.`usuario_id` = `c`.`usuario_cotacao_id`
+            WHERE `parc`.`slug` IN('".$slug."')
+                AND `cs`.`slug` = 'finalizada'
+                {$where}
+            ORDER BY pp.cod_tpa
+        ) AS x
+        GROUP BY planos
+      ");
+
+      $resp = [];
+
+      if($query->num_rows() > 0)
+      {
+        $resp = $query->result_array();
+      }
+      //print_r($this->db->last_query());
+      //die;
+      return $resp;
+    }
+
+    public function _extrairRelatorioMapaRepasseSintetico($data_inicio = null, $data_fim = null, $_parceiro_id, $slug)
+    {
         $where = $this->restrictProdutos();
+
         if (!empty($where)) $where = " AND {$where}";
 
         // colaborador só visualiza os próprios pedidos
@@ -1718,7 +1883,8 @@ Class Pedido_Model extends MY_Model
             $where .= " AND status_data <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
 
         $query = $this->_database->query("
-            SELECT cod_tpa, 
+            SELECT 
+                cod_tpa, 
                 IF(apolice_status_id = 1, SUM(IF(PB_RF IS NOT NULL, 1, 0)), 0) AS V_quantidade_RF,
                 IF(apolice_status_id = 1, SUM(IFNULL(IOF_RF,0)), 0) AS V_IOF_RF, 
                 IF(apolice_status_id = 1, SUM(IFNULL(PL_RF,0)), 0) AS V_PL_RF, 
@@ -1845,23 +2011,23 @@ Class Pedido_Model extends MY_Model
                 INNER JOIN `produto_parceiro_plano` ppp ON `ppp`.`produto_parceiro_plano_id` = `ce`.`produto_parceiro_plano_id`
                 LEFT JOIN `localidade_estado` le ON `le`.`localidade_estado_id` = `p`.`localidade_estado_id`
                 LEFT JOIN `usuario` u ON `u`.`usuario_id` = `c`.`usuario_cotacao_id`
-                WHERE `parc`.`slug` IN('lojasamericanas')
+                WHERE `parc`.`slug` IN('".$slug."')
                     AND `cs`.`slug` = 'finalizada'
                     {$where}
                 ORDER BY pp.cod_tpa
             ) AS x
             GROUP BY cod_tpa
-    ");
+        ");
 
-    $resp = [];
+        $resp = [];
 
-    if($query->num_rows() > 0)
-    {
-      $resp = $query->result_array();
+        if($query->num_rows() > 0)
+        {
+          $resp = $query->result_array();
+        }
+        
+        return $resp;
     }
-    return $resp;
-
-  }
 
   /**
      * Muda status do pedido

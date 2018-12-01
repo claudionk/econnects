@@ -186,7 +186,7 @@ class Relatorios extends Admin_Controller
         $this->template->load("admin/layouts/base", "$this->controller_uri/vendas5", $data);
     }
 
-    public function mapa_repasse_lasa()
+    public function _mapa_repasse_lasa()
     {
         //Dados para template
         $data = array();
@@ -293,12 +293,7 @@ class Relatorios extends Admin_Controller
         $data['flag'] = FALSE;
         if ($_POST) {
 
-            // echo '<pre>';
-            // print_r($_POST);
-            // echo '</pre>';
-            // die;
-
-            $data['title'] = "Relatório de Mapa de Repasse - (".$_POST['nomerepresentante'].")";
+            $data['title'] = "Relatório de Mapa de Repasse - ( ".$_POST['nomerepresentante']." )";
 
             $data['id_parceiro'] = $_POST['representante'];
             $data['slug'] = $_POST['slug'];
@@ -379,25 +374,12 @@ class Relatorios extends Admin_Controller
 
         if ($layout=='mapa_analitico') {
 
-            // echo '<pre>';
-            // echo $data_inicio."<br>";
-            // echo $data_fim."<br>";
-            // echo $parceiro."<br>";
-            // echo $slug."<br>";
-            // echo '</pre>';
-            // die;
-            
-            $resultado['data'] = $this->pedido->extrairRelatorioMapaRepasseAnalitico2($data_inicio = null, $data_fim = null, $parceiro, $slug);
-
-
-            // resultado['data'] = $this->pedido->extrairRelatorioMapaRepasseAnalitico($data_inicio, $data_fim);
-            // echo '<pre>';
-            // print_r($resultado);
-            // echo '</pre>';
-            // die;
-            // extrairRelatorioMapaRepasseAnalitico2($data_inicio = null, $data_fim = null, $parceiro, $slug)
+            $resultado['data'] = $this->pedido->extrairRelatorioMapaRepasseAnalitico($data_inicio = null, $data_fim = null, $parceiro, $slug);
         } else {
-            $resultado['data'] = $this->preparaMapaRepasse($this->pedido->extrairRelatorioMapaRepasseSintetico($data_inicio, $data_fim));
+
+            // 'Sinténtico'
+
+            $resultado['data'] = $this->preparaMapaRepasse($this->pedido->extrairRelatorioMapaRepasseSintetico($data_inicio, $data_fim, $parceiro, $slug));
         }
         $resultado['status'] = true;
 
@@ -409,13 +391,206 @@ class Relatorios extends Admin_Controller
 
     private function preparaMapaRepasse($result)
     {
+               
+
+        if (empty($result)) {
+            return [];
+        }
+
+        $planos = [];
+
+        foreach ($result as $k => $v) {
+            $planos[$k] = $v['planos'];
+        }
+
+
+        $ret = [];
+        $V_quantidade_RF = 0;
+        $V_IOF_RF = 0;
+        $V_PL_RF = 0;
+        $V_PB_RF = 0;
+        $V_pro_labore_RF = 0;
+        $V_valor_comissao_RF = 0;
+        $V_quantidade_QA = 0;
+        $V_PB_QA = 0;
+        $V_IOF_QA = 0;
+        $V_PL_QA = 0;
+        $V_pro_labore_QA = 0;
+        $V_valor_comissao_QA = 0;
+
+        $C_quantidade_RF = 0;
+        $C_IOF_RF = 0;
+        $C_PL_RF = 0;
+        $C_PB_RF = 0;
+        $C_pro_labore_RF = 0;
+        $C_valor_comissao_RF = 0;
+        $C_quantidade_QA = 0;
+        $C_PB_QA = 0;
+        $C_IOF_QA = 0;
+        $C_PL_QA = 0;
+        $C_pro_labore_QA = 0;
+        $C_valor_comissao_QA = 0;
+
+        $T_quantidade_RF = 0;
+        $T_IOF_RF = 0;
+        $T_PL_RF = 0;
+        $T_PB_RF = 0;
+        $T_pro_labore_RF = 0;
+        $T_valor_comissao_RF = 0;
+        $T_quantidade_QA = 0;
+        $T_PB_QA = 0;
+        $T_IOF_QA = 0;
+        $T_PL_QA = 0;
+        $T_pro_labore_QA = 0;
+        $T_valor_comissao_QA = 0;
+
+        foreach ($planos as $key => $desc) { 
+            $find = false;
+            foreach ($result as $row) { 
+                if ($row['planos'] == $desc) {
+                    $row['desc'] = $desc;
+                    $ret[] = $row;
+
+                    $V_quantidade_RF += $row['V_quantidade_RF'];
+                    $V_IOF_RF += $row['V_IOF_RF'];
+                    $V_PL_RF += $row['V_PL_RF'];
+                    $V_PB_RF += $row['V_PB_RF'];
+                    $V_pro_labore_RF += $row['V_pro_labore_RF'];
+                    $V_valor_comissao_RF += $row['V_valor_comissao_RF'];
+                    $V_quantidade_QA += $row['V_quantidade_QA'];
+                    $V_PB_QA += $row['V_PB_QA'];
+                    $V_IOF_QA += $row['V_IOF_QA'];
+                    $V_PL_QA += $row['V_PL_QA'];
+                    $V_pro_labore_QA += $row['V_pro_labore_QA'];
+                    $V_valor_comissao_QA += $row['V_valor_comissao_QA'];
+
+                    $C_quantidade_RF += $row['C_quantidade_RF'];
+                    $C_IOF_RF += $row['C_IOF_RF'];
+                    $C_PL_RF += $row['C_PL_RF'];
+                    $C_PB_RF += $row['C_PB_RF'];
+                    $C_pro_labore_RF += $row['C_pro_labore_RF'];
+                    $C_valor_comissao_RF += $row['C_valor_comissao_RF'];
+                    $C_quantidade_QA += $row['C_quantidade_QA'];
+                    $C_PB_QA += $row['C_PB_QA'];
+                    $C_IOF_QA += $row['C_IOF_QA'];
+                    $C_PL_QA += $row['C_PL_QA'];
+                    $C_pro_labore_QA += $row['C_pro_labore_QA'];
+                    $C_valor_comissao_QA += $row['C_valor_comissao_QA'];
+
+                    $T_quantidade_RF += $V_quantidade_RF + $C_quantidade_RF;
+                    $T_IOF_RF += $V_IOF_RF + $C_IOF_RF;
+                    $T_PL_RF += $V_PL_RF + $C_PL_RF;
+                    $T_PB_RF += $V_PB_RF + $C_PB_RF;
+                    $T_pro_labore_RF += $V_pro_labore_RF + $C_pro_labore_RF;
+                    $T_valor_comissao_RF += $V_valor_comissao_RF + $C_valor_comissao_RF;
+                    $T_quantidade_QA += $V_quantidade_QA + $C_quantidade_QA;
+                    $T_PB_QA += $V_PB_QA + $C_PB_QA;
+                    $T_IOF_QA += $V_IOF_QA + $C_IOF_QA;
+                    $T_PL_QA += $V_PL_QA + $C_PL_QA;
+                    $T_pro_labore_QA += $V_pro_labore_QA + $C_pro_labore_QA;
+                    $T_valor_comissao_QA += $V_valor_comissao_QA + $C_valor_comissao_QA;
+                    $find = true;
+                    break;
+                }
+            }
+
+            if (!$find) {
+                $ret[] = [
+                    'desc' => $desc,
+                    'V_quantidade_RF' => 0,
+                    'V_IOF_RF' => 0,
+                    'V_PL_RF' => 0,
+                    'V_PB_RF' => 0,
+                    'V_pro_labore_RF' => 0,
+                    'V_valor_comissao_RF' => 0,
+                    'V_quantidade_QA' => 0,
+                    'V_PB_QA' => 0,
+                    'V_IOF_QA' => 0,
+                    'V_PL_QA' => 0,
+                    'V_pro_labore_QA' => 0,
+                    'V_valor_comissao_QA' => 0,
+
+                    'C_quantidade_RF' => 0,
+                    'C_IOF_RF' => 0,
+                    'C_PL_RF' => 0,
+                    'C_PB_RF' => 0,
+                    'C_pro_labore_RF' => 0,
+                    'C_valor_comissao_RF' => 0,
+                    'C_quantidade_QA' => 0,
+                    'C_PB_QA' => 0,
+                    'C_IOF_QA' => 0,
+                    'C_PL_QA' => 0,
+                    'C_pro_labore_QA' => 0,
+                    'C_valor_comissao_QA' => 0,
+
+                    'T_quantidade_RF' => 0,
+                    'T_IOF_RF' => 0,
+                    'T_PL_RF' => 0,
+                    'T_PB_RF' => 0,
+                    'T_pro_labore_RF' => 0,
+                    'T_valor_comissao_RF' => 0,
+                    'T_quantidade_QA' => 0,
+                    'T_PB_QA' => 0,
+                    'T_IOF_QA' => 0,
+                    'T_PL_QA' => 0,
+                    'T_pro_labore_QA' => 0,
+                    'T_valor_comissao_QA' => 0,
+                ];
+            }
+        }
+
+        $ret[] = [
+            'desc' => 'TOTAL',
+            'V_quantidade_RF' => $V_quantidade_RF,
+            'V_IOF_RF' => $V_IOF_RF,
+            'V_PL_RF' => $V_PL_RF,
+            'V_PB_RF' => $V_PB_RF,
+            'V_pro_labore_RF' => $V_pro_labore_RF,
+            'V_valor_comissao_RF' => $V_valor_comissao_RF,
+            'V_quantidade_QA' => $V_quantidade_QA,
+            'V_PB_QA' => $V_PB_QA,
+            'V_IOF_QA' => $V_IOF_QA,
+            'V_PL_QA' => $V_PL_QA,
+            'V_pro_labore_QA' => $V_pro_labore_QA,
+            'V_valor_comissao_QA' => $V_valor_comissao_QA,
+            'C_quantidade_RF' => $C_quantidade_RF,
+            'C_IOF_RF' => $C_IOF_RF,
+            'C_PL_RF' => $C_PL_RF,
+            'C_PB_RF' => $C_PB_RF,
+            'C_pro_labore_RF' => $C_pro_labore_RF,
+            'C_valor_comissao_RF' => $C_valor_comissao_RF,
+            'C_quantidade_QA' => $C_quantidade_QA,
+            'C_PB_QA' => $C_PB_QA,
+            'C_IOF_QA' => $C_IOF_QA,
+            'C_PL_QA' => $C_PL_QA,
+            'C_pro_labore_QA' => $C_pro_labore_QA,
+            'C_valor_comissao_QA' => $C_valor_comissao_QA,
+            'T_quantidade_RF' => $T_quantidade_RF,
+            'T_IOF_RF' => $T_IOF_RF,
+            'T_PL_RF' => $T_PL_RF,
+            'T_PB_RF' => $T_PB_RF,
+            'T_pro_labore_RF' => $T_pro_labore_RF,
+            'T_valor_comissao_RF' => $T_valor_comissao_RF,
+            'T_quantidade_QA' => $T_quantidade_QA,
+            'T_PB_QA' => $T_PB_QA,
+            'T_IOF_QA' => $T_IOF_QA,
+            'T_PL_QA' => $T_PL_QA,
+            'T_pro_labore_QA' => $T_pro_labore_QA,
+            'T_valor_comissao_QA' => $T_valor_comissao_QA,
+        ];
+
+        return $ret;
+    }
+
+    private function _preparaMapaRepasse($result)
+    {
         if (empty($result)) {
             return [];
         }
 
         $tpas = [
             '007' => 'NOVOS',
-            '010' => 'USADOS',
+            '010' => 'USADOS'
         ];
 
         $ret = [];
