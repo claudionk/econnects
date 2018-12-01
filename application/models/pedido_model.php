@@ -1255,12 +1255,36 @@ Class Pedido_Model extends MY_Model
 
     $this->_database->distinct();
     $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.cnpj, p.nome_fantasia,
-                                  pp.nome as nome_produto_parceiro, pr.nome as nome_produto, ppp.nome as plano_nome, {$this->_table}.valor_parcela, {$this->_table}.codigo, a.num_apolice, le.sigla as UF, u.nome as vendedor, cmg.valor AS comissao_parceiro ");
+                                  pp.nome as nome_produto_parceiro, pr.nome as nome_produto, ppp.nome as plano_nome, {$this->_table}.valor_parcela, {$this->_table}.codigo, a.num_apolice, le.sigla as UF, u.nome as vendedor, cmg.valor AS comissao_parceiro, ast.nome as Movimentacao ");
 
     $this->_database->select("IF(pr.slug = 'generico', cg.premio_liquido, IF(pr.slug = 'seguro_viagem', csv.premio_liquido, ce.premio_liquido)) as premio_liquido", FALSE);
     $this->_database->select("IF(pr.slug = 'generico', cg.premio_liquido_total, IF(pr.slug = 'seguro_viagem', csv.premio_liquido_total, ce.premio_liquido_total)) as premio_liquido_total", FALSE);
     $this->_database->select("IF(pr.slug = 'generico', cg.comissao_corretor, IF(pr.slug = 'seguro_viagem', csv.comissao_corretor, ce.comissao_corretor)) as comissao_corretor", FALSE);
     $this->_database->select("IF(pr.slug = 'generico', cg.nota_fiscal_valor, IF(pr.slug = 'seguro_viagem', csv.nota_fiscal_valor, ce.nota_fiscal_valor)) as nota_fiscal_valor", FALSE);
+
+    
+
+    $this->_database->select("IF(pr.slug = 'generico', cg.premio_liquido, IF(pr.slug = 'seguro_viagem', csv.premio_liquido, ce.premio_liquido)) * (IF(pr.slug = 'generico', cg.iof, IF(pr.slug = 'seguro_viagem', csv.iof, ce.iof))/100) as IOF", FALSE);
+
+    $this->_database->select("(SELECT cmg.valor
+      FROM comissao_gerada cmg 
+      INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
+      INNER JOIN parceiro_tipo pt ON parc_com.parceiro_tipo_id = pt.parceiro_tipo_id
+      WHERE cmg.pedido_id = pedido.pedido_id
+        AND pt.deletado = 0
+        AND pt.codigo_interno = 'Representante'
+      LIMIT 1)
+       as valor_comissao_rep", FALSE);
+
+      $this->_database->select("(SELECT cmg.valor
+      FROM comissao_gerada cmg 
+      INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
+      INNER JOIN parceiro_tipo pt ON parc_com.parceiro_tipo_id = pt.parceiro_tipo_id
+      WHERE cmg.pedido_id = pedido.pedido_id
+        AND pt.deletado = 0
+        AND pt.codigo_interno = 'corretora'
+      LIMIT 1)
+       as valor_comissao_cor", FALSE);
 
     $this->_database->select("IF(pr.slug = 'generico', cg.nome, IF(pr.slug = 'seguro_viagem', csv.nome, ce.nome)) as segurado", FALSE);
     $this->_database->select("IF(pr.slug = 'generico', cg.cnpj_cpf, IF(pr.slug = 'seguro_viagem', csv.cnpj_cpf, ce.cnpj_cpf)) as documento", FALSE);
@@ -1268,6 +1292,7 @@ Class Pedido_Model extends MY_Model
     $this->_database->from($this->_table);
 
     $this->_database->join("apolice a", "a.pedido_id = {$this->_table}.pedido_id", "inner");
+    $this->_database->join("apolice_status ast", "a.apolice_status_id = ast.apolice_status_id", "inner");
     $this->_database->join("cotacao c", "c.cotacao_id = {$this->_table}.cotacao_id", "inner");
     $this->_database->join("cotacao_status cs", "cs.cotacao_status_id = c.cotacao_status_id", "inner");
     $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
