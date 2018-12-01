@@ -1137,16 +1137,11 @@ class Venda_Equipamento extends Admin_Controller {
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('pedido_cartao_model', 'pedido_cartao');
         $pedidos = $this->pedido->getPedidoPagamentoPendenteDebito($pedido_id);
-
         foreach ($pedidos as $index => $pedido) {
             try {
-
-
                 $cartao = $this->pedido_cartao->get_cartao_debito_pendente($pedido['pedido_id']);
-
                 if (count($cartao) > 0) {
                     $cartao = $cartao[0];
-
                     $this->pagmax_consultar_cartao_debito($cartao);
                 }
 
