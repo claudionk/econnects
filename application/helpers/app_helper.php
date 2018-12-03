@@ -1402,6 +1402,15 @@ function app_has_config_campo($campo_slug, $produto_parceiro_id){
 
 }
 
+function app_rel_sintetico_ajuste_num($numero)
+{
+    if(is_numeric($numero)){
+        if($numero < 0)
+            $numero = $numero * -1;
+    } 
+    return $numero;
+}
+
 /**
  * $description Faz a tradução de um texto
  * @param $texto
