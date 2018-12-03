@@ -24,7 +24,7 @@ $(function() {
                 rowsvisible: true,
                 columnsvisible: true
             },
-            subTotal: {
+          	subTotal: {
                 visible: true,
                 collapsed: true
             },
@@ -81,6 +81,7 @@ $(function() {
         pgridw.render(document.getElementById('relatorio_container'));
 
         $(".orb").css("opacity", "0.9")
+        $(".orb-container").css({"overflow":"auto"});
     }
 
 })
