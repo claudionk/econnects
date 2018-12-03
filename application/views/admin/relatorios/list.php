@@ -55,3 +55,6 @@
 
     </div>
 </div>
+<div id="processando" style="display:none; width: 100%; height: 100%; text-align: center; position: absolute; left: 0px; top: 0px; z-index: 1000; background-color: #CCC; opacity: 0.95;" aria-hidden="true">
+    <div style="color: #191A1A; position: relative; font-size: 192px; top: 30%; z-index: 999"><i class="fa fa-gear fa-spin" aria-hidden="true"></i></div>
+</div>

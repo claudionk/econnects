@@ -1244,6 +1244,7 @@ class Relatorios extends Admin_Controller
         $this->template->js(app_assets_url("core/js/react.js", "admin"));
         $this->template->js(app_assets_url("core/js/orb.min.js", "admin"));
         $this->template->js(app_assets_url("modulos/relatorios/vendas/core.js", "admin"));
+        $this->template->js(app_assets_url("modulos/relatorios/vendas/jquery.blockUI.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/toastr/toastr.js", "admin"));
 
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/toastr/toastr.css", "admin"));
