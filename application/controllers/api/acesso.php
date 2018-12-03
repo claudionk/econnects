@@ -113,7 +113,7 @@ class Acesso extends CI_Controller {
         $email = $usuario[0]['email'];
         $senha = $usuario[0]['senha'];
 
-        $this->index(['email' => $email, 'senha' => $senha]);
+        $this->index(['email' => $email, 'senha' => $senha, 'forceEmail' => 'yes']);
     }
 
 }
