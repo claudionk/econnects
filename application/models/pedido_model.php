@@ -1479,45 +1479,17 @@ Class Pedido_Model extends MY_Model
       , ae.valor_premio_net AS PremioLiquido
       , cb.nome as cobertura
       , IF(ast.nome = 'ATIVA','VENDA',IF(ast.nome = 'CANCELADA','CANCELAMENTO','')) as venda_cancelamento, 
+      , FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2) AS PB
+      , ac.valor AS PL
       , (
-          SELECT FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
-          FROM apolice_cobertura ac 
-          INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
-          INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-          LIMIT 1
-      ) AS PB_RF
-      , (
-          SELECT ac.valor
-          FROM apolice_cobertura ac 
-          INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
-          INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-          LIMIT 1
-      ) AS PL_RF
-      , (
-          SELECT FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
-          FROM apolice_cobertura ac 
-          INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
-          INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-          LIMIT 1
-      ) AS PB_QA
-      , (
-          SELECT ac.valor
-          FROM apolice_cobertura ac 
-          INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
-          INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-          WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 71
-          LIMIT 1
-      ) AS PL_QA
-
-      , (
-          SELECT FORMAT(cmg.valor, 2)
+          SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2) as valor_comissao
           FROM comissao_gerada cmg
           INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
           WHERE cmg.pedido_id = {$this->_table}.pedido_id AND parc_com.parceiro_tipo_id = 3
           LIMIT 1
       ) AS pro_labore
       , (
-          SELECT FORMAT(cmg.valor, 2)
+          SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2) as valor_comissao
           FROM comissao_gerada cmg
           INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
           WHERE cmg.pedido_id = {$this->_table}.pedido_id AND parc_com.parceiro_tipo_id = 2

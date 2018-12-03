@@ -297,10 +297,8 @@ class Relatorios extends Admin_Controller
             'Data processamento Cliente/SIS',
             'Data Cancelamento',
             'Valor Parcela',
-            'Premio Bruto Roubo Furto',
-            'Premio Liquido Roubo Furto',
-            'Premio Bruto Quebra',
-            'Premio Liquido Quebra',
+            'Premio Bruto',
+            'Premio Liquido',
             'Comissao Representante',
             'Comissao Corretagem',
 
