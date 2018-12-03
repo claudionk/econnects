@@ -889,12 +889,10 @@ class Relatorios extends Admin_Controller
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('V3', 'Data processamento Cliente/SIS');
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('W3', 'Data Cancelamento');
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('X3', 'Valor Parcela');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('Y3', 'Premio Bruto Roubo Furto');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('Z3', 'Premio Liquido Roubo Furto');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AA3', 'Premio Bruto Quebra');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AB3', 'Premio Liquido Quebra');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AC3', 'Comissao Representante');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AD3', 'Comissao Corretagem');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('Y3', 'Premio Bruto');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('Z3', 'Premio Liquido');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AA3', 'Comissao Representante');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AB3', 'Comissao Corretagem');
 
 
         $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:AE1')->applyFromArray(
@@ -943,12 +941,10 @@ class Relatorios extends Admin_Controller
             $objPHPExcel->setActiveSheetIndex(0)->setCellValue('V'. $contR, $row['data_processamento_cli_sis']);
             $objPHPExcel->setActiveSheetIndex(0)->setCellValue('W'. $contR, $row['data_cancelamento']);
             $objPHPExcel->setActiveSheetIndex(0)->setCellValue('X'. $contR, $row['valor_parcela']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('Y'. $contR, $row['PB_RF']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('Z'. $contR, $row['PL_RF']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AA'. $contR, $row['PB_QA']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AB'. $contR, $row['PL_QA']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AC'. $contR, $row['pro_labore']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AD'. $contR, $row['valor_comissao']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('Y'. $contR, $row['PB']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('Z'. $contR, $row['PL']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AA'. $contR, $row['pro_labore']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AB'. $contR, $row['valor_comissao']);
             $contR++;
 
         }
