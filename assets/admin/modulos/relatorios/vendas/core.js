@@ -44,11 +44,19 @@ $(function() {
             url: base_url + 'admin/relatorios/'+ action,
             method: "post",
             dataType: 'json',
-            data: post
+            data: post,
+            beforeSend: function () {
+                // Carregando...
+                $.blockUI();
+                $("#processando").show();
+            }
         })
         .done(function(result) {
+            $.unblockUI();
+            $("#processando").hide();
+
             if(result.status)
-            {
+            {                
                 data = result.data;
                 parseData(data);
 
