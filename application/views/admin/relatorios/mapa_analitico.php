@@ -45,6 +45,11 @@ if (isset($result)) {
                 <td><?= $row['parcela'] ?></td>
                 <td><?= $row['status_parcela'] ?></td>
                 <td class="tm_col_min_150"><?= $row['data_processamento_cli_sis'] ?></td>
+
+                <!-- <td class="tm_col_min_150"><?= $row['data_processamento_cli_sis'] ?></td>
+                <td class="tm_col_min_150"><?= $row['data_processamento_cli_sis'] ?></td>
+                <td class="tm_col_min_150"><?= $row['data_processamento_cli_sis'] ?></td> -->
+
                 <td class="tm_col_min_150"><?= $row['data_cancelamento'] ?></td>
                 <td class="tm_col_min_150"><?= app_format_currency($row['valor_parcela'], true) ?></td>
                 <td class="tm_col_min_150"><?= app_format_currency($row['PB_RF'], true) ?></td>
