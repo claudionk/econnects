@@ -47,7 +47,7 @@ $(function() {
             data: post,
             beforeSend: function () {
                 // Carregando...
-                $.blockUI();
+                $.blockUI({ message: null });
                 $("#processando").show();
             }
         })
