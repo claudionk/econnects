@@ -1745,31 +1745,18 @@ Class Pedido_Model extends MY_Model
         SELECT 
             planos,
             cod_tpa, 
-            IF(apolice_status_id = 1, SUM(IF(PB_RF IS NOT NULL, 1, 0)), 0) AS V_quantidade_RF,
-            IF(apolice_status_id = 1, SUM(IFNULL(IOF_RF,0)), 0) AS V_IOF_RF, 
-            IF(apolice_status_id = 1, SUM(IFNULL(PL_RF,0)), 0) AS V_PL_RF, 
-            IF(apolice_status_id = 1, SUM(IFNULL(PB_RF,0)), 0) AS V_PB_RF, 
-            IF(apolice_status_id = 1, SUM(IFNULL(pro_labore_RF,0)), 0) AS V_pro_labore_RF, 
-            IF(apolice_status_id = 1, SUM(IFNULL(valor_comissao_RF,0)), 0) AS V_valor_comissao_RF, 
-            IF(apolice_status_id = 1, SUM(IF(PB_QA IS NOT NULL, 1, 0)), 0) AS V_quantidade_QA,
-            IF(apolice_status_id = 1, SUM(IFNULL(PB_QA,0)), 0) AS V_PB_QA, 
-            IF(apolice_status_id = 1, SUM(IFNULL(IOF_QA,0)), 0) AS V_IOF_QA, 
-            IF(apolice_status_id = 1, SUM(IFNULL(PL_QA,0)), 0) AS V_PL_QA, 
-            IF(apolice_status_id = 1, SUM(IFNULL(pro_labore_QA,0)), 0) AS V_pro_labore_QA, 
-            IF(apolice_status_id = 1, SUM(IFNULL(valor_comissao_QA,0)), 0) AS V_valor_comissao_QA,
-
-            IF(apolice_status_id = 2, SUM(IF(PB_RF IS NOT NULL, 1, 0)), 0) AS C_quantidade_RF,
-            IF(apolice_status_id = 2, SUM(IFNULL(IOF_RF,0)), 0) AS C_IOF_RF, 
-            IF(apolice_status_id = 2, SUM(IFNULL(PL_RF,0)), 0) AS C_PL_RF, 
-            IF(apolice_status_id = 2, SUM(IFNULL(PB_RF,0)), 0) AS C_PB_RF, 
-            IF(apolice_status_id = 2, SUM(IFNULL(pro_labore_RF,0)), 0) AS C_pro_labore_RF, 
-            IF(apolice_status_id = 2, SUM(IFNULL(valor_comissao_RF,0)), 0) AS C_valor_comissao_RF, 
-            IF(apolice_status_id = 2, SUM(IF(PB_QA IS NOT NULL, 1, 0)), 0) AS C_quantidade_QA,
-            IF(apolice_status_id = 2, SUM(IFNULL(PB_QA,0)), 0) AS C_PB_QA, 
-            IF(apolice_status_id = 2, SUM(IFNULL(IOF_QA,0)), 0) AS C_IOF_QA, 
-            IF(apolice_status_id = 2, SUM(IFNULL(PL_QA,0)), 0) AS C_PL_QA, 
-            IF(apolice_status_id = 2, SUM(IFNULL(pro_labore_QA,0)), 0) AS C_pro_labore_QA, 
-            IF(apolice_status_id = 2, SUM(IFNULL(valor_comissao_QA,0)), 0) AS C_valor_comissao_QA
+            SUM(IF(apolice_status_id = 1, IF(PB IS NOT NULL, 1, 0), 0)) AS V_quantidade,
+            SUM(IF(apolice_status_id = 1, IFNULL(IOF,0), 0)) AS V_IOF, 
+            SUM(IF(apolice_status_id = 1, IFNULL(PL,0), 0)) AS V_PL, 
+            SUM(IF(apolice_status_id = 1, IFNULL(PB,0), 0)) AS V_PB, 
+            SUM(IF(apolice_status_id = 1, IFNULL(pro_labore,0), 0)) AS V_pro_labore, 
+            SUM(IF(apolice_status_id = 1, IFNULL(valor_comissao,0), 0)) AS V_valor_comissao, 
+            SUM(IF(apolice_status_id = 2, IF(PB IS NOT NULL, 1, 0), 0)) AS C_quantidade,
+            SUM(IF(apolice_status_id = 2, IFNULL(IOF,0), 0)) AS C_IOF, 
+            SUM(IF(apolice_status_id = 2, IFNULL(PL,0), 0)) AS C_PL, 
+            SUM(IF(apolice_status_id = 2, IFNULL(PB,0), 0)) AS C_PB, 
+            SUM(IF(apolice_status_id = 2, IFNULL(pro_labore,0), 0)) AS C_pro_labore, 
+            SUM(IF(apolice_status_id = 2, IFNULL(valor_comissao,0), 0)) AS C_valor_comissao
         FROM (
             SELECT 
                 ppp.nome as planos,
@@ -1781,80 +1768,41 @@ Class Pedido_Model extends MY_Model
                     FROM apolice_cobertura ac 
                     INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
                     INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-                    WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 39
+                    WHERE ac.apolice_id = a.apolice_id
                     LIMIT 1
-                ) AS PB_RF, (
+                ) AS PB, (
                     SELECT FORMAT(ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
                     FROM apolice_cobertura ac 
                     INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
                     INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-                    WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 39
+                    WHERE ac.apolice_id = a.apolice_id
                     LIMIT 1
-                ) AS IOF_RF, (
+                ) AS IOF, (
                     SELECT ac.valor
                     FROM apolice_cobertura ac 
                     INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
                     INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-                    WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 39
+                    WHERE ac.apolice_id = a.apolice_id
                     LIMIT 1
-                ) AS PL_RF, (
+                ) AS PL, (
                     SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2)
                     FROM apolice_cobertura ac 
                     INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
                     INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
                     INNER JOIN comissao_gerada cmg ON cmg.pedido_id = ac.pedido_id
                     INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
-                    WHERE cmg.pedido_id = pedido.pedido_id AND cp.cobertura_id = 39 AND parc_com.parceiro_tipo_id = 3
+                    WHERE cmg.pedido_id = pedido.pedido_id AND parc_com.parceiro_tipo_id = 3
                     LIMIT 1
-                ) AS pro_labore_RF, (
+                ) AS pro_labore, (
                     SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2)
                     FROM apolice_cobertura ac 
                     INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
                     INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
                     INNER JOIN comissao_gerada cmg ON cmg.pedido_id = ac.pedido_id
                     INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
-                    WHERE cmg.pedido_id = pedido.pedido_id AND cp.cobertura_id = 39 AND parc_com.parceiro_tipo_id = 2
+                    WHERE cmg.pedido_id = pedido.pedido_id AND parc_com.parceiro_tipo_id = 2
                     LIMIT 1
-                ) AS valor_comissao_RF, (
-                    SELECT FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
-                    FROM apolice_cobertura ac 
-                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
-                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-                    WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 71
-                    LIMIT 1
-                ) AS PB_QA, (
-                    SELECT FORMAT(ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
-                    FROM apolice_cobertura ac 
-                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
-                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-                    WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 71
-                    LIMIT 1
-                ) AS IOF_QA, (
-                    SELECT ac.valor
-                    FROM apolice_cobertura ac 
-                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
-                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-                    WHERE ac.apolice_id = a.apolice_id AND cp.cobertura_id = 71
-                    LIMIT 1
-                ) AS PL_QA, (
-                    SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2)
-                    FROM apolice_cobertura ac 
-                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
-                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-                    INNER JOIN comissao_gerada cmg ON cmg.pedido_id = ac.pedido_id
-                    INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
-                    WHERE cmg.pedido_id = pedido.pedido_id AND cp.cobertura_id = 71 AND parc_com.parceiro_tipo_id = 3
-                    LIMIT 1
-                ) AS pro_labore_QA, (
-                    SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2)
-                    FROM apolice_cobertura ac 
-                    INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
-                    INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-                    INNER JOIN comissao_gerada cmg ON cmg.pedido_id = ac.pedido_id
-                    INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
-                    WHERE cmg.pedido_id = pedido.pedido_id AND cp.cobertura_id = 71 AND parc_com.parceiro_tipo_id = 2
-                    LIMIT 1
-                ) AS valor_comissao_QA
+                ) AS valor_comissao
             FROM `pedido`
             INNER JOIN `pedido_status` ps ON `ps`.`pedido_status_id` = `pedido`.`pedido_status_id`
             INNER JOIN `apolice` a ON `a`.`pedido_id` = `pedido`.`pedido_id`
