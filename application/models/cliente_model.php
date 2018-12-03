@@ -422,7 +422,7 @@ Class Cliente_Model extends MY_Model {
 
 
 
-    if(isset($data['produto_parceiro_id'])){
+    if(isset($data['produto_parceiro_id']) && empty($data['parceiro_id'])){
       $produto = $this->produto_parceiro->get($data['produto_parceiro_id']);
       if(isset($produto['parceiro_id'])){
         $data['parceiro_id'] = $produto['parceiro_id'];

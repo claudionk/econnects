@@ -23,6 +23,22 @@ class Relatorios extends Admin_Controller
         $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data);
     }
 
+
+    public function mapa_repasse_dinamico()
+    {
+
+        //Carrega React e Orb (relatórios)
+        $this->loadLibraries();
+        $this->template->js(app_assets_url("modulos/relatorios/vendas/mapa_repasse.js", "admin"));
+
+        //Dados para template
+        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_fim'] = date("d/m/Y");
+
+        //Carrega template
+        $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data);
+    }
+
     public function vendas1()
     {
         //Dados para template
@@ -284,10 +300,8 @@ class Relatorios extends Admin_Controller
             // 'Data processamento Seguradora/SIS',
             'Data Cancelamento',
             'Valor Parcela',
-            'Premio Bruto Roubo Furto',
-            'Premio Liquido Roubo Furto',
-            'Premio Bruto Quebra',
-            'Premio Liquido Quebra',
+            'Premio Bruto',
+            'Premio Liquido',
             'Comissao Representante',
             'Comissao Corretagem',
 
@@ -414,44 +428,26 @@ class Relatorios extends Admin_Controller
 
 
         $ret = [];
-        $V_quantidade_RF = 0;
-        $V_IOF_RF = 0;
-        $V_PL_RF = 0;
-        $V_PB_RF = 0;
-        $V_pro_labore_RF = 0;
-        $V_valor_comissao_RF = 0;
-        $V_quantidade_QA = 0;
-        $V_PB_QA = 0;
-        $V_IOF_QA = 0;
-        $V_PL_QA = 0;
-        $V_pro_labore_QA = 0;
-        $V_valor_comissao_QA = 0;
+        $V_quantidade = 0;
+        $V_IOF = 0;
+        $V_PL = 0;
+        $V_PB = 0;
+        $V_pro_labore = 0;
+        $V_valor_comissao = 0;
 
-        $C_quantidade_RF = 0;
-        $C_IOF_RF = 0;
-        $C_PL_RF = 0;
-        $C_PB_RF = 0;
-        $C_pro_labore_RF = 0;
-        $C_valor_comissao_RF = 0;
-        $C_quantidade_QA = 0;
-        $C_PB_QA = 0;
-        $C_IOF_QA = 0;
-        $C_PL_QA = 0;
-        $C_pro_labore_QA = 0;
-        $C_valor_comissao_QA = 0;
+        $C_quantidade = 0;
+        $C_IOF = 0;
+        $C_PL = 0;
+        $C_PB = 0;
+        $C_pro_labore = 0;
+        $C_valor_comissao = 0;
 
-        $T_quantidade_RF = 0;
-        $T_IOF_RF = 0;
-        $T_PL_RF = 0;
-        $T_PB_RF = 0;
-        $T_pro_labore_RF = 0;
-        $T_valor_comissao_RF = 0;
-        $T_quantidade_QA = 0;
-        $T_PB_QA = 0;
-        $T_IOF_QA = 0;
-        $T_PL_QA = 0;
-        $T_pro_labore_QA = 0;
-        $T_valor_comissao_QA = 0;
+        $T_quantidade = 0;
+        $T_IOF = 0;
+        $T_PL = 0;
+        $T_PB = 0;
+        $T_pro_labore = 0;
+        $T_valor_comissao = 0;
 
         foreach ($planos as $key => $desc) { 
             $find = false;
@@ -460,44 +456,26 @@ class Relatorios extends Admin_Controller
                     $row['desc'] = $desc;
                     $ret[] = $row;
 
-                    $V_quantidade_RF += $row['V_quantidade_RF'];
-                    $V_IOF_RF += $row['V_IOF_RF'];
-                    $V_PL_RF += $row['V_PL_RF'];
-                    $V_PB_RF += $row['V_PB_RF'];
-                    $V_pro_labore_RF += $row['V_pro_labore_RF'];
-                    $V_valor_comissao_RF += $row['V_valor_comissao_RF'];
-                    $V_quantidade_QA += $row['V_quantidade_QA'];
-                    $V_PB_QA += $row['V_PB_QA'];
-                    $V_IOF_QA += $row['V_IOF_QA'];
-                    $V_PL_QA += $row['V_PL_QA'];
-                    $V_pro_labore_QA += $row['V_pro_labore_QA'];
-                    $V_valor_comissao_QA += $row['V_valor_comissao_QA'];
+                    $V_quantidade += $row['V_quantidade'];
+                    $V_IOF += $row['V_IOF'];
+                    $V_PL += $row['V_PL'];
+                    $V_PB += $row['V_PB'];
+                    $V_pro_labore += $row['V_pro_labore'];
+                    $V_valor_comissao += $row['V_valor_comissao'];
 
-                    $C_quantidade_RF += $row['C_quantidade_RF'];
-                    $C_IOF_RF += $row['C_IOF_RF'];
-                    $C_PL_RF += $row['C_PL_RF'];
-                    $C_PB_RF += $row['C_PB_RF'];
-                    $C_pro_labore_RF += $row['C_pro_labore_RF'];
-                    $C_valor_comissao_RF += $row['C_valor_comissao_RF'];
-                    $C_quantidade_QA += $row['C_quantidade_QA'];
-                    $C_PB_QA += $row['C_PB_QA'];
-                    $C_IOF_QA += $row['C_IOF_QA'];
-                    $C_PL_QA += $row['C_PL_QA'];
-                    $C_pro_labore_QA += $row['C_pro_labore_QA'];
-                    $C_valor_comissao_QA += $row['C_valor_comissao_QA'];
+                    $C_quantidade += $row['C_quantidade'];
+                    $C_IOF += $row['C_IOF'];
+                    $C_PL += $row['C_PL'];
+                    $C_PB += $row['C_PB'];
+                    $C_pro_labore += $row['C_pro_labore'];
+                    $C_valor_comissao += $row['C_valor_comissao'];
 
-                    $T_quantidade_RF += $V_quantidade_RF + $C_quantidade_RF;
-                    $T_IOF_RF += $V_IOF_RF + $C_IOF_RF;
-                    $T_PL_RF += $V_PL_RF + $C_PL_RF;
-                    $T_PB_RF += $V_PB_RF + $C_PB_RF;
-                    $T_pro_labore_RF += $V_pro_labore_RF + $C_pro_labore_RF;
-                    $T_valor_comissao_RF += $V_valor_comissao_RF + $C_valor_comissao_RF;
-                    $T_quantidade_QA += $V_quantidade_QA + $C_quantidade_QA;
-                    $T_PB_QA += $V_PB_QA + $C_PB_QA;
-                    $T_IOF_QA += $V_IOF_QA + $C_IOF_QA;
-                    $T_PL_QA += $V_PL_QA + $C_PL_QA;
-                    $T_pro_labore_QA += $V_pro_labore_QA + $C_pro_labore_QA;
-                    $T_valor_comissao_QA += $V_valor_comissao_QA + $C_valor_comissao_QA;
+                    $T_quantidade += $V_quantidade + $C_quantidade;
+                    $T_IOF += $V_IOF + $C_IOF;
+                    $T_PL += $V_PL + $C_PL;
+                    $T_PB += $V_PB + $C_PB;
+                    $T_pro_labore += $V_pro_labore + $C_pro_labore;
+                    $T_valor_comissao += $V_valor_comissao + $C_valor_comissao;
                     $find = true;
                     break;
                 }
@@ -506,86 +484,50 @@ class Relatorios extends Admin_Controller
             if (!$find) {
                 $ret[] = [
                     'desc' => $desc,
-                    'V_quantidade_RF' => 0,
-                    'V_IOF_RF' => 0,
-                    'V_PL_RF' => 0,
-                    'V_PB_RF' => 0,
-                    'V_pro_labore_RF' => 0,
-                    'V_valor_comissao_RF' => 0,
-                    'V_quantidade_QA' => 0,
-                    'V_PB_QA' => 0,
-                    'V_IOF_QA' => 0,
-                    'V_PL_QA' => 0,
-                    'V_pro_labore_QA' => 0,
-                    'V_valor_comissao_QA' => 0,
+                    'V_quantidade' => 0,
+                    'V_IOF' => 0,
+                    'V_PL' => 0,
+                    'V_PB' => 0,
+                    'V_pro_labore' => 0,
+                    'V_valor_comissao' => 0,
 
-                    'C_quantidade_RF' => 0,
-                    'C_IOF_RF' => 0,
-                    'C_PL_RF' => 0,
-                    'C_PB_RF' => 0,
-                    'C_pro_labore_RF' => 0,
-                    'C_valor_comissao_RF' => 0,
-                    'C_quantidade_QA' => 0,
-                    'C_PB_QA' => 0,
-                    'C_IOF_QA' => 0,
-                    'C_PL_QA' => 0,
-                    'C_pro_labore_QA' => 0,
-                    'C_valor_comissao_QA' => 0,
+                    'C_quantidade' => 0,
+                    'C_IOF' => 0,
+                    'C_PL' => 0,
+                    'C_PB' => 0,
+                    'C_pro_labore' => 0,
+                    'C_valor_comissao' => 0,
 
-                    'T_quantidade_RF' => 0,
-                    'T_IOF_RF' => 0,
-                    'T_PL_RF' => 0,
-                    'T_PB_RF' => 0,
-                    'T_pro_labore_RF' => 0,
-                    'T_valor_comissao_RF' => 0,
-                    'T_quantidade_QA' => 0,
-                    'T_PB_QA' => 0,
-                    'T_IOF_QA' => 0,
-                    'T_PL_QA' => 0,
-                    'T_pro_labore_QA' => 0,
-                    'T_valor_comissao_QA' => 0,
+                    'T_quantidade' => 0,
+                    'T_IOF' => 0,
+                    'T_PL' => 0,
+                    'T_PB' => 0,
+                    'T_pro_labore' => 0,
+                    'T_valor_comissao' => 0,
                 ];
             }
         }
 
         $ret[] = [
             'desc' => 'TOTAL',
-            'V_quantidade_RF' => $V_quantidade_RF,
-            'V_IOF_RF' => $V_IOF_RF,
-            'V_PL_RF' => $V_PL_RF,
-            'V_PB_RF' => $V_PB_RF,
-            'V_pro_labore_RF' => $V_pro_labore_RF,
-            'V_valor_comissao_RF' => $V_valor_comissao_RF,
-            'V_quantidade_QA' => $V_quantidade_QA,
-            'V_PB_QA' => $V_PB_QA,
-            'V_IOF_QA' => $V_IOF_QA,
-            'V_PL_QA' => $V_PL_QA,
-            'V_pro_labore_QA' => $V_pro_labore_QA,
-            'V_valor_comissao_QA' => $V_valor_comissao_QA,
-            'C_quantidade_RF' => $C_quantidade_RF,
-            'C_IOF_RF' => $C_IOF_RF,
-            'C_PL_RF' => $C_PL_RF,
-            'C_PB_RF' => $C_PB_RF,
-            'C_pro_labore_RF' => $C_pro_labore_RF,
-            'C_valor_comissao_RF' => $C_valor_comissao_RF,
-            'C_quantidade_QA' => $C_quantidade_QA,
-            'C_PB_QA' => $C_PB_QA,
-            'C_IOF_QA' => $C_IOF_QA,
-            'C_PL_QA' => $C_PL_QA,
-            'C_pro_labore_QA' => $C_pro_labore_QA,
-            'C_valor_comissao_QA' => $C_valor_comissao_QA,
-            'T_quantidade_RF' => $T_quantidade_RF,
-            'T_IOF_RF' => $T_IOF_RF,
-            'T_PL_RF' => $T_PL_RF,
-            'T_PB_RF' => $T_PB_RF,
-            'T_pro_labore_RF' => $T_pro_labore_RF,
-            'T_valor_comissao_RF' => $T_valor_comissao_RF,
-            'T_quantidade_QA' => $T_quantidade_QA,
-            'T_PB_QA' => $T_PB_QA,
-            'T_IOF_QA' => $T_IOF_QA,
-            'T_PL_QA' => $T_PL_QA,
-            'T_pro_labore_QA' => $T_pro_labore_QA,
-            'T_valor_comissao_QA' => $T_valor_comissao_QA,
+            'V_quantidade' => $V_quantidade,
+            'V_IOF' => $V_IOF,
+            'V_PL' => $V_PL,
+            'V_PB' => $V_PB,
+            'V_pro_labore' => $V_pro_labore,
+            'V_valor_comissao' => $V_valor_comissao,
+            'C_quantidade' => $C_quantidade,
+            'C_IOF' => $C_IOF,
+            'C_PL' => $C_PL,
+            'C_PB' => $C_PB,
+            'C_pro_labore' => $C_pro_labore,
+            'C_valor_comissao' => $C_valor_comissao,
+            'T_quantidade' => $T_quantidade,
+            'T_IOF' => $T_IOF,
+            'T_PL' => $T_PL,
+            'T_PB' => $T_PB,
+            'T_pro_labore' => $T_pro_labore,
+            'T_valor_comissao' => $T_valor_comissao,
         ];
 
         return $ret;

@@ -24,6 +24,9 @@ function parseData(data)
         data[i].valor_parcela = parseNumero(val.valor_parcela);
         data[i].premio_liquido = parseNumero(val.premio_liquido);
         data[i].premio_liquido_total = parseNumero(val.premio_liquido_total);
+        data[i].IOF = parseNumero(val.IOF);
+        data[i].valor_comissao_rep = parseNumero(val.valor_comissao_rep);
+        data[i].valor_comissao_cor = parseNumero(val.valor_comissao_cor);
         data[i].comissao_corretor = parseNumero(val.comissao_corretor);
     })
 }

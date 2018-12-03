@@ -831,6 +831,8 @@ Class Integracao_Model extends MY_Model
                                 $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, $ErroID, $ErroMSG, $ErroSLUG);
                             }
 
+                        } elseif ( $callFuncReturn->status == 2 ) {
+                            $integracao_log_status_id = 7;
                         }
                     }
                 }
@@ -895,7 +897,7 @@ Class Integracao_Model extends MY_Model
                     // || ( $item['campo_tipo']=='D' && !($registro[$item['nome_banco']] > 0) ) 
                 ) {
                     // seta para erro
-                    $integracao_log_status_id = 5;
+                    $integracao_log_status_id = 8;
 
                     // gera log do erro
                     $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, 1, "O campo {$item['nome']} é obrigatório", $item['nome_banco']);
@@ -946,7 +948,7 @@ Class Integracao_Model extends MY_Model
             $result .= mb_substr($pre_result,0,$item['tamanho']);
         }
 
-        if ($integracao_log_status_id == 5){
+        if ($integracao_log_status_id != 4){
             $this->integracao_log_detalhe->update_by(
                 array('integracao_log_detalhe_id' =>$integracao_log_detalhe_id),array(
                     'integracao_log_status_id' => $integracao_log_status_id

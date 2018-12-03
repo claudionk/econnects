@@ -52,10 +52,8 @@ if (isset($result)) {
 
                 <td class="tm_col_min_150"><?= $row['data_cancelamento'] ?></td>
                 <td class="tm_col_min_150"><?= app_format_currency($row['valor_parcela'], true) ?></td>
-                <td class="tm_col_min_150"><?= app_format_currency($row['PB_RF'], true) ?></td>
-                <td class="tm_col_min_150"><?= app_format_currency($row['PL_RF'], true) ?></td>
-                <td class="tm_col_min_150"><?= app_format_currency($row['PB_QA'], true) ?></td>
-                <td class="tm_col_min_150"><?= app_format_currency($row['PL_QA'], true) ?></td>
+                <td class="tm_col_min_150"><?= app_format_currency($row['PB'], true) ?></td>
+                <td class="tm_col_min_150"><?= app_format_currency($row['PL'], true) ?></td>
                 <td class="tm_col_min_150"><?= app_format_currency($row['pro_labore'], true) ?></td>
                 <td class="tm_col_min_150"><?= app_format_currency($row['valor_comissao'], true) ?></td>
             </tr>

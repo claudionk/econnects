@@ -43,28 +43,11 @@ class Apolice extends CI_Controller {
         return $webservice;
     }
 
-    public function index() {
+    public function consultaBase() {
+        die( json_encode( $this->retornaApolices($_POST), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+    }
 
-        if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
-            $GET = $_GET;
-        } else {
-            if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "PUT" ) {
-                $PUT = json_decode( file_get_contents( "php://input" ), true );
-                if( !isset( $PUT["apolice_id"] ) ) {
-                    die( json_encode( array( "status" => false, "message" => "Campo apolice_id é obrigatório" ) ) );
-                }
-                if( !isset( $PUT["num_apolice"] ) ) {
-                    die( json_encode( array( "status" => false, "message" => "Campo num_apolice é obrigatório" ) ) );
-                }
-                $apolice_id = $PUT["apolice_id"];
-                $num_apolice = $PUT["num_apolice"];
-
-                $this->update( $apolice_id, $num_apolice );
-            } else {
-                die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
-            }
-        }
-
+    public function retornaApolices($GET = []) {
         $apolice_id = null;
         if( isset( $GET["apolice_id"] ) ) {
             $apolice_id = $GET["apolice_id"];
@@ -130,15 +113,39 @@ class Apolice extends CI_Controller {
                     );
                 }
 
-                die( json_encode( array("status" => true, "dados" => $resposta), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+                return array("status" => true, "dados" => $resposta);
             } else {
-                die( json_encode( array( "status" => false, "message" => "Não foi possível localizar a apólice com os parâmetros informados" ) ) );
-                $response->setStatus(false);
+                return array( "status" => false, "message" => "Não foi possível localizar a apólice com os parâmetros informados" );
             }
 
         } else {
-            die( json_encode( array( "status" => false, "message" => "Parâmetros inválidos" ) ) );
+            return array( "status" => false, "message" => "Parâmetros inválidos" );
         }
+    }
+
+    public function index() {
+
+        if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
+            $GET = $_GET;
+            die( json_encode( $this->retornaApolices($GET), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+        } else {
+            if ($_SERVER["REQUEST_METHOD"] === "POST" || $_SERVER["REQUEST_METHOD"] === "PUT" ) {
+                $PUT = json_decode( file_get_contents( "php://input" ), true );
+                if( !isset( $PUT["apolice_id"] ) ) {
+                    die( json_encode( array( "status" => false, "message" => "Campo apolice_id é obrigatório" ) ) );
+                }
+                if( !isset( $PUT["num_apolice"] ) ) {
+                    die( json_encode( array( "status" => false, "message" => "Campo num_apolice é obrigatório" ) ) );
+                }
+                $apolice_id = $PUT["apolice_id"];
+                $num_apolice = $PUT["num_apolice"];
+
+                $this->update( $apolice_id, $num_apolice );
+            } else {
+                die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
+            }
+        }
+
     }
 
     private function update( $apolice_id, $num_apolice ) {

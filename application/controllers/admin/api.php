@@ -51,8 +51,10 @@ class Api extends Site_Controller
 
             if (!is_array($messagem))
                 header('X-Error-Message: '. $messagem, true, 500);
-            else
+            else {
+                $messagem = implode("\n", $messagem);
                 header('X-Error-Message: Falha no Processamento', true, 500);
+            }
 
             $retorno["response"] = $messagem;
             if (isset($retornoJson->erros)) {
