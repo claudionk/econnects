@@ -735,7 +735,7 @@ Class Pedido_Model extends MY_Model
 
   }
 
-  function criticas_cancelamento($pedido_id, $executar = false, $dados_bancarios = []){
+  function criticas_cancelamento($pedido_id, $executar = false, $dados_bancarios = [], $define_date = date("Y-m-d") ){
 
     $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
     $this->load->model("apolice_model", "apolice");
@@ -813,7 +813,9 @@ Class Pedido_Model extends MY_Model
     $inicio_vigencia = explode('-', $apolice['data_ini_vigencia']);
     $inicio_vigencia = mktime(0, 0, 0, $inicio_vigencia[1], $inicio_vigencia[2], $inicio_vigencia[0]);
 
-    $hoje = mktime(0, 0, 0, date('m'), date('d'), date('Y'));
+    list( $current_year, $current_month, $current_day ) explode("-",$define_date);
+
+    $hoje = mktime(0, 0, 0, $current_month, $current_day, $current_year );
 
     if ( $hoje >= $inicio_vigencia && $hoje <= $fim_vigencia ) {
       //Já comeceu a vigencia
@@ -826,7 +828,7 @@ Class Pedido_Model extends MY_Model
         // pode efetuar o cancelamento depois do início da vigência
         if($produto_parceiro_cancelamento['seg_depois_dias'] != 0){
           // verifica a quantidade de dias que pode executar o cancelamento antes do inicio da vigência
-          $qnt_dias = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), date('d/m/Y'), 'D');
+          $qnt_dias = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']),sprintf("%04d/%02d%02d",(int)$current_day,(int)$current_month,(int)$current_year), 'D');
           if($qnt_dias > $produto_parceiro_cancelamento['seg_depois_dias']){
             //não pode executar cancelamento com limite de dias antes do início da vigência
             $result['mensagem'] = "Cancelamento só é permitido até {$produto_parceiro_cancelamento['seg_depois_dias']} dia(s) após o início da vigência";
@@ -952,19 +954,19 @@ Class Pedido_Model extends MY_Model
     return $retorno;
   }
 
-  function cancelamento($pedido_id, $dados_bancarios = []){
+  function cancelamento($pedido_id, $dados_bancarios = [], $define_date = date("Y-m-d") ){
 
-    $criticas = $this->criticas_cancelamento($pedido_id, true, $dados_bancarios);
+    $criticas = $this->criticas_cancelamento($pedido_id, true, $dados_bancarios, $define_date);
 
     if (!empty($criticas['result'])) {
         // efetuar o cancelamento
-        $this->executa_estorno_cancelamento($pedido_id, $criticas['vigencia'], TRUE, $dados_bancarios);
+        $this->executa_estorno_cancelamento($pedido_id, $criticas['vigencia'], TRUE, $dados_bancarios, $define_date);
     }
 
     return $criticas;
   }
 
-  function cancelamento_calculo($pedido_id){
+  function cancelamento_calculo($pedido_id, $define_date = date("Y-m-d") ){
 
     $result = [
       'mensagem' => '',
@@ -972,11 +974,11 @@ Class Pedido_Model extends MY_Model
       'valor_estorno_total' => 0, 
     ];
 
-    $criticas = $this->criticas_cancelamento($pedido_id);
+    $criticas = $this->criticas_cancelamento($pedido_id,false,[], $define_date );
 
     if (!empty($criticas['result'])) {
       // efetuar o cancelamento
-      $result = $this->calcula_estorno_cancelamento($pedido_id, $criticas['vigencia']);
+      $result = $this->calcula_estorno_cancelamento($pedido_id, $criticas['vigencia'], $define_date);
     } else {
       $result['mensagem'] = $criticas['mensagem'];
     }
@@ -984,7 +986,7 @@ Class Pedido_Model extends MY_Model
     return $result;
   }
 
-  function calcula_estorno_cancelamento($pedido_id, $vigente = FALSE){
+  function calcula_estorno_cancelamento($pedido_id, $vigente = FALSE, $define_date = date("Y-m-d") ){
 
     $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
     $this->load->model("apolice_model", "apolice");
@@ -1088,7 +1090,7 @@ Class Pedido_Model extends MY_Model
     ];
   }
 
-  function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $dados_bancarios = []){
+  function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $define_date ){
 
     $this->load->model("apolice_model", "apolice");
     $this->load->model("apolice_cobertura_model", "apolice_cobertura");
@@ -1096,7 +1098,7 @@ Class Pedido_Model extends MY_Model
     $this->load->model("apolice_generico_model", "apolice_generico");
     $this->load->model("apolice_seguro_viagem_model", "apolice_seguro_viagem");
 
-    $calculo = $this->calcula_estorno_cancelamento($pedido_id, $vigente);
+    $calculo = $this->calcula_estorno_cancelamento($pedido_id, $vigente, $define_date);
 
     if (!empty($calculo['status'])) {
 
