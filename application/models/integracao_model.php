@@ -806,6 +806,7 @@ Class Integracao_Model extends MY_Model
             // gera log
             $integracao_log_detalhe_id = null;
             $integracao_log_status_id = 4;
+            $msgDetCampo = [];
 
             if (!empty($datum['id_log'])) {
                 $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $datum['id_log'], addslashes(json_encode($datum)));
@@ -822,18 +823,23 @@ Class Integracao_Model extends MY_Model
                         if ( empty($callFuncReturn->status) ){
                             // seta para erro
                             $integracao_log_status_id = 5;
-                            // echo "<pre>";print_r($callFuncReturn);echo "</pre>";
+                            $msgDetCampo = $callFuncReturn->msg;
 
-                            foreach ($callFuncReturn->msg as $er) {
+                        } elseif ( $callFuncReturn->status === 2 ) {
+                            // seta para ignorado
+                            $integracao_log_status_id = 7;
+                            $msgDetCampo = $callFuncReturn->msg;
+                        }
+
+                        if (!empty($msgDetCampo)) {
+                            foreach ($msgDetCampo as $er) {
                                 $ErroID = !empty($er['id']) ? $er['id'] : -1;
                                 $ErroMSG = !empty($er['msg']) ? $er['msg'] : $er;
                                 $ErroSLUG = !empty($er['slug']) ? $er['slug'] : "";
                                 $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, $ErroID, $ErroMSG, $ErroSLUG);
                             }
-
-                        } elseif ( $callFuncReturn->status === 2 ) {
-                            $integracao_log_status_id = 7;
                         }
+
                     }
                 }
             }

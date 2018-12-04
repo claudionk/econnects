@@ -41,7 +41,9 @@ function validaRepresentante() {
                     <option value="">Informe o representante</option>
                     <?php 
                     foreach ($combo as $k => $v) {
-                        echo "<option slug=".$v['slug']." value=".$v['parceiro_id'].">".$v['nome']."</option>";
+                        $selected = (!empty($_POST['representante']) && $_POST['representante'] == $v['parceiro_id']) ? 'selected="selected"' : "";
+
+                        echo "<option slug=".$v['slug']." value=".$v['parceiro_id']." {$selected}>".$v['nome']."</option>";
                     }
                     ?>
                 </select>

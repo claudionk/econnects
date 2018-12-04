@@ -1502,11 +1502,9 @@ Class Pedido_Model extends MY_Model
     $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
     $this->_database->join("apolice a", "a.pedido_id = {$this->_table}.pedido_id", "inner");
     
-    /* */
     $this->_database->join("apolice_cobertura ac", "ac.pedido_id = a.apolice_id", "inner");
     $this->_database->join("cobertura_plano cp", "ac.cobertura_plano_id = cp.cobertura_plano_id", "inner");
     $this->_database->join("cobertura cb", "cb.cobertura_id = cp.cobertura_id", "inner");
-    /* */
 
     $this->_database->join("cotacao c", "c.cotacao_id = {$this->_table}.cotacao_id", "inner");
     $this->_database->join("cotacao_status cs", "cs.cotacao_status_id = c.cotacao_status_id", "inner");
@@ -1525,6 +1523,42 @@ Class Pedido_Model extends MY_Model
     $this->_database->join("forma_pagamento fp", "fp.forma_pagamento_id = pppag.forma_pagamento_id", "inner");
     $this->_database->join("apolice_status ast", "ast.apolice_status_id = a.apolice_status_id", "inner");
 
+
+    $this->_database->join("
+      (
+        SELECT cliente_id, apolice_status_id, num_apolice, stat_, tipo_transacao
+          , Recebido
+          , Processado
+          , CTA_Enviado
+          , IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL AND CTA_Retorno IS NULL, CTA_Enviado, NULL) as CTA_Ag_Retorno
+          , CTA_Retorno_ok
+          , IF(CTA_Retorno_ok IS NULL, CTA_Retorno, NULL) as CTA_Retorno_erro
+        FROM (
+          select cliente_id, apolice_status_id, num_apolice, stat_, tipo_transacao
+            , chave_emi
+            , Recebido, Processado
+            , maxDate( ctaEmissao(chave_emi, 0), ctaCliente(cliente_id, 0) ) as CTA_Enviado
+            , maxDate( ctaEmissao(chave_emi, 4), ctaCliente(cliente_id, 4) ) as CTA_Retorno_ok
+            , maxDate( ctaEmissao(chave_emi, 5), ctaCliente(cliente_id, 5) ) as CTA_Retorno
+          from (
+            SELECT c.cliente_id, a.apolice_status_id, ld.chave as num_apolice, ls.nome as stat_, dd.tipo_transacao
+            , date(ld.criacao) as Recebido
+            , IF(ld.integracao_log_status_id = 4, date(p.status_data), NULL) as Processado
+            , concat(a.num_apolice, '|', IF(dd.tipo_transacao = 'NS', '01', IF(dd.tipo_transacao IN('XS','XX'), '02', '00'))) as chave_emi
+            FROM integracao_log_detalhe ld
+            JOIN integracao_log_status ls on ld.integracao_log_status_id = ls.integracao_log_status_id
+            JOIN integracao_log_detalhe_dados dd on ld.integracao_log_detalhe_id = dd.integracao_log_detalhe_id
+            JOIN apolice a on ld.chave = a.num_apolice
+            JOIN pedido p on a.pedido_id = p.pedido_id
+            JOIN cotacao c on p.cotacao_id = c.cotacao_id
+            WHERE ld.deletado = 0
+              and ld.integracao_log_id in(select integracao_log_id from integracao_log where integracao_id = 15 and deletado = 0) 
+          ) as x
+            
+        ) AS y
+        where CTA_Retorno_ok IS NOT NULL
+
+      ) as cta", "cta.num_apolice = a.num_apolice", "join", FALSE);
 
 
     $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
@@ -1792,6 +1826,42 @@ Class Pedido_Model extends MY_Model
             INNER JOIN `produto_parceiro_plano` ppp ON `ppp`.`produto_parceiro_plano_id` = `ce`.`produto_parceiro_plano_id`
             LEFT JOIN `localidade_estado` le ON `le`.`localidade_estado_id` = `p`.`localidade_estado_id`
             LEFT JOIN `usuario` u ON `u`.`usuario_id` = `c`.`usuario_cotacao_id`
+
+            INNER JOIN (
+              SELECT cliente_id, apolice_status_id, num_apolice, stat_, tipo_transacao
+                , Recebido
+                , Processado
+                , CTA_Enviado
+                , IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL AND CTA_Retorno IS NULL, CTA_Enviado, NULL) as CTA_Ag_Retorno
+                , CTA_Retorno_ok
+                , IF(CTA_Retorno_ok IS NULL, CTA_Retorno, NULL) as CTA_Retorno_erro
+              FROM (
+                select cliente_id, apolice_status_id, num_apolice, stat_, tipo_transacao
+                  , chave_emi
+                  , Recebido, Processado
+                  , maxDate( ctaEmissao(chave_emi, 0), ctaCliente(cliente_id, 0) ) as CTA_Enviado
+                  , maxDate( ctaEmissao(chave_emi, 4), ctaCliente(cliente_id, 4) ) as CTA_Retorno_ok
+                  , maxDate( ctaEmissao(chave_emi, 5), ctaCliente(cliente_id, 5) ) as CTA_Retorno
+                from (
+                  SELECT c.cliente_id, a.apolice_status_id, ld.chave as num_apolice, ls.nome as stat_, dd.tipo_transacao
+                  , date(ld.criacao) as Recebido
+                  , IF(ld.integracao_log_status_id = 4, date(p.status_data), NULL) as Processado
+                  , concat(a.num_apolice, '|', IF(dd.tipo_transacao = 'NS', '01', IF(dd.tipo_transacao IN('XS','XX'), '02', '00'))) as chave_emi
+                  FROM integracao_log_detalhe ld
+                  JOIN integracao_log_status ls on ld.integracao_log_status_id = ls.integracao_log_status_id
+                  JOIN integracao_log_detalhe_dados dd on ld.integracao_log_detalhe_id = dd.integracao_log_detalhe_id
+                  JOIN apolice a on ld.chave = a.num_apolice
+                  JOIN pedido p on a.pedido_id = p.pedido_id
+                  JOIN cotacao c on p.cotacao_id = c.cotacao_id
+                  WHERE ld.deletado = 0
+                    and ld.integracao_log_id in(select integracao_log_id from integracao_log where integracao_id = 15 and deletado = 0) 
+                ) as x
+                  
+              ) AS y
+              where CTA_Retorno_ok IS NOT NULL
+
+            ) as cta ON cta.num_apolice = a.num_apolice
+
             WHERE `parc`.`slug` IN('".$slug."')
                 AND `cs`.`slug` = 'finalizada'
                 {$where}

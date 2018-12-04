@@ -548,7 +548,27 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         echo "****************** CPF: $cpf - {$dados['registro']['tipo_transacao']}<br>";
 
         if ( !in_array($dados['registro']['tipo_transacao'], ['NS','XS','XX']) ) {
-            $response->status = 2;
+            /*
+            XI = Cancelamento por Inadimplência
+            XP = Transação Pendentes
+            XD = Transação Desfeita
+            */
+            switch ($dados['registro']['tipo_transacao']) {
+                case 'XI':
+                    $integracao_log_detalhe_erro_id = 13;
+                    break;
+                case 'XP':
+                    $integracao_log_detalhe_erro_id = 14;
+                    break;
+                case 'XD':
+                    $integracao_log_detalhe_erro_id = 15;
+                    break;
+                
+                default:
+                    $integracao_log_detalhe_erro_id = 14;
+                    break;
+            }
+            $response->msg[] = ['id' => $integracao_log_detalhe_erro_id, 'msg' => "Registro recebido como {$dados['registro']['tipo_transacao']}", 'slug' => "ignorado"];
             return $response;
         }
 
@@ -563,7 +583,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         $eanErro = true;
         $cpfErroMsg = $eanErroMsg = "";
 
-
         // usar a pesquisa por nome
         $CI->load->model("apolice_model", "apolice");
 
@@ -574,8 +593,8 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         if ( in_array($dados['registro']['tipo_transacao'], ['NS']) ) {
 
             if (!empty($apolice)) {
-                // $response->msg[] = ['id' => 8, 'msg' => "Apólice já utilizada [{$num_apolice}]", 'slug' => "emissao"];
                 $response->status = 2;
+                $response->msg[] = ['id' => 16, 'msg' => "Apólice já emitida [{$num_apolice}]", 'slug' => "emissao"];
                 return $response;
             }
 
@@ -733,7 +752,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                 $response->msg[] = ['id' => 11, 'msg' => $eanErroMsg ." [{$ean}]", 'slug' => "enriquece_ean"];
                 return $response;
             }
-        
+
         // Cancelamento
         } else if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX']) ) {
 
@@ -743,7 +762,8 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             } else {
                 $apolice = $apolice[0];
                 if ($apolice['apolice_status_id'] != 1) {
-                    $response->msg[] = ['id' => 8, 'msg' => "Apólice {$num_apolice} já está Cancelada e/ou em um status inválido [{$apolice['nome']}]", 'slug' => "cancelamento"];
+                    $response->status = 2;
+                    $response->msg[] = ['id' => 17, 'msg' => "Apólice {$num_apolice} já está Cancelada e/ou em um status inválido [{$apolice['nome']}]", 'slug' => "cancelamento"];
                     return $response;
                 }
 
