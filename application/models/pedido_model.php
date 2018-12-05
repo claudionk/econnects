@@ -1176,7 +1176,7 @@ Class Pedido_Model extends MY_Model
 
           $banco = $this->banco->get_by( ['codigo' => $data['favo_bco_num']] );
 
-          $data['favo_bco_nome'] = $banco['nome'];
+          $data['favo_bco_nome'] = !empty($banco['nome'])?$banco['nome']:'';
           $data['favo_bco_cc'] .= "-{$data['favo_bco_cc_dg']}";
 
         } else {
