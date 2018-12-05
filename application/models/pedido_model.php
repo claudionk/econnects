@@ -966,7 +966,7 @@ Class Pedido_Model extends MY_Model
 
         if (!empty($criticas['result'])) {
             // efetuar o cancelamento
-            $this->executa_estorno_cancelamento($pedido_id, $criticas['vigencia'], TRUE, $dados_bancarios);
+            $this->executa_estorno_cancelamento($pedido_id, $criticas['vigencia'], TRUE, $dados_bancarios, $define_date);
         }
 
         return $criticas;
@@ -1104,15 +1104,17 @@ Class Pedido_Model extends MY_Model
         ];
       }
 
-      function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $dados_bancarios = []){
-
+      function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $dados_bancarios = [], $define_data = false ){
+        if( !$define_data ){
+          $define_data = date("Y-m-d H:i:s");
+        }
         $this->load->model("apolice_model", "apolice");
         $this->load->model("apolice_cobertura_model", "apolice_cobertura");
         $this->load->model("apolice_equipamento_model", "apolice_equipamento");
         $this->load->model("apolice_generico_model", "apolice_generico");
         $this->load->model("apolice_seguro_viagem_model", "apolice_seguro_viagem");
 
-        $calculo = $this->calcula_estorno_cancelamento($pedido_id, $vigente);
+        $calculo = $this->calcula_estorno_cancelamento($pedido_id, $vigente,$define_data);
 
         if (!empty($calculo['status'])) {
 
@@ -1174,7 +1176,7 @@ Class Pedido_Model extends MY_Model
 
           $banco = $this->banco->get_by( ['codigo' => $data['favo_bco_num']] );
 
-          $data['favo_bco_nome'] = $banco['nome'];
+          $data['favo_bco_nome'] = !empty($banco['nome'])?$banco['nome']:'';
           $data['favo_bco_cc'] .= "-{$data['favo_bco_cc_dg']}";
 
         } else {
