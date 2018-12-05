@@ -271,27 +271,31 @@ Class Apolice_Model extends MY_Model
                                          WHERE 
                                          	ppp.produto_parceiro_plano_id=$produto_parceiro_plano_id" )->result_array();
 
-      if( $config ) {
-        $config = $config[0];
         $data_base = date("Y-m-d");
-        if( $config["apolice_vigencia"] == "C" ) {
-          if( $cotacao_salva["nota_fiscal_data"] != "" ) {
-            $data_base = $cotacao_salva["nota_fiscal_data"];
-          }
-        }elseif( $config["apolice_vigencia"] == "S" ) {
-          $data_base = date("Y-m-d");
-        } elseif( $config["apolice_vigencia"] == "N" ) {
-          $data_base = $cotacao_salva["nota_fiscal_data"];
-        } elseif( $config["apolice_vigencia"] == "E" ) {
-          $data_base = date("Y-m-d");
-          if( $cotacao_salva["data_inicio_vigencia"] != "" && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00" ) {
-            $data_base = $cotacao_salva["data_inicio_vigencia"];
-          }
+        if( $config ) {
+            $config = $config[0];
+            switch( $config["apolice_vigencia"] ){
+                case "C": //Calculado pelo Sistema
+                    if( $cotacao_salva["nota_fiscal_data"] != "" ) {
+                        $data_base = $cotacao_salva["nota_fiscal_data"];
+                    }
+                break;
+                case "S": //Data de Criação
+                    $data_base = date("Y-m-d");
+                break;
+                case "N": //Data da Nota Fiscal
+                    $data_base = $cotacao_salva["nota_fiscal_data"];
+                break;
+                case "E": //Especifica (Somente via API)
+                    if( $cotacao_salva["nota_fiscal_data"] != "" ) {
+                        $data_base = $cotacao_salva["nota_fiscal_data"];
+                    }
+                    if( $cotacao_salva["data_inicio_vigencia"] != "" && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00" ) {
+                        $data_base = $cotacao_salva["data_inicio_vigencia"];
+                    }
+                break;
+            }
         }
-      } else {
-        $data_base = date("Y-m-d");
-        //$data_base = $cotacao_salva["nota_fiscal_data"];
-      }
 
       $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao_salva['produto_parceiro_plano_id'], $data_base );
 
@@ -301,8 +305,8 @@ Class Apolice_Model extends MY_Model
       $dados_equipamento['produto_parceiro_pagamento_id'] = $pedido['produto_parceiro_pagamento_id'];
       $dados_equipamento['data_ini_vigencia'] = $vigencia['inicio_vigencia'];
       $dados_equipamento['data_fim_vigencia'] = $vigencia['fim_vigencia'];
-      $dados_equipamento['data_adesao'] = date('Y-m-d');
-      $dados_equipamento['data_pagamento'] = date('Y-m-d');
+      $dados_equipamento['data_adesao'] = $data_base;
+      $dados_equipamento['data_pagamento'] = $data_base;
 
       $dados_equipamento['cnpj_cpf'] = $cotacao_salva['cnpj_cpf'];
       $dados_equipamento['rg'] = $cotacao_salva['rg'];
