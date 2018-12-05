@@ -374,13 +374,15 @@ Class Pedido_Model extends MY_Model
   }
 
   public function isInadimplente($pedido_id){
-
     $this->_database->distinct();
     $this->_database->join("fatura", "fatura.pedido_id = pedido.pedido_id");
     $this->_database->join("fatura_parcela", "fatura_parcela.fatura_id = fatura.fatura_id");
     $this->_database->join("fatura_status ps", "ps.fatura_status_id = fatura_parcela.fatura_status_id");
+    $this->_database->join("produto_parceiro_pagamento", "produto_parceiro_pagamento.produto_parceiro_pagamento_id = pedido.produto_parceiro_pagamento_id");
+    $this->_database->join("forma_pagamento", "produto_parceiro_pagamento.forma_pagamento_id = forma_pagamento.forma_pagamento_id");
     $this->_database->where("fatura_parcela.data_vencimento < NOW()");
     $this->_database->where("ps.slug != 'faturado'");
+    $this->_database->where("forma_pagamento.slug != 'cobranca_terceiros'");
     $this->_database->where("pedido.pedido_id = {$pedido_id}");
     $this->_database->order_by("fatura_parcela.data_vencimento asc");
 
