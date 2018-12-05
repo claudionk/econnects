@@ -736,7 +736,7 @@ Class Pedido_Model extends MY_Model
 
     function criticas_cancelamento($pedido_id, $executar = false, $dados_bancarios = [], $define_date = false ){
         if( ! $define_date ){
-          $define_date = date("Y-m-d") ;
+          $define_date = date("Y-m-d H:i:s") ;
         }
 
         $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
@@ -815,8 +815,8 @@ Class Pedido_Model extends MY_Model
         $inicio_vigencia = explode('-', $apolice['data_ini_vigencia']);
         $inicio_vigencia = mktime(0, 0, 0, $inicio_vigencia[1], $inicio_vigencia[2], $inicio_vigencia[0]);
 
-        list( $current_year , $current_month , $current_day ) = explode("-",$define_date);
-        $hoje = mktime(0, 0, 0, $current_month, $current_day ,  $current_year );
+        list( $current_year , $current_month , $current_day , $current_hour , $current_minute,  , $current_second ) = preg_split("/[- :]/",$define_date);
+        $hoje = mktime($current_hour , $current_minute,  , $current_second, $current_month, $current_day ,  $current_year );
 
         if ( $hoje >= $inicio_vigencia && $hoje <= $fim_vigencia ) {
           //Já comeceu a vigencia
@@ -957,7 +957,7 @@ Class Pedido_Model extends MY_Model
 
     function cancelamento($pedido_id, $dados_bancarios = [], $define_date = false ){
         if( ! $define_date ){
-          $define_date = date("Y-m-d") ;
+          $define_date = date("Y-m-d H:i:s") ;
         }
 
         $criticas = $this->criticas_cancelamento($pedido_id, true, $dados_bancarios, $define_date);
@@ -972,7 +972,7 @@ Class Pedido_Model extends MY_Model
 
     function cancelamento_calculo($pedido_id, $define_date = false ){
         if( ! $define_date ){
-          $define_date = date("Y-m-d") ;
+          $define_date = date("Y-m-d H:i:s") ;
         }
 
         $result = [
@@ -996,7 +996,7 @@ Class Pedido_Model extends MY_Model
       function calcula_estorno_cancelamento($pedido_id, $vigente = FALSE, $define_date = false ){
 
         if( ! $define_date ){
-          $define_date = date("Y-m-d") ;
+          $define_date = date("Y-m-d H:i:s") ;
         }
         $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
         $this->load->model("apolice_model", "apolice");
@@ -1021,8 +1021,8 @@ Class Pedido_Model extends MY_Model
 
         $apolices = $this->apolice->getApolicePedido($pedido_id);
         $apolice = $apolices[0];
-        list( $current_year , $current_month , $current_day ) = explode("-",$define_date);
-        $data_cancelamento = date('Y-m-d H:i:s' , mktime(date("H"), date("i"), date("s"), $current_month, $current_day ,  $current_year ) );
+        list( $current_year , $current_month , $current_day , $current_hour , $current_minute,  , $current_second ) = preg_split("/[- :]/",$define_date);
+        $data_cancelamento = date('Y-m-d H:i:s' , mktime($current_hour , $current_minute,  , $current_second, $current_month, $current_day , $current_year ) );
 
         $valor_estorno_total = 0;
         $retorno = [];

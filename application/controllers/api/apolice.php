@@ -189,7 +189,7 @@ class Apolice extends CI_Controller {
         $validacao = $this->validarDadosEntrada();
         $pedido_id = $validacao['pedido_id'];
         $dados_bancarios = !empty($validacao['dados']['dados_bancarios']) ? $validacao['dados']['dados_bancarios'] : [];
-        $define_date = !empty($validacao['dados']["define_date"]) ? $validacao['dados']["define_date"] : date("Y-m-d") ;
+        $define_date = !empty($validacao['dados']["define_date"]) ? $validacao['dados']["define_date"] : date("Y-m-d H:i:s") ;
 
         //pega as configurações de cancelamento do pedido
         $produto_parceiro_cancelamento = $this->pedido->cancelamento( $pedido_id, $dados_bancarios, $define_date);
@@ -209,7 +209,7 @@ class Apolice extends CI_Controller {
 
 
         $pedido_id = $validacao['pedido_id'];
-        $define_date = !empty($validacao['dados']["define_date"]) ? $validacao['dados']["define_date"] : date("Y-m-d") ;
+        $define_date = !empty($validacao['dados']["define_date"]) ? $validacao['dados']["define_date"] : date("Y-m-d H:i:s") ;
 
         //pega as configurações de cancelamento do pedido
         $produto_parceiro_cancelamento = $this->pedido->cancelamento_calculo( $pedido_id , $define_date );
