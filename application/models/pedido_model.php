@@ -816,7 +816,7 @@ Class Pedido_Model extends MY_Model
         $inicio_vigencia = mktime(0, 0, 0, $inicio_vigencia[1], $inicio_vigencia[2], $inicio_vigencia[0]);
 
         list( $current_year , $current_month , $current_day , $current_hour , $current_minute,  , $current_second ) = preg_split("/[- :]/",$define_date);
-        $hoje = mktime($current_hour , $current_minute,  , $current_second, $current_month, $current_day ,  $current_year );
+        $hoje = mktime($current_hour , $current_minute , $current_second, $current_month, $current_day ,  $current_year );
 
         if ( $hoje >= $inicio_vigencia && $hoje <= $fim_vigencia ) {
           //Já comeceu a vigencia
@@ -1022,7 +1022,7 @@ Class Pedido_Model extends MY_Model
         $apolices = $this->apolice->getApolicePedido($pedido_id);
         $apolice = $apolices[0];
         list( $current_year , $current_month , $current_day , $current_hour , $current_minute,  , $current_second ) = preg_split("/[- :]/",$define_date);
-        $data_cancelamento = date('Y-m-d H:i:s' , mktime($current_hour , $current_minute,  , $current_second, $current_month, $current_day , $current_year ) );
+        $data_cancelamento = date('Y-m-d H:i:s' , mktime($current_hour , $current_minute, $current_second, $current_month, $current_day , $current_year ) );
 
         $valor_estorno_total = 0;
         $retorno = [];
