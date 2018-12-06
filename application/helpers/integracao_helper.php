@@ -535,7 +535,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
             unset($geraDados['id_log']);
-            unset($geraDados['nota_fiscal_valor_aux']);
             
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
             $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
@@ -1004,7 +1003,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 
                 // // Se houve falha no premio, faz a validação pelo valor de nf
                 // if (!$premioValid) {
-                //     $is = (float)$dados["nota_fiscal_valor_aux"];
+                //     $is = (float)$dados["nota_fiscal_valor_desc"];
 
                 //     if ($is == 0) {
                 //         $percent = 0;
