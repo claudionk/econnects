@@ -556,6 +556,7 @@ Class Integracao_Model extends MY_Model
                     // caso tenha que pegar o campo do detalhe
                     if (!empty($lm['sql'])) {
                         $this->data_template_script['pedido_id'] = $registro['pedido_id'];
+                        $this->data_template_script['apolice_status_id'] = $registro['apolice_status_id'];
                         $lm['sql'] = $this->parser->parse_string($lm['sql'], $this->data_template_script, TRUE);
                         $reg = $this->_database->query($lm['sql'])->result_array();
                         $inserir=false;
