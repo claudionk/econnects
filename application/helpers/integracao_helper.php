@@ -713,7 +713,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                     $eanErro = false;
 
                     $dados['registro']['equipamento_id'] = $EANenriquecido->equipamento_id;
-                    $dados['registro']['equipamento_nome'] = $EANenriquecido->nome;
                     $dados['registro']['equipamento_marca_id'] = $EANenriquecido->equipamento_marca_id;
                     $dados['registro']['equipamento_categoria_id'] = $EANenriquecido->equipamento_categoria_id;
                     $dados['registro']['equipamento_sub_categoria_id'] = $EANenriquecido->equipamento_sub_categoria_id;
@@ -734,7 +733,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                         $eanErro = false;
 
                         $dados['registro']['equipamento_id'] = $EANenriquecido->equipamento_id;
-                        $dados['registro']['equipamento_nome'] = $EANenriquecido->nome;
                         $dados['registro']['equipamento_marca_id'] = $EANenriquecido->equipamento_marca_id;
                         $dados['registro']['equipamento_categoria_id'] = $EANenriquecido->equipamento_categoria_id;
                         $dados['registro']['equipamento_sub_categoria_id'] = $EANenriquecido->equipamento_sub_categoria_id;
