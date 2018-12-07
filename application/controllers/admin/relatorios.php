@@ -39,6 +39,120 @@ class Relatorios extends Admin_Controller
         $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data);
     }
 
+    public function processamento_venda()
+    {
+        //Dados para template
+        $data = array();
+        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_fim'] = date("d/m/Y");
+        $data['action'] = $this->uri->segment(2);
+        $data['src'] = $this->controller_uri;
+        $data['layout'] = 'processamento_venda';
+        $data['title'] = 'Relatório de Processamento de Vendas';
+        $data['columns'] = [
+            'DATA PROCESSAMENTO',
+            'ARQUIVO',
+            'STATUS',
+            'STATUS PROCESSAMENTO',
+            'RESULTADO DO PROCESSAMENTO',
+            'DETALHE DO PROCESSAMENTO',
+            'CODIGO DA TRANSAÇÃO',
+            'DESCRIÇÃO DA TRANSAÇÃO',
+            'APOLICE',
+            'VIGENCIA (mes)',
+            'CPF',
+            'SEXO',
+            'ENDEREÇO',
+            'TELEFONE',
+            'COD LOJA',
+            'COD VENDEDOR',
+            'COD PRODUTO SAP',
+            'EAN',
+            'MARCA',
+            'EQUIPAMENTO',
+            'VALOR NF',
+            'DATA NF',
+            'NRO NF',
+            'PREMIO BRUTO',
+            'PREMIO LIQUIDO',
+            'FORMA DE PAGAMENTO',
+            'NRO PARCELA',
+        ];
+
+        if ($_POST) {
+            $result = $this->getRelatorioProcVenda(FALSE);
+            $data['result'] = $result['data'];
+
+            if (!empty($_POST['btnExcel'])) {
+
+                $rows = [];
+                foreach ($data['result'] as $row) {
+                    $rows[] = [
+                        app_date_mysql_to_mask($row['DATA_PROCESSAMENTO'], 'd/m/Y'),
+                        $row['ARQUIVO'],
+                        $row['STATUS'],
+                        $row['STATUS_PROCESSAMENTO'],
+                        $row['RESULTADO_PROCESSAMENTO'],
+                        $row['DETALHE_PROCESSAMENTO'],
+                        $row['CODIGO_TRANSACAO'],
+                        $row['DESCRIÇÃO_TRANSACAO'],
+                        $row['APOLICE'],
+                        $row['VIGENCIA'],
+                        $row['CPF'],
+                        $row['SEXO'],
+                        $row['ENDERECO'],
+                        $row['TELEFONE'],
+                        $row['COD_LOJA'],
+                        $row['COD_VENDEDOR'],
+                        $row['COD_PRODUTO_SAP'],
+                        $row['EAN'],
+                        $row['MARCA'],
+                        $row['EQUIPAMENTO'],
+                        app_format_currency($row['VALOR_NF'], true),
+                        app_date_mysql_to_mask($row['DATA_NF'], 'd/m/Y'),
+                        $row['NRO_NF'],
+                        app_format_currency($row['PREMIO_BRUTO'], true),
+                        app_format_currency($row['PREMIO_LIQUIDO'], true),
+                        $row['FORMA_PAGAMENTO'],
+                        $row['NRO_PARCELA'],
+                    ];
+                }
+                $this->exportExcel($data['columns'], $rows);
+            }
+
+            //Dados via GET
+            $data['data_inicio'] = $this->input->get_post('data_inicio');
+            $data['data_fim'] = $this->input->get_post('data_fim');
+        }
+
+        //Carrega template
+        $this->template->load("admin/layouts/base", "$this->controller_uri/{$data['action']}", $data);
+    }
+
+    /**
+     * Retorna resultado
+     */
+    public function getRelatorioProcVenda($ajax = TRUE)
+    {
+        $this->load->model("pedido_model", "pedido");
+
+        $resultado = array();
+        $resultado['status'] = false;
+        // $pedidos = $this->pedido;
+
+        //Dados via GET
+        $data_inicio = $this->input->get_post('data_inicio');
+        $data_fim = $this->input->get_post('data_fim');
+
+        $resultado['data'] = $this->pedido->extrairRelatorioProcessamentoVendas($data_inicio, $data_fim);
+        $resultado['status'] = true;
+
+        if ($ajax)
+            echo json_encode($resultado);
+        else
+            return $resultado;
+    }
+
     public function vendas1()
     {
         //Dados para template
@@ -726,11 +840,16 @@ class Relatorios extends Admin_Controller
         $this->load->library('Excel');
         $objPHPExcel = new PHPExcel();
 
-        $letters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
         $contC = 0;
         $contR = 1;
 
         $objPHPExcel->getDefaultStyle()->getFont()->setName('Arial')->setSize(10);
+
+        $letters = array('A');
+        $current = 'A';
+        while ($current != 'ZZ') {
+            $letters[] = ++$current;
+        }
 
         // Cria as colunas
         foreach ($columns as $column) {
