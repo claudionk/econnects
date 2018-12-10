@@ -1168,6 +1168,38 @@ Class Pedido_Model extends MY_Model
         return $return;
     }
 
+    private function restrictProdutosPorParceiro($parceiro_id){
+
+        $return = '';
+        if (!empty($parceiro_id)) {
+
+            $this->load->model('produto_parceiro_model', 'produto_parceiro');
+            $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento'); 
+
+            $produtos = $this->produto_parceiro->getProdutosByParceiro($parceiro_id);
+
+            if (!empty($produtos)) {
+                $retAnd = "1=1 AND ( ";
+                $retOr = "";
+
+                foreach ($produtos as $entry) {
+                    $parc_prods = $this->relacionamento->get_parceiros_permitidos($entry['produto_parceiro_id'], $parceiro_id);
+                    if (!empty($parc_prods)) {
+                        $produto_ids = implode(',', $parc_prods);
+                        $return .= $retAnd . $retOr ."
+                        ( pp.produto_parceiro_id = {$entry['produto_parceiro_id']} AND c.parceiro_id IN($produto_ids) )
+                        ";
+                        $retAnd = '';
+                        $retOr = " OR ";
+                    }
+                }
+                if (!empty($return)) $return .= " ) ";
+            }
+        }
+
+        return $return;
+    }
+
     /**
     * Extrai relatório de vendas
     */
@@ -1315,38 +1347,6 @@ Class Pedido_Model extends MY_Model
 
     }
     
-    private function restrictProdutosPorParceiro($parceiro_id){
-
-        $return = '';
-        if (!empty($parceiro_id)) {
-
-            $this->load->model('produto_parceiro_model', 'produto_parceiro');
-            $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento'); 
-
-            $produtos = $this->produto_parceiro->getProdutosByParceiro($parceiro_id);
-
-            if (!empty($produtos)) {
-                $retAnd = "1=1 AND ( ";
-                $retOr = "";
-
-                foreach ($produtos as $entry) {
-                    $parc_prods = $this->relacionamento->get_parceiros_permitidos($entry['produto_parceiro_id'], $parceiro_id);
-                    if (!empty($parc_prods)) {
-                        $produto_ids = implode(',', $parc_prods);
-                        $return .= $retAnd . $retOr ."
-                        ( pp.produto_parceiro_id = {$entry['produto_parceiro_id']} AND c.parceiro_id IN($produto_ids) )
-                        ";
-                        $retAnd = '';
-                        $retOr = " OR ";
-                    }
-                }
-                if (!empty($return)) $return .= " ) ";
-            }
-        }
-
-        return $return;
-    }
-
     /**
     * Extrai relatório de Mapa de Repasse Analitico
     */
@@ -1436,37 +1436,64 @@ Class Pedido_Model extends MY_Model
 
         $this->_database->join("
         (
-        SELECT cliente_id, apolice_status_id, num_apolice, stat_, tipo_transacao
-        , Recebido
-        , Processado
-        , CTA_Enviado
-        , IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL AND CTA_Retorno IS NULL, CTA_Enviado, NULL) as CTA_Ag_Retorno
-        , CTA_Retorno_ok
-        , IF(CTA_Retorno_ok IS NULL, CTA_Retorno, NULL) as CTA_Retorno_erro
-        FROM (
-        select cliente_id, apolice_status_id, num_apolice, stat_, tipo_transacao
-        , chave_emi
-        , Recebido, Processado
-        , maxDate( ctaEmissao(chave_emi, 0), ctaCliente(cliente_id, 0) ) as CTA_Enviado
-        , maxDate( ctaEmissao(chave_emi, 4), ctaCliente(cliente_id, 4) ) as CTA_Retorno_ok
-        , maxDate( ctaEmissao(chave_emi, 5), ctaCliente(cliente_id, 5) ) as CTA_Retorno
-        from (
-        SELECT c.cliente_id, a.apolice_status_id, ld.chave as num_apolice, ls.nome as stat_, dd.tipo_transacao
-        , date(ld.criacao) as Recebido
-        , IF(ld.integracao_log_status_id = 4, date(p.status_data), NULL) as Processado
-        , concat(a.num_apolice, '|', IF(dd.tipo_transacao = 'NS', '01', IF(dd.tipo_transacao IN('XS','XX'), '02', '00'))) as chave_emi
-        FROM integracao_log_detalhe ld
-        JOIN integracao_log_status ls on ld.integracao_log_status_id = ls.integracao_log_status_id
-        JOIN integracao_log_detalhe_dados dd on ld.integracao_log_detalhe_id = dd.integracao_log_detalhe_id
-        JOIN apolice a on ld.chave = a.num_apolice
-        JOIN pedido p on a.pedido_id = p.pedido_id
-        JOIN cotacao c on p.cotacao_id = c.cotacao_id
-        WHERE ld.deletado = 0
-        and ld.integracao_log_id in(select integracao_log_id from integracao_log where integracao_id = 15 and deletado = 0) 
-        ) as x
+        SELECT chave_emi, Recebido
+            , Processado
+            , CTA_Enviado
+            , IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL AND CTA_Retorno IS NULL, CTA_Enviado, NULL) AS CTA_Ag_Retorno
+            , IF(CTA_Enviado IS NOT NULL, CTA_Retorno_ok, NULL) AS CTA_Retorno_ok
+            , IF(CTA_Retorno_ok IS NULL, CTA_Retorno, NULL) AS CTA_Retorno_erro
+            , num_apolice
 
+        FROM (
+            SELECT chave_emi
+                , Recebido, Processado
+                , maxDate( ctaEmissao(chave_emi, 0), ctaCliente(cliente_id, 0), 1 ) as CTA_Enviado
+                , maxDate( ctaEmissao(chave_emi, 4), ctaCliente(cliente_id, 4), 1 ) as CTA_Retorno_ok
+                , maxDate( ctaEmissao(chave_emi, 5), ctaCliente(cliente_id, 5), 0 ) as CTA_Retorno
+                
+                , processamento_inicio, nome_arquivo
+                , tipo_transacao
+                , desc_transacao
+                , num_apolice
+                , vigencia
+                , cpf, sexo, endereco, telefone
+                , cod_loja, cod_vendedor, cod_produto_sap, ean, marca, equipamento
+                , valor_nf, data_nf, nro_nf, premio_bruto, premio_liquido, forma_pagto, nro_parcela
+
+            FROM (
+
+                SELECT 
+                     c.cliente_id, date(ld.criacao) as Recebido
+                    , date(ld.criacao) as Processado
+                    , concat(a.num_apolice, '|', IF(dd.tipo_transacao = 'NS', '01', IF(dd.tipo_transacao IN('XS','XX'), '02', '00'))) as chave_emi
+                    , l.processamento_inicio, l.nome_arquivo
+                    , dd.tipo_transacao
+                    , IF(dd.tipo_transacao = 'NS', 'EMISSAO', IF(dd.tipo_transacao IN('XS','XX'), 'CANCELAMENTO', 'OUTROS')) AS desc_transacao
+                    , ld.chave AS num_apolice
+                    , TIMESTAMPDIFF(MONTH, ae.data_ini_vigencia, ae.data_fim_vigencia) AS vigencia
+                    , ae.cnpj_cpf cpf
+                    , IF(ae.sexo='F','FEMININO','MASCULINO') AS sexo
+                    , ae.endereco_logradouro endereco, ae.contato_telefone telefone
+                    , dd.cod_loja, dd.cod_vendedor, dd.cod_produto_sap, ae.ean, dd.marca, dd.equipamento_nome equipamento
+                    , ae.nota_fiscal_valor valor_nf, ae.nota_fiscal_data data_nf, ae.nota_fiscal_numero nro_nf, ae.valor_premio_total premio_bruto
+                    , ae.valor_premio_net premio_liquido, 'COBRANÇA DE TERCEIROS' forma_pagto, 1 nro_parcela
+
+                FROM integracao_log l 
+                JOIN integracao_log_detalhe ld on l.integracao_log_id = ld.integracao_log_id
+                JOIN integracao_log_status ls on ld.integracao_log_status_id = ls.integracao_log_status_id
+                JOIN integracao_log_detalhe_dados dd on ld.integracao_log_detalhe_id = dd.integracao_log_detalhe_id
+                JOIN apolice a on ld.chave = a.num_apolice
+                JOIN pedido p on a.pedido_id = p.pedido_id
+                JOIN cotacao c on p.cotacao_id = c.cotacao_id
+                JOIN apolice_equipamento ae on a.apolice_id = ae.apolice_id
+                WHERE ld.deletado = 0
+                    AND l.deletado = 0
+                    AND l.integracao_id = 15 
+                    AND ld.integracao_log_status_id = 4
+
+            ) AS x
         ) AS y
-        where CTA_Retorno_ok IS NOT NULL
+        WHERE CTA_Retorno_ok IS NOT NULL
 
         ) as cta", "cta.num_apolice = a.num_apolice", "join", FALSE);
 
@@ -1737,37 +1764,64 @@ Class Pedido_Model extends MY_Model
         LEFT JOIN `usuario` u ON `u`.`usuario_id` = `c`.`usuario_cotacao_id`
 
         INNER JOIN (
-        SELECT cliente_id, apolice_status_id, num_apolice, stat_, tipo_transacao
-        , Recebido
-        , Processado
-        , CTA_Enviado
-        , IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL AND CTA_Retorno IS NULL, CTA_Enviado, NULL) as CTA_Ag_Retorno
-        , CTA_Retorno_ok
-        , IF(CTA_Retorno_ok IS NULL, CTA_Retorno, NULL) as CTA_Retorno_erro
-        FROM (
-        select cliente_id, apolice_status_id, num_apolice, stat_, tipo_transacao
-        , chave_emi
-        , Recebido, Processado
-        , maxDate( ctaEmissao(chave_emi, 0), ctaCliente(cliente_id, 0) ) as CTA_Enviado
-        , maxDate( ctaEmissao(chave_emi, 4), ctaCliente(cliente_id, 4) ) as CTA_Retorno_ok
-        , maxDate( ctaEmissao(chave_emi, 5), ctaCliente(cliente_id, 5) ) as CTA_Retorno
-        from (
-        SELECT c.cliente_id, a.apolice_status_id, ld.chave as num_apolice, ls.nome as stat_, dd.tipo_transacao
-        , date(ld.criacao) as Recebido
-        , IF(ld.integracao_log_status_id = 4, date(p.status_data), NULL) as Processado
-        , concat(a.num_apolice, '|', IF(dd.tipo_transacao = 'NS', '01', IF(dd.tipo_transacao IN('XS','XX'), '02', '00'))) as chave_emi
-        FROM integracao_log_detalhe ld
-        JOIN integracao_log_status ls on ld.integracao_log_status_id = ls.integracao_log_status_id
-        JOIN integracao_log_detalhe_dados dd on ld.integracao_log_detalhe_id = dd.integracao_log_detalhe_id
-        JOIN apolice a on ld.chave = a.num_apolice
-        JOIN pedido p on a.pedido_id = p.pedido_id
-        JOIN cotacao c on p.cotacao_id = c.cotacao_id
-        WHERE ld.deletado = 0
-        and ld.integracao_log_id in(select integracao_log_id from integracao_log where integracao_id = 15 and deletado = 0) 
-        ) as x
+            SELECT chave_emi, Recebido
+            , Processado
+            , CTA_Enviado
+            , IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL AND CTA_Retorno IS NULL, CTA_Enviado, NULL) AS CTA_Ag_Retorno
+            , IF(CTA_Enviado IS NOT NULL, CTA_Retorno_ok, NULL) AS CTA_Retorno_ok
+            , IF(CTA_Retorno_ok IS NULL, CTA_Retorno, NULL) AS CTA_Retorno_erro
+            , num_apolice
 
+        FROM (
+            SELECT chave_emi
+                , Recebido, Processado
+                , maxDate( ctaEmissao(chave_emi, 0), ctaCliente(cliente_id, 0), 1 ) as CTA_Enviado
+                , maxDate( ctaEmissao(chave_emi, 4), ctaCliente(cliente_id, 4), 1 ) as CTA_Retorno_ok
+                , maxDate( ctaEmissao(chave_emi, 5), ctaCliente(cliente_id, 5), 0 ) as CTA_Retorno
+                
+                , processamento_inicio, nome_arquivo
+                , tipo_transacao
+                , desc_transacao
+                , num_apolice
+                , vigencia
+                , cpf, sexo, endereco, telefone
+                , cod_loja, cod_vendedor, cod_produto_sap, ean, marca, equipamento
+                , valor_nf, data_nf, nro_nf, premio_bruto, premio_liquido, forma_pagto, nro_parcela
+
+            FROM (
+
+                SELECT 
+                     c.cliente_id, date(ld.criacao) as Recebido
+                    , date(ld.criacao) as Processado
+                    , concat(a.num_apolice, '|', IF(dd.tipo_transacao = 'NS', '01', IF(dd.tipo_transacao IN('XS','XX'), '02', '00'))) as chave_emi
+                    , l.processamento_inicio, l.nome_arquivo
+                    , dd.tipo_transacao
+                    , IF(dd.tipo_transacao = 'NS', 'EMISSAO', IF(dd.tipo_transacao IN('XS','XX'), 'CANCELAMENTO', 'OUTROS')) AS desc_transacao
+                    , ld.chave AS num_apolice
+                    , TIMESTAMPDIFF(MONTH, ae.data_ini_vigencia, ae.data_fim_vigencia) AS vigencia
+                    , ae.cnpj_cpf cpf
+                    , IF(ae.sexo='F','FEMININO','MASCULINO') AS sexo
+                    , ae.endereco_logradouro endereco, ae.contato_telefone telefone
+                    , dd.cod_loja, dd.cod_vendedor, dd.cod_produto_sap, ae.ean, dd.marca, dd.equipamento_nome equipamento
+                    , ae.nota_fiscal_valor valor_nf, ae.nota_fiscal_data data_nf, ae.nota_fiscal_numero nro_nf, ae.valor_premio_total premio_bruto
+                    , ae.valor_premio_net premio_liquido, 'COBRANÇA DE TERCEIROS' forma_pagto, 1 nro_parcela
+
+                FROM integracao_log l 
+                JOIN integracao_log_detalhe ld on l.integracao_log_id = ld.integracao_log_id
+                JOIN integracao_log_status ls on ld.integracao_log_status_id = ls.integracao_log_status_id
+                JOIN integracao_log_detalhe_dados dd on ld.integracao_log_detalhe_id = dd.integracao_log_detalhe_id
+                JOIN apolice a on ld.chave = a.num_apolice
+                JOIN pedido p on a.pedido_id = p.pedido_id
+                JOIN cotacao c on p.cotacao_id = c.cotacao_id
+                JOIN apolice_equipamento ae on a.apolice_id = ae.apolice_id
+                WHERE ld.deletado = 0
+                    AND l.deletado = 0
+                    AND l.integracao_id = 15 
+                    AND ld.integracao_log_status_id = 4
+
+            ) AS x
         ) AS y
-        where CTA_Retorno_ok IS NOT NULL
+        WHERE CTA_Retorno_ok IS NOT NULL
 
         ) as cta ON cta.num_apolice = a.num_apolice
 
