@@ -497,6 +497,7 @@ class Venda_Generico extends Admin_Controller
                 //Move para cotação carrossel
 
                 $this->cotacao_generico->insert_update($produto_parceiro_id, $cotacao_id, 3);
+
             }else{
                 redirect("{$this->controller_uri}/generico/{$produto_parceiro_id}/2/{$cotacao_id}");
             }
@@ -527,9 +528,6 @@ class Venda_Generico extends Admin_Controller
             $this->limpa_cotacao($produto_parceiro_id);
             redirect("$this->controller_uri/index");
         }
-
-
-
 
 
         $data = array();
@@ -1091,8 +1089,6 @@ class Venda_Generico extends Admin_Controller
 
      private function updatePedidoCarrinho($pedido_id, $cotacao_id){
 
-
-
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('pedido_codigo_model', 'pedido_codigo');
         $this->load->model('pedido_cartao_model', 'pedido_cartao');
@@ -1104,13 +1100,7 @@ class Venda_Generico extends Admin_Controller
         $this->load->model('capitalizacao_model', 'capitalizacao');
         $this->load->model('capitalizacao_serie_titulo_model', 'titulo');
 
-
-
-
         $valor_total = $this->cotacao_generico->getValorTotal($cotacao_id);
-
-
-
 
         $dados_pedido = array();
         $dados_pedido['produto_parceiro_pagamento_id'] = 0;
@@ -1127,8 +1117,6 @@ class Venda_Generico extends Admin_Controller
         //altera o status da cotação
         $this->cotacao->update($cotacao_id, array('cotacao_status_id' => 2), TRUE);
 
-
-
         return $pedido_id;
 
     }
@@ -1136,360 +1124,17 @@ class Venda_Generico extends Admin_Controller
     /**
      * Efetua calculo, retorna JSON
      */
-    public function calculo()
-    {
-        $this->load->model('produto_parceiro_campo_model', 'campo');
-        $this->load->model('pedido_model', 'pedido');
-        $this->load->model('produto_parceiro_plano_model', 'plano');
-        $this->load->model('cobertura_plano_model', 'plano_cobertura');
-        $this->load->model('cobertura_model', 'cobertura');
-        $this->load->model('cotacao_model', 'cotacao');
-        $this->load->model('cotacao_cobertura_model', 'cotacao_cobertura');
-        $this->load->model('cotacao_generico_model', 'cotacao_generico');
-        $this->load->model('produto_parceiro_desconto_model', 'desconto');
-        $this->load->model('produto_parceiro_configuracao_model', 'configuracao');
+    public function calculo() {
+
         $this->load->model('produto_parceiro_regra_preco_model', 'regra_preco');
-        $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
-        $this->load->model('servico_produto_model', 'servico_produto');
+        $result = $this->regra_preco->calculo_plano();
 
-
-        $sucess = TRUE;
-        $messagem = '';
-
-
-        //print_r($_POST);
-
-        $produto_parceiro_id = $this->input->post('produto_parceiro_id');
-        $parceiro_id = $this->input->post('parceiro_id');
-        $quantidade = $this->input->post('quantidade');
-
-        $coberturas_adicionais = ($this->input->post('coberturas')) ? $this->input->post('coberturas') : array();
-
-        $repasse_comissao = app_unformat_percent($this->input->post('repasse_comissao'));
-        $desconto_condicional= app_unformat_percent($this->input->post('desconto_condicional'));
-        $desconto = $this->desconto->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
-
-        $desconto_upgrade = 0;
-        $cotacao_id = $this->input->post("cotacao_id");
-
-        if($cotacao_id) {
-            $cotacao = $this->cotacao->get($cotacao_id);
-
-
-
-
-            if(($cotacao) && ((int)$cotacao['cotacao_upgrade_id']) > 0){
-
-                $pedido_antigo = $this->pedido->get_by(array('cotacao_id' => $cotacao['cotacao_upgrade_id']));
-                $desconto_upgrade = $pedido_antigo['valor_total'];
-
-            }
-        }
-
-
-        $cotacao = $this->cotacao->with_cotacao_generico()->filterByID($cotacao_id)->get_all();
-        $cotacao = $cotacao[0];
-
-
-        $row =  $this->current_model->get_by_id($produto_parceiro_id);
-
-        if(count($desconto) > 0){
-            $desconto = $desconto[0];
-        }else{
-            $desconto = array('habilitado' => 0);
-        }
-
-        $configuracao = $this->configuracao->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
-
-        if(count($configuracao) > 0){
-            $configuracao = $configuracao[0];
-        }else{
-            $configuracao = array();
-        }
-
-
-        $markup = 0;
-        if($row['parceiro_id'] != $parceiro_id){
-
-
-            $rel = $this->relacionamento->get_comissao($produto_parceiro_id, $parceiro_id);
-
-            $configuracao['repasse_comissao'] =  $rel['repasse_comissao'];
-            $configuracao['repasse_maximo'] = $rel['repasse_maximo'];
-            $configuracao['comissao'] = $rel['comissao'];
-
-
-            //buscar o markup
-            $markup = $this->relacionamento->get_comissao_markup($produto_parceiro_id, $parceiro_id);
-
-
-
-            $rel_desconto = $this->relacionamento->get_desconto($produto_parceiro_id, $parceiro_id);
-            if(count($rel_desconto) > 0){
-                $desconto['data_ini'] = $rel_desconto['desconto_data_ini'];
-                $desconto['data_fim'] = $rel_desconto['desconto_data_fim'];
-                $desconto['habilitado'] = $rel_desconto['desconto_habilitado'];
-            }else{
-                $desconto = array('habilitado' => 0);
-            }
-            
-
-
-        }
-
-        if($repasse_comissao > $configuracao['repasse_maximo'] ){
-            $repasse_comissao = $configuracao['repasse_maximo'];
-        }
-
-        $repasse_comissao = str_pad(number_format((double)$repasse_comissao, 2, '.', ''), 5, "0", STR_PAD_LEFT);
-
-        $comissao_corretor = ($configuracao['comissao'] - $repasse_comissao);
-
-
-        $servico_produto_id = $cotacao['servico_produto_id'] ? $cotacao['servico_produto_id'] : 0;
-        $servico_produto = $this->servico_produto->get($servico_produto_id);
-
-
-        if($servico_produto && $quantidade < $servico_produto['quantidade_minima'])
-        {
-            $quantidade = $servico_produto['quantidade_minima'];
-        }
-
-        $valores_bruto = $this->getValoresPlano($produto_parceiro_id, $quantidade, $servico_produto_id);
-
-        $valores_cobertura_adicional_total = array();
-        $valores_cobertura_adicional = array();
-        if($coberturas_adicionais){
-
-            foreach ($coberturas_adicionais as $coberturas_adicional) {
-                $cobertura = explode(';', $coberturas_adicional);
-                $vigencia = $this->plano->getInicioFimVigencia($cobertura[0], date('Y-m-d'));
-
-                $valor = $this->getValorCoberturaAdicional($cobertura[0], $cobertura[1], $vigencia['dias']);
-                $valores_cobertura_adicional_total[$cobertura[0]] = (isset($valores_cobertura_adicional_total[$cobertura[0]])) ? ($valores_cobertura_adicional_total[$cobertura[0]] + $valor) : $valor;
-                $valores_cobertura_adicional[$cobertura[0]][] = $valor;
-
-            }
-
-        }
-
-
-
-        if(!$valores_bruto)
-        {
-            $result = array(
-                'sucess' => FALSE,
-                'produto_parceiro_id' => $produto_parceiro_id,
-                'repasse_comissao' => 0,
-                'comissao' => 0,
-                'desconto_upgrade' => 0,
-                'desconto_condicional_valor' => 0,
-                'valores_bruto' => 0,
-                'valores_cobertura_adicional' => 0,
-                'valores_totais_cobertura_adicional' => 0,
-                'valores_liquido' => 0,
-                'valores_liquido_total' => 0,
-                'mensagem' => 'TABELA DE PREÇO NÃO CONFIGURADA',
-                'quantidade' => $quantidade,
-            );
-            $this->output
-                ->set_content_type('application/json')
-                ->set_output(json_encode($result));
-            return null;
-        }
-
-
-        if($row['venda_agrupada']){
-            $arrPlanos = $this->plano->distinct()
-                ->order_by('produto_parceiro_plano.ordem', 'asc')
-                ->with_produto_parceiro()
-                ->with_produto()
-                ->get_many_by(array(
-                    'produto_parceiro.venda_agrupada' => 1
-                ));
-
-        }else {
-            $arrPlanos = $this->plano->order_by('produto_parceiro_plano.ordem', 'asc')->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
-        }
-        $valores_liquido = array();
-
-        //verifica o limite da vigencia dos planos
-        $fail_msg = '';
-
-        /**
-         * FAZ O CÁLCULO DO PLANO
-         */
-        $desconto_condicional_valor = 0;
-        foreach ($arrPlanos as $plano){
-            //precificacao_tipo_id
-
-            switch ((int)$configuracao['calculo_tipo_id'])
-            {
-                case self::TIPO_CALCULO_NET:
-                    $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
-                    $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
-                    $valor = ($valor/(1-(($markup + $comissao_corretor)/100)));
-                    $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
-                    $valor -= $desconto_condicional_valor;
-                    $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
-                    break;
-                case self::TIPO_CALCULO_BRUTO:
-                    $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
-                    $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
-                        $valor = ($valor) - (($valor) * (($markup + $comissao_corretor)/100));
-                    $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
-                    $valor -= $desconto_condicional_valor;
-                    $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
-                    break;
-                default:
-                    break;
-
-
-            }
-
-        }
-
-
-        $regra_preco = $this->regra_preco->with_regra_preco()
-            ->filter_by_produto_parceiro($produto_parceiro_id)
-            ->get_all();
-
-        $valores_liquido_total = array();
-        foreach ($valores_liquido as $key => $value) {
-            $valores_liquido_total[$key] = $value;
-            foreach ($regra_preco as $regra) {
-                $valores_liquido_total[$key] += (($regra['parametros']/100) * $value);
-                $valores_liquido_total[$key] -= $desconto_upgrade;
-            }
-        }
-
-        //Resultado
-        $result  = array(
-            'sucess' => $sucess,
-            'produto_parceiro_id' => $produto_parceiro_id,
-            'repasse_comissao' => $repasse_comissao,
-            'comissao' => $comissao_corretor,
-            'desconto_upgrade' => $desconto_upgrade,
-            'desconto_condicional_valor' => $desconto_condicional_valor,
-            'valores_bruto' => $valores_bruto,
-            'valores_cobertura_adicional' => $valores_cobertura_adicional,
-            'valores_totais_cobertura_adicional' => $valores_cobertura_adicional_total,
-            'valores_liquido' => $valores_liquido,
-            'valores_liquido_total' => $valores_liquido_total,
-            'mensagem' => $messagem,
-            'quantidade' => $quantidade,
-        );
-
-        //Salva cotação
-
-        if($cotacao_id) {
-          $cotacao_salva = $this->cotacao->with_cotacao_generico()
-            ->filterByID($cotacao_id)
-            ->get_all();
-
-          $cotacao_salva = $cotacao_salva[0];
-          $data_cotacao = array();
-          $data_cotacao['repasse_comissao'] = $repasse_comissao;
-          $data_cotacao['comissao_corretor'] = $comissao_corretor;
-          $data_cotacao['desconto_condicional'] = $desconto_condicional;
-          $data_cotacao['desconto_condicional_valor'] = $desconto_condicional_valor;
-          $this->cotacao_generico->update($cotacao_salva['cotacao_generico_id'], $data_cotacao, TRUE);
-          $this->cotacao_equipamento->update($cotacao_salva['cotacao_equipamento_id'], $cotacao_eqp, TRUE);
-          
-          $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, null, $cotacao["nota_fiscal_valor"]);
-          
-        }
-
-        //Seta sessão
-       // $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $cotacao);
+        ob_clean();
 
         //Output
         $this->output
             ->set_content_type('application/json')
             ->set_output(json_encode($result));
-    }
-
-
-    /**
-     * Retorna valores do plano
-     * @param $produto_parceiro_id
-     * @param int $num_passageiro
-     * @return array
-     */
-    private function getValoresPlano($produto_parceiro_id, $quantidade = 1, $servico_produto_id = 0){
-
-        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
-        $this->load->model('produto_parceiro_plano_precificacao_servico_model', 'produto_parceiro_plano_precificacao_servico');
-        $this->load->model('moeda_model', 'moeda');
-        $this->load->model('moeda_cambio_model', 'moeda_cambio');
-
-
-        $quantidade = ((int)$quantidade <=0) ? 1 : (int)$quantidade;
-
-        $moeda_padrao = $this->moeda->filter_by_moeda_padrao()->get_all();
-        $moeda_padrao = $moeda_padrao[0];
-
-        $produto_parceiro =  $this->current_model->get_by_id($produto_parceiro_id);
-        if($produto_parceiro['venda_agrupada']) {
-            $arrPlanos = $this->produto_parceiro_plano->distinct()
-                ->with_produto_parceiro()
-                ->order_by('produto_parceiro_plano.ordem', 'asc')
-                ->with_produto()
-                ->get_many_by(array(
-                    'produto_parceiro.venda_agrupada' => 1
-                ));
-        }else{
-            $arrPlanos = $this->produto_parceiro_plano->order_by('produto_parceiro_plano.ordem', 'asc')->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
-        }
-        $valores = array();
-        foreach ($arrPlanos as $plano){
-            switch ((int)$plano['precificacao_tipo_id'])
-            {
-                case self::PRECO_TIPO_TABELA:
-
-                    $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($plano['produto_parceiro_plano_id'], date('Y-m-d'));
-
-                    $calculo = $this->getValorTabelaFixa($plano['produto_parceiro_plano_id'], $vigencia['dias'])*$quantidade;
-                    if($calculo)
-                        $valores[$plano['produto_parceiro_plano_id']] = $calculo;
-                    else
-                        return null;
-
-                    if($moeda_padrao['moeda_id'] != $plano['moeda_id']){
-                        $valores[$plano['produto_parceiro_plano_id']] = $this->moeda_cambio->getValor($plano['moeda_id'], $valores[$plano['produto_parceiro_plano_id']]);
-                    }
-                    break;
-                case self::PRECO_TIPO_COBERTURA:
-                    break;
-                case self::PRECO_TIPO_VALOR_SEGURADO:
-                    break;
-                case self::PRECO_TIPO_FIXO_SERVICO:
-
-                    $preco = $this->produto_parceiro_plano_precificacao_servico
-                        ->get_by(array(
-                            'produto_parceiro_plano_id' => $plano['produto_parceiro_plano_id'],
-                            'servico_produto_id' => $servico_produto_id,
-                        ));
-
-                    if($preco)
-                    {
-                        $valores[$plano['produto_parceiro_plano_id']] = (float) $preco['valor'] * (int) $quantidade;
-                    }
-                    else
-                        return null;
-
-                    break;
-                default:
-                    break;
-
-
-                }
-        }
-
-
-        return $valores;
-
-
     }
 
     private function getValorCoberturaAdicional($produto_parceiro_plano_id, $cobertura_plano_id, $qntDias){
@@ -1507,78 +1152,6 @@ class Venda_Generico extends Admin_Controller
         }else{
             return 0;
         }
-
-    }
-
-    private function getValorTabelaFixa($produto_parceiro_plano_id, $qntDias){
-        $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'itens');
-
-        $valor = $this->itens->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-            ->filter_by_intevalo_dias($qntDias)
-            ->filter_by_tipo('RANGE')
-            ->get_all();
-
-        if(count($valor) > 0){
-            return $valor[0]['valor'];
-        }else{
-            //não achou
-
-            //Verifica se Busca por mês
-            if(($qntDias >= 30) && ($qntDias % 30) == 0){
-                $valor = $this->itens->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-                    ->filter_by_intevalo_dias(floor($qntDias/30), 'MES')
-                    ->filter_by_tipo('RANGE')
-                    ->get_all();
-                if(count($valor) > 0){
-                    return $valor[0]['valor'];
-                }
-            }
-
-
-            //Verifica se Busca por ANO
-            if(($qntDias >= 365) && ($qntDias % 365) == 0){
-                $valor = $this->itens->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-                    ->filter_by_intevalo_dias(floor($qntDias/365), 'ANO')
-                    ->filter_by_tipo('RANGE')
-                    ->get_all();
-                if(count($valor) > 0){
-                    return $valor[0]['valor'];
-                }
-            }
-
-
-            $ultimo = $this->itens->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-                ->filter_by_intevalo_menor($qntDias, 'DIA')
-                ->order_by('produto_parceiro_plano_precificacao_itens.final', 'DESC')
-                ->filter_by_tipo('RANGE')
-                ->limit(1)
-                ->get_all();
-
-            if(is_array($ultimo) && sizeof($ultimo) > 0)
-                $ultimo = $ultimo[0];
-
-
-            $valor_adicional = $this->itens->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-                ->filter_by_tipo('ADICIONAL')
-                ->limit(1)
-                ->get_all();
-
-            if(is_array($valor_adicional) && sizeof($valor_adicional) > 0)
-            {
-                $valor_adicional = $valor_adicional[0];
-
-                $valor = $ultimo['valor'];
-                for ($i = $ultimo['final']; $i < $qntDias; $i++){
-                    $valor += $valor_adicional['valor'];
-                }
-                return $valor;
-            }
-            return null;
-
-
-        }
-
-
 
     }
 

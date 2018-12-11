@@ -267,8 +267,6 @@ Class Cotacao_Generico_Model extends MY_Model
      */
     public function insert_update($produto_parceiro_id, $cotacao_id = 0, $step = 1){
 
-
-        $this->load->model('cotacao_model', 'cotaoca');
         $this->load->model('cliente_model', 'cliente');
         $this->load->model('cliente_codigo_model', 'cliente_codigo');
         $this->load->model('cotacao_codigo_model', 'cotacao_codigo');
@@ -297,9 +295,9 @@ Class Cotacao_Generico_Model extends MY_Model
 
         if($produto_parceiro['parceiro_id'] != $this->session->userdata('parceiro_id')){
             $rel = $this->relacionamento->get_comissao($produto_parceiro_id, $this->session->userdata('parceiro_id'));
-            $configuracao['repasse_comissao'] = $rel['repasse_comissao'];
-            $configuracao['repasse_maximo'] = $rel['repasse_maximo'];
-            $configuracao['comissao'] = $rel['comissao'];
+            $configuracao['repasse_comissao'] = issetor($rel['repasse_comissao'], 0);
+            $configuracao['repasse_maximo'] = issetor($rel['repasse_maximo'], 0);
+            $configuracao['comissao'] = issetor($rel['comissao'], 0);
         }
 
         $regra_preco = $this->produto_parceiro_regra_preco->with_regra_preco()
@@ -308,43 +306,40 @@ Class Cotacao_Generico_Model extends MY_Model
 
         $iof = 0;
         if($regra_preco && isset($regra_preco[0]) && isset($regra_preco[0]['parametros'])){
-            $iof = $regra_preco[0]['parametros'];
+            $iof = app_format_currency($regra_preco[0]['parametros']);
         }
-
 
         //faz o Insert ou UPdate do Cliente
         $cliente = $this->cliente->cotacao_insert_update($cotacao);
 
-        $dt_cotacao = array();
-        $dt_cotacao['usuario_cotacao_id'] = $this->session->userdata('usuario_id');
-        $dt_cotacao['parceiro_id'] = $this->session->userdata('parceiro_id');
-        $dt_cotacao['usuario_venda_id'] = 0;
-        $dt_cotacao['cotacao_status_id'] = 1;
-        $dt_cotacao['alteracao_usuario_id'] = 1;
-        $this->cotacao->update($cotacao_id,  $dt_cotacao, TRUE);
+        if($cotacao_id){
+            $dt_cotacao = array();
+            $dt_cotacao['usuario_cotacao_id'] = issetor($cotacao["usuario_cotacao_id"], $this->session->userdata('usuario_id'));
+            $dt_cotacao['parceiro_id'] = ( isset( $cotacao["parceiro_id"]) ? $cotacao["parceiro_id"] : $this->session->userdata("parceiro_id") );
+            $dt_cotacao['usuario_venda_id'] = 0;
+            $dt_cotacao['cotacao_status_id'] = 1;
+            $dt_cotacao['alteracao_usuario_id'] = 1;
+            $dt_cotacao["data_inicio_vigencia"] = null;
+            if( isset( $cotacao["data_inicio_vigencia"] ) ) {
+                $dt_cotacao["data_inicio_vigencia"] = $cotacao["data_inicio_vigencia"];
+            }
 
-
+            $this->cotacao->update($cotacao_id,  $dt_cotacao, TRUE);
+        }
 
         $data_cotacao = array();
         $data_cotacao['step'] = $step;
         $data_cotacao['produto_parceiro_id'] = $produto_parceiro_id;
 
-
-
         if(isset($carrossel['plano'])) {
 
-
-
-
             $planos = explode(';', $carrossel['plano']);
-
 
             $valores = explode(';', $carrossel['valor']);
             $comissao_repasse = explode(';', $carrossel['comissao_repasse']);
             $desconto_condicional = explode(';', $carrossel['desconto_condicional']);
             $desconto_condicional_valor = explode(';', $carrossel['desconto_condicional_valor']);
             $valores_totais = explode(';', $carrossel['valor_total']);
-
 
             $data_cotacao['produto_parceiro_plano_id'] = $planos[0];
             $data_cotacao['cotacao_id'] = $cotacao_id;
@@ -356,13 +351,38 @@ Class Cotacao_Generico_Model extends MY_Model
             $data_cotacao['premio_liquido_total'] = app_unformat_currency($valores_totais[0]);
             $data_cotacao['iof'] = app_unformat_percent($iof);
 
-
+        } else {
+            if(isset($cotacao['repasse_comissao'])){
+                $data_cotacao['repasse_comissao'] = app_unformat_currency($cotacao['repasse_comissao']);
+            }
+            if(isset($cotacao['comissao_corretor'])){
+                $data_cotacao['comissao_corretor'] = app_unformat_currency($cotacao['comissao_corretor']);
+            }
+            if(isset($cotacao['desconto_condicional'])){
+                $data_cotacao['desconto_condicional'] = app_unformat_currency($cotacao['desconto_condicional']);
+            }
+            if(isset($cotacao['desconto_condicional_valor'])){
+                $data_cotacao['desconto_condicional_valor'] = app_unformat_currency($cotacao['desconto_condicional_valor']);
+            }
+            if(isset($cotacao['iof'])){
+                $data_cotacao['iof'] = app_unformat_currency($cotacao['iof']);
+            }
+            if(isset($cotacao['premio_liquido']) && !empty($cotacao['premio_liquido'])){
+                $data_cotacao['premio_liquido'] = app_unformat_currency($cotacao['premio_liquido']);
+            }
+            if(isset($cotacao['premio_liquido_total']) && !empty($cotacao['premio_liquido_total'])){
+                $data_cotacao['premio_liquido_total'] = app_unformat_currency($cotacao['premio_liquido_total']);
+            }
         }
+
+        $data_cotacao = array_merge( $cotacao, $data_cotacao );
+        unset( $data_cotacao["parceiro_id"] );
+        unset( $data_cotacao["usuario_cotacao_id"] );
+        unset( $data_cotacao["url_busca_cliente"] );
 
         if(isset($cotacao['produto_parceiro_plano_id'])){
             $data_cotacao['produto_parceiro_plano_id'] = $cotacao['produto_parceiro_plano_id'];
         }
-
 
         if(isset($cotacao['nome'])){
             $data_cotacao['nome'] = $cotacao['nome'];
@@ -430,12 +450,7 @@ Class Cotacao_Generico_Model extends MY_Model
             $data_cotacao['servico_produto_id'] = $cotacao['servico_produto_id'];
         }
 
-
-
-        if(isset($cotacao['quantidade'])){
-            $data_cotacao['quantidade'] = $cotacao['quantidade'];
-        }
-
+        $data_cotacao['quantidade'] = issetor($cotacao['quantidade'], 1);
 
         if(isset($cotacao['estado_civil'])){
             $data_cotacao['estado_civil'] = $cotacao['estado_civil'];
@@ -452,7 +467,6 @@ Class Cotacao_Generico_Model extends MY_Model
         if(isset($cotacao['rg_data_expedicao'])){
             $data_cotacao['rg_data_expedicao'] = app_dateonly_mask_to_mysql($cotacao['rg_data_expedicao']);
         }
-
 
         if(isset($cotacao['aux_01'])){
             $data_cotacao['aux_01'] = $cotacao['aux_01'];
@@ -493,31 +507,6 @@ Class Cotacao_Generico_Model extends MY_Model
             $data_cotacao['aux_10'] = $cotacao['aux_10'];
         }
 
-
-        /*
-        if(isset($cotacao['repasse_comissao'])){
-            $data_cotacao['repasse_comissao'] = app_unformat_currency($cotacao['repasse_comissao']);
-        }
-        if(isset($cotacao['comissao_corretor'])){
-            $data_cotacao['comissao_corretor'] = app_unformat_currency($cotacao['comissao_corretor']);
-        }
-        if(isset($cotacao['desconto_condicional'])){
-            $data_cotacao['desconto_condicional'] = app_unformat_currency($cotacao['desconto_condicional']);
-        }
-        if(isset($cotacao['desconto_condicional_valor'])){
-            $data_cotacao['desconto_condicional_valor'] = app_unformat_currency($cotacao['desconto_condicional_valor']);
-        }
-        if(isset($cotacao['premio_liquido'])){
-            $data_cotacao['premio_liquido'] = app_unformat_currency($cotacao['premio_liquido']);
-        }
-        if(isset($cotacao['iof'])){
-            $data_cotacao['iof'] = app_unformat_currency($cotacao['iof']);
-        }
-        if(isset($cotacao['premio_liquido_total'])){
-            $data_cotacao['premio_liquido_total'] = app_unformat_currency($cotacao['premio_liquido_total']);
-        }*/
-
-
         if($cotacao_salva) {
             $cotacao_id = $cotacao_salva['cotacao_id'];
             $this->update($cotacao_salva['cotacao_generico_id'], $data_cotacao, TRUE);
@@ -528,17 +517,24 @@ Class Cotacao_Generico_Model extends MY_Model
             $dt_cotacao['cliente_id'] = $cliente['cliente_id'];
             $dt_cotacao['codigo'] = $this->cotacao_codigo->get_codigo_cotacao_formatado('BE');
             $dt_cotacao['cotacao_tipo'] = 'ONLINE';
-            $dt_cotacao['parceiro_id'] = $this->session->userdata('parceiro_id');
-            $dt_cotacao['usuario_cotacao_id'] = $this->session->userdata('usuario_id');
+            $dt_cotacao['parceiro_id'] = ( isset( $cotacao["parceiro_id"]) ? $cotacao["parceiro_id"] : $this->session->userdata("parceiro_id") );
             $dt_cotacao['usuario_venda_id'] = 0;
             $dt_cotacao['cotacao_status_id'] = 1;
             $dt_cotacao['alteracao_usuario_id'] = $this->session->userdata('usuario_id');
             $dt_cotacao['produto_parceiro_id'] = $produto_parceiro_id;
+            $dt_cotacao["usuario_cotacao_id"] = issetor($cotacao["usuario_cotacao_id"], $this->session->userdata('usuario_id'));
+
+            $dt_cotacao["data_inicio_vigencia"] = null;
+            $data_cotacao["data_inicio_vigencia"] = null;
+
+            if( isset( $cotacao["data_inicio_vigencia"] ) ) {
+                $data_cotacao["data_inicio_vigencia"] = $cotacao["data_inicio_vigencia"];
+                $dt_cotacao["data_inicio_vigencia"] = $cotacao["data_inicio_vigencia"];
+            }
 
             $cotacao_id = $this->cotacao->insert($dt_cotacao, TRUE);
             $data_cotacao['cotacao_id'] = $cotacao_id;
             $cotacao_generico_id = $this->insert($data_cotacao, TRUE);
-
         }
 
         $cobertura_adicional = (!empty($carrossel['cobertura_adicional'])) ? explode(';', $carrossel['cobertura_adicional']) : array();
@@ -556,10 +552,8 @@ Class Cotacao_Generico_Model extends MY_Model
                 $dados_cobertura_adicional['valor'] = $cobertura_adicional_valor[$index];
                 $this->cotacao_generico_cobertura->insert($dados_cobertura_adicional, TRUE);
 
-
             }
         }
-
 
         return $cotacao_id;
     }

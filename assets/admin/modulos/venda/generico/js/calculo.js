@@ -96,15 +96,13 @@ function calculo_preco()
             console.log('result', result);
 
             //Se sucesso
-            if(result.sucess == true)
+            if(result.status == true)
             {
                 //Seta diferença dos dias
                 $('.comissao_corretor').html(numeroParaMoeda(result.comissao, 2, ',', ''));
                 $('.desconto_upgrade').html('-' + numeroParaMoeda(result.desconto_upgrade, 2, ',', ''));
                 $('.repasse_comissao').val(result.repasse_comissao);
                 $('.desconto_condicional_valor').val(result.desconto_condicional_valor);
-
-
 
                 $.each(result.valores_bruto, function (idx, obj)
                 {
@@ -133,7 +131,7 @@ function calculo_preco()
                     //Verifica se bruto e líquido é igual
                     if(obj != result.valores_bruto[idx])
                     {
-                        var tudo_igual = false;
+                        tudo_igual = false;
                     }
 
                     $('.premio_total_one_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));

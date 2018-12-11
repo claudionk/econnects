@@ -186,13 +186,12 @@ class Emissao extends CI_Controller {
                             $retorno = json_decode($r,true);
                             $arrOptions["ean"] = $retorno["ean"];  
                             $arrOptions["equipamento_id"] = $retorno["equipamento_id"];
-                            $arrOptions["equipamento_nome"] = substr( $retorno["nome"], 0, 128 );
+                            $arrOptions["equipamento_nome"] = $parametros['modelo'];
                             $arrOptions["equipamento_marca_id"] = $retorno["equipamento_marca_id"];
                             $arrOptions["equipamento_categoria_id"] = $retorno["equipamento_sub_categoria_id"];
                             $validaModelo = false ;
-                            //$this->campos_estrutura = $arrOptions;
-                            $this->equipamento_nome = $arrOptions["equipamento_nome"] ;
 
+                            $this->equipamento_nome = $arrOptions["equipamento_nome"] ;
                             $this->campos_estrutura["equipamento_id"] = $retorno["equipamento_id"] ;
                             $this->campos_estrutura["equipamento_marca_id"] = $retorno["equipamento_marca_id"] ;
                             $this->campos_estrutura["equipamento_categoria_id"] = $retorno["equipamento_categoria_id"] ;
@@ -239,12 +238,11 @@ class Emissao extends CI_Controller {
                         else{
                             $arrOptions["ean"] = $retorno["dados"][0]["ean"];                            
                             $arrOptions["equipamento_id"] = $retorno["dados"][0]["equipamento_id"];
-                            $arrOptions["equipamento_nome"] = substr( $retorno["dados"][0]["nome"], 0 , 128);
+                            $arrOptions["equipamento_nome"] = $parametros['modelo'];
                             $arrOptions["equipamento_marca_id"] = $retorno["dados"][0]["equipamento_marca_id"];
                             $arrOptions["equipamento_categoria_id"] = $retorno["dados"][0]["equipamento_sub_categoria_id"];
-                            //$this->campos_estrutura = $arrOptions;
-                            $this->equipamento_nome = $arrOptions["equipamento_nome"] ;
 
+                            $this->equipamento_nome = $arrOptions["equipamento_nome"] ;
                             $this->campos_estrutura["equipamento_id"] = $retorno["dados"][0]["equipamento_id"] ;
                             $this->campos_estrutura["equipamento_marca_id"] = $retorno["dados"][0]["equipamento_marca_id"] ;
                             $this->campos_estrutura["equipamento_categoria_id"] = $retorno["dados"][0]["equipamento_categoria_id"] ;
@@ -252,8 +250,6 @@ class Emissao extends CI_Controller {
                     }
 
                     $this->campos_estrutura = $arrOptions;
-                    //$this->equipamento_nome = $retorno->{"nome"};
-                    //$this->ean = $retorno->{"ean"};
                 }
 
                 $url = base_url() ."api/cotacao";
