@@ -304,6 +304,7 @@ if ( ! function_exists('app_integracao_format_decimal_pad')) {
         $valor = ($valor == 0) ? '0.0' : $valor;
         $valor = explode('.', $valor);
         $valor[1] = ((!isset($valor[1])) || (empty(isset($valor[1]))) ) ? '00' : $valor[1];
+        $valor[0] = preg_replace("/[^0-9]/", "", $valor[0]);
         return str_pad($valor[0], ($dados['item']['tamanho']-($a[2]+1)), $dados['item']['valor_padrao'], STR_PAD_LEFT) .$a[3]. str_pad($valor[1], $a[2], '0', STR_PAD_LEFT);
 
     }
