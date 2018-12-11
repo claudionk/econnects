@@ -992,7 +992,7 @@ class Venda_Equipamento extends Admin_Controller {
     public function calculo() {
 
         $this->load->model('produto_parceiro_regra_preco_model', 'regra_preco');
-        $result = $this->regra_preco->calculo_equipamento();
+        $result = $this->regra_preco->calculo_plano();
 
         ob_clean();
 

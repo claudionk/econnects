@@ -850,7 +850,6 @@ Class Pedido_Model extends MY_Model
         //pega as configurações de cancelamento do pedido
         $produto_parceiro = $this->getPedidoProdutoParceiro($pedido_id);
 
-
         $produto_parceiro = $produto_parceiro[0];
         $produto_parceiro_cancelamento = $this->cancelamento->filter_by_produto_parceiro($produto_parceiro['produto_parceiro_id'])->get_all();
         $produto_parceiro_cancelamento = $produto_parceiro_cancelamento[0];
@@ -907,8 +906,14 @@ Class Pedido_Model extends MY_Model
 
             foreach ($apolices as $apolice) {
 
-                $valor_premio = $apolice['valor_premio_net'];
-                $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
+                // devolução integral
+                if ($porcento_nao_utilizado == 100) {
+                    $valor_premio = $apolice['valor_premio_total'];
+                } else {
+                    $valor_premio = $apolice['valor_premio_net'];
+                    $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
+                }
+
                 $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento['seg_depois_calculo'], $produto_parceiro_cancelamento['seg_depois_valor'], $valor_premio);
 
                 $dados_apolice = array();
@@ -939,7 +944,7 @@ Class Pedido_Model extends MY_Model
 
     function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $dados_bancarios = [], $define_data = false ){
         if( !$define_data ){
-        $define_data = date("Y-m-d H:i:s");
+            $define_data = date("Y-m-d H:i:s");
         }
         $this->load->model("apolice_model", "apolice");
         $this->load->model("apolice_cobertura_model", "apolice_cobertura");
