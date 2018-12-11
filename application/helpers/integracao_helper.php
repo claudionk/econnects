@@ -1136,7 +1136,7 @@ if ( ! function_exists('app_integracao_emissao'))
         } else if ( in_array($dados['tipo_transacao'], ['XS','XX']) ) {
             
             // Cancelamento
-            $cancelaApolice = app_get_api("cancelar", "POST", json_encode(["apolice_id" => $dados['apolice_id'], "emailAPI" => app_get_userdata("email")]));
+            $cancelaApolice = app_get_api("cancelar", "POST", json_encode(["apolice_id" => $dados['apolice_id'], "define_date" => $dados['data_adesao_cancel'], "emailAPI" => app_get_userdata("email")]));
             if (empty($cancelaApolice['status'])) {
                 $response->msg[] = ['id' => 9, 'msg' => $cancelaApolice['response'], 'slug' => "cancelamento"];
                 return $response;

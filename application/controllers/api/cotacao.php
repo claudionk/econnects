@@ -9,15 +9,6 @@ class Cotacao extends CI_Controller {
   public $usuario_id;
   public $parceiro_id;
 
-  const PRECO_TIPO_TABELA = 1;
-  const PRECO_TIPO_COBERTURA = 2;
-  const PRECO_TIPO_VALOR_SEGURADO = 3;
-  const PRECO_POR_EQUIPAMENTO = 5;
-
-  const TIPO_CALCULO_NET = 1;
-  const TIPO_CALCULO_BRUTO = 2;
-
-
   const FORMA_PAGAMENTO_CARTAO_CREDITO = 1;
   const FORMA_PAGAMENTO_TRANSF_BRADESCO = 2;
   const FORMA_PAGAMENTO_TRANSF_BB = 7;
@@ -404,7 +395,6 @@ class Cotacao extends CI_Controller {
       'mensagem' => 'Contratação não finalizada',
     );
 
-
     if( $cotacao_id > 0 ) {
       if( $this->cotacao->isCotacaoValida( $cotacao_id ) == FALSE ) {
         $result  = array(
@@ -417,7 +407,6 @@ class Cotacao extends CI_Controller {
       $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $params );
       $this->cotacao_equipamento->insert_update( $produto_parceiro_id, $cotacao_id, 3 );
       unset( $params["parceiro_id"] );
-
 
     } else {
       $result = array(

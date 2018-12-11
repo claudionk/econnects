@@ -568,8 +568,8 @@ Class Apolice_Model extends MY_Model
       $dados_generico['produto_parceiro_pagamento_id'] = $pedido['produto_parceiro_pagamento_id'];
       $dados_generico['data_ini_vigencia'] = $vigencia['inicio_vigencia'];
       $dados_generico['data_fim_vigencia'] = $vigencia['fim_vigencia'];
-      $dados_generico['data_adesao'] = date('Y-m-d');
-      $dados_generico['data_pagamento'] = date('Y-m-d');
+      $dados_generico['data_adesao'] = $data_base;
+      $dados_generico['data_pagamento'] = $data_base;
 
       $dados_generico['cnpj_cpf'] = $cotacao_salva['cnpj_cpf'];
       $dados_generico['rg'] = $cotacao_salva['rg'];
