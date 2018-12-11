@@ -208,14 +208,29 @@ Class Produto_Parceiro_Model extends MY_Model
 
             // compara os produtos com os que tem acesso
             if ($onlyEnable) {
-                $result = array_intersect_key($result, $this->getProdutosHabilitados($parceiro_id));
+                // $result = array_intersect_key($result, $this->getProdutosHabilitados($parceiro_id));
+
+                $produtosHabilitados = $this->getProdutosHabilitados($parceiro_id);
+                $ret = [];
+                foreach ($result as $rs) {
+                    foreach ($produtosHabilitados as $prod) {
+                        if ( $rs['produto_parceiro_id'] == $prod['produto_parceiro_id'] ) {
+                            $ret[] = $rs;
+                        }
+                    }
+                }
+
+                $result = [];
+                if (!empty($ret)) {
+                    $result = $ret;
+                }
             }
+
             return $result;
         } else {
             return null;
         }
     }
-
     public function getProdutosHabilitados($parceiro_id)
     {
         $query = $this->db->query( "

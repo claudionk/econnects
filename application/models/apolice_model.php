@@ -539,6 +539,7 @@ Class Apolice_Model extends MY_Model
 
       $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
       $config = $this->db->query( "SELECT ppc.* FROM produto_parceiro_plano ppp INNER JOIN produto_parceiro pp ON (pp.produto_parceiro_id=ppp.produto_parceiro_id) INNER JOIN produto_parceiro_configuracao ppc ON (ppc.produto_parceiro_id=pp.produto_parceiro_id) WHERE ppp.produto_parceiro_plano_id=$produto_parceiro_plano_id" )->result_array();
+      $data_base = date("Y-m-d");
       if( $config ) {
         $config = $config[0];
         if( $config["apolice_vigencia"] != "C" ) {
@@ -554,8 +555,6 @@ Class Apolice_Model extends MY_Model
             }
           }
         }
-      } else {
-        $data_base = date("Y-m-d");
       }
 
       $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia( $cotacao_salva["produto_parceiro_plano_id"], $data_base );
@@ -578,7 +577,7 @@ Class Apolice_Model extends MY_Model
       $dados_generico['data_nascimento'] = $cotacao_salva['data_nascimento'];
       $dados_generico['sexo'] = $cotacao_salva['sexo'];
       $dados_generico['email'] = $cotacao_salva['email'];
-      $dados_generico['endereco'] = $cotacao_salva['endereco_logradouro'];
+      $dados_generico['endereco_logradouro'] = $cotacao_salva['endereco_logradouro'];
       $dados_generico['endereco_numero'] = $cotacao_salva['endereco_numero'];
       $dados_generico['endereco_complemento'] = $cotacao_salva['endereco_complemento'];
       $dados_generico['endereco_bairro'] = $cotacao_salva['endereco_bairro'];
@@ -794,7 +793,7 @@ Class Apolice_Model extends MY_Model
         $dados_seguro_viagem['data_nascimento'] = $cotacao_pessoa['data_nascimento'];
         $dados_seguro_viagem['sexo'] = $cotacao_pessoa['sexo'];
         $dados_seguro_viagem['email'] = $cotacao_pessoa['email'];
-        $dados_seguro_viagem['endereco'] = $cotacao_pessoa['endereco_logradouro'];
+        $dados_seguro_viagem['endereco_logradouro'] = $cotacao_pessoa['endereco_logradouro'];
         $dados_seguro_viagem['endereco_numero'] = $cotacao_pessoa['endereco_numero'];
         $dados_seguro_viagem['endereco_complemento'] = $cotacao_pessoa['endereco_complemento'];
         $dados_seguro_viagem['endereco_bairro'] = $cotacao_pessoa['endereco_bairro'];
