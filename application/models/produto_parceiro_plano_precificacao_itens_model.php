@@ -199,17 +199,13 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
         $valores = array();
 
-        // print_r($arrPlanos);
-        // die();
         foreach ($arrPlanos as $plano){
 
-            // echo $plano['precificacao_tipo_id']."-";
             $valor_cobertura_plano = 0;
             switch ((int)$plano['precificacao_tipo_id']) {
                 case $this->config->item("PRECO_TIPO_TABELA"):
 
                     $calculo = [];
-                    // echo $plano['nome'] ."\n";
 
                     if( $produto_slug == 'equipamento' ) {
 
@@ -223,7 +219,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     } elseif( $produto_slug == 'generico' || $produto_slug == 'seguro_saude' ) {
 
                         $vigencia = $this->plano->getInicioFimVigencia($plano['produto_parceiro_plano_id'], date('Y-m-d'));
-                        // echo $vigencia['dias']."\n";
                         $calculo = $this->getValorTabelaFixaGenerico($plano['produto_parceiro_plano_id'], $vigencia['dias'])*$quantidade;
 
                     }
@@ -317,7 +312,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                 }
             }
 
-        // print_r($valores);
         return $valores;
 
     }
@@ -328,91 +322,36 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
             // ->filter_by_intevalo_dias($qntDias, 'DIA')
             ->filter_by_tipo('RANGE')
             ->get_all();
-            // echo count($valor) ."\n";
-            // echo $this->db->last_query() ."\n";
-            // print_r($valor);
 
-            foreach ($valor as $vl) {
-                // echo $vl['unidade_tempo'] ."\n";
-                switch ($vl['unidade_tempo']) {
-                    case 'DIA':
-                        $base = $qntDias;
-                        break;
-                    case 'MES':
-                        $base = floor($qntDias/30);
-                        break;
-                    case 'ANO':
-                        $base = floor($qntDias/365);
-                        break;
-                    case 'VALOR':
-                        $base = $valor_nota;
-                        break;
-                    case 'IDADE':
-                        $dn = new DateTime($data_nascimento);
-                        $d = $dn->diff(new DateTime());
-                        $base = $d->y;
-                        break;
-                }
-
-                // echo $base ." -> ". $vl['inicial'] ." > ". $vl['final'] ."\n";
-                if (!empty($base) && $base >= $vl['inicial'] && $base <= $vl['final']) {
-                    // echo "encontrou\n";
-                    return $vl['valor'];
-                }
+        foreach ($valor as $vl) {
+            switch ($vl['unidade_tempo']) {
+                case 'DIA':
+                    $base = $qntDias;
+                    break;
+                case 'MES':
+                    $base = floor($qntDias/30);
+                    break;
+                case 'ANO':
+                    $base = floor($qntDias/365);
+                    break;
+                case 'VALOR':
+                    $base = $valor_nota;
+                    break;
+                case 'IDADE':
+                    $dn = new DateTime($data_nascimento);
+                    $d = $dn->diff(new DateTime());
+                    $base = $d->y;
+                    break;
             }
 
-/*
-            //Verifica se Busca por mês
-            if(($qntDias >= 30) && ($qntDias % 30) == 0){
-                $valor = $this->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-                    ->filter_by_intevalo_dias(floor($qntDias/30), 'MES')
-                    ->filter_by_tipo('RANGE')
-                    ->get_all();
-                if(count($valor) > 0){
-                    return $valor[0]['valor'];
-                }
+            // echo $base ." -> ". $vl['inicial'] ." > ". $vl['final'] ."\n";
+            if (!empty($base) && $base >= $vl['inicial'] && $base <= $vl['final']) {
+                // echo "encontrou\n";
+                return $vl['valor'];
             }
-
-            //Verifica se Busca por ANO
-            if(($qntDias >= 365) && ($qntDias % 365) == 0){
-                $valor = $this->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-                    ->filter_by_intevalo_dias(floor($qntDias/365), 'ANO')
-                    ->filter_by_tipo('RANGE')
-                    ->get_all();
-                if(count($valor) > 0){
-                    return $valor[0]['valor'];
-                }
-            }
-
-            $ultimo = $this->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-                ->filter_by_intevalo_menor($qntDias, 'DIA')
-                ->order_by('produto_parceiro_plano_precificacao_itens.final', 'DESC')
-                ->filter_by_tipo('RANGE')
-                ->limit(1)
-                ->get_all();
-
-            if(is_array($ultimo) && sizeof($ultimo) > 0)
-                $ultimo = $ultimo[0];
-
-            $valor_adicional = $this->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-                ->filter_by_tipo('ADICIONAL')
-                ->limit(1)
-                ->get_all();
-
-            if(is_array($valor_adicional) && sizeof($valor_adicional) > 0)
-            {
-                $valor_adicional = $valor_adicional[0];
-
-                $valor = $ultimo['valor'];
-                for ($i = $ultimo['final']; $i < $qntDias; $i++){
-                    $valor += $valor_adicional['valor'];
-                }
-                return $valor;
-            }
-            return null;
-
         }
-*/
+
+        return null;
     }
 
     /**
@@ -424,8 +363,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     public function getValorTabelaFixa($valor, $valor_nota = null, $data_nascimento = null){
 
         $valores = [];
-        print_r($valor);
-        die();
 
         if(count($valor) > 0)
         {
