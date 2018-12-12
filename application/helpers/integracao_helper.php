@@ -1265,7 +1265,7 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
     {
         $d = $dados['registro'];
         $integracao_log_detalhe_id = $formato;
-        $valor = $d['vlr_movimento'];
+        $valor = str_replace(array(",", "."), array("", "."), $d['vlr_movimento']);
         // Ajuste a menor
         if ($d['cod_tipo_mov'] == '2') {
             $valor *= -1;
