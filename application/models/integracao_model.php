@@ -948,7 +948,7 @@ Class Integracao_Model extends MY_Model
                 $pre_result .= mb_str_pad($this->trataRetorno($campo), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
             }
 
-            $result .= mb_substr($this->trataRetorno($pre_result),0,$item['tamanho']);
+            $result .= mb_substr($pre_result,0,$item['tamanho']);
         }
 
         if ($integracao_log_status_id != 4){
