@@ -184,10 +184,16 @@ class Emissao extends CI_Controller {
                     die(json_encode(array("status"=>false,"message"=>$r),JSON_UNESCAPED_UNICODE));
 
                 foreach ($retorno as $ret) {
+                    if ($validaModelo) break;
+
                     foreach ($ret['campos'] as $campo) {
-                        if ( in_array($campo['nome_banco'], ['ean', 'equipamento_id', 'equipamento_nome', 'equipamento_marca_id', 'equipamento_categoria_id']) )
-                            if ( strrpos($campo['validacoes'], "required") == true )
+                        if ( in_array($campo['nome_banco'], ['ean', 'equipamento_id', 'equipamento_nome', 'equipamento_marca_id', 'equipamento_categoria_id']) ) {
+                            $pos = strpos($campo['validacoes'], "required");
+                            if ( !($pos === false) ) {
                                 $validaModelo = true;
+                                break;
+                            }
+                        }
                     }
                 }
 
