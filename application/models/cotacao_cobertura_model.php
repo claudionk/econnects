@@ -39,7 +39,7 @@ Class Cotacao_Cobertura_Model extends MY_Model
         $this->db->delete($this->_table);
     }
 
-    public function geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $produto_parceiro_plano_id = null, $importancia_segurada = null, $premio_bruto = null) {
+    public function geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $produto_parceiro_plano_id = null, $importancia_segurada = null, $premio_liquido = null) {
 
         $coberturas = $this->plano_cobertura->with_prod_parc($produto_parceiro_id, $produto_parceiro_plano_id)->get_all();
         $importancia_segurada = floatval( $importancia_segurada );
@@ -58,7 +58,7 @@ Class Cotacao_Cobertura_Model extends MY_Model
             }elseif( $cobertura["mostrar"] == "preco" ) {
                 $valor_cobertura = $valor_config = floatval($cobertura["preco"]);
             }elseif( $cobertura["mostrar"] == "descricao" ) {
-                $valor_cobertura = $valor_config = round($premio_bruto, 2);
+                $valor_cobertura = $valor_config = round($premio_liquido, 2);
             }
 
             $dados['cotacao_id'] = $cotacao_id;

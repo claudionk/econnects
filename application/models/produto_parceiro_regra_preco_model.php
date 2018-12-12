@@ -378,7 +378,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                     $cotacaoUpdate->update($cotacao_item_id, $cotacao_eqp, TRUE);
                 }
 
-                $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $produto_parceiro_plano_id, $cotacao["nota_fiscal_valor"], $cotacao_eqp['premio_liquido_total']);
+                $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $produto_parceiro_plano_id, $cotacao["nota_fiscal_valor"], $cotacao_eqp['premio_liquido']);
             }
 
             $result["importancia_segurada"] = $cotacao["nota_fiscal_valor"];
