@@ -181,7 +181,6 @@ Class Integracao_Model extends MY_Model
             'totalRegistros' => 0,
             'totalItens' => 0,
         );
-
     }
 
     //Get dados
@@ -251,14 +250,12 @@ Class Integracao_Model extends MY_Model
                 return '0000-00-00 00:00:00';
             }
         }
-
     }
 
     public function get_by_id($id)
     {
         return $this->get_by($this->primary_key, $id);
     }
-
 
     public function run(){
 
@@ -334,7 +331,6 @@ Class Integracao_Model extends MY_Model
             }
 
         }
-
     }
 
     public function run_s($integracao_id){
@@ -396,7 +392,6 @@ Class Integracao_Model extends MY_Model
             $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
         }
-
     }
 
     private function sendFile($integracao = array(), $file){
@@ -419,7 +414,6 @@ Class Integracao_Model extends MY_Model
         }catch (Exception $e) {
 
         }
-
     }
 
     private function getFile($integracao = array(), $file){
@@ -442,7 +436,6 @@ Class Integracao_Model extends MY_Model
         }catch (Exception $e) {
 
         }
-
     }
 
     private function getFileFTP($integracao = array(), $file){
@@ -883,8 +876,11 @@ Class Integracao_Model extends MY_Model
     }
 
     private function trataRetorno($txt) {
-        $txt = mb_strtoupper($txt, 'UTF-8');
+        $txt = mb_strtoupper(trim($txt), 'UTF-8');
         $txt = app_remove_especial_caracteres($txt);
+        $txt = preg_replace("/[^ |A-Z|\d|\[|\,|\.|\-|\]|\\|\/]+/", "", $txt);
+        $txt = preg_replace("/\s{2,3000}/", "", $txt);
+        $txt = preg_replace("/[\\|\/]/", "-", $txt);
         return $txt;
     }
 
@@ -924,7 +920,7 @@ Class Integracao_Model extends MY_Model
 
                 if (!empty($item['nome_banco'])){
                     if(isset($registro[$item['nome_banco']])){
-                        $campo = app_remove_especial_caracteres($registro[$item['nome_banco']]);
+                        $campo = $registro[$item['nome_banco']];
                     }elseif(isset($log[$item['nome_banco']])){
                         $campo = $log[$item['nome_banco']];
                     }
@@ -939,7 +935,7 @@ Class Integracao_Model extends MY_Model
             }elseif (!empty($item['nome_banco'])){
 
                 if(isset($registro[$item['nome_banco']])){
-                    $registro[$item['nome_banco']] = $campo = app_remove_especial_caracteres($registro[$item['nome_banco']]);
+                    $registro[$item['nome_banco']] = $campo = $registro[$item['nome_banco']];
                 }elseif(isset($log[$item['nome_banco']])){
                     $campo = $log[$item['nome_banco']];
                 }else{
@@ -949,10 +945,10 @@ Class Integracao_Model extends MY_Model
             }
 
             if (!is_null($campo)){
-                $pre_result .= mb_str_pad($campo, $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
+                $pre_result .= mb_str_pad($this->trataRetorno($campo), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
             }
 
-            $result .= mb_substr($pre_result,0,$item['tamanho']);
+            $result .= mb_substr($this->trataRetorno($pre_result),0,$item['tamanho']);
         }
 
         if ($integracao_log_status_id != 4){
@@ -962,7 +958,7 @@ Class Integracao_Model extends MY_Model
                 )
             );
         } else {
-            $arResult[] = $this->trataRetorno($result);
+            $arResult[] = $result;
 
             //execute before detail
             if((!empty($integracao['after_detail'])) && (function_exists($integracao['after_detail']))){
@@ -1038,7 +1034,6 @@ Class Integracao_Model extends MY_Model
         }
 
         return true;
-
     }
 
     function update_log_fail($file, $chave){
