@@ -361,7 +361,7 @@ class Emissao extends CI_Controller {
                         }
                         else
                         {
-                            die(json_encode(array("status"=>false,"message"=>"Contratação não realizada"),JSON_UNESCAPED_UNICODE));
+                            die(json_encode(array("status"=>false,"message"=>$r),JSON_UNESCAPED_UNICODE));
                         }
                     }
                     else

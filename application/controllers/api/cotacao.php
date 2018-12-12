@@ -392,7 +392,12 @@ class Cotacao extends CI_Controller {
         }
 
         if( !$validacao_ok || sizeof( $erros ) > 0 ) {
-            return $erros;
+            $result = array(
+                "status" => false,
+                "mensagem" => $erros,
+                "errors" => $erros,
+            );
+            return $result;
         }
 
         $validacao = array();
