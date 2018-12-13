@@ -1691,12 +1691,12 @@ Class Pedido_Model extends MY_Model
         SELECT 
         planos,
         cod_tpa, 
-        SUM(IF(PB IS NOT NULL, 1, 0)) AS V_quantidade,
-        SUM(IFNULL(IOF,0)) AS V_IOF, 
-        SUM(IFNULL(PL,0)) AS V_PL, 
-        SUM(IFNULL(PB,0)) AS V_PB, 
-        SUM(IFNULL(pro_labore,0)) AS V_pro_labore, 
-        SUM(IFNULL(valor_comissao,0)) AS V_valor_comissao, 
+        SUM(IF(apolice_status_id = 1, IF(PB IS NOT NULL, 1, 0), 0)) AS V_quantidade,
+        SUM(IF(apolice_status_id = 1, IFNULL(IOF,0), 0)) AS V_IOF, 
+        SUM(IF(apolice_status_id = 1, IFNULL(PL,0), 0)) AS V_PL, 
+        SUM(IF(apolice_status_id = 1, IFNULL(PB,0), 0)) AS V_PB, 
+        SUM(IF(apolice_status_id = 1, IFNULL(pro_labore,0), 0)) AS V_pro_labore, 
+        SUM(IF(apolice_status_id = 1, IFNULL(valor_comissao,0), 0)) AS V_valor_comissao, 
         SUM(IF(apolice_status_id = 2, IF(PB IS NOT NULL, 1, 0), 0)) AS C_quantidade,
         SUM(IF(apolice_status_id = 2, IFNULL(IOF,0), 0)) AS C_IOF, 
         SUM(IF(apolice_status_id = 2, IFNULL(PL,0), 0)) AS C_PL, 
@@ -1708,7 +1708,7 @@ Class Pedido_Model extends MY_Model
         ppp.nome as planos,
         pp.cod_tpa,
         pedido.pedido_id,
-        a.apolice_status_id,
+        cta.tipo_transacao as apolice_status_id,
         (
         SELECT FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
         FROM apolice_cobertura ac 
@@ -1769,6 +1769,7 @@ Class Pedido_Model extends MY_Model
 
         INNER JOIN (
             SELECT chave_emi, Recebido
+            , IF(tipo_transacao = 'NS', 1, 2) as tipo_transacao
             , Processado
             , CTA_Enviado
             , IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL AND CTA_Retorno IS NULL, CTA_Enviado, NULL) AS CTA_Ag_Retorno
@@ -1825,9 +1826,9 @@ Class Pedido_Model extends MY_Model
 
             ) AS x
         ) AS y
-        WHERE CTA_Retorno_ok IS NOT NULL
+        WHERE CTA_Retorno_ok IS NOT NULL 
 
-        ) as cta ON cta.num_apolice = a.num_apolice
+        ) as cta ON cta.num_apolice = a.num_apolice 
 
         WHERE `parc`.`slug` IN('".$slug."')
         AND `cs`.`slug` = 'finalizada'
