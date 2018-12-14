@@ -42,7 +42,7 @@ if($_POST){
                 <?php echo app_get_form_error('bandeira_cartao'); ?>
             </div>
             <div class="col-md-4">
-                <h5>Validade (MM/AAAA)</h5>
+                <h5>Validade <small>(MM/AAAA)</small></h5>
                 <input class="form-control" placeholder="Validade (MM/AAAA)" id="validade" name="validade" type="tel" value="<?php echo isset($row['validade']) ? $row['validade'] : set_value('validade'); ?>" />
                 <?php echo app_get_form_error('validade'); ?>
             </div>
@@ -53,11 +53,21 @@ if($_POST){
             </div>
         </div>
 
-        <?php if(($produto_parceiro_configuracao['pagamento_tipo'] == 'RECORRENTE') && ($produto_parceiro_configuracao['pagmaneto_cobranca'] == 'VENCIMENTO_CARTAO') ) { ?>
+        <?php 
+        if(($produto_parceiro_configuracao['pagamento_tipo'] == 'RECORRENTE')  ) {
+        ?>
             <div class="form-group<?php echo (app_is_form_error('dia_vencimento')) ? ' has-error' : ''; ?>">
                 <div class="col-md-6">
-                    <h5>Dia do vencimento</h5>
-                    <input placeholder="Dia do vencimento" class="form-control" id="dia_vencimento" name="dia_vencimento" type="number" value="<?php echo isset($row['dia_vencimento']) ? $row['dia_vencimento'] : set_value('dia_vencimento'); ?>" />
+                    <h5>Dia do vencimento do Cart&atilde;o</h5>
+                    <select class="form-control" name="dia_vencimento" id="dia_vencimento">
+                        <?php
+                        $dia_vencimento = isset( $row['dia_vencimento'] ) ? $row['dia_vencimento'] : set_value('dia_vencimento') ;
+                        if( (int)$dia_vencimento > 1 && (int)$dia_vencimento < 31 ){ $dia_vencimento = date("d"); }
+                        foreach(array(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31) as $linha) { 
+                            printf( "<option value='%s'%s>%s</option>" , $linha , (int)$dia_vencimento == $linha ? "selected" : "" , $linha );
+                        }
+                        ?>
+                    </select>
                     <?php echo app_get_form_error('dia_vencimento'); ?>
                 </div>
             </div>
@@ -72,7 +82,7 @@ if($_POST){
                 <div class="card-wrapper"></div>
             </div>
         </div>
-        <?php if(($produto_parceiro_configuracao['pagamento_tipo'] != 'RECORRENTE') && ($produto_parceiro_configuracao['pagmaneto_cobranca'] != 'VENCIMENTO_CARTAO') ) { ?>
+        <?php if( $produto_parceiro_configuracao['pagamento_tipo'] != 'RECORRENTE' ) { ?>
         <div class="col-md-12">
             <?php $hd = "";  ?>
             <?php foreach ($forma['pagamento'] as $bandeira) : ?>

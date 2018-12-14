@@ -45,7 +45,7 @@ class Pedido extends Admin_Controller
             ->get_total();
 
 
-//        exit($this->current_model->db->last_query());
+        // exit($this->current_model->db->last_query());
         $config['per_page'] = 10;
 
         $this->pagination->initialize($config);
@@ -215,7 +215,7 @@ class Pedido extends Admin_Controller
      * Visualizar pedido
      * @param $id
      */
-    public function view( $id )
+    public function view($id)
     {
         $this->load->model("cotacao_model", "cotacao");
         $this->load->model("pedido_transacao_model", "pedido_transacao");
@@ -229,6 +229,7 @@ class Pedido extends Admin_Controller
         $this->load->model('forma_pagamento_bandeira_model', 'forma_pagamento_bandeira');
         $this->load->model("pedido_cartao_transacao_model", "pedido_cartao_transacao");
         $this->load->model("capitalizacao_model", "capitalizacao");
+        
 
         //Adicionar Bibliotecas
         $this->load->library('form_validation');

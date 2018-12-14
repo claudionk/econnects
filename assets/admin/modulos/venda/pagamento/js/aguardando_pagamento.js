@@ -29,18 +29,13 @@ var pr =30;
 var ver_redirect = false;
 function getStatusPedido(){
     var data = {
-        pedido_id: $('#pedido_id').val()
+        pedido_id: $('#pedido_id').val( )
     }
 
     var url = $('#url_aguardando_pagamento').val();
     pr += 5;
-    if(pr > 100){
-        pr = 30;
-    }
-
-
-
-//    Pace.track(function(){
+    if(pr > 100){ pr = 30; }
+    //    Pace.track(function(){
         $.ajax({
                 type: "POST",
                 url: url,
@@ -91,9 +86,6 @@ function getStatusPedido(){
                     $('#widget-progress-bar .steps-percent').html(pr + "%");
                     $('#widget-progress-bar .progress-bar').width(pr + "%");
                     setTimeout(getStatusPedido, 2000);
-
-
-
 
                 }
 

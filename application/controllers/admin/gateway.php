@@ -61,7 +61,6 @@ class Gateway extends Admin_Controller
 
 
   public function run(){
-    //      exit();
     error_log( "Gateway\n", 3, "/var/log/httpd/360.log" );
     $i = 20;
     while($i > 0){
@@ -80,17 +79,16 @@ class Gateway extends Admin_Controller
 
 
   public function pagmax($pedido_id = 0){
-
     log_message('debug', 'INICIO PAGMAX');
 
     $pedidos = $this->pedido->getPedidoPagamentoPendente($pedido_id);
+
     log_message('debug', 'BUSCANDO PEDIDOS PENDENTES - ' .count($pedidos));
 
     //error_log( print_r( $cartao, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
     
     $integracao = $this->integracao->get_by_slug('pagmax');
     log_message('debug', 'BUSCANDO INTEGRAÇÃO - '.count($integracao));
-
     foreach ($pedidos as $index => $pedido) {
 
       log_message('debug', 'PEDIDO ' .$pedido['pedido_id']);
@@ -98,8 +96,8 @@ class Gateway extends Admin_Controller
       try {
         //faz um lock no pedido
         log_message('debug', 'LOCK NO PEDIDO ' .$pedido['pedido_id']);
-        $dados_pedido = array('lock' => 1);
-        $this->pedido->update($pedido['pedido_id'], $dados_pedido, TRUE);
+        //$dados_pedido = array('lock' => 1);
+        //$this->pedido->update($pedido['pedido_id'], $dados_pedido, TRUE);
 
         log_message('debug', 'BUSCANDO CARTAO');
         $cartao = $this->cartao->filter_by_pedido($pedido['pedido_id'])
@@ -110,8 +108,6 @@ class Gateway extends Admin_Controller
     
         if (count($cartao) > 0) {
           $cartao = $cartao[0];
-
-
           log_message('debug', 'CARTAO ENCONTRADO '. $cartao['pedido_cartao_id']);
           //verifica se existe processamento pendente
           $transacao = $this->transacao->filter_by_cartao($cartao['pedido_cartao_id'])->get_all();
@@ -165,8 +161,6 @@ class Gateway extends Admin_Controller
      * @throws Exception
      */
   public function pagmax_efetuar_pagamento($pedido_cartao_id) {
-    
-    
     $this->load->library("Pagmax360");
     $Pagmax360 = new Pagmax360();
     
@@ -176,197 +170,236 @@ class Gateway extends Admin_Controller
 
     try
     {
-      log_message('debug', 'INICIO EFETUAR PAGMAX ' . $pedido_cartao_id);
-      $this->load->model('fatura_model', 'fatura');
-      $this->load->model('fatura_parcela_model', 'fatura_parcela');
-      $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
-      $this->load->library("Nusoap_lib");
-      $this->load->library('encrypt');
+        log_message('debug', 'INICIO EFETUAR PAGMAX ' . $pedido_cartao_id);
+        $this->load->model('fatura_model', 'fatura');
+        $this->load->model('recorrencia_model', 'recorrencia');
+        
+        $this->load->model('fatura_parcela_model', 'fatura_parcela');
+        $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
+        $this->load->library("Nusoap_lib");
+        $this->load->library('encrypt');
 
-      log_message('debug', 'BUSCA CARTAO ' . $pedido_cartao_id);
-      $cartao = $this->cartao->get($pedido_cartao_id);
-      log_message('debug', 'BUSCA PEDIDO ' . $cartao['pedido_id']);
-      $pedido = $this->pedido->get($cartao['pedido_id']);
+        log_message('debug', 'BUSCA CARTAO ' . $pedido_cartao_id);
+        $cartao = $this->cartao->get($pedido_cartao_id);
+        log_message('debug', 'BUSCA PEDIDO ' . $cartao['pedido_id']);
+        $pedido = $this->pedido->get($cartao['pedido_id']);
 
-      $parceiro_pagamento = $this->parceiro_pagamento->with_forma_pagamento()
+        $parceiro_pagamento = $this->parceiro_pagamento->with_forma_pagamento()
         ->with_forma_pagamento_tipo()
         ->get($pedido['produto_parceiro_pagamento_id']);
-      
-      //$parceiro_pagamento['produto_parceiro_pagamento_id'] = $parceiro_pagamento["forma_pagamento_id"];
-      
-      error_log( "Forma de Pagamento (Gateway): " . print_r( $parceiro_pagamento, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
-      
-      log_message('debug', 'PARCEIRO PAGAMENTO');
-      log_message('debug', print_r($parceiro_pagamento, true));
-      log_message('debug', 'BUSCA INTEGRAÇÃO ');
-      $integracao = $this->integracao->get_by_slug('pagmax');
 
-      //Busca a fatura
-      $fatura = $this->fatura->get_many_by(array(
-        'pedido_id' => $cartao['pedido_id']
-      ));
 
-      $fatura = $fatura[0];
-      $fatura_parcela = $this->fatura_parcela
+        //$parceiro_pagamento['produto_parceiro_pagamento_id'] = $parceiro_pagamento["forma_pagamento_id"];
+
+        //error_log( "Forma de Pagamento (Gateway): " . print_r( $parceiro_pagamento, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+
+        log_message('debug', 'PARCEIRO PAGAMENTO');
+        log_message('debug', print_r($parceiro_pagamento, true));
+        log_message('debug', 'BUSCA INTEGRAÇÃO ');
+        $integracao = $this->integracao->get_by_slug('pagmax');
+
+        //Busca a fatura
+        $fatura = $this->fatura->get_many_by( array( 'pedido_id' => $cartao['pedido_id'] ) ) ;
+
+        $fatura = $fatura[0];
+        $fatura_parcela = $this->fatura_parcela
         ->limit(1)
         ->order_by('num_parcela')
         ->get_many_by(array(
           'fatura_id' => $fatura['fatura_id'],
           'fatura_status_id' => 1,
           'data_vencimento <=' => date('Y-m-d'),
-
         ));
 
+        $fatura_parcela = $fatura_parcela[0];
 
-      $fatura_parcela = $fatura_parcela[0];
+        $valor_parcela = $fatura_parcela["valor"];
+        $num_parcela = $pedido["num_parcela"];
 
-      $valor_parcela = $fatura_parcela["valor"];
-      $num_parcela = $pedido["num_parcela"];
-
-      $valor_total = ($num_parcela > 1) ? ($valor_parcela * $num_parcela) : $pedido["valor_total"];
-
-
-      $validade = $this->encrypt->decode($cartao['validade']);
-      $numero = $this->encrypt->decode($cartao['numero']);
-      $bandeira = $this->encrypt->decode($cartao['bandeira_cartao']);
-      $nome = $this->encrypt->decode($cartao['nome']);
-      $codigo = $this->encrypt->decode($cartao['codigo']);
-
-      $valor_total = ($integracao['producao'] == 1) ? $valor_total : 150.00; 
-
-      $dados_transacao = array();
-      $dados_transacao['pedido_cartao_id'] = $pedido_cartao_id;
-      $dados_transacao['processado'] = 1;
-      $dados_transacao['result'] = '';
-      $dados_transacao['message'] = '';
-      $dados_transacao['tid'] = '';
-      $dados_transacao['status'] = '';
+        $valor_total = ($num_parcela > 1) ? ($valor_parcela * $num_parcela) : $pedido["valor_total"];
 
 
-      $usesandbox = ($integracao['producao'] == 1) ? FALSE : TRUE;
-      
-      
-      $isdebit = ($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) ? TRUE : FALSE; //ReturnURL
-      $return_url = ($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) ? $this->config->item('base_url') ."/index.php/pagmax360/retorno?pedido_id={$pedido['pedido_id']}" : "";
-        
+        $validade = $this->encrypt->decode($cartao['validade']);
+        $numero = $this->encrypt->decode($cartao['numero']);
+        $bandeira = $this->encrypt->decode($cartao['bandeira_cartao']);
+        $nome = $this->encrypt->decode($cartao['nome']);
+        $codigo = $this->encrypt->decode($cartao['codigo']);
+        $dia_vencimento = $this->encrypt->decode($cartao['dia_vencimento']);
+
+        $valor_total = ($integracao['producao'] == 1) ? $valor_total : 150.00; 
+
+        $dados_transacao = array();
+        $dados_transacao['pedido_cartao_id'] = $pedido_cartao_id;
+        $dados_transacao['processado'] = 1;
+        $dados_transacao['result'] = '';
+        $dados_transacao['message'] = '';
+        $dados_transacao['tid'] = '';
+        $dados_transacao['status'] = '';
+
+        $usesandbox = ($integracao['producao'] == 1) ? FALSE : TRUE;
+
+        $isdebit = ($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) ? TRUE : FALSE; //ReturnURL
+        $return_url = ($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) ? $this->config->item('base_url') ."/index.php/pagmax360/retorno?pedido_id={$pedido['pedido_id']}" : "";
+
         //base_url("admin/venda/seguro_viagem/41/5/{$pedido['pedido_id']}/?retorno=pagmax") : '';
 
-      //@todo Teste prod
-      // $valor_total = 1.00;
+        //@todo Teste prod
+        // $valor_total = 1.00;
 
-      //Monta array com dados
-      
-      // Pagmax 360 v1
-      $param = array(
-        'CCType' => $bandeira, //app_get_card_type($numero), //Tipo do cartão
-        'CCNumber' => $numero, //Número do cartão de crédito
-        'CCExp' => $validade, //Expira em
-        'CCCVV2' => $codigo, //Código confirmação (CVC)
-        'CCHolderName' => $nome, //Nome
+        //Monta array com dados
 
-        'MerchantAcquirerHashID' => ($integracao['producao'] == 1) ? $integracao['chave_acesso'] : $integracao['chave_acesso_homolog'],
-        'MerchantOrderDescription' => "Código: {$pedido['codigo']}",
-        'MerchantOrderNum' => (int)$fatura_parcela['fatura_parcela_id'],
-        'MerchantTotal' => (float)$valor_total,
-        'MerchantSoftDescriptor' => $parceiro_pagamento['nome_fatura'], //nome da fatura 13 Caracteres
+        // Pagmax 360 v1
+        $param = array(
+            'CCType' => $bandeira, //app_get_card_type($numero), //Tipo do cartão
+            'CCNumber' => $numero, //Número do cartão de crédito
+            'CCExp' => $validade, //Expira em
+            'CCCVV2' => $codigo, //Código confirmação (CVC)
+            'CCHolderName' => $nome, //Nome
 
-        'DoCapture' => true,
-        'UseSandbox' => $usesandbox,
-        'ProcessOutside' => false,
-        'ReturnURL' => $return_url,
-        'NumInstallments' => (int)$num_parcela,
-        'isDebit' => $isdebit
-      );
+            'MerchantAcquirerHashID' => ($integracao['producao'] == 1) ? $integracao['chave_acesso'] : $integracao['chave_acesso_homolog'],
+            'MerchantOrderDescription' => "Código: {$pedido['codigo']}",
+            'MerchantOrderNum' => (int)$fatura_parcela['fatura_parcela_id'],
+            'MerchantTotal' => (float)$valor_total,
+            'MerchantSoftDescriptor' => $parceiro_pagamento['nome_fatura'], //nome da fatura 13 Caracteres
 
-      // Pagmax 360 v2
-      $merchantOrderId = (int)$fatura_parcela["fatura_parcela_id"];
-      if( $isdebit ) { 
-        $transactionType = "DebitCard";
-      } else {
-        $transactionType = "CreditCard";
-      }
-      $transactionAmount = (float)$valor_total;
-      $numInstallments = $num_parcela;
-      $softDescriptor = $parceiro_pagamento["nome_fatura"];
-      $returnUrl = $return_url;
-      $cardNumber = $numero;
-      $cardHolder = $nome;
-      $cardExpirationDate = substr( $validade, 4, 2 ) . "/" . substr( $validade, 0, 4 );
-      $cardSecurityCode = $codigo;
-      $cardBrand = $bandeira;
-        
-      if($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_CARTAO_DEBITO || $parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_CARTAO_CREDITO ) {
-        $JsonDataRequest = array("MerchantOrderId" => rand(100,999) . $merchantOrderId, 
-                                 "Payment" =>  array( 
-                                   "Type" => "$transactionType",
-                                   "Amount" =>  $transactionAmount,
-                                   "Installments" =>  $numInstallments,
-                                   "Capture" =>  true,
-                                   "SoftDescriptor" => $softDescriptor,
-                                   "returnUrl" => $returnUrl,
-                                   "$transactionType" => array( 
-                                     "CardNumber" => $cardNumber,
-                                     "Holder" => $cardHolder,
-                                     "ExpirationDate" => $cardExpirationDate,
-                                     "SecurityCode" => $cardSecurityCode,
-                                     "Brand" => $cardBrand,
-                                     "SaveCard" => true
-                                   )
-                                 )
-                                );
+            'DoCapture' => true,
+            'UseSandbox' => $usesandbox,
+            'ProcessOutside' => false,
+            'ReturnURL' => $return_url,
+            'NumInstallments' => (int)$num_parcela,
+            'isDebit' => $isdebit
+        );
 
-        if( $transactionType == "CreditCard" ) {
-          unset( $JsonDataRequest["Payment"]["returnUrl"] );
+        // Pagmax 360 v2
+        $merchantOrderId = (int)$fatura_parcela["fatura_parcela_id"];
+        if( $isdebit ) { 
+            $transactionType = "DebitCard";
+        } else {
+            $transactionType = "CreditCard";
         }
-      }
-      
-      if($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_TRANSF_BRADESCO || $parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_TRANSF_BB ) {
-        $JsonDataRequest = array(  
-          array("MerchantOrderId" => rand(100,999) . $merchantOrderId, 
-                "Payment" => array(  
-                  "Type" => "EletronicTransfer",
-                  "Amount" => $transactionAmount,
-                  "Provider" => "Simulado",
-                  "ReturnUrl" => $returnUrl
-                )
-               )
-        );
-      }
-      
-      if($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_BOLETO ) {
+        $transactionAmount = (float)$valor_total;
+        $numInstallments = $num_parcela;
+        $softDescriptor = $parceiro_pagamento["nome_fatura"];
+        $returnUrl = $return_url;
+        $cardNumber = $numero;
+        $cardHolder = $nome;
+        $cardExpirationDate = substr( $validade, 4, 2 ) . "/" . substr( $validade, 0, 4 );
+        $cardSecurityCode = $codigo;
+        $cardBrand = $bandeira;
         
-        $JsonDataRequest = array(
-          array("MerchantOrderId" => rand(100,999) . $merchantOrderId, 
-                "Customer" => array(   
-                  "Name" => $CustomerName,
-                  "Identity" => "13452235874",
-                  "Address" => array( 
-                    "Street" => "Alameda Rio Negro",
-                    "Number" => "500",
-                    "Complement" => "6° andar",
-                    "ZipCode" => "06454-000",
-                    "District" => "-",
-                    "City" => "Barueri",
-                    "State" => "SP",
-                    "Country" => "BRA"
-                  )
-                ),
-                "Payment" => array(   
-                  "Type" => "Boleto",
-                  "Amount" => $transactionAmount,
-                  "Provider" => "Simulado",
-                  "Address" => "Alameda Rio Negro, 500 - 6° andar - Alphaville - Barueri - São Paulo - CEP 06454-000",
-                  "BoletoNumber" => $merchantOrderId,
-                  "Assignor" => "SIS - Soluções Intergradas em Serviços Ltda",
-                  "ExpirationDate" => "2018-07-10",
-                  "Identification" => "08.267.567/0001-30",
-                  "Instructions" => "Aceitar somente ate a data de vencimento, apos essa data juros de 1% dia."
+        if($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_CARTAO_DEBITO || $parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_CARTAO_CREDITO ) {
+
+            $JsonDataRequest = array(
+                "MerchantOrderId" => rand(100,999) . $merchantOrderId, 
+                "Payment" => array( 
+                    "Type" => "$transactionType",
+                    "Amount" => $transactionAmount,
+                    "Installments" => $numInstallments,
+                    "Capture" => true,
+                    "SoftDescriptor" => $softDescriptor,
+                    "returnUrl" => $returnUrl,
+                    "$transactionType" => array( 
+                        "CardNumber" => $cardNumber,
+                        "Holder" => $cardHolder,
+                        "ExpirationDate" => $cardExpirationDate,
+                        "SecurityCode" => $cardSecurityCode,
+                        "Brand" => $cardBrand,
+                        "SaveCard" => true
+                    )
                 )
-               )
-        );
-      }
+            );
+
+            if( $transactionType == "CreditCard" ) {
+                /*verifica se é uma configuracao de pagamento recorrente */
+                $produto_parceiro_configuracao = $this->parceiro_pagamento->with_produto_parceiro_configuracao()->get($pedido['produto_parceiro_pagamento_id']);
+                if( !empty( $produto_parceiro_configuracao["configuracao_pagamento_tipo"] ) && $produto_parceiro_configuracao["configuracao_pagamento_tipo"] == "RECORRENTE" ){
+                    /* pagamento recorrente precisa obrigatoriamente ser somente uma parcela */
+                    $JsonDataRequest["Payment"]["Installments"] = 1 ;
+                    $dictionary = array(
+                        "DIA" => array(
+                            "Interval_RecurrentPayment" => "Daily"
+                            ,"Interval_date" => "Day"
+                        )
+                        , "MES" => array(
+                            "Interval_RecurrentPayment" => "Monthly"
+                            ,"Interval_date" => "Month"
+                        )
+                        , "ANO" => array(
+                            "Interval_RecurrentPayment" => "Annual"
+                            ,"Interval_date" => "Year"
+                        )
+                    ) ;
+                    switch( $produto_parceiro_configuracao["configuracao_pagmaneto_cobranca"] ){
+                        case "VENCIMENTO_CARTAO":
+                            $dia_vencimento_check = (int)$dia_vencimento <= date("d") ;
+                            $JsonDataRequest["RecurrentPayment"] = array(
+                                "AuthorizeNow" => (bool)false,
+                                "StartDate" => $dia_vencimento_check ? date( "Y-m-" . $dia_vencimento , strtotime("+1 Month") ) : date( "Y-m-" . $dia_vencimento ) ,
+                                "EndDate" => date( "Y-m-d" , strtotime("+" . $produto_parceiro_configuracao["configuracao_pagamento_periodicidade"] . " " . $dictionary[ $produto_parceiro_configuracao["configuracao_pagamento_periodicidade_unidade"] ]["Interval_date"] ) ) ,
+                                "Interval" => $dictionary[$produto_parceiro_configuracao["configuracao_pagamento_periodicidade_unidade"]]["Interval_RecurrentPayment"]
+                            );
+                        break;
+                        case "DATA_COMPRA":
+                            $JsonDataRequest["RecurrentPayment"] = array(
+                                "AuthorizeNow" => (bool)true,
+                                "EndDate" => date("Y-m-d" , strtotime("+" . $produto_parceiro_configuracao["configuracao_pagamento_periodicidade"] . " " . $dictionary[ $produto_parceiro_configuracao["configuracao_pagamento_periodicidade_unidade"] ]["Interval_date"] ) ) ,
+                                "Interval" => $dictionary[ $produto_parceiro_configuracao["configuracao_pagamento_periodicidade_unidade"] ]["Interval_RecurrentPayment"]
+                            );
+                        break;
+                    }
+                }
+                unset( $JsonDataRequest["Payment"]["returnUrl"] );
+            }
+        }
       
-      $Json = json_encode( $JsonDataRequest );
+        if($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_TRANSF_BRADESCO || $parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_TRANSF_BB ) {
+            $JsonDataRequest = array(  
+                array(
+                    "MerchantOrderId" => rand(100,999) . $merchantOrderId, 
+                    "Payment" => array(  
+                        "Type" => "EletronicTransfer",
+                        "Amount" => $transactionAmount,
+                        "Provider" => "Simulado",
+                        "ReturnUrl" => $returnUrl
+                    )
+                )
+            );
+        }
+      
+        if($parceiro_pagamento['forma_pagamento_id'] == self::FORMA_PAGAMENTO_BOLETO ) {
+            $JsonDataRequest = array(
+                array(
+                    "MerchantOrderId" => rand(100,999) . $merchantOrderId, 
+                        "Customer" => array(   
+                        "Name" => $CustomerName,
+                        "Identity" => "13452235874",
+                        "Address" => array( 
+                            "Street" => "Alameda Rio Negro",
+                            "Number" => "500",
+                            "Complement" => "6° andar",
+                            "ZipCode" => "06454-000",
+                            "District" => "-",
+                            "City" => "Barueri",
+                            "State" => "SP",
+                            "Country" => "BRA"
+                        )
+                    ),
+                    "Payment" => array(   
+                        "Type" => "Boleto",
+                        "Amount" => $transactionAmount,
+                        "Provider" => "Simulado",
+                        "Address" => "Alameda Rio Negro, 500 - 6° andar - Alphaville - Barueri - São Paulo - CEP 06454-000",
+                        "BoletoNumber" => $merchantOrderId,
+                        "Assignor" => "SIS - Soluções Intergradas em Serviços Ltda",
+                        "ExpirationDate" => "2018-07-10",
+                        "Identification" => "08.267.567/0001-30",
+                        "Instructions" => "Aceitar somente ate a data de vencimento, apos essa data juros de 1% dia."
+                    )
+                )
+            );
+        }
+      
+        $Json = json_encode( $JsonDataRequest );
       
     }catch (Exception $e){
       throw new Exception($e->getMessage());
@@ -374,7 +407,6 @@ class Gateway extends Admin_Controller
 
 
     try{
-      //var_dump($param);
       log_message('debug', 'FAZ CHAMADA WS ', print_r($param, true));
       
       // Pagmax 360 v1
@@ -385,127 +417,137 @@ class Gateway extends Admin_Controller
       $response = json_decode($response);
       $dados_transacao['result'] = $response->result;
       */
-      
+
       // Pagmax 360 v2
       $Response = $Pagmax360->createTransaction( $Pagmax360->merchantId, $Pagmax360->merchantKey, $Json, $Pagmax360->Environment );
       $Response = json_decode( $Response );
       error_log( print_r( $Response, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
-      
-      if( isset( $Response->{"Code"} ) || sizeof( $Response ) == 0 ) {
-
-        $tipo_mensagem = "msg_erro";
-        if( sizeof( $Response ) == 0 ) {
-          $msgErro = "Processing Center Error (1)";
-        } else {
-          $msgErro = $Response->{"Message"} . " (" . $Response->{"Code"} . ")";
-        }
-        $dados_transacao["result"] = "ERRO";
-        $dados_transacao["message"] = $msgErro;
-        //error_log( "Erro em Pagmax360->createTransaction\n", 3, "/var/log/httpd/myapp.log" );
-        
-      } else {
-
-		// Processa retorno do Gateway
-        $statusCode = $Response->{"Payment"}->{"Status"}->{"Code"};
-        $Status = $Pagmax360->returnTransactionStatusCode( intval( $statusCode ) );
-        $statusMessage = $Status["Message"];
-        $TID = $Response->{"Payment"}->{"PaymentId"};
-        $transactionDate = $Response->{"Payment"}->{"ReceivedDate"};
-        
-        if( isset( $Response->{"Payment"}->{"CreditCard"}->{"CardToken"} ) ) {
-          $cardNumber = $Response->{"Payment"}->{"CreditCard"}->{"CardToken"};
-        }
-
-        if( isset( $Response->{"Payment"}->{"DebitCard"}->{"CardToken"} ) ) {
-          $cardNumber = $Response->{"Payment"}->{"DebitCard"}->{"CardToken"};
-        }
-
-        $dados_transacao["status"] = $statusCode;
-        //$dados_transacao["data_processado"] = date( $Response->{"Payment"}->{"ReceivedDate"} );
-
-        //error_log( "Code: $statusCode - Message: $statusMessage\n", 3, "/var/log/httpd/myapp.log" );
-        
-        switch( intval( $statusCode ) ) {
-          case 0:
-            //Transação em andamento
-            if( isset( $Response->{"Payment"}->{"Url"} ) &&  $Response->{"Payment"}->{"Url"} != "" ) {
-              $redirect = $Response->{"Payment"}->{"Url"};
+        if( isset( $Response->{"Code"} ) || sizeof( $Response ) == 0 ) {
+            $tipo_mensagem = "msg_erro";
+            if( sizeof( $Response ) == 0 ) {
+              $msgErro = "Processing Center Error (1)";
+            } else {
+              $msgErro = $Response->{"Message"} . " (" . $Response->{"Code"} . ")";
             }
-            if( isset( $Response->{"Payment"}->{"AuthenticationUrl"} ) && $Response->{"Payment"}->{"AuthenticationUrl"} != "" ) {
-              $redirect = $Response->{"Payment"}->{"AuthenticationUrl"};
+            $dados_transacao["result"] = "ERRO";
+            $dados_transacao["message"] = $msgErro;
+            //error_log( "Erro em Pagmax360->createTransaction\n", 3, "/var/log/httpd/myapp.log" );
+        } 
+        else {
+            // Processa retorno do Gateway
+            $statusCode = $Response->{"Payment"}->{"Status"}->{"Code"};
+            $Status = $Pagmax360->returnTransactionStatusCode( intval( $statusCode ) );
+            $statusMessage = $Status["Message"];
+            $TID = $Response->{"Payment"}->{"PaymentId"};
+            $transactionDate = $Response->{"Payment"}->{"ReceivedDate"};
+
+            if( isset( $Response->{"Payment"}->{"CreditCard"}->{"CardToken"} ) ) {
+              $cardNumber = $Response->{"Payment"}->{"CreditCard"}->{"CardToken"};
             }
-            $dados_transacao["result"] = "REDIRECT";
-            $dados_transacao["tid"] = $TID;
-            $dados_transacao["message"] = $statusMessage;
-            $dados_transacao["status"] = 1;
-            $dados_transacao["url"] = $redirect;
-            $dados_transacao["processado"] = 0;
-            break;
-          case 1:
-            //Transação autorizada
-            $dados_transacao["result"] = "AUTORIZADA";
-            $dados_transacao["tid"] = $TID;
-            $dados_transacao["message"] = $statusMessage;
-            $dados_transacao["status"] = 4;
-            $dados_transacao["processado"] = 0;
-            break;
-          case 2:
-            //Transação capturada
-            $dados_transacao["result"] = "OK";
-            $dados_transacao["tid"] = $TID;
-            $dados_transacao["message"] = $statusMessage;
-            $dados_transacao["status"] = 6;
-            //$dados_transacao["data_processado"] = date( $Response->{"Payment"}->{"CapturedDate"} );
-            $dados_transacao["processado"] = 1;
-            break;
-          case 3:
-            //Transação negada
-            $dados_transacao["result"] = "NEGADA";
-            $dados_transacao["tid"] = $TID;
-            $dados_transacao["message"] = $statusMessage;
-            $dados_transacao["status"] = 5;
-            $dados_transacao["processado"] = 1;
-            break;
-          case 10:
-            //Transação cancelada
-            $dados_transacao["result"] = "CANCELADA";
-            $dados_transacao["message"] = $statusMessage;
-            $dados_transacao["status"] = 9;
-            //$dados_transacao["data_processado"] = date( $Response->{"Payment"}->{"VoidedDate"} );
-            $dados_transacao["processado"] = 1;
-            break;
-          case 11:
-            //Transação reembolsada
-            $dados_transacao["result"] = "REEMBOLSADA";
-            $dados_transacao["message"] = $statusMessage;
-            $dados_transacao["status"] = 9;
-            $dados_transacao["processado"] = 1;
-            break;
-          case 12:
-            //Transação pendente
-            $dados_transacao["result"] = "PENDENTE";
-            $dados_transacao["message"] = $statusMessage;
-            $dados_transacao["status"] = 1;
-            $dados_transacao["processado"] = 1;
-            break;
-          case 13:
-            //Transação abortada
-            $dados_transacao["result"] = "ABORTADA";
-            $dados_transacao["message"] = $statusMessage;
-            $dados_transacao["status"] = 5;
-            $dados_transacao["processado"] = 1;
-            break;
-          case 20:
-            //Transação agendada
-            $dados_transacao["result"] = "AGENDADA";
-            $dados_transacao["message"] = $statusMessage;
-            $dados_transacao["status"] = 1;
-            $dados_transacao["processado"] = 0;
-            break;
+
+            if( isset( $Response->{"Payment"}->{"DebitCard"}->{"CardToken"} ) ) {
+              $cardNumber = $Response->{"Payment"}->{"DebitCard"}->{"CardToken"};
+            }
+
+            if( isset( $Response->{"Payment"}->{"Recurrent"} ) ) {
+                $this->recorrencia->insert( array( 
+                    "pedido_id" => $pedido['pedido_id']
+                    , "Capture" => $Response->{"Payment"}->{"Capture"}
+                    , "Tid" => $Response->{"Payment"}->{"Tid"}
+                    , "ProofOfSale" => $Response->{"Payment"}->{"ProofOfSale"}
+                    , "AuthorizationCode" => $Response->{"Payment"}->{"AuthorizationCode"}
+                    , "ReceivedDate" => $Response->{"Payment"}->{"ReceivedDate"}
+                    , "CapturedDate" => $Response->{"Payment"}->{"CapturedDate"}
+                    , "PaymentId" => $Response->{"Payment"}->{"PaymentId"}
+                ) ) ;
+            }
+
+            $dados_transacao["status"] = $statusCode;
+            //$dados_transacao["data_processado"] = date( $Response->{"Payment"}->{"ReceivedDate"} );
+
+            //error_log( "Code: $statusCode - Message: $statusMessage\n", 3, "/var/log/httpd/myapp.log" );
+
+            switch( intval( $statusCode ) ) {
+              case 0:
+                //Transação em andamento
+                if( isset( $Response->{"Payment"}->{"Url"} ) &&  $Response->{"Payment"}->{"Url"} != "" ) {
+                  $redirect = $Response->{"Payment"}->{"Url"};
+                }
+                if( isset( $Response->{"Payment"}->{"AuthenticationUrl"} ) && $Response->{"Payment"}->{"AuthenticationUrl"} != "" ) {
+                  $redirect = $Response->{"Payment"}->{"AuthenticationUrl"};
+                }
+                $dados_transacao["result"] = "REDIRECT";
+                $dados_transacao["tid"] = $TID;
+                $dados_transacao["message"] = $statusMessage;
+                $dados_transacao["status"] = 1;
+                $dados_transacao["url"] = $redirect;
+                $dados_transacao["processado"] = 0;
+                break;
+              case 1:
+                //Transação autorizada
+                $dados_transacao["result"] = "AUTORIZADA";
+                $dados_transacao["tid"] = $TID;
+                $dados_transacao["message"] = $statusMessage;
+                $dados_transacao["status"] = 4;
+                $dados_transacao["processado"] = 0;
+                break;
+              case 2:
+                //Transação capturada
+                $dados_transacao["result"] = "OK";
+                $dados_transacao["tid"] = $TID;
+                $dados_transacao["message"] = $statusMessage;
+                $dados_transacao["status"] = 6;
+                //$dados_transacao["data_processado"] = date( $Response->{"Payment"}->{"CapturedDate"} );
+                $dados_transacao["processado"] = 1;
+                break;
+              case 3:
+                //Transação negada
+                $dados_transacao["result"] = "NEGADA";
+                $dados_transacao["tid"] = $TID;
+                $dados_transacao["message"] = $statusMessage;
+                $dados_transacao["status"] = 5;
+                $dados_transacao["processado"] = 1;
+                break;
+
+              case 10:
+                //Transação cancelada
+                $dados_transacao["result"] = "CANCELADA";
+                $dados_transacao["message"] = $statusMessage;
+                $dados_transacao["status"] = 9;
+                //$dados_transacao["data_processado"] = date( $Response->{"Payment"}->{"VoidedDate"} );
+                $dados_transacao["processado"] = 1;
+                break;
+              case 11:
+                //Transação reembolsada
+                $dados_transacao["result"] = "REEMBOLSADA";
+                $dados_transacao["message"] = $statusMessage;
+                $dados_transacao["status"] = 9;
+                $dados_transacao["processado"] = 1;
+                break;
+              case 12:
+                //Transação pendente
+                $dados_transacao["result"] = "PENDENTE";
+                $dados_transacao["message"] = $statusMessage;
+                $dados_transacao["status"] = 1;
+                $dados_transacao["processado"] = 1;
+                break;
+              case 13:
+                //Transação abortada
+                $dados_transacao["result"] = "ABORTADA";
+                $dados_transacao["message"] = $statusMessage;
+                $dados_transacao["status"] = 5;
+                $dados_transacao["processado"] = 1;
+                break;
+              case 20:
+                //Transação agendada
+                $dados_transacao["result"] = "AGENDADA";
+                $dados_transacao["message"] = $statusMessage;
+                $dados_transacao["status"] = 1;
+                $dados_transacao["processado"] = 0;
+                break;
+            }
+
         }
-      }
-      
-      
     }
     catch(Exception $e){
       log_message('debug', 'ERRO CHAMADA WS ', print_r($e, true));
@@ -836,9 +878,3 @@ class Gateway extends Admin_Controller
 
 
 }
-
-
-
-
-
-
