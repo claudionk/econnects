@@ -1280,14 +1280,9 @@ function app_recurso_nome()
 
 
 function app_get_step_cotacao($cotacao_id){
-
     $CI =& get_instance();
     $CI->load->model("cotacao_model", "cotacao");
-
     $cotacao = $CI->cotacao->with_produto_parceiro()->get($cotacao_id);
-
-
-
     switch ($cotacao['produto_slug']) {
         case 'seguro_viagem':
             $cotacao = $CI->cotacao->with_produto_parceiro()->with_cotacao_seguro_viagem()->get($cotacao_id);
@@ -1302,7 +1297,25 @@ function app_get_step_cotacao($cotacao_id){
             $cotacao = $CI->cotacao->with_produto_parceiro()->with_cotacao_generico()->get($cotacao_id);
             break;
     }
-
+    $array_cotacao_step = array(
+        "1" => 'Dados Iniciais'
+        , "2" => 'Cotação'
+        , "3" => 'Contratação'
+        , "4" => 'Pagamento'
+        , "5" => 'Certificado / Bilhete'
+    ) ;
+    if( isset( $cotacao['step'] ) ){
+        if( $array_cotacao_step[ (int)$cotacao['step'] ] ){
+            return $array_cotacao_step[ (int)$cotacao['step'] ]  ;
+        }
+        else{
+            return '';   
+        }
+    }
+    else{
+        return  'Erro ao Iniciar';   
+    }
+    /*
     if($cotacao['step'] == 1){
         return 'Dados Iniciais';
     }elseif($cotacao['step'] == 2){
@@ -1313,7 +1326,7 @@ function app_get_step_cotacao($cotacao_id){
         return 'Pagamento';
     }elseif($cotacao['step'] == 4){
         return 'Certificado / Bilhete';
-    }
+    }*/
 }
 
 function app_format_contato($val, $tipo){

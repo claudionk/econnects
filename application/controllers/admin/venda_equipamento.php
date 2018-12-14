@@ -6,7 +6,7 @@
 * @property Produto_Parceiro_Plano_Model $current_model
 *
 */
-class Venda_Equipamento extends Admin_Controller {
+class Venda_Equipamento extends Admin_Controller{
     const TIPO_CALCULO_NET = 1;
     const TIPO_CALCULO_BRUTO = 2;
 
@@ -127,7 +127,6 @@ class Venda_Equipamento extends Admin_Controller {
             ));
 
             $status = array('pagamento_negado', 'cancelado', 'cancelado_stornado', 'aprovacao_cancelamento', 'cancelamento_aprovado');
-
             //error_log( "Pedido: " . print_r( $pedido, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
             if($pedido && !in_array($pedido['pedido_status_slug'], $status) && $this->layout == 'front') {
                 //$this->venda_aguardando_pagamento($produto_parceiro_id, $cotacao_id);
@@ -136,7 +135,7 @@ class Venda_Equipamento extends Admin_Controller {
                 $this->venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id);
             }
 
-        } elseif ($step == 5) {
+        } elseif ($step == 5){
             $this->venda_aguardando_pagamento($produto_parceiro_id, $cotacao_id);
         } elseif ($step == 6) {
             $this->equipamento_certificado($produto_parceiro_id, $cotacao_id);
@@ -1136,17 +1135,13 @@ class Venda_Equipamento extends Admin_Controller {
 
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('pedido_cartao_model', 'pedido_cartao');
-        $pedidos = $this->pedido->getPedidoPagamentoPendenteDebito($pedido_id);
 
+        $pedidos = $this->pedido->getPedidoPagamentoPendenteDebito($pedido_id);
         foreach ($pedidos as $index => $pedido) {
             try {
-
-
                 $cartao = $this->pedido_cartao->get_cartao_debito_pendente($pedido['pedido_id']);
-
                 if (count($cartao) > 0) {
                     $cartao = $cartao[0];
-
                     $this->pagmax_consultar_cartao_debito($cartao);
                 }
 
