@@ -263,13 +263,13 @@ Class Apolice_Model extends MY_Model
 
       $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
       $config = $this->db->query( "SELECT 
-            							 	ppc.* 
+                            ppc.* 
                                          FROM 
-                                         	produto_parceiro_plano ppp 
+                                          produto_parceiro_plano ppp 
                                             INNER JOIN produto_parceiro pp ON (pp.produto_parceiro_id=ppp.produto_parceiro_id) 
                                             INNER JOIN produto_parceiro_configuracao ppc ON (ppc.produto_parceiro_id=pp.produto_parceiro_id) 
                                          WHERE 
-                                         	ppp.produto_parceiro_plano_id=$produto_parceiro_plano_id" )->result_array();
+                                          ppp.produto_parceiro_plano_id=$produto_parceiro_plano_id" )->result_array();
 
         $data_base = date("Y-m-d");
         if( $config ) {
@@ -1201,6 +1201,7 @@ Class Apolice_Model extends MY_Model
     //$capitalizacao = array('numero' => $apolice['num_capitalizacao']);
 
     //dados segurado
+    $data_template['segurado_rg'] = $apolice['rg'];
     $data_template['segurado_sexo'] = $apolice['sexo'];
     $data_template['profissao'] = "";
     $data_template['estado_civil'] = "";
@@ -1208,10 +1209,14 @@ Class Apolice_Model extends MY_Model
 
     $data_template['segurado_sexo_masculino'] = " ";
     $data_template['segurado_sexo_feminino'] = " ";
-    if($apolice['sexo'] == "M")
+    if($apolice['sexo'] == "M"){
+      $data_template['segurado_sexo'] = "Masculino";
       $data_template['segurado_sexo_masculino'] = "X";
-    else
+    }
+    else{
+      $data_template['segurado_sexo'] = "Feminno";
       $data_template['segurado_sexo_feminino'] = "X";
+    }
 
 
     $data_template['segurado_nome'] =  $apolice['nome'];
@@ -1241,9 +1246,6 @@ Class Apolice_Model extends MY_Model
     $data_template['pagamento'] =  $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/pagamento", array('pagamento' => $pagamento), true );
 
     $template = $this->parser->parse_string($template, $data_template, true);
-
-
-
     if(($export == 'pdf') || ($export == 'pdf_file')){
       $this->custom_loader->library('pdf');
       $this->pdf->setPageOrientation('P');
