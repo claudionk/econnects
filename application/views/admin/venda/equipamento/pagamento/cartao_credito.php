@@ -26,7 +26,7 @@ if($_POST){
 
         <div class="form-group<?php echo (app_is_form_error('validade')) ? ' has-error' : ''; ?><?php echo (app_is_form_error('codigo')) ? ' has-error' : ''; ?>">
             <div class="col-md-6">
-                <h5>Validade (MM/AAAA)</h5>
+                <h5>Validade <small>(MM/AAAA)</small></h5>
                 <input class="form-control" placeholder="Validade (MM/AAAA)" id="validade" name="validade" type="text" value="<?php echo isset($row['validade']) ? $row['validade'] : set_value('validade'); ?>" />
                 <?php echo app_get_form_error('validade'); ?>
             </div>
@@ -40,8 +40,8 @@ if($_POST){
         <div class="form-group<?php echo (app_is_form_error('dia_vencimento')) ? ' has-error' : ''; ?>">
             <?php if($produto_parceiro_configuracao['pagamento_tipo'] == 'RECORRENTE') { ?>
                 <div class="col-md-6">
-                    <h5>Dia do vencimento</h5>
-                    <input placeholder="Dia do vencimento" class="form-control" id="dia_vencimento" name="dia_vencimento" type="number" value="<?php echo isset($row['dia_vencimento']) ? $row['dia_vencimento'] : set_value('dia_vencimento'); ?>" />
+                    <h5>Data do vencimento do Cart&atilde;o</h5>
+                    <input placeholder="Data do vencimento do Cart&atilde;o" class="form-control" id="dia_vencimento" name="dia_vencimento" type="number" value="<?php echo isset($row['dia_vencimento']) ? $row['dia_vencimento'] : set_value('dia_vencimento'); ?>" />
                     <?php echo app_get_form_error('dia_vencimento'); ?>
                 </div>
             <?php } ?>

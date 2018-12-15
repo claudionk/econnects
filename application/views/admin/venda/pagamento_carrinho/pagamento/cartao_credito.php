@@ -42,7 +42,7 @@ if($_POST){
                 <?php echo app_get_form_error('bandeira_cartao'); ?>
             </div>
             <div class="col-md-4">
-                <h5>Validade (MM/AAAA)</h5>
+                <h5>Validade <small>(MM/AAAA)</small></h5>
                 <input class="form-control" placeholder="Validade (MM/AAAA)" id="validade" name="validade" type="text" value="<?php echo isset($row['validade']) ? $row['validade'] : set_value('validade'); ?>" />
                 <?php echo app_get_form_error('validade'); ?>
             </div>
@@ -67,16 +67,17 @@ if($_POST){
 
     <div class="col-md-12">
         <?php $hd = "";  ?>
-        <?php foreach ($forma['pagamento'] as $bandeira) : ?>
+        <?php 
+        foreach ($forma['pagamento'] as $bandeira) : ?>
             <?php $field_name = "parcelamento_{$bandeira['produto_parceiro_pagamento_id']}";?>
             <div <?php echo $hd; ?> class="form-group parcelamento parcelamento_<?php echo $bandeira['produto_parceiro_pagamento_id']; ?>">
                 <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Parcelamento *</label>
                 <div class="col-md-4">
                     <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
                         <?php foreach($bandeira['parcelamento'] as $parcela => $linha) : ?>
-                            <option name="" value="<?php echo $parcela; ?>"
+                            <option name="" value="<?php echo $linha["Parcelas"]; ?>"
                                 <?php if(isset($row[$field_name])){if($row[$field_name] == $parcela) {echo " selected ";};}; ?> >
-                                <?php echo $linha; ?>
+                                <?php echo $linha["Descricao"]; ?>
                             </option>
                         <?php endforeach;  ?>
                     </select>

@@ -135,6 +135,11 @@ Class Produto_Parceiro_Pagamento_Model extends MY_Model
         return $this->get($id);
     }
 
+    function with_produto_parceiro_configuracao(){
+        $this->with_simple_relation('produto_parceiro_configuracao', 'configuracao_', 'produto_parceiro_id', array('pagamento_tipo','pagamento_periodicidade_unidade','pagamento_periodicidade','pagmaneto_cobranca'));
+        return $this;
+    }
+
     function with_forma_pagamento(){
         $this->with_simple_relation('forma_pagamento', 'forma_pagamento_', 'forma_pagamento_id', array('nome'));
         return $this;
