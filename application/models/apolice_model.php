@@ -263,35 +263,39 @@ Class Apolice_Model extends MY_Model
 
       $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
       $config = $this->db->query( "SELECT 
-            							 	ppc.* 
+                            ppc.* 
                                          FROM 
-                                         	produto_parceiro_plano ppp 
+                                          produto_parceiro_plano ppp 
                                             INNER JOIN produto_parceiro pp ON (pp.produto_parceiro_id=ppp.produto_parceiro_id) 
                                             INNER JOIN produto_parceiro_configuracao ppc ON (ppc.produto_parceiro_id=pp.produto_parceiro_id) 
                                          WHERE 
-                                         	ppp.produto_parceiro_plano_id=$produto_parceiro_plano_id" )->result_array();
+                                          ppp.produto_parceiro_plano_id=$produto_parceiro_plano_id" )->result_array();
 
-      if( $config ) {
-        $config = $config[0];
         $data_base = date("Y-m-d");
-        if( $config["apolice_vigencia"] == "C" ) {
-          if( $cotacao_salva["nota_fiscal_data"] != "" ) {
-            $data_base = $cotacao_salva["nota_fiscal_data"];
-          }
-        }elseif( $config["apolice_vigencia"] == "S" ) {
-          $data_base = date("Y-m-d");
-        } elseif( $config["apolice_vigencia"] == "N" ) {
-          $data_base = $cotacao_salva["nota_fiscal_data"];
-        } elseif( $config["apolice_vigencia"] == "E" ) {
-          $data_base = date("Y-m-d");
-          if( $cotacao_salva["data_inicio_vigencia"] != "" && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00" ) {
-            $data_base = $cotacao_salva["data_inicio_vigencia"];
-          }
+        if( $config ) {
+            $config = $config[0];
+            switch( $config["apolice_vigencia"] ){
+                case "C": //Calculado pelo Sistema
+                    if( $cotacao_salva["nota_fiscal_data"] != "" ) {
+                        $data_base = $cotacao_salva["nota_fiscal_data"];
+                    }
+                break;
+                case "S": //Data de Criação
+                    $data_base = date("Y-m-d");
+                break;
+                case "N": //Data da Nota Fiscal
+                    $data_base = $cotacao_salva["nota_fiscal_data"];
+                break;
+                case "E": //Especifica (Somente via API)
+                    if( $cotacao_salva["nota_fiscal_data"] != "" ) {
+                        $data_base = $cotacao_salva["nota_fiscal_data"];
+                    }
+                    if( $cotacao_salva["data_inicio_vigencia"] != "" && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00" ) {
+                        $data_base = $cotacao_salva["data_inicio_vigencia"];
+                    }
+                break;
+            }
         }
-      } else {
-        $data_base = date("Y-m-d");
-        //$data_base = $cotacao_salva["nota_fiscal_data"];
-      }
 
       $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao_salva['produto_parceiro_plano_id'], $data_base );
 
@@ -301,8 +305,8 @@ Class Apolice_Model extends MY_Model
       $dados_equipamento['produto_parceiro_pagamento_id'] = $pedido['produto_parceiro_pagamento_id'];
       $dados_equipamento['data_ini_vigencia'] = $vigencia['inicio_vigencia'];
       $dados_equipamento['data_fim_vigencia'] = $vigencia['fim_vigencia'];
-      $dados_equipamento['data_adesao'] = date('Y-m-d');
-      $dados_equipamento['data_pagamento'] = date('Y-m-d');
+      $dados_equipamento['data_adesao'] = $data_base;
+      $dados_equipamento['data_pagamento'] = $data_base;
 
       $dados_equipamento['cnpj_cpf'] = $cotacao_salva['cnpj_cpf'];
       $dados_equipamento['rg'] = $cotacao_salva['rg'];
@@ -535,6 +539,7 @@ Class Apolice_Model extends MY_Model
 
       $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
       $config = $this->db->query( "SELECT ppc.* FROM produto_parceiro_plano ppp INNER JOIN produto_parceiro pp ON (pp.produto_parceiro_id=ppp.produto_parceiro_id) INNER JOIN produto_parceiro_configuracao ppc ON (ppc.produto_parceiro_id=pp.produto_parceiro_id) WHERE ppp.produto_parceiro_plano_id=$produto_parceiro_plano_id" )->result_array();
+      $data_base = date("Y-m-d");
       if( $config ) {
         $config = $config[0];
         if( $config["apolice_vigencia"] != "C" ) {
@@ -550,8 +555,6 @@ Class Apolice_Model extends MY_Model
             }
           }
         }
-      } else {
-        $data_base = date("Y-m-d");
       }
 
       $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia( $cotacao_salva["produto_parceiro_plano_id"], $data_base );
@@ -564,8 +567,8 @@ Class Apolice_Model extends MY_Model
       $dados_generico['produto_parceiro_pagamento_id'] = $pedido['produto_parceiro_pagamento_id'];
       $dados_generico['data_ini_vigencia'] = $vigencia['inicio_vigencia'];
       $dados_generico['data_fim_vigencia'] = $vigencia['fim_vigencia'];
-      $dados_generico['data_adesao'] = date('Y-m-d');
-      $dados_generico['data_pagamento'] = date('Y-m-d');
+      $dados_generico['data_adesao'] = $data_base;
+      $dados_generico['data_pagamento'] = $data_base;
 
       $dados_generico['cnpj_cpf'] = $cotacao_salva['cnpj_cpf'];
       $dados_generico['rg'] = $cotacao_salva['rg'];
@@ -574,7 +577,7 @@ Class Apolice_Model extends MY_Model
       $dados_generico['data_nascimento'] = $cotacao_salva['data_nascimento'];
       $dados_generico['sexo'] = $cotacao_salva['sexo'];
       $dados_generico['email'] = $cotacao_salva['email'];
-      $dados_generico['endereco'] = $cotacao_salva['endereco_logradouro'];
+      $dados_generico['endereco_logradouro'] = $cotacao_salva['endereco_logradouro'];
       $dados_generico['endereco_numero'] = $cotacao_salva['endereco_numero'];
       $dados_generico['endereco_complemento'] = $cotacao_salva['endereco_complemento'];
       $dados_generico['endereco_bairro'] = $cotacao_salva['endereco_bairro'];
@@ -790,7 +793,7 @@ Class Apolice_Model extends MY_Model
         $dados_seguro_viagem['data_nascimento'] = $cotacao_pessoa['data_nascimento'];
         $dados_seguro_viagem['sexo'] = $cotacao_pessoa['sexo'];
         $dados_seguro_viagem['email'] = $cotacao_pessoa['email'];
-        $dados_seguro_viagem['endereco'] = $cotacao_pessoa['endereco_logradouro'];
+        $dados_seguro_viagem['endereco_logradouro'] = $cotacao_pessoa['endereco_logradouro'];
         $dados_seguro_viagem['endereco_numero'] = $cotacao_pessoa['endereco_numero'];
         $dados_seguro_viagem['endereco_complemento'] = $cotacao_pessoa['endereco_complemento'];
         $dados_seguro_viagem['endereco_bairro'] = $cotacao_pessoa['endereco_bairro'];
@@ -1198,6 +1201,7 @@ Class Apolice_Model extends MY_Model
     //$capitalizacao = array('numero' => $apolice['num_capitalizacao']);
 
     //dados segurado
+    $data_template['segurado_rg'] = $apolice['rg'];
     $data_template['segurado_sexo'] = $apolice['sexo'];
     $data_template['profissao'] = "";
     $data_template['estado_civil'] = "";
@@ -1205,10 +1209,14 @@ Class Apolice_Model extends MY_Model
 
     $data_template['segurado_sexo_masculino'] = " ";
     $data_template['segurado_sexo_feminino'] = " ";
-    if($apolice['sexo'] == "M")
+    if($apolice['sexo'] == "M"){
+      $data_template['segurado_sexo'] = "Masculino";
       $data_template['segurado_sexo_masculino'] = "X";
-    else
+    }
+    else{
+      $data_template['segurado_sexo'] = "Feminno";
       $data_template['segurado_sexo_feminino'] = "X";
+    }
 
 
     $data_template['segurado_nome'] =  $apolice['nome'];
@@ -1238,9 +1246,6 @@ Class Apolice_Model extends MY_Model
     $data_template['pagamento'] =  $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/pagamento", array('pagamento' => $pagamento), true );
 
     $template = $this->parser->parse_string($template, $data_template, true);
-
-
-
     if(($export == 'pdf') || ($export == 'pdf_file')){
       $this->custom_loader->library('pdf');
       $this->pdf->setPageOrientation('P');
