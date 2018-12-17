@@ -103,12 +103,10 @@ class Venda extends Api_Controller
     //Cria resposta
     $response = new Response();
     
-    if( $this->input->post("produto_id" ) != "" ) {
-      $produto_id = $this->input->post("produto_id" );
-      $produtos = $this->current_model->get_produtos_venda_admin($this->parceiro['parceiro_id'], $produto_id );
-    } else {
-      $produtos = $this->current_model->get_produtos_venda_admin($this->parceiro['parceiro_id']);
-    }
+    $produto_id = issetor($this->input->post("produto_id"), null);
+    $produto_parceiro_id = issetor($this->input->post("produto_parceiro_id"), null);
+    
+    $produtos = $this->current_model->get_produtos_venda_admin($this->parceiro['parceiro_id'], $produto_id, $produto_parceiro_id);
 
     //Busca dados
     $relacionamento = $this->current_model->get_produtos_venda_admin_parceiros($this->parceiro['parceiro_id']);
