@@ -1026,7 +1026,7 @@ Class Integracao_Model extends MY_Model
         if ($sinistro) {
             $sql = "
                 INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, data_retorno, tipo_expediente, id_controle_arquivo_registros, valor, status) 
-                SELECT ec.id_exp, NOW(), NOW(), ehc.tipo_expediente, 0, ehc.valor, 'C'
+                SELECT ec.id_exp, NOW(), NOW(), ehc.tipo_expediente, b.integracao_log_detalhe_id, ehc.valor, 'C'
                 FROM integracao_log a
                 INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
                 INNER JOIN integracao_log il ON a.integracao_id = il.integracao_id 
