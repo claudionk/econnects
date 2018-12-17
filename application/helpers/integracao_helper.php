@@ -1198,29 +1198,11 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
             return $response;
         }
 
-        $file = str_replace("-RT-", "-EV-", $dados['log']['nome_arquivo']);
-        $result_file = explode("-", $file);
-        $file = $result_file[0]."-".$result_file[1]."-".$result_file[2]."-";
-
-        $tipo_file = explode(".", $result_file[0]);
-        $tipo_file = $tipo_file[2];
-
-        $chave = '';
-        switch ($tipo_file) {
-            case 'CLIENTE':
-                $chave = !empty($dados['registro']['cod_cliente']) ? (int)$dados['registro']['cod_cliente'] : '';
-                break;
-            case 'PARCEMS':
-            case 'EMSCMS':
-            case 'LCTCMS':
-            case 'COBRANCA':
-                $chave = !empty($dados['registro']['num_apolice']) ? trim($dados['registro']['num_apolice']) ."|" : '';
-                break;
-            case 'SINISTRO':
-                // $chave = !empty($dados['registro']['cod_sinistro']) ? (int)$dados['registro']['cod_sinistro'] ."|". (int)$dados['registro']['cod_movimento'] : '';
-                $chave = !empty($dados['registro']['cod_sinistro']) ? (int)$dados['registro']['cod_sinistro'] .'|' : '';
-                break;
-        }
+        $CI =& get_instance();
+        $CI->load->model('integracao_model');
+        $proc = $CI->integracao_model->detectFileRetorno($dados['log']['nome_arquivo'], $dados['registro']);
+        $chave = $proc['chave'];
+        $file = $proc['file'];
 
         // echo "chave = $chave<br>";
         if (empty($chave)) {
@@ -1229,8 +1211,6 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
         }
 
         // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
-        $CI =& get_instance();
-        $CI->load->model('integracao_model');
         $CI->integracao_model->update_log_fail($file, $chave);
 
         $response->msg[] = ['id' => 12, 'msg' => $dados['registro']['cod_erro'] ." - ". $dados['registro']['descricao_erro'], 'slug' => "erro_retorno"];
@@ -1246,11 +1226,9 @@ if ( ! function_exists('app_integracao_retorno_generali_success')) {
             return false;
         }
 
-        $file = str_replace("-RT-", "-EV-", $dados['log']['nome_arquivo']);
-        $result_file = explode("-", $file);
-        $tipo_file = explode(".", $result_file[0]);
-        $file = $result_file[0]."-".$result_file[1]."-".$result_file[2]."-";
-        $sinistro = ($tipo_file[2] == 'SINISTRO');
+        $proc = $CI->integracao_model->detectFileRetorno($dados['log']['nome_arquivo']);
+        $file = $proc['file'];
+        $sinistro = ($proc['tipo'] == 'SINISTRO');
 
         // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
         $CI =& get_instance();
