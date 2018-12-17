@@ -45,7 +45,7 @@ class Pedido extends Admin_Controller
             ->get_total();
 
 
-//        exit($this->current_model->db->last_query());
+        // exit($this->current_model->db->last_query());
         $config['per_page'] = 10;
 
         $this->pagination->initialize($config);
@@ -242,26 +242,19 @@ class Pedido extends Admin_Controller
         //Carrega dados para a página
         $data = array();
         $data['pedido'] = $this->current_model->with_foreign()->get($id);
-
-
         $data['produto'] = $this->current_model->getPedidoProdutoParceiro($id);
         $data['produto'] = $data['produto'][0];
         $data['bandeiras'] = $this->forma_pagamento_bandeira->get_all();
         $data['capitalizacoes'] = $this->capitalizacao->get_titulos_pedido($id);
-
-/*
+        /*
         $pedido_cartao = $this->pedido_cartao
             ->get_by(array(
                 'pedido_id' => $id
             ));
-
-
-      //  $data['pedido_cartao'] = $this->pedido_cartao->decode_cartao($pedido_cartao);
+        //$data['pedido_cartao'] = $this->pedido_cartao->decode_cartao($pedido_cartao);
         */
-        $data['cartoes'] = $this->pedido_cartao
-            ->get_many_by(array(
-                'pedido_id' => $id
-            ));
+        $data['cartoes'] = $this->pedido_cartao->get_many_by( array( 'pedido_id' => $id ) ) ;
+
 
         foreach ($data['cartoes'] as $index => $cartao)
         {
