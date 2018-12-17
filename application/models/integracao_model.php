@@ -352,9 +352,15 @@ Class Integracao_Model extends MY_Model
             $dados_integracao['status'] = 'L';
             $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
+            //execute before execute
+            if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
+                echo $result['before_execute']."<br>";
+                call_user_func($result['before_execute'], null, array('item' => $result, 'registro' => array(), 'log' => array(), 'valor' => null));
+            }
+
             $result_file = $this->createFileIntegracao($result);
 
-            // echo " FIM - S";
+            // echo "FIM - S";
             // exit();
 
             $filename = $result_file['file'];
@@ -1031,6 +1037,26 @@ Class Integracao_Model extends MY_Model
                 AND ild.integracao_log_status_id = 4
             ";
             $query = $this->_database->query($sql);
+
+            if (!empty($cod_sinistro)) {
+
+                $sql = "
+                    UPDATE integracao_log a
+                    INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
+                    INNER JOIN integracao_log il ON a.integracao_id = il.integracao_id 
+                    INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id AND b.chave = ild.chave
+                    INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(ild.chave, LOCATE('|', ild.chave)-1)
+                    INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
+                    INNER JOIN sissolucoes1.sis_exp_sinistro es ON es.id_exp = ec.id_exp
+                    INNER JOIN sissolucoes1.sis_exp e ON ec.id_exp = e.id_exp
+                    SET e.id_sinistro = ec.id_sinistro_generali, e.data_id_sinistro = NOW()
+                    WHERE a.nome_arquivo LIKE '{$file}%'
+                    AND ild.integracao_log_status_id = 4
+                    #AND ehc.status = 'C'
+                ";
+                $query = $this->_database->query($sql);
+            } 
+
         }
 
         return true;
