@@ -774,11 +774,10 @@ Class Integracao_Model extends MY_Model
         $id_log = 0;
         $num_linha = 0;
         foreach ($detail as  $rows) {
-            $data_row = array();
+            $data_row = $ids = array();
             foreach ($rows as $index => $row) {
                 if ($row['layout']['insert'] == 1) {
                     if(function_exists($row['layout']['function'])){
-
                         $row['valor'] = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor']));
                     }
                     $data_row[$row['layout']['nome_banco']] = trim($row['valor']);
@@ -791,10 +790,17 @@ Class Integracao_Model extends MY_Model
                         $id_log = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor']));
                     }
 
-                    if (!empty($id_log))
-                        $data_row['id_log'] = $id_log;
+                    if (!empty($id_log)) {
+                        $ids[$row['layout']['nome_banco']] = $id_log;
+                    }
                 }
             }
+
+            if (!empty($ids)) {
+                $proc = $this->detectFileRetorno(basename($file), $ids);
+                $data_row['id_log'] = $id_log = $proc['chave'];
+            }
+
             $data[] = $data_row;
             $num_linha++;
         }
@@ -1002,7 +1008,7 @@ Class Integracao_Model extends MY_Model
 
     function update_log_sucess($file, $sinistro = false){
 
-        // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
+        // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS QUE AINDA NAO FORAM LIBERADOS
         $sql = "
             UPDATE integracao_log a
             INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
@@ -1073,6 +1079,36 @@ Class Integracao_Model extends MY_Model
         $query = $this->_database->query($sql);
 
         return true;
+    }
+
+    public function detectFileRetorno($file, $dados = []) {
+        $file = str_replace("-RT-", "-EV-", $file);
+        $result_file = explode("-", $file);
+        $file = $result_file[0]."-".$result_file[1]."-".$result_file[2]."-";
+
+        $tipo_file = explode(".", $result_file[0]);
+        $tipo_file = $tipo_file[2];
+
+        $chave = '';
+        if (!empty($dados)) {
+            switch ($tipo_file) {
+                case 'CLIENTE':
+                    $chave = !empty($dados['cod_cliente']) ? (int)$dados['cod_cliente'] : '';
+                    break;
+                case 'PARCEMS':
+                case 'EMSCMS':
+                case 'LCTCMS':
+                case 'COBRANCA':
+                    $chave = !empty($dados['num_apolice']) ? trim($dados['num_apolice']) ."|" : '';
+                    break;
+                case 'SINISTRO':
+                    $chave = !empty($dados['cod_sinistro']) ? (int)$dados['cod_sinistro'] ."|". (int)$dados['cod_movimento'] : '';
+                    // $chave = !empty($dados['cod_sinistro']) ? (int)$dados['cod_sinistro'] .'|' : '';
+                    break;
+            }
+        }
+
+        return ['chave' => $chave, 'file' => $file, 'tipo' => $tipo_file];
     }
 
 }
