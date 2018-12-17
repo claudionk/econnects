@@ -1226,12 +1226,12 @@ if ( ! function_exists('app_integracao_retorno_generali_success')) {
             return false;
         }
 
+        $CI =& get_instance();
         $proc = $CI->integracao_model->detectFileRetorno($dados['log']['nome_arquivo']);
         $file = $proc['file'];
         $sinistro = ($proc['tipo'] == 'SINISTRO');
 
         // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
-        $CI =& get_instance();
         $CI->load->model('integracao_model');
         $CI->integracao_model->update_log_sucess($file, $sinistro);
 
