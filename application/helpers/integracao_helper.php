@@ -1287,3 +1287,10 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
         return $id_exp_hist_carga;
     }
 }
+if ( ! function_exists('app_integracao_gera_sinistro')) {
+    function app_integracao_gera_sinistro($formato, $dados = array())
+    {
+        $CI =& get_instance();
+        $CI->db->query("call sp_gera_sinistro(27, '007')");
+    }
+}
