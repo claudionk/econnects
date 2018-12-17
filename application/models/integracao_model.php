@@ -1012,12 +1012,12 @@ Class Integracao_Model extends MY_Model
         $sql = "
             UPDATE integracao_log a
             INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
-            #INNER JOIN integracao_log il ON a.integracao_id = il.integracao_id 
-            #INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id AND b.chave = ild.chave
-            SET b.integracao_log_status_id = 4 
+            INNER JOIN integracao_log il ON a.integracao_id = il.integracao_id 
+            INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id AND b.chave = ild.chave
+            SET ild.integracao_log_status_id = 4 
             WHERE a.nome_arquivo LIKE '{$file}%'
             AND a.integracao_log_status_id = 3 
-            #AND ild.integracao_log_status_id NOT IN(4,5)
+            AND ild.integracao_log_status_id NOT IN(4,5)
         ";
         $query = $this->_database->query($sql);
 
@@ -1035,11 +1035,13 @@ Class Integracao_Model extends MY_Model
                 SELECT ec.id_exp, NOW(), NOW(), ehc.tipo_expediente, b.integracao_log_detalhe_id, ehc.valor, 'C'
                 FROM integracao_log a
                 INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
-                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(b.chave, LOCATE('|', b.chave)-1)
-                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = b.integracao_log_detalhe_id
-                LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_exp = ehcx.id_exp AND ehcx.id_controle_arquivo_registros = b.integracao_log_detalhe_id AND ehcx.status = 'C'
+                INNER JOIN integracao_log il ON a.integracao_id = il.integracao_id 
+                INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id AND b.chave = ild.chave
+                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(ild.chave, LOCATE('|', ild.chave)-1)
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
+                LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_exp = ehcx.id_exp AND ehcx.id_controle_arquivo_registros = ild.integracao_log_detalhe_id AND ehcx.status = 'C'
                 WHERE a.nome_arquivo LIKE '{$file}%'
-                AND b.integracao_log_status_id = 4
+                AND ild.integracao_log_status_id = 4
                 AND ehcx.id_exp IS NULL
             ";
             $query = $this->_database->query($sql);
@@ -1047,13 +1049,15 @@ Class Integracao_Model extends MY_Model
             $sql = "
                 UPDATE integracao_log a
                 INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
-                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(b.chave, LOCATE('|', b.chave)-1)
-                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = b.integracao_log_detalhe_id
+                INNER JOIN integracao_log il ON a.integracao_id = il.integracao_id 
+                INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id AND b.chave = ild.chave
+                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(ild.chave, LOCATE('|', ild.chave)-1)
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
                 INNER JOIN sissolucoes1.sis_exp_sinistro es ON es.id_exp = ec.id_exp
                 INNER JOIN sissolucoes1.sis_exp e ON ec.id_exp = e.id_exp
                 SET e.id_sinistro = ec.id_sinistro_generali, e.data_id_sinistro = NOW(), es.usado = 'S'
                 WHERE a.nome_arquivo LIKE '{$file}%'
-                AND b.integracao_log_status_id = 4
+                AND ild.integracao_log_status_id = 4
                 #AND ehc.status = 'C'
             ";
 
