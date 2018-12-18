@@ -797,8 +797,13 @@ Class Integracao_Model extends MY_Model
             }
 
             if (!empty($ids)) {
-                $proc = $this->detectFileRetorno(basename($file), $ids);
-                $data_row['id_log'] = $id_log = $proc['chave'];
+
+                if (count($ids) > 1) {
+                    $proc = $this->detectFileRetorno(basename($file), $ids);
+                    if (!empty($proc)) $id_log = $proc['chave'];
+                }
+
+                $data_row['id_log'] = $id_log;
             }
 
             $data[] = $data_row;
@@ -1012,12 +1017,10 @@ Class Integracao_Model extends MY_Model
         $sql = "
             UPDATE integracao_log a
             INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
-            INNER JOIN integracao_log il ON a.integracao_id = il.integracao_id 
-            INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id AND b.chave = ild.chave
-            SET ild.integracao_log_status_id = 4 
+            SET b.integracao_log_status_id = 4 
             WHERE a.nome_arquivo LIKE '{$file}%'
             AND a.integracao_log_status_id = 3 
-            AND ild.integracao_log_status_id NOT IN(4,5)
+            AND b.integracao_log_status_id NOT IN(4,5)
         ";
         $query = $this->_database->query($sql);
 
@@ -1035,13 +1038,11 @@ Class Integracao_Model extends MY_Model
                 SELECT ec.id_exp, NOW(), NOW(), ehc.tipo_expediente, b.integracao_log_detalhe_id, ehc.valor, 'C'
                 FROM integracao_log a
                 INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
-                INNER JOIN integracao_log il ON a.integracao_id = il.integracao_id 
-                INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id AND b.chave = ild.chave
-                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(ild.chave, LOCATE('|', ild.chave)-1)
-                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
-                LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_exp = ehcx.id_exp AND ehcx.id_controle_arquivo_registros = ild.integracao_log_detalhe_id AND ehcx.status = 'C'
+                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(b.chave, LOCATE('|', b.chave)-1)
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = b.integracao_log_detalhe_id
+                LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_exp = ehcx.id_exp AND ehcx.tipo_expediente = ehc.tipo_expediente AND ehcx.status = 'C'
                 WHERE a.nome_arquivo LIKE '{$file}%'
-                AND ild.integracao_log_status_id = 4
+                AND b.integracao_log_status_id = 4
                 AND ehcx.id_exp IS NULL
             ";
             $query = $this->_database->query($sql);
@@ -1049,16 +1050,13 @@ Class Integracao_Model extends MY_Model
             $sql = "
                 UPDATE integracao_log a
                 INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
-                INNER JOIN integracao_log il ON a.integracao_id = il.integracao_id 
-                INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id AND b.chave = ild.chave
-                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(ild.chave, LOCATE('|', ild.chave)-1)
-                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
+                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(b.chave, LOCATE('|', b.chave)-1)
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = b.integracao_log_detalhe_id
                 INNER JOIN sissolucoes1.sis_exp_sinistro es ON es.id_exp = ec.id_exp
                 INNER JOIN sissolucoes1.sis_exp e ON ec.id_exp = e.id_exp
                 SET e.id_sinistro = ec.id_sinistro_generali, e.data_id_sinistro = NOW(), es.usado = 'S'
                 WHERE a.nome_arquivo LIKE '{$file}%'
-                AND ild.integracao_log_status_id = 4
-                #AND ehc.status = 'C'
+                AND b.integracao_log_status_id = 4
             ";
 
         }
@@ -1086,12 +1084,18 @@ Class Integracao_Model extends MY_Model
     public function detectFileRetorno($file, $dados = []) {
         $file = str_replace("-RT-", "-EV-", $file);
         $result_file = explode("-", $file);
+        if (count($result_file) < 3)
+            return null;
+
         $file = $result_file[0]."-".$result_file[1]."-".$result_file[2]."-";
 
         $tipo_file = explode(".", $result_file[0]);
-        $tipo_file = $tipo_file[2];
+        if (count($tipo_file) < 3)
+            return null;
 
+        $tipo_file = $tipo_file[2];
         $chave = '';
+
         if (!empty($dados)) {
             switch ($tipo_file) {
                 case 'CLIENTE':
@@ -1110,7 +1114,7 @@ Class Integracao_Model extends MY_Model
             }
         }
 
-        return ['chave' => $chave, 'file' => $file, 'tipo' => $tipo_file];
+        return empty($chave) ? null : ['chave' => $chave, 'file' => $file, 'tipo' => $tipo_file];
     }
 
 }
