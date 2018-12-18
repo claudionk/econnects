@@ -52,13 +52,21 @@ Class Cotacao_Cobertura_Model extends MY_Model
             $cobertura_plano_id = $cobertura["cobertura_plano_id"];
             $percentagem = $valor_cobertura = $valor_config = 0;
 
-            if( $cobertura["mostrar"] == "importancia_segurada" ) {
-                $percentagem = $valor_config = floatval($cobertura["porcentagem"]);
-                $valor_cobertura = ( $importancia_segurada * $percentagem ) / 100;
-            }elseif( $cobertura["mostrar"] == "preco" ) {
-                $valor_cobertura = $valor_config = floatval($cobertura["preco"]);
-            }elseif( $cobertura["mostrar"] == "descricao" ) {
-                $valor_cobertura = $valor_config = round($premio_liquido, 2);
+            switch ($cobertura["mostrar"]) {
+                case 'importancia_segurada':
+                    $percentagem = $valor_config = floatval($cobertura["porcentagem"]);
+                    $valor_cobertura = ( $importancia_segurada * $percentagem ) / 100;
+                    break;
+                case 'preco':
+                    $valor_cobertura = $valor_config = floatval($cobertura["preco"]);
+                    break;
+                case 'descricao':
+                    $percentagem = $valor_config = floatval($cobertura["porcentagem"]);
+                    if ($percentagem==0) {
+                        $percentagem = $valor_config = 100;
+                    }
+                    $valor_cobertura = ( $premio_liquido * $percentagem ) / 100;
+                    break;
             }
 
             $dados['cotacao_id'] = $cotacao_id;
