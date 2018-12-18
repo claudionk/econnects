@@ -52,12 +52,17 @@ Class Apolice_Cobertura_Model extends MY_Model
         foreach ($coberturas as $cobertura) {
 
             $percentagem = $valor_cobertura = $valor_config = 0;
-            if( $cobertura["mostrar"] == "importancia_segurada" ) {
-                $percentagem = $valor_config = floatval(round($cobertura["valor"] / $cobertura['valor_premio_net'],2));
-                $valor_cobertura = $valor_base * $percentagem;
-            }elseif( $cobertura["mostrar"] == "preco" || $cobertura["mostrar"] == "descricao" ) {
-                $percentagem = 0;
-                $valor_cobertura = $valor_config = floatval($cobertura["valor_config"]);
+            switch ($cobertura["mostrar"]) {
+                case 'importancia_segurada':
+                case 'descricao':
+                case 'preco':
+                    // encontra o percentual da cobertura referente ao premio liquido
+                    $percentagem = $valor_config = floatval(round($cobertura["valor"] / $cobertura['valor_premio_net'],2));
+                    $valor_cobertura = $valor_base * $percentagem;
+                    break;
+                // case 'preco':
+                //     $valor_cobertura = $valor_config = floatval($cobertura["valor_config"]);
+                //     break;
             }
 
             $dados['cotacao_id'] = $cobertura["cotacao_id"];
