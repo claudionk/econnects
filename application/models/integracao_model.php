@@ -1020,6 +1020,7 @@ Class Integracao_Model extends MY_Model
             SET b.integracao_log_status_id = 4 
             WHERE a.nome_arquivo LIKE '{$file}%'
             AND a.integracao_log_status_id = 3 
+            AND a.deletado = 0
             AND b.integracao_log_status_id NOT IN(4,5)
         ";
         $query = $this->_database->query($sql);
@@ -1029,6 +1030,7 @@ Class Integracao_Model extends MY_Model
             SET il.integracao_log_status_id = IF((SELECT 1 FROM integracao_log_detalhe ild WHERE ild.integracao_log_id = il.integracao_log_id AND ild.integracao_log_status_id = 5 LIMIT 1) = 1, 5, 4)
             WHERE il.nome_arquivo LIKE '{$file}%'
                 AND il.integracao_log_status_id = 3 
+                AND il.deletado = 0
         ";
         $query = $this->_database->query($sql);
 
@@ -1042,6 +1044,7 @@ Class Integracao_Model extends MY_Model
                 INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = b.integracao_log_detalhe_id
                 LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_exp = ehcx.id_exp AND ehcx.tipo_expediente = ehc.tipo_expediente AND ehcx.status = 'C'
                 WHERE a.nome_arquivo LIKE '{$file}%'
+                AND a.deletado = 0
                 AND b.integracao_log_status_id = 4
                 AND ehcx.id_exp IS NULL
             ";
@@ -1056,6 +1059,7 @@ Class Integracao_Model extends MY_Model
                 INNER JOIN sissolucoes1.sis_exp e ON ec.id_exp = e.id_exp
                 SET e.id_sinistro = ec.id_sinistro_generali, e.data_id_sinistro = NOW(), es.usado = 'S'
                 WHERE a.nome_arquivo LIKE '{$file}%'
+                AND a.deletado = 0
                 AND b.integracao_log_status_id = 4
             ";
 
@@ -1072,6 +1076,7 @@ Class Integracao_Model extends MY_Model
             INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id 
             SET ild.integracao_log_status_id = 5
             WHERE il.nome_arquivo LIKE '{$file}%'
+            AND il.deletado = 0
             AND il.integracao_log_status_id = 3
             AND ild.integracao_log_status_id NOT IN(4,5)
             AND ild.chave LIKE '{$chave}%'
@@ -1114,7 +1119,7 @@ Class Integracao_Model extends MY_Model
             }
         }
 
-        return empty($chave) ? null : ['chave' => $chave, 'file' => $file, 'tipo' => $tipo_file];
+        return ['chave' => $chave, 'file' => $file, 'tipo' => $tipo_file];
     }
 
 }
