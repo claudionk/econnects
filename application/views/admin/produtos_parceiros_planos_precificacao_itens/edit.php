@@ -111,20 +111,20 @@ if($_POST)
                                                     <?php $field_name = 'inicial';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Início *</label>
-                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( $row[$field_name] , 2 , "," , "") : set_value($field_name); ?>" /></div>
                                                     </div>
 
                                                     <?php $field_name = 'final';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Fim *</label>
-                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( $row[$field_name] , 2 , "," , "")  : set_value($field_name); ?>" /></div>
                                                     </div>
 
 
                                                     <?php $field_name = 'valor';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Valor *</label>
-                                                        <div class="col-md-8"><input class="form-control inputmask-moeda" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( $row[$field_name] , 6 , "," , "")  : set_value($field_name); ?>" /></div>
                                                     </div>
 
                                                   <?php 
@@ -181,4 +181,29 @@ if($_POST)
         </div>
     </div>
 </div>
-
+<script>
+    function format_field( field , test_int ){
+        if( test_int ){
+            console.log(  $(field).val() )
+            $(field).val( String( $(field).val() ).replace(/(\.|,).+$/,"") );   
+        }
+        else{
+            $(field).val( String( $(field).val() ).replace(/\./,",") );
+        }
+    }
+    $("#unidade_tempo").bind("change", function(){ 
+        format_field( "#inicial" , $("option:selected","#unidade_tempo").val() != "VALOR" )
+        format_field( "#final" , $("option:selected","#unidade_tempo").val() != "VALOR" )
+        format_field( "#valor" , false );
+    })
+    $("#inicial").bind("blur", function(){ 
+        format_field( "#inicial" , $("option:selected","#unidade_tempo").val() != "VALOR" );
+    })
+    $("#final").bind("blur", function(){ 
+        format_field( "#final" , $("option:selected","#unidade_tempo").val() != "VALOR" );
+    })
+    $("#valor").bind("blur", function(){ 
+        format_field( "#valor" , false );
+    })
+    $(document).ready( function(){ $("#unidade_tempo").change() })
+</script>
