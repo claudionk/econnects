@@ -797,8 +797,13 @@ Class Integracao_Model extends MY_Model
             }
 
             if (!empty($ids)) {
-                $proc = $this->detectFileRetorno(basename($file), $ids);
-                $data_row['id_log'] = $id_log = $proc['chave'];
+
+                if (count($ids) > 1) {
+                    $proc = $this->detectFileRetorno(basename($file), $ids);
+                    if (!empty($proc)) $id_log = $proc['chave'];
+                }
+
+                $data_row['id_log'] = $id_log;
             }
 
             $data[] = $data_row;
@@ -1086,12 +1091,18 @@ Class Integracao_Model extends MY_Model
     public function detectFileRetorno($file, $dados = []) {
         $file = str_replace("-RT-", "-EV-", $file);
         $result_file = explode("-", $file);
+        if (count($result_file) < 3)
+            return null;
+
         $file = $result_file[0]."-".$result_file[1]."-".$result_file[2]."-";
 
         $tipo_file = explode(".", $result_file[0]);
-        $tipo_file = $tipo_file[2];
+        if (count($tipo_file) < 3)
+            return null;
 
+        $tipo_file = $tipo_file[2];
         $chave = '';
+
         if (!empty($dados)) {
             switch ($tipo_file) {
                 case 'CLIENTE':
@@ -1110,7 +1121,7 @@ Class Integracao_Model extends MY_Model
             }
         }
 
-        return ['chave' => $chave, 'file' => $file, 'tipo' => $tipo_file];
+        return empty($chave) ? null : ['chave' => $chave, 'file' => $file, 'tipo' => $tipo_file];
     }
 
 }
