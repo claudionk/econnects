@@ -18,11 +18,9 @@ Class Produto_Parceiro_Servico_Log_Model extends MY_Model
     protected $fields_lowercase = array();
     protected $fields_uppercase = array();
 
-
     //Dados
     public $validate = array(
     );
-
 
     function get_by_id($id)
     {
@@ -32,11 +30,11 @@ Class Produto_Parceiro_Servico_Log_Model extends MY_Model
 
     public function insLog($produto_parceiro_servico_id, $params){
 
-
         $data = array();
 
         $data['produto_parceiro_servico_id'] = $produto_parceiro_servico_id;
         $data['url'] = $params['url'];
+        $data['idConsulta'] = issetor($params['idConsulta'], null);
         $data['consulta'] = $params['consulta'];
         $data['retorno'] = $params['retorno'];
         $data['time_envio'] = $params['time_envio'];
@@ -47,10 +45,6 @@ Class Produto_Parceiro_Servico_Log_Model extends MY_Model
 
         $this->insert($data, TRUE);
 
-
-
-
     }
-
 
 }
