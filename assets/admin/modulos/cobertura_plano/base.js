@@ -7,26 +7,21 @@ $(function(){
 });
 
 function mostrar_exibir() {
-  if($('#mostrar').val() == "descricao"){
-    $('.descricao').show();
-    $('.preco').hide();
-    $('.porcentagem').hide();
-  } else {
-    if($('#mostrar').val() == "preco"){
-      $('.descricao').hide();
-      $('.preco').show();
-      $('.porcentagem').hide();
-    } else {
-      if($('#mostrar').val() == "importancia_segurada") {
-        $('.descricao').hide();
-        $('.preco').hide();
-        $('.porcentagem').show();
-      }
+    switch( $('#mostrar').val() ){
+        case "descricao":
+            $('.descricao').show();
+            $('.preco').hide();
+            $('.porcentagem').show();
+        break;
+        case "preco":
+            $('.descricao').hide();
+            $('.preco').show();
+            $('.porcentagem').hide();
+        break;
+        case "importancia_segurada":
+            $('.descricao').hide();
+            $('.preco').hide();
+            $('.porcentagem').show();
+        break;
     }
-  }
 }
-
-
-
-
-

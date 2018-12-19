@@ -161,6 +161,10 @@ class Produtos_Parceiros_Planos_Precificacao_Itens extends Admin_Controller
                 redirect("$this->controller_uri/index/{$produto_parceiro_plano_id}");
             }
         }
+
+        //Carrega assets
+        $this->template->js(app_assets_url('modulos/produtos_parceiros_planos_precificacao_itens/js/base.js', 'admin'));
+
         //Carrega dados para o template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
