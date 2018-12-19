@@ -75,6 +75,7 @@
                                         <button type="button" class="btn btn-sm ink-reaction btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i class="fa fa-caret-down"></i></button>
                                         <ul class="dropdown-menu dropdown-menu-right" role="menu">
                                             <?php if( $row['precificacao_tipo_id'] == 1 || $row['precificacao_tipo_id'] == 5 || $row['precificacao_tipo_id'] == 6 ) : ?>
+                                                <li><a href="<?php echo base_url("admin/cobertura_plano/index/{$row[$primary_key]}")?>"> Coberturas </a></li>
                                                 <li><a href="<?php echo base_url("admin/produtos_parceiros_planos_precificacao_itens/index/{$row[$primary_key]}")?>" >Tabela de Preços </a></li>
                                                 <li><a href="<?php echo base_url("admin/produtos_parceiros_planos_precificacao/edit/{$row[$primary_key]}")?>"> Precificação </a></li>
                                                 <li><a href="<?php echo base_url("admin/produtos_parceiros_planos_origem_destino/edit/{$row[$primary_key]}")?>"> Origem e Destino </a></li>
