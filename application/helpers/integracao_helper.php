@@ -1014,7 +1014,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
         $calcPremio = $calcPremio['response'];
         $valor_premio = $calcPremio->premio_liquido_total;
         $premioValid = true;
-        $aceitaPorcentagem = true;
+        $aceitaPorcentagem = false;
 
         echo "Calculo do Premio: $valor_premio | $premio_liquido<br>";
 

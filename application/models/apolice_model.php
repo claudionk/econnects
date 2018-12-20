@@ -246,7 +246,6 @@ Class Apolice_Model extends MY_Model
       $data_cliente['cliente_evolucao_status_id'] = 4;
       $this->cliente->update($cotacao_salva['cliente_id'], $data_cliente, TRUE);
 
-
       $dados_apolice = array();
       $dados_apolice['pedido_id'] = $pedido_id;
       $dados_apolice['produto_parceiro_plano_id'] = $cotacao_salva['produto_parceiro_plano_id'];
@@ -284,7 +283,9 @@ Class Apolice_Model extends MY_Model
                     $data_base = date("Y-m-d");
                 break;
                 case "N": //Data da Nota Fiscal
-                    $data_base = $cotacao_salva["nota_fiscal_data"];
+                    if( $cotacao_salva["nota_fiscal_data"] != "" ) {
+                        $data_base = $cotacao_salva["nota_fiscal_data"];
+                    }
                 break;
                 case "E": //Especifica (Somente via API)
                     if( $cotacao_salva["nota_fiscal_data"] != "" ) {
