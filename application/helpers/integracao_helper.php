@@ -974,68 +974,15 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $response->cotacao_id = $cotacao_id;
 
                 // Cálculo do prêmio
-                $calcPremio = app_get_api("calculo_premio/". $cotacao_id);
+                echo "<pre>";
+                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_liquido"], $dados["nota_fiscal_valor"]);
                 if (empty($calcPremio['status'])){
                     $response->errors = ['id' => -1, 'msg' => $calcPremio['response'], 'slug' => "calcula_premio"];
                     return $response;
                 }
 
-                $calcPremio = $calcPremio['response'];
-                $valor_premio = $calcPremio->premio_liquido_total;
-                $premioValid = true;
-
-                if ($valor_premio != $dados["premio_liquido"]) {
-                    $pb = (float)$dados["premio_liquido"];
-                    $is = (float)$dados["nota_fiscal_valor"];
-                    $premioValid = false;
-
-                    if ($is == 0) {
-                        $percent = 0;
-                    } else {
-                        $percent = $pb / $is * 100;
-
-                        // E-mail do Daniel Patini - 28 de nov de 2018 17:19
-
-                        // Arredondamento do percentual (a.)
-                        if ($percent >= 24.9 && $percent <= 25.99999999999999) {
-                            $premioValid = true;
-                        }
-
-                        // Taxa era praticada com a MAPFRE (b.)
-                        // if ($percent == 23) {
-                        //     $premioValid = true;
-                        // }
-
-                        // Taxa era praticada com a MAPFRE para tablets (c.)
-                        // if ($percent == 19) {
-                        //     $premioValid = true;
-                        // }
-                    }
-
-                }
-                
-                // // Se houve falha no premio, faz a validação pelo valor de nf
-                // if (!$premioValid) {
-                //     $is = (float)$dados["nota_fiscal_valor_desc"];
-
-                //     if ($is == 0) {
-                //         $percent = 0;
-                //     } else {
-                //         $percent = $pb / $is * 100;
-
-                //         if ($percent >= 24.9 && $percent <= 25.99999999999999) {
-                //             $premioValid = true;
-                //         }
-
-                //         if ($percent == 23) {
-                //             $premioValid = true;
-                //         }
-
-                //         if ($percent == 19) {
-                //             $premioValid = true;
-                //         }
-                //     }
-                // }
+                $premioValid = $calcPremio['response'];
+                $valor_premio = $calcPremio['valor_premio'];
 
                 if (!$premioValid) {
                     $errors[] = ['id' => 7, 'msg' => "Valor do prêmio bruto [". $dados["premio_liquido"] ."] difere do prêmio calculado [". $valor_premio ."]", 'slug' => "premio_liquido"];
@@ -1053,6 +1000,66 @@ if ( ! function_exists('app_integracao_valida_regras'))
 
         $response->status = true;
         return $response;
+    }
+}
+if ( ! function_exists('app_integracao_calcula_premio'))
+{
+    function app_integracao_calcula_premio($cotacao_id, $premio_liquido, $is){
+        // Cálculo do prêmio
+        $calcPremio = app_get_api("calculo_premio/". $cotacao_id);
+        if (empty($calcPremio['status'])){
+            return ['status'=> false, 'response'=>$calcPremio['response']];
+        }
+
+        $calcPremio = $calcPremio['response'];
+        $valor_premio = $calcPremio->premio_liquido_total;
+        $premioValid = true;
+        $aceitaPorcentagem = true;
+
+        echo "Calculo do Premio: $valor_premio | $premio_liquido<br>";
+
+        if ($valor_premio != $premio_liquido) {
+            if ($valor_premio >= $premio_liquido-0.01 && $valor_premio <= $premio_liquido+0.01) {
+                $premioValid = true;
+                echo "dif de 1 centavo<br>";
+            }else {
+
+                $premioValid = false;
+
+                if ($is > 0) {
+                    // calcula o percentual
+                    $percent = (float)$premio_liquido / (float)$is * 100;
+
+                    echo "calculado $percent % <br>";
+
+                    if (!$aceitaPorcentagem) {
+                        // Arredondamento do percentual (a.)
+                        if ($percent >= 24.9 && $percent <= 25.99999999999999) {
+                            $premioValid = true;
+                        }
+                    } else {
+                        // TRATAR DEMAIS PERCENTUAIS
+
+                        // percentual liquido (remove o IOF)
+                        $percent /= 1.0738;
+                        $percRF = $percent * 0.6;
+                        $percQA = $percent - $percRF;
+
+                        echo "RF $percRF % <br>";
+                        echo "QA $percQA % <br>";
+
+                        $CI =& get_instance();
+                        $CI->load->model('cobertura_plano_model', 'cobertura_plano');
+                        $CI->cobertura_plano->update(281, ['porcentagem' => $percRF], TRUE);
+                        $CI->cobertura_plano->update(282, ['porcentagem' => $percQA], TRUE);
+
+                        return app_integracao_calcula_premio($cotacao_id, $premio_liquido, $is);
+                    }
+                }
+            }
+        }
+
+        return ['status'=> true, 'response'=> $premioValid, 'valor_premio'=> $valor_premio];
     }
 }
 if ( ! function_exists('app_integracao_emissao'))
