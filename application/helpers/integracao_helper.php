@@ -581,7 +581,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
         $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
         $eanErro = true;
-        $cpfErroMsg = $eanErroMsg = "";
+        $eanErroMsg = "";
 
         // usar a pesquisa por nome
         $CI->load->model("apolice_model", "apolice");
@@ -604,103 +604,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
                 $response->msg[] = ['id' =>  2, 'msg' => "Campo CPF deve ser um CPF válido [{$cpf}]", 'slug' => 'cnpj_cpf'];
                 return $response;
             }
-
-            $enriquecido = app_get_api("enriqueceCPF/$cpf/". $acesso->produto_parceiro_id);
-
-            if (!empty($enriquecido['status'])){
-                $enriquecido = $enriquecido['response'];
-                $response->cpf = $enriquecido;
-
-                $dados['registro']['nome'] = $enriquecido->nome;
-                $dados['registro']['sexo'] = $enriquecido->sexo;
-                $dados['registro']['data_nascimento'] = $enriquecido->data_nascimento;
-
-                // Endereço
-                $ExtraEnderecos = $enriquecido->endereco;
-                if( sizeof( $ExtraEnderecos ) ) {
-                    $dados['registro']['endereco_logradouro'] = $ExtraEnderecos[0]->{"endereco"};
-                    $dados['registro']['endereco_numero'] = $ExtraEnderecos[0]->{"endereco_numero"};
-                    $dados['registro']['complemento'] = $ExtraEnderecos[0]->{"endereco_complemento"};
-                    $dados['registro']['endereco_bairro'] = $ExtraEnderecos[0]->{"endereco_bairro"};
-                    $dados['registro']['endereco_cidade'] = $ExtraEnderecos[0]->{"endereco_cidade"};
-                    $dados['registro']['endereco_estado'] = $ExtraEnderecos[0]->{"endereco_uf"};
-                    $dados['registro']['endereco_cep'] = str_replace("-", "", $ExtraEnderecos[0]->{"endereco_cep"});
-                    $dados['registro']['pais'] = "BRASIL";
-                }
-
-                // Contatos
-                $ExtraContatos = $enriquecido->contato;
-                $getTelefone = $getCelular = $getEmail = true;
-
-                if( sizeof( $ExtraContatos ) ) {
-                    foreach ($ExtraContatos as $contato) {
-                        if (!$getTelefone && !$getCelular && !$getEmail)
-                            break;
-
-                        // Telefone Residencial
-                        if ($contato->contato_tipo_id == 3 && $getTelefone ){ //TELEFONE RESIDENCIAL
-                            $getTelefone=false;
-                            $dados['registro']['ddd_residencial'] = left($contato->contato,2);
-                            $dados['registro']['telefone_residencial'] = trim(right($contato->contato, strlen($contato->contato)-2));
-                            $dados['registro']['telefone'] = trim($contato->contato);
-                            continue;
-                        }
-
-                        // Celular
-                        if ($contato->contato_tipo_id == 2 && $getCelular ){ // CELULAR
-                            $getCelular=false;
-                            $dados['registro']['ddd_celular'] = left($contato->contato,2);
-                            $dados['registro']['telefone_celular'] = trim(right($contato->contato, strlen($contato->contato)-2));
-                            continue;
-                        }
-
-                        // Email
-                        if ($contato->contato_tipo_id == 1 && $getEmail ){ // CELULAR
-                            $getEmail=false;
-                            $dados['registro']['email'] = $contato->contato;
-                            continue;
-                        }
-                    }
-                }
-
-            } else {
-                $cpfErroMsg = $enriquecido['response'];
-            }
-
-            // Regras DE/PARA
-            $dados['registro']['cnpj_cpf'] = $cpf;
-
-            
-            if (empty($dados['registro']['nome']))
-                $dados['registro']['nome'] = "NOME SOBRENOME";
-
-            if (empty($dados['registro']['endereco_estado']))
-                $dados['registro']['endereco_estado'] = "SP";
-
-            if (empty($dados['registro']['endereco_cidade']))
-                $dados['registro']['endereco_cidade'] = "BARUERI";
-
-            if (empty($dados['registro']['endereco_bairro']))
-                $dados['registro']['endereco_bairro'] = $dados['registro']['endereco_cidade'];
-
-            if (empty($dados['registro']['endereco_logradouro']))
-                $dados['registro']['endereco_logradouro'] = "ALAMEDA RIO NEGRO";
-
-            if (empty($dados['registro']['endereco_numero']))
-                $dados['registro']['endereco_numero'] = '0';
-
-            if (empty($dados['registro']['endereco_cep']))
-                $dados['registro']['endereco_cep'] = '06454000';
-
-            if (empty($dados['registro']['data_nascimento'])) {
-                $dados['registro']['data_nascimento'] = '2000-01-01';
-            } elseif (!app_validate_data_americana($dados['registro']['data_nascimento'])) {
-                $dados['registro']['data_nascimento'] = '2000-01-01';
-            }
-
-            if (empty($dados['registro']['sexo']))
-                $dados['registro']['sexo'] = 'M';
-
 
             if (!empty($ean)) {
                 $ean = (int)$ean;
@@ -879,7 +782,6 @@ if ( ! function_exists('app_integracao_valida_regras'))
         if ( in_array($dados['tipo_transacao'], ['NS']) ) {
 
             $errors = $fields = [];
-
             $now = new DateTime(date('Y-m-d'));
 
             // VIGÊNCIA
@@ -895,6 +797,116 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 if ($diff->m >= 12 && $diff->d > 0) {
                     $errors[] = ['id' => 5, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser inferior ou igual à 12 meses", 'slug' => "nota_fiscal_data"];
                 }
+            }
+
+            // Enriquecimento do CPF
+            $cpf = substr($dados['cpf'], -11);
+            $enriquecido = app_get_api("enriqueceCPF/$cpf/". $dados['produto_parceiro_id']);
+
+            if (!empty($enriquecido['status'])){
+                $enriquecido = $enriquecido['response'];
+
+                $dados['nome'] = $enriquecido->nome;
+                $dados['sexo'] = $enriquecido->sexo;
+                $dados['data_nascimento'] = $enriquecido->data_nascimento;
+
+                // Endereço
+                $ExtraEnderecos = $enriquecido->endereco;
+                if( sizeof( $ExtraEnderecos ) ) {
+                    $rank=1000;
+                    $index=0;
+
+                    foreach ($ExtraEnderecos as $end) {
+                        $rank = ($end->ranking <= $rank) ? $index : $rank;
+                        $index++;
+                    }
+
+                    $dados['endereco_logradouro'] = $ExtraEnderecos[$rank]->{"endereco"};
+                    $dados['endereco_numero'] = $ExtraEnderecos[$rank]->{"endereco_numero"};
+                    $dados['complemento'] = $ExtraEnderecos[$rank]->{"endereco_complemento"};
+                    $dados['endereco_bairro'] = $ExtraEnderecos[$rank]->{"endereco_bairro"};
+                    $dados['endereco_cidade'] = $ExtraEnderecos[$rank]->{"endereco_cidade"};
+                    $dados['endereco_estado'] = $ExtraEnderecos[$rank]->{"endereco_uf"};
+                    $dados['endereco_cep'] = str_replace("-", "", $ExtraEnderecos[$rank]->{"endereco_cep"});
+                    $dados['pais'] = "BRASIL";
+                }
+
+                $ExtraContatos = $enriquecido->contato;
+                if( sizeof( $ExtraContatos ) ) {
+                    $rankTel=$rankCel=$rankEmail=1000;
+                    $index=0;
+
+                    // Valida o ranking
+                    foreach ($ExtraContatos as $cont) {
+                        switch ($cont->contato_tipo_id) {
+                            // Telefone Residencial
+                            case 3:
+                                $rankTel = ($cont->ranking <= $rankTel) ? $index : $rankTel;
+                                break;
+                            
+                            // Celular
+                            case 2:
+                                $rankCel = ($cont->ranking <= $rankCel) ? $index : $rankCel;
+                                break;
+
+                            // Email
+                            case 1:
+                                $rankEmail = ($cont->ranking <= $rankEmail) ? $index : $rankEmail;
+                                break;
+                        }
+                        $index++;
+                    }
+
+                    // Telefone Residencial
+                    if ($rankTel != 1000) {
+                        $dados['ddd_residencial'] = left($ExtraContatos[$rankTel]->contato,2);
+                        $dados['telefone_residencial'] = trim(right($ExtraContatos[$rankTel]->contato, strlen($ExtraContatos[$rankTel]->contato)-2));
+                        $dados['telefone'] = trim($ExtraContatos[$rankTel]->contato);
+                    }
+
+                    // Celular
+                    if ($rankCel != 1000) {
+                        $dados['ddd_celular'] = left($ExtraContatos[$rankCel]->contato,2);
+                        $dados['telefone_celular'] = trim(right($ExtraContatos[$rankCel]->contato, strlen($ExtraContatos[$rankCel]->contato)-2));
+                    }
+
+                    // Email
+                    if ($rankEmail != 1000)
+                        $dados['email'] = $ExtraContatos[$rankEmail]->contato;
+                }
+            }
+
+            // Regras DE/PARA
+            $dados['cnpj_cpf'] = $cpf;
+
+            if (empty($dados['nome']))
+                $dados['nome'] = "NOME SOBRENOME";
+
+            if (empty($dados['endereco_estado']))
+                $dados['endereco_estado'] = "SP";
+
+            if (empty($dados['endereco_cidade']))
+                $dados['endereco_cidade'] = "BARUERI";
+
+            if (empty($dados['endereco_bairro']))
+                $dados['endereco_bairro'] = $dados['endereco_cidade'];
+
+            if (empty($dados['endereco_logradouro']))
+                $dados['endereco_logradouro'] = "ALAMEDA RIO NEGRO";
+
+            if (empty($dados['endereco_numero']))
+                $dados['endereco_numero'] = '0';
+
+            if (empty($dados['endereco_cep']))
+                $dados['endereco_cep'] = '06454000';
+
+            if (empty($dados['sexo']))
+                $dados['sexo'] = 'M';
+
+            if (empty($dados['data_nascimento'])) {
+                $dados['data_nascimento'] = '2000-01-01';
+            } elseif (!app_validate_data_americana($dados['data_nascimento'])) {
+                $dados['data_nascimento'] = '2000-01-01';
             }
 
             // IDADE - Pessoa física maior de 18 anos
