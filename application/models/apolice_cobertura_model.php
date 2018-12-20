@@ -69,7 +69,7 @@ Class Apolice_Cobertura_Model extends MY_Model
             $dados['pedido_id'] = $cobertura["pedido_id"];
             $dados['apolice_id'] = $cobertura["apolice_id"];
             $dados['cobertura_plano_id'] = $cobertura["cobertura_plano_id"];
-            $dados['valor'] = $valor_cobertura*-1;
+            $dados['valor'] = round($valor_cobertura*-1,2);
             $dados['mostrar'] = $cobertura["mostrar"];
             $dados['valor_config'] = $valor_config;
             $dados['criacao'] = date("Y-m-d H:i:s");
