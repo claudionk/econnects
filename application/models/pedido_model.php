@@ -795,6 +795,9 @@ Class Pedido_Model extends MY_Model
             $define_date = date("Y-m-d H:i:s") ;
         }
 
+        $define_date = new DateTime($define_date);
+        $define_date = $d1->format('Y-m-d H:i:s');
+
         $criticas = $this->criticas_cancelamento($pedido_id, true, $dados_bancarios, $define_date);
 
         if (!empty($criticas['result'])) {
@@ -809,6 +812,9 @@ Class Pedido_Model extends MY_Model
         if( ! $define_date ){
             $define_date = date("Y-m-d H:i:s") ;
         }
+
+        $define_date = new DateTime($define_date);
+        $define_date = $d1->format('Y-m-d H:i:s');
 
         $result = [
             'mensagem' => '',
