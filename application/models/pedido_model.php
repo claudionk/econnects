@@ -813,7 +813,7 @@ Class Pedido_Model extends MY_Model
             $define_date = date("Y-m-d H:i:s") ;
         }
 
-        $define_date = new DateTime($define_date);
+        $d1 = new DateTime($define_date);
         $define_date = $d1->format('Y-m-d H:i:s');
 
         $result = [
