@@ -685,7 +685,7 @@ Class Integracao_Model extends MY_Model
         $content=$concat="";
         foreach ($linhas as $row) {
             $content.=$concat.implode("\n", $row);
-            $concat = "\n";
+            $concat = "\r\n";
         }
 
         $arRet['qtde_reg'] = count($linhas)-$rmQtdeLine;
