@@ -81,7 +81,8 @@ if ( ! function_exists('app_integracao_mapfre_rf_total_registro')) {
 if ( ! function_exists('app_integracao_mapfre_rf_total_itens')) {
     function app_integracao_mapfre_rf_total_itens($formato, $dados = array())
     {
-        $total = isset($dados['global']['totalItens']) ? $dados['global']['totalItens'] : 0;
+        // $total = isset($dados['global']['totalItens']) ? $dados['global']['totalItens'] : 0;
+        $total = issetor(count($dados['registro']), 0);
         return str_pad($total, $formato, '0', STR_PAD_LEFT);
     }
 }
