@@ -92,7 +92,7 @@ Class Pedido_Model extends MY_Model
         ->select("pedido.pedido_id, pedido.codigo, pedido.valor_total, pedido.valor_parcela")
         ->select("pedido.num_parcela, forma_pagamento.nome, forma_pagamento.slug")
         ->join("produto_parceiro_pagamento", "pedido.produto_parceiro_pagamento_id = produto_parceiro_pagamento.produto_parceiro_pagamento_id", 'inner')
-        ->join("forma_pagamento", "forma_pagamento.forma_pagamento_id = produto_parceiro_pagamento.forma_pagamento_id", 'inner')
+        ->join("forma_pagamento", "forma_pagamento.forma_pagamento_id = produto_parceiro_pagamento.forma_pagamento_id and forma_pagamento.slug != 'cobranca_terceiros'", 'inner')
         ->join("forma_pagamento_tipo", "forma_pagamento_tipo.forma_pagamento_tipo_id = forma_pagamento.forma_pagamento_tipo_id", 'inner')
         ->join("forma_pagamento_integracao", "forma_pagamento_integracao.forma_pagamento_integracao_id = forma_pagamento_tipo.forma_pagamento_integracao_id", 'inner')
         ->join("fatura", "fatura.pedido_id = pedido.pedido_id", 'inner')
