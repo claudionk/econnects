@@ -161,6 +161,7 @@ Class Pedido_Model extends MY_Model
       ->where_in("pedido.lock", 0)
       ->where("fatura_parcela.data_vencimento <=", date('y-m-d'))
       ->where("fatura_parcela.fatura_status_id", 1);
+      ->where("forma_pagamento.forma_pagamento_id !=", 11);
 
     if($pedido_id > 0){
       $this->_database->where_in("pedido.pedido_id", $pedido_id);
