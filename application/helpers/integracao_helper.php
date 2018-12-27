@@ -82,7 +82,7 @@ if ( ! function_exists('app_integracao_mapfre_rf_total_itens')) {
     function app_integracao_mapfre_rf_total_itens($formato, $dados = array())
     {
         // $total = isset($dados['global']['totalItens']) ? $dados['global']['totalItens'] : 0;
-        $total = issetor(count($dados['registro']), 0);
+        $total = issetor(count($dados['registro']) + 2, 0);
         return str_pad($total, $formato, '0', STR_PAD_LEFT);
     }
 }
@@ -1185,7 +1185,19 @@ if ( ! function_exists('app_integracao_apolice_revert')) {
     function app_integracao_apolice_revert($formato, $dados = array())
     {
         $num_apolice = $dados['valor'];
-        return "7840001".right($num_apolice, 8);
+
+        // pega o TPA e o Sequencial
+        $seq = right($num_apolice, 8);
+        $tpa = left(right($num_apolice, 11), 3);
+
+        $CI =& get_instance();
+        $CI->load->model('apolice_model');
+        $result = $CI->apolice_model->filter_by_numApolice($seq, $tpa)->get_all();
+
+        if (empty($result))
+            return "7840001".$seq;
+
+        return $result[0]['num_apolice'];
     }
 }
 if ( ! function_exists('app_integracao_id_transacao')) {
