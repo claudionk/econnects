@@ -523,7 +523,7 @@ class Apolice_Model extends MY_Model
                         $data_base = $cotacao_salva["nota_fiscal_data"];
                     }
                     if ($config["apolice_vigencia"] == "E") {
-                        if ($cotacao_salva["data_inicio_vigencia"] != "") {
+                        if ($cotacao_salva["data_inicio_vigencia"] != ""  && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00") {
                             $data_base = $cotacao_salva["data_inicio_vigencia"];
                         }
                     }
