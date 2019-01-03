@@ -511,7 +511,7 @@ class Relatorios extends Admin_Controller
 
         if ($layout=='mapa_analitico') {
 
-            $resultado['data'] = $this->pedido->extrairRelatorioMapaRepasseAnalitico($data_inicio = null, $data_fim = null, $parceiro, $slug);
+            $resultado['data'] = $this->pedido->extrairRelatorioMapaRepasseAnalitico($data_inicio, $data_fim, $parceiro, $slug);
         } else {
 
             // 'Sinténtico'

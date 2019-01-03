@@ -1279,7 +1279,7 @@ Class Pedido_Model extends MY_Model
 
         if(isset($data_inicio) && !empty($data_inicio))
             $this->_database->where("status_data >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
-        if(isset($data_fim) && !empty($data_fim))
+        if( isset($data_fim) && !empty($data_fim) )
             $this->_database->where("status_data <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
 
         $this->_database->where("cs.slug = 'finalizada'");
@@ -1517,9 +1517,9 @@ Class Pedido_Model extends MY_Model
         }
 
         if(isset($data_inicio) && !empty($data_inicio))
-            $this->_database->where("status_data >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
+            $this->_database->where("ae.data_adesao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
         if(isset($data_fim) && !empty($data_fim))
-            $this->_database->where("status_data <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
+            $this->_database->where("ae.data_adesao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
 
         $this->_database->where("parc.slug IN('".$slug."')");
         $this->_database->where("cs.slug = 'finalizada'");
@@ -1689,9 +1689,9 @@ Class Pedido_Model extends MY_Model
         }
 
         if(isset($data_inicio) && !empty($data_inicio))
-            $where .= " AND status_data >= '". app_date_only_numbers_to_mysql($data_inicio) ."'";
+            $where .= " AND ae.data_adesao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'";
         if(isset($data_fim) && !empty($data_fim))
-            $where .= " AND status_data <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
+            $where .= " AND ae.data_adesao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
 
         $query = $this->_database->query("
         SELECT 
