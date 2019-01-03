@@ -72,59 +72,59 @@
                 <tr>
                     <td class="divisorLeft">Prêmio Bruto</td>
                     <td class="divisorLeft"><?= app_format_currency($row['V_PB'], true) ?></td>
-                    <td class="divisorLeft"><?= app_format_currency($row['C_PB'], true) ?></td>
+                    <td class="divisorLeft"><?= app_format_currency(app_rel_sintetico_ajuste_num($row['C_PB']), true) ?></td>
                     <td class="divisorLeft">
                     <?php
                         if($key == $tot_f)
                             echo app_format_currency( $t_premio, true );
                         else
-                            echo app_format_currency( app_rel_sintetico_ajuste_num( $row['V_PB'] - $row['C_PB'] ), true );
+                            echo app_format_currency( app_rel_sintetico_ajuste_num($row['V_PB']) - app_rel_sintetico_ajuste_num($row['C_PB']), true );
                     ?>
                     </td>
                 </tr>
                 <tr>
                     <td class="divisorLeft">IOF</td>
                     <td class="divisorLeft"><?= app_format_currency($row['V_IOF'], true) ?></td>
-                    <td class="divisorLeft"><?= app_format_currency($row['C_IOF'], true) ?></td>
+                    <td class="divisorLeft"><?= app_format_currency(app_rel_sintetico_ajuste_num($row['C_IOF']), true) ?></td>
                     <td class="divisorLeft">
                     <?php
                         if($key == $tot_f)
                             echo $t_iof;
                         else
-                            echo app_format_currency( app_rel_sintetico_ajuste_num( $row['V_IOF'] - $row['C_IOF'] ), true ); ?></td>
+                            echo app_format_currency( app_rel_sintetico_ajuste_num($row['V_IOF']) - app_rel_sintetico_ajuste_num($row['C_IOF']), true ); ?></td>
                 </tr>
                 <tr>
                     <td class="divisorLeft">Prêmio Líquido</td>
                     <td class="divisorLeft"><?= app_format_currency($row['V_PL'], true) ?></td>
-                    <td class="divisorLeft"><?= app_format_currency($row['C_PL'], true) ?></td>
+                    <td class="divisorLeft"><?= app_format_currency(app_rel_sintetico_ajuste_num($row['C_PL']), true) ?></td>
                     <td class="divisorLeft">
                     <?php 
                         if($key == $tot_f)
                             echo $t_premio;
                         else
-                            echo app_format_currency( app_rel_sintetico_ajuste_num( $row['V_PL'] - $row['C_PL'] ), true ); ?></td>
+                            echo app_format_currency( app_rel_sintetico_ajuste_num($row['V_PL']) - app_rel_sintetico_ajuste_num($row['C_PL']), true ); ?></td>
                 </tr>
                 <tr>
                     <td class="divisorLeft">Comissão Representante</td>
                     <td class="divisorLeft"><?= app_format_currency($row['V_pro_labore'], true) ?></td>
-                    <td class="divisorLeft"><?= app_format_currency($row['C_pro_labore'], true) ?></td>
+                    <td class="divisorLeft"><?= app_format_currency(app_rel_sintetico_ajuste_num($row['C_pro_labore']), true) ?></td>
                     <td class="divisorLeft">
                     <?php
                         if($key == $tot_f)
                             echo $t_comissaor;
                         else
-                            echo app_format_currency( app_rel_sintetico_ajuste_num( $row['V_pro_labore'] - $row['C_pro_labore'] ), true ); ?></td>
+                            echo app_format_currency( app_rel_sintetico_ajuste_num($row['V_pro_labore']) - app_rel_sintetico_ajuste_num($row['C_pro_labore']), true ); ?></td>
                 </tr>
                 <tr class="baseLine">
                     <td class="divisorLeft">Comissão Corretor</td>
                     <td class="divisorLeft"><?= app_format_currency($row['V_valor_comissao'], true) ?></td>
-                    <td class="divisorLeft"><?= app_format_currency($row['C_valor_comissao'], true) ?></td>
+                    <td class="divisorLeft"><?= app_format_currency(app_rel_sintetico_ajuste_num($row['C_valor_comissao']), true) ?></td>
                     <td class="divisorLeft">
                     <?php 
                         if($key == $tot_f)
                             echo $t_comissaoc;
                         else 
-                            echo app_format_currency( app_rel_sintetico_ajuste_num( $row['V_valor_comissao'] - $row['C_valor_comissao'] ), true); ?>
+                            echo app_format_currency( app_rel_sintetico_ajuste_num($row['V_valor_comissao']) - app_rel_sintetico_ajuste_num($row['C_valor_comissao']), true); ?>
                     </td>
                 </tr>
                 <?php

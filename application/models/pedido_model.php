@@ -1505,7 +1505,7 @@ Class Pedido_Model extends MY_Model
         ) AS y
         WHERE CTA_Retorno_ok IS NOT NULL
 
-        ) as cta", "cta.num_apolice = a.num_apolice", "join", FALSE);
+        ) as cta", "cta.num_apolice = a.num_apolice or cta.num_apolice = concat('7840001',right(a.num_apolice,8)) ", "join", FALSE);
 
 
         $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
@@ -1716,28 +1716,28 @@ Class Pedido_Model extends MY_Model
         pedido.pedido_id,
         cta.tipo_transacao as apolice_status_id,
         (
-        SELECT FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
+        SELECT SUM(FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2))
         FROM apolice_cobertura ac 
         INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
         INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
         WHERE ac.apolice_id = a.apolice_id
         LIMIT 1
         ) AS PB, (
-        SELECT FORMAT(ac.valor / ae.valor_premio_net * ae.pro_labore, 2)
+        SELECT SUM(FORMAT(ac.valor / ae.valor_premio_net * ae.pro_labore, 2))
         FROM apolice_cobertura ac 
         INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
         INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
         WHERE ac.apolice_id = a.apolice_id
         LIMIT 1
         ) AS IOF, (
-        SELECT ac.valor
+        SELECT SUM(ac.valor)
         FROM apolice_cobertura ac 
         INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
         INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
         WHERE ac.apolice_id = a.apolice_id
         LIMIT 1
         ) AS PL, (
-        SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2)
+        SELECT SUM(FORMAT(cmg.comissao / 100 * ac.valor, 2))
         FROM apolice_cobertura ac 
         INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
         INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
@@ -1746,7 +1746,7 @@ Class Pedido_Model extends MY_Model
         WHERE cmg.pedido_id = pedido.pedido_id AND parc_com.parceiro_tipo_id = 3
         LIMIT 1
         ) AS pro_labore, (
-        SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2)
+        SELECT SUM(FORMAT(cmg.comissao / 100 * ac.valor, 2))
         FROM apolice_cobertura ac 
         INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
         INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
@@ -1834,7 +1834,7 @@ Class Pedido_Model extends MY_Model
         ) AS y
         WHERE CTA_Retorno_ok IS NOT NULL 
 
-        ) as cta ON cta.num_apolice = a.num_apolice 
+        ) as cta ON (cta.num_apolice = a.num_apolice or cta.num_apolice = concat('7840001',right(a.num_apolice,8)))
 
         WHERE `parc`.`slug` IN('".$slug."')
         AND `cs`.`slug` = 'finalizada'
