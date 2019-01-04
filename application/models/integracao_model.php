@@ -1121,4 +1121,26 @@ Class Integracao_Model extends MY_Model
         return ['chave' => $chave, 'file' => $file, 'tipo' => $tipo_file];
     }
 
+    function app_integracao_apolice_revert($num_apolice_custom, $cod_tpa){
+
+        // marca o registro como erro (5) para que possa ser corrigido manualmente (6) e depois feito um novo envio (3)
+        $sql = "
+            SELECT 
+                a.num_apolice
+            FROM
+                apolice a
+                    JOIN
+                produto_parceiro_plano ppp ON a.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
+                    JOIN
+                produto_parceiro pp ON ppp.produto_parceiro_id = pp.produto_parceiro_id
+            WHERE
+                a.num_apolice LIKE '%{$num_apolice_custom}'
+                AND pp.cod_tpa = {$cod_tpa};
+        ";
+        $query = $this->_database->query($sql);
+
+        return ($query->row()) ? $query->result()[0]->num_apolice : FALSE; 
+        
+    }
+
 }

@@ -1189,6 +1189,7 @@ if ( ! function_exists('app_integracao_apolice')) {
         return $num_apolice_aux;
     }
 }
+/*
 if ( ! function_exists('app_integracao_apolice_revert')) {
     function app_integracao_apolice_revert($formato, $dados = array())
     {
@@ -1208,6 +1209,27 @@ if ( ! function_exists('app_integracao_apolice_revert')) {
         return $result[0]['num_apolice'];
     }
 }
+*/
+if ( ! function_exists('app_integracao_apolice_revert')) {
+    function app_integracao_apolice_revert($formato, $dados = array())
+    {
+        /*
+        $num_apolice = $dados['valor'];
+        return "7840001".right($num_apolice, 8);
+        */
+        
+        $dados = $dados['valor'];
+        $cod_tpa = substr($dados,4,3);
+        $num_apolice_custom = substr($dados,-8);
+        $CI =& get_instance();
+        $CI->load->model('integracao_model');
+        return $CI->integracao_model->app_integracao_apolice_revert($num_apolice_custom, $cod_tpa);
+    }
+}
+
+
+
+
 if ( ! function_exists('app_integracao_id_transacao')) {
     function app_integracao_id_transacao($formato, $dados = array())
     {
