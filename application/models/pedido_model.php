@@ -1446,39 +1446,15 @@ Class Pedido_Model extends MY_Model
 
         $this->_database->join("
         (
-        SELECT 
-              IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL AND CTA_Retorno IS NULL, CTA_Enviado, NULL) AS CTA_Ag_Retorno
-            , IF(CTA_Enviado IS NOT NULL, CTA_Retorno_ok, NULL) AS CTA_Retorno_ok
-            , IF(CTA_Retorno_ok IS NULL, CTA_Retorno, NULL) AS CTA_Retorno_erro
-            , num_apolice
-            , apolice_movimentacao_tipo_id
-        FROM (
-
-            SELECT maxDate( ctaEmissao(chave_emi, 0), ctaCliente(cliente_id, 0), 1 ) as CTA_Enviado
-                , maxDate( ctaEmissao(chave_emi, 4), ctaCliente(cliente_id, 4), 1 ) as CTA_Retorno_ok
-                , maxDate( ctaEmissao(chave_emi, 5), ctaCliente(cliente_id, 5), 0 ) as CTA_Retorno
+            SELECT 
+                  CTA_Ag_Retorno
+                , CTA_Retorno_ok
+                , CTA_Retorno_erro
                 , num_apolice
                 , apolice_movimentacao_tipo_id
-            FROM (
-
-                SELECT DISTINCT
-                     c.cliente_id
-                    , concat(a.num_apolice, '|', LPAD(am.apolice_movimentacao_tipo_id, 2, '0')) as chave_emi
-                    , am.apolice_movimentacao_tipo_id
-                    , a.num_apolice
-                FROM apolice a 
-                JOIN pedido p on a.pedido_id = p.pedido_id
-                JOIN cotacao c on p.cotacao_id = c.cotacao_id
-                JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
-                JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id
-                WHERE a.deletado = 0 AND p.deletado = 0 AND c.deletado = 0
-
-            ) AS x
-        ) AS y
-        WHERE CTA_Retorno_ok IS NOT NULL 
-
+            FROM cta_movimentacao
+            WHERE CTA_Retorno_ok IS NOT NULL
         ) as cta", "cta.num_apolice = a.num_apolice", "join", FALSE);
-
 
         $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
         $this->_database->join("usuario u", "u.usuario_id = c.usuario_cotacao_id", "left");
@@ -1725,39 +1701,15 @@ Class Pedido_Model extends MY_Model
             LEFT JOIN `apolice_equipamento` ae ON `ae`.`apolice_id` = `a`.`apolice_id` and ae.deletado = 0
             LEFT JOIN `apolice_generico` ag ON `ag`.`apolice_id` = `a`.`apolice_id` and ag.deletado = 0
 
-
             INNER JOIN (
                 SELECT 
-                      IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL AND CTA_Retorno IS NULL, CTA_Enviado, NULL) AS CTA_Ag_Retorno
-                    , IF(CTA_Enviado IS NOT NULL, CTA_Retorno_ok, NULL) AS CTA_Retorno_ok
-                    , IF(CTA_Retorno_ok IS NULL, CTA_Retorno, NULL) AS CTA_Retorno_erro
+                      CTA_Ag_Retorno
+                    , CTA_Retorno_ok
+                    , CTA_Retorno_erro
                     , num_apolice
                     , apolice_movimentacao_tipo_id
-                FROM (
-
-                    SELECT maxDate( ctaEmissao(chave_emi, 0), ctaCliente(cliente_id, 0), 1 ) as CTA_Enviado
-                        , maxDate( ctaEmissao(chave_emi, 4), ctaCliente(cliente_id, 4), 1 ) as CTA_Retorno_ok
-                        , maxDate( ctaEmissao(chave_emi, 5), ctaCliente(cliente_id, 5), 0 ) as CTA_Retorno
-                        , num_apolice
-                        , apolice_movimentacao_tipo_id
-                    FROM (
-
-                        SELECT DISTINCT
-                             c.cliente_id
-                            , concat(a.num_apolice, '|', LPAD(am.apolice_movimentacao_tipo_id, 2, '0')) as chave_emi
-                            , am.apolice_movimentacao_tipo_id
-                            , a.num_apolice
-                        FROM apolice a 
-                        JOIN pedido p on a.pedido_id = p.pedido_id
-                        JOIN cotacao c on p.cotacao_id = c.cotacao_id
-                        JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
-                        JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id
-                        WHERE a.deletado = 0 AND p.deletado = 0 AND c.deletado = 0
-
-                    ) AS x
-                ) AS y
-                WHERE CTA_Retorno_ok IS NOT NULL 
-
+                FROM cta_movimentacao
+                WHERE CTA_Retorno_ok IS NOT NULL
         ) as cta ON cta.num_apolice = a.num_apolice
 
         WHERE `parc`.`slug` IN('".$slug."')
