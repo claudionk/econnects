@@ -59,4 +59,20 @@ Class Integracao_Log_Detalhe_Model extends MY_Model
         return $this->get_by($this->primary_key, $id);
     }
 
+    public function getProcessSucess($chave, $tipo_transacao)
+    {
+        $this->_database
+        ->join("integracao_log", "{$this->_table}.integracao_log_id = integracao_log.integracao_log_id", 'inner')
+        ->join("integracao_log_detalhe_dados", "{$this->_table}.integracao_log_detalhe_id = integracao_log_detalhe_dados.integracao_log_detalhe_id", 'inner')
+        ->where_in("integracao_log.deletado", 0)
+        ->where_in("integracao_log.integracao_id", 15)
+        ->where_in("{$this->_table}.deletado", 0)
+        ->where_in("{$this->_table}.chave", $chave)
+        ->where_in("{$this->_table}.integracao_log_status_id", 4)
+        ->where_in("integracao_log_detalhe_dados.tipo_transacao", $tipo_transacao)
+
+        $process = $this->get_all();
+        return ($process) ? $process : array();
+    }
+
 }

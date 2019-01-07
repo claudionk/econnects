@@ -556,23 +556,12 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
         echo "****************** CPF: $cpf - {$dados['registro']['tipo_transacao']}<br>";
 
-        if ( !in_array($dados['registro']['tipo_transacao'], ['NS','XS','XX']) ) {
-            /*
-            XI = Cancelamento por Inadimplência
-            XP = Transação Pendentes
-            XD = Transação Desfeita
-            */
+        if ( !in_array($dados['registro']['tipo_transacao'], ['NS','XS','XX','XP','XD']) ) {
+            // XI = Cancelamento por Inadimplência
             switch ($dados['registro']['tipo_transacao']) {
                 case 'XI':
                     $integracao_log_detalhe_erro_id = 13;
                     break;
-                case 'XP':
-                    $integracao_log_detalhe_erro_id = 14;
-                    break;
-                case 'XD':
-                    $integracao_log_detalhe_erro_id = 15;
-                    break;
-                
                 default:
                     $integracao_log_detalhe_erro_id = 14;
                     break;
@@ -594,12 +583,13 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
         // usar a pesquisa por nome
         $CI->load->model("apolice_model", "apolice");
+        $CI->load->model("integracao_log_detalhe_model", "integracao_log_detalhe");
 
         //Busca a apólice pelo número
         $apolice = $CI->apolice->getApoliceByNumero($num_apolice, $acesso->parceiro_id);
 
         // Emissão
-        if ( in_array($dados['registro']['tipo_transacao'], ['NS']) ) {
+        if ( in_array($dados['registro']['tipo_transacao'], ['NS','XP']) ) {
 
             if (!empty($apolice)) {
                 $response->status = 2;
@@ -664,7 +654,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             }
 
         // Cancelamento
-        } else if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX']) ) {
+        } else if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX','XD']) ) {
 
             if (empty($apolice)) {
                 $response->msg[] = ['id' => 8, 'msg' => "Apólice não encontrada [{$num_apolice}]", 'slug' => "cancelamento"];
@@ -788,7 +778,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
         // echo "<pre>";print_r($dados);echo "</pre>";
 
         // Emissão
-        if ( in_array($dados['tipo_transacao'], ['NS']) ) {
+        if ( in_array($dados['tipo_transacao'], ['NS','XP']) ) {
 
             $errors = $fields = [];
             $now = new DateTime(date('Y-m-d'));
@@ -1089,7 +1079,7 @@ if ( ! function_exists('app_integracao_emissao'))
         // echo "<pre>";print_r($fields);echo "</pre>";
 
         // Emissão
-        if ( in_array($dados['tipo_transacao'], ['NS']) ) {
+        if ( in_array($dados['tipo_transacao'], ['NS','XP']) ) {
 
             // Cotação Contratar
             $fields['emailAPI'] = app_get_userdata("email");
@@ -1161,7 +1151,7 @@ if ( ! function_exists('app_integracao_emissao'))
             }
 
         // Cancelamento
-        } else if ( in_array($dados['tipo_transacao'], ['XS','XX']) ) {
+        } else if ( in_array($dados['tipo_transacao'], ['XS','XX','XD']) ) {
             
             // Cancelamento
             $cancelaApolice = app_get_api("cancelar", "POST", json_encode(["apolice_id" => $dados['apolice_id'], "define_date" => $dados['data_adesao_cancel'], "emailAPI" => app_get_userdata("email")]));
