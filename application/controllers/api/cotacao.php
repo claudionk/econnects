@@ -122,12 +122,14 @@ class Cotacao extends CI_Controller {
         }
 
         $validacao_ok = true;
+
         foreach( $validacao as $check ) {
             if( strpos( $check["rules"], "required" ) !== false && $check["value"] == "" ) {
                 $validacao_ok = false;
                 $erros[] = $check;
             }
-              // Validando dados dos campos - ALR
+
+            // Validando dados dos campos - ALR
             switch ($check["field"]) {
                 
                 case 'cnpj_cpf':
