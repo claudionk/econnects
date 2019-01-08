@@ -235,28 +235,37 @@ class Produto_Parceiro_Plano_Model extends MY_Model
      * @param $data_base
      */
 
-    public function getInicioFimVigencia($produto_parceiro_plano_id, $data_base = null, $cotacao_salva = null)
+    public function getInicioFimVigencia($produto_parceiro_plano_id, $data_base)
     {
+
+        $produto_parceiro_plano = $this->get($produto_parceiro_plano_id);
+
+        $config = $this->db->query("SELECT
+            ppc.*
+            FROM produto_parceiro_plano ppp
+            INNER JOIN produto_parceiro pp ON (pp.produto_parceiro_id=ppp.produto_parceiro_id)
+            INNER JOIN produto_parceiro_configuracao ppc ON (ppc.produto_parceiro_id=pp.produto_parceiro_id)
+            WHERE ppp.produto_parceiro_plano_id=$produto_parceiro_plano_id"
+        )->result_array();
+        if ($config) {
+            $config = $config[0];
+        }
+
+        $apolice_vigencia_regra = false;
 
         if (empty($data_base)) {
             $data_base = date("Y-m-d");
 
             if (!empty($cotacao_salva)) {
-                $config = $this->db->query("SELECT
-                    ppc.*
-                    FROM produto_parceiro_plano ppp
-                    INNER JOIN produto_parceiro pp ON (pp.produto_parceiro_id=ppp.produto_parceiro_id)
-                    INNER JOIN produto_parceiro_configuracao ppc ON (ppc.produto_parceiro_id=pp.produto_parceiro_id)
-                    WHERE ppp.produto_parceiro_plano_id=$produto_parceiro_plano_id"
-                )->result_array();
 
                 if ($config) {
-                    $config = $config[0];
                     switch ($config["apolice_vigencia"]) {
                         case "S": //Data de Criação
-                            $data_base = date("Y-m-d");
+                            $data_base              = date("Y-m-d");
+                            $apolice_vigencia_regra = true;
                             break;
                         case "N": //Data da Nota Fiscal
+                            $apolice_vigencia_regra = true;
                             if ($cotacao_salva["nota_fiscal_data"] != "") {
                                 $data_base = $cotacao_salva["nota_fiscal_data"];
                             }
@@ -265,23 +274,65 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                             if ($cotacao_salva["nota_fiscal_data"] != "") {
                                 $data_base = $cotacao_salva["nota_fiscal_data"];
                             }
+
                             if ($cotacao_salva["data_inicio_vigencia"] != "" && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00") {
-                                $data_base = $cotacao_salva["data_inicio_vigencia"];
+                                $data_base              = $cotacao_salva["data_inicio_vigencia"];
+                                $apolice_vigencia_regra = false;
+                            } else {
+                                $apolice_vigencia_regra = true;
                             }
                             break;
                     }
 
+                    if ($apolice_vigencia_regra) {
+                        switch ($config["apolice_vigencia_regra"]) {
+                            case 'M':
+                                $d1 = new DateTime($data_base);
+                                $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
+                                $data_base = $d1->format('Y-m-d');
+                                break;
+                            default:
+                                break;
+                        }
+                    }
                 }
             }
         }
 
         $produto_parceiro_plano = $this->get($produto_parceiro_plano_id);
-        $data_base = explode('-', $data_base);
+        $data_base              = explode('-', $data_base);
 
         if (($produto_parceiro_plano['unidade_tempo'] == 'MES')) {
             $date_inicio = date('Y-m-d', mktime(0, 0, 0, $data_base[1] + $produto_parceiro_plano['inicio_vigencia'], $data_base[2], $data_base[0]));
             $data_base2  = explode('-', $date_inicio);
             $date_fim    = date('Y-m-d', mktime(0, 0, 0, $data_base2[1] + $produto_parceiro_plano['limite_vigencia'], $data_base2[2], $data_base2[0]));
+        } elseif ($produto_parceiro_plano['unidade_tempo'] == 'MES_A') {
+
+            // Adiciona os meses no INICIO da vigência
+            $d1 = new DateTime($data_base[2]."-".$data_base[1]."-".$data_base[0]);
+            $ini = (int)$produto_parceiro_plano['inicio_vigencia'];
+            $d1->add(new DateInterval("P{$ini}M"));
+            $date_inicio = $d1->format('Y-m-d');
+            $m = $d1->format('m');
+
+            // Adiciona os meses na FIM da vigência
+            $fim = (int)$produto_parceiro_plano['limite_vigencia'];
+            $date_fim = $d2 = $d1;
+            $d2->add(new DateInterval("P{$fim}M"));
+            $rem = 0;
+
+            // valida FEVEREIRO, onde o PHP add os meses com visão de dias
+            if ($d2->format('m') - $m != $fim) {
+                // volta para o último dia do mês
+                $rem = $d2->format('d');
+                $d2 = $d2->sub(new DateInterval("P{$rem}D"));
+            } else {
+                // retira um dia (-1 dia)
+                $date_fim = $d2->sub(new DateInterval("P1D"));
+            }
+
+            $date_fim = $date_fim->format('Y-m-d');
+
         } elseif ($produto_parceiro_plano['unidade_tempo'] == 'ANO') {
             $date_inicio = date('Y-m-d', mktime(0, 0, 0, $data_base[1], $data_base[2], $data_base[0] + $produto_parceiro_plano['inicio_vigencia']));
             $data_base2  = explode('-', $date_inicio);
@@ -324,7 +375,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                         break;
                 }
 
-                $d = app_date_get_diff_mysql($data, date('Y-m-d'), $base);
+                $d = app_date_get_diff($data, date('Y-m-d'), $base);
                 if ($d > $result['limite_tempo']) {
                     return "O plano {$result['nome']} requer que o Equipamento tenha um prazo máximo de uso de {$result['limite_tempo']} {$desc}";
                 }
