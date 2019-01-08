@@ -60,8 +60,8 @@ Class Cotacao_Model extends MY_Model
 
     public function get_cotacao_produto($cotacao_id){
 
-
         $cotacao = $this->with_produto_parceiro()->get($cotacao_id);
+        if (empty($cotacao)) return null;
 
         $produto_slug = $cotacao['produto_slug'];
         switch ($produto_slug) {

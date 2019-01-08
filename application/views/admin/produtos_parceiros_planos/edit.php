@@ -140,6 +140,9 @@ if($_POST)
                                                                 <option name="" value="MES"
                                                                     <?php if(isset($row)){if($row[$field_name] == 'MES') {echo " selected ";};}; ?> >Mês
                                                                 </option>
+                                                                <option name="" value="MES_A"
+                                                                    <?php if(isset($row)){if($row[$field_name] == 'MES_A') {echo " selected ";};}; ?> >Mês (-1 dia)
+                                                                </option>
                                                                 <option name="" value="ANO"
                                                                     <?php if(isset($row)){if($row[$field_name] == 'ANO') {echo " selected ";};}; ?> >Ano
                                                                 </option>
