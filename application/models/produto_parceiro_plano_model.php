@@ -299,8 +299,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             }
         }
 
-        $produto_parceiro_plano = $this->get($produto_parceiro_plano_id);
-        $data_base              = explode('-', $data_base);
+        $data_base = explode('-', $data_base);
 
         if (($produto_parceiro_plano['unidade_tempo'] == 'MES')) {
             $date_inicio = date('Y-m-d', mktime(0, 0, 0, $data_base[1] + $produto_parceiro_plano['inicio_vigencia'], $data_base[2], $data_base[0]));

@@ -309,6 +309,63 @@ function app_date_get_diff_mysql($d1, $d2, $type=''){
         return 0;
     }
 
+}
+
+function app_date_get_diff($d1, $d2, $type=''){
+
+    if(!empty($d1) && !empty($d2)) {
+
+        $date1 = explode('-', $d1);
+        $date2 = explode('-', $d2);
+
+        $ano = $date1[0];
+        $QtdeBissexto = 0;
+        while ($ano <= $date2[0]) {
+            $bissexto = date('L', mktime(0, 0, 0, 1, 1, $ano-1));
+            if ($bissexto) $QtdeBissexto++;
+            $ano++;
+        }
+
+        $dif = date_diff(
+            date_create($d2),  
+            date_create($d1)
+        );
+
+        $years = $dif->format('%y');
+        $months = $dif->format('%m');
+        $days = $dif->format('%a');
+        $dd = $days - ((365*$years) + $QtdeBissexto);
+        $hours = $dif->format('%h');
+        $minutes = $dif->format('%i');
+        $seconds = $dif->format('%s');
+
+        $type = strtoupper($type);
+        switch ($type)
+        {
+            case 'Y':
+                $X = $years;
+                break;
+            case 'M':
+                $X = (12 * $years) + $months + ($dd > 0 ? 1 : 0);
+                break;
+            case 'D':
+                $X = $days;
+                break;
+            case 'H':
+                $X = $hours;
+                break;
+            case 'I':
+                $X = $minutes;
+                break;
+            default:
+                $X = $seconds;
+        }
+
+        return $X;
+    }else{
+        return 0;
+    }
+
 
 }
 

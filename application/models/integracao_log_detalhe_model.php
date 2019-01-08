@@ -69,9 +69,10 @@ Class Integracao_Log_Detalhe_Model extends MY_Model
         ->where_in("{$this->_table}.deletado", 0)
         ->where_in("{$this->_table}.chave", $chave)
         ->where_in("{$this->_table}.integracao_log_status_id", 4)
-        ->where_in("integracao_log_detalhe_dados.tipo_transacao", $tipo_transacao)
+        ->where_in("integracao_log_detalhe_dados.tipo_transacao", $tipo_transacao);
 
         $process = $this->get_all();
+
         return ($process) ? $process : array();
     }
 

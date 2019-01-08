@@ -1446,67 +1446,15 @@ Class Pedido_Model extends MY_Model
 
         $this->_database->join("
         (
-        SELECT chave_emi, Recebido
-            , Processado
-            , CTA_Enviado
-            , IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL AND CTA_Retorno IS NULL, CTA_Enviado, NULL) AS CTA_Ag_Retorno
-            , IF(CTA_Enviado IS NOT NULL, CTA_Retorno_ok, NULL) AS CTA_Retorno_ok
-            , IF(CTA_Retorno_ok IS NULL, CTA_Retorno, NULL) AS CTA_Retorno_erro
-            , num_apolice
-
-        FROM (
-            SELECT chave_emi
-                , Recebido, Processado
-                , maxDate( ctaEmissao(chave_emi, 0), ctaCliente(cliente_id, 0), 1 ) as CTA_Enviado
-                , maxDate( ctaEmissao(chave_emi, 4), ctaCliente(cliente_id, 4), 1 ) as CTA_Retorno_ok
-                , maxDate( ctaEmissao(chave_emi, 5), ctaCliente(cliente_id, 5), 0 ) as CTA_Retorno
-                
-                , processamento_inicio, nome_arquivo
-                , tipo_transacao
-                , desc_transacao
+            SELECT 
+                  CTA_Ag_Retorno
+                , CTA_Retorno_ok
+                , CTA_Retorno_erro
                 , num_apolice
-                , vigencia
-                , cpf, sexo, endereco, telefone
-                , cod_loja, cod_vendedor, cod_produto_sap, ean, marca, equipamento
-                , valor_nf, data_nf, nro_nf, premio_bruto, premio_liquido, forma_pagto, nro_parcela
-
-            FROM (
-
-                SELECT 
-                     c.cliente_id, date(ld.criacao) as Recebido
-                    , date(ld.criacao) as Processado
-                    , concat(a.num_apolice, '|', IF(dd.tipo_transacao = 'NS', '01', IF(dd.tipo_transacao IN('XS','XX'), '02', '00'))) as chave_emi
-                    , l.processamento_inicio, l.nome_arquivo
-                    , dd.tipo_transacao
-                    , IF(dd.tipo_transacao = 'NS', 'EMISSAO', IF(dd.tipo_transacao IN('XS','XX'), 'CANCELAMENTO', 'OUTROS')) AS desc_transacao
-                    , ld.chave AS num_apolice
-                    , TIMESTAMPDIFF(MONTH, ae.data_ini_vigencia, ae.data_fim_vigencia) AS vigencia
-                    , ae.cnpj_cpf cpf
-                    , IF(ae.sexo='F','FEMININO','MASCULINO') AS sexo
-                    , ae.endereco_logradouro endereco, ae.contato_telefone telefone
-                    , dd.cod_loja, dd.cod_vendedor, dd.cod_produto_sap, ae.ean, dd.marca, dd.equipamento_nome equipamento
-                    , ae.nota_fiscal_valor valor_nf, ae.nota_fiscal_data data_nf, ae.nota_fiscal_numero nro_nf, ae.valor_premio_total premio_bruto
-                    , ae.valor_premio_net premio_liquido, 'COBRANÇA DE TERCEIROS' forma_pagto, 1 nro_parcela
-
-                FROM integracao_log l 
-                JOIN integracao_log_detalhe ld on l.integracao_log_id = ld.integracao_log_id
-                JOIN integracao_log_status ls on ld.integracao_log_status_id = ls.integracao_log_status_id
-                JOIN integracao_log_detalhe_dados dd on ld.integracao_log_detalhe_id = dd.integracao_log_detalhe_id
-                JOIN apolice a on ld.chave = a.num_apolice
-                JOIN pedido p on a.pedido_id = p.pedido_id
-                JOIN cotacao c on p.cotacao_id = c.cotacao_id
-                JOIN apolice_equipamento ae on a.apolice_id = ae.apolice_id
-                WHERE ld.deletado = 0
-                    AND l.deletado = 0
-                    AND l.integracao_id = 15 
-                    AND ld.integracao_log_status_id = 4
-
-            ) AS x
-        ) AS y
-        WHERE CTA_Retorno_ok IS NOT NULL
-
-        ) as cta", "cta.num_apolice = a.num_apolice or cta.num_apolice = concat('7840001',right(a.num_apolice,8)) ", "join", FALSE);
-
+                , apolice_movimentacao_tipo_id
+            FROM cta_movimentacao
+            WHERE CTA_Retorno_ok IS NOT NULL
+        ) as cta", "cta.num_apolice = a.num_apolice", "join", FALSE);
 
         $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
         $this->_database->join("usuario u", "u.usuario_id = c.usuario_cotacao_id", "left");
@@ -1710,131 +1658,59 @@ Class Pedido_Model extends MY_Model
         SUM(IF(apolice_status_id = 2, IFNULL(pro_labore,0), 0)) AS C_pro_labore, 
         SUM(IF(apolice_status_id = 2, IFNULL(valor_comissao,0), 0)) AS C_valor_comissao
         FROM (
-        SELECT 
-        ppp.nome as planos,
-        pp.cod_tpa,
-        pedido.pedido_id,
-        cta.tipo_transacao as apolice_status_id,
-        (
-        SELECT SUM(FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2))
-        FROM apolice_cobertura ac 
-        INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
-        INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-        WHERE ac.apolice_id = a.apolice_id
-        LIMIT 1
-        ) AS PB, (
-        SELECT SUM(FORMAT(ac.valor / ae.valor_premio_net * ae.pro_labore, 2))
-        FROM apolice_cobertura ac 
-        INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
-        INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-        WHERE ac.apolice_id = a.apolice_id
-        LIMIT 1
-        ) AS IOF, (
-        SELECT SUM(ac.valor)
-        FROM apolice_cobertura ac 
-        INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
-        INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-        WHERE ac.apolice_id = a.apolice_id
-        LIMIT 1
-        ) AS PL, (
-        SELECT SUM(FORMAT(cmg.comissao / 100 * ac.valor, 2))
-        FROM apolice_cobertura ac 
-        INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
-        INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-        INNER JOIN comissao_gerada cmg ON cmg.pedido_id = ac.pedido_id
-        INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
-        WHERE cmg.pedido_id = pedido.pedido_id AND parc_com.parceiro_tipo_id = 3
-        LIMIT 1
-        ) AS pro_labore, (
-        SELECT SUM(FORMAT(cmg.comissao / 100 * ac.valor, 2))
-        FROM apolice_cobertura ac 
-        INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
-        INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
-        INNER JOIN comissao_gerada cmg ON cmg.pedido_id = ac.pedido_id
-        INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
-        WHERE cmg.pedido_id = pedido.pedido_id AND parc_com.parceiro_tipo_id = 2
-        LIMIT 1
-        ) AS valor_comissao
-        FROM `pedido`
-        INNER JOIN `pedido_status` ps ON `ps`.`pedido_status_id` = `pedido`.`pedido_status_id`
-        INNER JOIN `apolice` a ON `a`.`pedido_id` = `pedido`.`pedido_id`
-        INNER JOIN `cotacao` c ON `c`.`cotacao_id` = `pedido`.`cotacao_id`
-        INNER JOIN `cotacao_status` cs ON `cs`.`cotacao_status_id` = `c`.`cotacao_status_id`
-        INNER JOIN `cotacao_equipamento` ce ON `ce`.`cotacao_id` = `pedido`.`cotacao_id` and ce.deletado = 0
-        INNER JOIN `produto_parceiro` pp ON `pp`.`produto_parceiro_id` = `c`.`produto_parceiro_id`
-        INNER JOIN `parceiro` p ON `p`.`parceiro_id` = `pp`.`parceiro_id`
-        INNER JOIN `parceiro` parc ON `parc`.`parceiro_id` = `a`.`parceiro_id`
-        INNER JOIN `produto` pr ON `pr`.`produto_id` = `pp`.`produto_id`
-        INNER JOIN `apolice_equipamento` ae ON `ae`.`apolice_id` = `a`.`apolice_id` and ae.deletado = 0
-        INNER JOIN `cliente` cli ON cli.cliente_id = c.cliente_id
-        LEFT JOIN `equipamento_categoria` ec ON `ec`.`equipamento_categoria_id` = `ae`.`equipamento_categoria_id`
-        LEFT JOIN `equipamento_marca` em ON `em`.`equipamento_marca_id` = `ae`.`equipamento_marca_id`
-        INNER JOIN `produto_parceiro_plano` ppp ON `ppp`.`produto_parceiro_plano_id` = `ce`.`produto_parceiro_plano_id`
-        LEFT JOIN `localidade_estado` le ON `le`.`localidade_estado_id` = `p`.`localidade_estado_id`
-        LEFT JOIN `usuario` u ON `u`.`usuario_id` = `c`.`usuario_cotacao_id`
+            SELECT 
+            ppp.nome as planos,
+            pp.cod_tpa,
+            pedido.pedido_id,
+            a.num_apolice,
+            cta.apolice_movimentacao_tipo_id as apolice_status_id
+            , IF(pr.slug = 'equipamento', ae.valor_premio_total, ag.valor_premio_total) AS PB
+            , IF(pr.slug = 'equipamento', ae.pro_labore, ag.pro_labore) AS IOF
+            , IF(pr.slug = 'equipamento', ae.valor_premio_net, ag.valor_premio_net) AS PL
+            , (
+                SELECT SUM(FORMAT(cmg.comissao / 100 * IF(pr.slug = 'equipamento', ae.valor_premio_net, ag.valor_premio_net), 2))
+                FROM apolice_cobertura ac 
+                INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+                INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+                INNER JOIN comissao_gerada cmg ON cmg.pedido_id = ac.pedido_id
+                INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
+                WHERE cmg.pedido_id = pedido.pedido_id AND parc_com.parceiro_tipo_id = 3
+            ) AS pro_labore, (
+                SELECT SUM(FORMAT(cmg.comissao / 100 * IF(pr.slug = 'equipamento', ae.valor_premio_net, ag.valor_premio_net), 2))
+                FROM apolice_cobertura ac 
+                INNER JOIN cobertura_plano cp on ac.cobertura_plano_id = cp.cobertura_plano_id
+                INNER JOIN cobertura cb on cb.cobertura_id = cp.cobertura_id
+                INNER JOIN comissao_gerada cmg ON cmg.pedido_id = ac.pedido_id
+                INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
+                WHERE cmg.pedido_id = pedido.pedido_id AND parc_com.parceiro_tipo_id = 2
+            ) AS valor_comissao
+            FROM `pedido`
+            INNER JOIN `pedido_status` ps ON `ps`.`pedido_status_id` = `pedido`.`pedido_status_id`
+            INNER JOIN `apolice` a ON `a`.`pedido_id` = `pedido`.`pedido_id`
+            INNER JOIN `cotacao` c ON `c`.`cotacao_id` = `pedido`.`cotacao_id`
+            INNER JOIN `cotacao_status` cs ON `cs`.`cotacao_status_id` = `c`.`cotacao_status_id`
+            LEFT JOIN `cotacao_equipamento` ce ON `ce`.`cotacao_id` = `pedido`.`cotacao_id` and ce.deletado = 0
+            LEFT JOIN `cotacao_generico` cg ON `cg`.`cotacao_id` = `pedido`.`cotacao_id` and cg.deletado = 0
+            INNER JOIN `produto_parceiro` pp ON `pp`.`produto_parceiro_id` = `c`.`produto_parceiro_id`
+            INNER JOIN `parceiro` p ON `p`.`parceiro_id` = `pp`.`parceiro_id`
+            INNER JOIN `parceiro` parc ON `parc`.`parceiro_id` = `a`.`parceiro_id`
+            INNER JOIN `produto` pr ON `pr`.`produto_id` = `pp`.`produto_id`
+            INNER JOIN `produto_parceiro_plano` ppp ON `ppp`.`produto_parceiro_plano_id` = IF(pr.slug = 'equipamento', `ce`.`produto_parceiro_plano_id`, `cg`.`produto_parceiro_plano_id`)
+            INNER JOIN `cliente` cli ON cli.cliente_id = c.cliente_id
 
-        INNER JOIN (
-            SELECT chave_emi, Recebido
-            , IF(tipo_transacao = 'NS', 1, 2) as tipo_transacao
-            , Processado
-            , CTA_Enviado
-            , IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL AND CTA_Retorno IS NULL, CTA_Enviado, NULL) AS CTA_Ag_Retorno
-            , IF(CTA_Enviado IS NOT NULL, CTA_Retorno_ok, NULL) AS CTA_Retorno_ok
-            , IF(CTA_Retorno_ok IS NULL, CTA_Retorno, NULL) AS CTA_Retorno_erro
-            , num_apolice
+            LEFT JOIN `apolice_equipamento` ae ON `ae`.`apolice_id` = `a`.`apolice_id` and ae.deletado = 0
+            LEFT JOIN `apolice_generico` ag ON `ag`.`apolice_id` = `a`.`apolice_id` and ag.deletado = 0
 
-        FROM (
-            SELECT chave_emi
-                , Recebido, Processado
-                , maxDate( ctaEmissao(chave_emi, 0), ctaCliente(cliente_id, 0), 1 ) as CTA_Enviado
-                , maxDate( ctaEmissao(chave_emi, 4), ctaCliente(cliente_id, 4), 1 ) as CTA_Retorno_ok
-                , maxDate( ctaEmissao(chave_emi, 5), ctaCliente(cliente_id, 5), 0 ) as CTA_Retorno
-                
-                , processamento_inicio, nome_arquivo
-                , tipo_transacao
-                , desc_transacao
-                , num_apolice
-                , vigencia
-                , cpf, sexo, endereco, telefone
-                , cod_loja, cod_vendedor, cod_produto_sap, ean, marca, equipamento
-                , valor_nf, data_nf, nro_nf, premio_bruto, premio_liquido, forma_pagto, nro_parcela
-
-            FROM (
-
+            INNER JOIN (
                 SELECT 
-                     c.cliente_id, date(ld.criacao) as Recebido
-                    , date(ld.criacao) as Processado
-                    , concat(a.num_apolice, '|', IF(dd.tipo_transacao = 'NS', '01', IF(dd.tipo_transacao IN('XS','XX'), '02', '00'))) as chave_emi
-                    , l.processamento_inicio, l.nome_arquivo
-                    , dd.tipo_transacao
-                    , IF(dd.tipo_transacao = 'NS', 'EMISSAO', IF(dd.tipo_transacao IN('XS','XX'), 'CANCELAMENTO', 'OUTROS')) AS desc_transacao
-                    , ld.chave AS num_apolice
-                    , TIMESTAMPDIFF(MONTH, ae.data_ini_vigencia, ae.data_fim_vigencia) AS vigencia
-                    , ae.cnpj_cpf cpf
-                    , IF(ae.sexo='F','FEMININO','MASCULINO') AS sexo
-                    , ae.endereco_logradouro endereco, ae.contato_telefone telefone
-                    , dd.cod_loja, dd.cod_vendedor, dd.cod_produto_sap, ae.ean, dd.marca, dd.equipamento_nome equipamento
-                    , ae.nota_fiscal_valor valor_nf, ae.nota_fiscal_data data_nf, ae.nota_fiscal_numero nro_nf, ae.valor_premio_total premio_bruto
-                    , ae.valor_premio_net premio_liquido, 'COBRANÇA DE TERCEIROS' forma_pagto, 1 nro_parcela
-
-                FROM integracao_log l 
-                JOIN integracao_log_detalhe ld on l.integracao_log_id = ld.integracao_log_id
-                JOIN integracao_log_status ls on ld.integracao_log_status_id = ls.integracao_log_status_id
-                JOIN integracao_log_detalhe_dados dd on ld.integracao_log_detalhe_id = dd.integracao_log_detalhe_id
-                JOIN apolice a on ld.chave = a.num_apolice
-                JOIN pedido p on a.pedido_id = p.pedido_id
-                JOIN cotacao c on p.cotacao_id = c.cotacao_id
-                JOIN apolice_equipamento ae on a.apolice_id = ae.apolice_id
-                WHERE ld.deletado = 0
-                    AND l.deletado = 0
-                    AND l.integracao_id = 15 
-                    AND ld.integracao_log_status_id = 4
-
-            ) AS x
-        ) AS y
-        WHERE CTA_Retorno_ok IS NOT NULL 
-
-        ) as cta ON (cta.num_apolice = a.num_apolice or cta.num_apolice = concat('7840001',right(a.num_apolice,8)))
+                      CTA_Ag_Retorno
+                    , CTA_Retorno_ok
+                    , CTA_Retorno_erro
+                    , num_apolice
+                    , apolice_movimentacao_tipo_id
+                FROM cta_movimentacao
+                WHERE CTA_Retorno_ok IS NOT NULL
+        ) as cta ON cta.num_apolice = a.num_apolice
 
         WHERE `parc`.`slug` IN('".$slug."')
         AND `cs`.`slug` = 'finalizada'

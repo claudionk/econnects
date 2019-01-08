@@ -784,16 +784,17 @@ if ( ! function_exists('app_integracao_valida_regras'))
             $now = new DateTime(date('Y-m-d'));
 
             // VIGÊNCIA
-            if (empty($dados["nota_fiscal_data"])){
-                $errors[] = ['id' => 4, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser obrigatório", 'slug' => "nota_fiscal_data"];
+            if (empty($dados["data_adesao_cancel"])){
+                $errors[] = ['id' => 4, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser obrigatório", 'slug' => "data_adesao_cancel"];
             } else {
-                $d1 = new DateTime($dados["nota_fiscal_data"]);
+                $d1 = new DateTime($dados["data_adesao_cancel"]);
+                $d2 = $d1->format('Y-m-d');
                 $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
                 $dados["data_inicio_vigencia"] = $d1->format('Y-m-d');
 
                 // Período de Vigência: 12 meses
                 $diff = $now->diff($d1);
-                if ($diff->m >= 12 && $diff->d > 0) {
+                if ($d2 < date("Y-m-d", strtotime("-1 year"))) {
                     $errors[] = ['id' => 5, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser inferior ou igual à 12 meses", 'slug' => "nota_fiscal_data"];
                 }
             }
@@ -953,6 +954,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
 
                 $fields['produto_parceiro_id'] = $dados['produto_parceiro_id'];
                 $fields['produto_parceiro_plano_id'] = $dados['produto_parceiro_plano_id'];
+                $fields['data_adesao'] = $dados['data_adesao_cancel'];
                 $fields['equipamento_nome'] = $dados['equipamento_nome'];
                 if (!empty($dados['equipamento_marca_id']))
                     $fields['equipamento_marca_id'] = $dados['equipamento_marca_id'];
@@ -1170,9 +1172,6 @@ if ( ! function_exists('app_integracao_apolice')) {
     function app_integracao_apolice($formato, $dados = array())
     {
         $num_apolice = $dados['registro']['num_apolice'];
-        if (!is_numeric($num_apolice))
-            return $num_apolice;
-
         $num_apolice_aux = $dados['registro']['cod_sucursal'] . $dados['registro']['cod_ramo'] . $dados['registro']['cod_tpa'];
         $num_apolice_aux .= str_pad(substr($num_apolice, 7, 8), 8, '0', STR_PAD_LEFT);
 
