@@ -73,6 +73,10 @@ class Pagamento extends CI_Controller {
 
     $result = array();
     $cotacao = $this->cotacao->get_by_id( $cotacao_id );
+    if (empty($cotacao)) {
+       die( json_encode( array( "status" => false, "message" => "Não foi encontrada a cotacao_id $cotacao_id" ) ) );
+    }
+
     $produto_parceiro_id = $cotacao["produto_parceiro_id"];
     $produto = $this->current_model->with_produto()->get($produto_parceiro_id);
 
@@ -409,6 +413,10 @@ class Pagamento extends CI_Controller {
     $this->load->model("pedido_model", "pedido");
 
     $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
+    if (empty($cotacao)) {
+       die( json_encode( array( "status" => false, "message" => "Não foi encontrada a cotacao_id $cotacao_id" ) ) );
+    }
+
     switch ($cotacao["produto_slug"]) {
       case "seguro_viagem":
         $valor_total = $this->cotacao_seguro_viagem->getValorTotal( $cotacao_id );
