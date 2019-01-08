@@ -280,7 +280,7 @@ Class Produto_Parceiro_Plano_Model extends MY_Model
             break;
         }
 
-        $d = app_date_get_diff_mysql($data, date('Y-m-d'), $base);
+        $d = app_date_get_diff($data, date('Y-m-d'), $base);
         if ($d > $result['limite_tempo'])
           return "O plano {$result['nome']} requer que o Equipamento tenha um prazo máximo de uso de {$result['limite_tempo']} {$desc}";
 
