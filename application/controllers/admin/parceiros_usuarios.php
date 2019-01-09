@@ -47,7 +47,6 @@ class Parceiros_Usuarios extends Admin_Controller
         $this->template->set_breadcrumb("Ramos", base_url("$this->controller_uri/index"));
 
 
-
         //Inicializa tabela
         $config['base_url'] = base_url("$this->controller_uri/index");
         $config['uri_segment'] = 5;
@@ -57,6 +56,10 @@ class Parceiros_Usuarios extends Admin_Controller
 
         //Carrega dados para a página
         $data = array();
+        $data['niveis'] = array();
+        foreach ( $this->niveis->get_all() as $key => $value) {
+            $data['niveis'][ $value["usuario_acl_tipo_id"] ] = $value["nome"] ;
+        }
         $data['rows'] = $this->current_model->limit($config['per_page'], $offset)->filter_by_parceiro($parceiro_id)->get_all();
         $data['primary_key'] = $this->current_model->primary_key();
         $data["pagination_links"] = $this->pagination->create_links();
