@@ -42,8 +42,8 @@
                             <tr>
                                 <th width="30%">Nome</th>
                                 <th width="20%">E-mail</th>
-                                <th width="10%">Telefone</th>
-                                <th width="10%">Celular</th>
+                                <th width="10%">Tipo de Acesso</th>
+                                <th width="10%">Telefones</th>
                                 <th width="10%">Ativo</th>
                                 <th class="center" width='20%'>Ações</th>
                             </tr>
@@ -61,8 +61,8 @@
 
                                 <td><?php echo $row['nome'];?></td>
                                 <td><?php echo $row['email'];?></td>
-                                <td><?php echo app_format_telefone($row['telefone']);?></td>
-                                <td><?php echo app_format_telefone($row['celular']);?></td>
+                                <td><?php echo ( isset( $niveis[ $row['usuario_acl_tipo_id'] ] ) ? $niveis[ $row['usuario_acl_tipo_id'] ] : "--" ) ;?></td>
+                                <td><?php echo app_format_telefone($row['telefone'])." " .app_format_telefone($row['celular']);?></td>
                                 <td><?php echo (app_format_telefone($row['ativo']) == '1') ? 'Sim' : 'Não'; ?></td>
                                 <td class="center">
                                     <a href="<?php echo base_url("admin/produto_parceiro_usuario/index/{$row[$primary_key]}/{$parceiro_id}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Comissão </a>
