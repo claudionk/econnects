@@ -1126,7 +1126,6 @@ Class Integracao_Model extends MY_Model
 
     function app_integracao_apolice_revert($num_apolice_custom, $cod_tpa){
 
-        // marca o registro como erro (5) para que possa ser corrigido manualmente (6) e depois feito um novo envio (3)
         $sql = "
             SELECT 
                 a.num_apolice
