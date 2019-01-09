@@ -894,7 +894,7 @@ Class Integracao_Model extends MY_Model
     private function trataRetorno($txt) {
         $txt = mb_strtoupper(trim($txt), 'UTF-8');
         $txt = app_remove_especial_caracteres($txt);
-        $txt = preg_replace("/[^ |A-Z|\d|\[|\,|\.|\-|\]|\\|\/]+/", "", $txt);
+        $txt = preg_replace("/[^ |A-Z|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
         $txt = preg_replace("/\s{2,3000}/", "", $txt);
         $txt = preg_replace("/[\\|\/]/", "-", $txt);
         return $txt;
