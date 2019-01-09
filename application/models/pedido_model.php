@@ -1272,7 +1272,7 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("comissao_gerada cmg", "cmg.pedido_id = {$this->_table}.pedido_id AND cmg.parceiro_id = p.parceiro_id", "left");
 
         // colaborador só visualiza os próprios pedidos
-        if ( $this->session->userdata('usuario_acl_tipo_id') == 2 ) {
+        if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
             $this->_database->where("c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}");
         }
 
@@ -1460,7 +1460,7 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("usuario u", "u.usuario_id = c.usuario_cotacao_id", "left");
 
         // colaborador só visualiza os próprios pedidos
-        if ( $this->session->userdata('usuario_acl_tipo_id') == 2 ) {
+        if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
             $this->_database->where("c.usuario_cotacao_id", $this->session->userdata('usuario_id'));
         }
 
@@ -1597,7 +1597,7 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("usuario u", "u.usuario_id = c.usuario_cotacao_id", "left");
 
         // colaborador só visualiza os próprios pedidos
-        if ( $this->session->userdata('usuario_acl_tipo_id') == 2 ) {
+        if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
             $this->_database->where("c.usuario_cotacao_id", $this->session->userdata('usuario_id'));
         }
 
@@ -1632,7 +1632,7 @@ Class Pedido_Model extends MY_Model
         if (!empty($where)) $where = " AND {$where}";
 
         // colaborador só visualiza os próprios pedidos
-        if ( $this->session->userdata('usuario_acl_tipo_id') == 2 ) {
+        if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
             $where .= " AND c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}";
         }
 
@@ -1738,7 +1738,7 @@ Class Pedido_Model extends MY_Model
         if (!empty($where)) $where = " AND {$where}";
 
         // colaborador só visualiza os próprios pedidos
-        if ( $this->session->userdata('usuario_acl_tipo_id') == 2 ) {
+        if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
             $where .= " AND c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}";
         }
 
@@ -2256,5 +2256,10 @@ Class Pedido_Model extends MY_Model
             $this->pedido_transacao->insStatus( $pedido_id, "Aguardando_pagamento" );
         }
 
+    }
+
+    private function check_acl_sale_order( $usuario_acl_tipo_id = 0 ){
+        /* verifica se a acl deixa somente ver somente o proprio pedido */
+        return in_array( $usuario_acl_tipo_id , array( 2 , 11 , 13 ) ) ;
     }
 }
