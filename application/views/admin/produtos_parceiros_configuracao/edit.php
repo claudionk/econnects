@@ -209,26 +209,30 @@ Não
 
                                     <?php $field_name = 'apolice_vigencia';?>
                                     <div class="radio radio-styled">
-                                      <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Início da Vigência *</label>
-                                      <label class="radio-inline radio-styled radio-primary">
-                                        <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                               value="C" <?php if (isset($row[$field_name]) && $row[$field_name] == 'C') echo 'checked="checked"'; ?> />
-                                        <span>Calculado pelo Sistema</span>
-                                      </label>
-                                      <label class="radio-inline radio-styled radio-primary">
-                                        <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                               value="S" <?php if (isset($row[$field_name]) && $row[$field_name] == 'S') echo 'checked="checked"'; ?> />
-                                        <span>Data de Criação</span>
-                                      </label>
+                                      <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Data Base para Início da Vigência *</label>
+                                      <div class="col-md-4">
+                                        <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
+                                          <option value="">Selecione</option>
+                                          <option value="S" <?php if(isset($row[$field_name])){if($row[$field_name] == 'S') {echo " selected ";};}; ?> >Data de Criação</option>
+                                          <option value="N" <?php if(isset($row[$field_name])){if($row[$field_name] == 'N') {echo " selected ";};}; ?> >Data da Nota Fiscal</option>
+                                          <option value="E" <?php if(isset($row[$field_name])){if($row[$field_name] == 'E') {echo " selected ";};}; ?> >Específica (Somente via API)</option>
+                                        </select>
+                                      </div>
+                                    </div>
+                                    <br>
+
+                                    <?php $field_name = 'apolice_vigencia_regra';?>
+                                    <div class="radio radio-styled">
+                                      <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Regra para Início da Vigência *</label>
                                       <label class="radio-inline radio-styled radio-primary">
                                         <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
                                                value="N" <?php if (isset($row[$field_name]) && $row[$field_name] == 'N') echo 'checked="checked"'; ?> />
-                                        <span>Data da Nota Fiscal</span>
+                                        <span>Não possui</span>
                                       </label>
                                       <label class="radio-inline radio-styled radio-primary">
                                         <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                               value="E" <?php if (isset($row[$field_name]) && $row[$field_name] == 'E') echo 'checked="checked"'; ?> />
-                                        <span>Específica (Somente via API)</span>
+                                               value="M" <?php if (isset($row[$field_name]) && $row[$field_name] == 'M') echo 'checked="checked"'; ?> />
+                                        <span>A partir da Meia Noite</span>
                                       </label>
                                     </div>
                                     
