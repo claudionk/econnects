@@ -1184,6 +1184,9 @@ if ( ! function_exists('app_integracao_apolice_revert')) {
     {
         $num_apolice = $dados['valor'];
 
+        if(empty($num_apolice))
+            return '';
+
         // pega o TPA e o Sequencial
         $seq = right($num_apolice, 8);
         $tpa = left(right($num_apolice, 11), 3);
