@@ -600,8 +600,9 @@ Class Integracao_Model extends MY_Model
         $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], count($registros));
         $arRet = ['file' => '', 'integracao_log_id' => $integracao_log['integracao_log_id'], 'qtde_reg' => count($registros)];
 
-        if (empty($registros))
-            return $arRet;
+        
+        // if (empty($registros))
+        //     return $arRet;
 
         //busca layout
         $query = $this->_database->query("
@@ -641,6 +642,7 @@ Class Integracao_Model extends MY_Model
             unset($layout[$idxF]);
         }
 
+
         // Trata o header
         $idxH = app_search( $layout, 'H', 'tipo' );
         if ( $idxH >= 0 ) {
@@ -672,11 +674,12 @@ Class Integracao_Model extends MY_Model
             $header = $this->getLinha($lH['dados'], $registros, $integracao_log);
             $linhas = array_merge([$header], $linhas);
         }
-
-        if (empty($linhas) || count($linhas) <= $rmQtdeLine)
-            return $arRet;
-
+       
+        // if (empty($linhas) || count($linhas) <= $rmQtdeLine)
+        //     return $arRet;
+        
         $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
+        
 
         if(!file_exists($diretorio)){
             mkdir($diretorio, 0777, true);
