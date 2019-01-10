@@ -600,8 +600,9 @@ Class Integracao_Model extends MY_Model
         $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], count($registros));
         $arRet = ['file' => '', 'integracao_log_id' => $integracao_log['integracao_log_id'], 'qtde_reg' => count($registros)];
 
-        if (empty($registros))
-            return $arRet;
+        
+        // if (empty($registros))
+        //     return $arRet;
 
         //busca layout
         $query = $this->_database->query("
@@ -641,6 +642,7 @@ Class Integracao_Model extends MY_Model
             unset($layout[$idxF]);
         }
 
+
         // Trata o header
         $idxH = app_search( $layout, 'H', 'tipo' );
         if ( $idxH >= 0 ) {
@@ -672,11 +674,12 @@ Class Integracao_Model extends MY_Model
             $header = $this->getLinha($lH['dados'], $registros, $integracao_log);
             $linhas = array_merge([$header], $linhas);
         }
-
-        if (empty($linhas) || count($linhas) <= $rmQtdeLine)
-            return $arRet;
-
+       
+        // if (empty($linhas) || count($linhas) <= $rmQtdeLine)
+        //     return $arRet;
+        
         $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
+        
 
         if(!file_exists($diretorio)){
             mkdir($diretorio, 0777, true);
@@ -800,6 +803,9 @@ Class Integracao_Model extends MY_Model
                 if (count($ids) > 1) {
                     $proc = $this->detectFileRetorno(basename($file), $ids);
                     if (!empty($proc)) $id_log = $proc['chave'];
+                } else {
+                  foreach ($ids as $id_)
+                    $id_log = $id_;
                 }
 
                 $data_row['id_log'] = $id_log;
@@ -894,7 +900,7 @@ Class Integracao_Model extends MY_Model
     private function trataRetorno($txt) {
         $txt = mb_strtoupper(trim($txt), 'UTF-8');
         $txt = app_remove_especial_caracteres($txt);
-        $txt = preg_replace("/[^ |A-Z|\d|\[|\,|\.|\-|\]|\\|\/]+/", "", $txt);
+        $txt = preg_replace("/[^ |A-Z|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
         $txt = preg_replace("/\s{2,3000}/", "", $txt);
         $txt = preg_replace("/[\\|\/]/", "-", $txt);
         return $txt;
@@ -1123,7 +1129,6 @@ Class Integracao_Model extends MY_Model
 
     function app_integracao_apolice_revert($num_apolice_custom, $cod_tpa){
 
-        // marca o registro como erro (5) para que possa ser corrigido manualmente (6) e depois feito um novo envio (3)
         $sql = "
             SELECT 
                 a.num_apolice

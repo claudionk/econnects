@@ -1178,11 +1178,14 @@ if ( ! function_exists('app_integracao_apolice')) {
         return $num_apolice_aux;
     }
 }
-/*
+
 if ( ! function_exists('app_integracao_apolice_revert')) {
     function app_integracao_apolice_revert($formato, $dados = array())
     {
         $num_apolice = $dados['valor'];
+
+        if(empty($num_apolice))
+            return '';
 
         // pega o TPA e o Sequencial
         $seq = right($num_apolice, 8);
@@ -1198,15 +1201,10 @@ if ( ! function_exists('app_integracao_apolice_revert')) {
         return $result[0]['num_apolice'];
     }
 }
-*/
+/*
 if ( ! function_exists('app_integracao_apolice_revert')) {
     function app_integracao_apolice_revert($formato, $dados = array())
     {
-        /*
-        $num_apolice = $dados['valor'];
-        return "7840001".right($num_apolice, 8);
-        */
-        
         $dados = $dados['valor'];
         $cod_tpa = substr($dados,4,3);
         $num_apolice_custom = substr($dados,-8);
@@ -1215,7 +1213,7 @@ if ( ! function_exists('app_integracao_apolice_revert')) {
         return $CI->integracao_model->app_integracao_apolice_revert($num_apolice_custom, $cod_tpa);
     }
 }
-
+*/
 
 
 
@@ -1233,7 +1231,7 @@ if ( ! function_exists('app_integracao_id_transacao_canc')) {
         $id_transacao = '';
         if ($dados['registro']['cod_motivo_cobranca'] == '02') {
             $id_transacao = app_integracao_apolice($formato, $dados);
-            $id_transacao .= $dados['registro']['num_endosso'].$dados['registro']['cod_ramo'].$dados['registro']['num_parcela'];
+            $id_transacao .= "0".$dados['registro']['cod_ramo'].$dados['registro']['num_parcela'];
         }
         return $id_transacao;
     }
