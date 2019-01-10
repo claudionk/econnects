@@ -1231,7 +1231,7 @@ if ( ! function_exists('app_integracao_id_transacao_canc')) {
         $id_transacao = '';
         if ($dados['registro']['cod_motivo_cobranca'] == '02') {
             $id_transacao = app_integracao_apolice($formato, $dados);
-            $id_transacao .= $dados['registro']['num_endosso'].$dados['registro']['cod_ramo'].$dados['registro']['num_parcela'];
+            $id_transacao .= "0".$dados['registro']['cod_ramo'].$dados['registro']['num_parcela'];
         }
         return $id_transacao;
     }
