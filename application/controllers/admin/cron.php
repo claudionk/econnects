@@ -289,7 +289,7 @@ class Cron extends Admin_Controller
     public function cenario_cta()
     {
         $this->load->model('cta_movimentacao_model', 'cta_movimentacao');
-        $cta_movimentacao->run();
+        $this->cta_movimentacao->run();
     }
 
 }
