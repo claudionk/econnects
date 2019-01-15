@@ -191,7 +191,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         if($coberturas_adicionais){
             foreach ($coberturas_adicionais as $coberturas_adicional) {
                 $cobertura = explode(';', $coberturas_adicional);
-                $vigencia = $this->plano->getInicioFimVigencia($cobertura[0], $cotacao['nota_fiscal_data']);
+                $vigencia = $this->plano->getInicioFimVigencia($cobertura[0], null, $cotacao);
 
                 $valor = $this->getValorCoberturaAdicional($cobertura[0], $cobertura[1], $vigencia['dias']);
                 $valores_cobertura_adicional_total[$cobertura[0]] = (isset($valores_cobertura_adicional_total[$cobertura[0]])) ? ($valores_cobertura_adicional_total[$cobertura[0]] + $valor) : $valor;

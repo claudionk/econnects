@@ -353,7 +353,6 @@ class Emissao extends CI_Controller {
                 if($parametros->{"status"})
                 {
                     // Montando os dados - $this->campos_estrutura
-                    $this->campos_estrutura["data_inicio_vigencia"] = '0000-00-00';
                     $url = base_url() ."api/cotacao/contratar";
                     $obj = new Api();
                     $r = $obj->execute($url, 'POST', json_encode($this->campos_estrutura));

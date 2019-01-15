@@ -235,7 +235,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
      * @param $data_base
      */
 
-    public function getInicioFimVigencia($produto_parceiro_plano_id, $data_base)
+    public function getInicioFimVigencia($produto_parceiro_plano_id, $data_base = null, $cotacao_salva = null)
     {
 
         $produto_parceiro_plano = $this->get($produto_parceiro_plano_id);

@@ -218,7 +218,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                     } elseif( $produto_slug == 'generico' || $produto_slug == 'seguro_saude' ) {
 
-                        $vigencia = $this->plano->getInicioFimVigencia($plano['produto_parceiro_plano_id'], date('Y-m-d'));
+                        $vigencia = $this->plano->getInicioFimVigencia($plano['produto_parceiro_plano_id']);
                         $calculo = $this->getValorTabelaFixaGenerico($plano['produto_parceiro_plano_id'], $vigencia['dias'])*$quantidade;
 
                     }
