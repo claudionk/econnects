@@ -9,8 +9,6 @@
 class Produtos_Parceiros_Configuracao extends Admin_Controller
 {
 
-
-
     public function __construct()
     {
         parent::__construct();
@@ -24,12 +22,7 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
         $this->load->model('calculo_tipo_model', 'calculo_tipo');
 
-
-
-
     }
-
-
 
     public function edit($produto_parceiro_id) //Função que edita registro
     {
@@ -115,9 +108,6 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
             $data['url_venda_online'] = admin_url($url_produto);
         }
 
-
-
-
         //Caso post
         if($_POST)
         {
@@ -133,8 +123,6 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
                     $this->current_model->update_config('geral');
                 }
 
-
-
                 //Mensagem de sucesso
                 $this->session->set_flashdata('succ_msg', 'Os dados foram salvos corretamente.');
 
@@ -143,17 +131,12 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
             }
         }
 
-
         $data['produto_parceiro_id'] = $produto_parceiro_id;
         $data['produto_parceiro'] = $produto_parceiro;
-
-
-
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
-
 
     public function check_markup_relacionamento($markup)
     {
@@ -175,7 +158,6 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
             return true;
         }
 
-
     }
 
     public function check_tipo_calculo($tipo_calculo)
@@ -196,11 +178,7 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
                 $result = FALSE;
             }
 
-
         }
-        
-
-
 
         if($result === FALSE){
             $this->form_validation->set_message('check_tipo_calculo', 'O Tipo de Cálculo selecionado não aceita desconto condiciona, favor desabilite o desconto condicional.');
@@ -208,9 +186,7 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
 
         return $result;
 
-
     }
-
 
     public function check_repasse_maximo($repasse)
     {
@@ -220,7 +196,6 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
         $this->form_validation->set_message('check_repasse_maximo', 'O Campo Repasse máximo deve ser inferior ou igual do que o campo Comissão');
 
         $comissao = $this->input->post('comissao');
-
 
         $repasse = app_unformat_currency($repasse);
         $comissao = app_unformat_currency($comissao);
