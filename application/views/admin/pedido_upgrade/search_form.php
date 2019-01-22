@@ -11,7 +11,7 @@
         <div id="accordion1-1" class="collapse <?php if($_GET) echo 'in'?>" aria-expanded="false" style="height: 0px;">
             <div class="card-body">
 
-                <form class="form-horizontal margin-none" method="get">
+                <form class="form-horizontal margin-none" method="get" id="formSearch">
 
                     <div class="row">
                         <?php $field_name = 'pedido_codigo'; $field_label = 'Pedido'; ?>
@@ -47,7 +47,7 @@
                     <!-- Form actions -->
                     <div class="col-md-12">
                         <div class="form-actions">
-                            <button type="submit" onclick="$('form').submit()" class="btn btn-primary pull-right"><i class="fa fa-search"></i> Pesquisar</button>
+                            <button type="submit" onclick="$('#formSearch').submit()" class="btn btn-primary pull-right"><i class="fa fa-search"></i> Pesquisar</button>
                         </div>
                         <br>
                     </div>
