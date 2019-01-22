@@ -864,20 +864,20 @@ Class Pedido_Model extends MY_Model
         list( $current_year , $current_month , $current_day , $current_hour , $current_minute, $current_second ) = preg_split("/[- :]/",$define_date);
         $data_cancelamento = date('Y-m-d H:i:s' , mktime($current_hour , $current_minute, $current_second, $current_month, $current_day , $current_year ) );
 
-        $valor_estorno_total = 0;
+        $valor_estorno_total = $valor_estorno_total_liquido = 0;
         $retorno = [];
-
         $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro["produto_parceiro_id"] );
 
         if($vigente == FALSE){
             foreach ($apolices as $apolice) {
-                $valor_premio = $apolice["valor_premio_total"];
-                $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento["seg_antes_calculo"], $produto_parceiro_cancelamento["seg_antes_valor"], $valor_premio);
+                $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento["seg_antes_calculo"], $produto_parceiro_cancelamento["seg_antes_valor"], $apolice["valor_premio_total"]);
+                $valor_estorno_liq = app_calculo_valor($produto_parceiro_cancelamento["seg_antes_calculo"], $produto_parceiro_cancelamento["seg_antes_valor"], $apolice["valor_premio_net"]);
 
                 $dados_apolice = array();
                 $dados_apolice['data_cancelamento'] = $data_cancelamento;
                 $dados_apolice['valor_estorno'] = $valor_estorno;
                 $valor_estorno_total += $valor_estorno;
+                $valor_estorno_total_liquido += $valor_estorno_liq;
 
                 if( $produto ) {
                     $produto_slug = $produto["produto_slug"];
@@ -891,10 +891,6 @@ Class Pedido_Model extends MY_Model
 
         }else{
             //FAZ CALCULO DO VALOR PARCIAL
-            // $apolice["data_ini_vigencia"] = '2018-01-01';
-            // $apolice["data_fim_vigencia"] = '2019-01-01';
-            // $data_cancelamento = '2018-01-30';
-
             $dias_restantes = app_date_get_diff_dias(app_dateonly_mysql_to_mask($data_cancelamento), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]), "D");
             $dias_utilizados = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
             $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]),  "D");
@@ -914,17 +910,21 @@ Class Pedido_Model extends MY_Model
                 // devolução integral
                 if ($porcento_nao_utilizado == 100) {
                     $valor_premio = $apolice['valor_premio_total'];
+                    $valor_premio_liq = $apolice['valor_premio_net'];
                 } else {
                     $valor_premio = $apolice['valor_premio_net'];
                     $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
+                    $valor_premio_liq = $valor_premio;
                 }
 
                 $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento['seg_depois_calculo'], $produto_parceiro_cancelamento['seg_depois_valor'], $valor_premio);
+                $valor_estorno_liq = app_calculo_valor($produto_parceiro_cancelamento['seg_depois_calculo'], $produto_parceiro_cancelamento['seg_depois_valor'], $valor_premio_liq);
 
                 $dados_apolice = array();
                 $dados_apolice['data_cancelamento'] = $data_cancelamento;
                 $dados_apolice['valor_estorno'] = $valor_estorno;
                 $valor_estorno_total += $valor_estorno;
+                $valor_estorno_total_liquido += $valor_estorno_liq;
 
                 if( $produto ) {
                     $produto_slug = $produto["produto_slug"];
@@ -942,6 +942,7 @@ Class Pedido_Model extends MY_Model
             'status' => (!empty($retorno)),
             'mensagem' => (!empty($retorno)) ? 'Cálculo realizado com sucesso' : 'Não foi possível realizar o cálculo para Cancelamento',
             'valor_estorno_total' => $valor_estorno_total, 
+            'valor_estorno_total_liquido' => $valor_estorno_total_liquido, 
             'dias_utilizados' => (isset($dias_utilizados)) ? $dias_utilizados : '',
             'dados' => $retorno,
         ];
@@ -991,7 +992,7 @@ Class Pedido_Model extends MY_Model
         $this->atualizarDadosBancarios($pedido_id, $dados_bancarios);
         $this->pedido_transacao->insStatus($pedido_id, 'cancelado', "PEDIDO CANCELADO COM SUCESSO");
         $this->fatura->insertFaturaEstorno($pedido_id, $calculo['valor_estorno_total']);
-        $this->apolice_cobertura->geraDadosCancelamento($pedido_id, $calculo['valor_estorno_total']);
+        $this->apolice_cobertura->geraDadosCancelamento($pedido_id, $calculo['valor_estorno_total_liquido']);
     }
 
     public function atualizarDadosBancarios($pedido_id, $dados_bancarios = []) {
