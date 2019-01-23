@@ -698,6 +698,8 @@ class Gateway extends Admin_Controller
 
       //error_log( print_r( $dados_transacao, true ) . "\n", 3, "/var/log/httpd/360.log" );
 
+      unset($dados_transacao["slug_status"]);
+
       if($erro)
       {
         $this->apolice->disparaEventoErroApolice($pedido['pedido_id']);
