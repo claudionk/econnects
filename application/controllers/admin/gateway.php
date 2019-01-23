@@ -577,7 +577,7 @@ class Gateway extends Admin_Controller
     try{
 
       log_message('debug', 'RETORNO CHAMADA WS ');
-      log_message('debug', print_r($response, true));
+      log_message('debug', print_r($Response, true));
       if($dados_transacao['result'] == "OK"){
         //$dados_transacao['result'] = 'OK';
         //$dados_transacao['message'] = 'Transação Efetuada com Sucesso';
