@@ -75,7 +75,7 @@ Class Pedido_Model extends MY_Model
 
     function getPedidosByID($pedidos){
 
-        $this->_database->select("pedido.pedido_id, pedido.pedido_status_id, pedido_status.nome as pedido_status_nome")
+        $this->_database->select("pedido.pedido_id, pedido.pedido_status_id, pedido_status.nome as pedido_status_nome, pedido_status.slug as pedido_status_slug")
         ->select("pedido.cotacao_id, pedido.codigo, pedido.codigo, pedido.valor_total, produto_parceiro.nome,  produto_parceiro.produto_parceiro_id")
         ->join("pedido_status", "pedido_status.pedido_status_id = pedido.pedido_status_id", 'inner')
         ->join("cotacao", "pedido.cotacao_id = cotacao.cotacao_id", 'inner')
@@ -433,7 +433,7 @@ Class Pedido_Model extends MY_Model
 
     public function with_pedido_status(){
 
-        return $this->with_simple_relation('pedido_status', 'pedido_status_', 'pedido_status_id', array('nome'), 'inner');
+        return $this->with_simple_relation('pedido_status', 'pedido_status_', 'pedido_status_id', array('nome','slug'), 'inner');
     }
 
     public function with_fatura(){
