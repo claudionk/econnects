@@ -71,7 +71,7 @@
                     <!-- Form actions -->
                         <br />
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Pesquisar</button>
+                            <button type="submit" class="btn btn-primary" onclick="$('#validateSubmitForm').submit()"><i class="fa fa-search"></i> Pesquisar</button>
                         </div>
                         <br />
                     </div>

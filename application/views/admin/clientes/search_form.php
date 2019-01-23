@@ -135,7 +135,7 @@
                             <BR/>
                         <div class="separator"></div>
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary"><i class="fa fa-check-circle"></i> Pesquisar</button>
+                            <button type="submit" class="btn btn-primary" onclick="$('#validateSubmitForm').submit()"><i class="fa fa-check-circle"></i> Pesquisar</button>
                         </div>
                             <BR/>
                         </div>

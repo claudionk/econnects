@@ -252,6 +252,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         }
 
         $apolice_vigencia_regra = false;
+        $data_adesao = date("Y-m-d");
 
         if (empty($data_base)) {
             $data_base = date("Y-m-d");
@@ -261,22 +262,22 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                 if ($config) {
                     switch ($config["apolice_vigencia"]) {
                         case "S": //Data de Criação
-                            $data_base              = date("Y-m-d");
+                            $data_base = $data_adesao = date("Y-m-d");
                             $apolice_vigencia_regra = true;
                             break;
                         case "N": //Data da Nota Fiscal
                             $apolice_vigencia_regra = true;
                             if ($cotacao_salva["nota_fiscal_data"] != "") {
-                                $data_base = $cotacao_salva["nota_fiscal_data"];
+                                $data_base = $data_adesao = $cotacao_salva["nota_fiscal_data"];
                             }
                             break;
                         case "E": //Especifica (Somente via API)
                             if ($cotacao_salva["nota_fiscal_data"] != "") {
-                                $data_base = $cotacao_salva["nota_fiscal_data"];
+                                $data_base = $data_adesao = $cotacao_salva["nota_fiscal_data"];
                             }
 
                             if ($cotacao_salva["data_inicio_vigencia"] != "" && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00") {
-                                $data_base              = $cotacao_salva["data_inicio_vigencia"];
+                                $data_base = $data_adesao = $cotacao_salva["data_inicio_vigencia"];
                                 $apolice_vigencia_regra = false;
                             } else {
                                 $apolice_vigencia_regra = true;
@@ -296,6 +297,11 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                         }
                     }
                 }
+
+                if (!empty($cotacao_salva["data_adesao"]) && $cotacao_salva["data_adesao"] != "0000-00-00") {
+                    $data_adesao = $cotacao_salva["data_adesao"];
+                }
+
             }
         }
 
@@ -346,6 +352,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             'inicio_vigencia' => $date_inicio,
             'fim_vigencia'    => $date_fim,
             'dias'            => app_date_get_diff_mysql($date_inicio, $date_fim, 'D'),
+            'data_adesao'     => $data_adesao,
         );
     }
 

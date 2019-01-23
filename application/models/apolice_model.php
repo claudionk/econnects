@@ -248,21 +248,14 @@ class Apolice_Model extends MY_Model
             $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
             $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao_salva['produto_parceiro_plano_id'], null, $cotacao_salva);
 
-            $data_adesao = date("Y-m-d");
-            if ($cotacao_salva["data_adesao"] != "" && $cotacao_salva["data_adesao"] != "0000-00-00") {
-                $data_adesao = $cotacao_salva["data_adesao"];
-            } elseif ($cotacao_salva["nota_fiscal_data"] != "" && $cotacao_salva["nota_fiscal_data"] != "0000-00-00") {
-                $data_adesao = $cotacao_salva["nota_fiscal_data"];
-            }
-
             $apolice_id                                         = $this->insert($dados_apolice, true);
             $dados_equipamento                                  = array();
             $dados_equipamento['apolice_id']                    = $apolice_id;
             $dados_equipamento['produto_parceiro_pagamento_id'] = $pedido['produto_parceiro_pagamento_id'];
             $dados_equipamento['data_ini_vigencia']             = $vigencia['inicio_vigencia'];
             $dados_equipamento['data_fim_vigencia']             = $vigencia['fim_vigencia'];
-            $dados_equipamento['data_adesao']                   = $data_adesao;
-            $dados_equipamento['data_pagamento']                = $data_adesao;
+            $dados_equipamento['data_adesao']                   = $vigencia['data_adesao'];
+            $dados_equipamento['data_pagamento']                = $vigencia['data_adesao'];
 
             $dados_equipamento['cnpj_cpf']        = $cotacao_salva['cnpj_cpf'];
             $dados_equipamento['rg']              = $cotacao_salva['rg'];
@@ -485,13 +478,6 @@ class Apolice_Model extends MY_Model
             $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
             $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($produto_parceiro_plano_id, null, $cotacao_salva);
 
-            $data_adesao = date("Y-m-d");
-            if ($cotacao_salva["data_adesao"] != "" && $cotacao_salva["data_adesao"] != "0000-00-00") {
-                $data_adesao = $cotacao_salva["data_adesao"];
-            } elseif ($cotacao_salva["nota_fiscal_data"] != "" && $cotacao_salva["nota_fiscal_data"] != "0000-00-00") {
-                $data_adesao = $cotacao_salva["nota_fiscal_data"];
-            }
-
             log_message('debug', 'VIGENCIA: ' . print_r($vigencia, true));
 
             $apolice_id                                      = $this->insert($dados_apolice, true);
@@ -500,8 +486,8 @@ class Apolice_Model extends MY_Model
             $dados_generico['produto_parceiro_pagamento_id'] = $pedido['produto_parceiro_pagamento_id'];
             $dados_generico['data_ini_vigencia']             = $vigencia['inicio_vigencia'];
             $dados_generico['data_fim_vigencia']             = $vigencia['fim_vigencia'];
-            $dados_generico['data_adesao']                   = $data_adesao;
-            $dados_generico['data_pagamento']                = $data_adesao;
+            $dados_generico['data_adesao']                   = $vigencia['data_adesao'];
+            $dados_generico['data_pagamento']                = $vigencia['data_adesao'];
 
             $dados_generico['cnpj_cpf']                = $cotacao_salva['cnpj_cpf'];
             $dados_generico['rg']                      = $cotacao_salva['rg'];
