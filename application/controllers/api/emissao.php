@@ -454,7 +454,7 @@ class Emissao extends CI_Controller {
                         }
                         else
                         {
-                            die(json_encode(array("status"=>false,"message"=>"Não foi possível realizar o pagamento"),JSON_UNESCAPED_UNICODE));
+                            die(json_encode(array("status"=>false,"message"=>"Não foi possível realizar o pagamento", "cotacao_id" => $parametros["cotacao_id"]),JSON_UNESCAPED_UNICODE));
                         }           
                     }
                     else

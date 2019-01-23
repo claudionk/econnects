@@ -323,7 +323,7 @@ class Cotacao extends CI_Controller {
         $quantidade = issetor( $POST["quantidade"] , 1);
         $repasse_comissao = issetor( $POST["repasse_comissao"] , 0);
         $desconto_condicional = issetor( $POST["desconto_condicional"] , 0);
-        $data_inicio_vigencia = issetor( $POST["data_inicio_vigencia"] , '');
+        $data_inicio_vigencia = issetor( $POST["data_inicio_vigencia"] , null);
 
         $params["cotacao_id"] = $cotacao_id;
         $params["produto_parceiro_id"] = $produto_parceiro_id;
