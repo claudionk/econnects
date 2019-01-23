@@ -422,15 +422,18 @@ class Gateway extends Admin_Controller
       $Response = $Pagmax360->createTransaction( $Pagmax360->merchantId, $Pagmax360->merchantKey, $Json, $Pagmax360->Environment );
       $Response = json_decode( $Response );
       error_log( print_r( $Response, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
-        if( isset( $Response->{"Code"} ) || sizeof( $Response ) == 0 ) {
+        if( isset( $Response->{"Code"} ) || sizeof( $Response ) == 0 || (isset( $Response->{"status"} ) && empty( $Response->{"status"} )) ) {
             $tipo_mensagem = "msg_erro";
             if( sizeof( $Response ) == 0 ) {
               $msgErro = "Processing Center Error (1)";
+            } elseif ( isset( $Response->{"status"} ) ) {
+              $msgErro = $Response->{"message"};
             } else {
               $msgErro = $Response->{"Message"} . " (" . $Response->{"Code"} . ")";
             }
             $dados_transacao["result"] = "ERRO";
             $dados_transacao["message"] = $msgErro;
+            $dados_transacao["slug_status"] = 'erro';
             //error_log( "Erro em Pagmax360->createTransaction\n", 3, "/var/log/httpd/myapp.log" );
         } 
         else {
@@ -482,6 +485,7 @@ class Gateway extends Admin_Controller
                 $dados_transacao["status"] = 1;
                 $dados_transacao["url"] = $redirect;
                 $dados_transacao["processado"] = 0;
+                $dados_transacao["slug_status"] = 'aguardando_pagamento_debito';
                 break;
               case 1:
                 //Transação autorizada
@@ -490,6 +494,7 @@ class Gateway extends Admin_Controller
                 $dados_transacao["message"] = $statusMessage;
                 $dados_transacao["status"] = 4;
                 $dados_transacao["processado"] = 0;
+                $dados_transacao["slug_status"] = 'pagamento_confirmado';
                 break;
               case 2:
                 //Transação capturada
@@ -499,6 +504,7 @@ class Gateway extends Admin_Controller
                 $dados_transacao["status"] = 6;
                 //$dados_transacao["data_processado"] = date( $Response->{"Payment"}->{"CapturedDate"} );
                 $dados_transacao["processado"] = 1;
+                $dados_transacao["slug_status"] = 'pagamento_confirmado';
                 break;
               case 3:
                 //Transação negada
@@ -507,6 +513,7 @@ class Gateway extends Admin_Controller
                 $dados_transacao["message"] = $statusMessage;
                 $dados_transacao["status"] = 5;
                 $dados_transacao["processado"] = 1;
+                $dados_transacao["slug_status"] = 'pagamento_negado';
                 break;
 
               case 10:
@@ -516,6 +523,7 @@ class Gateway extends Admin_Controller
                 $dados_transacao["status"] = 9;
                 //$dados_transacao["data_processado"] = date( $Response->{"Payment"}->{"VoidedDate"} );
                 $dados_transacao["processado"] = 1;
+                $dados_transacao["slug_status"] = 'cancelado';
                 break;
               case 11:
                 //Transação reembolsada
@@ -523,6 +531,7 @@ class Gateway extends Admin_Controller
                 $dados_transacao["message"] = $statusMessage;
                 $dados_transacao["status"] = 9;
                 $dados_transacao["processado"] = 1;
+                $dados_transacao["slug_status"] = 'cancelado_stornado';
                 break;
               case 12:
                 //Transação pendente
@@ -530,6 +539,7 @@ class Gateway extends Admin_Controller
                 $dados_transacao["message"] = $statusMessage;
                 $dados_transacao["status"] = 1;
                 $dados_transacao["processado"] = 1;
+                $dados_transacao["slug_status"] = 'aguardando_pagamento';
                 break;
               case 13:
                 //Transação abortada
@@ -537,6 +547,7 @@ class Gateway extends Admin_Controller
                 $dados_transacao["message"] = $statusMessage;
                 $dados_transacao["status"] = 5;
                 $dados_transacao["processado"] = 1;
+                $dados_transacao["slug_status"] = 'abortado';
                 break;
               case 20:
                 //Transação agendada
@@ -544,6 +555,7 @@ class Gateway extends Admin_Controller
                 $dados_transacao["message"] = $statusMessage;
                 $dados_transacao["status"] = 1;
                 $dados_transacao["processado"] = 0;
+                $dados_transacao["slug_status"] = 'aguardando_liberacao';
                 break;
             }
 
@@ -554,7 +566,7 @@ class Gateway extends Admin_Controller
       $dados_transacao['result'] = 'ERRO';
       $dados_transacao['message'] = 'Erro Acessando modulo de pagamento';
       $dados_transacao['status'] = $e->getMessage();
-
+      $dados_transacao["slug_status"] = 'erro';
     }
 
     //error_log( print_r( $dados_transacao, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
@@ -675,7 +687,7 @@ class Gateway extends Admin_Controller
         //         $erro = true;
 
         //    }else{
-        $this->pedido_transacao->insStatus($pedido['pedido_id'], 'pagamento_negado', "Transação não Efetuada");
+        $this->pedido_transacao->insStatus($pedido['pedido_id'], $dados_transacao["slug_status"], "Transação não Efetuada");
         log_message('debug', ' INSERE STATUS DO PEDIDO NEGADO');
         log_message('debug', ' ENVIANDO EMAIL APOLICE NAO GERADA PEDIDO ID ' . $pedido['pedido_id']);
         $this->apolice->disparaEventoErroApolice($pedido['pedido_id']);
@@ -713,6 +725,7 @@ class Gateway extends Admin_Controller
     $result = array();
     $result['result'] = FALSE;
     $result['status_pedido'] = '';
+    $result['status_slug'] = '';
     $result['status_id'] = '';
     $result['class_pagamento'] = 'btn-danger';
     $result['transacao_result'] = '';
@@ -739,6 +752,7 @@ class Gateway extends Admin_Controller
 
       $result['result'] = ($pedido['pedido_status_id'] == 3 || $pedido['pedido_status_id'] == 4) ? TRUE : FALSE;
       $result['status_pedido'] = $pedido['pedido_status_nome'];
+      $result['status_slug'] = $pedido['pedido_status_slug'];
       $result['status_id'] = $pedido['pedido_status_id'];
       $result['class_pagamento'] = $class;
       $result['transacao_result'] = (isset($status['result'])) ? $status['result'] : '';
