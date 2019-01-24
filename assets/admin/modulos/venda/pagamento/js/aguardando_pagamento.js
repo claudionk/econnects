@@ -27,6 +27,8 @@ function abreModalDebito(){
 
 var pr =30;
 var ver_redirect = false;
+var contador = 0;
+
 function getStatusPedido(){
     var data = {
         pedido_id: $('#pedido_id').val( )
@@ -81,6 +83,16 @@ function getStatusPedido(){
 
                         setTimeout(abreModalDebito, 10000);
 
+                    } else if (result.status_slug == 'erro') {
+                        // alert(result.status_pedido); 
+                        if (contador == 20 || contador == 40 || contador == 60 || contador == 80)
+                        {
+                            $('#modal-falha').modal('show').on('hidden.bs.modal', function(){
+                                if(contador > 80){
+                                    document.location.href = 'http://sisconnects.com.br/admin/venda';
+                                }
+                            });
+                        }
                     }
 
                     $('#widget-progress-bar .steps-percent').html(pr + "%");

@@ -419,7 +419,7 @@ class Gateway extends Admin_Controller
       */
 
       // Pagmax 360 v2
-      $Response = $Pagmax360->createTransaction( $Pagmax360->merchantId, $Pagmax360->merchantKey, $Json, $Pagmax360->Environment );
+      $Response = $Pagmax360->createTransaction( $Pagmax360->merchantId, $Pagmax360->merchantKey, $Json, $Pagmax360->Environment, $pedido['pedido_id'] );
       $Response = json_decode( $Response );
       error_log( print_r( $Response, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
         if( isset( $Response->{"Code"} ) || sizeof( $Response ) == 0 || (isset( $Response->{"status"} ) && empty( $Response->{"status"} )) ) {
@@ -462,6 +462,7 @@ class Gateway extends Admin_Controller
                     , "ReceivedDate" => $Response->{"Payment"}->{"ReceivedDate"}
                     , "CapturedDate" => $Response->{"Payment"}->{"CapturedDate"}
                     , "PaymentId" => $Response->{"Payment"}->{"PaymentId"}
+                    , "RecurrentPaymentId" => $Response->{"Payment"}->{"RecurrentPayment"}->{"RecurrentPaymentId"}
                 ) ) ;
             }
 
