@@ -452,7 +452,7 @@ class Gateway extends Admin_Controller
               $cardNumber = $Response->{"Payment"}->{"DebitCard"}->{"CardToken"};
             }
 
-            if( isset( $Response->{"Payment"}->{"Recurrent"} ) ) {
+            if( !empty($Response->{"Payment"}->{"Recurrent"}) ) {
                 $this->recorrencia->insert( array( 
                     "pedido_id" => $pedido['pedido_id']
                     , "Capture" => $Response->{"Payment"}->{"Capture"}
@@ -462,7 +462,7 @@ class Gateway extends Admin_Controller
                     , "ReceivedDate" => $Response->{"Payment"}->{"ReceivedDate"}
                     , "CapturedDate" => $Response->{"Payment"}->{"CapturedDate"}
                     , "PaymentId" => $Response->{"Payment"}->{"PaymentId"}
-                    , "RecurrentPaymentId" => $Response->{"Payment"}->{"RecurrentPayment"}->{"RecurrentPaymentId"}
+                    , "RecurrentPaymentId" => issetor($Response->{"Payment"}->{"RecurrentPayment"}->{"RecurrentPaymentId"}, null)
                 ) ) ;
             }
 
