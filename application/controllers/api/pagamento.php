@@ -11,15 +11,6 @@ class Pagamento extends CI_Controller
     public $api_key;
     public $usuario_id;
 
-    const FORMA_PAGAMENTO_CARTAO_CREDITO  = 1;
-    const FORMA_PAGAMENTO_TRANSF_BRADESCO = 2;
-    const FORMA_PAGAMENTO_TRANSF_BB       = 7;
-    const FORMA_PAGAMENTO_CARTAO_DEBITO   = 8;
-    const FORMA_PAGAMENTO_BOLETO          = 9;
-    const FORMA_PAGAMENTO_FATURADO        = 10;
-    const FORMA_PAGAMENTO_CHECKOUT_PAGMAX = 11;
-    const FORMA_PAGAMENTO_TERCEIROS       = 12;
-
     public function __construct()
     {
         parent::__construct();
@@ -192,7 +183,7 @@ class Pagamento extends CI_Controller
         $Campos                  = array();
 
         switch ($forma_pagamento_tipo_id) {
-            case self::FORMA_PAGAMENTO_CARTAO_CREDITO:
+            case $this->config->item("FORMA_PAGAMENTO_CARTAO_CREDITO"):
                 $Campos = array(
                     "MerchantOrderId" => "",
                     "Customer"        => array(
@@ -220,7 +211,7 @@ class Pagamento extends CI_Controller
                 );
                 break;
 
-            case self::FORMA_PAGAMENTO_CARTAO_DEBITO:
+            case $this->config->item("FORMA_PAGAMENTO_CARTAO_DEBITO"):
                 $Campos = array(
                     "MerchantOrderId" => "",
                     "Customer"        => array(
@@ -249,7 +240,7 @@ class Pagamento extends CI_Controller
                 );
                 break;
 
-            case self::FORMA_PAGAMENTO_BOLETO:
+            case $this->config->item("FORMA_PAGAMENTO_BOLETO"):
                 $Campos = array(
                     "MerchantOrderId" => "",
                     "Customer"        => array(
@@ -278,7 +269,7 @@ class Pagamento extends CI_Controller
                 );
                 break;
 
-            case self::FORMA_PAGAMENTO_TRANSF_BRADESCO:
+            case $this->config->item("FORMA_PAGAMENTO_TRANSF_BRADESCO"):
                 $Campos = array(
                     "MerchantOrderId" => "",
                     "Payment"         => array(
@@ -290,7 +281,7 @@ class Pagamento extends CI_Controller
                 );
                 break;
 
-            case self::FORMA_PAGAMENTO_TRANSF_BB:
+            case $this->config->item("FORMA_PAGAMENTO_TRANSF_BB"):
                 $Campos = array(
                     "MerchantOrderId" => "",
                     "Payment"         => array(
@@ -302,7 +293,7 @@ class Pagamento extends CI_Controller
                 );
                 break;
 
-            case self::FORMA_PAGAMENTO_CHECKOUT_PAGMAX:
+            case $this->config->item("FORMA_PAGAMENTO_CHECKOUT_PAGMAX"):
                 $Campos = array(
                     "Customer"     => array(
                         "Name"           => "",
@@ -335,8 +326,8 @@ class Pagamento extends CI_Controller
                 );
                 break;
 
-            case self::FORMA_PAGAMENTO_FATURADO:
-            case self::FORMA_PAGAMENTO_TERCEIROS:
+            case $this->config->item("FORMA_PAGAMENTO_FATURADO"):
+            case $this->config->item("FORMA_PAGAMENTO_TERCEIROS"):
                 $Campos = array();
                 break;
 
@@ -412,7 +403,7 @@ class Pagamento extends CI_Controller
         $this->load->model("forma_pagamento_tipo_model", "forma_pagamento_tipo");
         $this->load->model("forma_pagamento_bandeira_model", "forma_pagamento_bandeira");
         $this->load->model("forma_pagamento_model", "forma_pagamento");
-        $this->load->model("produto_parceiro_pagamento_model", "produto_pagamento");
+        $this->load->model("produto_parceiro_pagamento_model", "parceiro_pagamento");
         $this->load->model("produto_parceiro_configuracao_model", "produto_parceiro_configuracao");
         $this->load->model("pedido_model", "pedido");
 
@@ -447,7 +438,7 @@ class Pagamento extends CI_Controller
         $num_parcela     = ""; //$scope.dadosPagamento.Installments,
 
         switch ($forma_pagamento_tipo_id) {
-            case self::FORMA_PAGAMENTO_CARTAO_CREDITO:
+            case $this->config->item("FORMA_PAGAMENTO_CARTAO_CREDITO"):
                 $Matriz = array(
                     "MerchantOrderId" => "",
                     "Customer"        => array(
@@ -504,7 +495,7 @@ class Pagamento extends CI_Controller
                 }
                 break;
 
-            case self::FORMA_PAGAMENTO_CARTAO_DEBITO:
+            case $this->config->item("FORMA_PAGAMENTO_CARTAO_DEBITO"):
                 $Matriz = array(
                     "MerchantOrderId" => "",
                     "Customer"        => array(
@@ -561,7 +552,7 @@ class Pagamento extends CI_Controller
                 }
                 break;
 
-            case self::FORMA_PAGAMENTO_BOLETO:
+            case $this->config->item("FORMA_PAGAMENTO_BOLETO"):
                 $Matriz = array(
                     "MerchantOrderId" => "",
                     "Customer"        => array(
@@ -621,7 +612,7 @@ class Pagamento extends CI_Controller
                 }
                 break;
 
-            case self::FORMA_PAGAMENTO_TRANSF_BRADESCO:
+            case $this->config->item("FORMA_PAGAMENTO_TRANSF_BRADESCO"):
                 $Matriz = array(
                     "MerchantOrderId" => "",
                     "Payment"         => array(
@@ -647,7 +638,7 @@ class Pagamento extends CI_Controller
                 }
                 break;
 
-            case self::FORMA_PAGAMENTO_TRANSF_BB:
+            case $this->config->item("FORMA_PAGAMENTO_TRANSF_BB"):
                 $Matriz = array(
                     "MerchantOrderId" => "",
                     "Payment"         => array(
@@ -673,7 +664,7 @@ class Pagamento extends CI_Controller
                 }
                 break;
 
-            case self::FORMA_PAGAMENTO_CHECKOUT_PAGMAX:
+            case $this->config->item("FORMA_PAGAMENTO_CHECKOUT_PAGMAX"):
                 $Matriz = array(
                     "Customer"     => array(
                         "Name"           => "",
@@ -742,8 +733,8 @@ class Pagamento extends CI_Controller
                 }
                 break;
 
-            case self::FORMA_PAGAMENTO_FATURADO:
-            case self::FORMA_PAGAMENTO_TERCEIROS:
+            case $this->config->item("FORMA_PAGAMENTO_FATURADO"):
+            case $this->config->item("FORMA_PAGAMENTO_TERCEIROS"):
                 $Matriz = array();
                 break;
 
@@ -774,7 +765,7 @@ class Pagamento extends CI_Controller
             $data["produto_parceiro_configuracao"] = $this->produto_parceiro_configuracao->get_by(array("produto_parceiro_id" => $produto_parceiro_id));
             $data["produto_parceiro_id"]           = $produto_parceiro_id;
 
-            if ($forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_CARTAO_CREDITO || $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_CARTAO_DEBITO) {
+            if ($forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_CARTAO_CREDITO") || $forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_CARTAO_DEBITO")) {
                 $pedido_data                            = array();
                 $pedido_data["cotacao_id"]              = $cotacao_id;
                 $pedido_data["produto_parceiro_id"]     = $produto_parceiro_id;
@@ -788,9 +779,12 @@ class Pagamento extends CI_Controller
                 $pedido_data["validade"]                = $validade;
                 $pedido_data["codigo"]                  = $codigo;
                 $pedido_data["bandeira"]                = $produto_parceiro_pagamento_id;
+
+                // valida recorrência
+                $Campos = $this->parceiro_pagamento->getRecurrent($forma_pagamento_tipo_id, $produto_parceiro_pagamento_id, $Campos);
             }
 
-            if ($forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_BOLETO) {
+            if ($forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_BOLETO")) {
                 $pedido_data                            = array();
                 $pedido_data["cotacao_id"]              = $cotacao_id;
                 $pedido_data["produto_parceiro_id"]     = $produto_parceiro_id;
@@ -822,7 +816,7 @@ class Pagamento extends CI_Controller
             }
             //die( json_encode( $pedido_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
 
-            if ($forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_FATURADO || $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_TERCEIROS) {
+            if ($forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_FATURADO") || $forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_TERCEIROS")) {
                 $pedido_data                            = array();
                 $pedido_data["cotacao_id"]              = $cotacao_id;
                 $pedido_data["produto_parceiro_id"]     = $produto_parceiro_id;
@@ -850,6 +844,20 @@ class Pagamento extends CI_Controller
                     );
                 }
                 $pedido_id = $this->pedido->insertPedido($pedido_data);
+                if (is_array($pedido_id)) {
+                    die(
+                        json_encode(
+                            array(
+                                "status"              => false,
+                                "cotacao_id"          => $cotacao_id,
+                                "produto_parceiro_id" => $produto_parceiro_id,
+                                "forma_pagamento_id"  => $forma_pagamento_id,
+                                "nome"                => $forma_pagamento["nome"],
+                                "erros"               => $pedido_id["erros"],
+                            ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+                        )
+                    );
+                }
             } else {
                 $this->pedido->updatePedido($pedido_id, $pedido_data);
             }
@@ -871,7 +879,7 @@ class Pagamento extends CI_Controller
                 );
             }
 
-            if ($pedido_id && $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_FATURADO || $forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_TERCEIROS) {
+            if ($pedido_id && $forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_FATURADO") || $forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_TERCEIROS")) {
                 $status = $this->pedido->mudaStatus($pedido_id, "pagamento_confirmado");
                 $this->load->model('apolice_model', 'apolice');
                 $this->apolice->insertApolice($pedido_id);
@@ -911,7 +919,7 @@ class Pagamento extends CI_Controller
                     $fatura_parcela = $fatura_parcela[0];
                     $fatura_parcela["fatura_parcela_id"];
                 }
-                if ($forma_pagamento_tipo_id == self::FORMA_PAGAMENTO_CHECKOUT_PAGMAX) {
+                if ($forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_CHECKOUT_PAGMAX")) {
                     if ($Campos["Transaction"]["MerchantOrderID"] == "") {
                         $Campos["Transaction"]["MerchantOrderID"] = $fatura_parcela["fatura_parcela_id"];
                         $Campos["Sale"]["Amount"]                 = $faturas["valor_total"];
@@ -1008,11 +1016,19 @@ class Pagamento extends CI_Controller
                             "dados"    => array("pedido_id" => $pedido_id),
                         );
                     } else {
-                        $result = array(
-                            "status"   => false,
-                            "mensagem" => "Falha de comunicação (Erro 0)",
-                            "dados"    => array("pedido_id" => $pedido_id),
-                        );
+                        if ( isset($Response[0]["Code"]) && isset($Response[0]["Message"]) ) {
+                            $result = array(
+                                "status"   => false,
+                                "mensagem" => $Response[0]["Message"] ." (Code " . $Response[0]["Code"] . ")",
+                                "dados"    => array("pedido_id" => $pedido_id),
+                            );
+                        } else {
+                            $result = array(
+                                "status"   => false,
+                                "mensagem" => "Falha de comunicação (Erro 0)",
+                                "dados"    => array("pedido_id" => $pedido_id),
+                            );
+                        }
                     }
                 }
             }

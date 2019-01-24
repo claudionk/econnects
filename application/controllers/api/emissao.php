@@ -437,14 +437,14 @@ class Emissao extends CI_Controller {
                         "campos" => $parametros["campos"]  
                     ]; 
 
-
                     $url = base_url() ."api/pagamento/pagar";
                     $obj = new Api();
                     $r = $obj->execute($url, 'POST', json_encode($arrOptions));
 
                     if(!empty($r))
                     {
-                        $retorno = json_decode($r);
+                        print_r($r);
+                        $retorno = is_array($r) ? (object)$r : json_decode($r);
                         if($retorno->{"status"})
                         {
                             if (!empty($this->equipamento_nome)) $retorno->modelo = $this->equipamento_nome;
@@ -454,7 +454,7 @@ class Emissao extends CI_Controller {
                         }
                         else
                         {
-                            die(json_encode(array("status"=>false,"message"=>"Não foi possível realizar o pagamento", "cotacao_id" => $parametros["cotacao_id"]),JSON_UNESCAPED_UNICODE));
+                            die(json_encode(array("status"=>false,"message"=>$retorno->{"mensagem"}, "cotacao_id" => $parametros["cotacao_id"]),JSON_UNESCAPED_UNICODE));
                         }           
                     }
                     else
@@ -493,6 +493,7 @@ class Emissao extends CI_Controller {
 
                     if(!empty($r))
                     {
+                        print_r($r);
                         $retorno = json_decode($r);
                         if($retorno->{"status"})
                         {
