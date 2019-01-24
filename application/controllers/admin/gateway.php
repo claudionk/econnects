@@ -462,6 +462,7 @@ class Gateway extends Admin_Controller
                     , "ReceivedDate" => $Response->{"Payment"}->{"ReceivedDate"}
                     , "CapturedDate" => $Response->{"Payment"}->{"CapturedDate"}
                     , "PaymentId" => $Response->{"Payment"}->{"PaymentId"}
+                    , "RecurrentPaymentId" => $Response->{"Payment"}->{"RecurrentPayment"}->{"RecurrentPaymentId"}
                 ) ) ;
             }
 
