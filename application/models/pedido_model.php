@@ -97,7 +97,8 @@ Class Pedido_Model extends MY_Model
         ->join("forma_pagamento_integracao", "forma_pagamento_integracao.forma_pagamento_integracao_id = forma_pagamento_tipo.forma_pagamento_integracao_id", 'inner')
         ->join("fatura", "fatura.pedido_id = pedido.pedido_id", 'inner')
         ->join("fatura_parcela", "fatura.fatura_id = fatura_parcela.fatura_id", 'inner')
-        ->where_in("pedido.pedido_status_id", array(2,3,15,4))
+        //->where_in("pedido.pedido_status_id", array(2,3,15,4))
+        ->where_in("pedido.pedido_status_id", array(2,14,15,17))
         ->where_in("pedido.lock", 0)
         ->where("fatura_parcela.data_vencimento <=", date('y-m-d'))
         ->where("fatura_parcela.fatura_status_id", 1);
