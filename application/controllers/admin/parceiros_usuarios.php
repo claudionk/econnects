@@ -187,6 +187,42 @@ class Parceiros_Usuarios extends Admin_Controller
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
   
+    public function vincular( $id ) {
+        //Adicionar Bibliotecas
+        $this->load->library('form_validation');
+
+        // $this->load->model('banco_model', 'banco');
+        // $this->load->model('colaborador_cargo_model', 'cargo');
+
+
+        //Setar variáveis de informação da página
+        $this->template->set('page_title_info', '');
+        $this->template->set('page_subtitle', "Vincular Cobertura/Produtos");
+        $this->template->set_breadcrumb('Vincular', base_url("$this->controller_uri/index"));
+
+
+        //Carrega dados para a página
+        $data = array();
+        $data['row'] = $this->current_model->get($id);
+        $data['primary_key'] = $this->current_model->primary_key();
+        $data['new_record'] = '0';
+        $data['form_action'] =  base_url("$this->controller_uri/vincular/{$id}");
+        
+        $parceiro_id = $data['row']['parceiro_id'];
+      
+        $data['parceiro_id'] = $parceiro_id;
+        
+        // echo '<pre>';
+        // print_r($data);
+        // die;
+
+        //Verifica se registro existe
+        
+
+        //Carrega template
+        $this->template->load("admin/layouts/base", "$this->controller_uri/vincular", $data );
+    }
+  
     public  function delete($id) {
         $data['row'] = $this->current_model->get($id);
 
@@ -209,4 +245,5 @@ class Parceiros_Usuarios extends Admin_Controller
 
 
 }
+
 

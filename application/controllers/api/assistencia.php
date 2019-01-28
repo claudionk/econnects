@@ -70,17 +70,53 @@ class Assistencia extends CI_Controller {
           {
             die(json_encode(array("status"=>false,"message"=>"Data inicial não pode ser maior que a Data final"),JSON_UNESCAPED_UNICODE));
           }
+        
 
+          /*  
           $arr [] = [
-            "status"=>true,
-            "message"=>"Validação concluída com sucesso",
-            "usuario_id"=> $this->usuario_id,
-            "parceiro_id"=> $this->parceiro_id
-          ];
-
+              "status"=>true,
+              "message"=>"Validação concluída com sucesso",
+              "usuario_id"=> $this->usuario_id,
+              "parceiro_id"=> $this->parceiro_id
+            ];
+          */
+        
           // Agora eu faço a busca dos dados
-
-
+    
+          $arr = $this->db->query("
+          SELECT 
+          a.apolice_id, 
+          a.pedido_id, 
+          a.produto_parceiro_plano_id, 
+          a.parceiro_id,
+          ast.nome as nome_status_apolice, 
+          a.num_apolice,
+          ppp.produto_parceiro_plano_id, 
+          ppp.produto_parceiro_id,
+          ppp.nome as nome_plano,
+          ppp.descricao as descricao_plano,
+          ppp.slug_plano,
+          c.nome as nome_cobertura,
+          pp.parceiro_id, 
+          pp.produto_id, 
+          pp.seguradora_id, 
+          pp.nome, 
+          pp.cod_tpa, 
+          pp.slug_produto
+          from apolice a
+          inner join apolice_status ast on ast.apolice_status_id = a.apolice_status_id
+          inner join produto_parceiro_plano ppp on ppp.produto_parceiro_plano_id = a.produto_parceiro_plano_id
+      inner join cobertura_plano cp on cp.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
+          inner join cobertura c on c.cobertura_id = cp.cobertura_id
+          inner join produto_parceiro pp on pp.produto_parceiro_id = ppp.produto_parceiro_id
+          inner join produto p on p.produto_id = pp.produto_id
+          where a.parceiro_id = ".$this->parceiro_id." and cp.cobertura_plano_id in(
+  select cobertura_plano_id from usuario_cobertura_produto 
+    where usuario_id = ".$this->usuario_id." and deletado = 0
+)
+and ast.apolice_status_id = 1 
+and a.criacao between '".date("Y-m-d", strtotime($POST['data_inicial']))." 00:00:00' and '".date("Y-m-d", strtotime($POST['data_final']))." 23:59:59' and a.deletado = 0")->result();
+         
           // Tipo de Saída
           switch ($POST['type_output']) {
             case 'xml':
@@ -105,10 +141,95 @@ class Assistencia extends CI_Controller {
 
   public function cancelamento()
   {
-    if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
-      $GET = $_GET;
-      die( json_encode( array('exemplo' => 'cancelamento' )) );
-    } else {
+    if( $_SERVER["REQUEST_METHOD"] === "POST" ) 
+    {
+      $POST = json_decode( file_get_contents( "php://input" ), true );
+
+      if(!empty($POST))
+      {
+          // Validação dos dados
+          if(empty($POST['data_inicial'])){
+            die(json_encode(array("status"=>false,"message"=>"Atributo 'data_inicial' não informado"),JSON_UNESCAPED_UNICODE));   
+          } 
+          else if(!$this->validar_data($POST['data_inicial']))
+          {
+            die(json_encode(array("status"=>false,"message"=>"Atributo 'data_inicial' está com a data inválida"),JSON_UNESCAPED_UNICODE));
+          }
+          if(empty($POST['data_final'])){
+              die(json_encode(array("status"=>false,"message"=>"Atributo 'data_final' não informado"),JSON_UNESCAPED_UNICODE));
+          }
+          else if(!$this->validar_data($POST['data_final']))
+          {
+            die(json_encode(array("status"=>false,"message"=>"Atributo 'data_final' está com a data inválida"),JSON_UNESCAPED_UNICODE));
+          } 
+          if(strtotime($POST['data_inicial']) > strtotime($POST['data_final']))
+          {
+            die(json_encode(array("status"=>false,"message"=>"Data inicial não pode ser maior que a Data final"),JSON_UNESCAPED_UNICODE));
+          }
+
+          /*  
+          $arr [] = [
+              "status"=>true,
+              "message"=>"Validação concluída com sucesso",
+              "usuario_id"=> $this->usuario_id,
+              "parceiro_id"=> $this->parceiro_id
+            ];
+          */
+        
+          // Agora eu faço a busca dos dados
+    
+          $arr = $this->db->query("
+          SELECT 
+          a.apolice_id, 
+          a.pedido_id, 
+          a.produto_parceiro_plano_id, 
+          a.parceiro_id,
+          ast.nome as nome_status_apolice, 
+          a.num_apolice,
+          ppp.produto_parceiro_plano_id, 
+          ppp.produto_parceiro_id,
+          ppp.nome as nome_plano,
+          ppp.descricao as descricao_plano,
+          ppp.slug_plano,
+          c.nome as nome_cobertura,
+          pp.parceiro_id, 
+          pp.produto_id, 
+          pp.seguradora_id, 
+          pp.nome, 
+          pp.cod_tpa, 
+          pp.slug_produto
+          from apolice a
+          inner join apolice_status ast on ast.apolice_status_id = a.apolice_status_id
+          inner join produto_parceiro_plano ppp on ppp.produto_parceiro_plano_id = a.produto_parceiro_plano_id
+      inner join cobertura_plano cp on cp.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
+          inner join cobertura c on c.cobertura_id = cp.cobertura_id
+          inner join produto_parceiro pp on pp.produto_parceiro_id = ppp.produto_parceiro_id
+          inner join produto p on p.produto_id = pp.produto_id
+          where a.parceiro_id = ".$this->parceiro_id." and cp.cobertura_plano_id in(
+  select cobertura_plano_id from usuario_cobertura_produto 
+    where usuario_id = ".$this->usuario_id." and deletado = 0
+)
+and ast.apolice_status_id <> 1 
+and a.criacao between '".$POST['data_inicial']." 00:00:00' and '".$POST['data_final']." 23:59:59' and a.deletado = 0")->result();
+         
+          // Tipo de Saída
+          switch ($POST['type_output']) {
+            case 'xml':
+            case 'XML':
+                $this->saida_xml($arr);
+              break;
+            
+            default:
+                $this->saida_json($arr);
+              break;
+          }
+
+      } else {
+          die(json_encode(array("status"=>false,"message"=>"Parametros não informados"),JSON_UNESCAPED_UNICODE));
+      }  
+    } 
+    else 
+    {
       die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
     }
   }
@@ -151,68 +272,6 @@ class Assistencia extends CI_Controller {
         $xml->writeElement($campo, $d);
       }
       # Finaliza o Nó Pai / Elemento <Item>
-      $xml->endElement();
-    }
-
-    #  Configura a saida do conteúdo para o formato XML
-    header( 'Content-type: text/xml' );
-
-    # Imprime os dados armazenados
-    print $xml->outputMemory(true);
-
-    # Salvando o arquivo em disco
-    # retorna erro se o header foi definido
-    # retorna erro se outputMemory já foi chamado
-    $file = fopen('saida.xml','w+');
-    fwrite($file,$xml->outputMemory(true));
-    fclose($file);
-  }
-
-
-
-  private function saida_xml2()
-  {
-
-    $arrDados = array();
-
-    $arrDados[0]['id'] = '1';
-    $arrDados[0]['title'] = 'Teste 1';
-    $arrDados[0]['description'] = 'Desc 1';
-    $arrDados[0]['image'] = 'Image 1';
-
-    $arrDados[1]['id'] = '2';
-    $arrDados[1]['title'] = 'Teste 2';
-    $arrDados[1]['description'] = 'Desc 2';
-    $arrDados[1]['image'] = 'Image 2';
-
-    $arrDados[2]['id'] = '3';
-    $arrDados[2]['title'] = 'Teste 3';
-    $arrDados[2]['description'] = 'Desc 3';
-    $arrDados[2]['image'] = 'Image 3';
-
-
-    # Instancia do objeto XMLWriter
-    $xml = new XMLWriter;
-
-    # Cria memoria para armazenar a saida
-    $xml->openMemory();
-
-    # Inicia o cabeçalho do documento XML
-    $xml->startDocument( '1.0' , 'iso-8859-1' );
-
-
-    for ( $i = 0; $i < count( $arrDados ); $i++ ) {
-
-      # Adiciona/Inicia um Elemento / Nó Pai <item>
-      $xml->startElement("item");
-
-      #  Adiciona um Nó Filho <quantidade> e valor 8
-      $xml->writeElement("id", $arrDados[$i]['id']);
-      $xml->writeElement("title", $arrDados[$i]['title']);
-      $xml->writeElement("description", $arrDados[$i]['description']);
-      $xml->writeElement("image", $arrDados[$i]['image']);
-
-      #  Finaliza o Nó Pai / Elemento <Item>
       $xml->endElement();
     }
 

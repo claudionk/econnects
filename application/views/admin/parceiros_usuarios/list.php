@@ -67,6 +67,11 @@
                                 <td class="center">
                                     <a href="<?php echo base_url("admin/produto_parceiro_usuario/index/{$row[$primary_key]}/{$parceiro_id}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Comissão </a>
                                     <a href="<?php echo base_url("{$current_controller_uri}/edit/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Editar </a>
+                                  
+                                  <?php if( $row['usuario_acl_tipo_id'] == 3 ) :?>
+                                  <a href="<?php echo base_url("{$current_controller_uri}/vincular/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Vincular Cobertura/Produto </a>
+                                  <?php endif; ?>
+
                                     <a href="<?php echo base_url("$current_controller_uri/delete/{$row[$primary_key]}")?>" class="btn btn-sm btn-danger deleteRowButton"> <i class="fa fa-eraser"></i> Excluir </a>
                                 </td>
                             </tr>
