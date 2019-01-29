@@ -1192,6 +1192,28 @@ function utf8_converter($array)
 }
 
 /**
+ * Trata Array com Objeto para Array
+ * @param $array
+ * @return mixed
+ */
+function convert_objeto_to_array($array)
+{
+    if ( is_array($array) ) {
+        array_walk_recursive($array, function(&$item, $key){
+            if(is_object($item)){
+                $item = json_decode(json_encode($item),true);
+            }
+
+        });
+        $array = json_decode($array);
+    } elseif (in_array(preg_replace("/^(.)(.+?)(.)$/", "$1$3", trim($array) ), ['{}','[]'])) {
+        $array = json_decode($array);
+    }
+
+    return $array;
+}
+
+/**
  * Verifica a permissão do usuário logado para uma ação
  * @param $recurso_slug
  * @param $acao_slug

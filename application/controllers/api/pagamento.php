@@ -1012,7 +1012,7 @@ class Pagamento extends CI_Controller
                     if (isset($Response["error"]) && isset($Response["error"]["Code"])) {
                         $result = array(
                             "status"   => false,
-                            "mensagem" => "Falha na transacao (Erro " . $Response["error"]["Code"] . ")",
+                            "mensagem" => issetor( $Response["error"]["Message"], "Falha na transacao") ." (Erro " . $Response["error"]["Code"] . ")",
                             "dados"    => array("pedido_id" => $pedido_id),
                         );
                     } else {
