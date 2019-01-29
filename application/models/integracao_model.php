@@ -838,9 +838,16 @@ Class Integracao_Model extends MY_Model
 
                         if ( empty($callFuncReturn->status) ){
                             // seta para erro
-                            $integracao_log_status_id = 5;
-                            $msgDetCampo = $callFuncReturn->msg;
-
+                            // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods 
+                            if($callFuncReturn->coderr == 22 && $proc['tipo'] == 'CLIENTE') 
+                            { 
+                                // não há inserção de dados na base, pois estão apenas informando que  
+                                // na base já existe os dados.   
+                            }  
+                            else { 
+                                $integracao_log_status_id = 5; 
+                                $msgDetCampo = $callFuncReturn->msg; 
+                            }
                         } elseif ( $callFuncReturn->status === 2 ) {
                             // seta para ignorado
                             $integracao_log_status_id = 7;
