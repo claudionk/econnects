@@ -201,7 +201,7 @@ class Comunicacao
             'fieldsCurl' => "{  \n   \"from\":\"SIS\",\n   \"to\":\"{$mensagem['mensagem_to']}\",\n   \"text\":\"{$text}\"\n}", 
             'headerCurl' => array(
         "accept: application/json",
-        "authorization: Basic anBhbmRyZWxsb0BzaXNzb2x1Y29lcy5jb20uYnI6c2lzQDIwMTc=",
+        "authorization: Basic c2lzX2FuZHJlbGxvOjUxUzUwNXVMdWMwMzVAMTk5MA==",
         "content-type: application/json",
         "cache-control: no-cache",
       ),

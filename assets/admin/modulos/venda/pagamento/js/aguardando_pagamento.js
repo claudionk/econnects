@@ -69,9 +69,10 @@ function getStatusPedido(){
                     $('.title-pagamento').html(result.status_pedido);
                     $('.text-progress-bar').html(result.status_pedido);
 
-                }else{
+                }
+                else{
 
-                    if(result.transacao_result == 'REDIRECT' && ver_redirect == false ){
+                    /*if(result.transacao_result == 'REDIRECT' && ver_redirect == false ){
                         ver_redirect = true;
 
                         $('.box-debito a').attr('href',  result.transacao_url);
@@ -97,7 +98,42 @@ function getStatusPedido(){
 
                     $('#widget-progress-bar .steps-percent').html(pr + "%");
                     $('#widget-progress-bar .progress-bar').width(pr + "%");
-                    setTimeout(getStatusPedido, 2000);
+                    setTimeout(getStatusPedido, 2000);*/
+
+
+                    if(result.transacao_result == 'REDIRECT' && ver_redirect == false ){
+                        ver_redirect = true;
+
+                        $('.box-debito a').attr('href',  result.transacao_url);
+                        $('.btn-debito').attr('href',  result.transacao_url);
+
+
+                        document.location.href = result.transacao_url;
+
+
+                        setTimeout(abreModalDebito, 10000);
+
+                    }
+                    else{
+                        if( result.status_slug == 'erro' ){
+                            $('#modal-falha').modal('show').on('hidden.bs.modal', function(){
+                                document.location.href = 'http://sisconnects.com.br/admin/venda';
+                            });
+                        }
+                        else{
+                            if( result.transacao_result == '' ){
+                                $('#widget-progress-bar .steps-percent').html(pr + "%");
+                                $('#widget-progress-bar .progress-bar').width(pr + "%");
+                                setTimeout(getStatusPedido, 2000);
+                            }
+                            else{
+                                result.status_pedido = result.transacao_message
+                                msg_transacao = result.transacao_message
+                                $('#widget-progress-bar .steps-percent').html("100%");
+                                $('#widget-progress-bar .progress-bar').width("100%");
+                            }
+                        }
+                    }
 
                 }
 
