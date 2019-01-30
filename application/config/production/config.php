@@ -376,6 +376,11 @@ function __autoload($class)
 /* End of file config.php */
 /* Location: ./application/config/config.php */
 
+//Configurações pagmax 360
+$config["Pagmax360_Environment"] = "360"; 
+$config["Pagmax360_merchantId"] = "2235";
+$config["Pagmax360_merchantKey"] = "380245d6b5b467da7cf446a952d14b9cba741da01e1c61cc7e495d9cf88697aa";
+
 $config["URL_sisconnects"] = "https://www.sisconnects.com.br/";
 
 $config['PRECO_TIPO_TABELA'] = 1;
@@ -384,4 +389,14 @@ $config['PRECO_TIPO_VALOR_SEGURADO'] = 3;
 $config['PRECO_TIPO_FIXO_SERVICO'] = 4;
 $config['PRECO_POR_EQUIPAMENTO'] = 5;
 $config['PRECO_POR_LINHA'] = 6;
+
+$config['INTEGRACAO_PAGMAX'] = 1;
+$config['FORMA_PAGAMENTO_CARTAO_CREDITO']  = 1;
+$config['FORMA_PAGAMENTO_TRANSF_BRADESCO'] = 2;
+$config['FORMA_PAGAMENTO_TRANSF_BB']       = 7;
+$config['FORMA_PAGAMENTO_CARTAO_DEBITO']   = 8;
+$config['FORMA_PAGAMENTO_BOLETO']          = 9;
+$config['FORMA_PAGAMENTO_FATURADO']        = 10;
+$config['FORMA_PAGAMENTO_CHECKOUT_PAGMAX'] = 11;
+$config['FORMA_PAGAMENTO_TERCEIROS']       = 12;
 
