@@ -222,6 +222,21 @@ class Pagmax_Model extends MY_Model
 
                     break;
 
+                case $this->config->item("FORMA_PAGAMENTO_CHECKOUT_PAGMAX"):
+
+                    $softDescriptor = $parceiro_pagamento["nome_fatura"];
+                    $JsonDataRequest = array(
+                        "Transaction" => array(
+                            "MerchantOrderID" => $merchantOrderId,
+                            "MerchantSoftDescriptor" => $softDescriptor,
+                        ),
+                        "Sale" => array(
+                            "Amount" => $transactionAmount,
+                        )
+                    );
+
+                    break;
+
                 default:
                     $reg = null;
                     break;

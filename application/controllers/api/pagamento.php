@@ -759,6 +759,7 @@ class Pagamento extends CI_Controller
             );
         } else {
 
+            $pedido_data                           = array();
             $data                                  = array();
             $data["cotacao_id"]                    = $cotacao_id;
             $data["pedido_id"]                     = $pedido_id;
@@ -766,66 +767,64 @@ class Pagamento extends CI_Controller
             $data["produto_parceiro_configuracao"] = $this->produto_parceiro_configuracao->get_by(array("produto_parceiro_id" => $produto_parceiro_id));
             $data["produto_parceiro_id"]           = $produto_parceiro_id;
 
-            if ($forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_CARTAO_CREDITO") || $forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_CARTAO_DEBITO")) {
-                $pedido_data                            = array();
-                $pedido_data["cotacao_id"]              = $cotacao_id;
-                $pedido_data["produto_parceiro_id"]     = $produto_parceiro_id;
-                $pedido_data["pedido_id"]               = $pedido_id;
-                $pedido_data["forma_pagamento_id"]      = $forma_pagamento_id;
-                $pedido_data["forma_pagamento_tipo_id"] = $forma_pagamento_tipo_id;
-                $pedido_data["nome_cartao"]             = $nome_cartao;
-                $pedido_data["num_parcela"]             = $num_parcela;
-                $pedido_data["bandeira_cartao"]         = $bandeira_cartao;
-                $pedido_data["numero"]                  = $numero;
-                $pedido_data["validade"]                = $validade;
-                $pedido_data["codigo"]                  = $codigo;
-                $pedido_data["bandeira"]                = $produto_parceiro_pagamento_id;
+            switch ($forma_pagamento_tipo_id) {
+                case $this->config->item("FORMA_PAGAMENTO_CARTAO_CREDITO"):
+                case $this->config->item("FORMA_PAGAMENTO_CARTAO_DEBITO"):
+                    $pedido_data["cotacao_id"]              = $cotacao_id;
+                    $pedido_data["produto_parceiro_id"]     = $produto_parceiro_id;
+                    $pedido_data["pedido_id"]               = $pedido_id;
+                    $pedido_data["forma_pagamento_id"]      = $forma_pagamento_id;
+                    $pedido_data["forma_pagamento_tipo_id"] = $forma_pagamento_tipo_id;
+                    $pedido_data["nome_cartao"]             = $nome_cartao;
+                    $pedido_data["num_parcela"]             = $num_parcela;
+                    $pedido_data["bandeira_cartao"]         = $bandeira_cartao;
+                    $pedido_data["numero"]                  = $numero;
+                    $pedido_data["validade"]                = $validade;
+                    $pedido_data["codigo"]                  = $codigo;
+                    $pedido_data["bandeira"]                = $produto_parceiro_pagamento_id;
+                    break;
 
-                // valida recorrência
-                $Campos = $this->parceiro_pagamento->getRecurrent($forma_pagamento_tipo_id, $produto_parceiro_pagamento_id, $Campos);
-            }
+                case $this->config->item("FORMA_PAGAMENTO_BOLETO"):
+                    $Campos["Payment"]["Address"]           = "Alameda Rio Negro, 500 - 6° andar - Alphaville - Barueri - São Paulo - CEP 06454-000";
+                    $Campos["Payment"]["Provider"]          = "Simulado";
+                    $Campos["Payment"]["Identification"]    = "08.267.567/0001-30";
+                    $Campos["Payment"]["Instructions"]      = "Aceitar somente ate a data de vencimento, apos essa data juros de 1% dia.";
+                    $pedido_data["cotacao_id"]              = $cotacao_id;
+                    $pedido_data["produto_parceiro_id"]     = $produto_parceiro_id;
+                    $pedido_data["pedido_id"]               = $pedido_id;
+                    $pedido_data["forma_pagamento_id"]      = $forma_pagamento_id;
+                    $pedido_data["forma_pagamento_tipo_id"] = $forma_pagamento_tipo_id;
+                    $pedido_data["sacado_nome"]             = $Campos["Customer"]["Name"];
+                    $pedido_data["sacado_documento"]        = $Campos["Customer"]["Identity"];
+                    $pedido_data["sacado_endereco"]         = $Campos["Customer"]["Address"]["Street"];
+                    $pedido_data["sacado_endereco_num"]     = $Campos["Customer"]["Address"]["Number"];
+                    $pedido_data["sacado_endereco_comp"]    = $Campos["Customer"]["Address"]["Complement"];
+                    $pedido_data["sacado_endereco_cep"]     = $Campos["Customer"]["Address"]["ZipCode"];
+                    $pedido_data["sacado_endereco_bairro"]  = $Campos["Customer"]["Address"]["District"];
+                    $pedido_data["sacado_endereco_cidade"]  = $Campos["Customer"]["Address"]["City"];
+                    $pedido_data["sacado_endereco_uf"]      = $Campos["Customer"]["Address"]["State"];
+                    $pedido_data["sacado_endereco_pais"]    = "BRA";
+                    $pedido_data["banco"]                   = "PAGMAX";
+                    $pedido_data["nosso_numero"]            = $Campos["Payment"]["BoletoNumber"];
+                    $pedido_data["emissao"]                 = date("Y-m-d H:i:s");
+                    $pedido_data["vencimento"]              = $Campos["Payment"]["ExpirationDate"];
+                    $pedido_data["valor"]                   = $Campos["Payment"]["Amount"];
+                    $pedido_data["instrucoes"]              = $Campos["Payment"]["Instructions"];
+                    $pedido_data["num_parcela"]             = $num_parcela;
+                    $pedido_data["bandeira"]                = $produto_parceiro_pagamento_id;
+                    break;
 
-            if ($forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_BOLETO")) {
-                $Campos["Payment"]["Address"]           = "Alameda Rio Negro, 500 - 6° andar - Alphaville - Barueri - São Paulo - CEP 06454-000";
-                $Campos["Payment"]["Provider"]          = "Simulado";
-                $Campos["Payment"]["Identification"]    = "08.267.567/0001-30";
-                $Campos["Payment"]["Instructions"]      = "Aceitar somente ate a data de vencimento, apos essa data juros de 1% dia.";
-                $pedido_data                            = array();
-                $pedido_data["cotacao_id"]              = $cotacao_id;
-                $pedido_data["produto_parceiro_id"]     = $produto_parceiro_id;
-                $pedido_data["pedido_id"]               = $pedido_id;
-                $pedido_data["forma_pagamento_id"]      = $forma_pagamento_id;
-                $pedido_data["forma_pagamento_tipo_id"] = $forma_pagamento_tipo_id;
-                $pedido_data["sacado_nome"]             = $Campos["Customer"]["Name"];
-                $pedido_data["sacado_documento"]        = $Campos["Customer"]["Identity"];
-                $pedido_data["sacado_endereco"]         = $Campos["Customer"]["Address"]["Street"];
-                $pedido_data["sacado_endereco_num"]     = $Campos["Customer"]["Address"]["Number"];
-                $pedido_data["sacado_endereco_comp"]    = $Campos["Customer"]["Address"]["Complement"];
-                $pedido_data["sacado_endereco_cep"]     = $Campos["Customer"]["Address"]["ZipCode"];
-                $pedido_data["sacado_endereco_bairro"]  = $Campos["Customer"]["Address"]["District"];
-                $pedido_data["sacado_endereco_cidade"]  = $Campos["Customer"]["Address"]["City"];
-                $pedido_data["sacado_endereco_uf"]      = $Campos["Customer"]["Address"]["State"];
-                $pedido_data["sacado_endereco_pais"]    = "BRA";
-                $pedido_data["banco"]                   = "PAGMAX";
-                $pedido_data["nosso_numero"]            = $Campos["Payment"]["BoletoNumber"];
-                $pedido_data["emissao"]                 = date("Y-m-d H:i:s");
-                $pedido_data["vencimento"]              = $Campos["Payment"]["ExpirationDate"];
-                $pedido_data["valor"]                   = $Campos["Payment"]["Amount"];
-                $pedido_data["instrucoes"]              = $Campos["Payment"]["Instructions"];
-                $pedido_data["num_parcela"]             = $num_parcela;
-                $pedido_data["bandeira"]                = $produto_parceiro_pagamento_id;
-            }
-            //die( json_encode( $pedido_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+                case $this->config->item("FORMA_PAGAMENTO_FATURADO"):
+                case $this->config->item("FORMA_PAGAMENTO_TERCEIROS"):
+                    $pedido_data["cotacao_id"]              = $cotacao_id;
+                    $pedido_data["produto_parceiro_id"]     = $produto_parceiro_id;
+                    $pedido_data["pedido_id"]               = $pedido_id;
+                    $pedido_data["forma_pagamento_id"]      = $forma_pagamento_id;
+                    $pedido_data["forma_pagamento_tipo_id"] = $forma_pagamento_tipo_id;
+                    $pedido_data["num_parcela"]             = 1;
+                    $pedido_data["bandeira"]                = $produto_parceiro_pagamento_id;
+                    break;
 
-            if ($forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_FATURADO") || $forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_TERCEIROS")) {
-                $pedido_data                            = array();
-                $pedido_data["cotacao_id"]              = $cotacao_id;
-                $pedido_data["produto_parceiro_id"]     = $produto_parceiro_id;
-                $pedido_data["pedido_id"]               = $pedido_id;
-                $pedido_data["forma_pagamento_id"]      = $forma_pagamento_id;
-                $pedido_data["forma_pagamento_tipo_id"] = $forma_pagamento_tipo_id;
-                $pedido_data["num_parcela"]             = 1;
-                $pedido_data["bandeira"]                = $produto_parceiro_pagamento_id;
             }
 
             if ($pedido_id == 0 || $pedido_id == "") {
@@ -880,81 +879,62 @@ class Pagamento extends CI_Controller
                 );
             }
 
+            $result = array(
+                "status"              => false,
+                "cotacao_id"          => $cotacao_id,
+                "produto_parceiro_id" => $produto_parceiro_id,
+                "forma_pagamento_id"  => $forma_pagamento_id,
+                "nome"                => $forma_pagamento["nome"],
+                "erros"               => "Não foi possível criar a apólice",
+                "dados"               => array("pedido_id" => $pedido_id),
+            );
+
+            $this->load->model('apolice_model', 'apolice');
+
             if ($pedido_id && $forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_FATURADO") || $forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_TERCEIROS")) {
+
                 $status = $this->pedido->mudaStatus($pedido_id, "pagamento_confirmado");
-                $this->load->model('apolice_model', 'apolice');
                 $this->apolice->insertApolice($pedido_id);
 
                 $apolice = $this->apolice->get_by("pedido_id", $pedido_id);
-                $apolice = $this->db->query("SELECT * FROM apolice WHERE pedido_id=$pedido_id AND deletado=0")->result_array();
-                if (sizeof($apolice)) {
-                    $apolice = $apolice[0];
-                }
-                if ($apolice) {
+                if (empty($apolice)) {
+                    $result["erros"] = "Não foi possível criar a apólice";
+                } else {
                     $result = array(
                         "status"   => true,
                         "mensagem" => "Pedido confirmado",
                         "dados"    => array("pedido_id" => $pedido_id, "apolice_id" => $apolice["apolice_id"], "num_apolice" => $apolice["num_apolice"]),
                     );
-                } else {
-                    $result = array(
-                        "status"              => false,
-                        "cotacao_id"          => $cotacao_id,
-                        "produto_parceiro_id" => $produto_parceiro_id,
-                        "forma_pagamento_id"  => $forma_pagamento_id,
-                        "nome"                => $forma_pagamento["nome"],
-                        "erros"               => "Não foi possível criar a apólice",
-                    );
-                    die(json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
                 }
 
-                die(json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-            }
-
-            $faturas = $this->fatura->filterByPedido($pedido_id)->get_all();
-            if ($faturas) {
-                $faturas        = $faturas[0];
-                $fatura_id      = $faturas["fatura_id"];
-                $fatura_parcela = $this->fatura_parcela->filterByFatura($fatura_id)->get_all();
-                if ($fatura_parcela) {
-                    $fatura_parcela = $fatura_parcela[0];
-                    $fatura_parcela["fatura_parcela_id"];
-                }
-                if ($forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_CHECKOUT_PAGMAX")) {
-                    if ($Campos["Transaction"]["MerchantOrderID"] == "") {
-                        $Campos["Transaction"]["MerchantOrderID"] = $fatura_parcela["fatura_parcela_id"];
-                        $Campos["Sale"]["Amount"]                 = $faturas["valor_total"];
-                    }
-                } else {
-                    if ($Campos["MerchantOrderId"] == "") {
-                        $Campos["MerchantOrderId"] = $fatura_parcela["fatura_parcela_id"];
-                    }
-                    $Campos["Payment"]["Installments"] = $faturas["num_parcela"];
-                    $Campos["Payment"]["Amount"]       = $faturas["valor_total"];
-                }
-            }
-
-            $this->load->model("pagamento_model", "pagamento");
-            $Response = $this->pagamento->run($pedido_id);
-
-            $result = array(
-                "status"   => false,
-                "dados"    => array("pedido_id" => $pedido_id),
-            );
-
-            if (empty($Response)) {
-                $result["mensagem"] = "Falha na transacao";
-            } elseif (empty($Response['status'])) {
-                $result["mensagem"] = $Response['message'];
-                $result["pagmax"]   = $Response['response'];
             } else {
-                $result = array(
-                    "status"   => true,
-                    "mensagem" => $Response['message'],
-                    "url"      => isset($Response['url']) ? $Response['url'] : '',
-                    "pagmax"   => $Response['response'],
-                    "dados"    => array("pedido_id" => $pedido_id),
-                );
+
+                $this->load->model("pagamento_model", "pagamento");
+                $Response = $this->pagamento->run($pedido_id);
+
+                if (empty($Response)) {
+                    $result["mensagem"] = "Falha na transacao";
+                } elseif (empty($Response['status'])) {
+                    $result["mensagem"] = $Response['message'];
+                    $result["pagmax"]   = $Response['response'];
+                } else {
+
+                    $apolice = $this->apolice->get_by("pedido_id", $pedido_id);
+                    if (empty($apolice)) {
+                        $result["erros"] = "Não foi possível criar a apólice";
+                    } else {
+
+                        $result = array(
+                            "status"   => true,
+                            "mensagem" => $Response['message'],
+                            "url"      => isset($Response['url']) ? $Response['url'] : '',
+                            "pagmax"   => $Response['response'],
+                            "dados"    => array("pedido_id" => $pedido_id, "apolice_id" => $apolice["apolice_id"], "num_apolice" => $apolice["num_apolice"]),
+                        );
+                        
+                    }
+
+                }
             }
 
             die(json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
