@@ -90,7 +90,7 @@ Class Pedido_Model extends MY_Model
 
         $this->_database->distinct()
         ->select("pedido.pedido_id, pedido.codigo, pedido.valor_total, pedido.valor_parcela")
-        ->select("pedido.num_parcela, forma_pagamento.nome, forma_pagamento.slug")
+        ->select("pedido.num_parcela, forma_pagamento.nome, forma_pagamento.slug, pedido.produto_parceiro_pagamento_id")
         ->join("produto_parceiro_pagamento", "pedido.produto_parceiro_pagamento_id = produto_parceiro_pagamento.produto_parceiro_pagamento_id", 'inner')
         ->join("forma_pagamento", "forma_pagamento.forma_pagamento_id = produto_parceiro_pagamento.forma_pagamento_id and forma_pagamento.slug != 'cobranca_terceiros'", 'inner')
         ->join("forma_pagamento_tipo", "forma_pagamento_tipo.forma_pagamento_tipo_id = forma_pagamento.forma_pagamento_tipo_id", 'inner')

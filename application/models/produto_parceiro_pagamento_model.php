@@ -150,6 +150,7 @@ class Produto_Parceiro_Pagamento_Model extends MY_Model
     public function with_forma_pagamento_tipo()
     {
         $this->_database->select('forma_pagamento_tipo.forma_pagamento_integracao_id');
+        $this->_database->select('forma_pagamento_tipo.forma_pagamento_tipo_id');
         $this->_database->select('forma_pagamento_tipo.nome as forma_pagamento_tipo_nome');
         $this->_database->select('forma_pagamento_tipo.slug as forma_pagamento_tipo_slug');
         $this->_database->join('forma_pagamento_tipo', 'forma_pagamento_tipo.forma_pagamento_tipo_id = forma_pagamento.forma_pagamento_tipo_id');
@@ -215,14 +216,14 @@ class Produto_Parceiro_Pagamento_Model extends MY_Model
                         $Json["Payment"]["RecurrentPayment"] = array(
                             "AuthorizeNow" => (bool) false,
                             "StartDate"    => $dia_vencimento_check ? date("Y-m-" . $dia_vencimento, strtotime("+1 Month")) : date("Y-m-" . $dia_vencimento),
-                            "EndDate"      => date("Y-m-d", strtotime("+" . $produto_parceiro_configuracao["configuracao_pagamento_periodicidade"] . " " . $dictionary[$produto_parceiro_configuracao["configuracao_pagamento_periodicidade_unidade"]]["Interval_date"])),
+                            "EndDate"      => date("Y-m-d", strtotime("+" . $produto_parceiro_configuracao["configuracao_pagamento_periodicidade"] . " " . $dictionary[$produto_parceiro_configuracao["configuracao_pagamento_periodicidade_unidade"]]["Interval_date"] . " -1 day")),
                             "Interval"     => $dictionary[$produto_parceiro_configuracao["configuracao_pagamento_periodicidade_unidade"]]["Interval_RecurrentPayment"],
                         );
                         break;
                     case "DATA_COMPRA":
                         $Json["Payment"]["RecurrentPayment"] = array(
                             "AuthorizeNow" => (bool) true,
-                            "EndDate"      => date("Y-m-d", strtotime("+" . $produto_parceiro_configuracao["configuracao_pagamento_periodicidade"] . " " . $dictionary[$produto_parceiro_configuracao["configuracao_pagamento_periodicidade_unidade"]]["Interval_date"])),
+                            "EndDate"      => date("Y-m-d", strtotime("+" . $produto_parceiro_configuracao["configuracao_pagamento_periodicidade"] . " " . $dictionary[$produto_parceiro_configuracao["configuracao_pagamento_periodicidade_unidade"]]["Interval_date"] . " -1 day")),
                             "Interval"     => $dictionary[$produto_parceiro_configuracao["configuracao_pagamento_periodicidade_unidade"]]["Interval_RecurrentPayment"],
                         );
                         break;
