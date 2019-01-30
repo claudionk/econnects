@@ -515,7 +515,7 @@ Class Pedido_Model extends MY_Model
         $pedido = $this->get($pedido_id);
 
         if($pedido){
-            if(($pedido['pedido_status_id'] == 3) || ($pedido['pedido_status_id'] == 8) || ($pedido['pedido_status_id'] == 12) ) {
+            if (in_array($pedido['pedido_status_id'], [3,8,11,12])) {
                 $apolices = $this->apolice->getApolicePedido($pedido_id);
                 if( $apolices ) {
                     foreach ($apolices as $apolice) {
@@ -793,7 +793,7 @@ Class Pedido_Model extends MY_Model
 
     function cancelamento($pedido_id, $dados_bancarios = [], $define_date = false ){
         if( ! $define_date ){
-            $define_date = date("Y-m-d H:i:s") ;
+            $define_date = date("Y-m-d H:i:s");
         }
 
         $d1 = new DateTime($define_date);
