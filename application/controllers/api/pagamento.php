@@ -406,6 +406,7 @@ class Pagamento extends CI_Controller
         $this->load->model("produto_parceiro_pagamento_model", "parceiro_pagamento");
         $this->load->model("produto_parceiro_configuracao_model", "produto_parceiro_configuracao");
         $this->load->model("pedido_model", "pedido");
+        $this->load->model('recorrencia_model', 'recorrencia');
 
         $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
         if (empty($cotacao)) {
@@ -785,6 +786,10 @@ class Pagamento extends CI_Controller
             }
 
             if ($forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_BOLETO")) {
+                $Campos["Payment"]["Address"]           = "Alameda Rio Negro, 500 - 6° andar - Alphaville - Barueri - São Paulo - CEP 06454-000";
+                $Campos["Payment"]["Provider"]          = "Simulado";
+                $Campos["Payment"]["Identification"]    = "08.267.567/0001-30";
+                $Campos["Payment"]["Instructions"]      = "Aceitar somente ate a data de vencimento, apos essa data juros de 1% dia.";
                 $pedido_data                            = array();
                 $pedido_data["cotacao_id"]              = $cotacao_id;
                 $pedido_data["produto_parceiro_id"]     = $produto_parceiro_id;
@@ -809,10 +814,6 @@ class Pagamento extends CI_Controller
                 $pedido_data["instrucoes"]              = $Campos["Payment"]["Instructions"];
                 $pedido_data["num_parcela"]             = $num_parcela;
                 $pedido_data["bandeira"]                = $produto_parceiro_pagamento_id;
-                $Campos["Payment"]["Address"]           = "Alameda Rio Negro, 500 - 6° andar - Alphaville - Barueri - São Paulo - CEP 06454-000";
-                $Campos["Payment"]["Provider"]          = "Simulado";
-                $Campos["Payment"]["Identification"]    = "08.267.567/0001-30";
-                $Campos["Payment"]["Instructions"]      = "Aceitar somente ate a data de vencimento, apos essa data juros de 1% dia.";
             }
             //die( json_encode( $pedido_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
 
@@ -933,11 +934,8 @@ class Pagamento extends CI_Controller
                 }
             }
 
-            $this->load->library("Pagmax360");
-            $Pagmax360              = new Pagmax360();
-            $Pagmax360->merchantId  = $this->config->item("Pagmax360_merchantId");
-            $Pagmax360->merchantKey = $this->config->item("Pagmax360_merchantKey");
-            $Pagmax360->Environment = $this->config->item("Pagmax360_Environment");
+            $this->load->library("Pagmax360Cartao");
+            $Pagmax360 = new Pagmax360Cartao();
 
             $Json = json_encode($Campos);
 
@@ -1000,6 +998,20 @@ class Pagamento extends CI_Controller
                         "dados"    => array("pedido_id" => $pedido_id),
                         "pagmax"   => $Response,
                     );
+                }
+
+                if (isset($Response["Payment"]["RecurrentPayment"])) {
+                    $this->recorrencia->insert(array(
+                        "pedido_id" => $pedido_id
+                        , "Capture" => $Response["Payment"]["Capture"]
+                        , "Tid" => $Response["Payment"]["Tid"]
+                        , "ProofOfSale" => $Response["Payment"]["ProofOfSale"]
+                        , "AuthorizationCode" => $Response["Payment"]["AuthorizationCode"]
+                        , "ReceivedDate" => $Response["Payment"]["ReceivedDate"]
+                        , "CapturedDate" => $Response["Payment"]["CapturedDate"]
+                        , "PaymentId" => $Response["Payment"]["PaymentId"]
+                        , "RecurrentPaymentId" => $Response["Payment"]["RecurrentPayment"]["RecurrentPaymentId"]
+                    ));
                 }
             } else {
                 if (sizeof($Response) == 0 || is_null($Response) || is_null(json_encode($Response))) {
