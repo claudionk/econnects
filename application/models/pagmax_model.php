@@ -34,7 +34,7 @@ class Pagmax_Model extends MY_Model
     public function realiza_pagamento($pedido_id, $forma_pagamento_tipo_id)
     {
 
-        log_message('debug', 'INICIO EFETUAR PAGMAX ' . $pedido_cartao_id);
+        log_message('debug', 'INICIO EFETUAR PAGMAX ' . $pedido_id);
         $this->load->model('recorrencia_model', 'recorrencia');
         $this->load->model('fatura_parcela_model', 'fatura_parcela');
         $this->load->library("Nusoap_lib");
@@ -55,8 +55,8 @@ class Pagmax_Model extends MY_Model
             log_message('debug', print_r($parceiro_pagamento, true));
             log_message('debug', 'BUSCA INTEGRAÇÃO ');
 
-            log_message('debug', 'BUSCANDO INTEGRAÇÃO - ' . count($integracao));
             $integracao = $this->integracao->get_by_slug('pagmax');
+            log_message('debug', 'BUSCANDO INTEGRAÇÃO - ' . count($integracao));
 
             //Busca a fatura
             $fatura = $this->fatura->get_many_by(array('pedido_id' => $pedido_id));
@@ -66,7 +66,7 @@ class Pagmax_Model extends MY_Model
                 ->order_by('num_parcela')
                 ->get_many_by(array(
                     'fatura_id'          => $fatura['fatura_id'],
-                    'fatura_status_id'   => 1,
+                   # 'fatura_status_id'   => 1,
                     'data_vencimento <=' => date('Y-m-d'),
                 ));
 
@@ -104,20 +104,21 @@ class Pagmax_Model extends MY_Model
                     }
 
                     $reg = $cartao = $cartao[0];
-                    log_message('debug', 'CARTAO ENCONTRADO ' . $cartao['pedido_cartao_id']);
+                    $pedido_cartao_id = $cartao['pedido_cartao_id'];
+                    log_message('debug', 'CARTAO ENCONTRADO ' . $pedido_cartao_id);
 
                     //verifica a quantidade de transações que deram erro
                     if ((intval($integracao['qnt_erros']) != 0 && $cartao['erros'] >= $integracao['qnt_erros']) || $cartao['erros'] > 5) {
-                        $model->update($cartao['pedido_cartao_id'], array('ativo' => 0), true);
+                        $model->update($pedido_cartao_id, array('ativo' => 0), true);
                         $this->pedido_transacao->insStatus($pedido_id, 'pagamento_negado', "Transação não Efetuada");
                         log_message('debug', 'NEGANDO TRANSACAO ');
 
                         // TODO: FIM DA EXECUÇÃO
                     }
 
-                    log_message('debug', 'EFETUAR PAGAMENTO PAGMAX ' . $cartao['pedido_cartao_id']);
+                    log_message('debug', 'EFETUAR PAGAMENTO PAGMAX ' . $pedido_cartao_id);
 
-                    $dados_transacao['pedido_cartao_id'] = $cartao['pedido_cartao_id'];
+                    $dados_transacao['pedido_cartao_id'] = $pedido_cartao_id;
 
                     $validade       = $this->encrypt->decode($cartao['validade']);
                     $numero         = $this->encrypt->decode($cartao['numero']);
@@ -228,7 +229,7 @@ class Pagmax_Model extends MY_Model
 
             $Json = json_encode($JsonDataRequest);
 
-            $result = $this->executa_pagamento($pedido_id, $parceiro_pagamento['forma_pagamento_id'], $Json, $dados_transacao, $reg);
+            $result = $this->executa_pagamento($Json, ['pedido_id' => $pedido_id, 'fatura_parcela_id' => $fatura_parcela['fatura_parcela_id'], 'pedido_cartao_id' => $pedido_cartao_id], $dados_transacao, $reg);
 
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
@@ -243,7 +244,7 @@ class Pagmax_Model extends MY_Model
      * @param $pedido_cartao_id
      * @throws Exception
      */
-    public function executa_pagamento($pedido_id, $forma_pagamento_id, $Json, $dados_transacao, $cartao = null)
+    public function executa_pagamento($Json, $dados, $dados_transacao, $cartao = null)
     {
         $this->load->library("Pagmax360");
         $Pagmax360 = new Pagmax360();
@@ -252,10 +253,17 @@ class Pagmax_Model extends MY_Model
         $Pagmax360->merchantKey = $this->config->item("Pagmax360_merchantKey");
         $Pagmax360->Environment = $this->config->item("Pagmax360_Environment");
 
-        $result = [];
+        $result = [
+            'status' => true,
+            'message' => 'Transação Efetuada com Sucesso'
+        ];
+
+        $pedido_id = $dados['pedido_id'];
+        $fatura_parcela_id = $dados['fatura_parcela_id'];
+        $pedido_cartao_id = $dados['pedido_cartao_id'];
 
         try {
-            log_message('debug', 'FAZ CHAMADA WS ', print_r($param, true));
+            log_message('debug', 'FAZ CHAMADA WS ', print_r($Json, true));
 
             // Pagmax 360 v2
             $Response = $Pagmax360->createTransaction($Pagmax360->merchantId, $Pagmax360->merchantKey, $Json, $Pagmax360->Environment, $pedido_id);
@@ -263,13 +271,19 @@ class Pagmax_Model extends MY_Model
             error_log(print_r($Response, true) . "\n", 3, "/var/log/httpd/myapp.log");
             if (isset($Response->{"Code"}) || sizeof($Response) == 0 || (isset($Response->{"status"}) && empty($Response->{"status"}))) {
                 $tipo_mensagem = "msg_erro";
-                if (sizeof($Response) == 0) {
-                    $msgErro = "Processing Center Error (1)";
-                } elseif (isset($Response->{"status"})) {
-                    $msgErro = $Response->{"message"};
+
+                if (isset($Response["error"]) && isset($Response["error"]["Code"])) {
+                    $msgErro = issetor( $Response["error"]["Message"], "Falha na transacao") ." (Erro " . $Response["error"]["Code"] . ")";
                 } else {
-                    $msgErro = $Response->{"Message"} . " (" . $Response->{"Code"} . ")";
+                    if ( isset($Response[0]["Code"]) && isset($Response[0]["Message"]) ) {
+                        $msgErro = $Response[0]["Message"] ." (Code " . $Response[0]["Code"] . ")";
+                    } elseif (isset($Response->{"status"})) {
+                        $msgErro = $Response->{"message"};
+                    } else {
+                        $msgErro = "Falha de comunicação (Erro 0)";
+                    }
                 }
+
                 $dados_transacao["result"]      = "ERRO";
                 $dados_transacao["message"]     = $msgErro;
                 $dados_transacao["slug_status"] = 'erro';
@@ -323,6 +337,9 @@ class Pagmax_Model extends MY_Model
                         if (isset($Response->{"Payment"}->{"AuthenticationUrl"}) && $Response->{"Payment"}->{"AuthenticationUrl"} != "") {
                             $redirect = $Response->{"Payment"}->{"AuthenticationUrl"};
                         }
+
+                        $result['url'] = $redirect;
+
                         $dados_transacao["result"]      = "REDIRECT";
                         $dados_transacao["tid"]         = $TID;
                         $dados_transacao["message"]     = $statusMessage;
@@ -420,16 +437,7 @@ class Pagmax_Model extends MY_Model
         $erro = false;
         try {
 
-            switch ($forma_pagamento_id) {
-                case $this->config->item("FORMA_PAGAMENTO_CARTAO_CREDITO"):
-                case $this->config->item("FORMA_PAGAMENTO_CARTAO_DEBITO"):
-                    $cartao = true;
-                    break;
-
-                default:
-                    $cartao = false;
-                    break;
-            }
+            $pedido  = $this->pedido->get($pedido_id);
 
             log_message('debug', 'RETORNO CHAMADA WS ');
             log_message('debug', print_r($Response, true));
@@ -438,9 +446,8 @@ class Pagmax_Model extends MY_Model
                 if ($dados_transacao['status'] == 6) {
 
                     $this->load->model('cotacao_model', 'cotacao');
-
                     log_message('debug', 'PAGAMENTO EFETUADO ');
-                    $this->fatura->pagamentoCompletoEfetuado($fatura_parcela['fatura_parcela_id']);
+                    $this->fatura->pagamentoCompletoEfetuado($fatura_parcela_id);
                     log_message('debug', 'ATUALIZA FATURA ');
                     $this->apolice->insertApolice($pedido['pedido_id']);
                     log_message('debug', 'INSERE APOLICE ');
@@ -448,7 +455,6 @@ class Pagmax_Model extends MY_Model
                     log_message('debug', 'INSERE STATUS PEDIDO OK ');
 
                     //Retorna pedido e cotação
-                    $pedido  = $this->pedido->get($pedido['pedido_id']);
                     $cotacao = $this->cotacao->get($pedido['cotacao_id']);
 
                     //Verifica se a cotação é um upgrade
@@ -481,6 +487,7 @@ class Pagmax_Model extends MY_Model
                         }
                     }
                 } else {
+
                     $this->pedido_transacao->insStatus($pedido['pedido_id'], 'aguardando_liberacao', "Aguardando autorização da Operadora");
                     log_message('debug', 'INSERE STATUS PEDIDO - LIBERACAO PAGAMENTO ');
 
@@ -499,17 +506,21 @@ class Pagmax_Model extends MY_Model
 
             } else {
 
-                $pedido  = $this->pedido->get($pedido['pedido_id']);
                 $cotacao = $this->cotacao->get_cotacao_produto($pedido['cotacao_id']);
 
                 if ($cartao) {
                     log_message('debug', 'ERRO NO PAGAMENTO PAGAMENTO ');
                     $this->cartao->update($pedido_cartao_id, array('erros' => $cartao['erros'] + 1), true);
-
-                    $this->pedido_transacao->insStatus($pedido['pedido_id'], $dados_transacao["slug_status"], "Transação não Efetuada");
-                    log_message('debug', ' INSERE STATUS DO PEDIDO NEGADO');
-                    $erro = true;
                 }
+
+                $this->pedido_transacao->insStatus($pedido['pedido_id'], $dados_transacao["slug_status"], "Transação não Efetuada");
+                log_message('debug', ' INSERE STATUS DO PEDIDO NEGADO');
+
+                $erro = true;
+                $result = [
+                    'status' => false,
+                    'message' => 'Transação não Efetuada'
+                ];
 
             }
 
@@ -533,6 +544,9 @@ class Pagmax_Model extends MY_Model
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
         }
+
+        $result['response'] = $Response;
+        return $result;
 
     }
 }

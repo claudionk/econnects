@@ -934,115 +934,27 @@ class Pagamento extends CI_Controller
                 }
             }
 
-            $this->load->library("Pagmax360Cartao");
-            $Pagmax360 = new Pagmax360Cartao();
+            $this->load->model("pagamento_model", "pagamento");
+            $Response = $this->pagamento->run($pedido_id);
 
-            $Json = json_encode($Campos);
+            $result = array(
+                "status"   => false,
+                "dados"    => array("pedido_id" => $pedido_id),
+            );
 
-            $Response = $Pagmax360->createTransaction($Pagmax360->merchantId, $Pagmax360->merchantKey, $Json, $Pagmax360->Environment, $pedido_id);
-            $Response = json_decode($Response, true);
-
-            $result = [];
-            //die( json_encode( $Response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
-            if (isset($Response["Payment"]) && isset($Response["Payment"]["Status"]) && isset($Response["Payment"]["Status"]["Code"])) {
-                if ($Response["Payment"]["Status"]["Code"] == "0") {
-                    $status = $this->pedido->mudaStatus($pedido_id, "criado");
-                    $result = array(
-                        "status"   => true,
-                        "mensagem" => "Transação iniciada",
-                        "dados"    => array("pedido_id" => $pedido_id),
-                        "pagmax"   => $Response,
-                    );
-                    if ($Campos["Payment"]["Type"] == "DebitCard" && isset($Response["Payment"]["AuthenticationUrl"])) {
-                        $result["link_de_autenticacao"] = $Response["Payment"]["AuthenticationUrl"];
-                    }
-                    if ($Campos["Payment"]["Type"] == "Boleto" && isset($Response["Payment"]["Url"])) {
-                        $result["link_do_boleto"] = $Response["Payment"]["Url"];
-                    }
-                    if ($Campos["Payment"]["Type"] == "EletronicTransfer" && isset($Response["Payment"]["Url"])) {
-                        $result["link_de_autenticacao"] = $Response["Payment"]["Url"];
-                    }
-                }
-                if ($Response["Payment"]["Status"]["Code"] == "1") {
-                    $status = $this->pedido->mudaStatus($pedido_id, "aguardando_pagamento");
-                    $result = array(
-                        "status"   => true,
-                        "mensagem" => "Aguardando pagamento",
-                        "dados"    => array("pedido_id" => $pedido_id),
-                        "pagmax"   => $Response,
-                    );
-                    if ($Campos["Payment"]["Type"] == "DebitCard" && isset($Response["Payment"]["AuthenticationUrl"])) {
-                        $result["link_de_autenticacao"] = $Response["Payment"]["AuthenticationUrl"];
-                    }
-                    if ($Campos["Payment"]["Type"] == "Boleto" && isset($Response["Payment"]["Url"])) {
-                        $result["link_do_boleto"] = $Response["Payment"]["Url"];
-                    }
-                    if ($Campos["Payment"]["Type"] == "EletronicTransfer" && isset($Response["Payment"]["Url"])) {
-                        $result["link_de_autenticacao"] = $Response["Payment"]["Url"];
-                    }
-                }
-                if ($Response["Payment"]["Status"]["Code"] == "2") {
-                    $status = $this->pedido->mudaStatus($pedido_id, "pagamento_confirmado");
-                    $result = array(
-                        "status"   => true,
-                        "mensagem" => "Pagamento efetuado com sucesso",
-                        "dados"    => array("pedido_id" => $pedido_id),
-                        "pagmax"   => $Response,
-                    );
-                }
-                if ($Response["Payment"]["Status"]["Code"] == "3") {
-                    $status = $this->pedido->mudaStatus($pedido_id, "pagamento_negado");
-                    $result = array(
-                        "status"   => false,
-                        "mensagem" => "Autorização negada (" . $Response["Payment"]["ReturnMessage"] . ")",
-                        "dados"    => array("pedido_id" => $pedido_id),
-                        "pagmax"   => $Response,
-                    );
-                }
-
-                if (isset($Response["Payment"]["RecurrentPayment"])) {
-                    $this->recorrencia->insert(array(
-                        "pedido_id" => $pedido_id
-                        , "Capture" => $Response["Payment"]["Capture"]
-                        , "Tid" => $Response["Payment"]["Tid"]
-                        , "ProofOfSale" => $Response["Payment"]["ProofOfSale"]
-                        , "AuthorizationCode" => $Response["Payment"]["AuthorizationCode"]
-                        , "ReceivedDate" => $Response["Payment"]["ReceivedDate"]
-                        , "CapturedDate" => $Response["Payment"]["CapturedDate"]
-                        , "PaymentId" => $Response["Payment"]["PaymentId"]
-                        , "RecurrentPaymentId" => $Response["Payment"]["RecurrentPayment"]["RecurrentPaymentId"]
-                    ));
-                }
+            if (empty($Response)) {
+                $result["mensagem"] = "Falha na transacao";
+            } elseif (empty($Response['status'])) {
+                $result["mensagem"] = $Response['message'];
+                $result["pagmax"]   = $Response['response'];
             } else {
-                if (sizeof($Response) == 0 || is_null($Response) || is_null(json_encode($Response))) {
-                    $result = array(
-                        "status"   => false,
-                        "mensagem" => "Falha na transacao (timeout com emissor)",
-                        "dados"    => array("pedido_id" => $pedido_id),
-                    );
-                } else {
-                    if (isset($Response["error"]) && isset($Response["error"]["Code"])) {
-                        $result = array(
-                            "status"   => false,
-                            "mensagem" => issetor( $Response["error"]["Message"], "Falha na transacao") ." (Erro " . $Response["error"]["Code"] . ")",
-                            "dados"    => array("pedido_id" => $pedido_id),
-                        );
-                    } else {
-                        if ( isset($Response[0]["Code"]) && isset($Response[0]["Message"]) ) {
-                            $result = array(
-                                "status"   => false,
-                                "mensagem" => $Response[0]["Message"] ." (Code " . $Response[0]["Code"] . ")",
-                                "dados"    => array("pedido_id" => $pedido_id),
-                            );
-                        } else {
-                            $result = array(
-                                "status"   => false,
-                                "mensagem" => "Falha de comunicação (Erro 0)",
-                                "dados"    => array("pedido_id" => $pedido_id),
-                            );
-                        }
-                    }
-                }
+                $result = array(
+                    "status"   => true,
+                    "mensagem" => $Response['message'],
+                    "url"      => isset($Response['url']) ? $Response['url'] : '',
+                    "pagmax"   => $Response['response'],
+                    "dados"    => array("pedido_id" => $pedido_id),
+                );
             }
 
             die(json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));

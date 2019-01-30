@@ -24,18 +24,12 @@ class Pagamento_Model extends MY_Model
 
         //Carrega modelos
         $this->load->model('pedido_model', 'pedido');
-        // $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('produto_parceiro_pagamento_model', 'parceiro_pagamento');
-        
-        // $this->load->model('pedido_cartao_model', 'cartao');
-        // $this->load->model('pedido_cartao_transacao_model', 'transacao');
-        // $this->load->model('forma_pagamento_integracao_model', 'integracao');
-        // $this->load->model('pedido_transacao_model', 'pedido_transacao');
-        // $this->load->model('apolice_model', 'apolice');
     }
 
     public function run($pedido_id = 0)
     {
+
         $result = [];
         log_message('debug', 'INICIO PAGMAX');
         $pedidos = $this->pedido->getPedidoPagamentoPendente($pedido_id);
