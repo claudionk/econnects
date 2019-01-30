@@ -880,81 +880,62 @@ class Pagamento extends CI_Controller
                 );
             }
 
+            $result = array(
+                "status"              => false,
+                "cotacao_id"          => $cotacao_id,
+                "produto_parceiro_id" => $produto_parceiro_id,
+                "forma_pagamento_id"  => $forma_pagamento_id,
+                "nome"                => $forma_pagamento["nome"],
+                "erros"               => "Não foi possível criar a apólice",
+                "dados"               => array("pedido_id" => $pedido_id),
+            );
+
+            $this->load->model('apolice_model', 'apolice');
+
             if ($pedido_id && $forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_FATURADO") || $forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_TERCEIROS")) {
+
                 $status = $this->pedido->mudaStatus($pedido_id, "pagamento_confirmado");
-                $this->load->model('apolice_model', 'apolice');
                 $this->apolice->insertApolice($pedido_id);
 
                 $apolice = $this->apolice->get_by("pedido_id", $pedido_id);
-                $apolice = $this->db->query("SELECT * FROM apolice WHERE pedido_id=$pedido_id AND deletado=0")->result_array();
-                if (sizeof($apolice)) {
-                    $apolice = $apolice[0];
-                }
-                if ($apolice) {
+                if (empty($apolice)) {
+                    $result["erros"] = "Não foi possível criar a apólice";
+                } else {
                     $result = array(
                         "status"   => true,
                         "mensagem" => "Pedido confirmado",
                         "dados"    => array("pedido_id" => $pedido_id, "apolice_id" => $apolice["apolice_id"], "num_apolice" => $apolice["num_apolice"]),
                     );
-                } else {
-                    $result = array(
-                        "status"              => false,
-                        "cotacao_id"          => $cotacao_id,
-                        "produto_parceiro_id" => $produto_parceiro_id,
-                        "forma_pagamento_id"  => $forma_pagamento_id,
-                        "nome"                => $forma_pagamento["nome"],
-                        "erros"               => "Não foi possível criar a apólice",
-                    );
-                    die(json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
                 }
 
-                die(json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-            }
-
-            $faturas = $this->fatura->filterByPedido($pedido_id)->get_all();
-            if ($faturas) {
-                $faturas        = $faturas[0];
-                $fatura_id      = $faturas["fatura_id"];
-                $fatura_parcela = $this->fatura_parcela->filterByFatura($fatura_id)->get_all();
-                if ($fatura_parcela) {
-                    $fatura_parcela = $fatura_parcela[0];
-                    $fatura_parcela["fatura_parcela_id"];
-                }
-                if ($forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_CHECKOUT_PAGMAX")) {
-                    if ($Campos["Transaction"]["MerchantOrderID"] == "") {
-                        $Campos["Transaction"]["MerchantOrderID"] = $fatura_parcela["fatura_parcela_id"];
-                        $Campos["Sale"]["Amount"]                 = $faturas["valor_total"];
-                    }
-                } else {
-                    if ($Campos["MerchantOrderId"] == "") {
-                        $Campos["MerchantOrderId"] = $fatura_parcela["fatura_parcela_id"];
-                    }
-                    $Campos["Payment"]["Installments"] = $faturas["num_parcela"];
-                    $Campos["Payment"]["Amount"]       = $faturas["valor_total"];
-                }
-            }
-
-            $this->load->model("pagamento_model", "pagamento");
-            $Response = $this->pagamento->run($pedido_id);
-
-            $result = array(
-                "status"   => false,
-                "dados"    => array("pedido_id" => $pedido_id),
-            );
-
-            if (empty($Response)) {
-                $result["mensagem"] = "Falha na transacao";
-            } elseif (empty($Response['status'])) {
-                $result["mensagem"] = $Response['message'];
-                $result["pagmax"]   = $Response['response'];
             } else {
-                $result = array(
-                    "status"   => true,
-                    "mensagem" => $Response['message'],
-                    "url"      => isset($Response['url']) ? $Response['url'] : '',
-                    "pagmax"   => $Response['response'],
-                    "dados"    => array("pedido_id" => $pedido_id),
-                );
+
+                $this->load->model("pagamento_model", "pagamento");
+                $Response = $this->pagamento->run($pedido_id);
+
+                if (empty($Response)) {
+                    $result["mensagem"] = "Falha na transacao";
+                } elseif (empty($Response['status'])) {
+                    $result["mensagem"] = $Response['message'];
+                    $result["pagmax"]   = $Response['response'];
+                } else {
+
+                    $apolice = $this->apolice->get_by("pedido_id", $pedido_id);
+                    if (empty($apolice)) {
+                        $result["erros"] = "Não foi possível criar a apólice";
+                    } else {
+
+                        $result = array(
+                            "status"   => true,
+                            "mensagem" => $Response['message'],
+                            "url"      => isset($Response['url']) ? $Response['url'] : '',
+                            "pagmax"   => $Response['response'],
+                            "dados"    => array("pedido_id" => $pedido_id, "apolice_id" => $apolice["apolice_id"], "num_apolice" => $apolice["num_apolice"]),
+                        );
+                        
+                    }
+
+                }
             }
 
             die(json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
