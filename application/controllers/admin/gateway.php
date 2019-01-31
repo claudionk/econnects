@@ -51,6 +51,51 @@ class Gateway extends Admin_Controller
         }
     }
 
+    public function executaPagamento($pedido_id)
+    {
+
+        if (!$pedido_id) {
+            return;
+        }
+
+        $pedido = $this->pedido->get($pedido_id);
+        if (!$pedido) {
+            return;
+        }
+
+        $result = array(
+            "status" => false,
+            "erros"  => "Não foi possível realizar o pagamento",
+        );
+
+        $this->load->model("pagamento_model", "pagamento");
+        $Response = $this->pagamento->run($pedido_id);
+
+        if (empty($Response)) {
+            $result["mensagem"] = "Falha na transacao";
+        } elseif (empty($Response['status'])) {
+            $result["mensagem"] = $Response['message'];
+            $result["pagmax"]   = $Response['response'];
+        } else {
+
+            $result = array(
+                "status"   => true,
+                "mensagem" => $Response['message'],
+                "url"      => isset($Response['url']) ? $Response['url'] : '',
+                "pagmax"   => $Response['response'],
+            );
+
+        }
+
+        $pedido = $this->pedido->get($pedido_id);
+        $result['pedido_status_id'] = $pedido['pedido_status_id'];
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($result));
+
+    }
+
     public function run()
     {
         error_log("Gateway\n", 3, "/var/log/httpd/360.log");
