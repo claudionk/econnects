@@ -66,7 +66,7 @@ class Pagmax_Model extends MY_Model
                 ->order_by('num_parcela')
                 ->get_many_by(array(
                     'fatura_id'          => $fatura['fatura_id'],
-                   # 'fatura_status_id'   => 1,
+                    'fatura_status_id'   => 1,
                     'data_vencimento <=' => date('Y-m-d'),
                 ));
 
@@ -100,7 +100,10 @@ class Pagmax_Model extends MY_Model
                     $cartao = $this->cartao->filter_by_pedido($pedido_id)->get_all(1, 0);
 
                     if (empty($cartao)) {
-                        // TODO: Não faz nada
+                        return [
+                            'status' => false,
+                            'message' => 'Nenhuma Transação Pendente'
+                        ];
                     }
 
                     $reg = $cartao = $cartao[0];
@@ -113,7 +116,10 @@ class Pagmax_Model extends MY_Model
                         $this->pedido_transacao->insStatus($pedido_id, 'pagamento_negado', "Transação não Efetuada");
                         log_message('debug', 'NEGANDO TRANSACAO ');
 
-                        // TODO: FIM DA EXECUÇÃO
+                        return [
+                            'status' => true,
+                            'message' => 'Transação não Efetuada'
+                        ];
                     }
 
                     log_message('debug', 'EFETUAR PAGAMENTO PAGMAX ' . $pedido_cartao_id);
@@ -175,7 +181,10 @@ class Pagmax_Model extends MY_Model
                     $boleto = $this->boleto->filter_by_pedido($pedido_id)->get_all(1, 0);
 
                     if (empty($boleto)) {
-                        // TODO: Não faz nada
+                        return [
+                            'status' => false,
+                            'message' => 'Nenhuma Transação Pendente'
+                        ];
                     }
 
                     $reg = $boleto = $boleto[0];
@@ -187,7 +196,10 @@ class Pagmax_Model extends MY_Model
                         $this->pedido_transacao->insStatus($pedido_id, 'pagamento_negado', "Transação não Efetuada");
                         log_message('debug', 'NEGANDO TRANSACAO ');
 
-                        // TODO: FIM DA EXECUÇÃO
+                        return [
+                            'status' => true,
+                            'message' => 'Transação não Efetuada'
+                        ];
                     }
 
                     $JsonDataRequest = array(
