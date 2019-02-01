@@ -130,11 +130,16 @@ class Cotacao extends CI_Controller {
             }
 
             // Validando dados dos campos - ALR
-            switch ($check["field"]) {
-                
+            switch ($check["field"]) {                
                 case 'cnpj_cpf':
                     # code...
-                    if(strlen($check["value"]) == 11)
+                    if(strlen($check["value"]) < 11 || (strlen($check["value"]) > 11 && strlen($check["value"]) < 14) || strlen($check["value"]) > 14
+                    ) {
+                        $validacao_ok = false;
+                        $erros[] = $check;
+                        break;
+                    }
+                    else if(strlen($check["value"]) == 11)
                     {
                         if(!(app_validate_cpf($check["value"])))
                         {

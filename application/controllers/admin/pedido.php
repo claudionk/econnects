@@ -419,7 +419,7 @@ class Pedido extends Admin_Controller
 
         $result = $this->current_model->cancelamento($pedido_id);
 
-        if($result['result'] == TRUE)                {
+        if($result['result'] == TRUE) {
 
             $this->pedido_transacao->insStatus($pedido_id, 'cancelamento_aprovado', "CANCELAMENTO APROVADO");
 
@@ -429,7 +429,7 @@ class Pedido extends Admin_Controller
         }
         else
         {
-            $msg = (is_array($result['mensagem']) ? implode("\n", $result['mensagem']) : $result['mensagem'];
+            $msg = (is_array($result['mensagem'])) ? implode("\n", $result['mensagem']) : $result['mensagem'];
             $this->session->set_flashdata('fail_msg', $msg);
             redirect($result['redirect']);
         }
