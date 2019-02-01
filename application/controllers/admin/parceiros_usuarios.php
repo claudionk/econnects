@@ -100,7 +100,7 @@ class Parceiros_Usuarios extends Admin_Controller
             if($this->usuario_cobertura_produto->validate_form()) //Valida form
             {              
 
-                // //Realiza update
+                //Realiza update
                 // $this->usuario_cobertura_produto->update_form();
 
                 // Deletando

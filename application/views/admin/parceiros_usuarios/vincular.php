@@ -34,17 +34,16 @@ if($_POST)
 
 
                 <ul class="list acoes">
-
+                    <?php $i = 0; ?>
                     <?php foreach($produtos as $prod) : ?>
-                        <?php // echo '<pre>'; print_r($prod); die; ?>
                         <li class="">
 
-                            <div idAcao='1'>
-                                <label>
+                            <div>
+                                 <label>
                                     <h4>                                   
                                     <strong>Produto: </strong>  <?php echo $prod['nome_prod_parc'];?></h4>
                                 </label>
-                             </div>
+                            </div>
 
                              <div class="acoes">
                              <?php foreach($prod['planos'] as $plan) : ?>
@@ -55,8 +54,13 @@ if($_POST)
                                 </div>
                                 <div>
                                   <?php foreach ($plan['cobertura'] as $k => $v) : ?>
-                                    <input type="checkbox" <?php print($v['selecionado'] > 0 ? 'checked' : ''); ?> name='cobertura[<?php echo $v['cobertura_plano_id'] ?>][<?php echo $v['cobertura_id'] ?>]'>
-                                      <?php echo "<i>".$v['nome']."</i><br>" ?>
+                                    <div idAcao='<?= $i; ?>' class="checkbox checkbox-inline checkbox-styled">
+                                      <label>
+                                        <input type="checkbox" <?php print($v['selecionado'] > 0 ? 'checked' : ''); ?> name='cobertura[<?php echo $v['cobertura_plano_id'] ?>][<?php echo $v['cobertura_id'] ?>]'>
+                                      </label>
+                                    </div>
+                                    <?php echo "<i>".$v['nome']."</i><br>" ?>
+                                    <?php $i++; ?>
                                   <?php endforeach; ?>
                                 </div>
                                 <br>
