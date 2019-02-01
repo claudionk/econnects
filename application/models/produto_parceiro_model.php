@@ -202,9 +202,15 @@ Class Produto_Parceiro_Model extends MY_Model
         if (!empty($produtos) || !empty($relacionamento)) {
 
             // merge sem duplicar os resultados
+            /*
             $result = array_map(function($produtos,$relacionamento){
                 return array_merge(isset($produtos) ? $produtos : array(), isset($relacionamento) ? $relacionamento : array());
             },$produtos,$relacionamento);
+            */
+            
+            // Correção dos duplicados - ALR
+            $result = array_unique(array_merge(isset($produtos) ? $produtos : array(), isset($relacionamento) ? $relacionamento : array()), SORT_REGULAR);
+
 
             // compara os produtos com os que tem acesso
             if ($onlyEnable) {
