@@ -105,7 +105,7 @@ class Gateway extends Admin_Controller
             //set_time_limit(999999);
             //ini_set ('max_execution_time', 999999);
             log_message('debug', '---------- EXECUTANDO PAGMAX');
-            $this->pagmax();
+            // $this->pagmax();
             $this->pagmax_efetuar_estorno();
             print($i . " -- " . date('H:i:s:u') . "  <br/>");
             log_message('debug', '---------- PAGMAX EXECUTADO');
