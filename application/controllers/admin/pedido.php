@@ -396,13 +396,9 @@ class Pedido extends Admin_Controller
             redirect($result['redirect']);
         }
 
-
     }
 
     public  function cancelar_aprovacao($pedido_id){
-
-        echo $pedido_id;
-        die('aki - cancelar_aprovacao');
 
         $this->load->model("pedido_transacao_model", "pedido_transacao");
 
@@ -415,21 +411,17 @@ class Pedido extends Admin_Controller
             redirect( base_url("$this->controller_uri/view/{$pedido_id}"));
         }
 
-
-
     }
 
     public  function cancelar_aprovar($pedido_id){
 
-
         $this->load->model("pedido_transacao_model", "pedido_transacao");
-
-        $this->pedido_transacao->insStatus($pedido_id, 'cancelamento_aprovado', "CANCELAMENTO APROVADO");
 
         $result = $this->current_model->cancelamento($pedido_id);
 
+        if($result['result'] == TRUE) {
 
-        if($result['result'] == TRUE)                {
+            $this->pedido_transacao->insStatus($pedido_id, 'cancelamento_aprovado', "CANCELAMENTO APROVADO");
 
             $this->session->set_flashdata('succ_msg', $result['mensagem']); //Mensagem de sucesso
             redirect($result['redirect']);
@@ -437,12 +429,10 @@ class Pedido extends Admin_Controller
         }
         else
         {
-
-            $this->session->set_flashdata('fail_msg', $result['mensagem']);
+            $msg = (is_array($result['mensagem'])) ? implode("\n", $result['mensagem']) : $result['mensagem'];
+            $this->session->set_flashdata('fail_msg', $msg);
             redirect($result['redirect']);
         }
-
-
 
     }
 

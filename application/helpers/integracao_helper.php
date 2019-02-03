@@ -1239,7 +1239,7 @@ if ( ! function_exists('app_integracao_id_transacao_canc')) {
 if ( ! function_exists('app_integracao_retorno_generali_fail')) {
     function app_integracao_retorno_generali_fail($formato, $dados = array())
     {
-        $response = (object) ['status' => false, 'msg' => []];
+        $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
         // echo "<pre>";print_r($dados['registro']);
 
         if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
@@ -1262,6 +1262,7 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
         // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
         $CI->integracao_model->update_log_fail($file, $chave);
 
+        $response->coderr = $dados['registro']['cod_erro']; 
         $response->msg[] = ['id' => 12, 'msg' => $dados['registro']['cod_erro'] ." - ". $dados['registro']['descricao_erro'], 'slug' => "erro_retorno"];
 
         return $response;

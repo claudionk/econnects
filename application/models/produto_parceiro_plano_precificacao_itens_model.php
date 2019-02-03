@@ -342,10 +342,13 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     $d = $dn->diff(new DateTime());
                     $base = $d->y;
                     break;
+                default:
+                    $base = 0;
+                    break; 
             }
 
             // echo $base ." -> ". $vl['inicial'] ." > ". $vl['final'] ."\n";
-            if (!empty($base) && $base >= $vl['inicial'] && $base <= $vl['final']) {
+            if ($base >= $vl['inicial'] && $base <= $vl['final']) {
                 // echo "encontrou\n";
                 return $vl['valor'];
             }
