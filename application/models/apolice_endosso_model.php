@@ -120,13 +120,14 @@ Class Apolice_Endosso_Model extends MY_Model
         $endosso = 0;
 
         if ($sequencial > 1 ) {
+
             $result = $this->getProdutoParceiro($apolice_id);
             if (!empty($result)) {
-
                 if ($result['slug'] == 'generali') {
                     $endosso = $result['codigo_sucursal'] . '71'. str_pad($sequencial-1, 7, "0", STR_PAD_LEFT);
                 }
             }
+
         }
 
         return $endosso;
@@ -181,13 +182,13 @@ Class Apolice_Endosso_Model extends MY_Model
                 $dados_end['parcela'] = 1;
 
             }
-
             
             $dados_end['tipo'] = $this->defineTipo($tipo, $seq_end['endosso'], $capa);
 
             $this->insert($dados_end, TRUE);
 
-            if ($dados_end['parcela'] == 0) {
+            // gera o registro adicional na Adesão da Capa
+            if ($tipo == 'A' && $dados_end['parcela'] == 0) {
                 $this->insEndosso($tipo, $apolice_id, $produto_parceiro_pagamento_id, $valor, 1);
             }
 
