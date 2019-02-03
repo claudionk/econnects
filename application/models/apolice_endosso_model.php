@@ -133,7 +133,7 @@ Class Apolice_Endosso_Model extends MY_Model
         return $endosso;
     }
 
-    public function insEndosso($tipo, $apolice_id, $produto_parceiro_pagamento_id, $valor, $parcela = null){
+    public function insEndosso($tipo, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $valor, $parcela = null){
 
         try{
             $this->load->model('apolice_model', 'apolice');
@@ -144,6 +144,7 @@ Class Apolice_Endosso_Model extends MY_Model
 
             $dados_end = array();
             $dados_end['apolice_id'] = $apolice_id;
+            $dados_end['pedido_id'] = $pedido_id;
             $dados_end['valor'] = $valor;
             $dados_end['data_inicio_vigencia'] = $data_inicio_vigencia = $apolice['data_ini_vigencia'];
             $dados_end['data_fim_vigencia'] = $apolice['data_fim_vigencia'];
@@ -189,7 +190,7 @@ Class Apolice_Endosso_Model extends MY_Model
 
             // gera o registro adicional na Adesão da Capa
             if ($tipo == 'A' && $dados_end['parcela'] == 0) {
-                $this->insEndosso($tipo, $apolice_id, $produto_parceiro_pagamento_id, $valor, 1);
+                $this->insEndosso($tipo, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $valor, 1);
             }
 
         }catch (Exception $e){

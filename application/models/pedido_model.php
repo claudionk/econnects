@@ -987,7 +987,7 @@ Class Pedido_Model extends MY_Model
                 if($ins_movimentacao) {
                     $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id']);
 
-                    $this->apolice_endosso->insEndosso($tipo, $apolice['apolice_id'], $pedido['produto_parceiro_pagamento_id'], $pedido["valor_parcela"], null);
+                    $this->apolice_endosso->insEndosso($tipo, $pedido_id, $apolice['apolice_id'], $pedido['produto_parceiro_pagamento_id'], $pedido["valor_parcela"], null);
                 }
 
             }

@@ -177,7 +177,7 @@ class Apolice_Model extends MY_Model
 
         $this->movimentacao->insMovimentacao('A', $apolice_id);
 
-        $this->apolice_endosso->insEndosso('A', $apolice_id, $produto_parceiro_pagamento_id, $valor_total, null);
+        $this->apolice_endosso->insEndosso('A', $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $valor_total, null);
 
         $this->apolice_cobertura->deleteByCotacao($cotacao_id);
 
