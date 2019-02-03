@@ -90,7 +90,7 @@ Class Pedido_Model extends MY_Model
 
         $this->_database->distinct()
         ->select("pedido.pedido_id, pedido.codigo, pedido.valor_total, pedido.valor_parcela")
-        ->select("pedido.num_parcela, forma_pagamento.nome, forma_pagamento.slug")
+        ->select("pedido.num_parcela, forma_pagamento.nome, forma_pagamento.slug, pedido.produto_parceiro_pagamento_id")
         ->join("produto_parceiro_pagamento", "pedido.produto_parceiro_pagamento_id = produto_parceiro_pagamento.produto_parceiro_pagamento_id", 'inner')
         ->join("forma_pagamento", "forma_pagamento.forma_pagamento_id = produto_parceiro_pagamento.forma_pagamento_id and forma_pagamento.slug != 'cobranca_terceiros'", 'inner')
         ->join("forma_pagamento_tipo", "forma_pagamento_tipo.forma_pagamento_tipo_id = forma_pagamento.forma_pagamento_tipo_id", 'inner')
@@ -1986,6 +1986,21 @@ Class Pedido_Model extends MY_Model
 
         $parcelamento = array();
         if( isset( $item['parcelamento_maximo'] ) ) {
+
+            if( $item['parcelamento_maximo'] < intval( $dados["num_parcela"] )) {
+                die( 
+                    json_encode( 
+                        array( 
+                            "success" => false, 
+                            "cotacao_id" => $dados["cotacao_id"], 
+                            "produto_parceiro_id" => $dados["produto_parceiro_id"], 
+                            "forma_pagamento_id" => $dados["forma_pagamento_id"], 
+                            "erros" => "Número máximo de parcelas para esta forma de pagamento é de {$item['parcelamento_maximo']} parcela(s)"
+                        ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES 
+                    ) 
+                );
+            }
+
             for($i = 1; $i <= $item['parcelamento_maximo'];$i++){
                 if($i <= $item['parcelamento_maximo_sem_juros']) {
                     $parcelamento[$i] = $valor_total/$i;

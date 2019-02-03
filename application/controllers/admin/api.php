@@ -43,11 +43,20 @@ class Api extends Site_Controller
             print_r($retornoJson);
         }
 
-        if (isset($retornoJson->status) && empty($retornoJson->status)) {
+        $sucesso = (isset($retornoJson->status) && empty($retornoJson->status));
+        if (!$sucesso) {
+            $sucesso = (isset($retornoJson->success) && empty($retornoJson->success));
+        }
+
+        if ($sucesso) {
             if(isset($retornoJson->message))
                 $messagem = $retornoJson->message;
-            else
-                $messagem = $retornoJson->mensagem;
+            else {
+                if(isset($retornoJson->mensagem))
+                    $messagem = $retornoJson->mensagem;
+                else
+                    $messagem = $retornoJson->erros;
+            }
 
             if (!is_array($messagem))
                 header('X-Error-Message: '. $messagem, true, 500);
@@ -59,6 +68,7 @@ class Api extends Site_Controller
             $retorno["response"] = $messagem;
             if (isset($retornoJson->erros)) {
                 $retorno["response"] = [
+                    'status' => false,
                     'mensagem' => $messagem,
                     'erros' => $retornoJson->erros
                 ];

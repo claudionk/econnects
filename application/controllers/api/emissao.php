@@ -61,19 +61,6 @@ class Emissao extends CI_Controller {
         $this->session->set_userdata("tokenAPIvalid",$webservice["validade"]);
     }
 
-    public function valida_retorno()
-    {
-        if (!empty($r["response"])){
-            $retorno = json_decode($r["response"]);
-            if (empty($retorno)){
-                $ret['response'] = $r["response"];
-            } else {
-                // sucesso
-                //$ret = ['status' => true, 'response' => $response];
-            }
-        }
-    }
-
     public function index() {
 
         $POST = json_decode( file_get_contents( "php://input" ), true );
@@ -179,16 +166,24 @@ class Emissao extends CI_Controller {
                 if(empty($r))
                     die(json_encode(array("status"=>false,"message"=>"Falha na consulta de campos habilitados"),JSON_UNESCAPED_UNICODE));
 
-                $retorno = json_decode($r,true);
-                if( empty($retorno) )
-                    die(json_encode(array("status"=>false,"message"=>$r),JSON_UNESCAPED_UNICODE));
+                $retorno = convert_objeto_to_array($r);
+                if (is_array($r)) {
+                    $err = empty($retorno->status);
+                } else {
+                    $err = empty($r);
+                }
+
+                if( $err ) {
+                    $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
+                    die(json_encode(array("status"=>false,"message"=>$msg),JSON_UNESCAPED_UNICODE));
+                }
 
                 foreach ($retorno as $ret) {
                     if ($validaModelo) break;
 
-                    foreach ($ret['campos'] as $campo) {
-                        if ( in_array($campo['nome_banco'], ['ean', 'equipamento_id', 'equipamento_nome', 'equipamento_marca_id', 'equipamento_categoria_id']) ) {
-                            $pos = strpos($campo['validacoes'], "required");
+                    foreach ($ret->campos as $campo) {
+                        if ( in_array($campo->nome_banco, ['ean', 'equipamento_id', 'equipamento_nome', 'equipamento_marca_id', 'equipamento_categoria_id']) ) {
+                            $pos = strpos($campo->validacoes, "required");
                             if ( !($pos === false) ) {
                                 $validaModelo = true;
                                 break;
@@ -258,9 +253,10 @@ class Emissao extends CI_Controller {
                             die(json_encode(array("status"=>false,"message"=>"Não foi possível realizar a consulta do equipamento por Marca/Modelo"),JSON_UNESCAPED_UNICODE));
                         }
                         else{
-                            $retorno = json_decode($r,true);
-                            if( ! $retorno["status"] ) {
-                                die(json_encode(array("status"=>false,"message"=>$r),JSON_UNESCAPED_UNICODE));
+                            $retorno = convert_objeto_to_array($r);
+                            if( empty($retorno->{"status"}) ) {
+                                $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
+                                die(json_encode(array("status"=>false,"message"=>$msg),JSON_UNESCAPED_UNICODE));
                             }
                             else{
                                 $arrOptions["ean"] = $retorno["dados"][0]["ean"];                            
@@ -286,26 +282,20 @@ class Emissao extends CI_Controller {
                 if(!empty($r))
                 {
                     // pegando o ID da cotação
-                    if (is_array($r))
-                        $retorno = $r;
-                    else
-                        $retorno = json_decode($r);
-
-                    if(!empty($retorno->{"status"}))
+                    $retorno = convert_objeto_to_array($r);
+                    if( !empty($retorno->{"status"}) )
                     {
                         $this->cotacao_id = $retorno->{"cotacao_id"};
                         $this->campos_estrutura['cotacao_id'] = $this->cotacao_id;
                         $this->produto_parceiro_id = $retorno->{"produto_parceiro_id"};
+
                         // Chamando o Calculo da cotação
                         $this->etapas('calculocotacao');
                     } 
                     else 
                     {
-                        if (is_array($r))
-                            $retorno = array("status"=>false,"message"=>$r['mensagem'],"error"=>$r['erros']);
-                        else
-                            $retorno = array("status"=>false,"message"=>$r);
-                        die(json_encode($retorno,JSON_UNESCAPED_UNICODE));
+                        $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
+                        die(json_encode(array("status"=>false,"message"=>$msg,"error"=>isset($r['erros']) ? $r['erros'] : null ),JSON_UNESCAPED_UNICODE));
                     }
                 }
                 else
@@ -326,19 +316,20 @@ class Emissao extends CI_Controller {
 
                 if(!empty($r))
                 {
-                    $retorno = json_decode($r);
-
-                    // Validação valores  
-                    if(!empty($this->valor_premio_bruto) && $this->valor_premio_bruto != $retorno->{"premio_liquido_total"}){
-                        die(json_encode(array("status"=>false,"message"=>"O valor do prêmio {$this->valor_premio_bruto} informado diferente do valor cálculado ".$retorno->{"premio_liquido_total"}),JSON_UNESCAPED_UNICODE));
-                    }
-                    if(!empty($retorno->{"status"}))
+                    $retorno = convert_objeto_to_array($r);
+                    if( !empty($retorno->{"status"}) )
                     {
+                        // Validação valores  
+                        if(!empty($this->valor_premio_bruto) && $this->valor_premio_bruto != $retorno->{"premio_liquido_total"}){
+                            die(json_encode(array("status"=>false,"message"=>"O valor do prêmio {$this->valor_premio_bruto} informado diferente do valor cálculado ".$retorno->{"premio_liquido_total"}),JSON_UNESCAPED_UNICODE));
+                        }
+
                         $retorno->{"cotacao_id"} = $this->cotacao_id;
                         $this->etapas('contratarcotacao',$retorno);
                     }
                     else
                     {
+                        $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
                         die(json_encode(array("status"=>false,"message"=>"O cálculo da cotação não realizado"),JSON_UNESCAPED_UNICODE));
                     }
                 }
@@ -359,13 +350,14 @@ class Emissao extends CI_Controller {
 
                     if(!empty($r))
                     {
-                        $retorno = json_decode($r);
-                        if($retorno->{"status"} )
+                        $retorno = convert_objeto_to_array($r);
+                        if( !empty($retorno->{"status"}) )
                         {
                             $this->etapas('formapagamento', $retorno);
                         }
                         else
                         {
+                            $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
                             die(json_encode(array("status"=>false,"message"=>$r),JSON_UNESCAPED_UNICODE));
                         }
                     }
@@ -390,7 +382,7 @@ class Emissao extends CI_Controller {
                     $r = $obj->execute($url, 'GET');
                     if(!empty($r))
                     {
-                        $retorno = json_decode($r);
+                        $retorno = convert_objeto_to_array($r);
                         $flag = false;
                         foreach ($retorno as $vl) {
                             if($vl->tipo->slug == $this->meio_pagto_slug) {
@@ -437,15 +429,13 @@ class Emissao extends CI_Controller {
                         "campos" => $parametros["campos"]  
                     ]; 
 
-
                     $url = base_url() ."api/pagamento/pagar";
                     $obj = new Api();
                     $r = $obj->execute($url, 'POST', json_encode($arrOptions));
-
                     if(!empty($r))
                     {
-                        $retorno = json_decode($r);
-                        if($retorno->{"status"})
+                        $retorno = convert_objeto_to_array($r);
+                        if( !empty($retorno->{"status"}) )
                         {
                             if (!empty($this->equipamento_nome)) $retorno->modelo = $this->equipamento_nome;
                             if (!empty($this->ean)) $retorno->ean = $this->ean;
@@ -454,7 +444,8 @@ class Emissao extends CI_Controller {
                         }
                         else
                         {
-                            die(json_encode(array("status"=>false,"message"=>"Não foi possível realizar o pagamento", "cotacao_id" => $parametros["cotacao_id"]),JSON_UNESCAPED_UNICODE));
+                            $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
+                            die(json_encode(array("status"=>false,"message"=>$msg, "cotacao_id" => $parametros["cotacao_id"]),JSON_UNESCAPED_UNICODE));
                         }           
                     }
                     else
@@ -478,29 +469,29 @@ class Emissao extends CI_Controller {
                     {
                         $this->db->query("UPDATE apolice SET num_apolice='".$this->num_apolice."' WHERE pedido_id='".$parametros->dados->pedido_id."'" );  
                     }
-                  
+
                     $url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/apolice?pedido_id={$parametros->dados->pedido_id}" ;
                     $obj = new Api();
                     $r = $obj->execute($url, 'GET');
-                 
+
                     //$arrOptions = [
                     //    "pedido_id" => $parametros->dados->pedido_id ,
-                    //  	"num_apolice" => $this->num_apolice
+                    //      "num_apolice" => $this->num_apolice
                     //]; 
                     //$url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/apolice";
                     //$obj = new Api();
                     //$r = $obj->execute($url, 'POST', json_encode($arrOptions));*/
-
                     if(!empty($r))
                     {
-                        $retorno = json_decode($r);
-                        if($retorno->{"status"})
+                        $retorno = convert_objeto_to_array($r);
+                        if( !empty($retorno->{"status"}) )
                         {
                             die(json_encode($retorno,JSON_PRETTY_PRINT));
                         }
                         else
                         {
-                            die(json_encode(array("r" => $retorno , "status"=>false,"message"=>"Não foi possível consultar a Apólice"),JSON_UNESCAPED_UNICODE));
+                            $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
+                            die(json_encode(array("status"=>false,"message"=>$msg, "pedido_id" => $parametros->dados->pedido_id),JSON_UNESCAPED_UNICODE));
                         }           
                     }
                     else
