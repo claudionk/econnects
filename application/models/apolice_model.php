@@ -161,23 +161,23 @@ class Apolice_Model extends MY_Model
 
     }
 
-    public function concluiApolice($pedido, $apolice_id)
+    public function concluiApolice($pedido, $apolice_id, $data_ini_vigencia, $data_fim_vigencia)
     {
         $this->load->model('apolice_cobertura_model', 'apolice_cobertura');
         $this->load->model('apolice_movimentacao_model', 'movimentacao');
         $this->load->model('apolice_endosso_model', 'apolice_endosso');
-        
 
         $pedido_id = $pedido['pedido_id'];
         $produto_parceiro_id = $pedido['produto_parceiro_id'];
         $produto_parceiro_pagamento_id = $pedido['produto_parceiro_pagamento_id'];
         $cotacao_id = $pedido['cotacao_id'];
+        $valor_total = $pedido["valor_parcela"];
 
         $this->insertCapitalizacao($produto_parceiro_id, $pedido_id);
 
         $this->movimentacao->insMovimentacao('A', $apolice_id);
 
-        $this->apolice_endosso->insEndosso('A', $apolice_id, $produto_parceiro_pagamento_id, 1);
+        $this->apolice_endosso->insEndosso('A', $apolice_id, $produto_parceiro_pagamento_id, $valor_total, null, $data_ini_vigencia, $data_fim_vigencia);
 
         $this->apolice_cobertura->deleteByCotacao($cotacao_id);
 
@@ -344,7 +344,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['valor_estorno']           = 0;
 
             $this->apolice_equipamento->insert($dados_equipamento, true);
-            $this->concluiApolice($pedido, $apolice_id);
+            $this->concluiApolice($pedido, $apolice_id, $dados_equipamento['data_ini_vigencia'], $dados_equipamento['data_fim_vigencia']);
 
             $evento['mensagem']['apolices'] .= "Nome: {$dados_equipamento['nome']} - Apólice código: {$apolice_id} <br>";
             $evento['mensagem']['apolice_codigo'] = $this->get_codigo_apolice($apolice_id);
@@ -541,7 +541,7 @@ class Apolice_Model extends MY_Model
             $dados_generico['aux_10']             = $cotacao_salva['aux_10'];
 
             $this->apolice_generico->insert($dados_generico, true);
-            $this->concluiApolice($pedido, $apolice_id);
+            $this->concluiApolice($pedido, $apolice_id, $dados_generico['data_ini_vigencia'], $dados_generico['data_fim_vigencia']);
 
             $evento['mensagem']['apolices'] .= "Nome: {$dados_generico['nome']} - Apólice código: {$apolice_id} <br>";
             $evento['mensagem']['apolice_codigo'] = $this->get_codigo_apolice($apolice_id);
@@ -721,7 +721,7 @@ class Apolice_Model extends MY_Model
                 $dados_seguro_viagem['valor_estorno']                 = 0;
 
                 $this->apolice_seguro_viagem->insert($dados_seguro_viagem, true);
-                $this->concluiApolice($pedido, $apolice_id);
+                $this->concluiApolice($pedido, $apolice_id, $dados_seguro_viagem['data_ini_vigencia'], $dados_seguro_viagem['data_fim_vigencia']);
 
                 $evento['mensagem']['apolices'] .= "Nome: {$cotacao_pessoa['nome']} - Apólice código: {$apolice_id} <br>";
                 $evento['mensagem']['apolice_codigo'] = $this->get_codigo_apolice($apolice_id);

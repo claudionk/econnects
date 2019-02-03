@@ -36,7 +36,6 @@ Class Apolice_Endosso_Model extends MY_Model
 
     function getProdutoParceiro($apolice_id) {
         $this->_database->select('pa.slug, pa.codigo_sucursal');
-        $this->_database->from($this->_table);
         $this->_database->join("apolice a", "a.apolice_id = {$this->_table}.apolice_id", "inner");
         $this->_database->join("pedido p", "p.pedido_id = a.pedido_id", "inner");
         $this->_database->join("cotacao c", "c.cotacao_id = p.cotacao_id", "inner");
@@ -47,7 +46,7 @@ Class Apolice_Endosso_Model extends MY_Model
         $this->_database->where('a.deletado', 0);
         $this->_database->where('p.deletado', 0);
         $this->_database->where('c.deletado', 0);
-        $this->_database->where('pp.deletado', 0)
+        $this->_database->where('pp.deletado', 0);
         $result = $this->get_all();
         if (!empty($result)) {
             return $result[0];
@@ -62,16 +61,15 @@ Class Apolice_Endosso_Model extends MY_Model
 
         $this->_database->select_max('sequencial', 'seq_max');
         $this->_database->where("apolice_id", $apolice_id);
-        $this->_database->where('integracao.deletado', 0);
         $result = $this->get_all();
 
         if (!empty($result)) {
-            $sequencia = $result[0]['seq_max'] + 1;
+            $sequencia = empty($result[0]['seq_max']) ? 1 : $result[0]['seq_max'] + 1;
             $endosso = $this->defineEndosso($sequencia, $apolice_id);
         }
 
         return [
-            'sequencia' => $sequencia,
+            'sequencial' => $sequencia,
             'endosso' => $endosso,
         ];
     }
@@ -127,28 +125,42 @@ Class Apolice_Endosso_Model extends MY_Model
         return $endosso;
     }
 
-    public function insEndosso($tipo, $apolice_id, $produto_parceiro_pagamento_id, $parcela = 1){
+    public function insEndosso($tipo, $apolice_id, $produto_parceiro_pagamento_id, $valor, $parcela = null, $data_inicio_vigencia, $data_fim_vigencia){
 
         try{
             $this->load->model('produto_parceiro_pagamento_model', 'parceiro_pagamento');
+            $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
 
             $dados_end = array();
             $dados_end['apolice_id'] = $apolice_id;
+            $dados_end['valor'] = $valor;
+            $dados_end['data_inicio_vigencia'] = $data_inicio_vigencia;
+            $dados_end['data_fim_vigencia'] = $data_fim_vigencia;
 
             // VALIDAÇÃO DE CAPA
             // caso seja recorrência terá capa
             if ($this->parceiro_pagamento->isRecurrent($produto_parceiro_pagamento_id)) {
 
                 $capa = true;
-                $dados_end['parcela'] = ($tipo == 'A') ? 0 : ;
-                $dados_end['valor'] = 
-                $dados_end['data_inicio_vigencia'] = 
-                $dados_end['data_fim_vigencia'] = 
+                $dados_end['parcela'] = ($tipo == 'A' && empty($parcela)) ? 0 : $parcela;
+                $dados_end['valor'] = ($dados_end['parcela'] == 0) ? 0 : $valor;
+
+                // valida a vigência
+                if ($dados_end['parcela'] > 0) {
+
+                    $this->load->model('apolice_model', 'apolice');
+                    $apolice = $this->apolice->get($apolice_id);
+                    $vigencia = $this->produto_parceiro_plano->getInicioFimVigenciaCapa($apolice['produto_parceiro_plano_id'], $data_inicio_vigencia);
+                    $dados_end['data_inicio_vigencia'] = $vigencia['inicio_vigencia'];
+                    $dados_end['data_fim_vigencia'] = $vigencia['fim_vigencia'];
+
+                }
 
             } else {
 
                 $capa = false;
                 $dados_end['parcela'] = 1;
+
             }
 
             $seq_end = $this->max_seq_by_apolice_id($apolice_id);
@@ -157,6 +169,11 @@ Class Apolice_Endosso_Model extends MY_Model
             $dados_end['tipo'] = $this->defineTipo($tipo, $seq_end['endosso'], $capa);
 
             $this->insert($dados_end, TRUE);
+
+            if ($dados_end['parcela'] == 0) {
+                $this->insEndosso($tipo, $apolice_id, $produto_parceiro_pagamento_id, $valor, 1, $data_inicio_vigencia, $data_fim_vigencia);
+            }
+
         }catch (Exception $e){
             throw new Exception($e->getMessage());
         }

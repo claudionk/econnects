@@ -153,6 +153,14 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         return $this;
     }
 
+    public function with_produto_parceiro_configuracao($produto_parceiro_plano_id)
+    {
+        $this->with_simple_relation('produto_parceiro_configuracao', '', 'produto_parceiro_id', array('apolice_vigencia', 'apolice_vigencia_regra', 'pagamento_tipo', 'pagamento_periodicidade_unidade'));
+        $this->_database->where("{$this->_table}.{$this->primary_key}", $produto_parceiro_plano_id);
+
+        return $this;
+    }
+
     public function wtih_plano_habilitado($parceiro_id)
     {
         // $this->load->model('produto_parceiro_model', 'produto_parceiro');
@@ -240,13 +248,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
 
         $produto_parceiro_plano = $this->get($produto_parceiro_plano_id);
 
-        $config = $this->db->query("SELECT
-            ppc.*
-            FROM produto_parceiro_plano ppp
-            INNER JOIN produto_parceiro pp ON (pp.produto_parceiro_id=ppp.produto_parceiro_id)
-            INNER JOIN produto_parceiro_configuracao ppc ON (ppc.produto_parceiro_id=pp.produto_parceiro_id)
-            WHERE ppp.produto_parceiro_plano_id=$produto_parceiro_plano_id"
-        )->result_array();
+        $config = $this->with_produto_parceiro_configuracao($produto_parceiro_plano_id)->get_all();
         if ($config) {
             $config = $config[0];
         }
@@ -353,6 +355,64 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             'fim_vigencia'    => $date_fim,
             'dias'            => app_date_get_diff_mysql($date_inicio, $date_fim, 'D'),
             'data_adesao'     => $data_adesao,
+        );
+    }
+
+
+    public function getInicioFimVigenciaCapa($produto_parceiro_plano_id, $data_base)
+    {
+
+        $date_inicio = $data_fim = $data_base;
+
+        $config = $this->with_produto_parceiro_configuracao($produto_parceiro_plano_id)->get_all();
+        if ($config) {
+            $config = $config[0];
+
+            if ($config['pagamento_tipo'] == 'RECORRENTE') {
+
+                $data_base = explode('-', $data_base);
+                $d1 = new DateTime($data_base[2]."-".$data_base[1]."-".$data_base[0]);
+                $date_inicio = $d1->format('Y-m-d');
+                $fim = 1;
+                $date_fim = $d2 = $d1;
+
+                switch ($config["pagamento_periodicidade_unidade"]) {
+                    case "DIA": //
+                        $d2->add(new DateInterval("P{$fim}D"));
+
+                        break;
+                    case "MES":
+
+                        // Adiciona os meses no INICIO da vigência
+                        $m = $d1->format('m');
+
+                        // Adiciona os meses na FIM da vigência
+                        $d2->add(new DateInterval("P{$fim}M"));
+
+                        // valida FEVEREIRO, onde o PHP add os meses com visão de dias
+                        if ($d2->format('m') - $m != $fim) {
+                            // volta para o último dia do mês
+                            $rem = $d2->format('d');
+                            $d2 = $d2->sub(new DateInterval("P{$rem}D"));
+                        } else {
+                            // retira um dia (-1 dia)
+                            $date_fim = $d2->sub(new DateInterval("P1D"));
+                        }
+
+                        break;
+                    case "ANO":
+                        $d2->add(new DateInterval("P{$fim}Y"));
+                        break;
+                }
+
+                $date_fim = $date_fim->format('Y-m-d');
+            }
+        }
+
+        return array(
+            'inicio_vigencia' => $date_inicio,
+            'fim_vigencia'    => $date_fim,
+            'dias'            => app_date_get_diff_mysql($date_inicio, $date_fim, 'D'),
         );
     }
 
