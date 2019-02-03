@@ -659,8 +659,7 @@ jQuery(function($){
         var apolice_id = "<?php echo $apolices[0]['apolice_id']; ?>";
         $.ajax({
             type: "post",
-            //url: "http://econnects.local/api/apolice/calculoCancelar",
-            url: "<?php echo $this->config->item('URL_sisconnects'); ?>api/apolice/calculoCancelar",
+            url: base_url + "api/apolice/calculoCancelar",
             data: JSON.stringify({ apolice_id : apolice_id }),
             headers: {
                 "apikey": "<?php echo app_get_token() ?>",
@@ -671,10 +670,13 @@ jQuery(function($){
                 $(".carregando").show();
             },
             success: function(data){
+                _inicio_vigencia = String( data.dados[0].apolices.data_ini_vigencia).replace(/^(....).(..).(..)/,"$3/$2/$1");
+                _fim_vigencia = String( data.dados[0].apolices.data_fim_vigencia).replace(/^(....).(..).(..)/,"$3/$2/$1");
+
                 $(".carregando").hide();
                 $("#vldevolucao").html("").append(data.valor_estorno_total);
-                $("#dtvigenciaini").html("").append(data.dados[0].apolices.data_ini_vigencia);
-                $("#dtvigenciafim").html("").append(data.dados[0].apolices.data_fim_vigencia);
+                $("#dtvigenciaini").html("").append(_inicio_vigencia);
+                $("#dtvigenciafim").html("").append(_fim_vigencia);
                 $("#qtdutilizados").html("").append(data.dias_utilizados);
                 $('#viewModalCancelamento').modal('show');                 
             },
