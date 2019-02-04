@@ -29,5 +29,8 @@ Class Apolice_Seguro_Viagem_Model extends MY_Model
         return $this->get($id);
     }
 
-
+    function filter_by_apolice($apolice_id){
+        $this->_database->where('apolice_id', $apolice_id);
+        return $this;
+    }
 }

@@ -1229,7 +1229,7 @@ if ( ! function_exists('app_integracao_id_transacao_canc')) {
     function app_integracao_id_transacao_canc($formato, $dados = array())
     {
         $id_transacao = '';
-        if ($dados['registro']['cod_motivo_cobranca'] == '02') {
+        if ( in_array($dados['registro']['cod_tipo_emissao'], ['10','11']) ) {
             $id_transacao = app_integracao_apolice($formato, $dados);
             $id_transacao .= "0".$dados['registro']['cod_ramo'].$dados['registro']['num_parcela'];
         }
