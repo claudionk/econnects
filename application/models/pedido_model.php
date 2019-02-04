@@ -962,7 +962,6 @@ Class Pedido_Model extends MY_Model
         $this->load->model('pedido_model', 'pedido');
 
         $calculo = $this->calcula_estorno_cancelamento($pedido_id, $vigente, $define_data);
-        $pedido = $this->pedido->get($pedido_id);
 
         if (!empty($calculo['status'])) {
 
@@ -985,9 +984,9 @@ Class Pedido_Model extends MY_Model
                 $this->apolice->update($apolice["apolice_id"], ['apolice_status_id' => 2], TRUE);
 
                 if($ins_movimentacao) {
-                    $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id']);
+                    $pedido = $this->pedido->get($pedido_id);
 
-                    $this->apolice_endosso->insEndosso($tipo, $pedido_id, $apolice['apolice_id'], $pedido['produto_parceiro_pagamento_id'], $pedido["valor_parcela"], null);
+                    $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido);
                 }
 
             }

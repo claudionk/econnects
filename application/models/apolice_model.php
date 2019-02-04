@@ -165,19 +165,15 @@ class Apolice_Model extends MY_Model
     {
         $this->load->model('apolice_cobertura_model', 'apolice_cobertura');
         $this->load->model('apolice_movimentacao_model', 'movimentacao');
-        $this->load->model('apolice_endosso_model', 'apolice_endosso');
+        
 
         $pedido_id = $pedido['pedido_id'];
         $produto_parceiro_id = $pedido['produto_parceiro_id'];
-        $produto_parceiro_pagamento_id = $pedido['produto_parceiro_pagamento_id'];
         $cotacao_id = $pedido['cotacao_id'];
-        $valor_total = $pedido["valor_parcela"];
 
         $this->insertCapitalizacao($produto_parceiro_id, $pedido_id);
 
-        $this->movimentacao->insMovimentacao('A', $apolice_id);
-
-        $this->apolice_endosso->insEndosso('A', $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $valor_total, null);
+        $this->movimentacao->insMovimentacao('A', $apolice_id, $pedido);
 
         $this->apolice_cobertura->deleteByCotacao($cotacao_id);
 
