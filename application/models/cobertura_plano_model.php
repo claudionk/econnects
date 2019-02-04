@@ -74,6 +74,12 @@ Class Cobertura_Plano_Model extends MY_Model {
             'rules' => '',
             'groups' => 'default'
         ),
+        array(
+            'field' => 'usar_iof',
+            'label' => 'Usar IOF',
+            'rules' => '',
+            'groups' => 'default'
+        ),
     );
 
     //Get dados
@@ -91,7 +97,7 @@ Class Cobertura_Plano_Model extends MY_Model {
             'descricao' => $this->input->post('descricao'),
             'cobertura_custo' => $this->input->post('cobertura_custo'),
             'iof' => app_unformat_currency($this->input->post('iof')),
-
+            'usar_iof' => $this->input->post('usar_iof')
         );
         return $data;
     }

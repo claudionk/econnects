@@ -72,6 +72,7 @@ Class Cotacao_Cobertura_Model extends MY_Model
             $dados['cotacao_id'] = $cotacao_id;
             $dados['cobertura_plano_id'] = $cobertura_plano_id;
             $dados['valor'] = round($valor_cobertura, 2);
+            $dados['iof'] = (empty($cobertura["usar_iof"])) ? 0 : $cobertura["iof"];
             $dados['mostrar'] = $cobertura["mostrar"];
             $dados['valor_config'] = $valor_config;
             $dados['criacao'] = date("Y-m-d H:i:s");

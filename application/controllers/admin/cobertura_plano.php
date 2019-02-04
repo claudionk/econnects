@@ -180,8 +180,16 @@ class Cobertura_Plano extends Admin_Controller
         //Caso post
         if($_POST)
         {
+            if(!isset($_POST['usar_iof'])) { 
+                $_POST['iof'] = null; 
+                $_POST['usar_iof'] = false;
+            } else {
+                $_POST['usar_iof'] = true;
+            }
 
-            if(!isset($_POST['usar_iof'])) { $_POST['iof'] = null; }
+            // echo '<pre>';
+            // print_r($_POST);
+            // die;
 
             if ($this->current_model->validate_form())
             {
