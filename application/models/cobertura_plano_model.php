@@ -67,11 +67,18 @@ Class Cobertura_Plano_Model extends MY_Model {
             'label' => 'Cobertura Tipo Custo',
             'rules' => 'required',
             'groups' => 'default'
-        )
+        ),
+        array(
+            'field' => 'iof',
+            'label' => 'IOF (%)',
+            'rules' => '',
+            'groups' => 'default'
+        ),
     );
 
     //Get dados
     public function get_form_data($just_check = false) {
+
         //Dados
         $data =  array(
             'cobertura_id' => $this->input->post('cobertura_id'),
@@ -83,6 +90,7 @@ Class Cobertura_Plano_Model extends MY_Model {
             'mostrar' => $this->input->post('mostrar'),
             'descricao' => $this->input->post('descricao'),
             'cobertura_custo' => $this->input->post('cobertura_custo'),
+            'iof' => app_unformat_currency($this->input->post('iof')),
 
         );
         return $data;

@@ -177,6 +177,7 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
         $this->_database->where("produto_parceiro_id", $produto_parceiro_id);
         $this->_database->where("parceiro_id", $parceiro_id);
         $rows = $this->get_all();
+
         if($rows){
             $row = $rows[0];
             $soma = $row["comissao"];

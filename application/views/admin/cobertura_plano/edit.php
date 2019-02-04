@@ -179,6 +179,29 @@ if($_POST)
                               <input ng-model="custo" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/>
                             </div>
                           </div>
+
+                          <?php $field_name = 'usar_iof';?>
+                          <div class="form-group">
+                              <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Usuar IOF *</label>
+                              <div class="switch">
+                                <label>
+                                  NÃO
+                                  <input type="checkbox" name="usar_iof" id="iof_on_off">
+                                  <span class="lever"></span>
+                                  SIM
+                                </label>
+                              </div>
+                          </div>
+
+                          <?php $field_name = 'iof';?>
+                          <div class="form-group" id="field_iof">
+                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">IOF</label>
+                            <div class="col-md-4">
+                              <input ng-model="iof" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/>
+                            </div>
+                          </div>
+                          
+
                         </div>
                         <!-- // Column END -->
                       </div>
@@ -220,8 +243,122 @@ if($_POST)
     $scope.preco = parseFloat( "<?php echo isset($row['preco']) ? $row['preco'] : '0'; ?>" );
     $scope.custo = parseFloat( "<?php echo isset($row['custo']) ? $row['custo'] : '0'; ?>" );
     $scope.porcentagem = parseFloat( "<?php echo isset($row['porcentagem']) ? $row['porcentagem'] : '0'; ?>" );
+    $scope.iof = parseFloat( "<?php echo isset($row['iof']) ? $row['iof'] : '0'; ?>" );
   }]);
 </script>
+<style type="text/css">
+.switch,
+.switch * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none
+}
+
+.switch label {
+    cursor: pointer
+}
+
+.switch label input[type=checkbox] {
+    opacity: 0;
+    width: 0;
+    height: 0
+}
+
+.switch label input[type=checkbox]:checked+.lever {
+    background-color: #eb0038
+}
+
+.switch label input[type=checkbox]:checked+.lever:before,
+.switch label input[type=checkbox]:checked+.lever:after {
+    left: 18px
+}
+
+.switch label input[type=checkbox]:checked+.lever:after {
+    background-color: #eb0038 
+}
+
+.switch label .lever {
+    content: "";
+    display: inline-block;
+    position: relative;
+    width: 36px;
+    height: 14px;
+    background-color: rgba(0, 0, 0, 0.38);
+    border-radius: 15px;
+    margin-right: 10px;
+    -webkit-transition: background 0.3s ease;
+    transition: background 0.3s ease;
+    vertical-align: middle;
+    margin: 0 16px
+}
+
+.switch label .lever:before,
+.switch label .lever:after {
+    content: "";
+    position: absolute;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    left: 0;
+    top: -3px;
+    -webkit-transition: left 0.3s ease, background .3s ease, -webkit-box-shadow 0.1s ease, -webkit-transform .1s ease;
+    transition: left 0.3s ease, background .3s ease, -webkit-box-shadow 0.1s ease, -webkit-transform .1s ease;
+    transition: left 0.3s ease, background .3s ease, box-shadow 0.1s ease, transform .1s ease;
+    transition: left 0.3s ease, background .3s ease, box-shadow 0.1s ease, transform .1s ease, -webkit-box-shadow 0.1s ease, -webkit-transform .1s ease
+}
+
+.switch label .lever:before {
+    background-color: rgba(38, 166, 154, 0.15)
+}
+
+.switch label .lever:after {
+    background-color: #F1F1F1;
+    -webkit-box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12);
+    box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12)
+}
+
+input[type=checkbox]:checked:not(:disabled) ~ .lever:active::before,
+input[type=checkbox]:checked:not(:disabled).tabbed:focus ~ .lever::before {
+    -webkit-transform: scale(2.4);
+    transform: scale(2.4);
+    background-color: rgba(38, 166, 154, 0.15)
+}
+
+input[type=checkbox]:not(:disabled) ~ .lever:active:before,
+input[type=checkbox]:not(:disabled).tabbed:focus ~ .lever::before {
+    -webkit-transform: scale(2.4);
+    transform: scale(2.4);
+    background-color: rgba(0, 0, 0, 0.08)
+}
+
+.switch input[type=checkbox][disabled]+.lever {
+    cursor: default;
+    background-color: rgba(0, 0, 0, 0.12)
+}
+
+.switch label input[type=checkbox][disabled]+.lever:after,
+.switch label input[type=checkbox][disabled]:checked+.lever:after {
+    background-color: #949494
+}
+</style>
+<script type="text/javascript">
+  var flag_iof = "<?php echo isset($row['iof']) ? $row['iof'] : ''; ?>";
+  console.log(flag_iof);
+
+  if(flag_iof == '' || flag_iof == '0.00000')
+    $("#field_iof").hide();
+  else 
+    $("#iof_on_off").click();
 
 
-
+  $("#iof_on_off").change(function(){
+    if($(this).is(":checked"))
+      $("#field_iof").show();
+    else
+      $("#field_iof").hide();
+    
+  });
+</script>
