@@ -957,7 +957,6 @@ Class Pedido_Model extends MY_Model
         $this->load->model("apolice_equipamento_model", "apolice_equipamento");
         $this->load->model("apolice_generico_model", "apolice_generico");
         $this->load->model("apolice_seguro_viagem_model", "apolice_seguro_viagem");
-        $this->load->model('apolice_endosso_model', 'apolice_endosso');
         $this->load->model('pedido_transacao_model', 'pedido_transacao');
         $this->load->model('pedido_model', 'pedido');
 
