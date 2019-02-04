@@ -147,7 +147,7 @@ Class Apolice_Endosso_Model extends MY_Model
             $dados_end['pedido_id'] = $pedido_id;
             $dados_end['apolice_movimentacao_tipo_id'] = $apolice_movimentacao_tipo_id;
             $dados_end['valor'] = $apolice['valor_premio_net'];
-            $dados_end['data_inicio_vigencia'] = $data_inicio_vigencia = $apolice['data_ini_vigencia'];
+            $dados_end['data_inicio_vigencia'] = $apolice['data_ini_vigencia'];
             $dados_end['data_fim_vigencia'] = $apolice['data_fim_vigencia'];
 
             $seq_end = $this->max_seq_by_apolice_id($apolice_id);
@@ -160,7 +160,7 @@ Class Apolice_Endosso_Model extends MY_Model
 
                 $capa = true;
                 $dados_end['parcela'] = (empty($parcela)) ? 0 : $parcela;
-                $dados_end['valor'] = ($dados_end['parcela'] == 0) ? 0 : $valor;
+                $dados_end['valor'] = ($dados_end['parcela'] == 0) ? 0 : $dados_end['valor'];
 
                 // valida a vigência
                 if ($dados_end['parcela'] > 0) {
@@ -169,10 +169,10 @@ Class Apolice_Endosso_Model extends MY_Model
                         $result = $this->lastSequencial($apolice_id);
                         $d1 = new DateTime($result['data_fim_vigencia']);
                         $d1->add(new DateInterval("P1D"));
-                        $data_inicio_vigencia = $d1->format('Y-m-d');
+                        $dados_end['data_inicio_vigencia'] = $d1->format('Y-m-d');
                     }
 
-                    $vigencia = $this->produto_parceiro_plano->getInicioFimVigenciaCapa($apolice['produto_parceiro_plano_id'], $data_inicio_vigencia);
+                    $vigencia = $this->produto_parceiro_plano->getInicioFimVigenciaCapa($apolice['produto_parceiro_plano_id'], $dados_end['data_inicio_vigencia']);
                     $dados_end['data_inicio_vigencia'] = $vigencia['inicio_vigencia'];
                     $dados_end['data_fim_vigencia'] = $vigencia['fim_vigencia'];
 
