@@ -165,7 +165,6 @@ class Apolice_Model extends MY_Model
     {
         $this->load->model('apolice_cobertura_model', 'apolice_cobertura');
         $this->load->model('apolice_movimentacao_model', 'movimentacao');
-        
 
         $pedido_id = $pedido['pedido_id'];
         $produto_parceiro_id = $pedido['produto_parceiro_id'];
@@ -189,6 +188,7 @@ class Apolice_Model extends MY_Model
                 'apolice_id'         => $apolice_id,
                 'cobertura_plano_id' => $cobertura["cobertura_plano_id"],
                 'valor'              => $cobertura["valor"],
+                'iof'                => $cobertura["iof"],
                 'mostrar'            => $cobertura["mostrar"],
                 'valor_config'       => $cobertura['valor_config'],
                 'criacao'            => date("Y-m-d H:i:s"),
