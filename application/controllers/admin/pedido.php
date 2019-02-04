@@ -154,7 +154,6 @@ class Pedido extends Admin_Controller
                     redirect("$this->controller_uri/view/{$_POST['pedido_id']}");
                 }
             }
-               
 
             //Valida formulário
             if($this->pedido_dados_bancario->validate_form())
@@ -186,9 +185,10 @@ class Pedido extends Admin_Controller
 
                     if( isset( $produto_parceiro_cancelamento["result"] ) && $produto_parceiro_cancelamento["result"] == false ) {
                         $this->session->set_flashdata('fail_msg', $produto_parceiro_cancelamento["mensagem"]);
-                    } 
+                    } else {
+                        $this->session->set_flashdata('succ_msg', 'Apólice cancelada com sucesso.');
+                    }
 
-                    $this->session->set_flashdata('succ_msg', 'Apólice cancelada com sucesso.');
                 }
                 else
                 {
@@ -378,24 +378,17 @@ class Pedido extends Admin_Controller
 
 
     public  function cancelar($pedido_id){
-        echo $pedido_id;
-        die('Pedido - aki - cancelar');
         $result = $this->current_model->cancelamento($pedido_id);
 
-
         if($result['result'] == TRUE)                {
-
             $this->session->set_flashdata('succ_msg', $result['mensagem']); //Mensagem de sucesso
             redirect($result['redirect']);
-
         }
         else
         {
-
             $this->session->set_flashdata('fail_msg', $result['mensagem']);
             redirect($result['redirect']);
         }
-
     }
 
     public  function cancelar_aprovacao($pedido_id){
@@ -435,6 +428,5 @@ class Pedido extends Admin_Controller
         }
 
     }
-
 
 }

@@ -181,6 +181,29 @@ class Produto_Parceiro_Pagamento_Model extends MY_Model
         return $this;
     }
 
+    public function isRecurrent($produto_parceiro_pagamento_id)
+    {
+        $parceiro_pagamento = $this
+                ->with_forma_pagamento()
+                ->with_forma_pagamento_tipo()
+                ->get($produto_parceiro_pagamento_id);
+        if (empty($parceiro_pagamento)) {
+            return false;
+        }
+
+        if ($parceiro_pagamento['forma_pagamento_id'] == $this->config->item("FORMA_PAGAMENTO_CARTAO_CREDITO")) {
+
+            /*verifica se é uma configuracao de pagamento recorrente*/
+            $produto_parceiro_configuracao = $this
+                ->with_produto_parceiro_configuracao()
+                ->get($produto_parceiro_pagamento_id);
+
+            return (!empty($produto_parceiro_configuracao["configuracao_pagamento_tipo"]) && $produto_parceiro_configuracao["configuracao_pagamento_tipo"] == "RECORRENTE");
+        }
+
+        return false;
+    }
+
     public function getRecurrent($forma_pagamento_tipo_id, $produto_parceiro_pagamento_id, $Json, $dia_vencimento = null)
     {
         if (empty($dia_vencimento)) {

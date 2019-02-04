@@ -209,9 +209,6 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
             );
         }
 
-
-
-
         return $data;
     }
     function get_by_id($id)
@@ -232,14 +229,12 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
         $this->update($id, $data, TRUE);
     }
 
-
-    function  filter_by_produto_parceiro($produto_parceiro_id){
+    function filter_by_produto_parceiro($produto_parceiro_id){
 
         $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
 
         return $this;
     }
-
 
 }
 
