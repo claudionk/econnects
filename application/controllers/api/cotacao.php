@@ -131,7 +131,7 @@ class Cotacao extends CI_Controller {
             // Validando dados dos campos
             switch ($check["field"]) {                
                 case 'cnpj_cpf':
-                    if ( !app_validate_cpf_cnpj( $check["value"] ) ) {
+                    if( !empty($check["value"]) && !app_validate_cpf_cnpj( $check["value"] ) ) {
                         $validacao_ok = false;
                         $erros[] = $check;
                         break;
