@@ -840,7 +840,7 @@ Class Integracao_Model extends MY_Model
                         if ( empty($callFuncReturn->status) ){
                             // seta para erro
                             // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods 
-                            if($callFuncReturn->coderr == 22 && $proc['tipo'] == 'CLIENTE') 
+                            if(!empty($callFuncReturn->coderr) && $callFuncReturn->coderr == 22 && $proc['tipo'] == 'CLIENTE') 
                             { 
                                 // não há inserção de dados na base, pois estão apenas informando que  
                                 // na base já existe os dados.   
