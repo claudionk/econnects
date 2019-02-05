@@ -180,13 +180,24 @@ class Cobertura_Plano extends Admin_Controller
         //Caso post
         if($_POST)
         {
-                if ($this->current_model->validate_form())
-                {
-                    $this->current_model->update_form();
+            if(!isset($_POST['usar_iof'])) { 
+                $_POST['iof'] = null; 
+                $_POST['usar_iof'] = false;
+            } else {
+                $_POST['usar_iof'] = true;
+            }
 
-                    $this->session->set_flashdata('succ_msg', 'Os dados cadastrais foram salvos com sucesso.');
-                    redirect("$this->controller_uri/index/{$produto_parceiro_plano_id}");
-                }
+            // echo '<pre>';
+            // print_r($_POST);
+            // die;
+
+            if ($this->current_model->validate_form())
+            {
+                $this->current_model->update_form();
+
+                $this->session->set_flashdata('succ_msg', 'Os dados cadastrais foram salvos com sucesso.');
+                redirect("$this->controller_uri/index/{$produto_parceiro_plano_id}");
+            }
         }
         //Carrega dados para o template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );

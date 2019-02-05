@@ -292,6 +292,9 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
         }
 
+        // Ajuste - verificação de IOF e OUTROS - ALR
+
+        // busca a cobertura
         $regra_preco = $this->with_regra_preco()
             ->filter_by_produto_parceiro($produto_parceiro_id)
             ->get_all();
@@ -300,9 +303,35 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $valores_liquido_total = array();
         foreach ($valores_liquido as $key => $value) {
             $valores_liquido_total[$key] = $value;
+            $valores_liquido_total_cobertura[$key] = 0;
+            $iof_calculado = false;
+
+            // Tratando se tem IOF - default para todas as coberturas
+            $sql = "SELECT * FROM cobertura_plano WHERE produto_parceiro_plano_id = ".$produto_parceiro_plano_id." AND deletado = 0 AND usar_iof = 1";
+            $r = $this->_database->query($sql)->result_array();
+ 
+            foreach ($r as $regra) {
+                $iof_calculado = true;
+                $iofPerc = round(($regra['iof']/100) * $regra['custo'], 2);
+                $iofPerc = ($iofPerc == 0) ? 0.01 : $iofPerc;
+
+                $valores_liquido_total_cobertura[$key] += $iofPerc;
+                $iof = $regra['iof'];
+            }
+
+            if ($iof_calculado) {
+                $valores_liquido_total[$key] += $valores_liquido_total_cobertura[$key];
+                $valores_liquido_total[$key] -= $desconto_upgrade;
+            }
+
             foreach ($regra_preco as $regra) {
+                if( $iof_calculado && strtoupper($regra["regra_preco_nome"]) == "IOF" ) {
+                    continue;
+                }
+
                 $valores_liquido_total[$key] += (($regra['parametros']/100) * $value);
                 $valores_liquido_total[$key] -= $desconto_upgrade;
+
                 if( strtoupper($regra["regra_preco_nome"]) == "IOF" ) {
                     $iof = $regra['parametros'];
                 }
