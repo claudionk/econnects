@@ -958,7 +958,6 @@ Class Pedido_Model extends MY_Model
         $this->load->model("apolice_generico_model", "apolice_generico");
         $this->load->model("apolice_seguro_viagem_model", "apolice_seguro_viagem");
         $this->load->model('pedido_transacao_model', 'pedido_transacao');
-        $this->load->model('pedido_model', 'pedido');
 
         $calculo = $this->calcula_estorno_cancelamento($pedido_id, $vigente, $define_data);
 
@@ -983,7 +982,7 @@ Class Pedido_Model extends MY_Model
                 $this->apolice->update($apolice["apolice_id"], ['apolice_status_id' => 2], TRUE);
 
                 if($ins_movimentacao) {
-                    $pedido = $this->pedido->get($pedido_id);
+                    $pedido = $this->get($pedido_id);
 
                     $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido);
                 }
