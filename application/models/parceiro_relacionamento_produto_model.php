@@ -302,7 +302,9 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
                 $oArray[] = $row['parceiro_id'];
 
                 $result = $this->filter_by_pai($row["parceiro_relacionamento_produto_id"])->filter_by_produto_parceiro($row["produto_parceiro_id"])->get_all(0,0,false);
-                return $this->getSetParc($oArray, $result);
+
+                if (!empty($result))
+                    return $this->getSetParc($oArray, $result);
             }
         }
 
