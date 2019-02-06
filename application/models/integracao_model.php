@@ -799,10 +799,13 @@ Class Integracao_Model extends MY_Model
                 }
             }
 
+
             if (!empty($ids)) {
 
                 if (count($ids) > 1) {
+
                     $proc = $this->detectFileRetorno(basename($file), $ids);
+
                     if (!empty($proc)) $id_log = $proc['chave'];
                 } else {
                   foreach ($ids as $id_)
@@ -810,13 +813,19 @@ Class Integracao_Model extends MY_Model
                 }
 
                 $data_row['id_log'] = $id_log;
+
+                $_tipo_file = $this->detectFileRetorno(basename($file), $ids);
+
+                $data_row['tipo_arquivo'] = (!empty($_tipo_file)) ? $_tipo_file['tipo'] : '';
+
+
             }
 
             $data[] = $data_row;
             $num_linha++;
         }
 
-        // echo "<pre>";print_r($data);echo "</pre>";
+
         $num_linha = 1;
         foreach ($data as $index => $datum) {
 
@@ -840,7 +849,7 @@ Class Integracao_Model extends MY_Model
                         if ( empty($callFuncReturn->status) ){
                             // seta para erro
                             // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods 
-                            if(!empty($callFuncReturn->coderr) && $callFuncReturn->coderr == 22 && $proc['tipo'] == 'CLIENTE') 
+                            if(!empty($callFuncReturn->coderr) && $callFuncReturn->coderr == 22 && ( $datum['tipo_arquivo'] == 'CLIENTE' || $datum['tipo_arquivo'] == 'EMSCMS' || $datum['tipo_arquivo'] == 'PARCEMS' ) ) 
                             { 
                                 // não há inserção de dados na base, pois estão apenas informando que  
                                 // na base já existe os dados.   
