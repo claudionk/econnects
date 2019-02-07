@@ -10,7 +10,7 @@ function mostrar_exibir() {
     switch( $('#mostrar').val() ){
         case "descricao":
             $('.descricao').show();
-            $('.preco').hide();
+            $('.preco').show();
             $('.porcentagem').show();
         break;
         case "preco":

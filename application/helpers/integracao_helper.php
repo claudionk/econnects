@@ -545,7 +545,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
             unset($geraDados['id_log']);
-            
+
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
             $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
         }
@@ -1252,6 +1252,7 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
         $proc = $CI->integracao_model->detectFileRetorno($dados['log']['nome_arquivo'], $dados['registro']);
         $chave = $proc['chave'];
         $file = $proc['file'];
+        $sinistro = ($proc['tipo'] == 'SINISTRO');
 
         // echo "chave = $chave<br>";
         if (empty($chave)) {
@@ -1260,7 +1261,7 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
         }
 
         // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
-        $CI->integracao_model->update_log_fail($file, $chave);
+        $CI->integracao_model->update_log_fail($file, $chave, $sinistro);
 
         $response->coderr = $dados['registro']['cod_erro']; 
         $response->msg[] = ['id' => 12, 'msg' => $dados['registro']['cod_erro'] ." - ". $dados['registro']['descricao_erro'], 'slug' => "erro_retorno"];
@@ -1294,13 +1295,19 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
         $d = $dados['registro'];
         $integracao_log_detalhe_id = $formato;
         $valor = str_replace(array(",", "."), array("", "."), $d['vlr_movimento']);
+
         // Ajuste a menor
         if ($d['cod_tipo_mov'] == '2') {
             $valor *= -1;
         }
 
         $CI =& get_instance();
-        $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) VALUES ({$d['id_exp']}, NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$valor}) ");
+        $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
+            SELECT {$d['id_exp']}, NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$valor} 
+            FROM sissolucoes1.sis_exp_hist_carga a
+            LEFT JOIN sissolucoes1.sis_exp_hist_carga b ON a.id_exp = b.id_exp AND b.`status` = 'P'
+            WHERE a.id_exp = {$d['id_exp']} AND b.id_exp IS NULL
+            ");
         $id_exp_hist_carga = $CI->db->insert_id();
 
         if ($d['tipo_expediente'] == 'ABE') {
