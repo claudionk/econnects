@@ -541,10 +541,38 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         $CI =& get_instance();
 
         if (!empty($formato)) {
-            $geraDados = $dados['registro'];
+
+
+            //$geraDados = $dados['registro'];
+            //$geraDados['integracao_log_detalhe_id'] = $formato;
+
+
+            $geraDados['tipo_transacao']            = $dados['registro']['tipo_transacao'];
+            $geraDados['cod_loja']                  = $dados['registro']['cod_loja'];
+            $geraDados['num_apolice']               = $dados['registro']['num_apolice'];
+            $geraDados['data_adesao_cancel']        = $dados['registro']['data_adesao_cancel'];
+            $geraDados['telefone']                  = $dados['registro']['telefone'];
+            $geraDados['endereco']                  = $dados['registro']['endereco'];
+            $geraDados['sexo']                      = $dados['registro']['sexo'];
+            $geraDados['cod_produto_sap']           = $dados['registro']['cod_produto_sap'];
+            $geraDados['ean']                       = $dados['registro']['ean'];
+            $geraDados['marca']                     = $dados['registro']['marca'];
+            $geraDados['equipamento_nome']          = $dados['registro']['equipamento_nome'];
+            $geraDados['nota_fiscal_valor_desc']    = $dados['registro']['nota_fiscal_valor_desc'];
+            $geraDados['nota_fiscal_data']          = $dados['registro']['nota_fiscal_data'];
+            $geraDados['premio_liquido']            = $dados['registro']['premio_liquido'];
+            $geraDados['vigencia']                  = $dados['registro']['vigencia'];
+            $geraDados['cod_vendedor']              = $dados['registro']['cod_vendedor'];
+            $geraDados['cpf']                       = $dados['registro']['cpf'];
+            $geraDados['nota_fiscal_numero']        = $dados['registro']['nota_fiscal_numero'];
+            $geraDados['num_parcela']               = $dados['registro']['num_parcela'];
+            $geraDados['nota_fiscal_valor']         = $dados['registro']['nota_fiscal_valor'];
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
-            unset($geraDados['id_log']);
+
+
+            //unset($geraDados['id_log']);
+            //unset($geraDados['tipo_arquivo']);
 
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
             $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
