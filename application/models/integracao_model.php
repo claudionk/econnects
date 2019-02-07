@@ -1058,16 +1058,16 @@ Class Integracao_Model extends MY_Model
 
         if ($sinistro) {
             $sql = "
-                INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, data_retorno, tipo_expediente, id_controle_arquivo_registros, valor, status) 
-                SELECT ec.id_exp, NOW(), NOW(), ehc.tipo_expediente, b.integracao_log_detalhe_id, ehc.valor, 'C'
-                FROM integracao_log a
+                UPDATE integracao_log a
                 INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
                 INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(b.chave, LOCATE('|', b.chave)-1)
                 INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = b.integracao_log_detalhe_id
                 LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_exp = ehcx.id_exp AND ehcx.tipo_expediente = ehc.tipo_expediente AND ehcx.status = 'C'
+                SET ehc.data_retorno = NOW(), ehc.`status` = 'C'
                 WHERE a.nome_arquivo LIKE '{$file}%'
                 AND a.deletado = 0
                 AND b.integracao_log_status_id = 4
+                AND ehc.`status` = 'P'
                 AND ehcx.id_exp IS NULL
             ";
             $query = $this->_database->query($sql);
@@ -1090,7 +1090,24 @@ Class Integracao_Model extends MY_Model
         return true;
     }
 
-    function update_log_fail($file, $chave){
+    function update_log_fail($file, $chave, $sinistro = false){
+
+        if ($sinistro) {
+            $sql = "
+                UPDATE integracao_log a
+                INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
+                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(b.chave, LOCATE('|', b.chave)-1)
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = b.integracao_log_detalhe_id
+                LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_exp = ehcx.id_exp AND ehcx.tipo_expediente = ehc.tipo_expediente AND ehcx.status = 'C'
+                SET ehc.data_retorno = NOW(), ehc.`status` = 'F'
+                WHERE a.nome_arquivo LIKE '{$file}%'
+                AND a.deletado = 0
+                AND b.integracao_log_status_id = 4
+                AND ehc.`status` = 'P'
+                AND ehcx.id_exp IS NULL
+            ";
+            $query = $this->_database->query($sql);
+        }
 
         // marca o registro como erro (5) para que possa ser corrigido manualmente (6) e depois feito um novo envio (3)
         $sql = "
