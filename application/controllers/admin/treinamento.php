@@ -24,12 +24,15 @@ class Treinamento extends Admin_Controller
     
     public function index(){
         $data['url'] = "https://novogestao.woli.com.br/pt-BR/Login/Index?returnUrl='/'&idUnidadeHierarquica=1&redirecionaIndex=1&login=23814358325";
-        $this->template->load("admin/layouts/{$this->layout}", "$this->controller_uri/list", $data);
+
+        // $this->template->load("admin/layouts/{$this->layout}", "$this->controller_uri/list", $data);
+        $this->template->load("admin/layouts/{$this->layout}", "$this->controller_uri/manutencao", $data);
     }
 
     public function webinar(){
         $data['url'] = "http://bit.ly/2NP66Fj";
-        $this->template->load("admin/layouts/{$this->layout}", "$this->controller_uri/list", $data);
+        // $this->template->load("admin/layouts/{$this->layout}", "$this->controller_uri/list", $data);
+        $this->template->load("admin/layouts/{$this->layout}", "$this->controller_uri/manutencao", $data);
     }
 
 }
