@@ -157,7 +157,7 @@ class Cotacao extends CI_Controller {
             if( $produto["produto_slug"] == "equipamento" ) {
                 $cotacao_id = $this->cotacao_equipamento->insert_update( $produto_parceiro_id, $cotacao_id );
                 $cotacao_itens = $this->cotacao_equipamento->get_by( array( "cotacao_id" => $cotacao_id ) );
-            } else if( $produto["produto_slug"] == "generico" || $produto["produto_slug"] == "seguro_saude" ) {
+            } else {
                 $cotacao_id = $this->cotacao_generico->insert_update( $produto_parceiro_id, $cotacao_id );
                 $cotacao_itens = $this->cotacao_generico->get_by( array( "cotacao_id" => $cotacao_id ) );
             }

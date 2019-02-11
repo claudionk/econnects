@@ -1286,6 +1286,8 @@ Class Pedido_Model extends MY_Model
             $this->_database->where("status_data <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
 
         $this->_database->where("cs.slug = 'finalizada'");
+        $this->_database->where("{$this->_table}.deletado = 0");
+        $this->_database->where("a.deletado = 0");
         $query = $this->_database->get();
         $resp = [];
 
@@ -1474,6 +1476,8 @@ Class Pedido_Model extends MY_Model
 
         $this->_database->where("parc.slug IN('".$slug."')");
         $this->_database->where("cs.slug = 'finalizada'");
+        $this->_database->where("{$this->_table}.deletado = 0");
+        $this->_database->where("a.deletado = 0");
         $query = $this->_database->get();
 
         // print_r($this->db->last_query()); die;
@@ -1611,6 +1615,8 @@ Class Pedido_Model extends MY_Model
 
         $this->_database->where("parc.slug IN('lojasamericanas')");
         $this->_database->where("cs.slug = 'finalizada'");
+        $this->_database->where("{$this->_table}.deletado = 0");
+        $this->_database->where("a.deletado = 0");
         $query = $this->_database->get();
 
         // print_r($this->db->last_query()); die;
