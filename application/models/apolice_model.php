@@ -1080,6 +1080,11 @@ class Apolice_Model extends MY_Model
 
         $pagamento = $this->pedido->getPedidoPagamento($apolice['pedido_id']);
         $pagamento = $pagamento[0];
+
+
+        $data_template['pagamento_tipo_pagamento']      = $pagamento['tipo_pagamento'];
+        $data_template['pagamento_bandeira']            = $pagamento['bandeira'];
+        $data_template['pagamento_num_parcela']         = $pagamento['num_parcela'];
         //print_r($pagamento); exit;
 
         //@todo fazer listagem do numero de capitalização
