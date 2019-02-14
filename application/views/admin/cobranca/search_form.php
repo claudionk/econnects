@@ -53,7 +53,7 @@
                     <div class="col-md-12">
                         <div class="card-body">
                             <div class="form-actions">
-                                <button type="submit" onclick="$('form').submit()" class="btn btn-primary pull-right"><i class="fa fa-search"></i> Pesquisar</button>
+                                <button type="submit" onclick="$('.form-cobranca').submit()" class="btn btn-primary pull-right"><i class="fa fa-search"></i> Pesquisar</button>
                             </div>
                          </div>
                     </div>

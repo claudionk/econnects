@@ -208,6 +208,10 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                             $value = app_unformat_currency($value);
                     }
 
+                    if($campo['campo_nome_banco'] == 'cnpj_cpf'){
+                        $value = app_retorna_numeros($value);
+                    }
+
                     if(($campo['campo_function_salvar']) && (function_exists($campo['campo_function_salvar']))){
                         $value = call_user_func($campo['campo_function_salvar'], $value);
                     }
