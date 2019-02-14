@@ -177,6 +177,7 @@ class Cobertura_Plano extends Admin_Controller
             $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
             redirect("$this->controller_uri/index/{$produto_parceiro_plano_id}");
         }
+
         //Caso post
         if($_POST)
         {
