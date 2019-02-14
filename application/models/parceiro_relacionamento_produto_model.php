@@ -121,7 +121,7 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
     }
 
     public function with_parceiro(){
-        return $this->with_simple_relation_foreign('parceiro', 'parceiro_', 'parceiro_id', 'parceiro_id', array('nome'), 'inner');
+        return $this->with_simple_relation_foreign('parceiro', 'parceiro_', 'parceiro_id', 'parceiro_id', array('nome','cnpj','codigo_susep'), 'inner');
     }
 
     public function get_comissao($produto_parceiro_id, $parceiro_id){
@@ -330,6 +330,12 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
         $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
         return $this;
     }
+
+    function filter_by_parceiro_tipo($parceiro_tipo_id){
+        $this->_database->where('parceiro.parceiro_tipo_id', $parceiro_tipo_id);
+        return $this;
+    }
+
 
     function filter_by_parceiro($parceiro_id){
         $this->_database->where('parceiro_id', $parceiro_id);

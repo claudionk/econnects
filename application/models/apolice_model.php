@@ -969,6 +969,23 @@ class Apolice_Model extends MY_Model
         $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
         $dados = $dados[0];
 
+
+        // Relacionamento corretora
+        $data_template['rel_corretora_nome']         = '';
+        $data_template['rel_corretora_cnpj']         = '';
+        $data_template['rel_corretora_codigo_susep'] = '';
+        if(isset($dados['produto_parceiro_id']) && !empty($dados['produto_parceiro_id']))
+        {
+            $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
+            $dados_prp = $this->parceiro_relacionamento_produto->filter_by_produto_parceiro($dados['produto_parceiro_id'])->with_parceiro()->filter_by_parceiro_tipo('2')->get_all();
+
+
+            $data_template['rel_corretora_nome'] = $dados_prp[0]['parceiro_nome'];
+            $data_template['rel_corretora_cnpj'] = app_cnpj_to_mask($dados_prp[0]['parceiro_cnpj']);
+            $data_template['rel_corretora_codigo_susep'] = $dados_prp[0]['parceiro_codigo_susep'];
+                        
+        }
+
         $template = $dados['template_apolice'];
 
         if (isset($apolice['origem_id'])) {
@@ -1095,7 +1112,7 @@ class Apolice_Model extends MY_Model
         $data_template['segurado_sexo']    = $apolice['sexo'];
         $data_template['profissao']        = "";
         $data_template['estado_civil']     = "";
-        $data_template['contato_telefone'] = $apolice['contato_telefone'];
+        $data_template['contato_telefone'] = app_format_telefone($apolice['contato_telefone']);
 
         $data_template['segurado_sexo_masculino'] = " ";
         $data_template['segurado_sexo_feminino']  = " ";
@@ -1107,16 +1124,27 @@ class Apolice_Model extends MY_Model
             $data_template['segurado_sexo_feminino'] = "X";
         }
 
+
+        $tot = strlen(trim($apolice['cnpj_cpf']));
+        if($tot == 11)
+            $_cpf_cnpj = app_cpf_to_mask($apolice['cnpj_cpf']);
+        else if($tot == 14)
+           $_cpf_cnpj = app_cnpj_to_mask($apolice['cnpj_cpf']); 
+        else 
+            $_cpf_cnpj = $apolice['cnpj_cpf']; 
+
+        
         $data_template['segurado_nome']            = $apolice['nome'];
-        $data_template['segurado_cnpj_cpf']        = $apolice['cnpj_cpf']; // (app_verifica_cpf_cnpj($apolice['cnpj_cpf']) == 'CPF') ? app_cpf_to_mask($apolice['cnpj_cpf']) : app_cnpj_to_mask($apolice['cnpj_cpf']);
+        $data_template['segurado_cnpj_cpf']        = $apolice['cnpj_cpf']; 
+        $data_template['segurado_cnpj_cpf_2']      = $_cpf_cnpj;
         $data_template['segurado_data_nascimento'] = app_dateonly_mysql_to_mask($apolice['data_nascimento']);
         $data_template['segurado_endereco']        = $apolice['endereco_logradouro'];
         $data_template['segurado_numero']          = $apolice['endereco_numero'];
         $data_template['segurado_bairro']          = $apolice['endereco_bairro'];
         $data_template['segurado_cidade']          = $apolice['endereco_cidade'];
         $data_template['segurado_estado']          = $apolice['endereco_estado'];
-        $data_template['segurado_cep']             = $apolice['endereco_cep'];
-        $data_template['segurado_telefone']        = $apolice['contato_telefone'];
+        $data_template['segurado_cep']             = app_format_cep($apolice['endereco_cep']);
+        $data_template['segurado_telefone']        = app_format_telefone($apolice['contato_telefone']);
         //$data_template['plano'] = $plano['nome'];
 
         $data_template['segurado'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/dados_segurado", array('segurado' => $apolice), true);
@@ -1131,6 +1159,14 @@ class Apolice_Model extends MY_Model
         error_log(print_r($data_template['seguro'], true) . "\n", 3, "/var/log/httpd/myapp.log");
         $data_template['premio']    = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/premio", array('premio_liquido' => $apolice['valor_premio_net'], 'premio_total' => $apolice['valor_premio_total']), true);
         $data_template['pagamento'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/pagamento", array('pagamento' => $pagamento), true);
+
+    
+        /*
+        echo '<pre>';
+        print_r($data_template);
+        die;
+        */
+        
 
         $template = $this->parser->parse_string($template, $data_template, true);
         if (($export == 'pdf') || ($export == 'pdf_file')) {
