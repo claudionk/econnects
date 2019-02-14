@@ -1048,7 +1048,7 @@ class Apolice_Model extends MY_Model
         $plano      = $this->plano->get($apolice['produto_parceiro_plano_id']);
         $coberturas = $this->plano_cobertura->with_cobertura()->filter_by_produto_parceiro_plano($apolice['produto_parceiro_plano_id'])->get_all();
 
-        $equipamento = $this->db->query("SELECT em.nome as marca, ec.nome as equipamento, ce.equipamento_nome as modelo FROM apolice_equipamento ae
+        $equipamento = $this->db->query("SELECT em.nome as marca, ec.nome as equipamento, ce.equipamento_nome as modelo, ae.imei FROM apolice_equipamento ae
                                           INNER JOIN apolice a ON (a.apolice_id=ae.apolice_id)
                                           INNER JOIN pedido p ON (p.pedido_id=a.pedido_id)
                                           INNER JOIN cotacao_equipamento ce ON (ce.cotacao_id=p.cotacao_id)
@@ -1060,6 +1060,7 @@ class Apolice_Model extends MY_Model
             $data_template['equipamento'] = $equipamento[0]["equipamento"];
             $data_template['modelo']      = $equipamento[0]["modelo"];
             $data_template['marca']       = $equipamento[0]["marca"];
+            $data_template['imei']        = $equipamento[0]["imei"];
             $data_template['lmi_roubo']   = app_format_currency($apolice['nota_fiscal_valor']);
             $data_template['lmi_furto']   = app_format_currency($apolice['nota_fiscal_valor']);
             $data_template['lmi_quebra']  = app_format_currency($apolice['nota_fiscal_valor']);
@@ -1067,6 +1068,7 @@ class Apolice_Model extends MY_Model
             $data_template['equipamento'] = "";
             $data_template['modelo']      = "";
             $data_template['marca']       = "";
+            $data_template['imei']        = "";
         }
 
         $ccount = 0;
@@ -1078,6 +1080,11 @@ class Apolice_Model extends MY_Model
 
         $pagamento = $this->pedido->getPedidoPagamento($apolice['pedido_id']);
         $pagamento = $pagamento[0];
+
+
+        $data_template['pagamento_tipo_pagamento']      = $pagamento['tipo_pagamento'];
+        $data_template['pagamento_bandeira']            = $pagamento['bandeira'];
+        $data_template['pagamento_num_parcela']         = $pagamento['num_parcela'];
         //print_r($pagamento); exit;
 
         //@todo fazer listagem do numero de capitalização
