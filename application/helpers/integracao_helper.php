@@ -1354,6 +1354,6 @@ if ( ! function_exists('app_integracao_gera_sinistro')) {
     function app_integracao_gera_sinistro($formato, $dados = array())
     {
         $CI =& get_instance();
-        $CI->db->query("call sp_gera_sinistro(27, '007')");
+        $CI->db->query("call sp_gera_sinistro(27)");
     }
 }
