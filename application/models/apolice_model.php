@@ -1148,7 +1148,16 @@ class Apolice_Model extends MY_Model
         //$data_template['plano'] = $plano['nome'];
 
         $data_template['segurado'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/dados_segurado", array('segurado' => $apolice), true);
-        $data_template['seguro']   = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/dados_seguro", array(
+
+
+        $viewseguro = 'dados_seguro';
+
+        if($dados['produto_parceiro_id'] == 64)
+        {
+            $viewseguro = 'dados_seguro_tem';
+        } 
+
+        $data_template['seguro']   = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/{$viewseguro}", array(
             'plano'      => $plano,
             'coberturas' => $coberturas,
             //  'capitalizacao' => $capitalizacao,
@@ -1156,11 +1165,11 @@ class Apolice_Model extends MY_Model
             'dados'      => $dados),
             true);
 
+
         error_log(print_r($data_template['seguro'], true) . "\n", 3, "/var/log/httpd/myapp.log");
         $data_template['premio']    = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/premio", array('premio_liquido' => $apolice['valor_premio_net'], 'premio_total' => $apolice['valor_premio_total']), true);
         $data_template['pagamento'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/pagamento", array('pagamento' => $pagamento), true);
 
-    
         /*
         echo '<pre>';
         print_r($data_template);
