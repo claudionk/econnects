@@ -60,6 +60,4 @@
     </tr>
     </tbody>
 </table>
-
-
-    <hr />
+<hr />
