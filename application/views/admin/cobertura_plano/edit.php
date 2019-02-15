@@ -1,6 +1,12 @@
 <?php
 if($_POST)
   $row = $_POST;
+
+
+// echo '<pre>';
+// print_r($row);
+// die;
+
 ?>
 
 <div class="layout-app" ng-controller="AppController">
@@ -198,6 +204,30 @@ if($_POST)
                             <label class="col-md-2 control-label" for="<?php echo $field_name;?>">IOF</label>
                             <div class="col-md-4">
                               <input ng-model="iof" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/>
+                            </div>
+                          </div>
+
+                          <?php $field_name = 'diarias';?>
+                          <div class="form-group">
+                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Diárias</label>
+                            <div class="col-md-4">
+                              <input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo $row[$field_name]; ?>" />
+                            </div>
+                          </div>
+
+                          <?php $field_name = 'franquia';?>
+                          <div class="form-group">
+                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Franquia</label>
+                            <div class="col-md-4">
+                              <input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo $row[$field_name]; ?>" />
+                            </div>
+                          </div>
+
+                          <?php $field_name = 'carencia';?>
+                          <div class="form-group">
+                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Carência</label>
+                            <div class="col-md-4">
+                              <input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo $row[$field_name]; ?>" />
                             </div>
                           </div>
                           

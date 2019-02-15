@@ -104,29 +104,37 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         return $this;
     }
 
-    function  filter_by_produto_parceiro($produto_parceiro_id){
+    function filter_by_produto_parceiro($produto_parceiro_id){
 
         $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
 
         return $this;
     }
 
-    function  filter_by_campo_tipo($campo_tipo_id){
+    function filter_by_campo_tipo($campo_tipo_id){
 
         $this->_database->where("campo_tipo.campo_tipo_id", $campo_tipo_id);
 
         return $this;
     }
 
-    function  filter_by_campo_tipo_slug($slug){
+    function filter_by_campo_tipo_slug($slug){
 
         $this->_database->where("campo_tipo.slug", $slug);
 
         return $this;
     }
-    function  filter_by_campo_slug($slug){
+
+    function filter_by_campo_slug($slug){
 
         $this->_database->where("campo.slug", $slug);
+
+        return $this;
+    }
+
+    function filter_by_validacoes(){
+
+        $this->_database->where("{$this->_table}.validacoes <> '0'" );
 
         return $this;
     }
@@ -236,6 +244,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
             ->with_campo_tipo()
             ->filter_by_produto_parceiro($produto_parceiro_id)
             ->filter_by_campo_tipo_slug($slug)
+            ->filter_by_validacoes()
             ->order_by("ordem", "asc")
             ->get_all();
 
