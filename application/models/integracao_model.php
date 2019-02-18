@@ -1102,9 +1102,10 @@ Class Integracao_Model extends MY_Model
                 SET ehc.data_retorno = NOW(), ehc.`status` = 'F'
                 WHERE a.nome_arquivo LIKE '{$file}%'
                 AND a.deletado = 0
-                AND b.integracao_log_status_id = 4
+                AND b.integracao_log_status_id = 5
                 AND ehc.`status` = 'P'
                 AND ehcx.id_exp IS NULL
+                AND b.chave LIKE '{$chave}%'
             ";
             $query = $this->_database->query($sql);
         }
