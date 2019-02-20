@@ -76,7 +76,7 @@ Class Cta_Movimentacao_Model extends MY_Model
                         and ild.integracao_log_id = il.integracao_log_id
                         and i.slug_group in ('parc-emissao','ems-emissao')
                         and concat(a.num_apolice, '|', LPAD(am.apolice_movimentacao_tipo_id, 2, '0')) = ild.chave
-                        and date_add( now(), interval -3 minute ) < ild.criacao 
+                        and date_add( now(), interval -3 minute ) < IFNULL(ild.alteracao,ild.criacao)
                 )
                 union
                 (
