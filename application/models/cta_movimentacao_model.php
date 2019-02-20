@@ -103,8 +103,6 @@ Class Cta_Movimentacao_Model extends MY_Model
             ) AS x
         ) AS y ";
 
-        ;
-
         if ( $this->_database->query( $sql ) ){
             echo "Success!";
         }
