@@ -4,8 +4,11 @@
         <thead>
             <tr>
                 <td>Descrição:</td>
+                <td>Diárias</td>
                 <td>Capital Segurado Máximo¹:</td>
                 <td>Prêmio²:</td>
+                <td>Franquia</td>
+                <td>Carência</td>
             </tr>
         </thead>
 
@@ -16,8 +19,11 @@
             ?>
             <tr>
                 <td><?php echo ($i+1) . " - " . $cobertura['cobertura_nome']; ?></td>
+                <td><?php echo (empty($cobertura['diarias'])) ? 'NÃO HÁ' : 'ATÉ '.$cobertura['diarias'].' DIÁRIAS'; ?></td>
                 <td>R$<?php echo app_format_currency($cobertura['preco']); ?></td>
                 <td>R$<?php echo app_format_currency($premio); ?></td>
+                <td><?php echo $cobertura['franquia']; ?></td>
+                <td><?php echo $cobertura['carencia']; ?></td>
             </tr>
         <?php } ?>
 

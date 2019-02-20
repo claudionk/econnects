@@ -1039,7 +1039,7 @@ Class Integracao_Model extends MY_Model
         $sql = "
             UPDATE integracao_log a
             INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
-            SET b.integracao_log_status_id = 4 
+            SET b.integracao_log_status_id = 4, b.alteracao = NOW()
             WHERE a.nome_arquivo LIKE '{$file}%'
             AND a.integracao_log_status_id = 3 
             AND a.deletado = 0
@@ -1102,9 +1102,9 @@ Class Integracao_Model extends MY_Model
                 SET ehc.data_retorno = NOW(), ehc.`status` = 'F'
                 WHERE a.nome_arquivo LIKE '{$file}%'
                 AND a.deletado = 0
-                AND b.integracao_log_status_id = 4
                 AND ehc.`status` = 'P'
                 AND ehcx.id_exp IS NULL
+                AND b.chave LIKE '{$chave}%'
             ";
             $query = $this->_database->query($sql);
         }
@@ -1113,7 +1113,7 @@ Class Integracao_Model extends MY_Model
         $sql = "
             UPDATE integracao_log il
             INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id 
-            SET ild.integracao_log_status_id = 5
+            SET ild.integracao_log_status_id = 5, ild.alteracao = NOW()
             WHERE il.nome_arquivo LIKE '{$file}%'
             AND il.deletado = 0
             AND il.integracao_log_status_id = 3
