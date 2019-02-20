@@ -80,7 +80,18 @@ class Info extends CI_Controller {
 
         $parameters = array( "ConsultaImei" => array( "imei" => $IMEI, "token" => $this->token ) );
         $resultado = $client->__soapCall( "ConsultaImei", $parameters );
-        die( json_encode( (array) $resultado->{"ConsultaImeiResult"}, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+
+        $retorno = (array) $resultado->{"ConsultaImeiResult"};
+        $msgStatus = $retorno["Status"];
+        $pImped = strpos($msgStatus, "impedido");
+        $pBloq = strpos($msgStatus, "bloqueado");
+        $pNPR = strpos($msgStatus, "nao possui restricoes"); 
+
+        $retorno['message'] = $msgStatus;
+        unset($retorno["Status"]);
+        $retorno['status'] = !(empty($pNPR) || !empty($pImped) || !empty($pBloq) );
+
+        die( json_encode( $retorno, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
     public function index() {

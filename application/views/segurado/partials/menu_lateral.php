@@ -43,7 +43,7 @@
 
         <div class="menubar-foot-panel">
             <small class="no-linebreak hidden-folded">
-                <span class="opacity-75">Copyright &copy; <?php echo date('Y');?></span> <strong>Zazz Tecnologia</strong>
+                <span class="opacity-75">Copyright &copy; <?php echo date('Y');?></span> <strong>SIS Soluções Integradas</strong>
             </small>
         </div>
     </div><!--end .menubar-scroll-panel-->
