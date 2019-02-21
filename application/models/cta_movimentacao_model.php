@@ -74,12 +74,37 @@ Class Cta_Movimentacao_Model extends MY_Model
                         AND c.deletado = 0
                         and i.integracao_id = il.integracao_id
                         and ild.integracao_log_id = il.integracao_log_id
-                        and i.slug_group in ('parc-emissao','ems-emissao','cliente')
-                        and (
-                            concat(a.num_apolice, '|', LPAD(am.apolice_movimentacao_tipo_id, 2, '0')) = ild.chave
-                            OR
-                            c.cliente_id = ild.chave
-                        )
+                        and i.slug_group in ('parc-emissao','ems-emissao')
+                        and concat(a.num_apolice, '|', LPAD(am.apolice_movimentacao_tipo_id, 2, '0')) = ild.chave
+                        and date_add( now(), interval -3 minute ) < IFNULL(ild.alteracao,ild.criacao)
+                )
+                union
+                ( 
+                    SELECT distinct
+                        c.cliente_id
+                        , concat(a.num_apolice, '|', LPAD(am.apolice_movimentacao_tipo_id, 2, '0')) as chave_emi
+                        , am.apolice_movimentacao_tipo_id
+                        , a.num_apolice
+                       , a.pedido_id
+                       , a.apolice_id
+                       , p.cotacao_id
+                    FROM 
+                        apolice a 
+                        JOIN pedido p on a.pedido_id = p.pedido_id
+                        JOIN cotacao c on p.cotacao_id = c.cotacao_id
+                        JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
+                        JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
+                        , integracao i        
+                        , integracao_log il 
+                        , integracao_log_detalhe ild
+                    WHERE 
+                        a.deletado = 0 
+                        AND p.deletado = 0 
+                        AND c.deletado = 0
+                        and i.integracao_id = il.integracao_id
+                        and ild.integracao_log_id = il.integracao_log_id
+                        and i.slug_group = 'cliente'
+                        and c.cliente_id = ild.chave
                         and date_add( now(), interval -3 minute ) < IFNULL(ild.alteracao,ild.criacao)
                 )
                 union
