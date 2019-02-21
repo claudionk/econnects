@@ -841,40 +841,39 @@ Class Integracao_Model extends MY_Model
             //execute before detail
             if (!empty($integracao['before_detail']) ) {
                 if ( function_exists($integracao['before_detail']) ) {
-                    $callFuncReturn = call_user_func($integracao['before_detail'], $integracao_log_detalhe_id, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
-                    // echo "<pre>";print_r($callFuncReturn);echo "</pre>";
-                    // die();
-                    if ( !empty($callFuncReturn) && !empty($integracao_log_detalhe_id) ){
 
-                        if ( empty($callFuncReturn->status) ){
-                            // seta para erro
-                            // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods 
-                            if(!empty($callFuncReturn->coderr) && $callFuncReturn->coderr == 22 && ( $datum['tipo_arquivo'] == 'CLIENTE' || $datum['tipo_arquivo'] == 'EMSCMS' || $datum['tipo_arquivo'] == 'PARCEMS' ) ) 
-                            { 
-                                // não há inserção de dados na base, pois estão apenas informando que  
-                                // na base já existe os dados.   
-                                $msgDetCampo = $callFuncReturn->msg;
-                            }  
-                            else { 
+                    // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods 
+                    if(!empty($datum['cod_erro']) && $datum['cod_erro'] == 22 && ( $datum['tipo_arquivo'] == 'CLIENTE' || $datum['tipo_arquivo'] == 'EMSCMS' || $datum['tipo_arquivo'] == 'PARCEMS' ) ) 
+                    {
+                        $msgDetCampo[] = ['id' => 12, 'msg' => $datum['cod_erro'] ." - ". $datum['descricao_erro'], 'slug' => "erro_retorno"];
+                    } else 
+                    {
+                        $callFuncReturn = call_user_func($integracao['before_detail'], $integracao_log_detalhe_id, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
+
+                        if ( !empty($callFuncReturn) && !empty($integracao_log_detalhe_id) ){
+
+                            if ( empty($callFuncReturn->status) ){
+                                // seta para erro
                                 $integracao_log_status_id = 5; 
                                 $msgDetCampo = $callFuncReturn->msg; 
+                            } elseif ( $callFuncReturn->status === 2 ) {
+                                // seta para ignorado
+                                $integracao_log_status_id = 7;
+                                $msgDetCampo = $callFuncReturn->msg;
                             }
-                        } elseif ( $callFuncReturn->status === 2 ) {
-                            // seta para ignorado
-                            $integracao_log_status_id = 7;
-                            $msgDetCampo = $callFuncReturn->msg;
-                        }
 
-                        if (!empty($msgDetCampo)) {
-                            foreach ($msgDetCampo as $er) {
-                                $ErroID = !empty($er['id']) ? $er['id'] : -1;
-                                $ErroMSG = !empty($er['msg']) ? $er['msg'] : $er;
-                                $ErroSLUG = !empty($er['slug']) ? $er['slug'] : "";
-                                $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, $ErroID, $ErroMSG, $ErroSLUG);
-                            }
                         }
-
                     }
+
+                    if (!empty($msgDetCampo)) {
+                        foreach ($msgDetCampo as $er) {
+                            $ErroID = !empty($er['id']) ? $er['id'] : -1;
+                            $ErroMSG = !empty($er['msg']) ? $er['msg'] : $er;
+                            $ErroSLUG = !empty($er['slug']) ? $er['slug'] : "";
+                            $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, $ErroID, $ErroMSG, $ErroSLUG);
+                        }
+                    }
+
                 }
             }
 

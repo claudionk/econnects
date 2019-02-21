@@ -26,6 +26,7 @@ Class Cta_Movimentacao_Model extends MY_Model
             , cotacao_id
             , num_apolice
             , apolice_movimentacao_tipo_id
+            , CTA_nao_processado
             , CTA_Ag_Retorno
             , CTA_Retorno_ok
             , CTA_Retorno_erro
@@ -37,10 +38,11 @@ Class Cta_Movimentacao_Model extends MY_Model
             , cotacao_id 
             , num_apolice 
             , apolice_movimentacao_tipo_id 
-            , IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL AND CTA_Retorno IS NULL, CTA_Enviado, NULL)  as CTA_Ag_Retorno
-            , IF(CTA_Enviado IS NOT NULL, CTA_Retorno_ok, NULL)  as CTA_Retorno_ok
-            , IF(CTA_Retorno_ok IS NULL, CTA_Retorno, NULL)  as CTA_Retorno_erro
-            , IFNULL(IF(IF(CTA_Retorno_ok IS NULL, CTA_Retorno, NULL) IS NOT NULL, Erro, ''), '')  as Erro
+            , date_format(IF(CTA_Enviado IS NULL, now(), NULL), '%Y-%m-%d %H:00:00') as CTA_nao_processado
+            , date_format(IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL , if( IFNULL(CTA_Enviado,1) > IFNULL(CTA_Retorno, 1), CTA_Enviado, NULL) , NULL), '%Y-%m-%d %H:00:00') as CTA_Ag_Retorno
+            , date_format(IF(CTA_Enviado IS NOT NULL, CTA_Retorno_ok, NULL), '%Y-%m-%d %H:00:00')  as CTA_Retorno_ok
+            , date_format(IF(CTA_Retorno_ok IS NULL, if( IFNULL(CTA_Retorno, 1) >= IFNULL(CTA_Enviado, 1), CTA_Retorno , NULL), NULL), '%Y-%m-%d %H:00:00') as CTA_Retorno_erro
+            , IFNULL(IF(IF(CTA_Retorno_ok IS NULL, if( IFNULL(CTA_Retorno, 1) >= IFNULL(CTA_Enviado, 1), CTA_Retorno , NULL), NULL)  IS NOT NULL, Erro, ''), '') as Erro
         FROM (
             SELECT 
                 maxDate( ctaEmissao(chave_emi, 0), ctaCliente(cliente_id, 0), 1 ) as CTA_Enviado
