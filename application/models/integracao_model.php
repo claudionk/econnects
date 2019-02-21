@@ -853,6 +853,7 @@ Class Integracao_Model extends MY_Model
                             { 
                                 // não há inserção de dados na base, pois estão apenas informando que  
                                 // na base já existe os dados.   
+                                $msgDetCampo = $callFuncReturn->msg;
                             }  
                             else { 
                                 $integracao_log_status_id = 5; 
