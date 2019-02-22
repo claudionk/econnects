@@ -3,3 +3,15 @@ assets/uploads/
 application/config/database\.php
 
 index\.php
+
+\.idea/workspace\.xml
+
+\.idea/econnects\.iml
+
+\.idea/encodings\.xml
+
+\.idea/misc\.xml
+
+\.idea/modules\.xml
+
+\.idea/vcs\.xml
