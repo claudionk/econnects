@@ -1182,4 +1182,28 @@ Class Integracao_Model extends MY_Model
         
     }
 
+
+    function processamento_vendas_lasa()
+    {
+        $sql = "
+            SELECT 
+                l.integracao_log_id,
+                ils.nome,
+                l.processamento_inicio,
+                l.processamento_fim,
+                l.nome_arquivo,
+                l.quantidade_registros
+            FROM
+                integracao_log l
+            inner join integracao_log_status as ils on ils.integracao_log_status_id = l.integracao_log_status_id
+            WHERE
+                l.integracao_id = 15 AND l.deletado = 0
+            ORDER BY l.integracao_log_id DESC
+        ";
+        
+        $query = $this->_database->query($sql);
+
+        return $query->result();
+    }
+
 }

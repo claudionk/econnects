@@ -16,10 +16,10 @@ class Integracao_cockpit extends Admin_Controller
         $this->template->set('page_title', "Integrações");
         $this->template->set_breadcrumb("Integrações", base_url("$this->controller_uri/index"));
 
+        $this->load->library('pagination');
+
         //Carrega modelos
         $this->load->model('integracao_model', 'current_model');
-        $this->load->model('parceiro_model', 'parceiro');
-        $this->load->model('integracao_comunicacao_model', 'integracao_comunicacao');
     }
     
     // public function index($offset = 0) //Função padrão (load)
@@ -77,6 +77,66 @@ class Integracao_cockpit extends Admin_Controller
         // Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/index", $data );
 
+    }
+
+
+    /*
+    Metódo que lista as vendas da lasa
+    */
+    public function lista_vendas_lasa(){
+        
+        $data = $this->current_model->processamento_vendas_lasa();
+
+        $this->output
+               ->set_content_type('application/json')
+               ->set_output(json_encode($data));
+
+
+        /*
+        $rowperpage = 5;
+ 
+        if($rowno != 0){
+          $rowno = ($rowno-1) * $rowperpage;
+        }
+  
+        $allcount = $this->db->count_all('integracao_log');
+ 
+        $this->db->limit($rowperpage, $rowno);
+        // $users_record = $this->db->get('posts')->result_array();
+        $users_record = $this->current_model->processamento_vendas_lasa();
+  
+        $config['base_url'] = base_url().'post/loadRecord';
+        $config['use_page_numbers'] = TRUE;
+        $config['total_rows'] = $allcount;
+        $config['per_page'] = $rowperpage;
+ 
+        $config['full_tag_open']    = '<div class="pagging text-center"><nav><ul class="pagination">';
+        $config['full_tag_close']   = '</ul></nav></div>';
+        $config['num_tag_open']     = '<li class="page-item"><span class="page-link">';
+        $config['num_tag_close']    = '</span></li>';
+        $config['cur_tag_open']     = '<li class="page-item active"><span class="page-link">';
+        $config['cur_tag_close']    = '<span class="sr-only">(current)</span></span></li>';
+
+ 
+        $config['next_tag_open']    = '<li class="page-item"><span class="page-link">';
+        $config['next_tag_close']  = '<span aria-hidden="true"></span></span></li>';
+        $config['prev_tag_open']    = '<li class="page-item"><span class="page-link">';
+        $config['prev_tag_close']  = '</span></li>';
+        $config['first_tag_open']   = '<li class="page-item"><span class="page-link">';
+        $config['first_tag_close'] = '</span></li>';
+        $config['last_tag_open']    = '<li class="page-item"><span class="page-link">';
+        $config['last_tag_close']  = '</span></li>';
+ 
+        $this->pagination->initialize($config);
+ 
+        $data['pagination'] = $this->pagination->create_links();
+        $data['result'] = $users_record;
+        $data['row'] = $rowno;
+ 
+        $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode($data));
+        */
     }
 
 }
