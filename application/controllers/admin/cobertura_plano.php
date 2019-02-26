@@ -125,6 +125,12 @@ class Cobertura_Plano extends Admin_Controller
         $data['primary_key'] = $this->current_model->primary_key();
         $data['form_action'] =  base_url("$this->controller_uri/add");
 
+        $data['row']['diarias']  = '';
+        $data['row']['franquia'] = '';
+        $data['row']['carencia'] = '';
+        $data['row']['cobertura_custo'] = '';
+
+
         //Caso post
         if($_POST)
         {
