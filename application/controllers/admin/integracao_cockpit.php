@@ -88,8 +88,8 @@ class Integracao_cockpit extends Admin_Controller
         $data = $this->current_model->processamento_vendas_lasa();
 
         $this->output
-               ->set_content_type('application/json')
-               ->set_output(json_encode($data));
+               ->set_content_type('application/json', 'utf-8')
+               ->set_output(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
 
         /*

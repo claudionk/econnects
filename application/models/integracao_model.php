@@ -1186,24 +1186,45 @@ Class Integracao_Model extends MY_Model
     function processamento_vendas_lasa()
     {
         $sql = "
-            SELECT 
-                l.integracao_log_id,
-                ils.nome,
-                l.processamento_inicio,
-                l.processamento_fim,
-                l.nome_arquivo,
-                l.quantidade_registros
-            FROM
-                integracao_log l
-            inner join integracao_log_status as ils on ils.integracao_log_status_id = l.integracao_log_status_id
-            WHERE
-                l.integracao_id = 15 AND l.deletado = 0
-            ORDER BY l.integracao_log_id DESC
+            SELECT
+                x.integracao_log_id,
+                x.nome,
+                x.processamento_inicio,
+                IFNULL(x.processamento_fim,'') as processamento_fim,
+                x.nome_arquivo,
+                x.quantidade_registros,
+                x.tot,
+                CASE
+                    WHEN isnull(x.processamento_fim)  THEN 'Não Processado'
+                    WHEN x.quantidade_registros = x.tot   THEN 'OK'
+                    WHEN x.quantidade_registros = x.tot+2 THEN 'OK'
+                    ELSE 'ERRO'
+                END as status
+            FROM(
+
+                    SELECT 
+                        l.integracao_log_id,
+                        ils.nome,
+                        l.processamento_inicio,
+                        l.processamento_fim,
+                        l.nome_arquivo,
+                        l.quantidade_registros,
+                        (
+                            SELECT count(integracao_log_id) as total 
+                            FROM integracao_log_detalhe 
+                            WHERE integracao_log_id = l.integracao_log_id
+                        ) as tot
+                    FROM
+                        integracao_log l
+                    inner join integracao_log_status  as ils on ils.integracao_log_status_id = l.integracao_log_status_id
+                    WHERE
+                        l.integracao_id = 15 AND l.deletado = 0
+                    ORDER BY l.integracao_log_id DESC
+            ) x
         ";
         
         $query = $this->_database->query($sql);
 
         return $query->result();
     }
-
 }
