@@ -891,7 +891,7 @@ class Pagamento extends CI_Controller
 
             $this->load->model('apolice_model', 'apolice');
 
-            if ($pedido_id && $forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_FATURADO") || $forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_TERCEIROS")) {
+            if ($pedido_id && ($forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_FATURADO") || $forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_TERCEIROS")) ) {
 
                 $status = $this->pedido->mudaStatus($pedido_id, "pagamento_confirmado");
                 $this->apolice->insertApolice($pedido_id);

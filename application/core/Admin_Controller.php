@@ -188,6 +188,7 @@ class Admin_Controller extends MY_Controller
     
     $pedido_id = (int)$pedido_id;
 
+    $this->load->model('apolice_model', 'apolice');
     $this->load->model('cotacao_model', 'cotacao');
     $this->load->model('cotacao_generico_model', 'cotacao_generico');
     $this->load->model('cotacao_seguro_viagem_model', 'cotacao_seguro_viagem');
@@ -287,7 +288,7 @@ class Admin_Controller extends MY_Controller
     );
     if($_POST){
         $tipo_forma_pagamento_id = $this->input->post('forma_pagamento_tipo_id');
-        $validacoes = array();
+        $validacao = array();
         switch( $tipo_forma_pagamento_id ){
             case self::FORMA_PAGAMENTO_CARTAO_CREDITO: //cartão de crédito
                 $validacao[] = array(
@@ -427,11 +428,6 @@ class Admin_Controller extends MY_Controller
         $this->cotacao->setValidate($validacao);
         if( $this->cotacao->validate_form('pagamento') ){
 
-/*print("<pre>");
-print_r( array(  "PAGAMENTO" => "S" , "_POST" => $_POST );
-print("</pre>");*/
-
-
             if($pedido_id == 0) {
                 $pedido_id = $this->pedido->insertPedido($_POST);
             } 
@@ -441,8 +437,10 @@ print("</pre>");*/
             }
 
             //Se for faturamento, muda status para aguardando faturamento
-            if($pedido_id && $tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO) {
-                $status = $this->pedido->mudaStatus($pedido_id, "aguardando_faturamento");
+            if($pedido_id && ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO || $tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_TERCEIROS) ) {
+                $status = $this->pedido->mudaStatus($pedido_id, ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO) ? "aguardando_faturamento" : "pagamento_confirmado");
+
+                $this->apolice->insertApolice($pedido_id);
             }
             switch( $this->input->post('forma_pagamento_tipo_id') ){
                 case self::FORMA_PAGAMENTO_CARTAO_CREDITO:
@@ -456,6 +454,7 @@ print("</pre>");*/
                     redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}");
                 break;
             }
+
         }
         error_log( "POST: " . print_r( $data, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
     }
