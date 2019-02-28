@@ -420,9 +420,11 @@ Class Cotacao_Model extends MY_Model
         $this->_database->join('cotacao_seguro_viagem', 'cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id AND cotacao_seguro_viagem.deletado = 0', 'left');
         $this->_database->join('cotacao_equipamento', 'cotacao_equipamento.cotacao_id = cotacao.cotacao_id AND cotacao_equipamento.deletado = 0', 'left');
         $this->_database->join('cotacao_generico', 'cotacao_generico.cotacao_id = cotacao.cotacao_id AND cotacao_generico.deletado = 0', 'left');
-        $this->_database->where("cotacao_status.slug", "aberta"); //TODO: mudar o slug para "finalizada"
+        $this->_database->where("cotacao_status.slug", "finalizada");
         $this->_database->where("cotacao.deletado", 0);
         $this->_database->where("parceiro.parceiro_id", $this->parceiro_id);
+
+        // TODO: adicionar regra para não trazer cotação com pedido e/ou apólice
 
         if ( !empty($cotacao_id) ) {
             $this->_database->where("cotacao.cotacao_id", $cotacao_id);
