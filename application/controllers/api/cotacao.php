@@ -478,6 +478,25 @@ class Cotacao extends CI_Controller {
         return $result;
     }
 
+    public function listPendentes()
+    {
+        $POST = json_decode( file_get_contents( "php://input" ), true );
+
+        if( empty($POST["documento"]) && empty($POST["cotacao_id"]) ) {
+            ob_clean();
+            die( json_encode( array( "status" => false, "message" => "Informe o Documento ou o ID da Cotação" ) ) );
+        }
+
+        $cotacao_id = issetor($POST["cotacao_id"], '');
+        $documento = issetor($POST["documento"], '');
+        $documento = preg_replace( "/[^0-9]/", "", $documento );
+
+        $cotacao = $this->cotacao->getCotacaoByDoc( $documento, $cotacao_id );
+
+        ob_clean();
+        die( json_encode( ['status' => true, 'itens' => $cotacao], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+    }
+
     function celular( $number ){
         $number = preg_replace( "/[^0-9]/", "", $number );
         $number = "(" . substr( $number, 0, 2 ) . ") " . substr( $number, 2, -4) . " - " . substr( $number, -4 );
