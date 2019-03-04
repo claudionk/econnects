@@ -1260,6 +1260,7 @@ Class Pedido_Model extends MY_Model
 
         $this->_database->join("apolice a", "a.pedido_id = {$this->_table}.pedido_id", "inner");
         $this->_database->join("apolice_status ast", "a.apolice_status_id = ast.apolice_status_id", "inner");
+        $this->_database->join("apolice_movimentacao am", "a.apolice_id = am.apolice_id AND am.apolice_movimentacao_tipo_id = 1", "inner"); // para identificar a data de emissão
         $this->_database->join("cotacao c", "c.cotacao_id = {$this->_table}.cotacao_id", "inner");
         $this->_database->join("cotacao_status cs", "cs.cotacao_status_id = c.cotacao_status_id", "inner");
         $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
@@ -1279,11 +1280,10 @@ Class Pedido_Model extends MY_Model
             $this->_database->where("c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}");
         }
 
-
         if(isset($data_inicio) && !empty($data_inicio))
-            $this->_database->where("status_data >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
+            $this->_database->where("am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
         if( isset($data_fim) && !empty($data_fim) )
-            $this->_database->where("status_data <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
+            $this->_database->where("am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
 
         $this->_database->where("cs.slug = 'finalizada'");
         $this->_database->where("{$this->_table}.deletado = 0");
@@ -1426,7 +1426,7 @@ Class Pedido_Model extends MY_Model
         $this->_database->from($this->_table);
         $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
         $this->_database->join("apolice a", "a.pedido_id = {$this->_table}.pedido_id", "inner");
-
+        $this->_database->join("apolice_movimentacao am", "a.apolice_id = am.apolice_id AND am.apolice_movimentacao_tipo_id = 1", "inner"); // para identificar a data de emissão
         $this->_database->join("apolice_cobertura ac", "ac.pedido_id = a.apolice_id", "inner");
         $this->_database->join("cobertura_plano cp", "ac.cobertura_plano_id = cp.cobertura_plano_id", "inner");
         $this->_database->join("cobertura cb", "cb.cobertura_id = cp.cobertura_id", "inner");
@@ -1470,9 +1470,9 @@ Class Pedido_Model extends MY_Model
         }
 
         if(isset($data_inicio) && !empty($data_inicio))
-            $this->_database->where("ae.data_adesao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
+            $this->_database->where("am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
         if(isset($data_fim) && !empty($data_fim))
-            $this->_database->where("ae.data_adesao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
+            $this->_database->where("am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
 
         $this->_database->where("parc.slug IN('".$slug."')");
         $this->_database->where("cs.slug = 'finalizada'");
@@ -1581,6 +1581,7 @@ Class Pedido_Model extends MY_Model
         $this->_database->from($this->_table);
         $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
         $this->_database->join("apolice a", "a.pedido_id = {$this->_table}.pedido_id", "inner");
+        $this->_database->join("apolice_movimentacao am", "a.apolice_id = am.apolice_id AND am.apolice_movimentacao_tipo_id = 1", "inner"); // para identificar a data de emissão
 
         /* */
         $this->_database->join("apolice_cobertura ac", "ac.pedido_id = a.apolice_id", "inner");
@@ -1609,9 +1610,9 @@ Class Pedido_Model extends MY_Model
         }
 
         if(isset($data_inicio) && !empty($data_inicio))
-            $this->_database->where("status_data >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
+            $this->_database->where("am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
         if(isset($data_fim) && !empty($data_fim))
-            $this->_database->where("status_data <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
+            $this->_database->where("am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
 
         $this->_database->where("parc.slug IN('lojasamericanas')");
         $this->_database->where("cs.slug = 'finalizada'");
@@ -1646,9 +1647,9 @@ Class Pedido_Model extends MY_Model
         }
 
         if(isset($data_inicio) && !empty($data_inicio))
-            $where .= " AND ae.data_adesao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'";
+            $where .= " AND am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'";
         if(isset($data_fim) && !empty($data_fim))
-            $where .= " AND ae.data_adesao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
+            $where .= " AND am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
 
         $query = $this->_database->query("
         SELECT 
@@ -1709,6 +1710,7 @@ Class Pedido_Model extends MY_Model
 
             LEFT JOIN `apolice_equipamento` ae ON `ae`.`apolice_id` = `a`.`apolice_id` and ae.deletado = 0
             LEFT JOIN `apolice_generico` ag ON `ag`.`apolice_id` = `a`.`apolice_id` and ag.deletado = 0
+            INNER JOIN apolice_movimentacao am ON a.apolice_id = am.apolice_id
 
             INNER JOIN (
                 SELECT 
@@ -1719,7 +1721,7 @@ Class Pedido_Model extends MY_Model
                     , apolice_movimentacao_tipo_id
                 FROM cta_movimentacao
                 WHERE CTA_Retorno_ok IS NOT NULL
-        ) as cta ON cta.num_apolice = a.num_apolice
+            ) as cta ON cta.num_apolice = a.num_apolice AND am.apolice_movimentacao_tipo_id = cta.apolice_movimentacao_tipo_id
 
         WHERE `parc`.`slug` IN('".$slug."')
         AND `cs`.`slug` = 'finalizada'
