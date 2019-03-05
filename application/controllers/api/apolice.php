@@ -40,6 +40,7 @@ class Apolice extends CI_Controller {
         }
 
         $this->usuario_id = $webservice["usuario_id"];
+        $this->parceiro_id = $webservice["parceiro_id"];
         return $webservice;
     }
 
@@ -215,6 +216,61 @@ class Apolice extends CI_Controller {
         $produto_parceiro_cancelamento = $this->pedido->cancelamento_calculo( $pedido_id , $define_date );
 
         die( json_encode( $produto_parceiro_cancelamento ) );
+    }
+
+    public function getDocumentos()
+    {
+        $this->checkKey();
+
+        if( empty( $_GET["plano_slug"] ) ) {
+            die( json_encode( array( "status" => false, "message" => "O Atributo plano_slug é obrigatório" ) ) );
+        }
+
+        $this->load->model( "produto_parceiro_plano_model", "produto_parceiro_plano" );
+        $this->load->model( "produto_parceiro_plano_tipo_documento_model", "produto_parceiro_plano_tipo_documento" );
+
+        $planos = $this->produto_parceiro_plano
+            ->wtih_plano_habilitado($this->parceiro_id)
+            ->filter_by_slug($_GET["plano_slug"])
+            ->get_all_select();
+        if( empty( $planos ) ) {
+            die( json_encode( array( "status" => false, "message" => "Nenhum plano encontrado com o slug informado" ) ) );
+        }
+
+        $produto_parceiro_plano_id = $planos[0]['produto_parceiro_plano_id'];
+
+        $docs = $this->produto_parceiro_plano_tipo_documento
+            ->filter_by_plano_slug($_GET["plano_slug"])
+            ->with_tipo_documento()
+            ->get_all_select();
+        if( empty( $docs ) ) {
+            die( json_encode( array( "status" => false, "message" => "Nenhum documento encontrado" ) ) );
+        }
+
+        die( json_encode( array( "status" => true, "message" => "OK" , "documents" => $docs) ) );
+    }
+
+    public function sendDocumentos()
+    {
+        $this->checkKey();
+
+        if( empty( $_GET["plano_slug"] ) ) {
+            die( json_encode( array( "status" => false, "message" => "O Atributo plano_slug é obrigatório" ) ) );
+        }
+
+        $this->load->model( "produto_parceiro_plano_model", "produto_parceiro_plano" );
+
+        $planos = $this->produto_parceiro_plano
+            ->wtih_plano_habilitado($this->parceiro_id)
+            ->filter_by_slug($_GET["plano_slug"])
+            ->get_all_select();
+        if( empty( $planos ) ) {
+            die( json_encode( array( "status" => false, "message" => "Nenhum plano encontrado com o slug informado" ) ) );
+        }
+
+        $produto_parceiro_plano_id = $planos[0]['produto_parceiro_plano_id'];
+
+        die( json_encode( array( "status" => true, "message" => "OK" , "documents" => []) ) );
     }
 
 }
