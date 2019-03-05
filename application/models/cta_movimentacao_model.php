@@ -24,6 +24,7 @@ Class Cta_Movimentacao_Model extends MY_Model
             pedido_id
             , apolice_id
             , cotacao_id
+            , cliente_id
             , num_apolice
             , apolice_movimentacao_tipo_id
             , CTA_nao_processado
@@ -36,6 +37,7 @@ Class Cta_Movimentacao_Model extends MY_Model
             pedido_id 
             , apolice_id 
             , cotacao_id 
+            , cliente_id
             , num_apolice 
             , apolice_movimentacao_tipo_id 
             , date_format(IF(CTA_Enviado IS NULL, now(), NULL), '%Y-%m-%d %H:00:00') as CTA_nao_processado
@@ -49,7 +51,7 @@ Class Cta_Movimentacao_Model extends MY_Model
                 , maxDate( ctaEmissao(chave_emi, 4), ctaCliente(cliente_id, 4), 1 ) as CTA_Retorno_ok
                 , maxDate( ctaEmissao(chave_emi, 5), ctaCliente(cliente_id, 5), 0 ) as CTA_Retorno
                 , ctaEmissaoErro(chave_emi) as Erro
-                , num_apolice, pedido_id, apolice_id, cotacao_id
+                , num_apolice, pedido_id, apolice_id, cotacao_id, cliente_id
                 , apolice_movimentacao_tipo_id
             FROM (
                 ( 
