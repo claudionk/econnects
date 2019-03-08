@@ -154,7 +154,7 @@ class Emissao extends CI_Controller {
 
                 $this->load->model( "apolice_model", "apolice" );
                 if( !empty($parametros['num_apolice']) && $this->apolice->search_apolice_produto_parceiro_plano_id( $parametros['num_apolice'] , $this->produto_parceiro_plano_id ) ){
-                    die(json_encode(array("status"=>false,"message"=>"Já existe uma apólice na base"),JSON_UNESCAPED_UNICODE));
+                    die(json_encode(array("status"=>false,"message"=>"Já existe um certificado com o número {$parametros['num_apolice']} em nossa base"),JSON_UNESCAPED_UNICODE));
                 }
 
                 $validaModelo = false;
@@ -358,7 +358,7 @@ class Emissao extends CI_Controller {
                         else
                         {
                             $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
-                            die(json_encode(array("status"=>false,"message"=>$r),JSON_UNESCAPED_UNICODE));
+                            die(json_encode(array("status"=>false,"message"=>$msg,"error"=>isset($r['erros']) ? $r['erros'] : null ),JSON_UNESCAPED_UNICODE));
                         }
                     }
                     else

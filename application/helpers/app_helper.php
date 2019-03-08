@@ -1203,9 +1203,14 @@ function convert_objeto_to_array($array)
             if(is_object($item)){
                 $item = json_decode(json_encode($item),true);
             }
-
         });
-        $array = json_decode($array);
+
+        if (is_string($array)) {
+            $array = json_decode( $array );
+        }else {
+            $array = (object)$array;
+        }
+
     } elseif (in_array(preg_replace("/^(.)(.+?)(.)$/", "$1$3", trim($array) ), ['{}','[]'])) {
         $array = json_decode($array);
     }

@@ -66,11 +66,11 @@ class Api extends Site_Controller
             }
 
             $retorno["response"] = $messagem;
-            if (isset($retornoJson->erros)) {
+            if (isset($retornoJson->erros) || isset($retornoJson->errors)) {
                 $retorno["response"] = [
                     'status' => false,
                     'mensagem' => $messagem,
-                    'erros' => $retornoJson->erros
+                    'erros' => isset($retornoJson->erros) ? $retornoJson->erros : $retornoJson->errors
                 ];
             }
         }
