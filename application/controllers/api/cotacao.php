@@ -291,13 +291,13 @@ class Cotacao extends CI_Controller {
 
         $params = $POST;
 
-        $produto_parceiro_plano_id = $cotacao_itens["produto_parceiro_plano_id"];
-        $equipamento_marca_id = issetor( $POST["equipamento_marca_id"] , null);
-        $equipamento_categoria_id = issetor( $POST["equipamento_categoria_id"] , null);
-        $quantidade = issetor( $POST["quantidade"] , 1);
-        $repasse_comissao = issetor( $POST["repasse_comissao"] , 0);
-        $desconto_condicional = issetor( $POST["desconto_condicional"] , 0);
-        $data_inicio_vigencia = issetor( $POST["data_inicio_vigencia"] , null);
+        $produto_parceiro_plano_id = issetor( issetor( $POST["produto_parceiro_plano_id"], $cotacao_itens["produto_parceiro_plano_id"]), 0);
+        $equipamento_marca_id = issetor(issetor( $POST["equipamento_marca_id"], $cotacao_itens["equipamento_marca_id"]) , null);
+        $equipamento_categoria_id = issetor(issetor( $POST["equipamento_categoria_id"], $cotacao_itens["equipamento_categoria_id"]) , null);
+        $quantidade = issetor(issetor( $POST["quantidade"], $cotacao_itens["quantidade"]) , 1);
+        $repasse_comissao = issetor(issetor( $POST["repasse_comissao"], $cotacao_itens["repasse_comissao"]) , 0);
+        $desconto_condicional = issetor(issetor( $POST["desconto_condicional"], $cotacao_itens["desconto_condicional"]) , 0);
+        $data_inicio_vigencia = issetor(issetor( $POST["data_inicio_vigencia"], $cotacao_itens["data_inicio_vigencia"]) , null);
 
         $params["cotacao_id"] = $cotacao_id;
         $params["produto_parceiro_id"] = $produto_parceiro_id;
@@ -316,7 +316,9 @@ class Cotacao extends CI_Controller {
 
         $result = $this->contratar_cotacao( $params, $produto["produto_slug"] );
 
-        ob_clean();
+        if(ob_get_length() > 0) {
+            ob_clean();
+        }
         die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 

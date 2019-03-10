@@ -426,16 +426,17 @@ Class Cotacao_Model extends MY_Model
         $this->with_status();
         $this->with_parceiro();
         $this->_database->from("{$this->_table} as cotacao");
+        $this->_database->join('pedido', 'cotacao.cotacao_id = pedido.cotacao_id');
         $this->_database->join('produto_parceiro', 'cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id');
         $this->_database->join('produto', 'produto_parceiro.produto_id = produto.produto_id');
         $this->_database->join('cotacao_seguro_viagem', 'cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id AND cotacao_seguro_viagem.deletado = 0', 'left');
         $this->_database->join('cotacao_equipamento', 'cotacao_equipamento.cotacao_id = cotacao.cotacao_id AND cotacao_equipamento.deletado = 0', 'left');
         $this->_database->join('cotacao_generico', 'cotacao_generico.cotacao_id = cotacao.cotacao_id AND cotacao_generico.deletado = 0', 'left');
+        $this->_database->join('apolice', 'pedido.pedido_id = apolice.pedido_id AND apolice.deletado = 0', 'left');
         $this->_database->where("cotacao_status.slug", "finalizada");
         $this->_database->where("cotacao.deletado", 0);
+        $this->_database->where("apolice.apolice_id IS NULL");
         $this->_database->where("parceiro.parceiro_id", $this->parceiro_id);
-
-        // TODO: adicionar regra para não trazer cotação com pedido e/ou apólice
 
         if ( !empty($cotacao_id) ) {
             $this->_database->where("cotacao.cotacao_id", $cotacao_id);
