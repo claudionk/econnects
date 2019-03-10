@@ -113,10 +113,11 @@ class Apolice_Model extends MY_Model
         $comunicacao->disparaEvento("apolice_nao_gerada_sms", $evento['produto_parceiro_id']);
     }
 
-    public function insertApolice($pedido_id)
+    public function insertApolice($pedido_id, $etapa = 'pagamento')
     {
 
         $this->load->model('pedido_model', 'pedido');
+        $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
 
         $apolice = $this->get_many_by(array('pedido_id' => $pedido_id));
 
@@ -124,32 +125,18 @@ class Apolice_Model extends MY_Model
             return;
         }
 
-        //$produto = $this->pedido->getPedidoProdutoParceiro( $pedido_id );
-
-        $produto = $this->db->query("SELECT
-                                      pedido.pedido_id,
-                                      pedido.cotacao_id,
-                                      pedido.produto_parceiro_pagamento_id,
-                                      pedido.num_parcela,
-                                      pedido.valor_parcela,
-                                      cotacao.produto_parceiro_id,
-                                      produto.slug,
-                                      produto_parceiro.parceiro_id,
-                                      produto_parceiro_apolice.template as template_apolice
-                                  FROM
-                                      pedido
-                                      INNER JOIN cotacao ON ( cotacao.cotacao_id = pedido.cotacao_id )
-                                      INNER JOIN  produto_parceiro ON ( cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id)
-                                      INNER JOIN produto ON (produto.produto_id = produto_parceiro.produto_id)
-                                      LEFT JOIN produto_parceiro_apolice ON ( produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id)
-                                      LEFT JOIN cotacao_seguro_viagem ON ( cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id)
-                                      LEFT JOIN cotacao_equipamento ON ( cotacao_equipamento.cotacao_id = cotacao.cotacao_id)
-                                      LEFT JOIN cotacao_generico ON ( cotacao_generico.cotacao_id = cotacao.cotacao_id)
-                                  WHERE
-                                      pedido.pedido_id IN ($pedido_id) LIMIT 1")->result_array();
-
+        $produto = $this->pedido->getPedidoProdutoParceiro( $pedido_id );
         if ($produto) {
             $produto = $produto[0];
+
+            $conclui_em_tempo_real = $this->parceiro_configuracao->item_config($produto['produto_parceiro_id'], 'conclui_em_tempo_real');
+            if ($etapa == 'pagamento' && $conclui_em_tempo_real == false ) {
+                return;
+            }
+            if ($etapa == 'contratar' && $conclui_em_tempo_real == true ) {
+                return;
+            }
+
             if ($produto['slug'] == 'seguro_viagem') {
                 $this->insertSeguroViagem($pedido_id);
             } elseif ($produto['slug'] == 'equipamento') {
@@ -832,20 +819,20 @@ class Apolice_Model extends MY_Model
         }
 
         /*
-    $sql = "
-    SELECT
-    apolice_seguro_viagem.*
-    FROM apolice
-    INNER JOIN apolice_status ON
-    INNER JOIN apolice_seguro_viagem ON apolice.apolice_id = apolice_seguro_viagem.apolice_id
-    WHERE
-    apolice.deletado = 0
-    AND apolice_seguro_viagem.deletado = 0
-    AND apolice.pedido_id = {$pedido_id}
-    ";
+        $sql = "
+        SELECT
+        apolice_seguro_viagem.*
+        FROM apolice
+        INNER JOIN apolice_status ON
+        INNER JOIN apolice_seguro_viagem ON apolice.apolice_id = apolice_seguro_viagem.apolice_id
+        WHERE
+        apolice.deletado = 0
+        AND apolice_seguro_viagem.deletado = 0
+        AND apolice.pedido_id = {$pedido_id}
+        ";
 
-    return $this->_database->query($sql)->result_array();
-     */
+        return $this->_database->query($sql)->result_array();
+         */
     }
 
     public function getApolice($apolice_id)
@@ -889,29 +876,29 @@ class Apolice_Model extends MY_Model
         }
 
         /*
-    $apolice_id = (int)$apolice_id;
+        $apolice_id = (int)$apolice_id;
 
-    $sql = "
-    SELECT apolice.apolice_id,
-    apolice.pedido_id,
-    apolice.num_apolice,
-    apolice.apolice_status_id,
-    apolice.produto_parceiro_plano_id,
-    apolice.parceiro_id,
-    apolice_status.nome as apolice_status_nome,
-    apolice_status.slug as apolice_status_slug,
-    apolice_seguro_viagem.*
-    FROM apolice
-    INNER JOIN apolice_status ON apolice.apolice_status_id = apolice_status.apolice_status_id
-    INNER JOIN apolice_seguro_viagem ON apolice.apolice_id = apolice_seguro_viagem.apolice_id
-    WHERE
-    apolice.deletado = 0
-    AND apolice_seguro_viagem.deletado = 0
-    AND apolice.apolice_id = {$apolice_id}
-    ";
+        $sql = "
+        SELECT apolice.apolice_id,
+        apolice.pedido_id,
+        apolice.num_apolice,
+        apolice.apolice_status_id,
+        apolice.produto_parceiro_plano_id,
+        apolice.parceiro_id,
+        apolice_status.nome as apolice_status_nome,
+        apolice_status.slug as apolice_status_slug,
+        apolice_seguro_viagem.*
+        FROM apolice
+        INNER JOIN apolice_status ON apolice.apolice_status_id = apolice_status.apolice_status_id
+        INNER JOIN apolice_seguro_viagem ON apolice.apolice_id = apolice_seguro_viagem.apolice_id
+        WHERE
+        apolice.deletado = 0
+        AND apolice_seguro_viagem.deletado = 0
+        AND apolice.apolice_id = {$apolice_id}
+        ";
 
-    return $this->_database->query($sql)->result_array();
-     */
+        return $this->_database->query($sql)->result_array();
+         */
     }
 
     public function getApoliceAll($limit, $offset)

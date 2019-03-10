@@ -334,6 +334,8 @@ class Cotacao extends CI_Controller {
         $this->load->model( "cotacao_equipamento_model", "cotacao_equipamento" );
         $this->load->model( "cliente_model", "cliente" );
         $this->load->model( "cotacao_model", "cotacao" );
+        $this->load->model( "pedido_model", "pedido" );
+        $this->load->model( "apolice_model", "apolice" );
         $this->load->model( "localidade_estado_model", "localidade_estado" );
 
         $produto_parceiro_id = issetor($params['produto_parceiro_id'], 0);
@@ -354,7 +356,7 @@ class Cotacao extends CI_Controller {
             if( $this->cotacao->isCotacaoValida( $cotacao_id ) == FALSE ) {
                 $result  = array(
                     "status" => false,
-                    "mensagem" => "Cotação inválida (001)",
+                    "mensagem" => "O status da Cotação não permite esta operação",
                     "errors" => array(),
                 );
                 return $result;
@@ -465,11 +467,17 @@ class Cotacao extends CI_Controller {
             $dados_cotacao["produto_parceiro_plano_id"] = $produto_parceiro_plano_id;
 
             $this->cotacao_equipamento->update( $cotacao_salva["cotacao_equipamento_id"], $dados_cotacao, true );
-            //$this->cliente->atualizar( $cotacao_salva["cliente_id"], $dados_cotacao );
+
+            // Valida config do produto para definir se gera apólice ao contratar ou não
+            $pedido = $this->pedido->filter_by_cotacao($cotacao_id)->get_all();
+            if (!empty($pedido)) {
+                $pedido_id = $pedido[0]['pedido_id'];
+                $this->apolice->insertApolice($pedido_id, 'contratar');
+            }
 
             $result  = array(
                 "status" => true,
-                "mensagem" => "Cotação finalizada. Efetuar pagamento.",
+                "mensagem" => "Cotação finalizada com Sucesso.",
                 "cotacao_id" => $cotacao_salva["cotacao_id"],
                 "produto_parceiro_id" => $cotacao_salva["produto_parceiro_id"],
                 "validacao" => $validacao

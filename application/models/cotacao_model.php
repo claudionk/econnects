@@ -388,21 +388,34 @@ Class Cotacao_Model extends MY_Model
     function isCotacaoValida($cotacao_id){
 
         $this->load->model('pedido_model', 'pedido');
+        $this->load->model('apolice_model', 'apolice');
+        $this->load->model('produto_parceiro_configuracao_model', 'prod_parc_config');
+
         $cotacao = $this->get($cotacao_id);
-
         $pedido = $this->pedido->filter_by_cotacao($cotacao_id)->get_all();
-
 
         if(!$cotacao){
             return false;
         }
 
-        if(($cotacao['cotacao_status_id'] != 1) && ($cotacao['cotacao_status_id'] != 5)){
-            return false;
-        }
+        $conclui_em_tempo_real = $this->prod_parc_config->item_config($cotacao['produto_parceiro_id'], 'conclui_em_tempo_real');
+        if ( $conclui_em_tempo_real ) {
+            if ( $cotacao['cotacao_status_id'] != 1 && $cotacao['cotacao_status_id'] != 5 ) {
+                return false;
+            }
 
-        if(count($pedido) > 0){
-            return false;
+            if ( count($pedido) > 0 ) {
+                return false;
+            }
+        } else {
+            if ( count($pedido) == 0 ) {
+                return false;
+            }
+
+            $apolice = $this->apolice->getApolicePedido($pedido[0]['pedido_id']);
+            if ( count($apolice) > 0 ) {
+                return false;
+            }
         }
 
         return true;

@@ -124,7 +124,8 @@ class Apolice_Documento_Model extends MY_Model
         $data = [
             'apolice_id' => $apolice_id,
             'produto_parceiro_plano_tipo_documento_id' => $produto_parceiro_plano_tipo_documento_id,
-            'name' => $docFilename
+            'name' => $docFilename,
+            'path' => $destinationFolder,
         ];
 
         $apolice_documento_id = $this->insert($data, TRUE);
