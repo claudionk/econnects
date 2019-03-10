@@ -408,13 +408,11 @@ Class Cotacao_Model extends MY_Model
                 return false;
             }
         } else {
-            if ( count($pedido) == 0 ) {
-                return false;
-            }
-
-            $apolice = $this->apolice->getApolicePedido($pedido[0]['pedido_id']);
-            if ( count($apolice) > 0 ) {
-                return false;
+            if ( count($pedido) > 0 ) {
+                $apolice = $this->apolice->getApolicePedido($pedido[0]['pedido_id']);
+                if ( count($apolice) > 0 ) {
+                    return false;
+                }
             }
         }
 

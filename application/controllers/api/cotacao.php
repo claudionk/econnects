@@ -9,15 +9,6 @@ class Cotacao extends CI_Controller {
     public $usuario_id;
     public $parceiro_id;
 
-    const FORMA_PAGAMENTO_CARTAO_CREDITO = 1;
-    const FORMA_PAGAMENTO_TRANSF_BRADESCO = 2;
-    const FORMA_PAGAMENTO_TRANSF_BB = 7;
-    const FORMA_PAGAMENTO_CARTAO_DEBITO = 8;
-    const FORMA_PAGAMENTO_BOLETO = 9;
-    const FORMA_PAGAMENTO_FATURADO = 10;
-    const FORMA_PAGAMENTO_CHECKOUT_PAGMAX = 11;
-
-
     public function __construct() {
         parent::__construct();
 

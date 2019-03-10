@@ -162,7 +162,7 @@ class Admin_Controller extends MY_Controller
         $this->template->set('title', $this->_theme_nome);
     }
 
-    public function venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id = 0)
+    public function venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id = 0, $conclui_em_tempo_real = true)
     {
         error_log("Controller\n", 3, "/var/log/httpd/myapp.log");
 
@@ -207,9 +207,11 @@ class Admin_Controller extends MY_Controller
         //formas de pagamento
         $forma_pagamento = array();
         $tipo_pagamento  = $this->forma_pagamento_tipo->get_all();
+        $exibe_url_acesso_externo = false;
 
         //Para cada tipo de pagamento
         foreach ($tipo_pagamento as $index => $tipo) {
+            
             $forma = $this->produto_pagamento->with_forma_pagamento()
                 ->filter_by_produto_parceiro($produto_parceiro_id)
                 ->filter_by_forma_pagamento_tipo($tipo['forma_pagamento_tipo_id'])
@@ -219,6 +221,12 @@ class Admin_Controller extends MY_Controller
             $bandeiras = $this->forma_pagamento_bandeira->get_many_by(array("forma_pagamento_tipo_id" => $tipo["forma_pagamento_tipo_id"]));
 
             if (count($forma) > 0) {
+
+                // exibe o link para acesso externo se houver configurado os tipos de cartão
+                if ( !$exibe_url_acesso_externo && in_array($tipo['forma_pagamento_tipo_id'], [$this->config->item('FORMA_PAGAMENTO_CARTAO_CREDITO'), $this->config->item('FORMA_PAGAMENTO_CARTAO_DEBITO')] ) ) {
+                    $exibe_url_acesso_externo = true;
+                }
+
                 foreach ($forma as $index => $item) {
                     $parcelamento = array();
                     for ($i = 1; $i <= $item['parcelamento_maximo']; $i++) {
@@ -253,17 +261,21 @@ class Admin_Controller extends MY_Controller
         ));
         $data['url_pagamento_confirmado'] = "{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/";
         $data['produto_parceiro_id']      = $produto_parceiro_id;
+        $data['exibe_url_acesso_externo'] = $exibe_url_acesso_externo;
 
-        $data['url_acesso_externo'] = $this->auth->generate_page_token(
-            ''
-            , array(
-                current_url(),
-                base_url("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/#"),
-                base_url("admin/gateway/consulta"),
-            )
-            , 'front'
-            , 'pagamento'
-        );
+        if ($exibe_url_acesso_externo) {
+            $data['url_acesso_externo'] = $this->auth->generate_page_token(
+                ''
+                , array(
+                    current_url(),
+                    base_url("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/#"),
+                    base_url("admin/gateway/consulta"),
+                )
+                , 'front'
+                , 'pagamento'
+            );
+        }
+
         if ($_POST) {
             $tipo_forma_pagamento_id = $this->input->post('forma_pagamento_tipo_id');
             $validacao               = array();
@@ -435,6 +447,8 @@ class Admin_Controller extends MY_Controller
             }
             error_log("POST: " . print_r($data, true) . "\n", 3, "/var/log/httpd/myapp.log");
         }
+
+        $data['step'] = ($conclui_em_tempo_real) ? 3 : 2;
         $this->template->load("admin/layouts/{$this->layout}", "admin/venda/pagamento", $data);
     }
 

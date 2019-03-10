@@ -1641,7 +1641,7 @@ if ( ! function_exists('app_get_token'))
         $CI =& get_instance();
 
         $retorno = soap_curl([
-            'url' => $CI->config->item("URL_sisconnects") ."api/acesso?email={$email}&senha={$senha}&url={$url}",
+            'url' => $CI->config->item('base_url') ."api/acesso?email={$email}&senha={$senha}&url={$url}",
             'method' => 'GET',
             'fields' => '',
             'header' => array(

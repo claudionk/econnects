@@ -1,6 +1,6 @@
 
 <!-- Mostra link para pagamento externo -->
-<?php if ($layout != "front") { ?>
+<?php if ($layout != "front" && !empty($exibe_url_acesso_externo)) { ?>
 
     <!-- Trigger the modal with a button -->
     <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#modal_acesso_externo"><i class="fa fa-link"></i> ACESSO PARA PAGAMENTO EXTERNO</button>
