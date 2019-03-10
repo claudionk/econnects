@@ -1953,6 +1953,10 @@ Class Pedido_Model extends MY_Model
         $this->load->model("forma_pagamento_model", "forma_pagamento");
 
         //se é debito ou credito
+        if (empty($dados['num_parcela'])) {
+            $dados['num_parcela'] = 1;
+        }
+
         if($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_CREDITO ) {
             $item = $this->produto_pagamento->get_by_id($dados["bandeira"]);
         }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) {

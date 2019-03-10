@@ -469,13 +469,6 @@ class Venda_Equipamento extends Admin_Controller{
 
         $cotacao_salva = $cotacao_salva[0];
         
-        // Valida tempo máximo de uso do equipamento
-        $valida_prazo_maximo = $this->cotacao_equipamento->verifica_tempo_limite_de_uso($cotacao_id);
-        if (!empty($valida_prazo_maximo)) {
-            $this->session->set_flashdata('fail_msg', $valida_prazo_maximo);
-            redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2/{$cotacao_id}");
-        }
-
         if($cotacao_salva['desconto_condicional'] > 0 && $status != "desconto_aprovado")
         {
             $data_cotacao = array();
@@ -860,6 +853,15 @@ class Venda_Equipamento extends Admin_Controller{
                 }
             }else{
 
+                // Valida tempo máximo de uso do equipamento
+                if ($cotacao_id > 0) {
+                    $valida_prazo_maximo = $this->cotacao_equipamento->verifica_tempo_limite_de_uso($cotacao_id);
+                    if (!empty($valida_prazo_maximo)) {
+                        $this->session->set_flashdata('fail_msg', $valida_prazo_maximo);
+                        redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2/{$cotacao_id}");
+                    }
+                }
+
                 if ($this->cotacao->validate_form('carrossel'))
                 {
                     $this->session->set_userdata("carrossel_{$produto_parceiro_id}", $_POST);
@@ -890,6 +892,9 @@ class Venda_Equipamento extends Admin_Controller{
                         }
                     }else{
                         if ($cotacao_id > 0) {
+
+                            $this->cotacao_equipamento->insert_update($produto_parceiro_id, $cotacao_id, 2);
+
                             if ($this->cotacao_equipamento->verifica_possui_desconto($cotacao_id)) {
                                 $this->cotacao_equipamento->insert_update($produto_parceiro_id, $cotacao_id, 2);
 
