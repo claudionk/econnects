@@ -132,6 +132,11 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
             'label' => 'Exibição de coberturas (Mobile)',
             'rules' => 'required',
             'groups' => 'geral'
+        ),array(
+            'field' => 'conclui_em_tempo_real',
+            'label' => 'Conclui a venda em Tempo Real',
+            'rules' => 'required',
+            'groups' => 'geral'
         )
     );
 
@@ -154,6 +159,7 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
                 'salvar_cotacao_formulario' => $this->input->post('salvar_cotacao_formulario'),
                 'quantidade_cobertura' => $this->input->post('quantidade_cobertura'),
                 'quantidade_cobertura_front' => $this->input->post('quantidade_cobertura_front'),
+                'conclui_em_tempo_real' => $this->input->post('conclui_em_tempo_real'),
             );
         }elseif ($tipo == 'comissao'){
             $data = array(
@@ -235,6 +241,15 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
 
         return $this;
     }
+
+    public function item_config($produto_parceiro_id, $item){
+
+        $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
+        $config = $this->get_all();
+
+        return empty($config[0]) || !empty($config[0][$item]);
+    }
+
 
 }
 

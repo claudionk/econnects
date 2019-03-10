@@ -69,6 +69,48 @@ class Venda_Equipamento extends Admin_Controller{
 
     }
 
+    public function step_contratar($produto_parceiro_id, $cotacao_id = 0, $status = '', $conclui_em_tempo_real = true){
+        $this->load->model("cotacao_equipamento_model", "cotacao_equipamento");
+
+        //Verifica se possui desconto (vai para passo específico)
+        if($this->cotacao_equipamento->verifica_possui_desconto($cotacao_id) && $status != "desconto_aprovado") {
+            //Verifica se desconto foi aprovado
+            if($this->cotacao_equipamento->verifica_desconto_aprovado($cotacao_id)) {
+                //Carrega função para visualizar desconto
+                $this->equipamento_verificar_desconto($produto_parceiro_id, $cotacao_id);
+            } else {
+                //Avisa o usuário que desconto ainda não foi aprovado, portanto não consegue finalizar
+                $this->session->set_flashdata('fail_msg', 'O desconto ainda não foi aprovado.');
+                redirect("{$this->controller_uri}/index");
+            }
+        } else {
+            //Carrega função para finalizar
+            $this->equipamento_finalizar( $produto_parceiro_id, $cotacao_id, $status );
+        }
+    }
+
+    public function step_pagto($produto_parceiro_id, $cotacao_id = 0, $pedido_id = 0, $conclui_em_tempo_real = true){
+        $this->load->model("pedido_model", "pedido_model");
+
+        /**
+        * Verifica se pedido já foi feito (se sim encaminha para página de pagamento)
+        */
+        $pedido = $this->pedido_model
+        ->with_foreign()
+        ->get_by(array(
+            'pedido.cotacao_id' => $cotacao_id
+        ));
+
+        $status = array('pagamento_negado', 'cancelado', 'cancelado_stornado', 'aprovacao_cancelamento', 'cancelamento_aprovado');
+        //error_log( "Pedido: " . print_r( $pedido, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+        if($pedido && !in_array($pedido['pedido_status_slug'], $status) && $this->layout == 'front') {
+            //$this->venda_aguardando_pagamento($produto_parceiro_id, $cotacao_id);
+            redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/5/{$pedido['pedido_id']}");
+        } else {
+            $this->venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real);
+        }
+    }
+
     /**
     * Seguro Equipamento
     * @param $produto_parceiro_id
@@ -78,17 +120,19 @@ class Venda_Equipamento extends Admin_Controller{
     */
     public function equipamento($produto_parceiro_id, $step = 1, $cotacao_id = 0, $pedido_id = 0, $status = '') {
         error_log( "Controller Equipamento\n", 3, "/var/log/httpd/myapp.log" );
-
-        //Carrega models
-        $this->load->model("cotacao_equipamento_model", "cotacao_equipamento");
-        $this->load->model("pedido_model", "pedido_model");
+        
         $this->load->library('form_validation');
+        $this->load->model('produto_parceiro_configuracao_model', 'prod_parc_config');
 
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', 'Venda');
         $this->template->set_breadcrumb('Venda', base_url("$this->controller_uri/index"));
 
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
+        $conclui_em_tempo_real = $this->prod_parc_config->item_config($produto_parceiro_id, 'conclui_em_tempo_real');
+
+        // echo $step;
+        // die();
 
         if( $step == 1 ) {
 
@@ -96,43 +140,25 @@ class Venda_Equipamento extends Admin_Controller{
 
         } elseif( $step == 2 ) {
 
+        //     echo $step;
+        // die();
+
             $this->equipamento_carrossel($produto_parceiro_id, $cotacao_id);
 
         } elseif( $step == 3 ) {
 
-            //Verifica se possui desconto (vai para passo específico)
-            if($this->cotacao_equipamento->verifica_possui_desconto($cotacao_id) && $status != "desconto_aprovado") {
-                //Verifica se desconto foi aprovado
-                if($this->cotacao_equipamento->verifica_desconto_aprovado($cotacao_id)) {
-                    //Carrega função para visualizar desconto
-                    $this->equipamento_verificar_desconto($produto_parceiro_id, $cotacao_id);
-                } else {
-                    //Avisa o usuário que desconto ainda não foi aprovado, portanto não consegue finalizar
-                    $this->session->set_flashdata('fail_msg', 'O desconto ainda não foi aprovado.');
-                    redirect("{$this->controller_uri}/index");
-                }
+            if ($conclui_em_tempo_real) {
+                $this->step_contratar( $produto_parceiro_id, $cotacao_id, $status, $conclui_em_tempo_real );
             } else {
-                //Carrega função para finalizar
-                $this->equipamento_finalizar( $produto_parceiro_id, $cotacao_id, $status );
+                $this->step_pagto($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real);
             }
-
+        
         } elseif ($step == 4) {
-            /**
-            * Verifica se pedido já foi feito (se sim encaminha para página de pagamento)
-            */
-            $pedido = $this->pedido_model
-            ->with_foreign()
-            ->get_by(array(
-            'pedido.cotacao_id' => $cotacao_id
-            ));
 
-            $status = array('pagamento_negado', 'cancelado', 'cancelado_stornado', 'aprovacao_cancelamento', 'cancelamento_aprovado');
-            //error_log( "Pedido: " . print_r( $pedido, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
-            if($pedido && !in_array($pedido['pedido_status_slug'], $status) && $this->layout == 'front') {
-                //$this->venda_aguardando_pagamento($produto_parceiro_id, $cotacao_id);
-                redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/5/{$pedido['pedido_id']}");
+            if ($conclui_em_tempo_real) {
+                $this->step_pagto($produto_parceiro_id, $cotacao_id, $pedido_id);
             } else {
-                $this->venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id);
+                $this->step_contratar( $produto_parceiro_id, $cotacao_id, $status );
             }
 
         } elseif ($step == 5){
@@ -214,6 +240,7 @@ class Venda_Equipamento extends Admin_Controller{
         //Verifica cotação
         if($cotacao_id > 0)
         {
+
             if($this->cotacao->isCotacaoValida($cotacao_id) == FALSE)
             {
                 $this->session->set_flashdata("fail_msg", "Essa Cotação não é válida");
