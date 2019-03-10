@@ -456,6 +456,7 @@ $(function(){
 
         planos.push(plano);
         $('#plano').val(planos.join(';'));
+        $('#produto_parceiro_plano_id').val(plano);
 
         var quantidade = $('#quantidade').val();
         if(quantidade.length == 0){
