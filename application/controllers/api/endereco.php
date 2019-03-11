@@ -59,6 +59,9 @@ class Endereco extends CI_Controller {
         }
 
         if( !empty($result['success']) ) {
+            $result['data'] = $this->defineUF($result['data'], $result['data']['uf']);
+            $result['data'] = $this->defineCity($result['data'], $result['data']['cidade']);
+
             die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
         } else {
             die( json_encode( array( "status" => false, "message" => $result['message'] ) ) );
@@ -104,7 +107,6 @@ class Endereco extends CI_Controller {
             $result['message'] = $e;
         }
 
-
         return $result;
     }
 
@@ -137,6 +139,49 @@ class Endereco extends CI_Controller {
                 'success' => true,
                 'message' => '',
             ];
+
+        }
+
+        return $result;
+    }
+
+    private function defineUF(&$result, $uf)
+    {
+        $this->load->model('localidade_estado_model', 'estado');
+        $this->load->model('localidade_cidade_model', 'cidade');
+
+        if( !empty($uf) ){
+
+            $estado = $this->estado->get_by_sigla($uf);
+            if($estado){
+                $result['estado_id'] = $estado['localidade_estado_id'];
+                $result['estado_uf'] = $estado['sigla'];
+
+                $cidades = $this->cidade->getCidadesPorEstado($result['estado_id']);
+                $result['cidades'] = $cidades;
+            }else {
+                $result['estado_id'] = 0;
+                $result['cidades'] = array();
+            }
+
+        }
+
+        return $result;
+    }
+
+    private function defineCity(&$result, $cidade)
+    {
+        $this->load->model('localidade_cidade_model', 'cidade');
+
+        if( !empty($cidade) ){
+
+            $estado = $this->cidade->get_by_nome($cidade);
+            if($estado){
+                $result['cidade_id'] = $estado['localidade_cidade_id'];
+            }else {
+                $result['cidade_id'] = 0;
+            }
+
         }
 
         return $result;
