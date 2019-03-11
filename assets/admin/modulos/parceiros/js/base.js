@@ -68,8 +68,6 @@ function buscaCep(){
     var cep = $('#cep').val();
     var url = base_url + "api/endereco/cep/" + cep;
 
-    debugger;
-
     $.ajax({
         url: url,
         type: "GET",
