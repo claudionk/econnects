@@ -55,6 +55,17 @@ Class Produto_Parceiro_Model extends MY_Model
             'label' => 'Venda Agrupada',
             'rules' => 'required',
             'groups' => 'default'
+        ),
+        array(
+            'field' => 'slug_produto',
+            'label' => 'Slug',
+            'rules' => 'required',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'cod_tpa',
+            'label' => 'Código TPA',
+            'groups' => 'default'
         )
     );
 
@@ -68,7 +79,9 @@ Class Produto_Parceiro_Model extends MY_Model
             'produto_id' => $this->input->post('produto_id'),
             'parceiro_id' => $this->input->post('parceiro_id'),
             'seguradora_id' => $this->input->post('seguradora_id'),
-            'venda_agrupada' => $this->input->post('venda_agrupada')
+            'venda_agrupada' => $this->input->post('venda_agrupada'),
+            'slug_produto' => $this->input->post('slug_produto'),
+            'cod_tpa' => $this->input->post('cod_tpa'),
         );
         return $data;
     }
