@@ -53,8 +53,8 @@ class Endereco extends CI_Controller {
         );
 
         if(strlen($cep) == 8){
-            $result = $this->cepByRepublicaVirtual($cep);
-            if( empty($result['success']) )
+            // $result = $this->cepByRepublicaVirtual($cep);
+            // if( empty($result['success']) )
                 $result = $this->cepByCorreios($cep);
         }
 
