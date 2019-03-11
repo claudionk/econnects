@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php if (!defined('BASEPATH')) {exit('No direct script access allowed');}
 
 /**
  * Class Produtos_Parceiros
@@ -8,8 +8,6 @@
  */
 class Produtos_Parceiros extends Admin_Controller
 {
-
-
 
     public function __construct()
     {
@@ -26,20 +24,10 @@ class Produtos_Parceiros extends Admin_Controller
         $this->load->model('produto_ramo_model', 'produto_ramo');
 
         $this->load->model('parceiro_tipo_model', 'parceiro_tipo');
-
-
-
-
-
     }
 
-
-
-    public function view_by_parceiro($parceiro_id , $offset = 0) //Função padrão (load)
+    public function view_by_parceiro($parceiro_id, $offset = 0) //Função padrão (load)
     {
-
-
-
         //Carrega bibliotecas
         $this->load->library('pagination');
 
@@ -47,50 +35,46 @@ class Produtos_Parceiros extends Admin_Controller
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Produtos / Parceiro");
 
-
         $this->template->set_breadcrumb("Produtos", base_url("$this->controller_uri/index"));
-
 
         $parceiro = $this->parceiro->get($parceiro_id);
 
         //Verifica se registro existe
-        if(!$parceiro)
-        {
+        if (!$parceiro) {
             //Mensagem de erro caso registro não exista
             $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
             redirect("parceiros/index");
         }
 
-
         //Inicializa tabela
-        $config['base_url'] = base_url("{$this->controller_uri}/view_by_parceiro/{$parceiro_id}");
+        $config['base_url']    = base_url("{$this->controller_uri}/view_by_parceiro/{$parceiro_id}");
         $config['uri_segment'] = 5;
-        $config['total_rows'] =  $this->current_model->with_produto()->filter_by_parceiro($parceiro_id)->get_total();
-        $config['per_page'] = 20;
+        $config['total_rows']  = $this->current_model->with_produto()->filter_by_parceiro($parceiro_id)->get_total();
+        $config['per_page']    = 20;
 
         $this->pagination->initialize($config);
 
         //Carrega dados para a página
-        $data = array();
+        $data         = array();
         $data['rows'] = $this->current_model->limit($config['per_page'], $offset)
             ->with_produto()
             ->filter_by_parceiro($parceiro_id)
             ->get_all();
 
         $data['parceiro_id'] = $parceiro_id;
-        $data['parceiro'] = $parceiro;
+        $data['parceiro']    = $parceiro;
 
-
-        $data['primary_key'] = $this->current_model->primary_key();
+        $data['primary_key']      = $this->current_model->primary_key();
         $data["pagination_links"] = $this->pagination->create_links();
 
         $this->template->set('page_title', "Produtos / Parceiro:");
 
         //Carrega template
-        $this->template->load("admin/layouts/base", "$this->controller_uri/view_by_parceiro", $data );
+        $this->template->load("admin/layouts/base", "$this->controller_uri/view_by_parceiro", $data);
     }
 
-    public function add_by_parceiro($parceiro_id){
+    public function add_by_parceiro($parceiro_id)
+    {
 
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
@@ -98,38 +82,30 @@ class Produtos_Parceiros extends Admin_Controller
         $this->template->js(app_assets_url("template/js/libs/jquery.chained/jquery.chained.min.js", "admin"));
         $this->template->js(app_assets_url('modulos/produto_parceiro/base.js', 'admin'));
 
-
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Produtos / Parceiro");
         $this->template->set_breadcrumb("Produtos / Parceiro", base_url("$this->controller_uri/index"));
 
-
         $parceiro = $this->parceiro->get($parceiro_id);
 
         //Verifica se registro existe
-        if(!$parceiro)
-        {
+        if (!$parceiro) {
             //Mensagem de erro caso registro não exista
             $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
             redirect("parceiros/index");
         }
 
         //Caso post
-        if($_POST)
-        {
+        if ($_POST) {
             //Valida formulário
-            if($this->current_model->validate_form())
-            {
+            if ($this->current_model->validate_form()) {
                 //Insere form
                 $insert_id = $this->current_model->insert_form();
-                if($insert_id)
-                {
+                if ($insert_id) {
                     //Caso inserido com sucesso
                     $this->session->set_flashdata('succ_msg', 'Os dados foram salvos corretamente.'); //Mensagem de sucesso
-                }
-                else
-                {
+                } else {
                     //Mensagem de erro
                     $this->session->set_flashdata('fail_msg', 'Não foi possível salvar o Registro.');
                 }
@@ -138,25 +114,22 @@ class Produtos_Parceiros extends Admin_Controller
             }
         }
 
-
-
-        $data = array();
+        $data                = array();
         $data['primary_key'] = $this->current_model->primary_key();
-        $data['new_record'] = '1';
+        $data['new_record']  = '1';
 
         $data['parceiro_id'] = $parceiro_id;
-        $data['parceiro'] = $parceiro;
+        $data['parceiro']    = $parceiro;
 
-        $data['produtos'] = $this->produto->get_all();
+        $data['produtos']       = $this->produto->get_all();
         $data['produtos_ramos'] = $this->produto_ramo->get_all();
 
         $data['seguradoras'] = $this->parceiro
-            ->filter_by_tipo( $this->parceiro_tipo->getIdTipoSeguradora() )
+            ->filter_by_tipo($this->parceiro_tipo->getIdTipoSeguradora())
             ->get_all();
 
-
         //Carrega template
-        $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
+        $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data);
 
     }
 
@@ -173,30 +146,26 @@ class Produtos_Parceiros extends Admin_Controller
         $this->template->js(app_assets_url("template/js/libs/jquery.chained/jquery.chained.min.js", "admin"));
         $this->template->js(app_assets_url('modulos/produto_parceiro/base.js', 'admin'));
 
-
         //Carrega dados para a página
-        $data = array();
-        $data['row'] = $this->current_model->with_produto()->get($id);
+        $data                = array();
+        $data['row']         = $this->current_model->with_produto()->get($id);
         $data['primary_key'] = $this->current_model->primary_key();
-        $data['new_record'] = '0';
-        $data['form_action'] =  base_url("$this->controller_uri/edit/{$id}");
+        $data['new_record']  = '0';
+        $data['form_action'] = base_url("$this->controller_uri/edit/{$id}");
 
         //Verifica se registro existe
-        if(!$data['row'])
-        {
+        if (!$data['row']) {
             //Mensagem de erro caso registro não exista
             $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
             //Redireciona para index
             redirect("$this->controller_uri/index");
         }
 
-
-        $parceiro =  $this->parceiro->get($data['row']['parceiro_id']);
+        $parceiro = $this->parceiro->get($data['row']['parceiro_id']);
 
         //Caso post
-        if($_POST)
-        {
-            if($this->current_model->validate_form()) //Valida form
+        if ($_POST) {
+            if ($this->current_model->validate_form()) //Valida form
             {
                 //Realiza update
                 $this->current_model->update_form();
@@ -209,26 +178,26 @@ class Produtos_Parceiros extends Admin_Controller
             }
         }
 
-        $parceiro =  $this->parceiro->get($data['row']['parceiro_id']);
+        $parceiro = $this->parceiro->get($data['row']['parceiro_id']);
 
-        $data['parceiro_id'] = $parceiro['parceiro_id'];
-        $data['parceiro'] = $parceiro;
-        $data['produtos'] = $this->produto->get_all();
+        $data['parceiro_id']    = $parceiro['parceiro_id'];
+        $data['parceiro']       = $parceiro;
+        $data['produtos']       = $this->produto->get_all();
         $data['produtos_ramos'] = $this->produto_ramo->get_all();
 
         $data['seguradoras'] = $this->parceiro
-            ->filter_by_tipo( $this->parceiro_tipo->getIdTipoSeguradora() )
+            ->filter_by_tipo($this->parceiro_tipo->getIdTipoSeguradora())
             ->get_all();
 
-
         //Carrega template
-        $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
+        $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data);
     }
-    public  function delete($id)
+
+    public function delete($id)
     {
 
         $row = $this->current_model->get($id);
-        if(!$row){
+        if (!$row) {
             $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
             //Redireciona para index
             redirect("admin/parceiros/index");
@@ -239,6 +208,5 @@ class Produtos_Parceiros extends Admin_Controller
 
         redirect("{$this->controller_uri}/view_by_parceiro/{$row['parceiro_id']}");
     }
-
 
 }
