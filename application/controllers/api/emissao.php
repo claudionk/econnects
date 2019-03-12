@@ -94,10 +94,9 @@ class Emissao extends CI_Controller {
         $this->equipamento_nome = '';
         $this->ean = '';
         $this->num_apolice = (!isset($POST['num_apolice'])) ? false : $POST['num_apolice'];
-
         $this->valor_premio_bruto = (!isset($POST['valor_premio_bruto'])) ? 0 : $POST['valor_premio_bruto'];
-        $this->meio_pagto_slug = $POST['meiopagamento']['meio_pagto_slug'];
-        $this->campos_meios_pagto = $POST['meiopagamento']['campos'];
+        $this->meio_pagto_slug = (!isset($POST['meiopagamento']['meio_pagto_slug'])) ? '' : $POST['meiopagamento']['meio_pagto_slug'];
+        $this->campos_meios_pagto = (!isset($POST['meiopagamento']['campos'])) ? [] : $POST['meiopagamento']['campos'];
 
         $this->etapas('cotacao',$POST);
     }
