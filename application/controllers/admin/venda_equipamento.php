@@ -616,6 +616,7 @@ class Venda_Equipamento extends Admin_Controller{
         $this->load->model('cobertura_model', 'cobertura');
         $this->load->model('cotacao_equipamento_cobertura_model', 'cotacao_equipamento_cobertura');
         $this->load->model('cotacao_model', 'cotacao');
+        $this->load->model('cotacao_cobertura_model', 'cotacao_cobertura');
         $this->load->model('produto_parceiro_desconto_model', 'desconto');
         $this->load->model('produto_parceiro_configuracao_model', 'configuracao');
         $this->load->model('produto_parceiro_regra_preco_model', 'regra_preco');
@@ -921,6 +922,11 @@ class Venda_Equipamento extends Admin_Controller{
                         if ($cotacao_id > 0) {
 
                             $this->cotacao_equipamento->insert_update($produto_parceiro_id, $cotacao_id, 2);
+                            $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
+
+                            $cotacao["nota_fiscal_valor"] = app_unformat_currency($cotacao["nota_fiscal_valor"]);
+                            $_POST['valor'] = app_unformat_currency($_POST['valor']);
+                            $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $_POST['produto_parceiro_plano_id'], $cotacao["nota_fiscal_valor"], $_POST['valor']);
 
                             if ($this->cotacao_equipamento->verifica_possui_desconto($cotacao_id)) {
                                 $this->cotacao_equipamento->insert_update($produto_parceiro_id, $cotacao_id, 2);

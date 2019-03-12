@@ -578,6 +578,8 @@ $(function(){
                 tr += '</tr>';
                 $('.body-carrinho').append(tr);
 
+                $('#produto_parceiro_plano_id').val(plano[i]);
+
             }
         }
 
@@ -618,6 +620,8 @@ $(function(){
                 if(plano.length == 0) {
                     $('.body-carrinho').append(tr_vazio);
                 }
+
+                $('#produto_parceiro_plano_id').val(0);
 
             }
 
@@ -677,6 +681,8 @@ $(function(){
                 $('.body-carrinho').append(tr_vazio);
             }
 
+            $('#produto_parceiro_plano_id').val(0);
+
         }
 
 
@@ -697,8 +703,8 @@ $(function(){
         $('.body-carrinho tr' ).remove();
         $('.body-carrinho').append(tr_vazio);
 
+        $('#produto_parceiro_plano_id').val(0);
+
     }
+
 });
-
-
-
