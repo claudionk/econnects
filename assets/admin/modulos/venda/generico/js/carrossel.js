@@ -446,7 +446,7 @@ $(function(){
 
         planos.push(plano);
         $('#plano').val(planos.join(';'));
-
+        $('#produto_parceiro_plano_id').val(plano);
 
         var nome = $('#plano_nome').val();
         if(nome.length == 0){
@@ -562,12 +562,7 @@ $(function(){
 
     });
 
-
-
     function updateCarrinho(){
-
-
-
 
         var tr_vazio = '<tr><td colspan="6">Seu Carrinho esta vazio</td></tr>';
         $('.body-carrinho tr').remove();
@@ -594,6 +589,7 @@ $(function(){
                 tr += '</tr>';
                 $('.body-carrinho').append(tr);
 
+                $('#produto_parceiro_plano_id').val(plano[i]);
             }
         }
 
@@ -634,6 +630,8 @@ $(function(){
                 if(plano.length == 0) {
                     $('.body-carrinho').append(tr_vazio);
                 }
+
+                $('#produto_parceiro_plano_id').val(0);
 
             }
 
@@ -693,6 +691,8 @@ $(function(){
                 $('.body-carrinho').append(tr_vazio);
             }
 
+            $('#produto_parceiro_plano_id').val(0);
+
         }
 
 
@@ -712,6 +712,8 @@ $(function(){
 
         $('.body-carrinho tr' ).remove();
         $('.body-carrinho').append(tr_vazio);
+
+        $('#produto_parceiro_plano_id').val(0);
 
     }
 });
