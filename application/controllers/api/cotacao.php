@@ -461,20 +461,24 @@ class Cotacao extends CI_Controller {
 
             $this->cotacao_equipamento->update( $cotacao_salva["cotacao_equipamento_id"], $dados_cotacao, true );
 
+            $result  = array(
+                "status" => true,
+                "mensagem" => "Cotação finalizada com Sucesso.",
+                "produto_parceiro_id" => $cotacao_salva["produto_parceiro_id"],
+                "cotacao_id" => $cotacao_salva["cotacao_id"],
+            );
+
             // Valida config do produto para definir se gera apólice ao contratar ou não
             $pedido = $this->pedido->filter_by_cotacao($cotacao_id)->get_all();
             if (!empty($pedido)) {
                 $pedido_id = $pedido[0]['pedido_id'];
-                $this->apolice->insertApolice($pedido_id, 'contratar');
+                $apolice_id = $this->apolice->insertApolice($pedido_id, 'contratar');
+                $result['apolice_id'] = $apolice_id;
+                $result['pedido_id'] = $pedido_id;
             }
 
-            $result  = array(
-                "status" => true,
-                "mensagem" => "Cotação finalizada com Sucesso.",
-                "cotacao_id" => $cotacao_salva["cotacao_id"],
-                "produto_parceiro_id" => $cotacao_salva["produto_parceiro_id"],
-                "validacao" => $validacao
-            );
+            $result["validacao"] = $validacao;
+
         }
         return $result;
     }
