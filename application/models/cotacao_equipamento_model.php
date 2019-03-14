@@ -361,7 +361,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
             $dt_cotacao['usuario_cotacao_id'] = issetor($cotacao["usuario_cotacao_id"], $this->session->userdata('usuario_id'));
             $dt_cotacao['parceiro_id'] = ( isset( $cotacao["parceiro_id"]) ? $cotacao["parceiro_id"] : $this->session->userdata("parceiro_id") );
             $dt_cotacao['usuario_venda_id'] = 0;
-            $dt_cotacao['cotacao_status_id'] = 1;
+            $dt_cotacao['cotacao_status_id'] = !empty($cotacao_salva["cotacao_status_id"]) ? $cotacao_salva["cotacao_status_id"] : 1;
             $dt_cotacao['alteracao_usuario_id'] = 1;
             $dt_cotacao["data_inicio_vigencia"] = null;
             if( isset( $cotacao["data_inicio_vigencia"] ) ) {
