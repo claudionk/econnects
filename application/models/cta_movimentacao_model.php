@@ -66,7 +66,7 @@ Class Cta_Movimentacao_Model extends MY_Model
                     INNER JOIN integracao i ON l.integracao_id=i.integracao_id
                     WHERE l.deletado = 0 AND d.deletado = 0 AND i.deletado = 0 
                     AND i.slug_group = 'cliente'
-                    AND d.chave = cliente_id
+                    AND d.chave = CAST(cliente_id AS CHAR)
                 ) AS ultimo_envio_cliente
                 , (
                     SELECT DATE(MAX(l.criacao))
@@ -164,7 +164,7 @@ Class Cta_Movimentacao_Model extends MY_Model
                     a.deletado = 0 
                     AND p.deletado = 0 
                     AND c.deletado = 0
-                    and date_add( now(), interval -3 minute ) < am.criacao 
+                    and date_add( now(), interval -3 minute ) < am.criacao
                 )
             ) AS x
         ) AS y ";
