@@ -120,6 +120,7 @@ class Apolice_Model extends MY_Model
         $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
 
         $apolice = $this->get_many_by(array('pedido_id' => $pedido_id));
+        $apolice_id = null;
 
         if ($apolice) {
             return;
@@ -138,13 +139,15 @@ class Apolice_Model extends MY_Model
             }
 
             if ($produto['slug'] == 'seguro_viagem') {
-                $this->insertSeguroViagem($pedido_id);
+                $apolice_id = $this->insertSeguroViagem($pedido_id);
             } elseif ($produto['slug'] == 'equipamento') {
-                $this->insertSeguroEquipamento($pedido_id);
+                $apolice_id = $this->insertSeguroEquipamento($pedido_id);
             } elseif ($produto["slug"] == "generico" || $produto["slug"] == "seguro_saude") {
-                $this->insertSeguroGenerico($pedido_id);
+                $apolice_id = $this->insertSeguroGenerico($pedido_id);
             }
         }
+
+        return $apolice_id;
 
     }
 
@@ -207,6 +210,7 @@ class Apolice_Model extends MY_Model
         $this->load->model('cliente_evolucao_model', 'cliente_evolucao');
 
         //Eventos
+        $apolice_id                     = null;
         $evento                         = array();
         $evento['mensagem']             = array();
         $evento['mensagem']['apolices'] = "";
@@ -326,7 +330,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['valor_parcela']           = round($pedido['valor_parcela'], 2);
             $dados_equipamento['valor_estorno']           = 0;
 
-            $this->apolice_equipamento->insert($dados_equipamento, true);
+            $apolice_id = $this->apolice_equipamento->insert($dados_equipamento, true);
             $this->concluiApolice($pedido, $apolice_id);
 
             $evento['mensagem']['apolices'] .= "Nome: {$dados_equipamento['nome']} - Apólice código: {$apolice_id} <br>";
@@ -389,6 +393,8 @@ class Apolice_Model extends MY_Model
             }
         }
 
+        return $apolice_id;
+
     }
 
     public function insertSeguroGenerico($pedido_id)
@@ -411,6 +417,7 @@ class Apolice_Model extends MY_Model
         $this->load->model('cliente_evolucao_model', 'cliente_evolucao');
 
         //Eventos
+        $apolice_id                     = null;
         $evento                         = array();
         $evento['mensagem']             = array();
         $evento['mensagem']['apolices'] = "";
@@ -523,7 +530,7 @@ class Apolice_Model extends MY_Model
             $dados_generico['aux_09']             = $cotacao_salva['aux_09'];
             $dados_generico['aux_10']             = $cotacao_salva['aux_10'];
 
-            $this->apolice_generico->insert($dados_generico, true);
+            $apolice_id = $this->apolice_generico->insert($dados_generico, true);
             $this->concluiApolice($pedido, $apolice_id);
 
             $evento['mensagem']['apolices'] .= "Nome: {$dados_generico['nome']} - Apólice código: {$apolice_id} <br>";
@@ -585,6 +592,8 @@ class Apolice_Model extends MY_Model
             }
         }
 
+        return $apolice_id;
+
     }
 
     public function insertSeguroViagem($pedido_id)
@@ -605,6 +614,7 @@ class Apolice_Model extends MY_Model
         $this->load->model('cliente_evolucao_model', 'cliente_evolucao');
 
         //Eventos
+        $apolice_id                     = null;
         $evento                         = array();
         $evento['mensagem']             = array();
         $evento['mensagem']['apolices'] = "";
@@ -703,7 +713,7 @@ class Apolice_Model extends MY_Model
                 $dados_seguro_viagem['valor_parcela']                 = round(($pedido['valor_parcela'] / count($cotacao_pessoas)), 2);
                 $dados_seguro_viagem['valor_estorno']                 = 0;
 
-                $this->apolice_seguro_viagem->insert($dados_seguro_viagem, true);
+                $apolice_id = $this->apolice_seguro_viagem->insert($dados_seguro_viagem, true);
                 $this->concluiApolice($pedido, $apolice_id);
 
                 $evento['mensagem']['apolices'] .= "Nome: {$cotacao_pessoa['nome']} - Apólice código: {$apolice_id} <br>";
@@ -768,6 +778,7 @@ class Apolice_Model extends MY_Model
 
         }
 
+        return $apolice_id;
     }
 
     public function get_codigo_apolice($apolice_id)
