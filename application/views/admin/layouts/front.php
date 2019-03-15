@@ -11,21 +11,21 @@
     <!-- END META -->
 
     <!-- BEGIN STYLESHEETS -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-sanitize.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-route.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.4/angular-material.min.js"></script>
-    <script src="https://code.angularjs.org/1.5.5/i18n/angular-locale_pt-br.js"></script>
+    <script src="<?php echo app_assets_url('template/js/libs/jquery/jquery-2.2.4.min.js', 'admin');?>"></script>
+    <script src="<?php echo app_assets_url('template/js/libs/angular/1.5.5/angular.min.js', 'admin');?>"></script>
+    <script src="<?php echo app_assets_url('template/js/libs/angular/1.5.5/angular-animate.min.js', 'admin');?>"></script>
+    <script src="<?php echo app_assets_url('template/js/libs/angular/1.5.5/angular-sanitize.min.js', 'admin');?>"></script>
+    <script src="<?php echo app_assets_url('template/js/libs/angular/1.5.5/angular-aria.min.js', 'admin');?>"></script>
+    <script src="<?php echo app_assets_url('template/js/libs/angular/1.5.5/angular-messages.min.js', 'admin');?>"></script>
+    <script src="<?php echo app_assets_url('template/js/libs/angular/1.5.5/angular-route.min.js', 'admin');?>"></script>
+    <script src="<?php echo app_assets_url('template/js/libs/angular_material/angular-material.1.1.4.min.js', 'admin');?>"></script>
+    <script src="<?php echo app_assets_url('template/js/libs/angular/1.5.5/angular-locale_pt-br.js', 'admin');?>"></script>
     <script src="<?php echo app_assets_url("../common/js/angular-input-masks-standalone.min.js") ?>"></script>
     
     <!--<script src="<?php echo app_assets_url('template/js/libs/jquery/jquery-1.12.4.min.js', 'admin');?>"></script>-->
     <script src="<?php echo app_assets_url('template/js/libs/jquery/jquery-migrate-1.2.1.min.js', 'admin');?>"></script>
-    
-    <link href='<?php echo app_assets_protocol() ?>://fonts.googleapis.com/css?family=Roboto:300italic,400italic,300,400,500,700,900' rel='stylesheet' type='text/css'/>
+
+    <link type="text/css" rel="stylesheet" href="<?php echo app_assets_url("template/css/fonts/fontsFamily.css", 'admin');?>" />
     <link type="text/css" rel="stylesheet" href="<?php echo app_assets_url("template/css/{$theme}/bootstrap.css", 'admin');?>" />
     <link type="text/css" rel="stylesheet" href="<?php echo app_assets_url("template/css/{$theme}/materialadmin.css", 'admin');?>" />
     <link type="text/css" rel="stylesheet" href="<?php echo app_assets_url("template/css/{$theme}/font-awesome.min.css", 'admin');?>" />
