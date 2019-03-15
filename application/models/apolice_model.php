@@ -330,7 +330,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['valor_parcela']           = round($pedido['valor_parcela'], 2);
             $dados_equipamento['valor_estorno']           = 0;
 
-            $apolice_id = $this->apolice_equipamento->insert($dados_equipamento, true);
+            $this->apolice_equipamento->insert($dados_equipamento, true);
             $this->concluiApolice($pedido, $apolice_id);
 
             $evento['mensagem']['apolices'] .= "Nome: {$dados_equipamento['nome']} - Apólice código: {$apolice_id} <br>";
@@ -530,7 +530,7 @@ class Apolice_Model extends MY_Model
             $dados_generico['aux_09']             = $cotacao_salva['aux_09'];
             $dados_generico['aux_10']             = $cotacao_salva['aux_10'];
 
-            $apolice_id = $this->apolice_generico->insert($dados_generico, true);
+            $this->apolice_generico->insert($dados_generico, true);
             $this->concluiApolice($pedido, $apolice_id);
 
             $evento['mensagem']['apolices'] .= "Nome: {$dados_generico['nome']} - Apólice código: {$apolice_id} <br>";
@@ -713,7 +713,7 @@ class Apolice_Model extends MY_Model
                 $dados_seguro_viagem['valor_parcela']                 = round(($pedido['valor_parcela'] / count($cotacao_pessoas)), 2);
                 $dados_seguro_viagem['valor_estorno']                 = 0;
 
-                $apolice_id = $this->apolice_seguro_viagem->insert($dados_seguro_viagem, true);
+                $this->apolice_seguro_viagem->insert($dados_seguro_viagem, true);
                 $this->concluiApolice($pedido, $apolice_id);
 
                 $evento['mensagem']['apolices'] .= "Nome: {$cotacao_pessoa['nome']} - Apólice código: {$apolice_id} <br>";
