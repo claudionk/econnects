@@ -1,6 +1,7 @@
 <?php
 $tamanhos = array(
     2 => 'Muito pequeno - 2',
+    3 => 'Pouco Pequeno - 3',
     4 => 'Pequeno - 4',
     6 => 'Médio - 6',
     8 => 'Grande - 8',
@@ -38,8 +39,6 @@ $tamanhos = array(
                         <?php $this->load->view('admin/partials/messages'); ?>
                     </div>
                 </div>
-
-
 
                 <!-- Widget -->
                 <div class="card">
