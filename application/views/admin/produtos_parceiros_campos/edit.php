@@ -117,6 +117,7 @@ if($_POST)
                                                         <?php echo template_control("select", $field_name, "", $row[$field_name], array(
                                                             'options' => array(
                                                                 ['valor' => '2', 'descricao' => 'Muito pequeno - 2'],
+                                                                ['valor' => '3', 'descricao' => 'Pouco Pequeno - 3'],
                                                                 ['valor' => '4', 'descricao' => 'Pequeno - 4'],
                                                                 ['valor' => '6', 'descricao' => 'Médio - 6'],
                                                                 ['valor' => '8', 'descricao' => 'Grande - 8'],
@@ -239,6 +240,12 @@ if($_POST)
                 <div class="row ex">
                     <div class="col-md-4">
                         <b>Pequeno - 4</b>
+                    </div>
+                </div>
+
+                <div class="row ex">
+                    <div class="col-md-4">
+                        <b>Pouco Pequeno - 3</b>
                     </div>
                 </div>
 
