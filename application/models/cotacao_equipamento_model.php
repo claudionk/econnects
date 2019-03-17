@@ -578,6 +578,14 @@ Class Cotacao_Equipamento_Model extends MY_Model
             $data_cotacao['aux_10'] = $cotacao['aux_10'];
         }
 
+        if(isset($cotacao['valor_desconto'])){
+            if( strpos( $cotacao['valor_desconto'], "," ) !== false ) {
+                $data_cotacao['valor_desconto'] = app_unformat_currency($cotacao['valor_desconto']);
+            } else {
+                $data_cotacao['valor_desconto'] = $cotacao['valor_desconto'];
+            }
+        }
+
         if($cotacao_salva) {
             $cotacao_id = $cotacao_salva['cotacao_id'];
             $this->update($cotacao_salva['cotacao_equipamento_id'], $data_cotacao, TRUE);

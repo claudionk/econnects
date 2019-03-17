@@ -329,6 +329,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['pro_labore']              = round(($cotacao_salva['premio_liquido_total'] - $cotacao_salva['premio_liquido']), 2);
             $dados_equipamento['valor_parcela']           = round($pedido['valor_parcela'], 2);
             $dados_equipamento['valor_estorno']           = 0;
+            $dados_equipamento['valor_desconto']          = round($cotacao_salva['valor_desconto'], 2);
 
             $this->apolice_equipamento->insert($dados_equipamento, true);
             $this->concluiApolice($pedido, $apolice_id);

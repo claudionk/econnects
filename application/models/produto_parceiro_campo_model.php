@@ -216,6 +216,11 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                             $value = app_unformat_currency($value);
                     }
 
+                    if($campo['campo_nome_banco'] == 'valor_desconto'){
+                        if( strpos( $value, "," ) !== false || strpos( $value, "_" ) !== false )
+                            $value = app_unformat_currency($value);
+                    }
+
                     if($campo['campo_nome_banco'] == 'cnpj_cpf'){
                         $value = app_retorna_numeros($value);
                     }
