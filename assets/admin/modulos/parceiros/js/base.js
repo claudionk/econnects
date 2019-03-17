@@ -66,28 +66,25 @@ function validarCEP(cep){
 function buscaCep(){
 
     var cep = $('#cep').val();
-    var url = ADMIN_URL + "/helpers/buscar_cep/" + cep;
+    var url = base_url + "api/endereco/cep/" + cep;
 
     $.ajax({
         url: url,
         type: "GET",
         dataType: "json",
+        headers: {
+            "APIKEY":tokenAPI.APIKEY
+        },
         success: function(json){
 
             if(json.success){
 
-
                 $("#bairro").val(json.data.bairro.toUpperCase());
-                $("#endereco").val(json.data.tipo_logradouro.toUpperCase() + ' ' + json.data.logradouro.toUpperCase() );
-
+                $("#endereco").val(json.data.logradouro.toUpperCase());
 
                 if(json.data.uf != ''){
                     $("#localidade_estado_id").val(json.data.estado_id);
-
-
                 }
-
-
 
                 if(json.data.cidades.length){
 
@@ -104,8 +101,6 @@ function buscaCep(){
                 if(json.data.cidade != ''){
                     $("#localidade_cidade_id").val(json.data.cidade_id);
                 }
-
-
 
             }else {
 

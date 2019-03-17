@@ -534,9 +534,10 @@ Class Cotacao_Equipamento_Model extends MY_Model
             $data_cotacao['rg_uf'] = $cotacao['rg_uf'];
         }
 
-        if(isset($cotacao['rg_data_expedicao'])){
-            $data_cotacao['rg_data_expedicao'] = app_dateonly_mask_to_mysql($cotacao['rg_data_expedicao']);
-        }
+        if(!empty($cotacao['rg_data_expedicao']))
+          $data_cotacao['rg_data_expedicao'] = app_dateonly_mask_to_mysql($cotacao['rg_data_expedicao']);
+        else
+          $data_cotacao['rg_data_expedicao'] = '0000-00-00';
 
         if(isset($cotacao['aux_01'])){
             $data_cotacao['aux_01'] = $cotacao['aux_01'];
@@ -575,6 +576,14 @@ Class Cotacao_Equipamento_Model extends MY_Model
 
         if(isset($cotacao['aux_10'])){
             $data_cotacao['aux_10'] = $cotacao['aux_10'];
+        }
+
+        if(isset($cotacao['valor_desconto'])){
+            if( strpos( $cotacao['valor_desconto'], "," ) !== false ) {
+                $data_cotacao['valor_desconto'] = app_unformat_currency($cotacao['valor_desconto']);
+            } else {
+                $data_cotacao['valor_desconto'] = $cotacao['valor_desconto'];
+            }
         }
 
         if($cotacao_salva) {

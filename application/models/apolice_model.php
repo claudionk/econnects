@@ -329,6 +329,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['pro_labore']              = round(($cotacao_salva['premio_liquido_total'] - $cotacao_salva['premio_liquido']), 2);
             $dados_equipamento['valor_parcela']           = round($pedido['valor_parcela'], 2);
             $dados_equipamento['valor_estorno']           = 0;
+            $dados_equipamento['valor_desconto']          = round($cotacao_salva['valor_desconto'], 2);
 
             $this->apolice_equipamento->insert($dados_equipamento, true);
             $this->concluiApolice($pedido, $apolice_id);
@@ -802,7 +803,9 @@ class Apolice_Model extends MY_Model
             ->select("produto_parceiro_plano.produto_parceiro_id")
             ->select("produto_parceiro.parceiro_id as parceiro_seg_id")
             ->select("parceiro_seg.slug as slug_parceiro_seg")
+            ->select("parceiro_seg.nome as seguradora")
             ->select("parceiro.slug as slug_parceiro")
+            ->select("parceiro.nome as parceiro")
             ->select("produto_parceiro.slug_produto")
             ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
             ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner')

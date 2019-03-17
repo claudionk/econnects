@@ -32,6 +32,9 @@ Class Cta_Movimentacao_Model extends MY_Model
             , CTA_Retorno_ok
             , CTA_Retorno_erro
             , Erro
+            , ultimo_envio_cliente
+            , ultimo_envio_parcela
+            , ultimo_envio_comissao
         )
         SELECT 
             pedido_id 
@@ -40,11 +43,14 @@ Class Cta_Movimentacao_Model extends MY_Model
             , cliente_id
             , num_apolice 
             , apolice_movimentacao_tipo_id 
-            , date_format(IF(CTA_Enviado IS NULL, now(), NULL), '%Y-%m-%d %H:00:00') as CTA_nao_processado
+            , date_format(IF(CTA_Enviado IS NULL AND NOT (CTA_Retorno_ok IS NULL AND IFNULL(CTA_Retorno, 1) >= IFNULL(CTA_Enviado, 1)), now(), NULL), '%Y-%m-%d %H:00:00') as CTA_nao_processado
             , date_format(IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL , if( IFNULL(CTA_Enviado,1) > IFNULL(CTA_Retorno, 1), CTA_Enviado, NULL) , NULL), '%Y-%m-%d %H:00:00') as CTA_Ag_Retorno
             , date_format(IF(CTA_Enviado IS NOT NULL, CTA_Retorno_ok, NULL), '%Y-%m-%d %H:00:00')  as CTA_Retorno_ok
             , date_format(IF(CTA_Retorno_ok IS NULL, if( IFNULL(CTA_Retorno, 1) >= IFNULL(CTA_Enviado, 1), CTA_Retorno , NULL), NULL), '%Y-%m-%d %H:00:00') as CTA_Retorno_erro
             , IFNULL(IF(IF(CTA_Retorno_ok IS NULL, if( IFNULL(CTA_Retorno, 1) >= IFNULL(CTA_Enviado, 1), CTA_Retorno , NULL), NULL)  IS NOT NULL, Erro, ''), '') as Erro
+            , ultimo_envio_cliente
+            , ultimo_envio_parcela
+            , ultimo_envio_comissao
         FROM (
             SELECT 
                 maxDate( ctaEmissao(chave_emi, 0), ctaCliente(cliente_id, 0), 1 ) as CTA_Enviado
@@ -53,6 +59,33 @@ Class Cta_Movimentacao_Model extends MY_Model
                 , ctaEmissaoErro(chave_emi) as Erro
                 , num_apolice, pedido_id, apolice_id, cotacao_id, cliente_id
                 , apolice_movimentacao_tipo_id
+                , (
+                    SELECT DATE(MAX(l.criacao) )
+                    FROM integracao_log l
+                    INNER JOIN integracao_log_detalhe d ON l.integracao_log_id=d.integracao_log_id
+                    INNER JOIN integracao i ON l.integracao_id=i.integracao_id
+                    WHERE l.deletado = 0 AND d.deletado = 0 AND i.deletado = 0 
+                    AND i.slug_group = 'cliente'
+                    AND d.chave = CAST(cliente_id AS CHAR)
+                ) AS ultimo_envio_cliente
+                , (
+                    SELECT DATE(MAX(l.criacao))
+                    FROM integracao_log l
+                    INNER JOIN integracao_log_detalhe d ON l.integracao_log_id=d.integracao_log_id
+                    INNER JOIN integracao i ON l.integracao_id=i.integracao_id
+                    WHERE l.deletado = 0 AND d.deletado = 0 AND i.deletado = 0 
+                    AND i.slug_group = 'parc-emissao'
+                    AND d.chave = chave_emi
+                ) AS ultimo_envio_parcela
+                , (
+                    SELECT DATE(MAX(l.criacao))
+                    FROM integracao_log l
+                    INNER JOIN integracao_log_detalhe d ON l.integracao_log_id=d.integracao_log_id
+                    INNER JOIN integracao i ON l.integracao_id=i.integracao_id
+                    WHERE l.deletado = 0 AND d.deletado = 0 AND i.deletado = 0 
+                    AND i.slug_group = 'ems-emissao'
+                    AND d.chave = chave_emi
+                ) AS ultimo_envio_comissao
             FROM (
                 ( 
                     SELECT distinct
@@ -131,7 +164,7 @@ Class Cta_Movimentacao_Model extends MY_Model
                     a.deletado = 0 
                     AND p.deletado = 0 
                     AND c.deletado = 0
-                    and date_add( now(), interval -3 minute ) < am.criacao 
+                    and date_add( now(), interval -3 minute ) < am.criacao
                 )
             ) AS x
         ) AS y ";

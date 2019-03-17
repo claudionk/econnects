@@ -366,39 +366,39 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     public function getValorTabelaFixa($valor, $valor_nota = null, $data_nascimento = null){
 
         $valores = [];
-
         if(count($valor) > 0)
         {
             foreach ($valor as $vl) {
-                if ($vl['cobranca'] == 'PORCENTAGEM') {
-                    return app_calculo_porcentagem($vl['valor'], $valor_nota);
-                } else {
-                    $base = '';
-                    switch ($vl['unidade_tempo']) {
-                        case 'DIA':
-                            $base = date('d');
-                            break;
-                        case 'MES':
-                            $base = date('m');
-                            break;
-                        case 'ANO':
-                            $base = date('Y');
-                            break;
-                        case 'VALOR':
-                            $base = $valor_nota;
-                            break;
-                        case 'IDADE':
-                            $dn = new DateTime($data_nascimento);
-                            $d = $dn->diff(new DateTime());
-                            $base = $d->y;
-                            break;
-                    }
 
-                    if (!empty($base) && $base >= $vl['inicial'] && $base <= $vl['final']) {
+                $base = '';
+                switch ($vl['unidade_tempo']) {
+                    case 'DIA':
+                        $base = date('d');
+                        break;
+                    case 'MES':
+                        $base = date('m');
+                        break;
+                    case 'ANO':
+                        $base = date('Y');
+                        break;
+                    case 'VALOR':
+                        $base = $valor_nota;
+                        break;
+                    case 'IDADE':
+                        $dn = new DateTime($data_nascimento);
+                        $d = $dn->diff(new DateTime());
+                        $base = $d->y;
+                        break;
+                }
+
+                if (!empty($base) && $base >= $vl['inicial'] && $base <= $vl['final']) {
+                    if ($vl['cobranca'] == 'PORCENTAGEM') {
+                        return app_calculo_porcentagem($vl['valor'], $valor_nota);
+                    } else {
                         return $vl['valor'];
                     }
-
                 }
+
             }
 
         }
