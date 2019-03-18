@@ -42,6 +42,7 @@ class Pedido extends Admin_Controller
             ->with_fatura()
             ->filterPesquisa()
             ->filterNotCarrinho()
+            ->group_by("pedido.pedido_id")
             ->get_total();
 
 
@@ -60,6 +61,7 @@ class Pedido extends Admin_Controller
             ->filterNotCarrinho()
             ->limit($config['per_page'], $offset)
             ->order_by('pedido.criacao', 'DESC')
+            ->group_by("pedido.pedido_id")
             ->get_all();
 
         $data['pedido_status_list'] = $this->pedido_status
