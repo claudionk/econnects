@@ -992,6 +992,15 @@ class MY_Model extends CI_Model
         return $this;
     }
 
+    /**
+     * A wrapper to $this->_database->group_by()
+     */
+    public function group_by($fields)
+    {
+        $this->_database->group_by($fields);
+        return $this;
+    }
+
     /* --------------------------------------------------------------
      * INTERNAL METHODS
      * ------------------------------------------------------------ */
