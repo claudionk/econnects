@@ -54,7 +54,7 @@ Class Cta_Movimentacao_Model extends MY_Model
         FROM (
             SELECT 
                 maxDate( ctaEmissao(chave_emi, 0), ctaCliente(cliente_id, 0), 1 ) as CTA_Enviado
-                , maxDate( ctaEmissao(chave_emi, 4), ctaCliente(cliente_id, 4), 1 ) as CTA_Retorno_ok
+                , maxDate( ctaEmissaoSucesso(chave_emi), ctaCliente(cliente_id, 4), 1 ) as CTA_Retorno_ok
                 , maxDate( ctaEmissao(chave_emi, 5), ctaCliente(cliente_id, 5), 0 ) as CTA_Retorno
                 , ctaEmissaoErro(chave_emi) as Erro
                 , num_apolice, pedido_id, apolice_id, cotacao_id, cliente_id
