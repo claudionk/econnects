@@ -1219,6 +1219,10 @@ if ( ! function_exists('app_integracao_apolice_revert')) {
         $seq = right($num_apolice, 8);
         $tpa = left(right($num_apolice, 11), 3);
 
+        if ( empty($seq) || empty($tpa) ) {
+            return '';
+        }
+
         $CI =& get_instance();
         $CI->load->model('apolice_model');
         $result = $CI->apolice_model->filter_by_numApolice($seq, $tpa)->get_all();
