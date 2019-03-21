@@ -2286,6 +2286,6 @@ Class Pedido_Model extends MY_Model
 
     private function check_acl_sale_order( $usuario_acl_tipo_id = 0 ){
         /* verifica se a acl deixa somente ver somente o proprio pedido */
-        return in_array( $usuario_acl_tipo_id , array( 2 , 11 , 13 ) ) ;
+        return in_array( $usuario_acl_tipo_id , array( 2 , 11 ) ) ;
     }
 }
