@@ -834,21 +834,6 @@ class Apolice_Model extends MY_Model
             return array();
         }
 
-        /*
-        $sql = "
-        SELECT
-        apolice_seguro_viagem.*
-        FROM apolice
-        INNER JOIN apolice_status ON
-        INNER JOIN apolice_seguro_viagem ON apolice.apolice_id = apolice_seguro_viagem.apolice_id
-        WHERE
-        apolice.deletado = 0
-        AND apolice_seguro_viagem.deletado = 0
-        AND apolice.pedido_id = {$pedido_id}
-        ";
-
-        return $this->_database->query($sql)->result_array();
-         */
     }
 
     public function getApolice($apolice_id)
