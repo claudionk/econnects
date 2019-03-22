@@ -47,53 +47,18 @@ class Apolice extends CI_Controller {
         die( json_encode( $this->retornaApolices($_POST), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
+    public function consultaBaseProduto() {
+        die( json_encode( $this->retornaProdutoApolices($_POST), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+    }
+
     public function retornaApolices($GET = []) {
-        $apolice_id = null;
-        if( isset( $GET["apolice_id"] ) ) {
-            $apolice_id = $GET["apolice_id"];
-        } 
+        $pedidos = $this->filtraPedidos($GET);
 
-        $num_apolice = null;
-        if( isset( $GET["num_apolice"] ) ) {
-            $num_apolice = $GET["num_apolice"];
-        }
+        if (!empty($pedidos['status'])) {
 
-        $documento = null;
-        if( isset( $GET["documento"] ) ) {
-            $documento = $GET["documento"];
-        }
-
-        $pedido_id = null;
-        if( isset( $GET["pedido_id"] ) ) {
-            $pedido_id = $GET["pedido_id"];
-        }
-
-        $parceiro_id = null;
-        if( isset( $GET["parceiro_id"] ) ) {
-            $parceiro_id = $GET["parceiro_id"];
-        }
-
-        $params = array();
-        $params["apolice_id"] = $apolice_id;
-        $params["num_apolice"] = $num_apolice;
-        $params["documento"] = $documento;
-        $params["pedido_id"] = $pedido_id;
-        $params["parceiro_id"] = $parceiro_id;
-
-        if($apolice_id || $num_apolice || $documento || $pedido_id ) {
-            $pedidos = $this->pedido
-            ->with_pedido_status()
-            ->with_cotacao_cliente_contato()
-            ->with_apolice()
-            ->with_produto_parceiro()
-            // ->with_fatura()
-            ->filterNotCarrinho()
-            ->filterAPI($params)
-            ->get_all();
-            // print_r($this->db->last_query());exit;
-            // echo "<pre>";print_r($pedidos);echo "</pre>";
-
+            $pedidos = $pedidos['pedidos']->get_all();
             if($pedidos) {
+                $resposta = [];
 
                 foreach ($pedidos as $pedido) {
                     //Monta resposta da apólice
@@ -126,8 +91,77 @@ class Apolice extends CI_Controller {
             }
 
         } else {
-            return array( "status" => false, "message" => "Parâmetros inválidos" );
+            return $pedidos;
         }
+    }
+
+    public function retornaProdutoApolices($GET = []) {
+        $pedidos = $this->filtraPedidos($GET);
+
+        if (!empty($pedidos['status'])) {
+            $pedidos = $pedidos['pedidos']->group_by('produto.produto_id, produto.nome')->get_all();
+            return array("status" => true, "dados" => api_retira_timestamps($pedidos));
+        } else {
+            return $pedidos;
+        }
+    }
+
+    private function filtraPedidos($GET = []) {
+        $apolice_id = null;
+        if( isset( $GET["apolice_id"] ) ) {
+            $apolice_id = $GET["apolice_id"];
+        } 
+
+        $num_apolice = null;
+        if( isset( $GET["num_apolice"] ) ) {
+            $num_apolice = $GET["num_apolice"];
+        }
+
+        $documento = null;
+        if( isset( $GET["documento"] ) ) {
+            $documento = $GET["documento"];
+        }
+
+        $pedido_id = null;
+        if( isset( $GET["pedido_id"] ) ) {
+            $pedido_id = $GET["pedido_id"];
+        }
+
+        $parceiro_id = null;
+        if( isset( $GET["parceiro_id"] ) ) {
+            $parceiro_id = $GET["parceiro_id"];
+        }
+
+        $produto_id = null;
+        if( isset( $GET["produto_id"] ) ) {
+            $produto_id = $GET["produto_id"];
+        }
+
+        $retorno = null;
+        $params = array();
+        $params["apolice_id"] = $apolice_id;
+        $params["num_apolice"] = $num_apolice;
+        $params["documento"] = $documento;
+        $params["pedido_id"] = $pedido_id;
+        $params["parceiro_id"] = $parceiro_id;
+        $params["produto_id"] = $produto_id;
+
+        if($apolice_id || $num_apolice || $documento || $pedido_id ) {
+            $pedidos = $this->pedido
+            ->with_pedido_status()
+            ->with_cotacao_cliente_contato()
+            ->with_apolice()
+            ->with_produto_parceiro()
+            // ->with_fatura()
+            ->filterNotCarrinho()
+            ->filterAPI($params);            
+
+            $retorno = array("status" => true, "pedidos" => $pedidos);
+        } else {
+            $retorno = array( "status" => false, "message" => "Parâmetros inválidos" );
+        }
+
+        return $retorno;
     }
 
     public function index() {

@@ -232,6 +232,9 @@ Class Pedido_Model extends MY_Model
                         case "parceiro_id":
                             $this->_database->where('produto_parceiro.parceiro_id', $value);
                             break;
+                        case "produto_id":
+                            $this->_database->where('produto_parceiro.produto_id', $value);
+                            break;
                     }
                 }
             }
@@ -471,8 +474,10 @@ Class Pedido_Model extends MY_Model
 
 
     public function with_produto_parceiro(){
+        $this->_database->select("produto.produto_id, produto.nome as produto");
         $this->_database->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner');
         $this->_database->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner');
+        $this->_database->join("produto", "produto_parceiro.produto_id = produto.produto_id", 'inner');
         return $this;
     }
 
