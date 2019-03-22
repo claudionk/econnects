@@ -809,9 +809,11 @@ class Apolice_Model extends MY_Model
             ->select("parceiro.slug as slug_parceiro")
             ->select("parceiro.nome as parceiro")
             ->select("produto_parceiro.slug_produto")
+            ->select("produto.nome as produto")
             ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
             ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner')
             ->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
+            ->join("produto", "produto_parceiro.produto_id = produto.produto_id", 'inner')
             ->join("parceiro parceiro_seg", "parceiro_seg.parceiro_id = produto_parceiro.parceiro_id", 'inner')
             ->join("parceiro", "parceiro.parceiro_id = apolice.parceiro_id", 'inner');
 

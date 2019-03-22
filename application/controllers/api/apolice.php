@@ -68,17 +68,24 @@ class Apolice extends CI_Controller {
             $pedido_id = $GET["pedido_id"];
         }
 
+        $parceiro_id = null;
+        if( isset( $GET["parceiro_id"] ) ) {
+            $parceiro_id = $GET["parceiro_id"];
+        }
+
         $params = array();
         $params["apolice_id"] = $apolice_id;
         $params["num_apolice"] = $num_apolice;
         $params["documento"] = $documento;
         $params["pedido_id"] = $pedido_id;
+        $params["parceiro_id"] = $parceiro_id;
 
         if($apolice_id || $num_apolice || $documento || $pedido_id ) {
             $pedidos = $this->pedido
             ->with_pedido_status()
             ->with_cotacao_cliente_contato()
             ->with_apolice()
+            ->with_produto_parceiro()
             // ->with_fatura()
             ->filterNotCarrinho()
             ->filterAPI($params)

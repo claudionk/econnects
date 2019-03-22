@@ -229,6 +229,9 @@ Class Pedido_Model extends MY_Model
                         case "pedido_id":
                             $this->_database->where('pedido.pedido_id', $value);
                             break;
+                        case "parceiro_id":
+                            $this->_database->where('produto_parceiro.parceiro_id', $value);
+                            break;
                     }
                 }
             }
@@ -463,6 +466,13 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("equipamento_marca", "equipamento_marca.equipamento_marca_id = cotacao_equipamento.equipamento_marca_id", 'left');
         $this->_database->join("equipamento_categoria", "equipamento_categoria.equipamento_categoria_id = cotacao_equipamento.equipamento_categoria_id", 'left');
 
+        return $this;
+    }
+
+
+    public function with_produto_parceiro(){
+        $this->_database->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner');
+        $this->_database->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner');
         return $this;
     }
 
