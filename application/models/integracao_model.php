@@ -371,7 +371,7 @@ Class Integracao_Model extends MY_Model
             }
 
             // se gerou conteúdo no arquivo
-            if (!empty($filename)){
+            if (!empty($filename) && ( $result_file['qtde_reg'] > 0 || !empty($integracao['envia_vazio']) ) ) {
                 $this->sendFile($result, $filename);
             }
 
@@ -555,6 +555,7 @@ Class Integracao_Model extends MY_Model
                     if (!empty($lm['sql'])) {
                         $this->data_template_script['pedido_id'] = issetor($registro['pedido_id'], 0);
                         $this->data_template_script['apolice_status_id'] = issetor($registro['apolice_status_id'], 0);
+                        $this->data_template_script['apolice_id'] = issetor($registro['apolice_id'], 0);
                         $this->data_template_script['num_sequencial'] = issetor($registro['num_sequencial'], 0);
                         $lm['sql'] = $this->parser->parse_string($lm['sql'], $this->data_template_script, TRUE);
                         $reg = $this->_database->query($lm['sql'])->result_array();
@@ -600,11 +601,11 @@ Class Integracao_Model extends MY_Model
 
         $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], count($registros));
         $arRet = ['file' => '', 'integracao_log_id' => $integracao_log['integracao_log_id'], 'qtde_reg' => count($registros)];
-
+        $filename = '';
         // Não envia vazio && não retornou nenhum dado para ser enviado
-        if ( empty($integracao['envia_vazio']) && empty($registros) ) {
-            return $arRet;
-        }
+        // if ( empty($integracao['envia_vazio']) && empty($registros) ) {
+        //     return $arRet;
+        // }
 
         //busca layout
         $query = $this->_database->query("
@@ -644,7 +645,6 @@ Class Integracao_Model extends MY_Model
             unset($layout[$idxF]);
         }
 
-
         // Trata o header
         $idxH = app_search( $layout, 'H', 'tipo' );
         if ( $idxH >= 0 ) {
@@ -656,6 +656,12 @@ Class Integracao_Model extends MY_Model
             $lH = $layout[$idxH];
             unset($layout[$idxH]);
         }
+
+        if ( empty($filename) ) {
+            return $arRet;
+        }
+
+        $arRet['file'] = "{$diretorio}/{$filename}";
 
         //gera todas as linhas
         foreach ($layout as $lay) {
@@ -698,7 +704,6 @@ Class Integracao_Model extends MY_Model
         $content = iconv( mb_detect_encoding( $content ), 'Windows-1252//TRANSLIT', $content );
         file_put_contents("{$diretorio}/{$filename}", $content);
 
-        $arRet['file'] = "{$diretorio}/{$filename}";
         return $arRet;
     }
 
