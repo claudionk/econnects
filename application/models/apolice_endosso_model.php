@@ -35,7 +35,7 @@ Class Apolice_Endosso_Model extends MY_Model
     }
 
     function getProdutoParceiro($apolice_id) {
-        $this->_database->select('pa.slug, pa.codigo_sucursal');
+        $this->_database->select('pa.slug, pa.codigo_sucursal, pa.cod_ramo');
         $this->_database->join("apolice a", "a.apolice_id = {$this->_table}.apolice_id", "inner");
         $this->_database->join("pedido p", "p.pedido_id = a.pedido_id", "inner");
         $this->_database->join("cotacao c", "c.cotacao_id = p.cotacao_id", "inner");
@@ -124,7 +124,7 @@ Class Apolice_Endosso_Model extends MY_Model
             $result = $this->getProdutoParceiro($apolice_id);
             if (!empty($result)) {
                 if ($result['slug'] == 'generali') {
-                    $endosso = $result['codigo_sucursal'] . '71'. str_pad($sequencial-1, 7, "0", STR_PAD_LEFT);
+                    $endosso = $result['codigo_sucursal'] . $result['cod_ramo']. str_pad($sequencial-1, 7, "0", STR_PAD_LEFT);
                 }
             }
 
