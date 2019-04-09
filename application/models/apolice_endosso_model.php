@@ -186,8 +186,8 @@ Class Apolice_Endosso_Model extends MY_Model
                 $dados_end['valor'] = ($dados_end['parcela'] == 0) ? 0 : $dados_end['valor'];
 
                 // valida a vigência
-                // caso seja cancelamento, a vigência deve ser a mensa da parcela cancelada
-                if ($dados_end['parcela'] > 0 && $tipo == 'C') {
+                // caso seja cancelamento, a vigência deve ser a mesma da parcela cancelada
+                if ($dados_end['parcela'] > 0 && $tipo != 'C') {
 
                     if ($dados_end['parcela'] > 1) {
                         $result = $this->lastSequencial($apolice_id);
@@ -213,7 +213,7 @@ Class Apolice_Endosso_Model extends MY_Model
 
             }
 
-            // caso seja cancelamento, a vigência deve ser a mensa da parcela cancelada
+            // caso seja cancelamento, a vigência deve ser a mesma da parcela cancelada
             if ( $tipo == 'C' ) {
                 $result = $this->lastParcela($apolice_id, $dados_end['parcela']);
                 if (count($result) > 0)
