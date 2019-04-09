@@ -65,12 +65,17 @@ Class Apolice_Endosso_Model extends MY_Model
 
     /**
      * Retorna a última parcela registrada da apólice
-     * @param int $police_id
+     * @param int $apolice_id
      * @return array
      * @author Davi Souto
      * @since  08/04/2019
      */
-    function lastParcela($police_id) {
+    function lastParcela($apolice_id, $parcela = null) {
+
+        if ( !empty($parcela) ) {
+            $this->_database->where('parcela', $parcela);
+        }
+
         $this->_database->where('apolice_id', $apolice_id);
         $this->_database->where('deletado', 0);
         $this->_database->order_by('parcela', 'DESC');
@@ -181,7 +186,8 @@ Class Apolice_Endosso_Model extends MY_Model
                 $dados_end['valor'] = ($dados_end['parcela'] == 0) ? 0 : $dados_end['valor'];
 
                 // valida a vigência
-                if ($dados_end['parcela'] > 0) {
+                // caso seja cancelamento, a vigência deve ser a mensa da parcela cancelada
+                if ($dados_end['parcela'] > 0 && $tipo == 'C') {
 
                     if ($dados_end['parcela'] > 1) {
                         $result = $this->lastSequencial($apolice_id);
@@ -206,7 +212,17 @@ Class Apolice_Endosso_Model extends MY_Model
                 $dados_end['parcela'] = 1;
 
             }
-            
+
+            // caso seja cancelamento, a vigência deve ser a mensa da parcela cancelada
+            if ( $tipo == 'C' ) {
+                $result = $this->lastParcela($apolice_id, $dados_end['parcela']);
+                if (count($result) > 0)
+                    $result = $result[0];
+
+                $dados_end['data_inicio_vigencia'] = $result['data_inicio_vigencia'];
+                $dados_end['data_fim_vigencia'] = $result['data_fim_vigencia'];
+            }
+
             $dados_end['tipo'] = $this->defineTipo($tipo, $seq_end['endosso'], $capa);
 
             $this->insert($dados_end, TRUE);
