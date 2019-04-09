@@ -100,9 +100,24 @@ Class Apolice_Endosso_Model extends MY_Model
         ];
     }
 
-    public function defineMovCob($tipo, $devolucao_integral = true)
+    /**
+     * Código do Movimento de Cobrança Tipo Movto Cobrança
+     *   01 - Cobrança
+     *   02 - Restituição
+     *   03 - Sem movto de prêmio
+     * @param int $apolice_id
+     * @param int $tipo
+     * @param int $parcela
+     * @param boolean $devolucao_integral
+     * @return int
+     * @author Cristiano Arruda
+     * @since  08/04/2019
+     */
+    public function defineMovCob($tipo, $parcela, $devolucao_integral = true)
     {
-        if ( $tipo == 'C') {
+        if ( $parcela == 0 ) {
+            $cd_mov_cob = 3;
+        } elseif ( $tipo == 'C') {
             $cd_mov_cob = ($devolucao_integral) ? 3 : 2;
         } else {
             $cd_mov_cob = 1;
@@ -235,7 +250,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 $dados_end['valor']                 = $result['valor'];
             }
 
-            $dados_end['cd_movimento_cobranca'] = $this->defineMovCob($tipo, $devolucao_integral);
+            $dados_end['cd_movimento_cobranca'] = $this->defineMovCob($tipo, $dados_end['parcela'], $devolucao_integral);
             $dados_end['tipo']                  = $this->defineTipo($tipo, $seq_end['endosso'], $capa);
 
             $this->insert($dados_end, TRUE);
