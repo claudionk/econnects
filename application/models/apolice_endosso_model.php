@@ -100,6 +100,17 @@ Class Apolice_Endosso_Model extends MY_Model
         ];
     }
 
+    public function defineMovCob($tipo, $devolucao_integral = true)
+    {
+        if ( $tipo == 'C') {
+            $cd_mov_cob = ($devolucao_integral) ? 3 : 2;
+        } else {
+            $cd_mov_cob = 1;
+        }
+
+        return $cd_mov_cob;
+    }
+
     public function defineTipo($tipo, $endosso, $capa = false) {
         /*
         Codigo do tipo de emissão:
@@ -154,7 +165,7 @@ Class Apolice_Endosso_Model extends MY_Model
         return $endosso;
     }
 
-    public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null){
+    public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null, $devolucao_integral = true){
         try{
             $this->load->model('apolice_model', 'apolice');
             $this->load->model('produto_parceiro_pagamento_model', 'parceiro_pagamento');
@@ -166,7 +177,7 @@ Class Apolice_Endosso_Model extends MY_Model
             $dados_end['apolice_id'] = $apolice_id;
             $dados_end['pedido_id'] = $pedido_id;
             $dados_end['apolice_movimentacao_tipo_id'] = $apolice_movimentacao_tipo_id;
-            $dados_end['valor'] = (! $valor) ? $apolice['valor_premio_net'] : $valor;
+            $dados_end['valor'] = ( !$valor ) ? $apolice['valor_premio_net'] : $valor;
             $dados_end['data_inicio_vigencia'] = $apolice['data_ini_vigencia'];
             $dados_end['data_fim_vigencia'] = $apolice['data_fim_vigencia'];
 
@@ -224,7 +235,8 @@ Class Apolice_Endosso_Model extends MY_Model
                 $dados_end['valor']                 = $result['valor'];
             }
 
-            $dados_end['tipo'] = $this->defineTipo($tipo, $seq_end['endosso'], $capa);
+            $dados_end['cd_movimento_cobranca'] = $this->defineMovCob($tipo, $devolucao_integral);
+            $dados_end['tipo']                  = $this->defineTipo($tipo, $seq_end['endosso'], $capa);
 
             $this->insert($dados_end, TRUE);
 
