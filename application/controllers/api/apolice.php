@@ -368,5 +368,70 @@ class Apolice extends CI_Controller {
         die( json_encode( array( "status" => true, "message" => "OK" , "documents" => $itens) ) );
     }
 
+    /**
+     * Função criada para clientes que controlam o faturamento manualmente por fora do sistema
+     *
+     * @param integer apolice_id
+     * @param integer parcela
+     * @param integer total_parcelas
+     * @param double valor
+     * @return json
+     *
+     * @author Davi Souto
+     * @since  08/04/2019 
+     */
+    public function criarEndossoManual() {
+        $this->checkKey();
+
+        // Validar apolice_id
+        $validacao = $this->validarDadosEntrada();
+
+        $apolice_id = $validacao['dados']['apolice_id'];
+        $pedido_id = $validacao['pedido_id'];
+
+        // Validar outros parâmetros
+        (array_key_exists('parcela', $validacao['dados'])) ? $parcela = $validacao['dados']['parcela'] : die(json_encode(array("status" => false, "message" => "Campo parcela é obrigatório")));
+        (array_key_exists('total_parcelas', $validacao['dados'])) ? $total_parcelas = $validacao['dados']['total_parcelas'] : die(json_encode(array("status" => false, "message" => "Campo total_parcelas é obrigatório")));
+        (array_key_exists('valor', $validacao['dados'])) ? $valor = trim(str_replace(",", ".", $validacao['dados']['valor'])) : die(json_encode(array("status" => false, "message" => "Campo valor é obrigatório")));
+
+        // Validar campos numéricos
+        if (! is_numeric($valor)) die(json_encode(array("status" => false, "message" => "Campo valor deve ser um campo númerico")));
+        if (! is_numeric($total_parcelas)) die(json_encode(array("status" => false, "message" => "Campo total_parcelas deve ser um campo númerico")));
+
+        $this->load->model("apolice_endosso_model", "apolice_endosso");
+        $this->load->model('apolice_movimentacao_tipo_model', 'tipo');
+        $this->load->model('pedido_model', 'pedido');
+
+        // Carregar tipo
+        $tipo_slug = "A";
+        $tipo = $this->tipo->filter_by_slug($tipo_slug)->get_all();
+        $tipo = $tipo[0];
+
+        // Carregar pedido
+        $pedido = $this->pedido->getPedidosByID($pedido_id);
+        $pedido = $pedido[0];
+
+        // Validar total de parcelas
+        if ((int) $pedido['num_parcela'] != $total_parcelas)
+            die(json_encode(array("status" => false, "message" => "O total de parcelas informado é inválido" )));
+
+        $produto_parceiro_pagamento_id = $pedido['produto_parceiro_pagamento_id'];
+
+        // Selecionar parcela atual
+        $ultima_parcela = $this->apolice_endosso->lastSequencial($apolice_id);
+        $ultima_parcela = $ultima_parcela[0];
+        $parcela_atual = (int) $ultima_parcela['parcela'] + 1;
+
+        // Validar parcela
+        if ($parcela <= 0) die(json_encode(array("status" => false, "message" => "Parcela " . $parcela . " não é uma parcela válida")));
+        if ($parcela > $total_parcelas) die(json_encode(array("status" => false, "message" => "Parcela atual é maior que o total de parcelas")));
+        if ($parcela > $parcela_atual) die(json_encode(array("status" => false, "message" => "Parcela " . $parcela_atual . " ainda não foi efetuada")));
+        if ($parcela < $parcela_atual) die(json_encode(array("status" => false, "message" => "Parcela " . $parcela . " já foi efetuada")));
+
+        $result = $this->apolice_endosso->insEndosso($tipo["slug"], $tipo["apolice_movimentacao_tipo_id"], $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela, $valor);
+
+        die(json_encode(array("status" => true, "data" => $result, "message" => "Inserido com sucesso")));
+    }
+
 }
 

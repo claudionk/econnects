@@ -1303,4 +1303,41 @@ class Apolice_Model extends MY_Model
         return $this;
     }
 
+    /**
+     * Retorna true se o controle de endosso é feito pelo cliente (buscando pelo pedido)
+     * @param int $pedido_id
+     * @return bool
+     * @author Davi Souto
+     * @since  08/04/2019
+     */
+    function isControleEndossoPeloClienteByPedidoId($pedido_id)
+    {
+        $this->load->model('pedido_model', 'pedido');
+
+        // Carregar pedido
+        $pedido = $this->pedido->getPedidosByID($pedido_id);
+        $pedido = $pedido[0];
+
+        $produto_parceiro_id = $pedido['produto_parceiro_id'];
+
+        return $this->isControleEndossoPeloClienteByProdutoParceiroId($produto_parceiro_id);
+    }
+
+    /**
+     * Retorna true se o controle de endosso é feito pelo cliente (buscando pelo produto_parceiro_id)
+     * @param int $pedido_id
+     * @return bool
+     * @author Davi Souto
+     * @since  08/04/2019
+     */
+    function isControleEndossoPeloClienteByProdutoParceiroId($produto_parceiro_id)
+    {
+        $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
+
+        $configuracoes = $this->produto_parceiro_configuracao->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
+        $configuracoes = $configuracoes[0];
+
+        return $configuracoes['endosso_controle_cliente'];
+    }
+
 }

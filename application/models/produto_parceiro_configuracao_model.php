@@ -160,6 +160,7 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
                 'quantidade_cobertura' => $this->input->post('quantidade_cobertura'),
                 'quantidade_cobertura_front' => $this->input->post('quantidade_cobertura_front'),
                 'conclui_em_tempo_real' => $this->input->post('conclui_em_tempo_real'),
+                'endosso_controle_cliente' => $this->input->post('endosso_controle_cliente'),
             );
         }elseif ($tipo == 'comissao'){
             $data = array(
@@ -232,6 +233,7 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
 
         $id = $this->input->post('produto_parceiro_configuracao_id');
         $data = $this->get_form_data($tipo);
+
         $this->update($id, $data, TRUE);
     }
 

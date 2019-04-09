@@ -873,6 +873,7 @@ Class Pedido_Model extends MY_Model
 
         $valor_estorno_total = $valor_estorno_total_liquido = 0;
         $retorno = [];
+        $devolucao_integral = true;
         $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro["produto_parceiro_id"] );
 
         if($vigente == FALSE){
@@ -922,6 +923,7 @@ Class Pedido_Model extends MY_Model
                     $valor_premio = $apolice['valor_premio_net'];
                     $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
                     $valor_premio_liq = $valor_premio;
+                    $devolucao_integral = false;
                 }
 
                 $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento['seg_depois_calculo'], $produto_parceiro_cancelamento['seg_depois_valor'], $valor_premio);
@@ -951,6 +953,7 @@ Class Pedido_Model extends MY_Model
             'valor_estorno_total' => $valor_estorno_total, 
             'valor_estorno_total_liquido' => $valor_estorno_total_liquido, 
             'dias_utilizados' => (isset($dias_utilizados)) ? $dias_utilizados : '',
+            'devolucao_integral' => $devolucao_integral,
             'dados' => $retorno,
         ];
     }
@@ -991,7 +994,7 @@ Class Pedido_Model extends MY_Model
                 if($ins_movimentacao) {
                     $pedido = $this->get($pedido_id);
 
-                    $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido);
+                    $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido, null, $calculo['devolucao_integral']);
                 }
 
             }
