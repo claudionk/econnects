@@ -359,7 +359,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
     }
 
 
-    public function getInicioFimVigenciaCapa($produto_parceiro_plano_id, $data_base)
+    public function getInicioFimVigenciaCapa($produto_parceiro_plano_id, $data_base, $is_controle_endosso_pelo_cliente = false)
     {
 
         $date_inicio = $data_fim = $data_base;
@@ -368,7 +368,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         if ($config) {
             $config = $config[0];
 
-            if ($config['pagamento_tipo'] == 'RECORRENTE') {
+            if ($config['pagamento_tipo'] == 'RECORRENTE' || $is_controle_endosso_pelo_cliente) {
 
                 $data_base = explode('-', $data_base);
                 $d1 = new DateTime($data_base[2]."-".$data_base[1]."-".$data_base[0]);
@@ -442,6 +442,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                 }
 
                 $d = app_date_get_diff($data, date('Y-m-d'), $base);
+
                 if ($d > $result['limite_tempo']) {
                     return "O plano {$result['nome']} requer que o Equipamento tenha um prazo máximo de uso de {$result['limite_tempo']} {$desc}";
                 }
