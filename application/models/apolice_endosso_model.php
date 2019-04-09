@@ -219,8 +219,9 @@ Class Apolice_Endosso_Model extends MY_Model
                 if (count($result) > 0)
                     $result = $result[0];
 
-                $dados_end['data_inicio_vigencia'] = $result['data_inicio_vigencia'];
-                $dados_end['data_fim_vigencia'] = $result['data_fim_vigencia'];
+                $dados_end['data_inicio_vigencia']  = $result['data_inicio_vigencia'];
+                $dados_end['data_fim_vigencia']     = $result['data_fim_vigencia'];
+                $dados_end['valor']                 = $result['valor'];
             }
 
             $dados_end['tipo'] = $this->defineTipo($tipo, $seq_end['endosso'], $capa);
