@@ -309,7 +309,6 @@ class Apolice extends CI_Controller {
 
         // Selecionar parcela atual
         $ultima_parcela = $this->apolice_endosso->lastSequencial($apolice_id);
-        $ultima_parcela = $ultima_parcela[0];
         $parcela_atual = (int) $ultima_parcela['parcela'] + 1;
 
         // Validar parcela
