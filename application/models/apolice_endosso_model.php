@@ -34,27 +34,6 @@ Class Apolice_Endosso_Model extends MY_Model
         return $this;
     }
 
-    function getProdutoParceiro($apolice_id) {
-        $this->_database->select('a.num_apolice, pa.slug, pa.codigo_sucursal, pp.cod_ramo');
-        $this->_database->join("apolice a", "a.apolice_id = {$this->_table}.apolice_id", "inner");
-        $this->_database->join("pedido p", "p.pedido_id = a.pedido_id", "inner");
-        $this->_database->join("cotacao c", "c.cotacao_id = p.cotacao_id", "inner");
-        $this->_database->join("produto_parceiro pp", "pp.produto_parceiro_id = c.produto_parceiro_id", "inner");
-        $this->_database->join("parceiro pa", "pa.parceiro_id = pp.parceiro_id", "inner");
-
-        $this->_database->where("a.apolice_id", $apolice_id);
-        $this->_database->where('a.deletado', 0);
-        $this->_database->where('p.deletado', 0);
-        $this->_database->where('c.deletado', 0);
-        $this->_database->where('pp.deletado', 0);
-        $result = $this->get_all();
-        if (!empty($result)) {
-            return $result[0];
-        }
-
-        return null;
-    }
-
     function lastSequencial($apolice_id) {
         $this->_database->where('apolice_id', $apolice_id);
         $this->_database->where('deletado', 0);
@@ -124,7 +103,8 @@ Class Apolice_Endosso_Model extends MY_Model
      */
     function getIDTransacao($apolice_id, $endosso, $parcela) {
         $id_transacao = '';
-        $dadosPP = $this->getProdutoParceiro($apolice_id);
+        $this->load->model('apolice_model', 'apolice');
+        $dadosPP = $this->apolice->getProdutoParceiro($apolice_id);
 
         // tratamento para gerar o id da transacao
         if (!empty($dadosPP)) {
@@ -201,7 +181,8 @@ Class Apolice_Endosso_Model extends MY_Model
         $endosso = 0;
 
         if ( $sequencial > 1 ) {
-            $dadosPP = $this->getProdutoParceiro($apolice_id);
+            $this->load->model('apolice_model', 'apolice');
+            $dadosPP = $this->apolice->getProdutoParceiro($apolice_id);
             if ( !empty($dadosPP) ) {
                 if ($dadosPP['slug'] == 'generali') {
                     $endosso = $dadosPP['codigo_sucursal'] . $dadosPP['cod_ramo']. str_pad($sequencial-1, 7, "0", STR_PAD_LEFT);

@@ -1327,4 +1327,32 @@ class Apolice_Model extends MY_Model
         return $configuracoes['endosso_controle_cliente'];
     }
 
+    /**
+     * Retorna os dados utilizado nas definições de campos do CTA
+     * @param int $apolice_id
+     * @return array
+     * @author Cristiano Arruda
+     * @since  08/04/2019
+     */
+    function getProdutoParceiro($apolice_id) {
+        $this->_database->select('a.num_apolice, pa.slug, pa.codigo_sucursal, pp.cod_ramo');
+        $this->_database->join("apolice a", "a.apolice_id = {$this->_table}.apolice_id", "inner");
+        $this->_database->join("pedido p", "p.pedido_id = a.pedido_id", "inner");
+        $this->_database->join("cotacao c", "c.cotacao_id = p.cotacao_id", "inner");
+        $this->_database->join("produto_parceiro pp", "pp.produto_parceiro_id = c.produto_parceiro_id", "inner");
+        $this->_database->join("parceiro pa", "pa.parceiro_id = pp.parceiro_id", "inner");
+
+        $this->_database->where("a.apolice_id", $apolice_id);
+        $this->_database->where('a.deletado', 0);
+        $this->_database->where('p.deletado', 0);
+        $this->_database->where('c.deletado', 0);
+        $this->_database->where('pp.deletado', 0);
+        $result = $this->get_all();
+        if (!empty($result)) {
+            return $result[0];
+        }
+
+        return null;
+    }
+
 }
