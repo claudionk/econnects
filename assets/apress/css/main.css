@@ -1,0 +1,35 @@
+  	body{
+    	font-family: 'Gotham Book', sans-serif;
+    	min-height: 100vh;
+  	}
+  	.mdi-navigation-menu{ font-size: 3rem; color: #FFFFFF; }
+  	.side-nav{
+  		background-color: rgba(44,44,44,1);
+  	}
+  	.side-nav a{
+  		color: #FFFFFF !important;
+  		text-align: left !important;
+	    line-height: initial;
+	    height: initial;
+  	}
+  	.side-nav.fixed a {
+	    display: block;
+	    padding: initial;
+	    clear: both;
+	}
+
+  	.side-nav .collapsible-header{ margin:0px; }
+  	.side-nav .collapsible-body, .collection .collection-item, .side-nav li:hover, .side-nav li.active, .side-nav a:hover, .side-nav a:active{ background-color: transparent; border: none;  }
+  	.side-nav .collapsible .collection-item .collapsible-body .collection-item{ padding-left: 60px !important; }
+  	.side-nav a img{ width: 60px;  vertical-align: middle; }
+  	.main{ 
+		display: flex;
+		min-height: 90vh;
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-end;
+		text-align: center;
+  	}
+  	.btn{ color: #ffffff !important; border: 1px solid #ffffff; background-color: transparent; margin: 0 auto ; font-weight: bold; }
+  	.btn .material-icons{ color: #ffffff !important;  }
+  	.btn:hover, .btn:active, .btn.active{ background-color: #c51f1b; }
