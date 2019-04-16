@@ -300,10 +300,13 @@ class Apolice extends CI_Controller {
 
         $apolices = [];
         $result = [];
-        $erros = [];
+        $errosResult = [];
 
         // Realiza as validações antes de executar
         foreach ($POST["apolices"] as $key => $value) {
+
+            $erros = [];
+
             // Validar apolice_id
             $validacao = $this->validarDadosEntrada($value);
 
@@ -311,16 +314,21 @@ class Apolice extends CI_Controller {
             $pedido_id  = $validacao['pedido_id'];
 
             // Validar outros parâmetros
-            (array_key_exists('parcela', $validacao['dados'])) ? $parcela = $validacao['dados']['parcela'] : $this->parcelaReturn($apolice_id,"Campo parcela é obrigatório");
-            (array_key_exists('total_parcelas', $validacao['dados'])) ? $total_parcelas = $validacao['dados']['total_parcelas'] : $this->parcelaReturn($apolice_id,"Campo total_parcelas é obrigatório");
-            (array_key_exists('valor', $validacao['dados'])) ? $valor = trim(str_replace(",", ".", $validacao['dados']['valor'])) : $this->parcelaReturn($apolice_id,"Campo valor é obrigatório");
-            (array_key_exists('valor_pago', $validacao['dados'])) ? $valor_pago = trim(str_replace(",", ".", $validacao['dados']['valor_pago'])) : $this->parcelaReturn($apolice_id,"Campo valor_pago é obrigatório");
-            (array_key_exists('data_vencimento', $validacao['dados'])) ? $data_vencimento = trim(str_replace(",", ".", $validacao['dados']['data_vencimento'])) : $this->parcelaReturn($apolice_id,"Campo data_vencimento é obrigatório");
-            (array_key_exists('data_pagamento', $validacao['dados'])) ? $data_pagamento = trim(str_replace(",", ".", $validacao['dados']['data_pagamento'])) : $this->parcelaReturn($apolice_id,"Campo data_pagamento é obrigatório");
+            (array_key_exists('parcela', $validacao['dados'])) ? $parcela = $validacao['dados']['parcela'] : $erros[] = $this->parcelaReturn($apolice_id,"Campo parcela é obrigatório");
+            (array_key_exists('total_parcelas', $validacao['dados'])) ? $total_parcelas = $validacao['dados']['total_parcelas'] : $erros[] = $this->parcelaReturn($apolice_id,"Campo total_parcelas é obrigatório");
+            (array_key_exists('valor', $validacao['dados'])) ? $valor = trim(str_replace(",", ".", $validacao['dados']['valor'])) : $erros[] = $this->parcelaReturn($apolice_id,"Campo valor é obrigatório");
+            (array_key_exists('valor_pago', $validacao['dados'])) ? $valor_pago = trim(str_replace(",", ".", $validacao['dados']['valor_pago'])) : $erros[] = $this->parcelaReturn($apolice_id,"Campo valor_pago é obrigatório");
+            (array_key_exists('data_vencimento', $validacao['dados'])) ? $data_vencimento = trim(str_replace(",", ".", $validacao['dados']['data_vencimento'])) : $erros[] = $this->parcelaReturn($apolice_id,"Campo data_vencimento é obrigatório");
+            (array_key_exists('data_pagamento', $validacao['dados'])) ? $data_pagamento = trim(str_replace(",", ".", $validacao['dados']['data_pagamento'])) : $erros[] = $this->parcelaReturn($apolice_id,"Campo data_pagamento é obrigatório");
+
+            if ( !empty($erros) ){
+                $errosResult[] = $erros;
+                continue;
+            }
 
             // Validar campos numéricos
-            if (! is_numeric($valor)) $this->parcelaReturn($apolice_id,"Campo valor deve ser um campo númerico");
-            if (! is_numeric($total_parcelas)) $this->parcelaReturn($apolice_id,"Campo total_parcelas deve ser um campo númerico");
+            if (! is_numeric($valor)) $erros[] = $this->parcelaReturn($apolice_id,"Campo valor deve ser um campo númerico");
+            if (! is_numeric($total_parcelas)) $erros[] = $this->parcelaReturn($apolice_id,"Campo total_parcelas deve ser um campo númerico");
 
             // Carregar pedido
             $pedido = $this->pedido->getPedidosByID($pedido_id);
@@ -328,7 +336,7 @@ class Apolice extends CI_Controller {
 
             // Validar total de parcelas
             if ((int) $pedido['num_parcela'] != $total_parcelas)
-                $this->parcelaReturn($apolice_id,"O total de parcelas informado é inválido" );
+                $erros[] = $this->parcelaReturn($apolice_id,"O total de parcelas informado é inválido" );
 
             $produto_parceiro_pagamento_id = $pedido['produto_parceiro_pagamento_id'];
 
@@ -337,10 +345,10 @@ class Apolice extends CI_Controller {
             $parcela_atual = (int) $ultima_parcela['parcela'] + 1;
 
             // Validar parcela
-            if ($parcela <= 0) $this->parcelaReturn($apolice_id,"Parcela " . $parcela . " não é uma parcela válida");
-            if ($parcela > $total_parcelas) $this->parcelaReturn($apolice_id,"Parcela atual é maior que o total de parcelas");
-            if ($parcela > $parcela_atual) $this->parcelaReturn($apolice_id,"Parcela " . $parcela_atual . " ainda não foi efetuada");
-            if ($parcela < $parcela_atual) $this->parcelaReturn($apolice_id,"Parcela " . $parcela . " já foi efetuada");
+            if ($parcela <= 0) $erros[] = $this->parcelaReturn($apolice_id,"Parcela " . $parcela . " não é uma parcela válida");
+            if ($parcela > $total_parcelas) $erros[] = $this->parcelaReturn($apolice_id,"Parcela atual é maior que o total de parcelas");
+            if ($parcela > $parcela_atual) $erros[] = $this->parcelaReturn($apolice_id,"Parcela " . $parcela_atual . " ainda não foi efetuada");
+            if ($parcela < $parcela_atual) $erros[] = $this->parcelaReturn($apolice_id,"Parcela " . $parcela . " já foi efetuada");
 
             $apolices[] = [
                 'apolice_id'                    => $apolice_id,
@@ -353,6 +361,20 @@ class Apolice extends CI_Controller {
                 'data_vencimento'               => $data_vencimento,
                 'data_pagamento'                => $data_pagamento,
             ];
+
+            if ( !empty($erros) ){
+                $errosResult[] = $erros;
+                continue;
+            }
+
+        }
+
+        if ( !empty($errosResult) )
+        {
+            die( json_encode([
+                "status" => false,
+                "apolices" => $errosResult,
+            ]) );
         }
 
         // executa após nenhuma inconsistência
@@ -368,24 +390,24 @@ class Apolice extends CI_Controller {
             $tipo = $this->tipo->filter_by_slug('A')->get_all();
             $tipo = $tipo[0];
 
-            $insert = $this->apolice_endosso->insEndosso($tipo["slug"], $tipo["apolice_movimentacao_tipo_id"], $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela, $valor);
+            $this->apolice_endosso->insEndosso($tipo["slug"], $tipo["apolice_movimentacao_tipo_id"], $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela, $valor);
 
             $result[] = [
+                'status' => true,
                 'apolice_id' => $apolice_id,
-                'dados' => $insert
             ];
 
         }
 
-        die(json_encode(array("status" => true, "apolices" => $result, "message" => "Inserido com sucesso")));
+        die(json_encode(array("status" => true, "message" => "Inserido com sucesso", "apolices" => $result)));
     }
 
     private function parcelaReturn ($apolice_id, $msg) {
-        die(json_encode(array(
+        return array(
             "status" => false,
-            "message" => $msg
+            "message" => $msg,
             "apolice_id" => $apolice_id
-        )));
+        );
     }
 
 }
