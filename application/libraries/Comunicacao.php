@@ -9,6 +9,7 @@ class Comunicacao
   private $destinatario;
   private $nome_destinatario;
   private $nome_parceiro;
+  private $url;
   private $data_enviar;
   private $tabela;
   private $campo;
@@ -560,6 +561,7 @@ class Comunicacao
       'destinatario_endereco' => $this->getDestinatario(),
       'destinatario_nome' => $this->getNomeDestinatario(),
       'parceiro_nome' => $this->getNomeParceiro(),
+      'url' => $this->getUrl(),
     );
 
     $params = array_merge($parametros, $this->getMensagemParametros());
@@ -599,6 +601,15 @@ class Comunicacao
     return $this->nome_parceiro;
   }
 
+    /**
+     * @return mixed
+     */
+    public function getUrl()
+    {
+        return $this->url;
+    }
+
+
 
   /**
      * @param mixed $nome_destinatario
@@ -615,6 +626,12 @@ class Comunicacao
   {
     $this->nome_parceiro = $nome_parceiro;
   }
+
+    public function setUrl($url)
+    {
+        $this->url = $url;
+    }
+
 
   /**
      * @return bool|string

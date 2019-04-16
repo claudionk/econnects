@@ -63,13 +63,19 @@ if($_POST){
                         <small class="text-primary">Pague utilizando a melhor forma de pagamento</small>
                     </h2>
 
-                    <?php
-                    if ($context != "pagamento") {
-                        $this->load->view("admin/venda/step", array('step' => 4, 'produto_parceiro_id' => $produto_parceiro_id ));
-                    }
 
-                    $this->load->view('admin/venda/partials/enviar_token_acesso');
+
+                    <?php
+                    if((isset($layout)) && ($layout == 'front') && ($context != "pagamento")) {
+                        $this->load->view('admin/venda/equipamento/front/step', array('step' => 4, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'] ));
+                    }else{
+                        if ($context != "pagamento") {
+                         $this->load->view("admin/venda/step", array('step' => 4, 'produto_parceiro_id' => $produto_parceiro_id ));
+                        }
+                    }
                     ?>
+
+                    <?php $this->load->view('admin/venda/partials/enviar_token_acesso'); ?>
 
                     <div class="panel-group" id="accordion1">
                     <?php $in = " in"; ?>

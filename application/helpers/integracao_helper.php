@@ -532,6 +532,274 @@ if ( ! function_exists('app_integracao_generali_dados')) {
     }
 
 }
+
+if ( ! function_exists('app_integracao_rastrecall_sms_dados')) {
+
+    function app_integracao_rastrecall_sms_dados()
+    {
+        $dados = (object)[
+            "email" => "generali@econnects.com.br",
+            "parceiro_id" => 32,
+            "produto_parceiro_id" => 74,
+            "produto_parceiro_plano_id" => 92,
+            "token" => '7e443247fba9e33af5b7c0125e437969'
+        ];
+
+        $CI =& get_instance();
+        $CI->session->set_userdata("email", $dados->email);
+
+        $dados->apikey = app_get_token($dados->email);
+
+        return $dados;
+    }
+
+}
+
+
+if ( ! function_exists('app_integracao_rastrecall_sms')) {
+
+    function app_integracao_rastrecall_sms($formato, $dados = array())
+    {
+        $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
+
+        $CI =& get_instance();
+
+        $CI->load->library("Short_url");
+
+
+        if (!empty($formato)) {
+
+
+
+            //$geraDados = $dados['registro'];
+            //$geraDados['integracao_log_detalhe_id'] = $formato;
+
+/*
+            $geraDados['estipulante']           = $dados['registro']['estipulante'];
+            $geraDados['nota_fiscal_numero']    = $dados['registro']['nota_fiscal_numero'];
+            $geraDados['nota_fiscal_serie']     = $dados['registro']['nota_fiscal_serie'];
+            $geraDados['nota_fiscal_emissao']   = app_dateonly_mask_to_mysql($dados['registro']['nota_fiscal_emissao']);
+            $geraDados['segurado_nome']         = $dados['registro']['segurado_nome'];
+            $geraDados['segurado_doc']          = $dados['registro']['segurado_doc'];
+            $geraDados['segurado_rg_ie']        = $dados['registro']['segurado_rg_ie'];
+            $geraDados['segurado_nascimento']   = app_dateonly_mask_to_mysql($dados['registro']['segurado_nascimento']);
+            $geraDados['endereco_cep']          =  $dados['registro']['endereco_cep'];
+            $geraDados['endereco']              =  $dados['registro']['endereco'];
+            $geraDados['endereco_numero']       =  $dados['registro']['endereco_numero'];
+            $geraDados['endereco_complemento']  =  $dados['registro']['endereco_complemento'];
+            $geraDados['endereco_bairro']       =  $dados['registro']['endereco_bairro'];
+            $geraDados['endereco_cidade']       =  $dados['registro']['endereco_cidade'];
+            $geraDados['endereco_uf']           =  $dados['registro']['endereco_uf'];
+            $geraDados['segurado_telefone']     =  $dados['registro']['segurado_telefone'];
+            $geraDados['segurado_celular']      =  app_retorna_numeros($dados['registro']['segurado_celular']);
+            $geraDados['segurado_email']        =  $dados['registro']['segurado_email'];
+            $geraDados['equipamento']           =  $dados['registro']['equipamento'];
+            $geraDados['equipamento_categoria'] =  $dados['registro']['equipamento_categoria'];
+            $geraDados['equipamento_marca']     =  $dados['registro']['equipamento_marca'];
+            $geraDados['equipamento_codigo_barra']     =  sprintf('%.0f', str_replace(",", "", $dados['registro']['equipamento_codigo_barra']) );
+            $geraDados['equipamento_imei']     =  sprintf('%.0f', str_replace(",", "", $dados['registro']['equipamento_imei']) );
+            $geraDados['nota_fiscal_valor']     =  app_format_currency($dados['registro']['nota_fiscal_valor']);
+
+*/
+            $geraDados['tipo_transacao']            = 'IN';
+            $geraDados['cod_loja']                  = '';
+            $geraDados['num_apolice']               = '';
+            $geraDados['data_adesao_cancel']        = date('Y-m-d');
+            $geraDados['telefone']                  = $dados['registro']['telefone'];
+            $geraDados['endereco']                  = $dados['registro']['endereco_logradouro'];
+            $geraDados['sexo']                      = '';
+            $geraDados['cod_produto_sap']           = '';
+            $geraDados['ean']                       =  sprintf('%.0f', str_replace(",", "", $dados['registro']['equipamento_codigo_barra']) );
+            $geraDados['marca']                     = $dados['registro']['equipamento_marca'];
+            $geraDados['equipamento_nome']          = $dados['registro']['equipamento'];
+            $geraDados['nota_fiscal_valor_desc']    = app_format_currency($dados['registro']['nota_fiscal_valor']);
+            $geraDados['nota_fiscal_data']          = app_dateonly_mask_to_mysql($dados['registro']['nota_fiscal_data']);
+            $geraDados['premio_liquido']            = 0;
+            $geraDados['vigencia']                  = '';
+            $geraDados['cod_vendedor']              = '';
+            $geraDados['cpf']                       = $dados['registro']['cnpj_cpf'];
+            $geraDados['nota_fiscal_numero']        = $dados['registro']['nota_fiscal_numero'];
+            $geraDados['num_parcela']               = '00';
+            $geraDados['nota_fiscal_valor']         = app_format_currency($dados['registro']['nota_fiscal_valor']);
+            $geraDados['integracao_log_detalhe_id'] = $formato;
+
+
+            //deixando campos nos padrões
+            $dados['registro']['nota_fiscal_data'] = app_dateonly_mask_to_mysql($dados['registro']['nota_fiscal_data']);
+            $dados['registro']['data_nascimento'] = app_dateonly_mask_to_mysql($dados['registro']['data_nascimento']);
+
+
+//$linhas = str_replace("'", " ", fgets($fh, 4096));
+
+            $geraDados['integracao_log_detalhe_id'] = $formato;
+
+            //unset($geraDados['id_log']);
+            //unset($geraDados['tipo_arquivo']);
+
+            $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
+            $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
+        }
+
+        $cpf = $dados['registro']['cnpj_cpf'];
+        $ean = sprintf('%.0f', str_replace(",", "", $dados['registro']['equipamento_codigo_barra']) );
+
+        echo "****************** CPF: $cpf<br>";
+
+        $acesso = app_integracao_rastrecall_sms_dados();
+        $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
+        $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
+        $eanErro = true;
+        $eanErroMsg = "";
+
+
+        // usar a pesquisa por nome
+        $CI->load->model("integracao_log_detalhe_model", "integracao_log_detalhe");
+
+
+       // exit(app_format_telefone_unitfour(app_retorna_numeros($dados['registro']['segurado_celular'])));
+        // valida Celular para geração da cotação
+        if ( app_validate_mobile_phone(app_format_telefone_unitfour(app_retorna_numeros($dados['registro']['telefone']))) ) {
+
+
+            if (!empty($cpf)) $cpf = substr($cpf, -11);
+
+            if( !app_validate_cpf($cpf) ){
+                $response->msg[] = ['id' =>  2, 'msg' => "Campo CPF deve ser um CPF válido [{$cpf}]", 'slug' => 'cnpj_cpf'];
+                return $response;
+            }
+
+            if (!empty($ean)) {
+                $ean = (int)$ean;
+                $EANenriquecido = app_get_api("enriqueceEAN/$ean", 'GET', [], false, $acesso);
+                //echo "<pre>";print_r($EANenriquecido);echo "</pre>";
+                 //exit('ERRO');
+                if (!empty($EANenriquecido['status'])){
+                    $EANenriquecido = $EANenriquecido['response'];
+                    $response->ean = $EANenriquecido;
+                    $eanErro = false;
+
+                    $dados['registro']['equipamento_id'] = $EANenriquecido->equipamento_id;
+                    $dados['registro']['equipamento_marca_id'] = $EANenriquecido->equipamento_marca_id;
+                    $dados['registro']['equipamento_categoria_id'] = $EANenriquecido->equipamento_categoria_id;
+                    $dados['registro']['equipamento_sub_categoria_id'] = $EANenriquecido->equipamento_sub_categoria_id;
+                    $dados['registro']['imei'] = sprintf('%.0f', str_replace(",", "", $dados['registro']['equipamento_imei']) );
+                } else {
+                    $inputField = [
+                        'marca' => $dados['registro']['equipamento_marca'],
+                        'modelo' => $dados['registro']['equipamento'],
+                        'quantidade' => 1,
+                        'emailAPI' => app_get_userdata("email"),
+                    ];
+
+                    $EANenriquecido = app_get_api("enriqueceModelo", "POST", json_encode($inputField), false, $acesso);
+                    // echo "<pre>";print_r($EANenriquecido);echo "</pre>";exit;
+                    if (!empty($EANenriquecido['status'])){
+                        $EANenriquecido = $EANenriquecido['response']->dados[0];
+                        $response->ean = $EANenriquecido;
+                        $eanErro = false;
+
+                        $dados['registro']['equipamento_id'] = $EANenriquecido->equipamento_id;
+                        $dados['registro']['equipamento_marca_id'] = $EANenriquecido->equipamento_marca_id;
+                        $dados['registro']['equipamento_categoria_id'] = $EANenriquecido->equipamento_categoria_id;
+                        $dados['registro']['equipamento_sub_categoria_id'] = $EANenriquecido->equipamento_sub_categoria_id;
+                        $dados['registro']['imei'] = sprintf('%.0f', str_replace(",", "", $dados['registro']['equipamento_imei']) );
+                    } else {
+                        $eanErroMsg = "Equipamento não identificado - [{$dados['registro']['equipamento_nome']}]";
+                    }
+
+                }
+            }
+
+            if ($eanErro){
+                echo "<pre>";print_r($EANenriquecido);echo "</pre>";
+
+                $response->msg[] = ['id' => 11, 'msg' => $eanErroMsg ." [{$ean}]", 'slug' => "enriquece_ean"];
+                return $response;
+            }
+
+        } else {
+            //exit("Campo Celular deve ser um Celular válido [{$dados['registro']['segurado_celular']}]");
+            $response->msg[] = ['id' =>  18, 'msg' => "Campo Celular deve ser um Celular válido [{$dados['registro']['telefone']}]", 'slug' => 'celular'];
+            return $response;
+        }
+
+
+
+        // Campos para cotação
+        $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id, 'GET', [], false, $acesso);
+        if (empty($camposCotacao['status'])){
+            $response->msg[] = ['id' => -1, 'msg' => $camposCotacao['response'], 'slug' => "cotacao_campos"];
+            return $response;
+        }
+
+        $camposCotacao = $camposCotacao['response'];
+
+
+
+        // Validar Regras
+        $validaRegra = app_integracao_rastrecall_valida_regras($dados, $camposCotacao);
+
+
+
+        if (!empty($validaRegra->status)) {
+
+            $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
+            $dados['registro']['fields'] = $validaRegra->fields;
+
+            //Faz o Envio do SMS
+            $evento                          = array();
+            $evento['mensagem']['nome']      = $dados['registro']['nome'];
+            $evento['destinatario_email']    = $dados['registro']['email'];
+            $evento['destinatario_telefone'] = $dados['registro']['telefone'];
+            $evento['produto_parceiro_id']   = $dados['registro']['produto_parceiro_id'];
+
+            app_get_userdata("email");
+
+
+            $evento['url'] = $CI->auth->generate_page_token(
+                $acesso->token
+                , array(
+                    base_url("admin/venda_equipamento/equipamento/{$evento['produto_parceiro_id']}/1/{$dados['registro']['cotacao_id']}"),
+                    base_url("admin/venda_equipamento/equipamento/{$evento['produto_parceiro_id']}/2/{$dados['registro']['cotacao_id']}"),
+                    base_url("admin/venda_equipamento/equipamento/{$evento['produto_parceiro_id']}/3/{$dados['registro']['cotacao_id']}"),
+                    base_url("admin/venda_equipamento/equipamento/{$evento['produto_parceiro_id']}/4/{$dados['registro']['cotacao_id']}"),
+                    base_url("admin/venda_equipamento/equipamento/{$evento['produto_parceiro_id']}/5/{$dados['registro']['cotacao_id']}"),
+                    base_url("admin/venda_equipamento/calculo"),
+                    base_url("admin/gateway/consulta"),
+
+
+                )
+                , 'front'
+                , ''
+                , base_url("admin/venda_equipamento/equipamento/{$evento['produto_parceiro_id']}/2/{$dados['registro']['cotacao_id']}")
+            );
+
+
+            $short_url = new Short_url();
+            $evento['url'] = $short_url::shorter($evento['url']);
+
+            $comunicacao = new Comunicacao();
+            $comunicacao->setMensagemParametros($evento['mensagem']);
+            $comunicacao->setDestinatario(app_retorna_numeros($evento['destinatario_telefone']));
+            $comunicacao->setNomeDestinatario($evento['mensagem']['nome']);
+            $comunicacao->setUrl($evento['url']);
+            $comunicacao->disparaEvento("cotacao_gerada", $evento['produto_parceiro_id']);
+
+
+        } else {
+            if (!empty($response->msg)) {
+                $response->msg = array_merge($validaRegra->errors, $response->msg);
+            } else {
+                $response->msg = $validaRegra->errors;
+            }
+        }
+
+        return $response;
+    }
+}
+
+
+
 if ( ! function_exists('app_integracao_enriquecimento')) {
 
     function app_integracao_enriquecimento($formato, $dados = array())
@@ -735,11 +1003,20 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         return $response;
     }
 }
+
+
+
+
+
+
 if ( ! function_exists('app_get_api'))
 {
-    function app_get_api($service, $method = 'GET', $fields = [], $print = false){
+    function app_get_api($service, $method = 'GET', $fields = [], $print = false, $acesso = null){
 
-        $acesso = app_integracao_generali_dados();
+
+        if($acesso == null) {
+            $acesso = app_integracao_generali_dados();
+        }
 
         $CI =& get_instance();
         $CI->session->set_userdata("email", $acesso->email);
@@ -791,6 +1068,222 @@ if ( ! function_exists('app_get_api'))
         return $ret;
     }
 }
+
+
+if ( ! function_exists('app_integracao_rastrecall_valida_regras'))
+{
+    function app_integracao_rastrecall_valida_regras($dados, $camposCotacao){
+
+
+        $acesso = app_integracao_rastrecall_sms_dados();
+        $response = (object) ['status' => false, 'msg' => '', 'errors' => [], 'fields' => []];
+
+        if (empty($dados['registro'])){
+            $response->msg = 'Nenhum dado recebido para validação';
+            return $response;
+        }
+
+        $dados = $dados['registro'];
+        // echo "<pre>";print_r($dados);echo "</pre>";
+
+        // Emissão
+
+        $errors = $fields = [];
+        $now = new DateTime(date('Y-m-d'));
+
+        // Enriquecimento do CPF
+        $cpf = substr($dados['cnpj_cpf'], -11);
+        $enriquecido = app_get_api("enriqueceCPF/$cpf/". $dados['produto_parceiro_id'], 'GET', [], false, $acesso);
+
+        if (!empty($enriquecido['status'])){
+            $enriquecido = $enriquecido['response'];
+
+            $dados['nome'] = $enriquecido->nome;
+            $dados['sexo'] = $enriquecido->sexo;
+            $dados['data_nascimento'] = $enriquecido->data_nascimento;
+
+            // Endereço
+            $ExtraEnderecos = $enriquecido->endereco;
+            if( sizeof( $ExtraEnderecos ) ) {
+                $rank=1000;
+                $index=0;
+
+                foreach ($ExtraEnderecos as $end) {
+                    $rank = ($end->ranking <= $rank) ? $index : $rank;
+                    $index++;
+                }
+
+                $dados['endereco_logradouro'] = $ExtraEnderecos[$rank]->{"endereco"};
+                $dados['endereco_numero'] = $ExtraEnderecos[$rank]->{"endereco_numero"};
+                $dados['complemento'] = $ExtraEnderecos[$rank]->{"endereco_complemento"};
+                $dados['endereco_bairro'] = $ExtraEnderecos[$rank]->{"endereco_bairro"};
+                $dados['endereco_cidade'] = $ExtraEnderecos[$rank]->{"endereco_cidade"};
+                $dados['endereco_estado'] = $ExtraEnderecos[$rank]->{"endereco_uf"};
+                $dados['endereco_cep'] = str_replace("-", "", $ExtraEnderecos[$rank]->{"endereco_cep"});
+                $dados['pais'] = "BRASIL";
+            }
+
+            $ExtraContatos = $enriquecido->contato;
+            if( sizeof( $ExtraContatos ) ) {
+                $rankTel=$rankCel=$rankEmail=1000;
+                $index=0;
+
+                // Valida o ranking
+                foreach ($ExtraContatos as $cont) {
+                    switch ($cont->contato_tipo_id) {
+                        // Telefone Residencial
+                        case 3:
+                            $rankTel = ($cont->ranking <= $rankTel) ? $index : $rankTel;
+                            break;
+
+                        // Celular
+                        case 2:
+                            $rankCel = ($cont->ranking <= $rankCel) ? $index : $rankCel;
+                            break;
+
+                        // Email
+                        case 1:
+                            $rankEmail = ($cont->ranking <= $rankEmail) ? $index : $rankEmail;
+                            break;
+                    }
+                    $index++;
+                }
+
+                // Telefone Residencial
+                if ($rankTel != 1000) {
+                    $dados['ddd_residencial'] = left($ExtraContatos[$rankTel]->contato,2);
+                    $dados['telefone_residencial'] = trim(right($ExtraContatos[$rankTel]->contato, strlen($ExtraContatos[$rankTel]->contato)-2));
+                    $dados['telefone'] = trim($ExtraContatos[$rankTel]->contato);
+                }
+
+                // Celular
+                if ($rankCel != 1000) {
+                    $dados['ddd_celular'] = left($ExtraContatos[$rankCel]->contato,2);
+                    $dados['telefone_celular'] = trim(right($ExtraContatos[$rankCel]->contato, strlen($ExtraContatos[$rankCel]->contato)-2));
+                }
+
+                // Email
+                if ($rankEmail != 1000)
+                    $dados['email'] = $ExtraContatos[$rankEmail]->contato;
+            }
+        }
+
+        // Regras DE/PARA
+        $dados['cnpj_cpf'] = $cpf;
+
+        if (empty($dados['nome']))
+            $dados['nome'] = "NOME SOBRENOME";
+
+        if (empty($dados['endereco_estado']))
+            $dados['endereco_estado'] = "SP";
+
+        if (empty($dados['endereco_cidade']))
+            $dados['endereco_cidade'] = "BARUERI";
+
+        if (empty($dados['endereco_bairro']))
+            $dados['endereco_bairro'] = $dados['endereco_cidade'];
+
+        if (empty($dados['endereco_logradouro']))
+            $dados['endereco_logradouro'] = "ALAMEDA RIO NEGRO";
+
+        if (empty($dados['endereco_numero']))
+            $dados['endereco_numero'] = '0';
+
+        if (empty($dados['endereco_cep']))
+            $dados['endereco_cep'] = '06454000';
+
+        if (empty($dados['sexo']))
+            $dados['sexo'] = 'M';
+
+        if (empty($dados['data_nascimento'])) {
+            $dados['data_nascimento'] = '2000-01-01';
+        } elseif (!app_validate_data_americana($dados['data_nascimento'])) {
+            $dados['data_nascimento'] = '2000-01-01';
+        }
+
+        // IDADE - Pessoa física maior de 18 anos
+        // E-mail Patini - 28 de nov de 2018 17:19
+        // if (!empty($dados["data_nascimento"]) && $dados["data_nascimento"] != '2000-01-01'){
+        //     $d1 = new DateTime($dados["data_nascimento"]);
+
+        //     $diff = $now->diff($d1);
+        //     if ($diff->y < 18) {
+        //         $errors[] = ['id' => 6, 'msg' => "A DATA DE NASCIMENTO deve ser igual ou superior à 18 anos", 'slug' => "data_nascimento"];
+        //     }
+        // }
+
+        // Valida campos obrigatórios na cotação
+        foreach ($camposCotacao as $TipoCampos) {
+            foreach ($TipoCampos->campos as $campo) {
+
+                // echo $campo->label . " : ". $campo->nome_banco ." > ". $campo->validacoes ."<br>";
+                $fields[$campo->nome_banco] = isset($dados[$campo->nome_banco]) ? $dados[$campo->nome_banco] : '';
+                if (empty($campo->validacoes)) continue;
+
+                $validacoes = explode("|", $campo->validacoes);
+                foreach ($validacoes as $val) {
+
+                    switch ($val) {
+                        case "required":
+                            if( !isset( $dados[$campo->nome_banco] ) || ( empty( trim($dados[$campo->nome_banco]) ) && $dados[$campo->nome_banco] != '0') )
+                                $errors[] = ['id' => 1, 'msg' => "Campo {$campo->label} é obrigatório", 'slug' => $campo->nome_banco];
+                            break;
+                        case "validate_cpf":
+                            if( !empty($dados[$campo->nome_banco]) && !app_validate_cpf($dados[$campo->nome_banco]) )
+                                $errors[] = ['id' => 2, 'msg' => "Campo {$campo->label} deve ser um CPF válido [{$dados[$campo->nome_banco]}]", 'slug' => $campo->nome_banco];
+                            break;
+                        case "validate_data":
+                            if( !empty($dados[$campo->nome_banco]) && !app_validate_data_americana($dados[$campo->nome_banco]) )
+                                $errors[] = ['id' => 3, 'msg' => "Campo {$campo->label} deve ser uma Data válida [{$dados[$campo->nome_banco]}]", 'slug' => $campo->nome_banco];
+                            break;
+                    }
+                }
+
+            }
+        }
+
+        if (empty($errors)) {
+
+            $fields['produto_parceiro_id'] = $dados['produto_parceiro_id'];
+            $fields['produto_parceiro_plano_id'] = $dados['produto_parceiro_plano_id'];
+            $fields['equipamento_nome'] = $dados['equipamento'];
+            if (!empty($dados['equipamento_marca_id']))
+                $fields['equipamento_marca_id'] = $dados['equipamento_marca_id'];
+            if (!empty($dados['equipamento_categoria_id']))
+                $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
+            $fields['ean'] = sprintf('%.0f', str_replace(",", "", $dados['equipamento_codigo_barra']) );
+            $fields['emailAPI'] = app_get_userdata("email");
+
+            // Cotação
+            $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields),false, $acesso);
+
+
+
+            if (empty($cotacao['status'])) {
+                $response->errors = ['id' => -1, 'msg' => $cotacao['response'], 'slug' => "insere_cotacao"];
+                return $response;
+            }
+
+
+            $cotacao = $cotacao['response'];
+            $cotacao_id = $cotacao->cotacao_id;
+            $response->cotacao_id = $cotacao_id;
+
+            $response->fields = $fields;
+        }
+
+        if (!empty($errors)) {
+            $response->errors = $errors;
+            return $response;
+        }
+
+
+        $response->status = true;
+        return $response;
+    }
+}
+
+
 if ( ! function_exists('app_integracao_valida_regras'))
 {
     function app_integracao_valida_regras($dados, $camposCotacao){
@@ -1031,6 +1524,10 @@ if ( ! function_exists('app_integracao_valida_regras'))
         return $response;
     }
 }
+
+
+
+
 if ( ! function_exists('app_integracao_calcula_premio'))
 {
     function app_integracao_calcula_premio($cotacao_id, $premio_liquido, $is){

@@ -5,7 +5,7 @@
 <!-- col-app -->
 <div class="card">
     <!-- col-app -->
-    <div class="card-body">
+    <div class="card-body" style="background-color: #eee">
         <!-- Form -->
         <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off"
               enctype="multipart/form-data">
@@ -37,7 +37,7 @@
 
                     <h2 class="text-light text-center">Cotação de Seguro<br><small class="text-primary">Selecione o plano e as coberturas que você deseja!</small></h2>
 
-                    <?php $this->load->view('admin/venda/step', array('step' => 2, 'produto_parceiro_id' =>  issetor($produto_parceiro_id))); ?>
+                    <?php $this->load->view('admin/venda/equipamento/front/step', array('step' => 2, 'produto_parceiro_id' =>  issetor($produto_parceiro_id))); ?>
 
 
 
@@ -49,10 +49,10 @@
 
                                 <div class="card card-type-pricing text-center">
 
-                                    <div class="card-body style-primary">
+                                    <div class="card-body">
                                         <h2 class="text-light"><?php echo $plano['nome'] ?></h2>
                                         <div class="price">
-                                            <span class="text-lg">R$</span>
+                                            <H1 class="text-xl">R$</H1>
 
                                             <h2>
                                                     <span class="text-xl">
@@ -128,15 +128,15 @@
                                             </li>
                                         <?php $i++; endforeach; ?>
                                             <?php if(count($coberturas) > 0) : ?>
-                                                <li class="row cobertura">
+                                                <!--<li class="row cobertura">
                                                     <button type="button" class="btn btn-block ink-reaction btn-primary-dark coberturas_ver_tudo_front">Ver coberturas</button>
-                                                </li>
+                                                </li>-->
                                             <?php endif; ?>
                                         </ul>
                                     </div>
                                     <div class="card-body">
                                         <a class="btn btn-primary add-car" href="javascript: void(0);" data-plano="<?php echo $plano['produto_parceiro_plano_id']; ?>">
-                                            Escolher este plano
+                                            QUERO ESTE >
                                         </a>
                                     </div><!--end .card-body -->
                                 </div><!--end .card -->
@@ -193,9 +193,9 @@
 
                 </div>
 
-                <div class="col-md-12">
+                <div class="col-md-12" style="background: #FFFFFF">
 
-                    <h2 class="text-light text-center">Carrinho de Compras<br><small class="text-primary">Confirme e siga sua cotação</small></h2>
+                    <h2 class="text-light text-center"><small class="text-primary">Plano Selecionado</small></h2>
                     <input type="hidden" id="quantidade" name="quantidade"
                            value="<?php if (isset($carrinho_hidden['quantidade'])) echo $carrinho_hidden['quantidade']; ?>"/>
                     <input type="hidden" id="plano" name="plano"
@@ -224,11 +224,11 @@
                         <!-- Table heading -->
                         <thead>
                         <tr>
-                            <th class="center">Item</th>
-                            <th width='65%'>Plano</th>
-                            <th width='5%'>Quantidade</th>
-                            <th width='10%'>Valor</th>
-                            <th class="center" width='15%'>Ações</th>
+<!--                            <th class="center">Item</th>-->
+                            <th width='70%'>Plano</th>
+<!--                            <th width='5%'>Quantidade</th>-->
+                            <th width='30%'>Valor</th>
+<!--                            <th class="center" width='15%'>Ações</th>-->
                         </tr>
                         </thead>
                         <!-- // Table heading END -->
@@ -238,23 +238,23 @@
                         <?php if (count($carrinho) == 0) { ?>
 
                             <tr>
-                                <td colspan="5"> Seu Carrinho esta vazio</td>
+                                <td colspan="5"> Nenhum Plano Selecionado</td>
                             </tr>
                         <?php } else { ?>
 
                             <?php foreach ($carrinho as $item) : ?>
                                 <!-- Table row -->
                                 <tr class="plano-carrinho-<?php echo $item['plano_id']; ?>">
-                                    <td><?php echo $item['item']; ?></td>
+<!--                                    <td>--><?php //echo $item['item']; ?><!--</td>-->
                                     <td><?php echo $item['plano']; ?></td>
-                                    <td><?php echo $item['quantidade']; ?></td>
+<!--                                    <td>--><?php //echo $item['quantidade']; ?><!--</td>-->
                                     <td><?php echo $item['valor']; ?></td>
-                                    <td class="center">
-                                        <a href="javascript:void(0);"
-                                           data-plano="<?php echo $item['plano_id']; ?>"
-                                           class="btn btn-sm btn-danger delete-carrinho"> <i
-                                                    class="fa fa-eraser"></i> Excluir </a>
-                                    </td>
+<!--                                    <td class="center">-->
+<!--                                        <a href="javascript:void(0);"-->
+<!--                                           data-plano="--><?php //echo $item['plano_id']; ?><!--"-->
+<!--                                           class="btn btn-sm btn-danger delete-carrinho"> <i-->
+<!--                                                    class="fa fa-eraser"></i> Excluir </a>-->
+<!--                                    </td>-->
                                 </tr>
                                 <!-- // Table row END -->
                             <?php endforeach;
