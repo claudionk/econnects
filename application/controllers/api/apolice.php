@@ -210,10 +210,12 @@ class Apolice extends CI_Controller {
         return $POST;
     }
 
-    public function validarDadosEntrada()
+    public function validarDadosEntrada($POST = [])
     {
 
-        $POST = $this->getDados();
+        if (empty($POST)) {
+            $POST = $this->getDados();
+        }
 
         $apolice_id = null;
         if( isset( $POST["apolice_id"] ) ) {
@@ -298,18 +300,17 @@ class Apolice extends CI_Controller {
 
         $apolices = [];
         $result = [];
+        $erros = [];
 
         // Realiza as validações antes de executar
         foreach ($POST["apolices"] as $key => $value) {
             // Validar apolice_id
-            $validacao = $this->validarDadosEntrada();
+            $validacao = $this->validarDadosEntrada($value);
 
             $apolice_id = $validacao['dados']['apolice_id'];
             $pedido_id  = $validacao['pedido_id'];
 
             // Validar outros parâmetros
-            $this->parcelaReturn($apolice_id, );
-
             (array_key_exists('parcela', $validacao['dados'])) ? $parcela = $validacao['dados']['parcela'] : $this->parcelaReturn($apolice_id,"Campo parcela é obrigatório");
             (array_key_exists('total_parcelas', $validacao['dados'])) ? $total_parcelas = $validacao['dados']['total_parcelas'] : $this->parcelaReturn($apolice_id,"Campo total_parcelas é obrigatório");
             (array_key_exists('valor', $validacao['dados'])) ? $valor = trim(str_replace(",", ".", $validacao['dados']['valor'])) : $this->parcelaReturn($apolice_id,"Campo valor é obrigatório");
