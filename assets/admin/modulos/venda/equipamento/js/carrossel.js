@@ -581,7 +581,7 @@ $(function(){
                 toastr.error("Tabela de Preço não configurada para o Plano "+ nome[i], "Atenção!");
             } else {
 
-                if (typeof layout === 'undefined') {
+                if ((typeof layout === 'undefined') || (layout == 'base')) {
                     tr = '<tr class="plano-carrinho-' + plano[i] + '">';
                     tr += '<td>' + (i + 1) + '</td>';
                     tr += '<td>' + nome[i] + '</td>';

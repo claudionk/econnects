@@ -38,7 +38,7 @@
 
                     <?php
                     if((isset($layout)) && ($layout == 'front') && ($context != "pagamento")) {
-                        $this->load->view('admin/venda/equipamento/front/step', array('step' => 5, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'] ));
+                        $this->load->view('admin/venda/equipamento/front/step', array('step' => 5, 'produto_parceiro_id' => $produto_parceiro_id ));
                     }else{
                         if ($context != "pagamento") {
                             $this->load->view("admin/venda/step", array('step' => 5, 'produto_parceiro_id' => $produto_parceiro_id ));
