@@ -270,7 +270,7 @@ class Apolice extends CI_Controller {
      * @author Davi Souto
      * @since  08/04/2019 
      */
-    public function criarEndossoManual() {
+    public function parcela() {
         $this->checkKey();
 
         // Validar apolice_id
