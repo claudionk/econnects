@@ -576,17 +576,30 @@ $(function(){
             var nome = $('#plano_nome').val().split(';');
             var quantidade = $('#quantidade').val().split(';');
             var valor_total = $('#valor_total').val().split(';');
+            console.log(nome);
             if (parseFloat(valor_total[i]) == 0) {
                 toastr.error("Tabela de Preço não configurada para o Plano "+ nome[i], "Atenção!");
             } else {
-                tr = '<tr class="plano-carrinho-'+ plano[i] +'">';
-                tr += '<td>'+ (i+1) +'</td>';
-                tr += '<td>'+ nome[i] +'</td>';
-                tr += '<td>'+ quantidade[i] +'</td>';
-                tr += '<td>'+ valor_total[i] +'</td>';
-                tr += '<td><a href="javascript:void(0);" data-plano="'+ plano[i] +'" class="btn btn-sm btn-danger delete-carrinho"><i class="fa fa-eraser"></i>Excluir</a></td>';
-                tr += '</tr>';
-                $('.body-carrinho').append(tr);
+
+                if (typeof layout === 'undefined') {
+                    tr = '<tr class="plano-carrinho-' + plano[i] + '">';
+                    tr += '<td>' + (i + 1) + '</td>';
+                    tr += '<td>' + nome[i] + '</td>';
+                    tr += '<td>' + quantidade[i] + '</td>';
+                    tr += '<td>' + valor_total[i] + '</td>';
+                    tr += '<td><a href="javascript:void(0);" data-plano="' + plano[i] + '" class="btn btn-sm btn-danger delete-carrinho"><i class="fa fa-eraser"></i>Excluir</a></td>';
+                    tr += '</tr>';
+                    $('.body-carrinho').append(tr);
+                }else{
+                    tr = '<tr class="plano-carrinho-' + plano[i] + '">';
+                    //tr += '<td>' + (i + 1) + '</td>';
+                    tr += '<td>' + nome[i] + '</td>';
+                    //tr += '<td>' + quantidade[i] + '</td>';
+                    tr += '<td>' + valor_total[i] + '</td>';
+                    //tr += '<td><a href="javascript:void(0);" data-plano="' + plano[i] + '" class="btn btn-sm btn-danger delete-carrinho"><i class="fa fa-eraser"></i>Excluir</a></td>';
+                    tr += '</tr>';
+                    $('.body-carrinho').append(tr);
+                }
 
                 //Adiciona carrinho
                 toastr.success("O plano "+ nome[i] +" foi adicionado ao carrinho com sucesso!");

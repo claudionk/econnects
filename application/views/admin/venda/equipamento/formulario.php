@@ -20,7 +20,7 @@
 <?php } ?>
 
 <div class="card">
-    <div class="card-body">
+    <div class="card-body" <?php echo ((isset($layout)) && ($layout == 'front')) ? 'style="background-color: #eee"' : ''; ?>>
         <!-- Form -->
         <form class="form" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
             <input type="hidden" name="<?php echo $primary_key ?>" id="<?php echo $primary_key ?>" value="<?php if (isset($produto_parceiro_id)) echo $produto_parceiro_id; ?>"/>
@@ -39,7 +39,16 @@
 
                     <h2 class="text-light text-center"><?php echo app_produto_traducao('Dados iniciais da Cotação', $produto_parceiro_id); ?><br><small class="text-primary"><?php echo app_produto_traducao('Informe os dados pessoais para iniciar a cotação', $produto_parceiro_id); ?></small></h2>
 
-                    <?php $this->load->view('admin/venda/step', array('step' => 1 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id))); ?>
+                    <?php
+                        if((isset($layout)) && ($layout == 'front')) {
+                            $this->load->view('admin/venda/equipamento/front/step', array('step' => 1, 'produto_parceiro_id' => $produto_parceiro_id));
+                        }else{
+                            $this->load->view("admin/venda/step", array('step' => 1, 'produto_parceiro_id' => $produto_parceiro_id ));
+                        }
+                    ?>
+
+
+                    <?php // $this->load->view('admin/venda/step', array('step' => 1 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id))); ?>
 
                     <?php $this->load->view('admin/campos_sistema/lista_campos'); ?>
 

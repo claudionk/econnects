@@ -193,9 +193,9 @@
 
                 </div>
 
-                <div class="col-md-12">
+                <div class="col-md-12" style="background: #FFFFFF">
 
-                    <h2 class="text-light text-center">Carrinho de Compras<br><small class="text-primary">Confirme e siga sua cotação</small></h2>
+                    <h2 class="text-light text-center"><small class="text-primary">Plano Selecionado</small></h2>
                     <input type="hidden" id="quantidade" name="quantidade"
                            value="<?php if (isset($carrinho_hidden['quantidade'])) echo $carrinho_hidden['quantidade']; ?>"/>
                     <input type="hidden" id="plano" name="plano"
@@ -224,11 +224,11 @@
                         <!-- Table heading -->
                         <thead>
                         <tr>
-                            <th class="center">Item</th>
-                            <th width='65%'>Plano</th>
-                            <th width='5%'>Quantidade</th>
-                            <th width='10%'>Valor</th>
-                            <th class="center" width='15%'>Ações</th>
+<!--                            <th class="center">Item</th>-->
+                            <th width='70%'>Plano</th>
+<!--                            <th width='5%'>Quantidade</th>-->
+                            <th width='30%'>Valor</th>
+<!--                            <th class="center" width='15%'>Ações</th>-->
                         </tr>
                         </thead>
                         <!-- // Table heading END -->
@@ -238,23 +238,23 @@
                         <?php if (count($carrinho) == 0) { ?>
 
                             <tr>
-                                <td colspan="5"> Seu Carrinho esta vazio</td>
+                                <td colspan="5"> Nenhum Plano Selecionado</td>
                             </tr>
                         <?php } else { ?>
 
                             <?php foreach ($carrinho as $item) : ?>
                                 <!-- Table row -->
                                 <tr class="plano-carrinho-<?php echo $item['plano_id']; ?>">
-                                    <td><?php echo $item['item']; ?></td>
+<!--                                    <td>--><?php //echo $item['item']; ?><!--</td>-->
                                     <td><?php echo $item['plano']; ?></td>
-                                    <td><?php echo $item['quantidade']; ?></td>
+<!--                                    <td>--><?php //echo $item['quantidade']; ?><!--</td>-->
                                     <td><?php echo $item['valor']; ?></td>
-                                    <td class="center">
-                                        <a href="javascript:void(0);"
-                                           data-plano="<?php echo $item['plano_id']; ?>"
-                                           class="btn btn-sm btn-danger delete-carrinho"> <i
-                                                    class="fa fa-eraser"></i> Excluir </a>
-                                    </td>
+<!--                                    <td class="center">-->
+<!--                                        <a href="javascript:void(0);"-->
+<!--                                           data-plano="--><?php //echo $item['plano_id']; ?><!--"-->
+<!--                                           class="btn btn-sm btn-danger delete-carrinho"> <i-->
+<!--                                                    class="fa fa-eraser"></i> Excluir </a>-->
+<!--                                    </td>-->
                                 </tr>
                                 <!-- // Table row END -->
                             <?php endforeach;

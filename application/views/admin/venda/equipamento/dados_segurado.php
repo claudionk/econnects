@@ -23,7 +23,7 @@
 <div class="card">
 
     <!-- col-app -->
-    <div class="card-body">
+    <div class="card-body" <?php echo ((isset($layout)) && ($layout == 'front')) ? 'style="background-color: #eee"' : ''; ?>>
 
         <!-- Form -->
         <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
