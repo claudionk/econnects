@@ -34,7 +34,13 @@
                 <small class="text-primary"><?php echo app_produto_traducao('Informe os dados pessoais da contratação', $carrossel['produto_parceiro_id']); ?></small>
             </h2>
 
-            <?php $this->load->view('admin/venda/step', array('step' => 3, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'] )); ?>
+            <?php
+                if((isset($layout)) && ($layout == 'front')) {
+                    $this->load->view('admin/venda/equipamento/front/step', array('step' => 3, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'] ));
+                }else{
+                    $this->load->view('admin/venda/step', array('step' => 3, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'] ));
+                }
+            ?>
 
                 <div class="row">
                     <div class="col-md-6">

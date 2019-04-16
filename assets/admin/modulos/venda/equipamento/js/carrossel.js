@@ -246,6 +246,7 @@ $(function(){
 
     var qnt_cobertura = parseInt($('#quantidade_cobertura').val());
     var t_cobertura = parseInt($('#total_cobertura').val());
+
     for (i = qnt_cobertura+1; i <= t_cobertura; i++) {
         $( ".list_cobertura_"+i).hide();
         console.log('esconder', ".list_cobertura_"+i);

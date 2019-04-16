@@ -36,9 +36,15 @@
                         <small class="text-primary"><?php echo app_produto_traducao('Aguarde a confirmação de seu pagamento', $produto_parceiro_id); ?></small>
                     </h2>
 
-                    <?php if ($context != "pagamento") { ?>
-                        <?php $this->load->view("admin/venda/step", array('step' => 4, 'produto_parceiro_id' => $produto_parceiro_id)); ?>
-                    <?php } ?>
+                    <?php
+                    if((isset($layout)) && ($layout == 'front') && ($context != "pagamento")) {
+                        $this->load->view('admin/venda/equipamento/front/step', array('step' => 5, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'] ));
+                    }else{
+                        if ($context != "pagamento") {
+                            $this->load->view("admin/venda/step", array('step' => 5, 'produto_parceiro_id' => $produto_parceiro_id ));
+                        }
+                    }
+                    ?>
 
                     <div class="col-md-6">
 
