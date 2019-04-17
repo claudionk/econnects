@@ -200,11 +200,13 @@
                 <h3 class="text-ultra-bold text-primary">BAIXE NOSSO APP PARA EMITIR SEU SEGURO</h3>
                 <p class="text-lg text-primary">ou acesse o link enviado para seu celular</p>
                 <br/>
-                <img width="70%" src="<?php echo app_assets_url('core/images/google-play.png' , 'admin'); ?>">
+                <a href="<?php echo $this->config->item("URL_APLICATIVO"); ?>">
+                    <img width="70%" src="<?php echo app_assets_url('core/images/google-play.png' , 'admin'); ?>">
+                </a>
                 <br/>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+                <a href="<?php echo $this->config->item("URL_APLICATIVO"); ?>" class="btn btn-primary">OK</a>
             </div>
         </div>
 
