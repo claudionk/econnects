@@ -144,12 +144,12 @@ class Admin_Controller extends MY_Controller
             $pode_acessar = true;
           }
         }
-
+        /* @todo verificar somente se é possivel ver somente o controller
         if(!$pode_acessar && !in_array(current_url(), $urls_pode_acessar))
         {
           echo "Você não possui autorização para ver esta página.";
           exit;
-        }
+        }*/
       }
 
       if(isset($userdata['termo_aceite']) && $userdata['termo_aceite'] == 0)

@@ -50,7 +50,7 @@
                                 <div class="card card-type-pricing text-center">
 
                                     <div class="card-body">
-                                        <h2 class="text-light"><?php echo $plano['nome'] ?></h2>
+                                        <h2 class="text-light plano_nome_one_<?php echo $plano['produto_parceiro_plano_id']; ?>"><?php echo $plano['nome'] ?></h2>
                                         <div class="price">
                                             <H1 class="text-xl">R$</H1>
 

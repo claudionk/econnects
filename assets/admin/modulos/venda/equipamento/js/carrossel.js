@@ -475,6 +475,8 @@ $(function(){
             nome = nome.split(';');
         }
 
+        console.log('plano---',plano)
+        console.log('plano---2',$('.plano_nome_one_'+plano).html())
         nome.push($('.plano_nome_one_'+plano).html());
         $('#plano_nome').val(nome.join(';'));
 
