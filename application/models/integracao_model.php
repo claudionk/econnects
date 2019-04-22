@@ -850,7 +850,8 @@ Class Integracao_Model extends MY_Model
                 if ( function_exists($integracao['before_detail']) ) {
 
                     // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods 
-                    if(!empty($datum['cod_erro']) && $datum['cod_erro'] == 22 && ( $datum['tipo_arquivo'] == 'CLIENTE' || $datum['tipo_arquivo'] == 'EMSCMS' || $datum['tipo_arquivo'] == 'PARCEMS' ) ) 
+                    // Tratando o erro 110 - Registro duplicado no arquivo de origem
+                    if(!empty($datum['cod_erro']) && in_array($datum['cod_erro'], [22, 110]) && ( $datum['tipo_arquivo'] == 'CLIENTE' || $datum['tipo_arquivo'] == 'EMSCMS' || $datum['tipo_arquivo'] == 'PARCEMS' ) ) 
                     {
                         $msgDetCampo[] = ['id' => 12, 'msg' => $datum['cod_erro'] ." - ". $datum['descricao_erro'], 'slug' => "erro_retorno"];
                     } else 
