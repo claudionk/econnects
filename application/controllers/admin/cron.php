@@ -292,4 +292,33 @@ class Cron extends Admin_Controller
         $this->cta_movimentacao->run();
     }
 
+    /**
+     * Coberturas de Parceiros Terceiros para integração
+     */
+    public function cobertura_parceiro()
+    {
+        $this->load->model("apolice_model", "apolice");
+        $this->load->model("comunicacao_model");
+        $this->load->library("Comunicacao");
+
+        $apolices = $this->apolice->getByRespoCobertura('ativa', 'powerbiz');
+
+        foreach ($apolices as $apolice) {
+            $verifica_ja_comunicado = $this->comunicacao_model->get_by(array(
+                'tabela' => 'apolice_movimentacao',
+                'campo'  => 'apolice_movimentacao_id',
+                'chave'  => $apolice['apolice_movimentacao_id'],
+            ));
+
+            if (!$verifica_ja_comunicado) {
+                $comunicacao = new Comunicacao();
+                $comunicacao->setTabela("apolice");
+                $comunicacao->setCampo("apolice_id");
+                $comunicacao->setChave($apolice['apolice_id']);
+                $comunicacao->disparaEvento( ($apolice['slugMov'] == 'A') ? "powerbiz_new" : "powerbiz_cancel", $apolice['parceiroID'] );
+            }
+
+        }
+    }    
+
 }

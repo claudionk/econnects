@@ -879,29 +879,29 @@ class Apolice_Model extends MY_Model
         }
 
         /*
-    $apolice_id = (int)$apolice_id;
+        $apolice_id = (int)$apolice_id;
 
-    $sql = "
-    SELECT apolice.apolice_id,
-    apolice.pedido_id,
-    apolice.num_apolice,
-    apolice.apolice_status_id,
-    apolice.produto_parceiro_plano_id,
-    apolice.parceiro_id,
-    apolice_status.nome as apolice_status_nome,
-    apolice_status.slug as apolice_status_slug,
-    apolice_seguro_viagem.*
-    FROM apolice
-    INNER JOIN apolice_status ON apolice.apolice_status_id = apolice_status.apolice_status_id
-    INNER JOIN apolice_seguro_viagem ON apolice.apolice_id = apolice_seguro_viagem.apolice_id
-    WHERE
-    apolice.deletado = 0
-    AND apolice_seguro_viagem.deletado = 0
-    AND apolice.apolice_id = {$apolice_id}
-    ";
+        $sql = "
+        SELECT apolice.apolice_id,
+        apolice.pedido_id,
+        apolice.num_apolice,
+        apolice.apolice_status_id,
+        apolice.produto_parceiro_plano_id,
+        apolice.parceiro_id,
+        apolice_status.nome as apolice_status_nome,
+        apolice_status.slug as apolice_status_slug,
+        apolice_seguro_viagem.*
+        FROM apolice
+        INNER JOIN apolice_status ON apolice.apolice_status_id = apolice_status.apolice_status_id
+        INNER JOIN apolice_seguro_viagem ON apolice.apolice_id = apolice_seguro_viagem.apolice_id
+        WHERE
+        apolice.deletado = 0
+        AND apolice_seguro_viagem.deletado = 0
+        AND apolice.apolice_id = {$apolice_id}
+        ";
 
-    return $this->_database->query($sql)->result_array();
-     */
+        return $this->_database->query($sql)->result_array();
+         */
     }
 
     public function getApoliceAll($limit, $offset)
@@ -1271,10 +1271,10 @@ class Apolice_Model extends MY_Model
     public function search_apolice_produto_parceiro_plano_id($num_apolice, $produto_parceiro_plano_id)
     {
         $sql = "
-                    SELECT apolice_id
-                    FROM apolice
-                    WHERE num_apolice = '{$num_apolice}' and produto_parceiro_plano_id = '{$produto_parceiro_plano_id}'
-                    LIMIT 1
+            SELECT apolice_id
+            FROM apolice
+            WHERE num_apolice = '{$num_apolice}' and produto_parceiro_plano_id = '{$produto_parceiro_plano_id}'
+            LIMIT 1
         ";
         return (int) $this->_database->query($sql)->num_rows() == 1;
     }
@@ -1288,6 +1288,29 @@ class Apolice_Model extends MY_Model
         $this->db->where('produto_parceiro.cod_tpa', $tpa);
         $this->db->where("{$this->_table}.num_apolice LIKE '%{$num_apolice}%'");
         return $this;
+    }
+
+    function getByRespoCobertura($status = 'ativa', $parceiro_slug = null)
+    {
+        $this->_database->distinct()
+            // ->select("72 as parceiroID, apolice_movimentacao.apolice_movimentacao_id", FALSE)
+            ->select("parceiro.parceiro_id as parceiroID, apolice_movimentacao.apolice_movimentacao_id, apolice_movimentacao_tipo.slug as slugMov")
+            ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
+            ->join("apolice_movimentacao", "apolice.apolice_id = apolice_movimentacao.apolice_id", 'inner')
+            ->join("apolice_movimentacao_tipo", "apolice_movimentacao.apolice_movimentacao_tipo_id = apolice_movimentacao_tipo.apolice_movimentacao_tipo_id", 'inner')
+            ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner')
+            ->join("cobertura_plano", "produto_parceiro_plano.produto_parceiro_plano_id = cobertura_plano.produto_parceiro_plano_id", 'inner')
+            ->join("parceiro", "parceiro.parceiro_id = cobertura_plano.parceiro_id", 'inner')
+            ->where('apolice_status.slug', $status);
+
+        if (!empty($parceiro_slug)) {
+            $this->_database->where('parceiro.slug', $parceiro_slug);
+        }
+
+        // Remover
+        // $this->_database->where('apolice.apolice_id', 14679);
+
+        return $this->get_all();
     }
 
 }
