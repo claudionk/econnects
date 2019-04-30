@@ -56,4 +56,10 @@ Class Produto_Parceiro_Apolice_Multiplo_Model extends MY_Model
         return $this;
     }
 
+    function get_by_produto_parceiro_id($produto_parceiro_id)
+    {
+        $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
+        return $this;
+    }
+
 }

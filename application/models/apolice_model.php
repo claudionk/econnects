@@ -208,9 +208,11 @@ class Apolice_Model extends MY_Model
         $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento');
         $this->load->model('cotacao_cobertura_model', 'cotacao_cobertura');
 
-        $this->load->model('apolice_numero_seq_model', 'apolice_seq');
         $this->load->model('apolice_equipamento_model', 'apolice_equipamento');
+        $this->load->model('apolice_numero_seq_model', 'apolice_seq');
         $this->load->model('produto_parceiro_apolice_range_model', 'apolice_range');
+        $this->load->model('produto_parceiro_apolice_multiplo_model', 'apolice_multiplo');
+        $this->load->model('produto_parceiro_apolice_multiplo_range_model', 'apolice_multiplo_range');
 
         $this->load->model('produto_parceiro_desconto_model', 'parceiro_desconto');
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
@@ -275,8 +277,16 @@ class Apolice_Model extends MY_Model
                 //é número Sequencial
                 $dados_apolice['num_apolice'] = $this->apolice_seq->get_proximo_codigo($pedido['produto_parceiro_id']);
             } else {
-                //não é número Sequencial
-                $dados_apolice['num_apolice'] = $this->apolice_range->get_proximo_codigo($pedido['produto_parceiro_id']);
+
+                // o sequencial é composto por vários produtos
+                if ($apolice_multiplo = $this->apolice_multiplo->get_by_produto_parceiro_id($pedido['produto_parceiro_id'])->get_all() ) {
+                    $apolice_multiplo = $apolice_multiplo[0];
+
+                    $dados_apolice['num_apolice'] = $this->apolice_multiplo_range->get_proximo_codigo($apolice_multiplo['produto_parceiro_apolice_multiplo_range_id']);
+                } else {
+                    $dados_apolice['num_apolice'] = $this->apolice_range->get_proximo_codigo($pedido['produto_parceiro_id']);
+                }
+
             }
 
             $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
@@ -413,9 +423,11 @@ class Apolice_Model extends MY_Model
         $this->load->model('cotacao_generico_model', 'cotacao_generico');
         $this->load->model('cotacao_cobertura_model', 'cotacao_cobertura');
 
-        $this->load->model('apolice_numero_seq_model', 'apolice_seq');
         $this->load->model('apolice_generico_model', 'apolice_generico');
+        $this->load->model('apolice_numero_seq_model', 'apolice_seq');
         $this->load->model('produto_parceiro_apolice_range_model', 'apolice_range');
+        $this->load->model('produto_parceiro_apolice_multiplo_model', 'apolice_multiplo');
+        $this->load->model('produto_parceiro_apolice_multiplo_range_model', 'apolice_multiplo_range');
 
         $this->load->model('produto_parceiro_desconto_model', 'parceiro_desconto');
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
@@ -480,8 +492,14 @@ class Apolice_Model extends MY_Model
                 //é número Sequencial
                 $dados_apolice['num_apolice'] = $this->apolice_seq->get_proximo_codigo($pedido['produto_parceiro_id']);
             } else {
-                //não é número Sequencial
-                $dados_apolice['num_apolice'] = $this->apolice_range->get_proximo_codigo($pedido['produto_parceiro_id']);
+                // o sequencial é composto por vários produtos
+                if ($apolice_multiplo = $this->apolice_multiplo->get_by_produto_parceiro_id($pedido['produto_parceiro_id'])->get_all() ) {
+                    $apolice_multiplo = $apolice_multiplo[0];
+
+                    $dados_apolice['num_apolice'] = $this->apolice_multiplo_range->get_proximo_codigo($apolice_multiplo['produto_parceiro_apolice_multiplo_range_id']);
+                } else {
+                    $dados_apolice['num_apolice'] = $this->apolice_range->get_proximo_codigo($pedido['produto_parceiro_id']);
+                }
             }
 
             $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
@@ -611,6 +629,8 @@ class Apolice_Model extends MY_Model
 
         $this->load->model('apolice_numero_seq_model', 'apolice_seq');
         $this->load->model('produto_parceiro_apolice_range_model', 'apolice_range');
+        $this->load->model('produto_parceiro_apolice_multiplo_model', 'apolice_multiplo');
+        $this->load->model('produto_parceiro_apolice_multiplo_range_model', 'apolice_multiplo_range');
 
         $this->load->model('produto_parceiro_desconto_model', 'parceiro_desconto');
 
@@ -680,8 +700,14 @@ class Apolice_Model extends MY_Model
                     //é número Sequencial
                     $dados_apolice['num_apolice'] = $this->apolice_seq->get_proximo_codigo($pedido['produto_parceiro_id']);
                 } else {
-                    //não é número Sequencial
-                    $dados_apolice['num_apolice'] = $this->apolice_range->get_proximo_codigo($pedido['produto_parceiro_id']);
+                    // o sequencial é composto por vários produtos
+                    if ($apolice_multiplo = $this->apolice_multiplo->get_by_produto_parceiro_id($pedido['produto_parceiro_id'])->get_all() ) {
+                        $apolice_multiplo = $apolice_multiplo[0];
+
+                        $dados_apolice['num_apolice'] = $this->apolice_multiplo_range->get_proximo_codigo($apolice_multiplo['produto_parceiro_apolice_multiplo_range_id']);
+                    } else {
+                        $dados_apolice['num_apolice'] = $this->apolice_range->get_proximo_codigo($pedido['produto_parceiro_id']);
+                    }
                 }
 
                 $apolice_id                                           = $this->insert($dados_apolice, true);
