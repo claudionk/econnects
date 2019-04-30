@@ -1,4 +1,4 @@
-<?php if (!defined('BASEPATH')) {exit('No direct script access allowed');}
+<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 /**
  * Class Produtos_Parceiros
@@ -28,6 +28,7 @@ class Produtos_Parceiros extends Admin_Controller
 
     public function view_by_parceiro($parceiro_id, $offset = 0) //Função padrão (load)
     {
+
         //Carrega bibliotecas
         $this->load->library('pagination');
 
