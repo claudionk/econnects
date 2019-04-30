@@ -25,23 +25,15 @@ class Apolice_Model extends MY_Model
 
     public function disparaEventoErroApolice($pedido_id)
     {
-        $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('cotacao_seguro_viagem_pessoa_model', 'cotacao_pessoa');
         $this->load->model('apolice_seguro_viagem_model', 'apolice_seguro_viagem');
 
-        $this->load->model('apolice_numero_seq_model', 'apolice_seq');
-        $this->load->model('produto_parceiro_apolice_range_model', 'apolice_range');
-
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
 
         $pedido = $this->pedido->getPedidoProdutoParceiro($pedido_id);
         $pedido = $pedido[0];
-
-        //obter numero da apolice;
-        $configuracao = $this->parceiro_configuracao->filter_by_produto_parceiro($pedido['produto_parceiro_id'])->get_all();
-        $configuracao = $configuracao[0];
 
         $produto_parceiro = $this->produto_parceiro->with_produto()->get($pedido['produto_parceiro_id']);
 
@@ -192,15 +184,11 @@ class Apolice_Model extends MY_Model
     public function insertSeguroEquipamento($pedido_id)
     {
 
-        $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento');
         $this->load->model('cotacao_cobertura_model', 'cotacao_cobertura');
-
-        $this->load->model('apolice_numero_seq_model', 'apolice_seq');
         $this->load->model('apolice_equipamento_model', 'apolice_equipamento');
-        $this->load->model('produto_parceiro_apolice_range_model', 'apolice_range');
 
         $this->load->model('produto_parceiro_desconto_model', 'parceiro_desconto');
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
@@ -219,10 +207,6 @@ class Apolice_Model extends MY_Model
 
         $pedido = $this->pedido->getPedidoProdutoParceiro($pedido_id);
         $pedido = $pedido[0];
-
-        //obter numero da apolice;
-        $configuracao = $this->parceiro_configuracao->filter_by_produto_parceiro($pedido['produto_parceiro_id'])->get_all();
-        $configuracao = $configuracao[0];
 
         //obter configurações de desconto
         $desconto_condicional = $this->parceiro_desconto->filter_by_produto_parceiro($pedido['produto_parceiro_id'])->get_all();
@@ -262,13 +246,8 @@ class Apolice_Model extends MY_Model
             $dados_apolice['parceiro_id']               = $cotacao_salva['parceiro_id']; //$this->session->userdata('parceiro_id'); //parceiro da venda
             $dados_apolice['apolice_status_id']         = 1;
 
-            if ($configuracao['apolice_sequencia'] == 1) {
-                //é número Sequencial
-                $dados_apolice['num_apolice'] = $this->apolice_seq->get_proximo_codigo($pedido['produto_parceiro_id']);
-            } else {
-                //não é número Sequencial
-                $dados_apolice['num_apolice'] = $this->apolice_range->get_proximo_codigo($pedido['produto_parceiro_id']);
-            }
+            // Define o número da apólice
+            $dados_apolice['num_apolice'] = $this->defineNumApolice($pedido['produto_parceiro_id']);
 
             $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
             $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao_salva['produto_parceiro_plano_id'], null, $cotacao_salva);
@@ -405,15 +384,11 @@ class Apolice_Model extends MY_Model
 
     public function insertSeguroGenerico($pedido_id)
     {
-        $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('cotacao_generico_model', 'cotacao_generico');
         $this->load->model('cotacao_cobertura_model', 'cotacao_cobertura');
-
-        $this->load->model('apolice_numero_seq_model', 'apolice_seq');
         $this->load->model('apolice_generico_model', 'apolice_generico');
-        $this->load->model('produto_parceiro_apolice_range_model', 'apolice_range');
 
         $this->load->model('produto_parceiro_desconto_model', 'parceiro_desconto');
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
@@ -432,10 +407,6 @@ class Apolice_Model extends MY_Model
 
         $pedido = $this->pedido->getPedidoProdutoParceiro($pedido_id);
         $pedido = $pedido[0];
-
-        //obter numero da apolice;
-        $configuracao = $this->parceiro_configuracao->filter_by_produto_parceiro($pedido['produto_parceiro_id'])->get_all();
-        $configuracao = $configuracao[0];
 
         //obter configurações de desconto
         $desconto_condicional = $this->parceiro_desconto->filter_by_produto_parceiro($pedido['produto_parceiro_id'])->get_all();
@@ -475,13 +446,8 @@ class Apolice_Model extends MY_Model
             $dados_apolice['parceiro_id']               = $cotacao_salva['parceiro_id']; //$this->session->userdata('parceiro_id'); //parceiro da venda
             $dados_apolice['apolice_status_id']         = 1;
 
-            if ($configuracao['apolice_sequencia'] == 1) {
-                //é número Sequencial
-                $dados_apolice['num_apolice'] = $this->apolice_seq->get_proximo_codigo($pedido['produto_parceiro_id']);
-            } else {
-                //não é número Sequencial
-                $dados_apolice['num_apolice'] = $this->apolice_range->get_proximo_codigo($pedido['produto_parceiro_id']);
-            }
+            // Define o número da apólice
+            $dados_apolice['num_apolice'] = $this->defineNumApolice($pedido['produto_parceiro_id']);
 
             $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
             $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($produto_parceiro_plano_id, null, $cotacao_salva);
@@ -609,14 +575,10 @@ class Apolice_Model extends MY_Model
 
     public function insertSeguroViagem($pedido_id)
     {
-        $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('cotacao_seguro_viagem_pessoa_model', 'cotacao_pessoa');
         $this->load->model('apolice_seguro_viagem_model', 'apolice_seguro_viagem');
-
-        $this->load->model('apolice_numero_seq_model', 'apolice_seq');
-        $this->load->model('produto_parceiro_apolice_range_model', 'apolice_range');
 
         $this->load->model('produto_parceiro_desconto_model', 'parceiro_desconto');
 
@@ -634,10 +596,6 @@ class Apolice_Model extends MY_Model
 
         $pedido = $this->pedido->with_seguro_viagem()->getPedidoProdutoParceiro($pedido_id);
         $pedido = $pedido[0];
-
-        //obter numero da apolice;
-        $configuracao = $this->parceiro_configuracao->filter_by_produto_parceiro($pedido['produto_parceiro_id'])->get_all();
-        $configuracao = $configuracao[0];
 
         //obter configurações de desconto
         $desconto_condicional = $this->parceiro_desconto->filter_by_produto_parceiro($pedido['produto_parceiro_id'])->get_all();
@@ -683,13 +641,8 @@ class Apolice_Model extends MY_Model
                 $dados_apolice['parceiro_id']               = $cotacao_salva['parceiro_id']; //$this->session->userdata('parceiro_id'); //parceiro da venda
                 $dados_apolice['apolice_status_id']         = 1;
 
-                if ($configuracao['apolice_sequencia'] == 1) {
-                    //é número Sequencial
-                    $dados_apolice['num_apolice'] = $this->apolice_seq->get_proximo_codigo($pedido['produto_parceiro_id']);
-                } else {
-                    //não é número Sequencial
-                    $dados_apolice['num_apolice'] = $this->apolice_range->get_proximo_codigo($pedido['produto_parceiro_id']);
-                }
+                // Define o número da apólice
+                $dados_apolice['num_apolice'] = $this->defineNumApolice($pedido['produto_parceiro_id']);
 
                 $apolice_id                                           = $this->insert($dados_apolice, true);
                 $dados_seguro_viagem                                  = array();
@@ -1366,6 +1319,37 @@ class Apolice_Model extends MY_Model
         }
 
         return null;
+    }
+
+    public function defineNumApolice($produto_parceiro_id)
+    {
+        $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
+        $this->load->model('apolice_numero_seq_model', 'apolice_seq');
+        $this->load->model('produto_parceiro_apolice_range_model', 'apolice_range');
+        $this->load->model('produto_parceiro_apolice_multiplo_model', 'apolice_multiplo');
+        $this->load->model('produto_parceiro_apolice_multiplo_range_model', 'apolice_multiplo_range');
+
+        //obter numero da apolice;
+        $configuracao = $this->parceiro_configuracao->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
+        $configuracao = $configuracao[0];
+
+        if ($configuracao['apolice_sequencia'] == 1) {
+            //é número Sequencial
+            $num_apolice = $this->apolice_seq->get_proximo_codigo($produto_parceiro_id);
+        } else {
+
+            // o sequencial é composto por vários produtos
+            if ($apolice_multiplo = $this->apolice_multiplo->get_by_produto_parceiro_id($produto_parceiro_id)->get_all() ) {
+                $apolice_multiplo = $apolice_multiplo[0];
+
+                $num_apolice = $this->apolice_multiplo_range->get_proximo_codigo($apolice_multiplo['produto_parceiro_apolice_multiplo_range_id']);
+            } else {
+                $num_apolice = $this->apolice_range->get_proximo_codigo($produto_parceiro_id);
+            }
+
+        }
+
+        return $num_apolice;
     }
 
 }

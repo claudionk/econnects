@@ -76,10 +76,10 @@ Class Produto_Parceiro_Apolice_Multiplo_Range_Model extends MY_Model
     }
 
 
-    public function get_proximo_codigo($produto_parceiro_id){
+    public function get_proximo_codigo($produto_parceiro_apolice_multiplo_range_id){
 
         $this->_database->select("{$this->_table}.*");
-        $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
+        $this->_database->where("{$this->_table}.produto_parceiro_apolice_multiplo_range_id", $produto_parceiro_apolice_multiplo_range_id);
         $this->_database->where("{$this->_table}.deletado", 0);
         $this->_database->where("{$this->_table}.habilitado", 1);
         $this->_database->where("{$this->_table}.sequencia < ", "{$this->_table}.numero_fim");
