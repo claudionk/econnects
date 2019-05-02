@@ -66,4 +66,11 @@ Class Servico_Model extends MY_Model
         )
     );
 
+    function with_prod_parc_serv ($produto_parceiro_id)
+    {
+        $this->_database->select('pps.param');
+        $this->_database->join('produto_parceiro_servico pps', "{$this->_table}.servico_id = pps.servico_id AND pps.produto_parceiro_id = $produto_parceiro_id AND pps.deletado = 0", "left");
+        return $this;
+    }
+
 }

@@ -1293,24 +1293,26 @@ class Apolice_Model extends MY_Model
     function getByRespoCobertura($status = 'ativa', $parceiro_slug = null)
     {
         $this->_database->distinct()
-            // ->select("72 as parceiroID, apolice_movimentacao.apolice_movimentacao_id", FALSE)
-            ->select("parceiro.parceiro_id as parceiroID, apolice_movimentacao.apolice_movimentacao_id, apolice_movimentacao_tipo.slug as slugMov")
+            ->select("72 as parceiroID, apolice_movimentacao.apolice_movimentacao_id, apolice_movimentacao_tipo.slug as slugMov, produto_parceiro_servico.produto_parceiro_servico_id, produto_parceiro_servico.param", FALSE)
+            // ->select("parceiro.parceiro_id as parceiroID, apolice_movimentacao.apolice_movimentacao_id, apolice_movimentacao_tipo.slug as slugMov, produto_parceiro_servico.produto_parceiro_servico_id, produto_parceiro_servico.param")
             ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
             ->join("apolice_movimentacao", "apolice.apolice_id = apolice_movimentacao.apolice_id", 'inner')
             ->join("apolice_movimentacao_tipo", "apolice_movimentacao.apolice_movimentacao_tipo_id = apolice_movimentacao_tipo.apolice_movimentacao_tipo_id", 'inner')
             ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner')
             ->join("cobertura_plano", "produto_parceiro_plano.produto_parceiro_plano_id = cobertura_plano.produto_parceiro_plano_id", 'inner')
             ->join("parceiro", "parceiro.parceiro_id = cobertura_plano.parceiro_id", 'inner')
+            ->join("produto_parceiro_servico", "produto_parceiro_servico.produto_parceiro_id = produto_parceiro_plano.produto_parceiro_id AND produto_parceiro_servico.deletado = 0", 'inner')
             ->where('apolice_status.slug', $status);
 
-        if (!empty($parceiro_slug)) {
-            $this->_database->where('parceiro.slug', $parceiro_slug);
-        }
+        // if (!empty($parceiro_slug)) {
+        //     $this->_database->where('parceiro.slug', $parceiro_slug);
+        // }
 
         // Remover
-        // $this->_database->where('apolice.apolice_id', 14679);
+        $this->_database->where('apolice.apolice_id', 14679);
 
         return $this->get_all();
+
     }
 
 }

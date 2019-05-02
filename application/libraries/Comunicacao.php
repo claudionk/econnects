@@ -36,7 +36,7 @@ class Comunicacao
     /**
      * Envia cron de mensagens
      */
-    public function enviaCronMensagens()
+    public function enviaCronMensagens($data = [])
     {
         $mensagens = $this->_ci->comunicacao_model
             ->with_foreign()
@@ -66,7 +66,13 @@ class Comunicacao
             if ($engine) {
                 $tipo_engine = $this->_ci->comunicacao_tipo->get($engine['comunicacao_engine_comunicacao_tipo_id']);
 
-                // print_r($this->_ci->db->last_query());
+                // popula os dados adicionais
+                if ( !empty($data) )
+                {
+                    foreach ($data as $key => $value) {
+                        $mensagem[$key] = $value;
+                    }
+                }
 
                 $metodo      = "envia_{$tipo_engine['slug']}";
                 // print_r($metodo);die();
@@ -479,172 +485,6 @@ class Comunicacao
         }
 
         return $response;
-    }
-
-    /**
-     * Integração com a PowerBiz para Emissão
-     * @param $mensagem
-     * @param $engine
-     * @return array
-     */
-    private function envia_powerbiz_new($mensagem, $engine)
-    {
-        print_r($mensagem);
-        die();
-
-        $response                   = array();
-        $response['retorno']        = "";
-        $response['retorno_codigo'] = "";
-        $response['status']         = false;
-
-        $basic = base64_encode( $engine['usuario'] .':'. $engine['senha'] );
-        $data = [
-            'order' => [
-                'sku' => '',
-            ]
-        ];
-
-        $config = array(
-            'urlCurl'    => $engine['servidor'],
-            'methodCurl' => 'POST',
-            'fieldsCurl' => json_encode($data, true),
-            'headerCurl' => array(
-                "accept: application/json",
-                "authorization: Basic ". $basic,
-                "content-type: application/json",
-                "cache-control: no-cache",
-            ),
-        );
-
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL            => $config['urlCurl'],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING       => "",
-            CURLOPT_MAXREDIRS      => 10,
-            CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_TIMEOUT        => 30,
-            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST  => $config['methodCurl'],
-            CURLOPT_POSTFIELDS     => $config['fieldsCurl'],
-            CURLOPT_HTTPHEADER     => $config['headerCurl'],
-        ));
-        $resp     = curl_exec($curl);
-        $info     = curl_getinfo($curl);
-        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        $err      = curl_error($curl);
-        curl_close($curl);
-
-        if ($err) {
-            $response['retorno']        = $err;
-            $response['retorno_codigo'] = $httpCode;
-        } else {
-
-            if ($httpCode != "200") {
-                $response['retorno']        = "HTTPCode: {$httpCode}";
-                $response['retorno_codigo'] = $httpCode;
-            } else {
-                $resp                       = json_decode($resp, true);
-                $code                       = (int)$resp['code'];
-
-                // sucesso
-                if ($code==0) {
-                    $response['retorno_codigo'] = $resp['code'];
-                    $response['status'] = true;
-                } else {
-                    $response['retorno']        = $resp['message'];
-                    $response['retorno_codigo'] = $resp['code'];
-                }
-
-            }
-
-        }
-
-        return $response;
-    }
-
-    /**
-     * Integração com a PowerBiz para Emissão
-     * @param $mensagem
-     * @param $engine
-     * @return array
-     */
-    private function envia_powerbiz_cancel($mensagem, $engine)
-    {
-        print_r($mensagem);
-        die();
-
-        $response                   = array();
-        $response['retorno']        = "";
-        $response['retorno_codigo'] = "";
-        $response['status']         = false;
-
-        $basic = base64_encode( $engine['usuario'] .':'. $engine['senha'] );
-        $data = [
-            'order' => [
-                'sku' => '',
-                'brid' => ''
-            ]
-        ];
-
-        $config = array(
-            'urlCurl'    => $engine['servidor'],
-            'methodCurl' => 'POST',
-            'fieldsCurl' => json_encode($data, true),
-            'headerCurl' => array(
-                "accept: application/json",
-                "authorization: Basic ". $basic,
-                "content-type: application/json",
-                "cache-control: no-cache",
-            ),
-        );
-
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL            => $config['urlCurl'],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING       => "",
-            CURLOPT_MAXREDIRS      => 10,
-            CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_TIMEOUT        => 30,
-            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST  => $config['methodCurl'],
-            CURLOPT_POSTFIELDS     => $config['fieldsCurl'],
-            CURLOPT_HTTPHEADER     => $config['headerCurl'],
-        ));
-        $resp     = curl_exec($curl);
-        $info     = curl_getinfo($curl);
-        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        $err      = curl_error($curl);
-        curl_close($curl);
-
-        if ($err) {
-            $response['retorno']        = $err;
-            $response['retorno_codigo'] = $httpCode;
-        } else {
-
-            if ($httpCode != "200") {
-                $response['retorno']        = "HTTPCode: {$httpCode}";
-                $response['retorno_codigo'] = $httpCode;
-            } else {
-                $resp                       = json_decode($resp, true);
-                $code                       = (int)$resp['code'];
-
-                // sucesso
-                if ($code==0) {
-                    $response['retorno_codigo'] = $resp['code'];
-                    $response['status'] = true;
-                } else {
-                    $response['retorno']        = $resp['message'];
-                    $response['retorno_codigo'] = $resp['code'];
-                }
-
-            }
-
-        }
-
-        return $response;
-
     }
 
     /**
