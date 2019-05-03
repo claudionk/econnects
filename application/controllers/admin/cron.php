@@ -299,39 +299,43 @@ class Cron extends Admin_Controller
     {
         $this->load->model("apolice_model", "apolice");
         $this->load->model('produto_parceiro_servico_model', 'produto_parceiro_servico');
-        // $this->load->model("comunicacao_model");
-        // $this->load->library("Comunicacao");
+        $this->load->model('produto_parceiro_servico_log_model', 'produto_parceiro_servico_log');
+        $this->load->library('Powerbiz');
 
+        $powerbiz = new Powerbiz();
         $apolices = $this->apolice->getByRespoCobertura('ativa', 'powerbiz');
         $configs = [];
 
         foreach ($apolices as $apolice) {
+            // Consulta o log da emissão
+            $logs = $this->produto_parceiro_servico_log
+                ->filter_by_produto_parceiro_servico_id( $apolice['produto_parceiro_servico_id'] )
+                ->filter_by_idConsulta( $apolice['apolice_movimentacao_id'] )
+                ->filter_by_consulta(($apolice['slugMov'] == 'A') ? 'new' : 'cancel')
+                ->get_all();
 
-            if ( !in_array($apolice['produto_parceiro_servico_id'], $configs) )
-            {
+            if ( empty($logs) ) {
+
                 $config = $this->produto_parceiro_servico
                     ->with_servico()
                     ->with_servico_tipo()
                     ->filter_by_servico_tipo('powerbiz')
-                    ->filter_by_produto_parceiro($apolice['produto_parceiro_servico_id'])
+                    ->filter_by_produto_parceiro($apolice['produto_parceiro_id'])
                     ->get_all();
 
-                $configs[] = $apolice['produto_parceiro_servico_id'];
-
-                if ( empty($config) ){
+                if ( !empty($config) ){
                     $config = $config[0];
-
 
                     if ($apolice['slugMov'] == 'A')
                     {
-                        $this->powerbiz_new([ 
-                            'apolice_id' => $apolice['apolice_id'], 
+                        $powerbiz->powerbiz_new($config, [ 
+                            'apolice_movimentacao_id' => $apolice['apolice_movimentacao_id'], 
                             'param' => $apolice['param'], 
                             'produto_parceiro_servico_id' => $apolice['produto_parceiro_servico_id'] 
                         ]);
                     } else {
-                        $this->powerbiz_cancel([ 
-                            'apolice_id' => $apolice['apolice_id'], 
+                        $powerbiz->powerbiz_cancel($config, [ 
+                            'apolice_movimentacao_id' => $apolice['apolice_movimentacao_id'], 
                             'param' => $apolice['param'], 
                             'produto_parceiro_servico_id' => $apolice['produto_parceiro_servico_id'] 
                         ]);
@@ -339,221 +343,8 @@ class Cron extends Admin_Controller
                 }
 
             }
-            
-            // $verifica_ja_comunicado = $this->comunicacao_model->get_by(array(
-            //     'tabela' => 'apolice_movimentacao',
-            //     'campo'  => 'apolice_movimentacao_id',
-            //     'chave'  => $apolice['apolice_movimentacao_id'],
-            // ));
-
-            // if (!$verifica_ja_comunicado) {
-            //     $comunicacao = new Comunicacao();
-            //     $comunicacao->setTabela("apolice_movimentacao");
-            //     $comunicacao->setCampo("apolice_movimentacao_id");
-            //     $comunicacao->setChave($apolice['apolice_movimentacao_id']);
-            //     $comunicacao->disparaEvento( ($apolice['slugMov'] == 'A') ? "powerbiz_new" : "powerbiz_cancel", $apolice['parceiroID'] );
-
-            //     // $this->comunicacao( [ 'apolice_id' => $apolice['apolice_id'] ] );
-            // }
-
-            
-        }
-    }
-
-    /**
-     * Integração com a PowerBiz para Emissão
-     * @param $mensagem
-     * @param $engine
-     * @return array
-     */
-    private function powerbiz_new($mensagem)
-    {
-
-        // $mensagem['mensagem'] = strtr($mensagem['mensagem'], ["{apolice_id}" => $mensagem['apolice_id']]);
-        // print_r($mensagem);die();
-        $this->load->model('produto_parceiro_servico_log_model', 'produto_parceiro_servico_log');
-
-
-        $response                   = array();
-        $response['retorno']        = "";
-        $response['retorno_codigo'] = "";
-        $response['status']         = false;
-        $Antes = new DateTime();
-
-        $basic = base64_encode( $engine['usuario'] .':'. $engine['senha'] );
-        $data = [
-            'order' => [
-                'sku' => $mensagem['param'],
-            ]
-        ];
-
-        $config = array(
-            'urlCurl'    => $engine['servidor'] ."new",
-            'methodCurl' => 'POST',
-            'fieldsCurl' => json_encode($data, true),
-            'headerCurl' => array(
-                "accept: application/json",
-                "authorization: Basic ". $basic,
-                "content-type: application/json",
-                "cache-control: no-cache",
-            ),
-        );
-
-        // print_r($config);echo "\n";die();
-
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL            => $config['urlCurl'],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING       => "",
-            CURLOPT_MAXREDIRS      => 10,
-            CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_TIMEOUT        => 30,
-            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST  => $config['methodCurl'],
-            CURLOPT_POSTFIELDS     => $config['fieldsCurl'],
-            CURLOPT_HTTPHEADER     => $config['headerCurl'],
-        ));
-        $resp     = curl_exec($curl);
-        $info     = curl_getinfo($curl);
-        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        $err      = curl_error($curl);
-        curl_close($curl);
-
-        // print_r($config['urlCurl']);echo "\n";
-        // print_r($err); echo "\n";
-        // print_r($httpCode); echo "\n";
-        // print_r($resp); echo "\n";
-        // die();
-
-        // Gera Log
-        $Depois = new DateTime();
-        $data_log["produto_parceiro_servico_id"] = $mensagem['produto_parceiro_servico_id'];
-        $data_log["url"] = $config['urlCurl'];
-        $data_log["consulta"] = "new";
-        $data_log["retorno"] = $resp;
-        $data_log["time_envio"] = $Antes->format( "H:i:s" );
-        $data_log["time_retorno"] = $Depois->format( "H:i:s" );
-        $data_log["parametros"] = $config['fieldsCurl'];
-        $data_log["data_log"] = $Antes->format( "Y-m-d H:i:s" );
-        $data_log["ip"] = ( isset( $_SERVER[ "REMOTE_ADDR" ] ) ? $_SERVER[ "REMOTE_ADDR" ] : "" );
-
-        if ($err) {
-            $response['retorno']        = $err;
-            $response['retorno_codigo'] = $httpCode;
-        } else {
-
-            if ($httpCode != "200") {
-                $response['retorno']        = "HTTPCode: {$httpCode}";
-                $response['retorno_codigo'] = $httpCode;
-            } else {
-                $resp = json_decode($resp, true);
-                $code = (int)$resp['code'];
-
-                // sucesso
-                if ($code==0) {
-                    $response['retorno_codigo'] = $resp['code'];
-                    $response['status'] = true;
-                    // $data_log["idConsulta"] = $resp['data']['order']['brid'];
-                    $data_log["idConsulta"] = $mensagem['apolice_id'];
-                } else {
-                    $response['retorno']        = $resp['message'];
-                    $response['retorno_codigo'] = $resp['code'];
-                }
-
-                
-
-
-            }
 
         }
-
-        $this->_ci->produto_parceiro_servico_log->insLog( $data_log["produto_parceiro_servico_id"], $data_log );
-        return $response;
-    }
-
-    /**
-     * Integração com a PowerBiz para Emissão
-     * @param $mensagem
-     * @param $engine
-     * @return array
-     */
-    private function powerbiz_cancel($mensagem, $engine)
-    {
-        print_r($mensagem);
-        die();
-
-        $response                   = array();
-        $response['retorno']        = "";
-        $response['retorno_codigo'] = "";
-        $response['status']         = false;
-
-        $basic = base64_encode( $engine['usuario'] .':'. $engine['senha'] );
-        $data = [
-            'order' => [
-                'sku' => '',
-                'brid' => ''
-            ]
-        ];
-
-        $config = array(
-            'urlCurl'    => $engine['servidor'] ."cancel",
-            'methodCurl' => 'POST',
-            'fieldsCurl' => json_encode($data, true),
-            'headerCurl' => array(
-                "accept: application/json",
-                "authorization: Basic ". $basic,
-                "content-type: application/json",
-                "cache-control: no-cache",
-            ),
-        );
-
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL            => $config['urlCurl'],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING       => "",
-            CURLOPT_MAXREDIRS      => 10,
-            CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_TIMEOUT        => 30,
-            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST  => $config['methodCurl'],
-            CURLOPT_POSTFIELDS     => $config['fieldsCurl'],
-            CURLOPT_HTTPHEADER     => $config['headerCurl'],
-        ));
-        $resp     = curl_exec($curl);
-        $info     = curl_getinfo($curl);
-        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        $err      = curl_error($curl);
-        curl_close($curl);
-
-        if ($err) {
-            $response['retorno']        = $err;
-            $response['retorno_codigo'] = $httpCode;
-        } else {
-
-            if ($httpCode != "200") {
-                $response['retorno']        = "HTTPCode: {$httpCode}";
-                $response['retorno_codigo'] = $httpCode;
-            } else {
-                $resp                       = json_decode($resp, true);
-                $code                       = (int)$resp['code'];
-
-                // sucesso
-                if ($code==0) {
-                    $response['retorno_codigo'] = $resp['code'];
-                    $response['status'] = true;
-                } else {
-                    $response['retorno']        = $resp['message'];
-                    $response['retorno_codigo'] = $resp['code'];
-                }
-
-            }
-
-        }
-
-        return $response;
-
     }
 
 }

@@ -9,7 +9,7 @@ Class Servico_Model extends MY_Model
     //Configurações
     protected $return_type = 'array';
     protected $soft_delete = TRUE;
-    
+
     //Chaves
     protected $soft_delete_key = 'deletado';
     protected $update_at_key = 'alteracao';
@@ -18,7 +18,7 @@ Class Servico_Model extends MY_Model
     //campos para transformação em maiusculo e minusculo
     protected $fields_lowercase = array();
     protected $fields_uppercase = array('nome');
-    
+
     //Dados
     public $validate = array(
         array(
@@ -43,6 +43,12 @@ Class Servico_Model extends MY_Model
         array(
             'field' => 'usuario',
             'label' => 'Usuário',
+            'rules' => 'trim|required',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'url',
+            'label' => 'Link',
             'rules' => 'trim|required',
             'groups' => 'default'
         ),
