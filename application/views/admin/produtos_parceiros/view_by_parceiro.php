@@ -24,6 +24,10 @@
                         <a href="<?php echo base_url("$current_controller_uri/add_by_parceiro/{$parceiro_id}")?>" class="btn  btn-app btn-primary">
                             <i class="fa  fa-plus"></i> Adicionar
                         </a>
+
+                        <a href="<?php echo base_url("admin/produtos_parceiros_apolice_multiplo_range/index/{$parceiro_id}")?>" class="btn  btn-app btn-primary">
+                            <i class="fa  fa-plus"></i> Range Múltiplos
+                        </a>
                     </div>
                 </div>
 
@@ -32,8 +36,6 @@
                         <?php $this->load->view('admin/partials/messages'); ?>
                     </div>
                 </div>
-
-
 
 
                 <!-- Widget -->
