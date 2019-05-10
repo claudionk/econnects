@@ -225,19 +225,19 @@ Class Integracao_Model extends MY_Model
             if($integracao){
                 switch ($integracao['periodicidade_unidade']) {
                     case 'I' :
-                        $date = date('Y-m-d H:i:s', mktime(date('h'), date('i') + $integracao['periodicidade'], 0, date('m'), date('d'), date('Y')));
+                        $date = date('Y-m-d H:i:s', mktime(date('H'), date('i') + $integracao['periodicidade'], 0, date('m'), date('d'), date('Y')));
                         break;
                     case 'H' :
-                        $date = date('Y-m-d H:i:s', mktime(date('h') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d'), date('Y')));
+                        $date = date('Y-m-d H:i:s', mktime(date('H') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d'), date('Y')));
                         break;
                     case 'D' :
-                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('h') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d') + $integracao['periodicidade'], date('Y')));
+                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('H') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d') + $integracao['periodicidade'], date('Y')));
                         break;
                     case 'M' :
-                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('h') + $integracao['periodicidade'], date('i'), 0, date('m') + $integracao['periodicidade'], date('d'), date('Y')));
+                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('H') + $integracao['periodicidade'], date('i'), 0, date('m') + $integracao['periodicidade'], date('d'), date('Y')));
                         break;
                     case 'Y' :
-                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('h') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d'), date('Y') + $integracao['periodicidade']));
+                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('H') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d'), date('Y') + $integracao['periodicidade']));
                         break;
                     case 'C' :
                         $date = date("Y-m-d h-i-s");
