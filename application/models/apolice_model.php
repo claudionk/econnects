@@ -1437,10 +1437,11 @@ class Apolice_Model extends MY_Model
     function getByRespoCobertura($parceiro_slug = null)
     {
         $this->_database->distinct()
-            // ->select("72 as parceiroID, produto_parceiro_plano.produto_parceiro_id, apolice_movimentacao.apolice_movimentacao_id, apolice_movimentacao_tipo.slug as slugMov, produto_parceiro_servico.produto_parceiro_servico_id, produto_parceiro_servico.param", FALSE)
-            ->select("parceiro.parceiro_id as parceiroID, produto_parceiro_plano.produto_parceiro_id, apolice_movimentacao.apolice_movimentacao_id, apolice_movimentacao_tipo.slug as slugMov, produto_parceiro_servico.produto_parceiro_servico_id, produto_parceiro_servico.param")
+            // ->select("72 as parceiroID, produto_parceiro_plano.produto_parceiro_id, IFNULL(apm.apolice_movimentacao_id, apolice_movimentacao.apolice_movimentacao_id) AS apolice_movimentacao_id, apolice_movimentacao_tipo.slug as slugMov, produto_parceiro_servico.produto_parceiro_servico_id, produto_parceiro_servico.param", FALSE)
+            ->select("parceiro.parceiro_id as parceiroID, produto_parceiro_plano.produto_parceiro_id, IFNULL(apm.apolice_movimentacao_id, apolice_movimentacao.apolice_movimentacao_id) AS apolice_movimentacao_id, apolice_movimentacao_tipo.slug as slugMov, produto_parceiro_servico.produto_parceiro_servico_id, produto_parceiro_servico.param", false)
             ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
             ->join("apolice_movimentacao", "apolice.apolice_id = apolice_movimentacao.apolice_id", 'inner')
+            ->join("apolice_movimentacao apm", "apolice.apolice_id = apm.apolice_id AND apm.apolice_movimentacao_tipo_id = 1", 'left')
             ->join("apolice_movimentacao_tipo", "apolice_movimentacao.apolice_movimentacao_tipo_id = apolice_movimentacao_tipo.apolice_movimentacao_tipo_id", 'inner')
             ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner')
             ->join("cobertura_plano", "produto_parceiro_plano.produto_parceiro_plano_id = cobertura_plano.produto_parceiro_plano_id", 'inner')
