@@ -1434,7 +1434,7 @@ class Apolice_Model extends MY_Model
         return $num_apolice;
     }
 
-    function getByRespoCobertura($status = 'ativa', $parceiro_slug = null)
+    function getByRespoCobertura($parceiro_slug = null)
     {
         $this->_database->distinct()
             // ->select("72 as parceiroID, produto_parceiro_plano.produto_parceiro_id, apolice_movimentacao.apolice_movimentacao_id, apolice_movimentacao_tipo.slug as slugMov, produto_parceiro_servico.produto_parceiro_servico_id, produto_parceiro_servico.param", FALSE)
@@ -1447,7 +1447,7 @@ class Apolice_Model extends MY_Model
             ->join("parceiro", "parceiro.parceiro_id = cobertura_plano.parceiro_id", 'inner')
             ->join("produto_parceiro_servico", "produto_parceiro_servico.produto_parceiro_id = produto_parceiro_plano.produto_parceiro_id AND produto_parceiro_servico.deletado = 0", 'inner')
             ->join("produto_parceiro_servico_log", "produto_parceiro_servico.produto_parceiro_servico_id = produto_parceiro_servico_log.produto_parceiro_servico_id AND apolice_movimentacao.apolice_movimentacao_id = produto_parceiro_servico_log.idConsulta AND produto_parceiro_servico_log.deletado = 0 AND produto_parceiro_servico_log.consulta = IF(apolice_movimentacao_tipo.slug = 'A', 'new', 'cancel')", 'left')
-            ->where('apolice_status.slug', $status)
+            ->where("apolice_status.slug IN('ativa','cancelada')")
             ->where('produto_parceiro_servico_log.produto_parceiro_servico_log_id IS NULL', null, FALSE);
 
         if (!empty($parceiro_slug)) {

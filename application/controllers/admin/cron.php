@@ -303,7 +303,7 @@ class Cron extends Admin_Controller
         $this->load->library('Powerbiz');
 
         $powerbiz = new Powerbiz();
-        $apolices = $this->apolice->getByRespoCobertura('ativa', 'powerbiz');
+        $apolices = $this->apolice->getByRespoCobertura('powerbiz');
         $configs = [];
 
         foreach ($apolices as $apolice) {
