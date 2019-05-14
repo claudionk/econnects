@@ -68,7 +68,8 @@
                                                                 <tr>
                                                                     <th width='2%'><div class="checkbox checkbox-inline checkbox-styled"><label><input type="checkbox" name="selec_todos" id="checkAll"></label></div></th>
                                                                     <th width='10%'>Tipo</th>
-                                                                    <th width='45%'>Nome</th>
+                                                                    <th width='25%'>Nome</th>
+                                                                    <th width='45%'>Parâmetros</th>
                                                                 </tr>
                                                                 </thead>
                                                                 <!-- // Table heading END -->
@@ -88,6 +89,9 @@
                                                                         <td><div class="checkbox checkbox-inline checkbox-styled"><label><input type="checkbox" class="checkbox_row" name="selec_row[]" id="selec_row_<?php echo $row['servico_id']; ?>" value="<?php echo $row['servico_id']; ?>" <?php if($idx_parceiro !== FALSE) {echo ' checked'; } ?>></label></div></td>
                                                                         <td><?php echo $row['servico_tipo_nome'];?></td>
                                                                         <td><?php echo $row['nome'];?></td>
+                                                                        <td>
+                                                                            <input class="form-control" id="param" name="param_<?php echo $row['servico_id']; ?>" type="text" value="<?php echo $row['param'];?>" >
+                                                                            </td>
                                                                     </tr>
                                                                 <?php endforeach; ?>
                                                                 <!-- // Table row END -->

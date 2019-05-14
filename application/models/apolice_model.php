@@ -1319,10 +1319,10 @@ class Apolice_Model extends MY_Model
     public function search_apolice_produto_parceiro_plano_id($num_apolice, $produto_parceiro_plano_id)
     {
         $sql = "
-                    SELECT apolice_id
-                    FROM apolice
-                    WHERE num_apolice = '{$num_apolice}' and produto_parceiro_plano_id = '{$produto_parceiro_plano_id}'
-                    LIMIT 1
+            SELECT apolice_id
+            FROM apolice
+            WHERE num_apolice = '{$num_apolice}' and produto_parceiro_plano_id = '{$produto_parceiro_plano_id}'
+            LIMIT 1
         ";
         return (int) $this->_database->query($sql)->num_rows() == 1;
     }
@@ -1432,6 +1432,30 @@ class Apolice_Model extends MY_Model
         }
 
         return $num_apolice;
+    }
+
+    function getByRespoCobertura($status = 'ativa', $parceiro_slug = null)
+    {
+        $this->_database->distinct()
+            // ->select("72 as parceiroID, produto_parceiro_plano.produto_parceiro_id, apolice_movimentacao.apolice_movimentacao_id, apolice_movimentacao_tipo.slug as slugMov, produto_parceiro_servico.produto_parceiro_servico_id, produto_parceiro_servico.param", FALSE)
+            ->select("parceiro.parceiro_id as parceiroID, produto_parceiro_plano.produto_parceiro_id, apolice_movimentacao.apolice_movimentacao_id, apolice_movimentacao_tipo.slug as slugMov, produto_parceiro_servico.produto_parceiro_servico_id, produto_parceiro_servico.param")
+            ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
+            ->join("apolice_movimentacao", "apolice.apolice_id = apolice_movimentacao.apolice_id", 'inner')
+            ->join("apolice_movimentacao_tipo", "apolice_movimentacao.apolice_movimentacao_tipo_id = apolice_movimentacao_tipo.apolice_movimentacao_tipo_id", 'inner')
+            ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner')
+            ->join("cobertura_plano", "produto_parceiro_plano.produto_parceiro_plano_id = cobertura_plano.produto_parceiro_plano_id", 'inner')
+            ->join("parceiro", "parceiro.parceiro_id = cobertura_plano.parceiro_id", 'inner')
+            ->join("produto_parceiro_servico", "produto_parceiro_servico.produto_parceiro_id = produto_parceiro_plano.produto_parceiro_id AND produto_parceiro_servico.deletado = 0", 'inner')
+            ->join("produto_parceiro_servico_log", "produto_parceiro_servico.produto_parceiro_servico_id = produto_parceiro_servico_log.produto_parceiro_servico_id AND apolice_movimentacao.apolice_movimentacao_id = produto_parceiro_servico_log.idConsulta AND produto_parceiro_servico_log.deletado = 0 AND produto_parceiro_servico_log.consulta = IF(apolice_movimentacao_tipo.slug = 'A', 'new', 'cancel')", 'left')
+            ->where('apolice_status.slug', $status)
+            ->where('produto_parceiro_servico_log.produto_parceiro_servico_log_id IS NULL', null, FALSE);
+
+        if (!empty($parceiro_slug)) {
+            $this->_database->where('parceiro.slug', $parceiro_slug);
+        }
+
+        return $this->get_all();
+
     }
 
 }

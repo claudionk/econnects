@@ -9,7 +9,7 @@ Class Servico_Model extends MY_Model
     //Configurações
     protected $return_type = 'array';
     protected $soft_delete = TRUE;
-    
+
     //Chaves
     protected $soft_delete_key = 'deletado';
     protected $update_at_key = 'alteracao';
@@ -18,7 +18,7 @@ Class Servico_Model extends MY_Model
     //campos para transformação em maiusculo e minusculo
     protected $fields_lowercase = array();
     protected $fields_uppercase = array('nome');
-    
+
     //Dados
     public $validate = array(
         array(
@@ -47,6 +47,12 @@ Class Servico_Model extends MY_Model
             'groups' => 'default'
         ),
         array(
+            'field' => 'url',
+            'label' => 'Link',
+            'rules' => 'trim|required',
+            'groups' => 'default'
+        ),
+        array(
             'field' => 'senha',
             'label' => 'Senha',
             'rules' => 'trim|required',
@@ -65,5 +71,12 @@ Class Servico_Model extends MY_Model
             'groups' => 'default'
         )
     );
+
+    function with_prod_parc_serv ($produto_parceiro_id)
+    {
+        $this->_database->select('pps.param');
+        $this->_database->join('produto_parceiro_servico pps', "{$this->_table}.servico_id = pps.servico_id AND pps.produto_parceiro_id = $produto_parceiro_id AND pps.deletado = 0", "left");
+        return $this;
+    }
 
 }

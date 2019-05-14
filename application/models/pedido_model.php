@@ -1443,15 +1443,15 @@ Class Pedido_Model extends MY_Model
 
         $this->_database->join("cotacao c", "c.cotacao_id = {$this->_table}.cotacao_id", "inner");
         $this->_database->join("cotacao_status cs", "cs.cotacao_status_id = c.cotacao_status_id", "inner");
-        $this->_database->join("cotacao_equipamento ce", "ce.cotacao_id = {$this->_table}.cotacao_id and ce.deletado = 0", "inner");
+        $this->_database->join("cotacao_equipamento ce", "ce.cotacao_id = {$this->_table}.cotacao_id and ce.deletado = 0", "left");
         $this->_database->join("produto_parceiro pp", "pp.produto_parceiro_id = c.produto_parceiro_id", "inner");
         $this->_database->join("parceiro p", "p.parceiro_id = pp.parceiro_id", "inner");
         $this->_database->join("parceiro parc", "parc.parceiro_id = a.parceiro_id", "inner");
         $this->_database->join("produto pr", "pr.produto_id = pp.produto_id", "inner");
         $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "inner");
         $this->_database->join("cliente cli", "cli.cliente_id = c.cliente_id", "inner");
-        $this->_database->join("equipamento_categoria ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "inner");
-        $this->_database->join("equipamento_marca em", "em.equipamento_marca_id = ae.equipamento_marca_id", "inner");
+        $this->_database->join("equipamento_categoria ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "left");
+        $this->_database->join("equipamento_marca em", "em.equipamento_marca_id = ae.equipamento_marca_id", "left");
         $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = ce.produto_parceiro_plano_id", "inner");
 
         $this->_database->join("produto_parceiro_pagamento pppag", "pppag.produto_parceiro_pagamento_id = pedido.produto_parceiro_pagamento_id", "inner");
