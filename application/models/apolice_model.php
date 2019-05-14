@@ -109,6 +109,7 @@ class Apolice_Model extends MY_Model
     {
 
         $this->load->model('pedido_model', 'pedido');
+        $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
 
         $apolice = $this->get_many_by(array('pedido_id' => $pedido_id));
@@ -124,6 +125,87 @@ class Apolice_Model extends MY_Model
 
             $conclui_em_tempo_real = $this->parceiro_configuracao->item_config($produto['produto_parceiro_id'], 'conclui_em_tempo_real');
             if ($etapa == 'pagamento' && $conclui_em_tempo_real == false ) {
+
+
+                $this->load->library("Short_url");
+
+                if ($produto['slug'] == 'seguro_viagem') {
+                    $cotacao_salvas = $this->cotacao->with_cotacao_seguro_viagem()
+                        ->filterByID($produto['cotacao_id'])
+                        ->get_all();
+                } elseif ($produto['slug'] == 'equipamento') {
+
+                    $cotacao_salvas = $this->cotacao->with_cotacao_equipamento()
+                        ->filterByID($produto['cotacao_id'])
+                        ->get_all();
+                } elseif ($produto["slug"] == "generico" || $produto["slug"] == "seguro_saude") {
+
+                    $cotacao_salvas = $this->cotacao->with_cotacao_generico()
+                        ->filterByID($produto['cotacao_id'])
+                        ->get_all();
+                }
+
+                //Eventos
+                $evento                         = array();
+                $evento['mensagem']             = array();
+                $evento['mensagem']['apolices'] = "";
+                $evento['mensagem']['nome']     = "";
+
+                if ($produto['slug'] == 'seguro_viagem') {
+                    foreach ($cotacao_salvas as $cotacao_salva) {
+                        $cotacao_pessoas                 = $this->cotacao_pessoa->filter_by_seguro_viagem($cotacao_salva['cotacao_seguro_viagem_id'])->get_all();
+                        $evento['mensagem']['nome']      = $cotacao_pessoas[0]['nome'];
+                        $evento['destinatario_email']    = $cotacao_pessoas[0]['email'];
+                        $evento['destinatario_telefone'] = $cotacao_pessoas[0]['contato_telefone'];
+                        $evento['produto_parceiro_id']   = $produto['produto_parceiro_id'];
+                    }
+
+                } elseif ($produto['slug'] == 'equipamento') {
+
+                    $cotacao_salva                   = $cotacao_salvas[0];
+                    $evento['mensagem']['nome']      = $cotacao_salva['nome'];
+                    $evento['destinatario_email']    = $cotacao_salva['email'];
+                    $evento['destinatario_telefone'] = $cotacao_salva['telefone'];
+                    $evento['produto_parceiro_id']   = $produto['produto_parceiro_id'];
+
+                } elseif ($produto["slug"] == "generico" || $produto["slug"] == "seguro_saude") {
+
+                    $cotacao_salva                   = $cotacao_salvas[0];
+                    $evento['mensagem']['nome']      = $cotacao_salva['nome'];
+                    $evento['destinatario_email']    = $cotacao_salva['email'];
+                    $evento['destinatario_telefone'] = $cotacao_salva['telefone'];
+                    $evento['produto_parceiro_id']   = $produto['produto_parceiro_id'];
+                }
+
+                /**
+                 * Dispara email
+                 */
+                /*
+                $comunicacao = new Comunicacao();
+                $comunicacao->setMensagemParametros($evento['mensagem']);
+                $comunicacao->setDestinatario($evento['destinatario_email']);
+                $comunicacao->setNomeDestinatario($evento['mensagem']['nome']);
+                $comunicacao->disparaEvento("apolice_nao_gerada_email", $evento['produto_parceiro_id']);
+                */
+
+                /**
+                 * Dispara SMS
+                 */
+
+                $short_url = new Short_url();
+
+                $evento['url'] = $this->config->item("URL_APLICATIVO");
+                $evento['url'] = $short_url::shorter($evento['url']);
+
+                $evento['mensagem']['cotacao'] = $produto['cotacao_id'];
+
+                $comunicacao = new Comunicacao();
+                $comunicacao->setMensagemParametros($evento['mensagem']);
+                $comunicacao->setDestinatario(app_retorna_numeros($evento['destinatario_telefone']));
+                $comunicacao->setNomeDestinatario($evento['mensagem']['nome']);
+                $comunicacao->setUrl($evento['url']);
+                $comunicacao->disparaEvento("url_aplicativo_sms", $evento['produto_parceiro_id']);
+
                 return;
             }
             if ($etapa == 'contratar' && $conclui_em_tempo_real == true ) {
