@@ -38,7 +38,7 @@
 
                     <?php
                     if((isset($layout)) && ($layout == 'front') && ($context != "pagamento")) {
-                        $this->load->view('admin/venda/equipamento/front/step', array('step' => 5, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'] ));
+                        $this->load->view('admin/venda/equipamento/front/step', array('step' => 5, 'produto_parceiro_id' => $produto_parceiro_id ));
                     }else{
                         if ($context != "pagamento") {
                             $this->load->view("admin/venda/step", array('step' => 5, 'produto_parceiro_id' => $produto_parceiro_id ));
@@ -180,6 +180,33 @@
                     <i class="fa fa-external-link"></i> Abrir janela débito
                 </a> -->
                 <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<div id="modal-sms" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+                <h3 class="text-ultra-bold text-primary">BAIXE NOSSO APP PARA EMITIR SEU SEGURO</h3>
+                <p class="text-lg text-primary">ou acesse o link enviado para seu celular</p>
+                <br/>
+                <a href="<?php echo $this->config->item("URL_APLICATIVO"); ?>">
+                    <img width="70%" src="<?php echo app_assets_url('core/images/google-play.png' , 'admin'); ?>">
+                </a>
+                <br/>
+            </div>
+            <div class="modal-footer">
+                <a href="<?php echo $this->config->item("URL_APLICATIVO"); ?>" class="btn btn-primary">OK</a>
             </div>
         </div>
 

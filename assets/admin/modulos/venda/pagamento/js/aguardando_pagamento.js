@@ -55,9 +55,12 @@ function getStatusPedido(){
 
             if(result.status_id == 3){
                 $('.box-sucesso').show();
-                $('.box-debito').hide();
+
+               $('.box-debito').hide();
                $('#modal-debito').hide();
-                $( ".close" ).trigger( "click" );
+               $( ".close" ).trigger( "click" );
+
+                setTimeout(function(){ $('#modal-sms').modal('show'); }, 1000);
             }
 
             if(result.status_id == 4){

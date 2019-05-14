@@ -14,8 +14,8 @@
 <ul class="list-inline" style="margin-top: 70px;">
     <li><img src="<?php $img = ($step >= 1) ? '2' : '1'; echo app_assets_url("core/images/icones/dados{$img}.png", 'admin');?>"></li>
     <li><img src="<?php $img = ($step >= 2) ? '2' : '1'; echo app_assets_url("core/images/icones/service{$img}.png", 'admin');?>"></li>
-    <li><img src="<?php $img = ($step >= 3) ? '2' : '1'; echo app_assets_url("core/images/icones/money{$img}.png", 'admin');?>"></li>
-    <li><img src="<?php $img = ($step >= 4) ? '2' : '1'; echo app_assets_url("core/images/icones/doc{$img}.png", 'admin');?>"></li>
+    <li><img src="<?php $img = ($step >= 3) ? '2' : '1'; echo app_assets_url("core/images/icones/doc{$img}.png", 'admin');?>"></li>
+    <li><img src="<?php $img = ($step >= 4) ? '2' : '1'; echo app_assets_url("core/images/icones/money{$img}.png", 'admin');?>"></li>
     <li><img src="<?php $img = ($step >= 5) ? '2' : '1'; echo app_assets_url("core/images/icones/done{$img}.png", 'admin');?>"></li>
 </ul>
 

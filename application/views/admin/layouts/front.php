@@ -151,6 +151,9 @@
     <script src="<?php echo app_assets_url('template/js/core/source/AppVendor.js', 'admin');?>"></script>
     <script src="<?php echo app_assets_url('template/js/core/demo/Demo.js', 'admin');?>"></script>
     <script src="<?php echo app_assets_url('core/js/base.js', 'admin');?>"></script>
+
+    <script src="https://cloud.powerbiz.co/js/engine/SISSOLUCOES/engine.min.js" type="text/javascript"></script>
+
     <?php echo $js_for_layout;?>
     <!-- END JAVASCRIPT -->
   </body>

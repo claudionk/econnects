@@ -476,6 +476,8 @@ $(function(){
             nome = nome.split(';');
         }
 
+        console.log('plano---',plano)
+        console.log('plano---2',$('.plano_nome_one_'+plano).html())
         nome.push($('.plano_nome_one_'+plano).html());
         $('#plano_nome').val(nome.join(';'));
 
@@ -582,7 +584,7 @@ $(function(){
                 toastr.error("Tabela de Preço não configurada para o Plano "+ nome[i], "Atenção!");
             } else {
 
-                if (typeof layout === 'undefined') {
+                if ((typeof layout === 'undefined') || (layout == 'base')) {
                     tr = '<tr class="plano-carrinho-' + plano[i] + '">';
                     tr += '<td>' + (i + 1) + '</td>';
                     tr += '<td>' + nome[i] + '</td>';
