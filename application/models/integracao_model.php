@@ -286,7 +286,7 @@ Class Integracao_Model extends MY_Model
         $this->_database->where("integracao.status", 'A');
         $this->_database->where("integracao.deletado", 0);
         $this->_database->where("integracao.habilitado", 1);
-        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:m:s'));
+        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
         $result = $this->get_all();
 
 
@@ -342,7 +342,7 @@ Class Integracao_Model extends MY_Model
         $this->_database->where("integracao.status", 'A');
         $this->_database->where("integracao.deletado", 0);
         $this->_database->where("integracao.habilitado", 1);
-        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:m:s'));
+        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
         $result = $this->get_all();
 
         if($result){
