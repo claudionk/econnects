@@ -77,7 +77,7 @@ class Venda_Equipamento extends Admin_Controller{
     * @param int $pedido_id
     */
     public function equipamento($produto_parceiro_id, $step = 1, $cotacao_id = 0, $pedido_id = 0, $status = '') {
-        error_log( "Controller Equipamento\n", 3, "/var/log/httpd/myapp.log" );
+        //error_log( "Controller Equipamento\n", 3, "/var/log/httpd/myapp.log" );
 
         //Carrega models
         $this->load->model("cotacao_equipamento_model", "cotacao_equipamento");
@@ -234,7 +234,6 @@ class Venda_Equipamento extends Admin_Controller{
         ->order_by("ordem", "asc")
         ->get_all();
 
-
         if(isset($campos_session) && is_array($campos_session)){
             $data["row"] = $campos_session;
         }else{
@@ -286,6 +285,7 @@ class Venda_Equipamento extends Admin_Controller{
             }
         }
 
+//echo '<pre>'; print_r($data);
 
         $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/formulario", $data );
 

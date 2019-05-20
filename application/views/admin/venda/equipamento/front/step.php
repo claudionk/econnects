@@ -1,25 +1,53 @@
-<style>
-    .main{ justify-content: flex-start; }
-    .main .col *{ color: #5a5a5a; }
-    .main .col p{ margin:0px ; }
-    .main .col h5{ margin:0px ; text-wrap: nowrap; font-family:'Gotham Book'; font-size: 1rem !important; }
-    body{ background-color: #eeeeee; text-align: center }
-    .list-inline { padding-left: 0; margin-left: -5px; list-style: none; }
-    .list-inline > li { display: inline-block;  }
-    .list-inline > li img{ width: 40px; }
-    input{ background-color: #ffffff !important; }
-    .collection { border: none  }
-    .collection .collection-item{ background-color: transparent; border: none; text-align: left }
-</style>
-<ul class="list-inline" style="margin-top: 70px;">
-    <li><img src="<?php $img = ($step >= 1) ? '2' : '1'; echo app_assets_url("core/images/icones/dados{$img}.png", 'admin');?>"></li>
-    <li><img src="<?php $img = ($step >= 2) ? '2' : '1'; echo app_assets_url("core/images/icones/service{$img}.png", 'admin');?>"></li>
-    <li><img src="<?php $img = ($step >= 3) ? '2' : '1'; echo app_assets_url("core/images/icones/doc{$img}.png", 'admin');?>"></li>
-    <li><img src="<?php $img = ($step >= 4) ? '2' : '1'; echo app_assets_url("core/images/icones/money{$img}.png", 'admin');?>"></li>
-    <li><img src="<?php $img = ($step >= 5) ? '2' : '1'; echo app_assets_url("core/images/icones/done{$img}.png", 'admin');?>"></li>
-</ul>
+<div id="sidebar-wrapper">
+    <ul class="sidebar-nav">
+        <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">
+            <i class="glyphicon glyphicon-remove"></i>
+        </a>
+        <li class="sidebar-brand"></li>
+        <li>
+            <a href="#">CONTRATE</a>
+        </li>
+        <li>
+            <a href="#about">SEGURO</a>
+        </li>
+        <li>
+            <a href="#contact">SERVIÇOS</a>
+        </li>
+    </ul>
+</div>
 
+<div class="">
+    <div class="col-sm-12 col-xs-12 header-logo-menu">
+        <img src="<?php echo app_assets_url("upload/parceiros/494efe1480bdf61ba9015c2f8e0af7b5.png", 'admin'); ?>" alt="" title="" />
 
+        <button aria-controls="bs-navbar" aria-expanded="false" class="navbar-toggle collapsed" data-target="#bs-navbar" data-toggle="collapse" type="button" id="menu-toggle">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+    </div>
+
+    <ul class="list-inline">
+        <li><img src="<?php $img = ($step >= 1) ? '2' : '1'; echo app_assets_url("core/images/icones/dados{$img}.png", 'admin');?>"></li>
+        <li><img src="<?php $img = ($step >= 2) ? '2' : '1'; echo app_assets_url("core/images/icones/service{$img}.png", 'admin');?>"></li>
+        <li><img src="<?php $img = ($step >= 3) ? '2' : '1'; echo app_assets_url("core/images/icones/doc{$img}.png", 'admin');?>"></li>
+        <li><img src="<?php $img = ($step >= 4) ? '2' : '1'; echo app_assets_url("core/images/icones/money{$img}.png", 'admin');?>"></li>
+        <li><img src="<?php $img = ($step >= 5) ? '2' : '1'; echo app_assets_url("core/images/icones/done{$img}.png", 'admin');?>"></li>
+    </ul>
+
+    <h2 class="text-light text-center title-h2"><?php echo $title; ?></h2>
+</div>
+<script>
+    $("#menu-close").click(function(e) {
+        e.preventDefault();
+        $("#sidebar-wrapper").toggleClass("active");
+    });
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#sidebar-wrapper").toggleClass("active");
+    });
+</script>
 <!--
 
 <div id="wizard" class="form-wizard form-wizard-horizontal">

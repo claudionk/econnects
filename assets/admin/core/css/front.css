@@ -1,3 +1,17 @@
+body{background-color: #eeeeee;}
+.main{ justify-content: flex-start; }
+.main .col *{ color: #5a5a5a; }
+.main .col p{ margin:0px ; }
+.main .col h5{ margin:0px ; text-wrap: nowrap; font-family:'Gotham Book'; font-size: 1rem !important; }
+.list-inline { padding-left: 0; margin-left: -5px; list-style: none; }
+.list-inline > li { display: inline-block;  }
+.list-inline > li img{ width: 58px; }
+input{ background-color: #ffffff !important; }
+.collection { border: none  }
+.collection .collection-item{ background-color: transparent; border: none; text-align: left }
+.header-logo-menu{
+    margin: 1rem 0 3rem 0;
+}
 #toast-container {
     top: 40px !important;;
 }
@@ -14,15 +28,158 @@
     margin-top: 6px;
 }
 
-section {
-    padding-top:25px !important;
-}
-
 #wizard .form-wizard-nav ul li span.de_max {
     display: none;
 }
-@media (max-width: 768px)
-{
+.card-produto h2.text-light{
+    min-height: 80px;
+    height: auto;
+}
+
+/** MENU SIDEBAR
+ */
+#sidebar-wrapper {
+    margin-right: -250px;
+    right: 0;
+    width: 250px;
+    background: #363636;
+    position: fixed;
+    height: 100%;
+    overflow-y: auto;
+    z-index: 1000;
+    opacity: 0.9;
+    transition: all 0.5s ease-in 0s;
+    -webkit-transition: all 0.5s ease-in 0s;
+    -moz-transition: all 0.5s ease-in 0s;
+    -ms-transition: all 0.5s ease-in 0s;
+    -o-transition: all 0.5s ease-in 0s;
+}
+
+.sidebar-nav {
+    position: absolute;
+    top: 0;
+    width: 250px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar-nav li {
+    line-height: 50px;
+    text-indent: 20px;
+}
+
+.sidebar-nav li a {
+    color: #ffffff;
+    display: block;
+    text-decoration: none;
+}
+
+.sidebar-nav li a:hover {
+    color: #ffffff;
+    background: #c51f1b;
+    text-decoration: none;
+}
+
+.sidebar-nav li a:active, .sidebar-nav li a:focus {
+    text-decoration: none;
+}
+
+.sidebar-nav > .sidebar-brand {
+    height: 55px;
+    line-height: 55px;
+    font-size: 18px;
+}
+
+.sidebar-nav > .sidebar-brand a {
+    color: #999999;
+}
+
+.sidebar-nav > .sidebar-brand a:hover {
+    color: #fff;
+    background: none;
+}
+
+#menu-toggle {
+    top: 0;
+    right: 40px;
+    position: fixed;
+    z-index: 1;
+}
+
+#sidebar-wrapper.active {
+    right: 250px;
+    width: 250px;
+    transition: all 0.5s ease-out 0s;
+    -webkit-transition: all 0.5s ease-out 0s;
+    -moz-transition: all 0.5s ease-out 0s;
+    -ms-transition: all 0.5s ease-out 0s;
+    -o-transition: all 0.5s ease-out 0s;
+}
+.toggle {
+    margin: 2px 45px 0 0;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 27px;
+}
+
+.navbar-toggle .icon-bar {
+    background: #414141;
+    height: 4px;
+    border-radius: inherit;
+}
+/** FIM MENU **/
+
+#validateSubmitForm input,select,.select2{
+    -webkit-box-shadow: 0px 7px 14px rgba(140, 140, 140, 0.45);
+    -moz-box-shadow: 0px 7px 14px rgba(140, 140, 140, 0.45);
+    box-shadow: 0px 7px 14px rgba(140, 140, 140, 0.45);
+}
+.select2-container--default .select2-selection--single{
+    background-color: #fff;
+    border: none;
+    border-radius: 4px;
+    height: 35px;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow b{
+    left: auto;
+    border-color: transparent;
+    top: auto;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow b:before{
+    font-family: "Glyphicons Halflings";
+    color:#b5b5b5;
+    content:"\e114";
+    font-weight: 100;
+}
+.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b{
+    border-color:transparent;
+}
+.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b:before{
+    font-family: "Glyphicons Halflings";
+    color:#b5b5b5;
+    content:"\e113";
+    font-weight: 100;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow{
+    top:4px;
+}
+.form .form-group > label, .form-inline .form-group > label{
+    top: -5px;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.title-h2{
+    color: #5a5a5a;
+    font-size: 2rem;
+    text-align: center;
+    margin-right: 27px;
+    font-weight: 400;
+}
+
+@media (max-width: 768px){
     #wizard .form-wizard-nav ul li {
         display: none;
     }
@@ -43,9 +200,4 @@ section {
         padding-left: 4px;
         color: #8a9598;
     }
-}
-
-.card-produto h2.text-light{
-    min-height: 80px;
-    height: auto;
 }

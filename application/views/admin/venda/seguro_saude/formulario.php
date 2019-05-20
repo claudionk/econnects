@@ -38,7 +38,7 @@
                 <!-- Column -->
             <div class="col-md-12">
 
-                    <h2 class="text-light text-center"><?php echo app_produto_traducao('Dados iniciais da Cotação', $produto_parceiro_id); ?><br><small class="text-primary"><?php echo app_produto_traducao('Informe os dados pessoais para iniciar a cotação', $produto_parceiro_id); ?></small></h2>
+                    <h2 class="text-light text-center"><?php echo app_produto_traducao('Dados iniciais da Cotação Salsicha', $produto_parceiro_id); ?><br><small class="text-primary"><?php echo app_produto_traducao('Informe os dados pessoais para iniciar a cotação', $produto_parceiro_id); ?></small></h2>
 
                     <?php $this->load->view('admin/venda/step', array('step' => 1, 'produto_parceiro_id' => $produto_parceiro_id )); ?>
 

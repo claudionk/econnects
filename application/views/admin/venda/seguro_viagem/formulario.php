@@ -37,7 +37,13 @@
                 <div class="col-md-12">
                     <div class="row">
 
+                        <div class="col-sm-6 col-xs-6">
+                            <img src="<?php echo app_assets_url("admin/upload/parceiros/494efe1480bdf61ba9015c2f8e0af7b5.png", 'admin'); ?>" alt="" title="" />
+                        </div>
+                        <div class="col-sm-6 col-xs-6"></div>
+                        <!--
                         <h2 class="text-light text-center">Dados iniciais da Cotação<br><small class="text-primary">Informe os dados pessoais para iniciar a cotação</small></h2>
+                        -->
 
                         <?php $this->load->view('admin/venda/step', array('step' => 1, 'produto_parceiro_id' =>  issetor($produto_parceiro_id))); ?>
 
