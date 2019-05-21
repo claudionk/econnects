@@ -462,7 +462,6 @@ Class Integracao_Model extends MY_Model
             ->filter_ret_CTA_custom($integracao['integracao_id']);
 
         foreach ($integs as $int) {
-
             $total = $this->integracao_log
                 ->filter_by_integracao($integracao['integracao_id'])
                 ->filter_by_file($int['nome_arquivo'])
@@ -477,10 +476,12 @@ Class Integracao_Model extends MY_Model
         if(!empty($file_processar)){
             $fileget = $file_processar;
             $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
-            $result = array(
-                'file' => "{$diretorio}/{$fileget}",
-                'fileget' => $fileget,
-            );
+            if(file_exists("{$diretorio}/{$fileget}")){
+                $result = array(
+                    'file' => "{$diretorio}/{$fileget}",
+                    'fileget' => $fileget,
+                );
+            }
         }
 
         return $result;
