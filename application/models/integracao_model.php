@@ -474,12 +474,14 @@ Class Integracao_Model extends MY_Model
             }
         }
 
-        $fileget = $file_processar;
-        $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
-        $result = array(
-            'file' => "{$diretorio}/{$fileget}",
-            'fileget' => $fileget,
-        );
+        if(!empty($file_processar)){
+            $fileget = $file_processar;
+            $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+            $result = array(
+                'file' => "{$diretorio}/{$fileget}",
+                'fileget' => $fileget,
+            );
+        }
 
         return $result;
     }
