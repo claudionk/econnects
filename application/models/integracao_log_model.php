@@ -59,12 +59,12 @@ Class Integracao_Log_Model extends MY_Model
         return $result;
     }
 
-
     function filter_by_integracao($integracao_id)
     {
         $this->_database->where("integracao_log.integracao_id", $integracao_id);
         return $this;
     }
+
     function filter_by_file($file)
     {
         $this->_database->where("integracao_log.nome_arquivo", $file);
@@ -75,4 +75,11 @@ Class Integracao_Log_Model extends MY_Model
     {
         return $this->get_by($this->primary_key, $id);
     }
+
+    function filter_ret_CTA_custom($integracao_id)
+    {
+        $q = $this->_database->query('SELECT * FROM _CTA_reprocess_retorno')->result_array();
+        return $q;
+    }
+
 }

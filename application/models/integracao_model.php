@@ -436,11 +436,52 @@ Class Integracao_Model extends MY_Model
                 case 3:
 
                     break;
+
+                // Criado para correções pontuais
+                case 100:
+                    return $this->getFileCustom($integracao);
+                    break;
             }
 
         }catch (Exception $e) {
 
         }
+    }
+
+    private function getFileCustom($integracao = array()){
+
+        $this->load->model('integracao_log_model', 'integracao_log');
+
+        $result = array(
+            'file' => '',
+            'fileget' => '',
+        );
+
+        $file_processar = '';
+        $integs = $this->integracao_log
+            ->filter_ret_CTA_custom($integracao['integracao_id']);
+
+        foreach ($integs as $int) {
+
+            $total = $this->integracao_log
+                ->filter_by_integracao($integracao['integracao_id'])
+                ->filter_by_file($int['nome_arquivo'])
+                ->get_total();
+
+            if ((int)$total == 0) {
+                $file_processar = $int['nome_arquivo'];
+                break;
+            }
+        }
+
+        $fileget = $file_processar;
+        $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+        $result = array(
+            'file' => "{$diretorio}/{$fileget}",
+            'fileget' => $fileget,
+        );
+
+        return $result;
     }
 
     private function getFileFTP($integracao = array(), $file){
@@ -1049,9 +1090,9 @@ Class Integracao_Model extends MY_Model
             INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
             SET b.integracao_log_status_id = 4, b.alteracao = NOW()
             WHERE a.nome_arquivo LIKE '{$file}%'
-            AND a.integracao_log_status_id = 3 
+            #AND a.integracao_log_status_id = 3 
             AND a.deletado = 0
-            AND b.integracao_log_status_id NOT IN(4,5)
+            #AND b.integracao_log_status_id NOT IN(4,5)
         ";
         $query = $this->_database->query($sql);
 
@@ -1059,7 +1100,7 @@ Class Integracao_Model extends MY_Model
             UPDATE integracao_log il
             SET il.integracao_log_status_id = IF((SELECT 1 FROM integracao_log_detalhe ild WHERE ild.integracao_log_id = il.integracao_log_id AND ild.integracao_log_status_id = 5 LIMIT 1) = 1, 5, 4)
             WHERE il.nome_arquivo LIKE '{$file}%'
-                AND il.integracao_log_status_id = 3 
+                #AND il.integracao_log_status_id = 3 
                 AND il.deletado = 0
         ";
         $query = $this->_database->query($sql);
@@ -1124,8 +1165,8 @@ Class Integracao_Model extends MY_Model
             SET ild.integracao_log_status_id = 5, ild.alteracao = NOW()
             WHERE il.nome_arquivo LIKE '{$file}%'
             AND il.deletado = 0
-            AND il.integracao_log_status_id = 3
-            AND ild.integracao_log_status_id NOT IN(4,5)
+            #AND il.integracao_log_status_id = 3
+            #AND ild.integracao_log_status_id NOT IN(4,5)
             AND ild.chave LIKE '{$chave}%'
         ";
         $query = $this->_database->query($sql);
