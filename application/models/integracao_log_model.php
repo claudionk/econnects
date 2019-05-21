@@ -78,7 +78,7 @@ Class Integracao_Log_Model extends MY_Model
 
     function filter_ret_CTA_custom($integracao_id)
     {
-        $q = $this->_database->query('SELECT * FROM _CTA_reprocess_retorno')->result_array();
+        $q = $this->_database->query("SELECT * FROM _CTA_reprocess_retorno WHERE integracao_id = $integracao_id")->result_array();
         return $q;
     }
 
