@@ -319,7 +319,7 @@ Class Integracao_Model extends MY_Model
             // exit();
 
             $dados_integracao = array();
-            $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
+            // $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
             $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');
             $dados_integracao['status'] = 'A';
             $this->update($result['integracao_id'], $dados_integracao, TRUE);
