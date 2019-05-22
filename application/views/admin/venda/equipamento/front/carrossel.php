@@ -1,6 +1,4 @@
-<?php
-    $exite_cobertura = false;
-?>
+<?php $exite_cobertura = false; ?>
 
 <!-- col-app -->
 <div class="card">
@@ -9,15 +7,12 @@
         <!-- Form -->
         <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off"
               enctype="multipart/form-data">
-            <input type="hidden" id="<?php echo $primary_key ?>" name="<?php echo $primary_key ?>"
-                   value="<?php if (isset($row[$primary_key])) echo $row[$primary_key]; ?>"/>
-            <input type="hidden" id="url_calculo" name="url_calculo"
-                   value="<?php echo base_url("{$current_controller_uri}/calculo"); ?>"/>
+            <input type="hidden" id="<?php echo $primary_key ?>" name="<?php echo $primary_key ?>" value="<?php if (isset($row[$primary_key])) echo $row[$primary_key]; ?>"/>
+            <input type="hidden" id="url_calculo" name="url_calculo" value="<?php echo base_url("{$current_controller_uri}/calculo"); ?>"/>
             <input type="hidden" id="produto_parceiro_plano_id" name="produto_parceiro_plano_id" value="0"/>
             <input type="hidden" id="parceiro_id" name="parceiro_id" value="<?php echo $parceiro_id; ?>"/>
-            <input type="hidden" id="cotacao_id" name="cotacao_id"
-                   value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
-            <input type="hidden" id="salvar_cotacao" name="salvar_cotacao" value=""/>
+            <input type="hidden" id="cotacao_id" name="cotacao_id" value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
+            <input type="hidden" id="salvar_cotacao" name="salvar_cotacao" />
             <?php $configuracao['quantidade_cobertura'] = ((isset($configuracao['quantidade_cobertura_front'])) && ($configuracao['quantidade_cobertura_front'] < count($coberturas) )) ? $configuracao['quantidade_cobertura_front']  : count($coberturas); ?>
             <input type="hidden" id="quantidade_cobertura" name="quantidade_cobertura" value="<?php  echo (isset($configuracao['quantidade_cobertura_front'])) ? $configuracao['quantidade_cobertura_front'] : 10;  ?>"/>
             <input type="hidden" id="total_cobertura" name="total_cobertura" value="<?php  echo count($coberturas);  ?>"/>
@@ -35,11 +30,7 @@
                 <!-- Column -->
                 <div class="col-md-12">
 
-                    <h2 class="text-light text-center">Cotação de Seguro<br><small class="text-primary">Selecione o plano e as coberturas que você deseja!</small></h2>
-
                     <?php $this->load->view('admin/venda/equipamento/front/step', array('step' => 2, 'produto_parceiro_id' =>  issetor($produto_parceiro_id))); ?>
-
-
 
                     <div class="row">
 

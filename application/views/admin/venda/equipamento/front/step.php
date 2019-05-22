@@ -17,7 +17,7 @@
 </div>
 
 <div class="">
-    <div class="col-sm-12 col-xs-12 header-logo-menu">
+    <div class="header-logo-menu">
         <img src="<?php echo app_assets_url("upload/parceiros/494efe1480bdf61ba9015c2f8e0af7b5.png", 'admin'); ?>" alt="" title="" />
 
         <button aria-controls="bs-navbar" aria-expanded="false" class="navbar-toggle collapsed" data-target="#bs-navbar" data-toggle="collapse" type="button" id="menu-toggle">

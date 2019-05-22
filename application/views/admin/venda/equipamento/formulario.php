@@ -47,24 +47,21 @@
     </form>
 </div>
 
-<!-- // Widget END -->
-<div class="card">
-    <div class="card-body">
-        <?php if ($layout == "base") { ?>
-            <a href="<?php echo base_url("{$current_controller_uri}/index")?>" class="btn  btn-app btn-primary">
-                <i class="fa fa-arrow-left"></i> Voltar
-            </a>
-
-            <a href="<?php echo base_url("admin/clientes/view/")?>" class="btn  btn-app btn-primary btn-detalhes disabled ls-modal">
-                <i class="fa fa-chain"></i> Detalhes do Cliente
-            </a>
-        <?php } ?>
-
-        <a class="pull-right btn btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
-            <i class="fa fa-arrow-right"></i> Próximo
+<div class="btns">
+    <!-- // Widget END -->
+    <?php if ($layout == "base") { ?>
+        <a href="<?php echo base_url("{$current_controller_uri}/index")?>" class="btn  btn-app btn-primary">
+            <i class="fa fa-arrow-left"></i> Voltar
         </a>
 
-    </div>
+        <a href="<?php echo base_url("admin/clientes/view/")?>" class="btn  btn-app btn-primary btn-detalhes disabled ls-modal">
+            <i class="fa fa-chain"></i> Detalhes do Cliente
+        </a>
+    <?php } ?>
+
+    <a class="btn btn-app btn-primary btn-proximo" onclick="$('#validateSubmitForm').submit();">
+        Próximo <i class="fa fa-angle-right" aria-hidden="true"></i>
+    </a>
 </div>
 
 <div id="detalhe-cliente" class="modal fade">
