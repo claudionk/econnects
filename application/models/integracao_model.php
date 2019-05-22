@@ -225,19 +225,19 @@ Class Integracao_Model extends MY_Model
             if($integracao){
                 switch ($integracao['periodicidade_unidade']) {
                     case 'I' :
-                        $date = date('Y-m-d H:i:s', mktime(date('h'), date('i') + $integracao['periodicidade'], 0, date('m'), date('d'), date('Y')));
+                        $date = date('Y-m-d H:i:s', mktime(date('H'), date('i') + $integracao['periodicidade'], 0, date('m'), date('d'), date('Y')));
                         break;
                     case 'H' :
-                        $date = date('Y-m-d H:i:s', mktime(date('h') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d'), date('Y')));
+                        $date = date('Y-m-d H:i:s', mktime(date('H') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d'), date('Y')));
                         break;
                     case 'D' :
-                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('h') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d') + $integracao['periodicidade'], date('Y')));
+                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('H') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d') + $integracao['periodicidade'], date('Y')));
                         break;
                     case 'M' :
-                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('h') + $integracao['periodicidade'], date('i'), 0, date('m') + $integracao['periodicidade'], date('d'), date('Y')));
+                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('H') + $integracao['periodicidade'], date('i'), 0, date('m') + $integracao['periodicidade'], date('d'), date('Y')));
                         break;
                     case 'Y' :
-                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('h') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d'), date('Y') + $integracao['periodicidade']));
+                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('H') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d'), date('Y') + $integracao['periodicidade']));
                         break;
                     case 'C' :
                         $date = date("Y-m-d h-i-s");
@@ -286,7 +286,7 @@ Class Integracao_Model extends MY_Model
         $this->_database->where("integracao.status", 'A');
         $this->_database->where("integracao.deletado", 0);
         $this->_database->where("integracao.habilitado", 1);
-        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:m:s'));
+        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
         $result = $this->get_all();
 
 
@@ -345,7 +345,7 @@ Class Integracao_Model extends MY_Model
         $this->_database->where("integracao.status", 'A');
         $this->_database->where("integracao.deletado", 0);
         $this->_database->where("integracao.habilitado", 1);
-        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:m:s'));
+        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
         $result = $this->get_all();
 
         if($result){
@@ -439,11 +439,55 @@ Class Integracao_Model extends MY_Model
                 case 3:
 
                     break;
+
+                // Criado para correções pontuais
+                case 100:
+                    return $this->getFileCustom($integracao);
+                    break;
             }
 
         }catch (Exception $e) {
 
         }
+    }
+
+    private function getFileCustom($integracao = array()){
+
+        $this->load->model('integracao_log_model', 'integracao_log');
+
+        $result = array(
+            'file' => '',
+            'fileget' => '',
+        );
+
+        $file_processar = '';
+        $integs = $this->integracao_log
+            ->filter_ret_CTA_custom($integracao['integracao_id']);
+
+        foreach ($integs as $int) {
+            $total = $this->integracao_log
+                ->filter_by_integracao($integracao['integracao_id'])
+                ->filter_by_file($int['nome_arquivo'])
+                ->get_total();
+
+            if ((int)$total == 0) {
+                $file_processar = $int['nome_arquivo'];
+                break;
+            }
+        }
+
+        if(!empty($file_processar)){
+            $fileget = $file_processar;
+            $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+            if(file_exists("{$diretorio}/{$fileget}")){
+                $result = array(
+                    'file' => "{$diretorio}/{$fileget}",
+                    'fileget' => $fileget,
+                );
+            }
+        }
+
+        return $result;
     }
 
     private function getFileFTP($integracao = array(), $file){

@@ -292,14 +292,22 @@ if ( ! function_exists('app_integracao_format_moeda_pad')) {
 
     function app_integracao_format_moeda_pad($formato, $dados = array())
     {
+        // $a = explode(",", $formato);
+        // $valor = $dados[$a[0]][$a[1]];
+        // $valor = ($valor == 0) ? '0.0' : $valor;
+        // $valor = explode('.', $valor);
+        // $valor[1] = ((isset($valor[1])) || (empty(isset($valor[1]))) ) ? '00' : $valor[1];
+        // return str_pad($valor[0],  ($a[2] -8), '0', STR_PAD_LEFT) . str_pad($valor[1], 8, '0', STR_PAD_LEFT);
 
-        $a = explode(",", $formato);
-        $valor = $dados[$a[0]][$a[1]];
-        $valor = ($valor == 0) ? '0.0' : $valor;
-        $valor = explode('.', $valor);
-        $valor[1] = ((isset($valor[1])) || (empty(isset($valor[1]))) ) ? '00' : $valor[1];
-        return str_pad($valor[0],  ($a[2] -8), '0', STR_PAD_LEFT) . str_pad($valor[1], 8, '0', STR_PAD_LEFT);
+        list( $name , $code , $casa , $separador ) = explode("|",$formato);
 
+        if (empty($dados[ $name][ $code ])) {
+                $dados[ $name][ $code ] = 0;
+        }
+
+        $valor = number_format( $dados[ $name][ $code ] , $casa , $separador , "" );
+        $valor = explode($separador, $valor);
+        return str_pad($valor[0], ($dados['item']['tamanho']-($casa+1)), $dados['item']['valor_padrao'], STR_PAD_LEFT) .$separador. $valor[1];
     }
 
 }
@@ -314,7 +322,7 @@ if ( ! function_exists('app_integracao_format_decimal_pad')) {
         $valor = explode('.', $valor);
         $valor[1] = ((!isset($valor[1])) || (empty(isset($valor[1]))) ) ? '00' : $valor[1];
         $valor[0] = preg_replace("/[^0-9]/", "", $valor[0]);
-        return str_pad($valor[0], ($dados['item']['tamanho']-($a[2]+1)), $dados['item']['valor_padrao'], STR_PAD_LEFT) .$a[3]. str_pad($valor[1], $a[2], '0', STR_PAD_LEFT);
+        return str_pad($valor[0], ($dados['item']['tamanho']-($a[2]+1)), $dados['item']['valor_padrao'], STR_PAD_LEFT) .$a[3]. str_pad($valor[1], $a[2], '0', STR_PAD_RIGHT);
 
     }
 
@@ -1418,7 +1426,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
             if (empty($dados['endereco_numero']))
                 $dados['endereco_numero'] = '0';
 
-            if (empty($dados['endereco_cep']))
+            if (empty($dados['endereco_cep']) || $dados['endereco_cep'] = "99999999")
                 $dados['endereco_cep'] = '06454000';
 
             if (empty($dados['sexo']))
