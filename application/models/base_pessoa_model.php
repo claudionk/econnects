@@ -59,13 +59,15 @@ class Base_Pessoa_Model extends MY_Model
 
                 $this->updateCliente($documento, $result['base_pessoa_id'], $produto_parceiro_id, $info_service);
                 $result = $this->_database->query($sql)->result_array();
-                $result = $result[0];
+                if ($result)
+                    $result = $result[0];
             }
 
         } else {
             $this->updateCliente($documento, 0, $produto_parceiro_id, $info_service);
             $result = $this->_database->query($sql)->result_array();
-            $result = $result[0];
+            if ($result)
+                $result = $result[0];
         }
 
         if ($result) {
