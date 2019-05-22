@@ -319,7 +319,7 @@ Class Integracao_Model extends MY_Model
             // exit();
 
             $dados_integracao = array();
-            $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
+            // $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
             $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');
             $dados_integracao['status'] = 'A';
             $this->update($result['integracao_id'], $dados_integracao, TRUE);
@@ -436,11 +436,55 @@ Class Integracao_Model extends MY_Model
                 case 3:
 
                     break;
+
+                // Criado para correções pontuais
+                case 100:
+                    return $this->getFileCustom($integracao);
+                    break;
             }
 
         }catch (Exception $e) {
 
         }
+    }
+
+    private function getFileCustom($integracao = array()){
+
+        $this->load->model('integracao_log_model', 'integracao_log');
+
+        $result = array(
+            'file' => '',
+            'fileget' => '',
+        );
+
+        $file_processar = '';
+        $integs = $this->integracao_log
+            ->filter_ret_CTA_custom($integracao['integracao_id']);
+
+        foreach ($integs as $int) {
+            $total = $this->integracao_log
+                ->filter_by_integracao($integracao['integracao_id'])
+                ->filter_by_file($int['nome_arquivo'])
+                ->get_total();
+
+            if ((int)$total == 0) {
+                $file_processar = $int['nome_arquivo'];
+                break;
+            }
+        }
+
+        if(!empty($file_processar)){
+            $fileget = $file_processar;
+            $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+            if(file_exists("{$diretorio}/{$fileget}")){
+                $result = array(
+                    'file' => "{$diretorio}/{$fileget}",
+                    'fileget' => $fileget,
+                );
+            }
+        }
+
+        return $result;
     }
 
     private function getFileFTP($integracao = array(), $file){
