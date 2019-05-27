@@ -187,6 +187,174 @@ input{ background-color: #ffffff !important; }
     font-weight: bold;
     font-size: 2.3rem;
 }
+.block-plans .card{
+    height: 325px;
+    border-radius: 10px;
+}
+.name-plan{
+    font-size: 1.5rem;
+}
+.moeda-plan{
+    font-size: 1.5rem;
+    position: absolute;
+}
+.price-plan{
+    font-size: 4rem;
+    margin-left: 20px;
+    margin-top: -4px;
+    display: block;
+}
+.details-plan{
+    margin-left: 50px;
+}
+.details-plan .success{
+    color:#10bb10;
+}
+.details-plan .error{
+    color:#c61f1c;
+}
+.details-plan li{
+    text-align: left;
+    font-size: 1.5rem;
+}
+.more-plan{
+    text-transform: uppercase;
+    font-size: 1.8rem;
+    font-weight: 400;
+    color: #c61f1c;
+    margin-top: 9px;
+    display: block;
+}
+.more-plan:hover{
+    color: #c61f1c;
+    text-decoration:none;
+}
+.this-plan{
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+}
+.this-plan-btn{
+    width: 90%;
+    background:#c41f1b;
+}
+.this-plan-btn .fa-angle-right {
+    margin-left: 10px;
+    font-weight: bold;
+    font-size: 2.3rem;
+}
+.carousel-control{
+    width: 15%;
+}
+.carousel-control .glyphicon-chevron-left:before{
+    font-size: 8rem;
+    content: "\f104";
+    font-family: FontAwesome;
+    margin-top: -40px;
+    display: block;
+    color: #000000;
+}
+.carousel-control .glyphicon-chevron-right:before{
+    font-size: 8rem;
+    content: "\f105";
+    font-family: FontAwesome;
+    margin-top: -40px;
+    display: block;
+    color: #000000;
+}
+.carousel-indicators{
+    bottom: -30px;
+}
+.carousel-indicators li{
+    border:1px solid #828282;
+}
+.carousel-indicators .active{
+    background-color:#828282;
+}
+.btn-whats{
+    position: fixed;
+    right: 0;
+    bottom: 10px;
+    background-color: #828282;
+    padding: 10px 20px;
+}
+.btn-whats .fa-whatsapp{
+    color: #ffffff;
+    font-size: 4rem;
+    font-weight: 500;
+}
+.btn-info{
+    position: fixed;
+    left: 0;
+    bottom: 10px;
+    background-color: #828282;
+    padding: 10px 20px;
+}
+.btn-info .fa-info-circle{
+    color: #ffffff;
+    font-size: 4rem;
+    font-weight: 500;
+}
+.modal-more-info{
+    border:1px solid red;
+    position: relative;
+    width: 100%;
+    height: 60px;
+    background: #313D4C;
+    margin: 0;
+    z-index: 99;
+}
+.modal-dialog{
+    margin: 140px 60px;
+}
+.modal-dialog .modal-header{
+    background: none;
+}
+.modal .close{
+    position: absolute;
+    top: 16px;
+    right: 23px;
+    font-size: 4rem;
+    color: #ffffff;
+    opacity: 1;
+    text-shadow: none;
+    font-weight:100;
+}
+.modal-backdrop.in{
+    opacity: 0.8;
+}
+.modal-content{
+    box-shadow: none;
+    background: transparent;
+    border:none;
+}
+.modal-body{
+    border-radius: 10px;
+    background: #ffffff;
+}
+.modal-body .title{
+    font-size: 1.8rem;
+    text-align: center;
+    margin-top: -7px;
+}
+.modal-body .price-block{
+    text-align: center;
+}
+.modal-body .price-block .cifrao{
+    font-size: 1.5rem;
+    position: absolute;
+}
+.modal-body .price-block .moeda{
+    margin-left: -20px;
+}
+.modal-body .price-block .price{
+    font-size: 4rem;
+    margin-top: -15px;
+    display: inline-block;
+}
+.modal-body .details-plan{
+    margin-left: 30px;
+}
 @media (max-width: 768px){
     #wizard .form-wizard-nav ul li {
         display: none;

@@ -40,20 +40,36 @@
                     <div class="carousel-inner" role="listbox">
                         <?php foreach ($planos as $key => $plano): ?>
                             <div class="item <?php if($key == 0){ echo 'active'; } ?>">
-                                <div class="col-xs-10 col-xs-offset-1">
+                                <div class="col-xs-8 col-xs-offset-2 block-plans">
                                     <div class="card card-type-pricing text-center">
                                         <div class="card-body">
-                                            <h2 class="text-light plano_nome_one_<?php echo $plano['produto_parceiro_plano_id']; ?>"><?php echo $plano['nome'] ?></h2>
+                                            <h2 class="text-light plano_nome_one_<?php echo $plano['produto_parceiro_plano_id']; ?> name-plan"><?php echo $plano['nome'] ?></h2>
                                             <div class="price">
-                                                <H1 class="text-xl">R$</H1>
+                                                <H1 class="text-xl moeda-plan">R$</H1>
                                                 <h2>
-                                                    <span class="text-xl">
-                                                    <span class="premio_total premio_total_one_<?php echo $plano['produto_parceiro_plano_id']; ?>">---</span></span>
+                                                    <span class="text-xl price-plan">
+                                                        <!--
+                                                        <span class="premio_total premio_total_one_<?php echo $plano['produto_parceiro_plano_id']; ?>">---</span>
+                                                        -->
+                                                        500
+                                                    </span>
                                                 </h2>
+                                                <H1 class="text-xl moeda-plan">,00</H1>
                                                 <span></span>
                                             </div>
-                                            <br />
-                                            <!--p class="opacity-50"><em>Rame aute irure dolor in reprehenderit pariatur.</em></p-->
+
+                                            <ul class="list details-plan">
+                                                <li><i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Roubo</li>
+                                                <li><i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Furto qualificado</li>
+                                                <li><i class="fa fa-times-circle error" aria-hidden="true"></i> Conserto em casao de quebra</li>
+                                            </ul>
+                                            <a href="" class="more-plan" data-toggle="modal" data-target="#myModal">Saiba mais</a>
+
+                                            <div class="this-plan">
+                                                <a class="btn btn-primary add-car this-plan-btn" href="javascript: void(0);" data-plano="<?php echo $plano['produto_parceiro_plano_id']; ?>">
+                                                    QUERO ESTE <i class="fa fa-angle-right" aria-hidden="true"></i>
+                                                </a>
+                                            </div>
                                         </div><!--end .card-body -->
 
                                         <div class="card-body coberturas">
@@ -122,11 +138,6 @@
                                                 <?php endif; ?>
                                             </ul>
                                         </div>
-                                        <div class="card-body">
-                                            <a class="btn btn-primary add-car" href="javascript: void(0);" data-plano="<?php echo $plano['produto_parceiro_plano_id']; ?>">
-                                                QUERO ESTE
-                                            </a>
-                                        </div><!--end .card-body -->
                                     </div>
                                 </div>
                             </div>
@@ -255,7 +266,50 @@
 </div>
 <!-- // END col-app.col-unscrollable -->
 
-<!-- Modal salvar cotação-->
+<!-- btn whatsapp -->
+<div class="btn-whats">
+    <a href="">
+        <i class="fa fa-whatsapp"></i>
+    </a>
+</div>
+
+<!-- btn info -->
+<div class="btn-info">
+    <a href="">
+        <i class="fa fa-info-circle"></i>
+    </a>
+</div>
+
+<!-- modal more info -->
+<div class="modal fade" id="myModal" role="dialog">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+
+            <div class="modal-body">
+                <h2 class="title">BÁSICO</h2>
+                <div class="price-block">
+                    <small class="cifrao moeda">R$</small>
+                    <span class="price"> 500 </span>
+                    <small class="cifrao">,00</small>
+                </div>
+
+                <ul class="list details-plan">
+                    <li> <i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Roubo </li>
+                    <li> <i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Furto qualificado </li>
+                    <li> <i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Conserto em caso de quebra </li>
+                    <li> <i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Lorem ipsum dolor </li>
+                    <li> <i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Lorem ipsum dolor other </li>
+                    <li> <i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Lorem ipsum dolor side </li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 
 <div class="card" style="display: none;">
     <div class="card-body">
@@ -270,7 +324,6 @@
         </a>
     </div>
 </div>
-
 
 <script>
     var layout = "front";
