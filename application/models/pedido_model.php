@@ -318,23 +318,15 @@ Class Pedido_Model extends MY_Model
                 produto_parceiro.parceiro_id,
                 produto_parceiro_apolice.template as template_apolice,
                 CASE produto.slug 
-                WHEN 'equipamento' THEN
-                cotacao_equipamento.iof
-                WHEN 'generico' THEN
-                cotacao_generico.iof
-                ELSE
-                cotacao_seguro_viagem.iof
-                END 
-                AS iof,
+                    WHEN 'equipamento' THEN cotacao_equipamento.iof
+                    WHEN 'generico' THEN cotacao_generico.iof
+                    ELSE cotacao_seguro_viagem.iof
+                END AS iof,
                 CASE produto.slug 
-                WHEN 'equipamento' THEN
-                cotacao_equipamento.premio_liquido_total
-                WHEN 'generico' THEN
-                cotacao_generico.premio_liquido_total
-                ELSE
-                cotacao_seguro_viagem.premio_liquido_total
-                END 
-                AS premio_liquido_total
+                    WHEN 'equipamento' THEN cotacao_equipamento.premio_liquido_total
+                    WHEN 'generico' THEN cotacao_generico.premio_liquido_total
+                    ELSE cotacao_seguro_viagem.premio_liquido_total
+                END AS premio_liquido_total
             FROM pedido
             INNER JOIN cotacao ON ( cotacao.cotacao_id = pedido.cotacao_id )
             INNER JOIN  produto_parceiro ON ( cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id)
@@ -1968,6 +1960,10 @@ Class Pedido_Model extends MY_Model
         $this->load->model("forma_pagamento_model", "forma_pagamento");
 
         //se é debito ou credito
+        if (empty($dados['num_parcela'])) {
+            $dados['num_parcela'] = 1;
+        }
+
         if($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_CREDITO ) {
             $item = $this->produto_pagamento->get_by_id($dados["bandeira"]);
         }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) {

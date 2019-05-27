@@ -113,51 +113,123 @@ class Apolice_Model extends MY_Model
         $comunicacao->disparaEvento("apolice_nao_gerada_sms", $evento['produto_parceiro_id']);
     }
 
-    public function insertApolice($pedido_id)
+    public function insertApolice($pedido_id, $etapa = 'pagamento')
     {
 
         $this->load->model('pedido_model', 'pedido');
+        $this->load->model('cotacao_model', 'cotacao');
+        $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
 
         $apolice = $this->get_many_by(array('pedido_id' => $pedido_id));
+        $apolice_id = null;
 
         if ($apolice) {
             return;
         }
 
-        //$produto = $this->pedido->getPedidoProdutoParceiro( $pedido_id );
-
-        $produto = $this->db->query("SELECT
-                                      pedido.pedido_id,
-                                      pedido.cotacao_id,
-                                      pedido.produto_parceiro_pagamento_id,
-                                      pedido.num_parcela,
-                                      pedido.valor_parcela,
-                                      cotacao.produto_parceiro_id,
-                                      produto.slug,
-                                      produto_parceiro.parceiro_id,
-                                      produto_parceiro_apolice.template as template_apolice
-                                  FROM
-                                      pedido
-                                      INNER JOIN cotacao ON ( cotacao.cotacao_id = pedido.cotacao_id )
-                                      INNER JOIN  produto_parceiro ON ( cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id)
-                                      INNER JOIN produto ON (produto.produto_id = produto_parceiro.produto_id)
-                                      LEFT JOIN produto_parceiro_apolice ON ( produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id)
-                                      LEFT JOIN cotacao_seguro_viagem ON ( cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id)
-                                      LEFT JOIN cotacao_equipamento ON ( cotacao_equipamento.cotacao_id = cotacao.cotacao_id)
-                                      LEFT JOIN cotacao_generico ON ( cotacao_generico.cotacao_id = cotacao.cotacao_id)
-                                  WHERE
-                                      pedido.pedido_id IN ($pedido_id) LIMIT 1")->result_array();
-
+        $produto = $this->pedido->getPedidoProdutoParceiro( $pedido_id );
         if ($produto) {
             $produto = $produto[0];
+
+            $conclui_em_tempo_real = $this->parceiro_configuracao->item_config($produto['produto_parceiro_id'], 'conclui_em_tempo_real');
+            if ($etapa == 'pagamento' && $conclui_em_tempo_real == false ) {
+
+
+                $this->load->library("Short_url");
+
+                if ($produto['slug'] == 'seguro_viagem') {
+                    $cotacao_salvas = $this->cotacao->with_cotacao_seguro_viagem()
+                        ->filterByID($produto['cotacao_id'])
+                        ->get_all();
+                } elseif ($produto['slug'] == 'equipamento') {
+
+                    $cotacao_salvas = $this->cotacao->with_cotacao_equipamento()
+                        ->filterByID($produto['cotacao_id'])
+                        ->get_all();
+                } elseif ($produto["slug"] == "generico" || $produto["slug"] == "seguro_saude") {
+
+                    $cotacao_salvas = $this->cotacao->with_cotacao_generico()
+                        ->filterByID($produto['cotacao_id'])
+                        ->get_all();
+                }
+
+                //Eventos
+                $evento                         = array();
+                $evento['mensagem']             = array();
+                $evento['mensagem']['apolices'] = "";
+                $evento['mensagem']['nome']     = "";
+
+                if ($produto['slug'] == 'seguro_viagem') {
+                    foreach ($cotacao_salvas as $cotacao_salva) {
+                        $cotacao_pessoas                 = $this->cotacao_pessoa->filter_by_seguro_viagem($cotacao_salva['cotacao_seguro_viagem_id'])->get_all();
+                        $evento['mensagem']['nome']      = $cotacao_pessoas[0]['nome'];
+                        $evento['destinatario_email']    = $cotacao_pessoas[0]['email'];
+                        $evento['destinatario_telefone'] = $cotacao_pessoas[0]['contato_telefone'];
+                        $evento['produto_parceiro_id']   = $produto['produto_parceiro_id'];
+                    }
+
+                } elseif ($produto['slug'] == 'equipamento') {
+
+                    $cotacao_salva                   = $cotacao_salvas[0];
+                    $evento['mensagem']['nome']      = $cotacao_salva['nome'];
+                    $evento['destinatario_email']    = $cotacao_salva['email'];
+                    $evento['destinatario_telefone'] = $cotacao_salva['telefone'];
+                    $evento['produto_parceiro_id']   = $produto['produto_parceiro_id'];
+
+                } elseif ($produto["slug"] == "generico" || $produto["slug"] == "seguro_saude") {
+
+                    $cotacao_salva                   = $cotacao_salvas[0];
+                    $evento['mensagem']['nome']      = $cotacao_salva['nome'];
+                    $evento['destinatario_email']    = $cotacao_salva['email'];
+                    $evento['destinatario_telefone'] = $cotacao_salva['telefone'];
+                    $evento['produto_parceiro_id']   = $produto['produto_parceiro_id'];
+                }
+
+                /**
+                 * Dispara email
+                 */
+                /*
+                $comunicacao = new Comunicacao();
+                $comunicacao->setMensagemParametros($evento['mensagem']);
+                $comunicacao->setDestinatario($evento['destinatario_email']);
+                $comunicacao->setNomeDestinatario($evento['mensagem']['nome']);
+                $comunicacao->disparaEvento("apolice_nao_gerada_email", $evento['produto_parceiro_id']);
+                */
+
+                /**
+                 * Dispara SMS
+                 */
+
+                $short_url = new Short_url();
+
+                $evento['url'] = $this->config->item("URL_APLICATIVO");
+                $evento['url'] = $short_url::shorter($evento['url']);
+
+                $evento['mensagem']['cotacao'] = $produto['cotacao_id'];
+
+                $comunicacao = new Comunicacao();
+                $comunicacao->setMensagemParametros($evento['mensagem']);
+                $comunicacao->setDestinatario(app_retorna_numeros($evento['destinatario_telefone']));
+                $comunicacao->setNomeDestinatario($evento['mensagem']['nome']);
+                $comunicacao->setUrl($evento['url']);
+                $comunicacao->disparaEvento("url_aplicativo_sms", $evento['produto_parceiro_id']);
+
+                return;
+            }
+            if ($etapa == 'contratar' && $conclui_em_tempo_real == true ) {
+                return;
+            }
+
             if ($produto['slug'] == 'seguro_viagem') {
-                $this->insertSeguroViagem($pedido_id);
+                $apolice_id = $this->insertSeguroViagem($pedido_id);
             } elseif ($produto['slug'] == 'equipamento') {
-                $this->insertSeguroEquipamento($pedido_id);
+                $apolice_id = $this->insertSeguroEquipamento($pedido_id);
             } elseif ($produto["slug"] == "generico" || $produto["slug"] == "seguro_saude") {
-                $this->insertSeguroGenerico($pedido_id);
+                $apolice_id = $this->insertSeguroGenerico($pedido_id);
             }
         }
+
+        return $apolice_id;
 
     }
 
@@ -220,6 +292,7 @@ class Apolice_Model extends MY_Model
         $this->load->model('cliente_evolucao_model', 'cliente_evolucao');
 
         //Eventos
+        $apolice_id                     = null;
         $evento                         = array();
         $evento['mensagem']             = array();
         $evento['mensagem']['apolices'] = "";
@@ -403,6 +476,8 @@ class Apolice_Model extends MY_Model
             }
         }
 
+        return $apolice_id;
+
     }
 
     public function insertSeguroGenerico($pedido_id)
@@ -425,6 +500,7 @@ class Apolice_Model extends MY_Model
         $this->load->model('cliente_evolucao_model', 'cliente_evolucao');
 
         //Eventos
+        $apolice_id                     = null;
         $evento                         = array();
         $evento['mensagem']             = array();
         $evento['mensagem']['apolices'] = "";
@@ -599,6 +675,8 @@ class Apolice_Model extends MY_Model
             }
         }
 
+        return $apolice_id;
+
     }
 
     public function insertSeguroViagem($pedido_id)
@@ -619,6 +697,7 @@ class Apolice_Model extends MY_Model
         $this->load->model('cliente_evolucao_model', 'cliente_evolucao');
 
         //Eventos
+        $apolice_id                     = null;
         $evento                         = array();
         $evento['mensagem']             = array();
         $evento['mensagem']['apolices'] = "";
@@ -782,6 +861,7 @@ class Apolice_Model extends MY_Model
 
         }
 
+        return $apolice_id;
     }
 
     public function get_codigo_apolice($apolice_id)
@@ -879,29 +959,29 @@ class Apolice_Model extends MY_Model
         }
 
         /*
-    $apolice_id = (int)$apolice_id;
+        $apolice_id = (int)$apolice_id;
 
-    $sql = "
-    SELECT apolice.apolice_id,
-    apolice.pedido_id,
-    apolice.num_apolice,
-    apolice.apolice_status_id,
-    apolice.produto_parceiro_plano_id,
-    apolice.parceiro_id,
-    apolice_status.nome as apolice_status_nome,
-    apolice_status.slug as apolice_status_slug,
-    apolice_seguro_viagem.*
-    FROM apolice
-    INNER JOIN apolice_status ON apolice.apolice_status_id = apolice_status.apolice_status_id
-    INNER JOIN apolice_seguro_viagem ON apolice.apolice_id = apolice_seguro_viagem.apolice_id
-    WHERE
-    apolice.deletado = 0
-    AND apolice_seguro_viagem.deletado = 0
-    AND apolice.apolice_id = {$apolice_id}
-    ";
+        $sql = "
+        SELECT apolice.apolice_id,
+        apolice.pedido_id,
+        apolice.num_apolice,
+        apolice.apolice_status_id,
+        apolice.produto_parceiro_plano_id,
+        apolice.parceiro_id,
+        apolice_status.nome as apolice_status_nome,
+        apolice_status.slug as apolice_status_slug,
+        apolice_seguro_viagem.*
+        FROM apolice
+        INNER JOIN apolice_status ON apolice.apolice_status_id = apolice_status.apolice_status_id
+        INNER JOIN apolice_seguro_viagem ON apolice.apolice_id = apolice_seguro_viagem.apolice_id
+        WHERE
+        apolice.deletado = 0
+        AND apolice_seguro_viagem.deletado = 0
+        AND apolice.apolice_id = {$apolice_id}
+        ";
 
-    return $this->_database->query($sql)->result_array();
-     */
+        return $this->_database->query($sql)->result_array();
+         */
     }
 
     public function getApoliceAll($limit, $offset)

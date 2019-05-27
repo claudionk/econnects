@@ -16,7 +16,7 @@ if($_POST){
     <div class="card">
         <div class="card-body">
 
-            <a href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/3/{$cotacao_id}")?>" class="btn  btn-app btn-primary">
+            <a href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/{$step}/{$cotacao_id}")?>" class="btn  btn-app btn-primary">
                 <i class="fa fa-arrow-left"></i> Voltar
             </a>
 
@@ -118,7 +118,7 @@ if($_POST){
 <div class="card">
     <div class="card-body">
         <?php if ($context != "pagamento") { ?>
-            <a href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/3/{$cotacao_id}")?>" class="btn  btn-app btn-primary">
+            <a href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/{$step}/{$cotacao_id}")?>" class="btn  btn-app btn-primary">
                 <i class="fa fa-arrow-left"></i> Voltar
             </a>
         <?php } ?>
