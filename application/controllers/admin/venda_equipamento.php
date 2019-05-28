@@ -261,7 +261,6 @@ class Venda_Equipamento extends Admin_Controller{
         ->order_by("ordem", "asc")
         ->get_all();
 
-
         if(isset($campos_session) && is_array($campos_session)){
             $data["row"] = $campos_session;
         }else{
@@ -313,6 +312,7 @@ class Venda_Equipamento extends Admin_Controller{
             }
         }
 
+//echo '<pre>'; print_r($data);
 
         $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/formulario", $data );
 
