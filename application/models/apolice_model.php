@@ -1274,4 +1274,69 @@ class Apolice_Model extends MY_Model
         return $num_apolice;
     }
 
+    /**
+     * Retorna true se o controle de endosso é feito pelo cliente (buscando pelo pedido)
+     * @param int $pedido_id
+     * @return bool
+     * @author Davi Souto
+     * @since  08/04/2019
+     */
+    function isControleEndossoPeloClienteByPedidoId($pedido_id)
+    {
+        $this->load->model('pedido_model', 'pedido');
+
+        // Carregar pedido
+        $pedido = $this->pedido->getPedidosByID($pedido_id);
+        $pedido = $pedido[0];
+
+        $produto_parceiro_id = $pedido['produto_parceiro_id'];
+
+        return $this->isControleEndossoPeloClienteByProdutoParceiroId($produto_parceiro_id);
+    }
+
+    /**
+     * Retorna true se o controle de endosso é feito pelo cliente (buscando pelo produto_parceiro_id)
+     * @param int $pedido_id
+     * @return bool
+     * @author Davi Souto
+     * @since  08/04/2019
+     */
+    function isControleEndossoPeloClienteByProdutoParceiroId($produto_parceiro_id)
+    {
+        $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
+
+        $configuracoes = $this->produto_parceiro_configuracao->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
+        $configuracoes = $configuracoes[0];
+
+        return $configuracoes['endosso_controle_cliente'];
+    }
+
+    /**
+     * Retorna os dados utilizado nas definições de campos do CTA
+     * @param int $apolice_id
+     * @return array
+     * @author Cristiano Arruda
+     * @since  08/04/2019
+     */
+    function getProdutoParceiro($apolice_id) {
+        $this->_database->select('a.num_apolice, pa.slug, pa.codigo_sucursal, pp.cod_ramo');
+        $this->_database->join("apolice a", "a.apolice_id = {$this->_table}.apolice_id", "inner");
+        $this->_database->join("pedido p", "p.pedido_id = a.pedido_id", "inner");
+        $this->_database->join("cotacao c", "c.cotacao_id = p.cotacao_id", "inner");
+        $this->_database->join("produto_parceiro pp", "pp.produto_parceiro_id = c.produto_parceiro_id", "inner");
+        $this->_database->join("parceiro pa", "pa.parceiro_id = pp.parceiro_id", "inner");
+
+        $this->_database->where("a.apolice_id", $apolice_id);
+        $this->_database->where('a.deletado', 0);
+        $this->_database->where('p.deletado', 0);
+        $this->_database->where('c.deletado', 0);
+        $this->_database->where('pp.deletado', 0);
+        $result = $this->get_all();
+        if (!empty($result)) {
+            return $result[0];
+        }
+
+        return null;
+    }
+
 }
