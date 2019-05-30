@@ -318,23 +318,15 @@ Class Pedido_Model extends MY_Model
                 produto_parceiro.parceiro_id,
                 produto_parceiro_apolice.template as template_apolice,
                 CASE produto.slug 
-                WHEN 'equipamento' THEN
-                cotacao_equipamento.iof
-                WHEN 'generico' THEN
-                cotacao_generico.iof
-                ELSE
-                cotacao_seguro_viagem.iof
-                END 
-                AS iof,
+                    WHEN 'equipamento' THEN cotacao_equipamento.iof
+                    WHEN 'generico' THEN cotacao_generico.iof
+                    ELSE cotacao_seguro_viagem.iof
+                END AS iof,
                 CASE produto.slug 
-                WHEN 'equipamento' THEN
-                cotacao_equipamento.premio_liquido_total
-                WHEN 'generico' THEN
-                cotacao_generico.premio_liquido_total
-                ELSE
-                cotacao_seguro_viagem.premio_liquido_total
-                END 
-                AS premio_liquido_total
+                    WHEN 'equipamento' THEN cotacao_equipamento.premio_liquido_total
+                    WHEN 'generico' THEN cotacao_generico.premio_liquido_total
+                    ELSE cotacao_seguro_viagem.premio_liquido_total
+                END AS premio_liquido_total
             FROM pedido
             INNER JOIN cotacao ON ( cotacao.cotacao_id = pedido.cotacao_id )
             INNER JOIN  produto_parceiro ON ( cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id)
@@ -1453,15 +1445,15 @@ Class Pedido_Model extends MY_Model
 
         $this->_database->join("cotacao c", "c.cotacao_id = {$this->_table}.cotacao_id", "inner");
         $this->_database->join("cotacao_status cs", "cs.cotacao_status_id = c.cotacao_status_id", "inner");
-        $this->_database->join("cotacao_equipamento ce", "ce.cotacao_id = {$this->_table}.cotacao_id and ce.deletado = 0", "inner");
+        $this->_database->join("cotacao_equipamento ce", "ce.cotacao_id = {$this->_table}.cotacao_id and ce.deletado = 0", "left");
         $this->_database->join("produto_parceiro pp", "pp.produto_parceiro_id = c.produto_parceiro_id", "inner");
         $this->_database->join("parceiro p", "p.parceiro_id = pp.parceiro_id", "inner");
         $this->_database->join("parceiro parc", "parc.parceiro_id = a.parceiro_id", "inner");
         $this->_database->join("produto pr", "pr.produto_id = pp.produto_id", "inner");
         $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "inner");
         $this->_database->join("cliente cli", "cli.cliente_id = c.cliente_id", "inner");
-        $this->_database->join("equipamento_categoria ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "inner");
-        $this->_database->join("equipamento_marca em", "em.equipamento_marca_id = ae.equipamento_marca_id", "inner");
+        $this->_database->join("equipamento_categoria ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "left");
+        $this->_database->join("equipamento_marca em", "em.equipamento_marca_id = ae.equipamento_marca_id", "left");
         $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = ce.produto_parceiro_plano_id", "inner");
 
         $this->_database->join("produto_parceiro_pagamento pppag", "pppag.produto_parceiro_pagamento_id = pedido.produto_parceiro_pagamento_id", "inner");
@@ -1472,13 +1464,16 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("
         (
             SELECT 
-                  CTA_Ag_Retorno
-                , CTA_Retorno_ok
-                , CTA_Retorno_erro
-                , num_apolice
-                , apolice_movimentacao_tipo_id
-            FROM cta_movimentacao
-            WHERE CTA_Retorno_ok IS NOT NULL
+                  cta_m.CTA_Ag_Retorno
+                , cta_m.CTA_Retorno_ok
+                , cta_m.CTA_Retorno_erro
+                , cta_m.num_apolice
+                , cta_m.apolice_movimentacao_tipo_id
+                , SUM(iF(cta_m.apolice_movimentacao_tipo_id=1,1,-1) * ae.valor) AS valor
+            FROM cta_movimentacao cta_m
+            JOIN apolice_endosso ae ON ae.apolice_endosso_id = cta_m.apolice_endosso_id
+            WHERE cta_m.CTA_Retorno_ok IS NOT NULL
+            GROUP BY cta_m.CTA_Ag_Retorno, cta_m.CTA_Retorno_ok, cta_m.CTA_Retorno_erro, cta_m.num_apolice, cta_m.apolice_movimentacao_tipo_id
         ) as cta", "cta.num_apolice = a.num_apolice", "join", FALSE);
 
         $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
@@ -1734,13 +1729,16 @@ Class Pedido_Model extends MY_Model
 
             INNER JOIN (
                 SELECT 
-                      CTA_Ag_Retorno
-                    , CTA_Retorno_ok
-                    , CTA_Retorno_erro
-                    , num_apolice
-                    , apolice_movimentacao_tipo_id
-                FROM cta_movimentacao
-                WHERE CTA_Retorno_ok IS NOT NULL
+                  cta_m.CTA_Ag_Retorno
+                , cta_m.CTA_Retorno_ok
+                , cta_m.CTA_Retorno_erro
+                , cta_m.num_apolice
+                , cta_m.apolice_movimentacao_tipo_id
+                , SUM(iF(cta_m.apolice_movimentacao_tipo_id=1,1,-1) * ae.valor) AS valor
+            FROM cta_movimentacao cta_m
+            JOIN apolice_endosso ae ON ae.apolice_endosso_id = cta_m.apolice_endosso_id
+            WHERE cta_m.CTA_Retorno_ok IS NOT NULL
+            GROUP BY cta_m.CTA_Ag_Retorno, cta_m.CTA_Retorno_ok, cta_m.CTA_Retorno_erro, cta_m.num_apolice, cta_m.apolice_movimentacao_tipo_id
             ) as cta ON cta.num_apolice = a.num_apolice AND am.apolice_movimentacao_tipo_id = cta.apolice_movimentacao_tipo_id
 
         WHERE `parc`.`slug` IN('".$slug."')
@@ -1973,6 +1971,10 @@ Class Pedido_Model extends MY_Model
         $this->load->model("forma_pagamento_model", "forma_pagamento");
 
         //se é debito ou credito
+        if (empty($dados['num_parcela'])) {
+            $dados['num_parcela'] = 1;
+        }
+
         if($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_CREDITO ) {
             $item = $this->produto_pagamento->get_by_id($dados["bandeira"]);
         }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) {
@@ -2309,3 +2311,4 @@ Class Pedido_Model extends MY_Model
         return in_array( $usuario_acl_tipo_id , array( 2 , 11 ) ) ;
     }
 }
+
