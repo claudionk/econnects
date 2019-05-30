@@ -1171,7 +1171,7 @@ Class Integracao_Model extends MY_Model
             AND il.deletado = 0
             AND il.integracao_log_status_id = 3
             AND ild.integracao_log_status_id NOT IN(4,5)
-            AND ild.chave LIKE '{$chave}%'
+            AND ild.chave = '{$chave}'
         ";
         $query = $this->_database->query($sql);
 
