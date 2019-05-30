@@ -151,9 +151,9 @@ Class Cta_Movimentacao_Model extends MY_Model
                 apolice a 
                 JOIN pedido p on a.pedido_id = p.pedido_id
                 JOIN cotacao c on p.cotacao_id = c.cotacao_id
-                JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id
                 JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
                 JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
+                JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
                 , integracao i        
                 , integracao_log il 
                 , integracao_log_detalhe ild
@@ -196,9 +196,9 @@ Class Cta_Movimentacao_Model extends MY_Model
                 apolice a 
                 JOIN pedido p on a.pedido_id = p.pedido_id
                 JOIN cotacao c on p.cotacao_id = c.cotacao_id
-                JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id
                 JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
                 JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
+                JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
                 , integracao i        
                 , integracao_log il 
                 , integracao_log_detalhe ild
@@ -241,9 +241,9 @@ Class Cta_Movimentacao_Model extends MY_Model
                 apolice a 
                 JOIN pedido p on a.pedido_id = p.pedido_id
                 JOIN cotacao c on p.cotacao_id = c.cotacao_id
-                JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id
                 JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
                 JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
+                JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
             WHERE 
                 a.deletado = 0 
                 AND p.deletado = 0 
