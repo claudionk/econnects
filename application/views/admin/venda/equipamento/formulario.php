@@ -47,6 +47,13 @@
     </form>
 </div>
 
+<!-- btn whatsapp -->
+<div class="btn-whats">
+    <a href="">
+        <i class="fa fa-whatsapp"></i>
+    </a>
+</div>
+
 <div class="btns">
     <!-- // Widget END -->
     <?php if ($layout == "base") { ?>

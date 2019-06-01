@@ -29,7 +29,7 @@
                 <?php $this->load->view('admin/venda/equipamento/front/step', array('step' => 2, 'produto_parceiro_id' =>  issetor($produto_parceiro_id), 'title' => 'COTAÇÕES')); ?>
 
 
-                <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+                <div id="carousel-example-generic" class="carousel slide">
                     <!-- Indicators -->
                     <ol class="carousel-indicators">
                         <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
@@ -198,7 +198,6 @@
                     <?php endif; ?>
 
                 <?php endforeach; ?>
-
                 <div class="col-md-12" style="background: #FFFFFF;display: none;">
                     <h2 class="text-light text-center"><small class="text-primary">Plano Selecionado</small></h2>
                     <input type="hidden" id="quantidade" name="quantidade" value="<?php if (isset($carrinho_hidden['quantidade'])) echo $carrinho_hidden['quantidade']; ?>"/>
@@ -258,6 +257,7 @@
 
                     </table>
                 </div>
+                
             </div>
         </form>
         <!-- // Form END -->
@@ -309,7 +309,6 @@
 
     </div>
 </div>
-
 
 <div class="card" style="display: none;">
     <div class="card-body">
