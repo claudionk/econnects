@@ -870,6 +870,14 @@ class Venda_Equipamento extends Admin_Controller{
             $data['planos'][] = $plano;
         }
 
+        $merge_coberturas = array();
+        foreach($data['planos'] as $plano){
+            foreach($plano['cobertura'] as $cobertura){
+                $merge_coberturas[$cobertura['descricao']] = $cobertura['cobertura_id'];
+            }
+        }
+        $data['merge_coberturas'] = $merge_coberturas;
+
         $data['list'] = array();
 
         if($_POST)

@@ -38,7 +38,10 @@
 
                     <!-- Wrapper for slides -->
                     <div class="carousel-inner" role="listbox">
-                        <?php foreach ($planos as $key => $plano): ?>
+                        <?php
+                        foreach ($planos as $key => $plano):
+                        ?>
+
                             <div class="item <?php if($key == 0){ echo 'active'; } ?>">
                                 <div class="col-xs-8 col-xs-offset-2 block-plans">
                                     <div class="card card-type-pricing text-center">
@@ -47,30 +50,41 @@
                                             <div class="price">
                                                 <H1 class="text-xl moeda-plan">R$</H1>
                                                 <h2>
-                                                    <span class="text-xl price-plan">
-                                                        <!--
-                                                        <span class="premio_total premio_total_one_<?php echo $plano['produto_parceiro_plano_id']; ?>">---</span>
-                                                        -->
-                                                        500
-                                                    </span>
+                                                    <span class="text-xl price-plan"> 500 </span>
                                                 </h2>
-                                                <H1 class="text-xl moeda-plan">,00</H1>
+                                                <h1 class="text-xl moeda-plan">,00</h1>
                                                 <span></span>
                                             </div>
 
                                             <ul class="list details-plan">
-                                                <li><i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Roubo</li>
-                                                <li><i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Furto qualificado</li>
-                                                <li><i class="fa fa-times-circle error" aria-hidden="true"></i> Conserto em casao de quebra</li>
+                                                <?php
+                                                $array_cobertura = array();
+                                                foreach ($plano['cobertura'] as $cobertura){
+                                                    $array_cobertura[] = $cobertura['cobertura_id'];
+                                                }
+
+                                                $array_modal = array();
+                                                foreach($merge_coberturas as $key => $merge){
+                                                    $class = 'fa fa-times-circle error';
+                                                    if(in_array($merge, $array_cobertura)){
+                                                        $array_modal[] = $key;
+                                                        $class = 'fa fa-chevron-circle-right success';
+                                                    }
+                                                    echo '<li><i class="'.$class.'" aria-hidden="true"></i> '.$key.'</li>';
+                                                }
+                                                ?>
                                             </ul>
-                                            <a href="" class="more-plan" data-toggle="modal" data-target="#myModal">Saiba mais</a>
+                                            <a href="#" class="more-plan" data-toggle="modal" data-target="#modalCoberturas"
+                                               data-title="<?php echo $plano['nome']; ?>"
+                                               data-price="500,53"
+                                               data-coberturas="<?php echo implode(',',$array_modal); ?>">Saiba mais</a>
 
                                             <div class="this-plan">
-                                                <a class="btn btn-primary add-car this-plan-btn" href="javascript: void(0);" data-plano="<?php echo $plano['produto_parceiro_plano_id']; ?>">
+                                                <a class="btn btn-primary add-car this-plan-btn" data-plano="<?php echo $plano['produto_parceiro_plano_id']; ?>" href="javascript: void(0);">
                                                     QUERO ESTE <i class="fa fa-angle-right" aria-hidden="true"></i>
                                                 </a>
                                             </div>
-                                        </div><!--end .card-body -->
+                                        </div>
 
                                         <div class="card-body coberturas">
                                             <ul class="list-unstyled">
@@ -141,6 +155,7 @@
                                     </div>
                                 </div>
                             </div>
+
                         <?php endforeach; ?>
                     </div>
 
@@ -281,32 +296,21 @@
 </div>
 
 <!-- modal more info -->
-<div class="modal fade" id="myModal" role="dialog">
+<div class="modal fade" id="modalCoberturas" role="dialog">
     <button type="button" class="close" data-dismiss="modal">&times;</button>
-
     <div class="modal-dialog">
         <!-- Modal content-->
         <div class="modal-content">
-
             <div class="modal-body">
                 <h2 class="title">BÁSICO</h2>
                 <div class="price-block">
                     <small class="cifrao moeda">R$</small>
-                    <span class="price"> 500 </span>
-                    <small class="cifrao">,00</small>
+                    <span class="price modal-price"> 00 </span>
+                    <small class="cifrao modal-cents">,00</small>
                 </div>
-
-                <ul class="list details-plan">
-                    <li> <i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Roubo </li>
-                    <li> <i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Furto qualificado </li>
-                    <li> <i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Conserto em caso de quebra </li>
-                    <li> <i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Lorem ipsum dolor </li>
-                    <li> <i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Lorem ipsum dolor other </li>
-                    <li> <i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> Lorem ipsum dolor side </li>
-                </ul>
+                <ul class="list details-plan"></ul>
             </div>
         </div>
-
     </div>
 </div>
 

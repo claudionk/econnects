@@ -661,6 +661,10 @@ $(function(){
 
     }
 
+    $('.this-plan-btn').on('click',function() {
+        $('#validateSubmitForm').submit();
+    });
+
     $('.btn_dados_segurado').on('click',function() {
         $('#validateSubmitForm').submit();
     });
