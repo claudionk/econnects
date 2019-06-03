@@ -182,7 +182,8 @@ class Apolice extends CI_Controller {
                 $num_apolice = $PUT["num_apolice"];
 
                 // atualiza o numero do bilhete
-                $this->apolice->updateBilhete( $apolice_id, $num_apolice );
+                $ret = $this->apolice->updateBilhete( $apolice_id, $num_apolice );
+                die( json_encode( $ret, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
             } else {
                 die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
             }
