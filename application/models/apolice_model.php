@@ -1379,7 +1379,7 @@ class Apolice_Model extends MY_Model
         if (!empty($dadosPP)) {
             // LASA RF+QA NOVOS
             if ($dadosPP['cod_tpa'] == '007') {
-                $num_apolice_aux = $dadosPP['cod_sucursal'] . $dadosPP['cod_ramo'] . $dadosPP['cod_tpa'];
+                $num_apolice_aux = $dadosPP['codigo_sucursal'] . $dadosPP['cod_ramo'] . $dadosPP['cod_tpa'];
                 $num_apolice_aux .= str_pad(substr($dadosPP['num_apolice'], 7, 8), 8, '0', STR_PAD_LEFT);
                 $dadosPP['num_apolice'] = $num_apolice_aux;
             }
