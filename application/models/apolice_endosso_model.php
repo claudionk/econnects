@@ -54,10 +54,14 @@ Class Apolice_Endosso_Model extends MY_Model
      * @author Davi Souto
      * @since  08/04/2019
      */
-    function lastParcela($apolice_id, $parcela = null) {
+    function lastParcela($apolice_id, $parcela = null, $apolice_movimentacao_tipo_id = null) {
 
         if ( !empty($parcela) ) {
             $this->_database->where('parcela', $parcela);
+        }
+
+        if ( !empty($apolice_movimentacao_tipo_id) ) {
+            $this->_database->where('apolice_movimentacao_tipo_id', $apolice_movimentacao_tipo_id);
         }
 
         $this->_database->where('apolice_id', $apolice_id);
@@ -276,6 +280,29 @@ Class Apolice_Endosso_Model extends MY_Model
             throw new Exception($e->getMessage());
         }
 
+    }
+
+    public function updateEndosso($apolice_id){
+
+        $ret = $this->get_many_by([
+            'apolice_id' => $apolice_id
+        ]);
+
+        foreach ($ret as $r) {
+            $up['id_transacao'] = $this->getIDTransacao($apolice_id, $r['endosso'], $r['parcela']);
+
+            // no caso de cancelamento
+            if ($r['apolice_movimentacao_tipo_id'] == 2)
+            {
+                // recupera a última parcela de emissão
+                $result = $this->lastParcela($apolice_id, $r['parcela'], 1);
+                $up['id_transacao_canc'] = $result['id_transacao'];
+            }
+
+            $this->update($r['apolice_endosso_id'], $up);
+        }
+
+        return true;
     }
 
 }

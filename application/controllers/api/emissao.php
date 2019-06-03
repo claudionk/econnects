@@ -59,6 +59,8 @@ class Emissao extends CI_Controller {
         // Aqui guardo em sessão para fazer acompanhamento
         $this->session->set_userdata("tokenAPI", $this->api_key);
         $this->session->set_userdata("tokenAPIvalid",$webservice["validade"]);
+
+        $this->load->model( "apolice_model", "apolice" );
     }
 
     public function index() {
@@ -151,7 +153,7 @@ class Emissao extends CI_Controller {
                     $this->campos_estrutura = $arrOptions;
                 }
 
-                $this->load->model( "apolice_model", "apolice" );
+                // Validação do número da apólice
                 if( !empty($parametros['num_apolice']) && $this->apolice->search_apolice_produto_parceiro_plano_id( $parametros['num_apolice'] , $this->produto_parceiro_plano_id ) ){
                     die(json_encode(array("status"=>false,"message"=>"Já existe um certificado com o número {$parametros['num_apolice']} em nossa base"),JSON_UNESCAPED_UNICODE));
                 }
@@ -466,20 +468,17 @@ class Emissao extends CI_Controller {
                   	// Verificando se veio apólice 
                     if(!empty($this->num_apolice))
                     {
-                        $this->db->query("UPDATE apolice SET num_apolice='".$this->num_apolice."' WHERE pedido_id='".$parametros->dados->pedido_id."'" );  
+                        $upApolice = $this->apolice->updateBilhete($parametros->dados->apolice_id, $this->num_apolice);
+                        if ( empty($upApolice['status']) )
+                        {
+                            die(json_encode(array("status"=>false, "message"=>$upApolice["message"], "pedido_id"=>$parametros->dados->pedido_id),JSON_UNESCAPED_UNICODE));
+                        }
                     }
 
-                    $url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/apolice?pedido_id={$parametros->dados->pedido_id}" ;
+                    $url = base_url() ."api/apolice?pedido_id={$parametros->dados->pedido_id}" ;
                     $obj = new Api();
                     $r = $obj->execute($url, 'GET');
 
-                    //$arrOptions = [
-                    //    "pedido_id" => $parametros->dados->pedido_id ,
-                    //      "num_apolice" => $this->num_apolice
-                    //]; 
-                    //$url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/apolice";
-                    //$obj = new Api();
-                    //$r = $obj->execute($url, 'POST', json_encode($arrOptions));*/
                     if(!empty($r))
                     {
                         $retorno = convert_objeto_to_array($r);

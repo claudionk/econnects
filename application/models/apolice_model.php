@@ -191,6 +191,39 @@ class Apolice_Model extends MY_Model
 
     }
 
+    public function updateBilhete( $apolice_id, $num_apolice ) {
+        // retorna os dados da apólice
+        $result = $this->get($apolice_id);
+
+        $ret = [
+            'status'  => false,
+            'message' => "",
+        ];
+
+        if( empty($result) ){
+            $ret['message'] = "Apólice não encontrada";
+            return $ret;
+        }
+
+        if( $this->search_apolice_produto_parceiro_plano_id( $num_apolice , $result['produto_parceiro_plano_id'] ) ){
+            $ret['message'] = "Já existe um certificado com o número {$num_apolice} em nossa base";
+            return $ret;
+        }
+
+        $this->load->model("apolice_endosso_model", "apolice_endosso");
+
+        // Atualiza o numero da apólice
+        $this->update($apolice_id, ['num_apolice' => $num_apolice], true);
+
+        // atualiza dados do endosso
+        $this->apolice_endosso->updateEndosso($apolice_id);
+
+        $ret['status'] = true;
+        $ret['result'] = $result;
+
+        return $ret;
+    }
+
     public function insertSeguroEquipamento($pedido_id)
     {
 
