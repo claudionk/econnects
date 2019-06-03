@@ -1200,9 +1200,11 @@ Class Integracao_Model extends MY_Model
                     break;
                 case 'PARCEMS':
                 case 'EMSCMS':
+                    $chave = !empty($dados['num_apolice']) ? trim($dados['num_apolice']) ."|". (int)$dados['num_sequencial'] : '';
+                    break;
                 case 'LCTCMS':
                 case 'COBRANCA':
-                    $chave = !empty($dados['num_apolice']) ? trim($dados['num_apolice']) ."|". (int)$dados['num_sequencial'] : '';
+                    $chave = !empty($dados['num_apolice']) ? trim($dados['num_apolice']) : '';
                     break;
                 case 'SINISTRO':
                     $chave = !empty($dados['cod_sinistro']) ? (int)$dados['cod_sinistro'] ."|". (int)$dados['cod_movimento'] : '';
