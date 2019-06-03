@@ -108,7 +108,7 @@ Class Apolice_Endosso_Model extends MY_Model
     function getIDTransacao($apolice_id, $endosso, $parcela) {
         $id_transacao = '';
         $this->load->model('apolice_model', 'apolice');
-        $dadosPP = $this->apolice->getProdutoParceiro($apolice_id);
+        $dadosPP = $this->apolice->defineApoliceCliente($apolice_id);
 
         // tratamento para gerar o id da transacao
         if (!empty($dadosPP)) {
