@@ -181,6 +181,7 @@ input{ background-color: #ffffff !important; }
     text-transform: uppercase;
     font-size: 1.8rem;
     font-weight: 100;
+    margin-bottom:4rem;
 }
 .btns .btn-proximo .fa-angle-right{
     margin-left: 10px;

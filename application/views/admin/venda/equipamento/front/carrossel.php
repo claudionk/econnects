@@ -39,7 +39,7 @@
                     <!-- Wrapper for slides -->
                     <div class="carousel-inner" role="listbox">
                         <?php
-                        foreach ($planos as $key => $plano):
+                        foreach ($planos as $key => $plano): //echo '<pre>',print_r($plano);
                         ?>
 
                             <div class="item <?php if($key == 0){ echo 'active'; } ?>">
@@ -170,7 +170,7 @@
                     </a>
                 </div>
 
-                <?php foreach ($planos as $plano): ?>
+                <?php foreach ($planos as $plano):  echo '<pre>',print_r($plano); ?>
 
                     <?php $div = 1;  ?>
                     <input type="hidden" class="desconto_condicional_valor" id="desconto_condicional_valor_one_<?php echo $plano['produto_parceiro_plano_id']; ?>" value="0">
