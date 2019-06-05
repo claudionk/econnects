@@ -4,7 +4,7 @@ body{background-color: #eeeeee;}
 .main .col p{ margin:0px ; }
 .main .col h5{ margin:0px ; text-wrap: nowrap; font-family:'Gotham Book'; font-size: 1rem !important; }
 .list-inline { padding-left: 0; margin-left: -5px; list-style: none; }
-.list-inline > li { display: inline-block;  }
+.list-inline > li { display: inline-block; }
 .list-inline > li img{ width: 58px; }
 input{ background-color: #ffffff !important; }
 .collection { border: none  }
@@ -181,6 +181,7 @@ input{ background-color: #ffffff !important; }
     text-transform: uppercase;
     font-size: 1.8rem;
     font-weight: 100;
+    margin-bottom:4rem;
 }
 .btns .btn-proximo .fa-angle-right{
     margin-left: 10px;
@@ -354,6 +355,22 @@ input{ background-color: #ffffff !important; }
 }
 .modal-body .details-plan{
     margin-left: 30px;
+}
+.pg-pagamento-credito{
+    text-align: center;
+}
+.pg-pagamento-credito .fa-lock{
+    border: 1px solid;
+    font-size: 1.4rem;
+    padding: 5px 8px;
+    border-radius: 100%;
+    margin-bottom: 3rem;
+}
+.pg-pagamento-credito .form-group{
+    margin-bottom: 3.2rem;
+}
+.pg-pagamento-credito label{
+    margin-top: -15px;
 }
 @media (max-width: 768px){
     #wizard .form-wizard-nav ul li {

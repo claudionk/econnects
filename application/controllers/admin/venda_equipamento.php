@@ -119,7 +119,7 @@ class Venda_Equipamento extends Admin_Controller{
     * @param int $pedido_id
     */
     public function equipamento($produto_parceiro_id, $step = 1, $cotacao_id = 0, $pedido_id = 0, $status = '') {
-        error_log( "Controller Equipamento\n", 3, "/var/log/httpd/myapp.log" );
+        //error_log( "Controller Equipamento\n", 3, "/var/log/httpd/myapp.log" );
         
         $this->load->library('form_validation');
         $this->load->model('produto_parceiro_configuracao_model', 'prod_parc_config');
@@ -869,6 +869,14 @@ class Venda_Equipamento extends Admin_Controller{
             $plano['cobertura'] = $arrCoberturas;
             $data['planos'][] = $plano;
         }
+
+        $merge_coberturas = array();
+        foreach($data['planos'] as $plano){
+            foreach($plano['cobertura'] as $cobertura){
+                $merge_coberturas[$cobertura['descricao']] = $cobertura['cobertura_id'];
+            }
+        }
+        $data['merge_coberturas'] = $merge_coberturas;
 
         $data['list'] = array();
 

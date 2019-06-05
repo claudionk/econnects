@@ -164,7 +164,7 @@ class Admin_Controller extends MY_Controller
 
     public function venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id = 0, $conclui_em_tempo_real = true)
     {
-        error_log("Controller\n", 3, "/var/log/httpd/myapp.log");
+        //error_log("Controller\n", 3, "/var/log/httpd/myapp.log");
 
         $pedido_id = (int) $pedido_id;
 
@@ -186,7 +186,7 @@ class Admin_Controller extends MY_Controller
 
         //Retorna cotação
         $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
-        error_log("Produto: " . print_r($cotacao['produto_slug'], true) . "\n", 3, "/var/log/httpd/myapp.log");
+        //error_log("Produto: " . print_r($cotacao['produto_slug'], true) . "\n", 3, "/var/log/httpd/myapp.log");
         switch ($cotacao['produto_slug']) {
             case "seguro_viagem":
                 $valor_total = $this->cotacao_seguro_viagem->getValorTotal($cotacao_id);
@@ -202,7 +202,7 @@ class Admin_Controller extends MY_Controller
                 break;
 
         }
-        error_log("Valor Total: " . print_r($valor_total, true) . "\n", 3, "/var/log/httpd/myapp.log");
+        //error_log("Valor Total: " . print_r($valor_total, true) . "\n", 3, "/var/log/httpd/myapp.log");
 
         //formas de pagamento
         $forma_pagamento = array();
@@ -445,7 +445,7 @@ class Admin_Controller extends MY_Controller
                 }
 
             }
-            error_log("POST: " . print_r($data, true) . "\n", 3, "/var/log/httpd/myapp.log");
+            //error_log("POST: " . print_r($data, true) . "\n", 3, "/var/log/httpd/myapp.log");
         }
 
         $data['step'] = ($conclui_em_tempo_real) ? 3 : 2;

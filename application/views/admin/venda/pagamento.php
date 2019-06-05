@@ -39,7 +39,7 @@ if($_POST){
     <div class="card-body">
 
             <!-- Form -->
-        <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
+        <form class="form form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
             <input type="hidden" name="produto_parceiro_id" value="<?php if (isset($produto_parceiro_id)) echo $produto_parceiro_id; ?>"/>
             <input type="hidden" name="cotacao_id" id="cotacao_id" value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
             <input type="hidden" name="pedido_id" id="pedido_id" value="<?php if (isset($pedido_id)) echo $pedido_id; ?>"/>
@@ -59,55 +59,23 @@ if($_POST){
             <div class="row">
                 <div class="col-md-12">
 
-                    <h2 class="text-light text-center">Efetuar pagamento<br>
-                        <small class="text-primary">Pague utilizando a melhor forma de pagamento</small>
-                    </h2>
-
-
-
                     <?php
                     if((isset($layout)) && ($layout == 'front') && ($context != "pagamento")) {
-                        $this->load->view('admin/venda/equipamento/front/step', array('step' => 4, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'] ));
+                        $this->load->view('admin/venda/equipamento/front/step', array('step' => 4, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'], 'title' => 'PAGAMENTO' ));
                     }else{
                         if ($context != "pagamento") {
-                         $this->load->view("admin/venda/step", array('step' => 4, 'produto_parceiro_id' => $produto_parceiro_id ));
+                         $this->load->view("admin/venda/step", array('step' => 4, 'produto_parceiro_id' => $produto_parceiro_id, 'title' => 'PAGAMENTO' ));
                         }
                     }
                     ?>
 
                     <?php $this->load->view('admin/venda/partials/enviar_token_acesso'); ?>
 
-                    <div class="panel-group" id="accordion1">
-                    <?php $in = " in"; ?>
-                    <?php $expanded = " expanded"; ?>
-                    <?php $select = " checked"; ?>
-                        <?php foreach ($forma_pagamento as $index => $forma) : ?>
-                            <!-- Accordion Item -->
-                            <div class="card panel<?php if(isset($row['forma_pagamento_tipo_id'])){if($row['forma_pagamento_tipo_id'] == $forma['tipo']['forma_pagamento_tipo_id']) {echo ' expanded';}} else {if(!isset($row['forma_pagamento_tipo_id'])){ echo $expanded;}} ?>">
-                                <div class="card-head" data-toggle="collapse" data-parent="#accordion1" data-target="#accordion1-<?php echo $forma['tipo']['forma_pagamento_tipo_id']; ?>">
-                                    <header>
-                                        <div class="radio radio-styled">
-                                            <label>
-                                                <input type="radio" name="forma_pagamento_tipo_id" value="<?php echo $forma['tipo']['forma_pagamento_tipo_id']; ?>" <?php if(isset($row['forma_pagamento_tipo_id'])){if($row['forma_pagamento_tipo_id'] == $forma['tipo']['forma_pagamento_tipo_id']) {echo 'checked="checked"';}} else {if(!isset($row['forma_pagamento_tipo_id'])){ echo $select;}} ?> >
-                                                <span><?php  echo $forma['tipo']['nome'];  ?></span>
-                                            </label>
-                                        </div>
-                                    </header>
-                                    <div class="tools">
-                                        <a class="btn btn-icon-toggle"><i class="fa fa-angle-down"></i></a>
-                                    </div>
-                                </div>
-                                <div id="accordion1-<?php echo $forma['tipo']['forma_pagamento_tipo_id']; ?>" class="collapse <?php if(isset($row['forma_pagamento_tipo_id'])){if($row['forma_pagamento_tipo_id'] == $forma['tipo']['forma_pagamento_tipo_id']) {echo ' in';}} else {if(!isset($row['forma_pagamento_tipo_id'])){ echo $in;}} ?>">
-                                    <div class="panel-body">
-                                        <?php $this->load->view("admin/venda/pagamento/". $forma['tipo']['slug'], array('forma' => $forma, 'row' => issetor($campos, array())));?>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <?php $in = ""; $expanded = ""; $select = "";?>
-                        <?php endforeach;  ?>
-                    </div>
-
+                    <?php
+                    foreach ($forma_pagamento as $index => $forma):
+                        $this->load->view("admin/venda/pagamento/". $forma['tipo']['slug'], array('forma' => $forma, 'row' => issetor($campos, array())));
+                    endforeach;
+                    ?>
                 </div>
             </div>
         </form>

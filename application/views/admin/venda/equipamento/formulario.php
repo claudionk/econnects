@@ -21,7 +21,7 @@
 
 <div <?php echo ((isset($layout)) && ($layout == 'front')) ? 'style="background-color: #eeeeee"' : ''; ?>>
     <!-- Form -->
-    <form class="form" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
+    <form class="form form-dados" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
         <input type="hidden" name="<?php echo $primary_key ?>" id="<?php echo $primary_key ?>" value="<?php if (isset($produto_parceiro_id)) echo $produto_parceiro_id; ?>"/>
         <input type="hidden" name="cotacao_id" value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
         <input type="hidden" id="url_busca_cliente"  name="url_busca_cliente" value="<?php echo base_url("{$current_controller_uri}/get_cliente"); ?>"/>
@@ -45,6 +45,13 @@
 
         <?php $this->load->view('admin/campos_sistema/lista_campos'); ?>
     </form>
+</div>
+
+<!-- btn whatsapp -->
+<div class="btn-whats">
+    <a href="" title="">
+        <i class="fa fa-whatsapp"></i>
+    </a>
 </div>
 
 <div class="btns">
