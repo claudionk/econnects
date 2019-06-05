@@ -11,16 +11,16 @@ Class Cta_Movimentacao_Model extends MY_Model
 
     //Configurações
     protected $return_type = 'array';
-
-    protected $time;
+    protected $time = -5;
 
     public function __construct()
     {
         parent::__construct();
-        $this->time = -5; // minutes
     }
 
-    public function run(){
+    public function run($time = null){
+        if ( !empty($time) )
+            $this->time = $time; // minutes
 
         // cria um arquivo para evitar rodar 2x o mesmo script
         $fileFull = "/var/log/httpd/cta_movimentacao.block";
@@ -49,7 +49,6 @@ Class Cta_Movimentacao_Model extends MY_Model
         unlink($fileFull);
 
     }
-
 
     private function structure(){
 

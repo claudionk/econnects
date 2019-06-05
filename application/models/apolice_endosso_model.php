@@ -123,7 +123,6 @@ Class Apolice_Endosso_Model extends MY_Model
      *   01 - Cobrança
      *   02 - Restituição
      *   03 - Sem movto de prêmio
-     * @param int $apolice_id
      * @param int $tipo
      * @param int $parcela
      * @param boolean $devolucao_integral
