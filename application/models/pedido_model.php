@@ -1464,13 +1464,16 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("
         (
             SELECT 
-                  CTA_Ag_Retorno
-                , CTA_Retorno_ok
-                , CTA_Retorno_erro
-                , num_apolice
-                , apolice_movimentacao_tipo_id
-            FROM cta_movimentacao
-            WHERE CTA_Retorno_ok IS NOT NULL
+                  cta_m.CTA_Ag_Retorno
+                , cta_m.CTA_Retorno_ok
+                , cta_m.CTA_Retorno_erro
+                , cta_m.num_apolice
+                , cta_m.apolice_movimentacao_tipo_id
+                , SUM(iF(cta_m.apolice_movimentacao_tipo_id=1,1,-1) * ae.valor) AS valor
+            FROM cta_movimentacao cta_m
+            JOIN apolice_endosso ae ON ae.apolice_endosso_id = cta_m.apolice_endosso_id
+            WHERE cta_m.CTA_Retorno_ok IS NOT NULL
+            GROUP BY cta_m.CTA_Ag_Retorno, cta_m.CTA_Retorno_ok, cta_m.CTA_Retorno_erro, cta_m.num_apolice, cta_m.apolice_movimentacao_tipo_id
         ) as cta", "cta.num_apolice = a.num_apolice", "join", FALSE);
 
         $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
@@ -1726,13 +1729,16 @@ Class Pedido_Model extends MY_Model
 
             INNER JOIN (
                 SELECT 
-                      CTA_Ag_Retorno
-                    , CTA_Retorno_ok
-                    , CTA_Retorno_erro
-                    , num_apolice
-                    , apolice_movimentacao_tipo_id
-                FROM cta_movimentacao
-                WHERE CTA_Retorno_ok IS NOT NULL
+                  cta_m.CTA_Ag_Retorno
+                , cta_m.CTA_Retorno_ok
+                , cta_m.CTA_Retorno_erro
+                , cta_m.num_apolice
+                , cta_m.apolice_movimentacao_tipo_id
+                , SUM(iF(cta_m.apolice_movimentacao_tipo_id=1,1,-1) * ae.valor) AS valor
+            FROM cta_movimentacao cta_m
+            JOIN apolice_endosso ae ON ae.apolice_endosso_id = cta_m.apolice_endosso_id
+            WHERE cta_m.CTA_Retorno_ok IS NOT NULL
+            GROUP BY cta_m.CTA_Ag_Retorno, cta_m.CTA_Retorno_ok, cta_m.CTA_Retorno_erro, cta_m.num_apolice, cta_m.apolice_movimentacao_tipo_id
             ) as cta ON cta.num_apolice = a.num_apolice AND am.apolice_movimentacao_tipo_id = cta.apolice_movimentacao_tipo_id
 
         WHERE `parc`.`slug` IN('".$slug."')
@@ -2305,3 +2311,4 @@ Class Pedido_Model extends MY_Model
         return in_array( $usuario_acl_tipo_id , array( 2 , 11 ) ) ;
     }
 }
+

@@ -182,18 +182,14 @@ class Apolice extends CI_Controller {
                 $apolice_id = $PUT["apolice_id"];
                 $num_apolice = $PUT["num_apolice"];
 
-                $this->update( $apolice_id, $num_apolice );
+                // atualiza o numero do bilhete
+                $ret = $this->apolice->updateBilhete( $apolice_id, $num_apolice );
+                die( json_encode( $ret, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
             } else {
                 die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
             }
         }
 
-    }
-
-    private function update( $apolice_id, $num_apolice ) {
-        $this->db->query("UPDATE apolice SET num_apolice='$num_apolice' WHERE apolice_id=$apolice_id" );
-        $result = $this->db->query("SELECT * FROM apolice WHERE apolice_id=$apolice_id" )->result_array();
-        die( json_encode( array( "status" => (bool)sizeof($result), "apolice" => $result ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
     public function getDados ()

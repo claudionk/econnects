@@ -286,10 +286,10 @@ class Cron extends Admin_Controller
         }
 
     }
-    public function cenario_cta()
+    public function cenario_cta($time = null)
     {
         $this->load->model('cta_movimentacao_model', 'cta_movimentacao');
-        $this->cta_movimentacao->run();
+        $this->cta_movimentacao->run($time);
     }
 
     /**

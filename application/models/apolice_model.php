@@ -263,6 +263,39 @@ class Apolice_Model extends MY_Model
 
     }
 
+    public function updateBilhete( $apolice_id, $num_apolice ) {
+        // retorna os dados da apólice
+        $result = $this->get($apolice_id);
+
+        $ret = [
+            'status'  => false,
+            'message' => "",
+        ];
+
+        if( empty($result) ){
+            $ret['message'] = "Apólice não encontrada";
+            return $ret;
+        }
+
+        if( $this->search_apolice_produto_parceiro_plano_id( $num_apolice , $result['produto_parceiro_plano_id'] ) ){
+            $ret['message'] = "Já existe um certificado com o número {$num_apolice} em nossa base";
+            return $ret;
+        }
+
+        $this->load->model("apolice_endosso_model", "apolice_endosso");
+
+        // Atualiza o numero da apólice
+        $this->update($apolice_id, ['num_apolice' => $num_apolice], true);
+
+        // atualiza dados do endosso
+        $this->apolice_endosso->updateEndosso($apolice_id);
+
+        $ret['status'] = true;
+        $ret['result'] = $result;
+
+        return $ret;
+    }
+
     public function insertSeguroEquipamento($pedido_id)
     {
 
@@ -1383,7 +1416,7 @@ class Apolice_Model extends MY_Model
      * @since  08/04/2019
      */
     function getProdutoParceiro($apolice_id) {
-        $this->_database->select('a.num_apolice, pa.slug, pa.codigo_sucursal, pp.cod_ramo');
+        $this->_database->select('a.num_apolice, pa.slug, pa.codigo_sucursal, pp.cod_ramo, pp.cod_tpa');
         $this->_database->join("apolice a", "a.apolice_id = {$this->_table}.apolice_id", "inner");
         $this->_database->join("pedido p", "p.pedido_id = a.pedido_id", "inner");
         $this->_database->join("cotacao c", "c.cotacao_id = p.cotacao_id", "inner");
@@ -1457,6 +1490,22 @@ class Apolice_Model extends MY_Model
 
         return $this->get_all();
 
+    }
+
+    function defineApoliceCliente($apolice_id) {
+
+        $dadosPP = $this->getProdutoParceiro($apolice_id);
+
+        if (!empty($dadosPP)) {
+            // LASA RF+QA NOVOS
+            if ($dadosPP['cod_tpa'] == '007') {
+                $num_apolice_aux = $dadosPP['codigo_sucursal'] . $dadosPP['cod_ramo'] . $dadosPP['cod_tpa'];
+                $num_apolice_aux .= str_pad(substr($dadosPP['num_apolice'], 7, 8), 8, '0', STR_PAD_LEFT);
+                $dadosPP['num_apolice'] = $num_apolice_aux;
+            }
+        }
+
+        return $dadosPP;
     }
 
 }

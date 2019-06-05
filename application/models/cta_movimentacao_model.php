@@ -11,16 +11,16 @@ Class Cta_Movimentacao_Model extends MY_Model
 
     //Configurações
     protected $return_type = 'array';
-
-    protected $time;
+    protected $time = -5;
 
     public function __construct()
     {
         parent::__construct();
-        $this->time = -5; // minutes
     }
 
-    public function run(){
+    public function run($time = null){
+        if ( !empty($time) )
+            $this->time = $time; // minutes
 
         // cria um arquivo para evitar rodar 2x o mesmo script
         $fileFull = "/var/log/httpd/cta_movimentacao.block";
@@ -50,7 +50,6 @@ Class Cta_Movimentacao_Model extends MY_Model
 
     }
 
-
     private function structure(){
 
         $sqlBegin = " 
@@ -61,6 +60,7 @@ Class Cta_Movimentacao_Model extends MY_Model
             , cliente_id
             , num_apolice
             , apolice_movimentacao_tipo_id
+            , apolice_endosso_id
             , CTA_nao_processado
             , CTA_Ag_Retorno
             , CTA_Retorno_ok
@@ -77,6 +77,7 @@ Class Cta_Movimentacao_Model extends MY_Model
             , cliente_id
             , num_apolice 
             , apolice_movimentacao_tipo_id 
+            , apolice_endosso_id
             , date_format(IF(CTA_Enviado IS NULL AND CTA_Retorno_ok IS NULL AND NOT (CTA_Retorno_ok IS NULL AND IFNULL(CTA_Retorno, 1) >= IFNULL(CTA_Enviado, 1)), now(), NULL), '%Y-%m-%d %H:00:00') as CTA_nao_processado
             , date_format(IF(CTA_Enviado IS NOT NULL AND CTA_Retorno_ok IS NULL , if( IFNULL(CTA_Enviado,1) > IFNULL(CTA_Retorno, 1), CTA_Enviado, NULL) , NULL), '%Y-%m-%d %H:00:00') as CTA_Ag_Retorno
             , date_format(IF(CTA_Retorno_ok IS NOT NULL, CTA_Retorno_ok, NULL), '%Y-%m-%d %H:00:00')  as CTA_Retorno_ok
@@ -92,7 +93,7 @@ Class Cta_Movimentacao_Model extends MY_Model
                 , maxDate( ctaEmissao(chave_emi, 5), ctaCliente(cliente_id, 5), 0 ) as CTA_Retorno
                 , ctaEmissaoErro(chave_emi) as Erro
                 , num_apolice, pedido_id, apolice_id, cotacao_id, cliente_id
-                , apolice_movimentacao_tipo_id
+                , apolice_movimentacao_tipo_id, apolice_endosso_id
                 , (
                     SELECT DATE(MAX(l.criacao) )
                     FROM integracao_log l
@@ -138,18 +139,20 @@ Class Cta_Movimentacao_Model extends MY_Model
         $sql = $q['begin'] . " 
             SELECT distinct
                 c.cliente_id
-                , concat(a.num_apolice, '|', LPAD(am.apolice_movimentacao_tipo_id, 2, '0')) as chave_emi
+                , concat(a.num_apolice, '|', ae.sequencial) as chave_emi
                 , am.apolice_movimentacao_tipo_id
                 , a.num_apolice
                , a.pedido_id
                , a.apolice_id
                , p.cotacao_id
+               , ae.apolice_endosso_id
             FROM 
                 apolice a 
                 JOIN pedido p on a.pedido_id = p.pedido_id
                 JOIN cotacao c on p.cotacao_id = c.cotacao_id
                 JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
                 JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
+                JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
                 , integracao i        
                 , integracao_log il 
                 , integracao_log_detalhe ild
@@ -160,7 +163,7 @@ Class Cta_Movimentacao_Model extends MY_Model
                 and i.integracao_id = il.integracao_id
                 and ild.integracao_log_id = il.integracao_log_id
                 and i.slug_group in ('parc-emissao','ems-emissao')
-                and concat(a.num_apolice, '|', LPAD(am.apolice_movimentacao_tipo_id, 2, '0')) = ild.chave
+                and concat(a.num_apolice, '|', ae.sequencial) = ild.chave
                 and date_add( now(), interval {$this->time} minute ) < IFNULL(ild.alteracao,ild.criacao)
         ". $q['end'];
 
@@ -181,18 +184,20 @@ Class Cta_Movimentacao_Model extends MY_Model
         $sql = $q['begin'] . " 
             SELECT distinct
                 c.cliente_id
-                , concat(a.num_apolice, '|', LPAD(am.apolice_movimentacao_tipo_id, 2, '0')) as chave_emi
+                , concat(a.num_apolice, '|', ae.sequencial) as chave_emi
                 , am.apolice_movimentacao_tipo_id
                 , a.num_apolice
                , a.pedido_id
                , a.apolice_id
                , p.cotacao_id
+               , ae.apolice_endosso_id
             FROM 
                 apolice a 
                 JOIN pedido p on a.pedido_id = p.pedido_id
                 JOIN cotacao c on p.cotacao_id = c.cotacao_id
                 JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
                 JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
+                JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
                 , integracao i        
                 , integracao_log il 
                 , integracao_log_detalhe ild
@@ -224,18 +229,20 @@ Class Cta_Movimentacao_Model extends MY_Model
         $sql = $q['begin'] . " 
             SELECT distinct
                 c.cliente_id
-                , concat(a.num_apolice, '|', LPAD(am.apolice_movimentacao_tipo_id, 2, '0')) as chave_emi
+                , concat(a.num_apolice, '|', ae.sequencial) as chave_emi
                 , am.apolice_movimentacao_tipo_id
                 , a.num_apolice
                , a.pedido_id
                , a.apolice_id
                , p.cotacao_id
+               , ae.apolice_endosso_id
             FROM 
                 apolice a 
                 JOIN pedido p on a.pedido_id = p.pedido_id
                 JOIN cotacao c on p.cotacao_id = c.cotacao_id
                 JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
                 JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
+                JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
             WHERE 
                 a.deletado = 0 
                 AND p.deletado = 0 
@@ -255,3 +262,4 @@ Class Cta_Movimentacao_Model extends MY_Model
     }
 
 }
+

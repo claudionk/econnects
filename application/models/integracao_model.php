@@ -1219,7 +1219,7 @@ Class Integracao_Model extends MY_Model
             AND il.deletado = 0
             AND il.integracao_log_status_id = 3
             AND ild.integracao_log_status_id NOT IN(4,5)
-            AND ild.chave LIKE '{$chave}%'
+            AND ild.chave = '{$chave}'
         ";
         $query = $this->_database->query($sql);
 
@@ -1248,9 +1248,11 @@ Class Integracao_Model extends MY_Model
                     break;
                 case 'PARCEMS':
                 case 'EMSCMS':
+                    $chave = !empty($dados['num_apolice']) ? trim($dados['num_apolice']) ."|". (int)$dados['num_sequencial'] : '';
+                    break;
                 case 'LCTCMS':
                 case 'COBRANCA':
-                    $chave = !empty($dados['num_apolice']) ? trim($dados['num_apolice']) ."|0". (int)$dados['num_sequencial'] : '';
+                    $chave = !empty($dados['num_apolice']) ? trim($dados['num_apolice']) : '';
                     break;
                 case 'SINISTRO':
                     $chave = !empty($dados['cod_sinistro']) ? (int)$dados['cod_sinistro'] ."|". (int)$dados['cod_movimento'] : '';
