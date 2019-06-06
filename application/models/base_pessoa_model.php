@@ -128,7 +128,7 @@ class Base_Pessoa_Model extends MY_Model
                 $iEnderecos = $ifaro["Enderecos"];
                 $Enderecos  = [];
                 foreach ($iEnderecos as $row) {
-                    $Enderecos[] = array("LOGRADOURO" => trim($row["Logadouro"]),
+                    $Enderecos[] = array("LOGRADOURO" => $this->ifaro->getLogradouro($row["Logadouro"], $row["LogadouroTipo"]),
                         "NUMERO"                          => trim($row["Numero"]),
                         "COMPLEMENTO"                     => trim($row["Complemento"]),
                         "BAIRRO"                          => trim($row["Bairro"]),
@@ -157,7 +157,7 @@ class Base_Pessoa_Model extends MY_Model
 
     public function update_base_pessoa($base_pessoa_id, $data)
     {
-
+        $this->load->model('cliente_model', 'cliente');
         $this->load->model('base_pessoa_contato_model', 'base_pessoa_contato');
         $this->load->model('base_pessoa_empresa_model', 'base_pessoa_empresa');
         $this->load->model('base_pessoa_endereco_model', 'base_pessoa_endereco');
@@ -168,7 +168,7 @@ class Base_Pessoa_Model extends MY_Model
             $pessoa = array('quantidade_atualziacao' => 0);
         }
 
-        $cliente_id                            = $this->cliente_insert_update($data);
+        $cliente_id                            = $this->cliente->cliente_insert_update($data);
         $data_pessoa                           = array();
         $data_pessoa['cliente_id']             = $cliente_id;
         $data_pessoa['documento']              = isset($data['DADOS_CADASTRAIS'][0]['CPF']) ? $data['DADOS_CADASTRAIS'][0]['CPF'] : $data['DADOS_CADASTRAIS']['CPF'];
@@ -249,139 +249,6 @@ class Base_Pessoa_Model extends MY_Model
             }
         }
 
-    }
-
-    public function cliente_insert_update($data)
-    {
-
-        //print_r($data);exit;
-        $this->load->model('cliente_model', 'cliente');
-        $this->load->model('cliente_contato_model', 'cliente_contato');
-        $this->load->model('cliente_codigo_model', 'cliente_codigo');
-        $this->load->model('localidade_cidade_model', 'localidade_cidade');
-
-        if (!isset($data['DADOS_CADASTRAIS'])) {
-            return 0;
-        }
-
-        //verifica se o cliente existe
-        $documento = isset($data['DADOS_CADASTRAIS'][0]['CPF']) ? app_retorna_numeros($data['DADOS_CADASTRAIS'][0]['CPF']) : app_retorna_numeros($data['DADOS_CADASTRAIS']['CPF']);
-        $cliente   = $this->cliente->filterByCPFCNPJ($documento)
-            ->get_all();
-
-        if (count($cliente) == 0) {
-            //insere novo cliente
-            $data_cliente                               = array();
-            $data_cliente['tipo_cliente']               = (app_verifica_cpf_cnpj(app_retorna_numeros($data['DADOS_CADASTRAIS']['CPF'])) == 'CNPJ') ? 'CO' : 'CF';
-            $data_cliente['cnpj_cpf']                   = app_retorna_numeros($data['DADOS_CADASTRAIS']['CPF']);
-            $data_cliente['codigo']                     = $this->cliente_codigo->get_codigo_cliente_formatado($data_cliente['tipo_cliente']);
-            $data_cliente['colaborador_id']             = 1;
-            $data_cliente['colaborador_comercial_id']   = 1;
-            $data_cliente['titular']                    = 1;
-            $data_cliente['razao_nome']                 = $data['DADOS_CADASTRAIS']['NOME'];
-            $data_cliente['data_nascimento']            = app_dateonly_mask_to_mysql($data['DADOS_CADASTRAIS']['DATANASC']);
-            $data_cliente['cliente_evolucao_status_id'] = 6; //Salva como prospect
-            $data_cliente['grupo_empresarial_id']       = 0;
-
-            if (isset($data['ENDERECOS'])) {
-                $data_cliente['cep']         = (isset($item['CEP']) && !is_array($item['CEP'])) ? app_format_cep($item['CEP']) : '';
-                $data_cliente['endereco']    = (isset($item['LOGRADOURO']) && !is_array($item['LOGRADOURO'])) ? $item['LOGRADOURO'] : '';
-                $data_cliente['bairro']      = (isset($item['BAIRRO']) && !is_array($item['BAIRRO'])) ? $item['BAIRRO'] : '';
-                $data_cliente['numero']      = (isset($item['NUMERO']) && !is_array($item['NUMERO'])) ? app_retorna_numeros($item['NUMERO']) : '';
-                $data_cliente['complemento'] = (isset($item['COMPLEMENTO']) && !is_array($item['COMPLEMENTO'])) ? $item['COMPLEMENTO'] : '';
-                if ((isset($item['CIDADE']) && !is_array($item['CIDADE']))) {
-                    $localidade_cidade = $this->localidade_cidade->get_by_nome($item['CIDADE']);
-                    if ($localidade_cidade) {
-                        $data_cliente['localidade_cidade_id'] = $localidade_cidade['localidade_cidade_id'];
-                    }
-                }
-
-            }
-
-            $cliente_id = $this->cliente->insert($data_cliente, true);
-
-            $data_contato                                            = array();
-            $data_contato['cliente_id']                              = $cliente_id;
-            $data_contato['cliente_contato_nivel_relacionamento_id'] = 3;
-            $data_contato['decisor']                                 = 1;
-            $data_contato['nome']                                    = $data['DADOS_CADASTRAIS']['NOME'];
-            $data_contato['data_nascimento']                         = app_dateonly_mask_to_mysql($data['DADOS_CADASTRAIS']['DATANASC']);
-
-            if (isset($data['TELEFONES'])) {
-                foreach ($data['TELEFONES'] as $telefone) {
-                    $data_contato['contato']         = app_retorna_numeros($telefone['TELEFONE']);
-                    $data_contato['contato_tipo_id'] = (app_validate_mobile_phone(app_format_telefone_unitfour(app_retorna_numeros($telefone['TELEFONE'])))) ? 2 : 3;
-                    $this->cliente_contato->insert_contato($data_contato);
-                }
-            }
-
-            if (isset($data['EMAILS'])) {
-                foreach ($data['EMAILS'] as $email) {
-                    if (isset($email['EMAIL'])) {
-                        $data_contato['contato']         = $email['EMAIL'];
-                        $data_contato['contato_tipo_id'] = 1;
-                        $this->cliente_contato->insert_contato($data_contato);
-                    }
-                }
-            }
-
-        } else {
-            //
-            $cliente_id = $cliente[0]['cliente_id'];
-
-            $data_cliente                    = array();
-            $data_cliente['cnpj_cpf']        = app_retorna_numeros($data['DADOS_CADASTRAIS']['CPF']);
-            $data_cliente['razao_nome']      = $data['DADOS_CADASTRAIS']['NOME'];
-            $data_cliente['data_nascimento'] = app_dateonly_mask_to_mysql($data['DADOS_CADASTRAIS']['DATANASC']);
-
-            if (isset($data['ENDERECOS'])) {
-                $data_cliente['cep']         = (isset($item['CEP']) && !is_array($item['CEP'])) ? app_format_cep($item['CEP']) : '';
-                $data_cliente['endereco']    = (isset($item['LOGRADOURO']) && !is_array($item['LOGRADOURO'])) ? $item['LOGRADOURO'] : '';
-                $data_cliente['bairro']      = (isset($item['BAIRRO']) && !is_array($item['BAIRRO'])) ? $item['BAIRRO'] : '';
-                $data_cliente['numero']      = (isset($item['NUMERO']) && !is_array($item['NUMERO'])) ? app_retorna_numeros($item['NUMERO']) : '';
-                $data_cliente['complemento'] = (isset($item['COMPLEMENTO']) && !is_array($item['COMPLEMENTO'])) ? $item['COMPLEMENTO'] : '';
-                if ((isset($item['CIDADE']) && !is_array($item['CIDADE']))) {
-                    $localidade_cidade = $this->localidade_cidade->get_by_nome($item['CIDADE']);
-                    if ($localidade_cidade) {
-                        $data_cliente['localidade_cidade_id'] = $localidade_cidade['localidade_cidade_id'];
-                    }
-                }
-
-            }
-
-            $this->cliente->update($cliente_id, $data_cliente, true);
-
-            $data_contato                                            = array();
-            $data_contato['cliente_id']                              = $cliente_id;
-            $data_contato['cliente_contato_nivel_relacionamento_id'] = 3;
-            $data_contato['decisor']                                 = 1;
-            $data_contato['nome']                                    = $data['DADOS_CADASTRAIS']['NOME'];
-            $data_contato['data_nascimento']                         = app_dateonly_mask_to_mysql($data['DADOS_CADASTRAIS']['DATANASC']);
-
-            if (isset($data['TELEFONES'])) {
-                foreach ($data['TELEFONES'] as $telefone) {
-                    $telefone['TELEFONE'] = isset($telefone['TELEFONE']) ? $telefone['TELEFONE'] : $telefone;
-                    if (!empty($telefone['TELEFONE'])) {
-                        $data_contato['contato']         = app_retorna_numeros($telefone['TELEFONE']);
-                        $data_contato['contato_tipo_id'] = (app_validate_mobile_phone(app_format_telefone_unitfour(app_retorna_numeros($telefone['TELEFONE'])))) ? 2 : 3;
-                        $this->cliente_contato->insert_not_exist_contato($data_contato);
-                    }
-                }
-            }
-
-            if (isset($data['EMAILS'])) {
-                foreach ($data['EMAILS'] as $email) {
-                    if (isset($email['EMAIL'])) {
-                        $data_contato['contato']         = $email['EMAIL'];
-                        $data_contato['contato_tipo_id'] = 1;
-                        $this->cliente_contato->insert_not_exist_contato($data_contato);
-                    }
-                }
-            }
-
-        }
-
-        return $cliente_id;
     }
 
 }
