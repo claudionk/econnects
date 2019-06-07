@@ -275,7 +275,6 @@ class Cliente_Model extends MY_Model
                     if (count($contatos) > 0) {
 
                         foreach ($contatos as $contato) {
-                            //print_r($contato);exit;
                             $cliente['email']    = ($contato['contato_tipo_id'] == 1 && empty($cliente['email'])) ? $contato['contato'] : $cliente['email'];
                             $cliente['telefone'] = ($contato['contato_tipo_id'] == 2 && empty($cliente['telefone'])) ? $contato['contato'] : $cliente['telefone'];
                         }
@@ -321,6 +320,7 @@ class Cliente_Model extends MY_Model
             if ($ifaro) {
                 $cliente["data_nascimento"] = $ifaro["data_nascimento"];
                 $cliente["razao_nome"]      = $ifaro["nome"];
+                $cliente["sexo"]            = $ifaro["sexo"];
                 $cliente["quantidade"]      = 1;
                 $cliente["cliente_id"]      = $ifaro["cliente_id"];
 
@@ -413,6 +413,7 @@ class Cliente_Model extends MY_Model
             $data_cliente['colaborador_comercial_id']   = 1;
             $data_cliente['titular']                    = 1;
             $data_cliente['razao_nome']                 = $data['DADOS_CADASTRAIS']['NOME'];
+            $data_cliente['sexo']                       = $data['DADOS_CADASTRAIS']['SEXO'];
             $data_cliente['data_nascimento']            = app_dateonly_mask_to_mysql($data['DADOS_CADASTRAIS']['DATANASC']);
             $data_cliente['cliente_evolucao_status_id'] = 6; //Salva como prospect
             $data_cliente['grupo_empresarial_id']       = 0;
