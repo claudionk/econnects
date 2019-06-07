@@ -19,7 +19,7 @@
 
 <?php } */ ?>
 
-<div <?php echo ((isset($layout)) && ($layout == 'front')) ? 'style="background-color: #eeeeee"' : ''; ?>>
+<div>
     <!-- Form -->
     <form class="form form-dados" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
         <input type="hidden" name="<?php echo $primary_key ?>" id="<?php echo $primary_key ?>" value="<?php if (isset($produto_parceiro_id)) echo $produto_parceiro_id; ?>"/>
@@ -66,7 +66,7 @@
         </a>
     <?php } ?>
 
-    <a class="btn btn-app btn-primary btn-proximo" onclick="$('#validateSubmitForm').submit();">
+    <a class="btn btn-app btn-primary btn-proximo background-primary border-primary" onclick="$('#validateSubmitForm').submit();">
         Próximo <i class="fa fa-angle-right" aria-hidden="true"></i>
     </a>
 </div>

@@ -6,7 +6,7 @@ body{background-color: #eeeeee;}
 .list-inline { padding-left: 0; margin-left: -5px; list-style: none; }
 .list-inline > li { display: inline-block; }
 .list-inline > li img{ width: 58px; }
-input{ background-color: #ffffff !important; }
+input{ background-color: #ffffff !important; text-align: center; }
 .collection { border: none  }
 .collection .collection-item{ background-color: transparent; border: none; text-align: left }
 .header-logo-menu{
@@ -34,6 +34,60 @@ input{ background-color: #ffffff !important; }
 .card-produto h2.text-light{
     min-height: 80px;
     height: auto;
+}
+
+/** COLORS DEFAULT
+ */
+.color-primary{
+    color: #006799 !important;
+}
+.color-secondary{
+    color: #3E3E3F !important;
+}
+.color-tertiary{
+    color: #68B2C6 !important;
+}
+.background-primary{
+    background-color: #006799 !important;
+}
+.background-secondary{
+    background-color: #3E3E3F !important;
+}
+.background-tertiary{
+    background-color: #68B2C6 !important;
+}
+.border-primary{
+    border-color: #006799 !important;
+}
+.border-secondary{
+    border-color: #3E3E3F !important;
+}
+.border-tertiary{
+    border-color: #68B2C6 !important;
+}
+
+
+/** STEP
+ */
+.nav-steps{
+    text-align: center;
+}
+.nav-steps .item{
+    padding: 6px;
+}
+.step-icons {
+    background: url('../images/icones/step-icons.png') no-repeat top left;
+    padding-left: 28px;
+    padding-top: 18px;
+}
+.step-icons.data { background-position: 0px 0px;  }
+.step-icons.plano { background-position: 1px -34px;  }
+.step-icons.pagamento { background-position: 2px -101px; }
+.step-icons.lista { background-position: 2px -67px; }
+.step-icons.feito { background-position: 1px -133px; }
+.step-radius{
+    padding: 25px 14px 6px 13px !important;
+    border-radius: 50px 50px !important;
 }
 
 /** MENU SIDEBAR

@@ -25,12 +25,29 @@
             <span class="icon-bar"></span>
         </button>
     </div>
-    <ul class="list-inline">
+    <ul class="nav nav-pills nav-steps">
+        <li class="item">
+            <a href="" title="" class="step-radius background-primary"> <i class="step-icons data"></i> </a>
+        </li>
+        <li class="item">
+            <a href="" title="" class="step-radius background-primary"> <i class="step-icons plano"></i> </a>
+        </li>
+        <li class="item">
+            <a href="" title="" class="step-radius background-primary"> <i class="step-icons pagamento"></i> </a>
+        </li>
+        <li class="item">
+            <a href="" title="" class="step-radius background-primary"> <i class="step-icons lista"></i> </a>
+        </li>
+        <li class="item">
+            <a href="" title="" class="step-radius background-primary"> <i class="step-icons feito"></i> </a>
+        </li>
+        <!--
         <li><img src="<?php $img = ($step >= 1) ? '2' : '1'; echo app_assets_url("core/images/icones/dados{$img}.png", 'admin');?>"></li>
         <li><img src="<?php $img = ($step >= 2) ? '2' : '1'; echo app_assets_url("core/images/icones/service{$img}.png", 'admin');?>"></li>
         <li><img src="<?php $img = ($step >= 3) ? '2' : '1'; echo app_assets_url("core/images/icones/doc{$img}.png", 'admin');?>"></li>
         <li><img src="<?php $img = ($step >= 4) ? '2' : '1'; echo app_assets_url("core/images/icones/money{$img}.png", 'admin');?>"></li>
         <li><img src="<?php $img = ($step >= 5) ? '2' : '1'; echo app_assets_url("core/images/icones/done{$img}.png", 'admin');?>"></li>
+        -->
     </ul>
     <h2 class="text-light text-center title-h2"><?php echo $title; ?></h2>
 </div>

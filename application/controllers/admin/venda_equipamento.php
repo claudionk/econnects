@@ -11,6 +11,7 @@ class Venda_Equipamento extends Admin_Controller{
     const TIPO_CALCULO_BRUTO = 2;
 
     protected $layout = "base";
+    protected $color;
 
     public function __construct()
     {
@@ -30,12 +31,18 @@ class Venda_Equipamento extends Admin_Controller{
         $layout = $this->session->userdata("layout");
         $this->layout = isset($layout) && !empty($layout) ? $layout : 'base';
 
+            $this->color = $this->input->get("color");
+
+
         $this->template->js(app_assets_url("template/js/libs/cycle2/cycle2.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/cycle2/jquery.cycle2.carousel.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/toastr/toastr.js", "admin"));
 
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/toastr/toastr.css", "admin"));
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/wizard/wizard.css", "admin"));
+
+        if(! empty($this->input->get("color")))
+            $this->template->css(app_assets_url('modulos/venda/equipamento/css/{$this->input->get("color")}.css', 'admin'));
     }
 
     /**
@@ -64,9 +71,7 @@ class Venda_Equipamento extends Admin_Controller{
             $cotacao_equipamento = $cotacao_equipamento[0];
         }
 
-
         redirect("admin/venda_equipamento/equipamento/{$cotacao_equipamento['produto_parceiro_id']}/{$cotacao_equipamento['step']}/$cotacao_id");
-
     }
 
     public function step_contratar($produto_parceiro_id, $cotacao_id = 0, $status = '', $conclui_em_tempo_real = true){
@@ -87,6 +92,19 @@ class Venda_Equipamento extends Admin_Controller{
             //Carrega função para finalizar
             $this->equipamento_finalizar( $produto_parceiro_id, $cotacao_id, $status );
         }
+    }
+
+    public function step_login($produto_parceiro_id, $cotacao_id = 0, $data)
+    {
+        $this->load->model('cliente_model', 'cliente');
+
+        if($this->input->post('cliente_id')){
+            $this->cliente->atualizar($this->input->post('cliente_id'), $_POST);
+        }
+//echo '<pre>', print_r($data); exit;
+
+        $view = "admin/venda/equipamento/{$this->layout}/login";
+        $this->template->load("admin/layouts/{$this->layout}", $view, $data);
     }
 
     public function step_pagto($produto_parceiro_id, $cotacao_id = 0, $pedido_id = 0, $conclui_em_tempo_real = true){
@@ -129,7 +147,9 @@ class Venda_Equipamento extends Admin_Controller{
         $this->template->set_breadcrumb('Venda', base_url("$this->controller_uri/index"));
 
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
+//echo '<pre>', print_r($cotacao); exit;
         $conclui_em_tempo_real = $this->prod_parc_config->item_config($produto_parceiro_id, 'conclui_em_tempo_real');
+
 
         // echo $step;
         // die();
@@ -140,19 +160,15 @@ class Venda_Equipamento extends Admin_Controller{
 
         } elseif( $step == 2 ) {
 
-        //     echo $step;
+        // echo $step;
         // die();
 
             $this->equipamento_carrossel($produto_parceiro_id, $cotacao_id);
 
         } elseif( $step == 3 ) {
 
-            if ($conclui_em_tempo_real) {
-                $this->step_contratar( $produto_parceiro_id, $cotacao_id, $status, $conclui_em_tempo_real );
-            } else {
-                $this->step_pagto($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real);
-            }
-        
+            $this->step_login($produto_parceiro_id, $cotacao_id, $cotacao);
+
         } elseif ($step == 4) {
 
             if ($conclui_em_tempo_real) {
@@ -312,7 +328,7 @@ class Venda_Equipamento extends Admin_Controller{
             }
         }
 
-//echo '<pre>'; print_r($data);
+//echo '<pre>'; print_r($data); exit;
 
         $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/formulario", $data );
 
@@ -965,7 +981,7 @@ class Venda_Equipamento extends Admin_Controller{
         $view = "admin/venda/equipamento/{$this->layout}/carrossel";
         if(!view_exists($view))
             $view = "admin/venda/equipamento/carrossel";
-    
+
         $this->template->load("admin/layouts/{$this->layout}", $view, $data );
     }
 
@@ -1128,6 +1144,7 @@ class Venda_Equipamento extends Admin_Controller{
             $cotacao['produto_parceiro_id'] = $produto_parceiro_id;
             $cotacao['cnpj_cpf'] = (app_verifica_cpf_cnpj($cotacao_salva['cnpj_cpf']) == 'CPF') ? app_cpf_to_mask($cotacao_salva['cnpj_cpf']) : app_cnpj_to_mask($cotacao_salva['cnpj_cpf']);
             $cotacao['rg'] = $cotacao_salva['rg'];
+            $cotacao['cliente_id'] = $cotacao_salva['cliente_id'];
             $cotacao['nome'] = $cotacao_salva['nome'];
             $cotacao['nome_mae'] = $cotacao_salva['nome_mae'];
             $cotacao['email'] = $cotacao_salva['email'];
