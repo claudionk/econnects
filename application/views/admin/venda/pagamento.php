@@ -33,55 +33,45 @@ if($_POST){
     </div>
 <?php } ?>
 
-<div class="card">
+<form class="form form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
+    <input type="hidden" name="produto_parceiro_id" value="<?php if (isset($produto_parceiro_id)) echo $produto_parceiro_id; ?>"/>
+    <input type="hidden" name="cotacao_id" id="cotacao_id" value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
+    <input type="hidden" name="pedido_id" id="pedido_id" value="<?php if (isset($pedido_id)) echo $pedido_id; ?>"/>
+    <input type="hidden" id="url_ver_pedido"  name="url_aguardando_pagamento" value="<?php echo base_url("admin/gateway/pedido/"); ?>"/>
+    <input type="hidden" id="url_pagamento_confirmado"  name="url_pagamento_confirmado" value="<?php echo  base_url($url_pagamento_confirmado) ?>/"/>
+    <!-- Widget -->
 
-    <!-- col-app -->
-    <div class="card-body">
-
-            <!-- Form -->
-        <form class="form form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
-            <input type="hidden" name="produto_parceiro_id" value="<?php if (isset($produto_parceiro_id)) echo $produto_parceiro_id; ?>"/>
-            <input type="hidden" name="cotacao_id" id="cotacao_id" value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
-            <input type="hidden" name="pedido_id" id="pedido_id" value="<?php if (isset($pedido_id)) echo $pedido_id; ?>"/>
-            <input type="hidden" id="url_ver_pedido"  name="url_aguardando_pagamento" value="<?php echo base_url("admin/gateway/pedido/"); ?>"/>
-            <input type="hidden" id="url_pagamento_confirmado"  name="url_pagamento_confirmado" value="<?php echo  base_url($url_pagamento_confirmado) ?>/"/>
-            <!-- Widget -->
-
-
-            <div class="row">
-                <div class="col-md-6">
-                    <?php $this->load->view('admin/partials/validation_errors'); ?>
-                    <?php $this->load->view('admin/partials/messages'); ?>
-                </div>
-            </div>
-
-                <!-- Collapsible Widgets -->
-            <div class="row">
-                <div class="col-md-12">
-
-                    <?php
-                    if((isset($layout)) && ($layout == 'front') && ($context != "pagamento")) {
-                        $this->load->view('admin/venda/equipamento/front/step', array('step' => 4, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'], 'title' => 'PAGAMENTO' ));
-                    }else{
-                        if ($context != "pagamento") {
-                         $this->load->view("admin/venda/step", array('step' => 4, 'produto_parceiro_id' => $produto_parceiro_id, 'title' => 'PAGAMENTO' ));
-                        }
-                    }
-                    ?>
-
-                    <?php $this->load->view('admin/venda/partials/enviar_token_acesso'); ?>
-
-                    <?php
-                    foreach ($forma_pagamento as $index => $forma):
-                        $this->load->view("admin/venda/pagamento/". $forma['tipo']['slug'], array('forma' => $forma, 'row' => issetor($campos, array())));
-                    endforeach;
-                    ?>
-                </div>
-            </div>
-        </form>
+    <div class="row">
+        <div class="col-md-6">
+            <?php $this->load->view('admin/partials/validation_errors'); ?>
+            <?php $this->load->view('admin/partials/messages'); ?>
+        </div>
     </div>
-</div>
 
+    <!-- Collapsible Widgets -->
+    <div class="row">
+        <div class="col-md-12">
+
+            <?php
+            if((isset($layout)) && ($layout == 'front') && ($context != "pagamento")) {
+                $this->load->view('admin/venda/equipamento/front/step', array('step' => 4, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'], 'title' => 'PAGAMENTO' ));
+            }else{
+                if ($context != "pagamento") {
+                 $this->load->view("admin/venda/step", array('step' => 4, 'produto_parceiro_id' => $produto_parceiro_id, 'title' => 'PAGAMENTO' ));
+                }
+            }
+            ?>
+
+            <?php $this->load->view('admin/venda/partials/enviar_token_acesso'); ?>
+
+            <?php
+            foreach ($forma_pagamento as $index => $forma):
+                $this->load->view("admin/venda/pagamento/". $forma['tipo']['slug'], array('forma' => $forma, 'row' => issetor($campos, array())));
+            endforeach;
+            ?>
+        </div>
+    </div>
+</form>
 
 <div class="card">
     <div class="card-body">

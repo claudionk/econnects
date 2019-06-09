@@ -1,27 +1,6 @@
-<?php /* if ($layout != "front") { ?>
-<div class="section-header">
-    <ol class="breadcrumb">
-        <li class="active"><?php echo app_recurso_nome();?></li>
-    </ol>
-</div>
-
-<!-- // Widget END -->
-<div class="card">
-    <div class="card-body">
-        <a href="<?php echo base_url("{$current_controller_uri}/index")?>" class="btn  btn-app btn-primary">
-            <i class="fa fa-arrow-left"></i> Voltar
-        </a>
-        <a class="pull-right btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
-            <i class="fa fa-arrow-right"></i> Próximo
-        </a>
-    </div>
-</div>
-
-<?php } */ ?>
-
 <div>
     <!-- Form -->
-    <form class="form form-dados" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
+    <form active="" class="form form-dados" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
         <input type="hidden" name="<?php echo $primary_key ?>" id="<?php echo $primary_key ?>" value="<?php if (isset($produto_parceiro_id)) echo $produto_parceiro_id; ?>"/>
         <input type="hidden" name="cotacao_id" value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
         <input type="hidden" id="url_busca_cliente"  name="url_busca_cliente" value="<?php echo base_url("{$current_controller_uri}/get_cliente"); ?>"/>

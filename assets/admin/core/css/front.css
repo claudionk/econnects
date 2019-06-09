@@ -11,6 +11,14 @@ input{ background-color: #ffffff !important; text-align: center; }
 .collection .collection-item{ background-color: transparent; border: none; text-align: left }
 .header-logo-menu{
     margin: 1rem 0 3rem 0;
+    color: #434141;
+}
+.header-logo-menu .username{
+    text-transform: uppercase;
+}
+.header-logo-menu .fa-bell{
+    font-size: 2.1rem;
+    margin-top: 7px;
 }
 #toast-container {
     top: 40px !important;;
@@ -73,22 +81,29 @@ input{ background-color: #ffffff !important; text-align: center; }
     text-align: center;
 }
 .nav-steps .item{
-    padding: 6px;
+    padding: 5px;
 }
 .step-icons {
     background: url('../images/icones/step-icons.png') no-repeat top left;
     padding-left: 28px;
     padding-top: 18px;
 }
-.step-icons.data { background-position: 0px 0px;  }
-.step-icons.plano { background-position: 1px -34px;  }
-.step-icons.pagamento { background-position: 2px -101px; }
-.step-icons.lista { background-position: 2px -67px; }
-.step-icons.feito { background-position: 1px -133px; }
-.step-radius{
-    padding: 25px 14px 6px 13px !important;
-    border-radius: 50px 50px !important;
-}
+.step-icons.data { background-position: -27px 0px;  }
+.step-icons.data.active { background-position: 1px 1px;  }
+
+.step-icons.plano { background-position: -26px -34px;  }
+.step-icons.plano.active { background-position: 1px -34px;  }
+
+.step-icons.pagamento { background-position: -23px -101px; }
+.step-icons.pagamento.active { background-position: 2px -101px; }
+
+.step-icons.lista { background-position: -26px -67px; }
+.step-icons.lista.active { background-position: 2px -67px; }
+
+.step-icons.feito { background-position: -26px -134px; }
+.step-icons.feito.active { background-position: 1px -134px; }
+.step-radius{ padding: 25px 14px 6px 13px !important; border-radius: 50px 50px !important; border:1px solid #d4d4d4; }
+.step-radius.active{ border:1px solid transparent; }
 
 /** MENU SIDEBAR
  */
@@ -426,6 +441,37 @@ input{ background-color: #ffffff !important; text-align: center; }
 .pg-pagamento-credito label{
     margin-top: -15px;
 }
+
+/* LOGIN
+ */
+.icon-login{
+    text-align: center;
+    margin-bottom: 10px;
+}
+.icon-login .fa-lock{
+    border: 1px solid;
+    padding: 5px 7px;
+    font-size: 1.5rem;
+    border-radius: 15px 15px;
+}
+.form-login input{
+    -webkit-box-shadow: 0px 7px 14px rgba(140, 140, 140, 0.45);
+    -moz-box-shadow: 0px 7px 14px rgba(140, 140, 140, 0.45);
+    box-shadow: 0px 7px 14px rgba(140, 140, 140, 0.45);
+}
+.form-login .message{
+    display: none;
+}
+.form-login .form-group{
+    text-align: center;
+}
+.form-login .form-group .control-label{
+    text-transform: uppercase;
+    font-size: 12px;
+}
+/* END LOGIN
+ */
+
 @media (max-width: 768px){
     #wizard .form-wizard-nav ul li {
         display: none;

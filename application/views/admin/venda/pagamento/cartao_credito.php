@@ -2,7 +2,7 @@
 if($_POST){
     $row = $_POST;
 }
-
+/*
 ?>
 <div class="pg-pagamento-credito" id="pagamento-credito">
     <div class="col-md-12 col-sm-12 col-xs-12">
@@ -28,8 +28,9 @@ if($_POST){
         </div>
     </div>
 </div>
+*/ ?>
 
-<?php /*
+<?php //* ?>
 <div class="row" id="pagamento-credito">
     <?php if(isset($forma['pagamento'])) : ?>
     <input type="hidden" name="bandeira" value="<?php echo $forma['pagamento'][0]['produto_parceiro_pagamento_id']; ?>">
@@ -133,4 +134,4 @@ if($_POST){
     </div>
 
 </div>
-*/ ?>
+<?php //*/ ?>
