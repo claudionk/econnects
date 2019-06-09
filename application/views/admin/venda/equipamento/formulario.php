@@ -26,12 +26,6 @@
     </form>
 </div>
 
-<!-- btn whatsapp -->
-<div class="btn-whats">
-    <a href="" title="">
-        <i class="fa fa-whatsapp"></i>
-    </a>
-</div>
 
 <div class="btns">
     <!-- // Widget END -->
@@ -67,3 +61,6 @@
     </div>
 </div>
 
+<?php $this->load->view('admin/venda/equipamento/components/btn-whatsapp'); ?>
+
+<?php $this->load->view('admin/venda/equipamento/components/footer'); ?>
