@@ -2,36 +2,11 @@
 if($_POST){
     $row = $_POST;
 }
-/*
+//echo 'Credito!';
 ?>
-<div class="pg-pagamento-credito" id="pagamento-credito">
-    <div class="col-md-12 col-sm-12 col-xs-12">
-        <i class="fa fa-lock" aria-hidden="true"></i>
-    </div>
-
-    <?php if(isset($forma['pagamento'])) : ?>
-    <input type="hidden" name="bandeira" value="<?php echo $forma['pagamento'][0]['produto_parceiro_pagamento_id']; ?>">
-    <?php endif; ?>
-
-    <div class="col-md-6 col-sm-12 col-xs-12">
-        <div class="form-group<?php echo (app_is_form_error('numero')) ? ' has-error' : ''; ?><?php echo (app_is_form_error('nome_cartao')) ? ' has-error' : ''; ?>">
-            <label class="control-label" for="numero">Número do Cartão</label>
-            <input class="form-control" id="numero" name="numero" type="tel" value="<?php echo isset($row['numero']) ? $row['numero'] : set_value('numero'); ?>" />
-            <?php echo app_get_form_error('numero'); ?>
-        </div>
-    </div>
-    <div class="col-md-6 col-sm-12 col-xs-12">
-        <div class="form-group<?php echo (app_is_form_error('numero')) ? ' has-error' : ''; ?><?php echo (app_is_form_error('nome_cartao')) ? ' has-error' : ''; ?>">
-            <label class="control-label" for="nome_cartao">Nome (Como no cartão)</label>
-            <input class="form-control" id="nome_cartao" name="nome_cartao" type="text" value="<?php echo isset($row['nome_cartao']) ? $row['nome_cartao'] : set_value('nome_cartao'); ?>" />
-            <?php echo app_get_form_error('nome_cartao'); ?>
-        </div>
-    </div>
-</div>
-*/ ?>
 
 <?php //* ?>
-<div class="row" id="pagamento-credito">
+<div class="row forma-pagamento" id="pagamento-credito">
     <?php if(isset($forma['pagamento'])) : ?>
     <input type="hidden" name="bandeira" value="<?php echo $forma['pagamento'][0]['produto_parceiro_pagamento_id']; ?>">
     <?php endif; ?>

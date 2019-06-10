@@ -405,6 +405,7 @@ class Admin_Controller extends MY_Controller
                     break;
             }
             $this->cotacao->setValidate($validacao);
+            
             if ($this->cotacao->validate_form('pagamento')) {
 
                 if ($pedido_id == 0) {

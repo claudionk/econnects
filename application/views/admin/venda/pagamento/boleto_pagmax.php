@@ -1,5 +1,4 @@
-
-<div class="row" id="pagamento-boleto">
+<div class="row forma-pagamento" id="pagamento-boleto">
 
     <div class="col-md-12">
         <div class="col-md-4">

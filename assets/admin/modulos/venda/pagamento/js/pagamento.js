@@ -94,7 +94,6 @@ $(document).ready(function() {
         $('#forma_pagamento_tipo_id').val($(this).data('forma'));
     });
 
-
     $('#validateSubmitForm').on("submit", function(){
 
         $('.btn-proximo').attr("disabled","disabled");
@@ -158,7 +157,6 @@ function GetCardType(number)
     return "";
 }
 
-
 var ver_redirect = false;
 function getStatusPedido(){
     var data = {
@@ -201,7 +199,6 @@ function getStatusPedido(){
 
 }
 
-
 function boletoValidarCEP(cep){
 
     var pattern = /^[0-9]{5}-[0-9]{3}$/;
@@ -216,7 +213,6 @@ function boletoValidarCEP(cep){
     }
     return false;
 }
-
 
 function boletoBuscaCep(){
 
@@ -258,4 +254,28 @@ function boletoBuscaCep(){
     });
 
 
+}
+
+function selectFormaPagamento(){
+
+    var f_pagamento = $('#formaPagamento').val();
+
+    $('.forma-pagamento').fadeOut('slow');
+
+    // cartão de crédito
+    if(f_pagamento == 1){
+        $('#pagamento-credito').fadeIn('show');
+    }
+
+    // cartão de débito
+    if(f_pagamento == 8){
+        $('#pagamento-debito').fadeIn('show');
+    }
+
+    // boleto pagmax
+    if(f_pagamento == 9){
+        $('#pagamento-boleto').fadeIn('show');
+    }
+
+    console.log($('#formaPagamento').val());
 }

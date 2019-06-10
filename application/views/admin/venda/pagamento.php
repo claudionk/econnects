@@ -2,7 +2,6 @@
 if($_POST){
     $row = $_POST;
 }
-
 ?>
 
 <?php if ($layout != "front") { ?>
@@ -33,7 +32,7 @@ if($_POST){
     </div>
 <?php } ?>
 
-<form class="form form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
+<form class="form form-pagamento form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
     <input type="hidden" name="produto_parceiro_id" value="<?php if (isset($produto_parceiro_id)) echo $produto_parceiro_id; ?>"/>
     <input type="hidden" name="cotacao_id" id="cotacao_id" value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
     <input type="hidden" name="pedido_id" id="pedido_id" value="<?php if (isset($pedido_id)) echo $pedido_id; ?>"/>
@@ -63,6 +62,18 @@ if($_POST){
             ?>
 
             <?php $this->load->view('admin/venda/partials/enviar_token_acesso'); ?>
+
+            <div class="col-xs-12 select-forma-pagamento">
+                <div class="form-group">
+                    <label for="forma_pagamento" class="control-label"> Forma de pagamento </label>
+                    <select class="form-control" id="formaPagamento" onchange="selectFormaPagamento()">
+                        <option value=""></option>
+                        <?php foreach ($forma_pagamento as $index => $forma){ ?>
+                        <option value="<?php echo $forma['tipo']['forma_pagamento_tipo_id']; ?>"> <?php echo $forma['tipo']['nome']; ?> </option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
 
             <?php
             foreach ($forma_pagamento as $index => $forma):

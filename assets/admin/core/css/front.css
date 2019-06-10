@@ -473,6 +473,30 @@ section{background-color: #eeeeee; }
 /* END LOGIN
  */
 
+ /* PAGAMENTO
+ */
+ .forma-pagamento{
+     display:none;
+ }
+.form-pagamento{
+
+}
+.form-pagamento .control-label{
+    text-align: center;
+    display: block;
+}
+.form-pagamento .select-forma-pagamento{
+    margin-top: 30px;
+}
+.form-pagamento .select-forma-pagamento .control-label{
+    margin-top: -20px;
+}
+.form-pagamento .select-forma-pagamento .form-control{
+    background-color: #ffffff;
+}
+ /* END PAGAMENTO
+ */
+
 @media (max-width: 768px){
     #wizard .form-wizard-nav ul li {
         display: none;
