@@ -173,7 +173,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param int $num_passageiro
     * @return array
     */
-    public function getValoresPlano( $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_id = NULL, $servico_produto_id = NULL){
+    public function getValoresPlano( $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_id = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL ){
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
@@ -182,6 +182,17 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
         $moeda_padrao = $this->moeda->filter_by_moeda_padrao()->get_all();
         $moeda_padrao = $moeda_padrao[0];
+
+        // TODO: Criar parametro no produto
+        // Valida o Ramo do seguro para definir o tipo de cálculo
+        // Caso seja Perda Financeira, deverá alterar a quantidade dinâmicamente
+        // if ( 'ramo' == 'perda_financeira' ) {
+            if ( !empty($data_inicio_vigencia) && !empty($data_fim_vigencia) )
+            {
+                $quantidade = app_date_get_diff($data_inicio_vigencia, $data_fim_vigencia, 'M');
+            }
+        // }
+
         $quantidade = ((int)$quantidade <=0) ? 1 : (int)$quantidade;
 
         $produto_parceiro =  $this->current_model->get_by_id($produto_parceiro_id);

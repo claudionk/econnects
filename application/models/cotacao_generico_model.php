@@ -507,10 +507,25 @@ Class Cotacao_Generico_Model extends MY_Model
             $data_cotacao['aux_10'] = $cotacao['aux_10'];
         }
 
+        if( isset( $cotacao["data_inicio_vigencia"] ) ) {
+            $data_cotacao["data_inicio_vigencia"] = app_dateonly_mask_to_mysql($cotacao["data_inicio_vigencia"]);
+        } else {
+            $data_cotacao["data_inicio_vigencia"] = null;
+        }
+
+        if( isset( $cotacao["data_fim_vigencia"] ) ) {
+            $data_cotacao["data_fim_vigencia"] = app_dateonly_mask_to_mysql($cotacao["data_fim_vigencia"]);
+        } else {
+            $data_cotacao["data_fim_vigencia"] = null;
+        }
+
         if($cotacao_salva) {
             $cotacao_id = $cotacao_salva['cotacao_id'];
-            $this->update($cotacao_salva['cotacao_generico_id'], $data_cotacao, TRUE);
             $cotacao_generico_id = $cotacao_salva['cotacao_generico_id'];
+            $dt_cotacao["data_inicio_vigencia"] = $data_cotacao["data_inicio_vigencia"];
+
+            $this->cotacao->update($cotacao_id, $dt_cotacao, TRUE);
+            $this->update($cotacao_salva['cotacao_generico_id'], $data_cotacao, TRUE);
         }else{
             //salva cotacão
             $dt_cotacao = array();
@@ -523,14 +538,7 @@ Class Cotacao_Generico_Model extends MY_Model
             $dt_cotacao['alteracao_usuario_id'] = $this->session->userdata('usuario_id');
             $dt_cotacao['produto_parceiro_id'] = $produto_parceiro_id;
             $dt_cotacao["usuario_cotacao_id"] = issetor($cotacao["usuario_cotacao_id"], $this->session->userdata('usuario_id'));
-
-            $dt_cotacao["data_inicio_vigencia"] = null;
-            $data_cotacao["data_inicio_vigencia"] = null;
-
-            if( isset( $cotacao["data_inicio_vigencia"] ) ) {
-                $data_cotacao["data_inicio_vigencia"] = $cotacao["data_inicio_vigencia"];
-                $dt_cotacao["data_inicio_vigencia"] = $cotacao["data_inicio_vigencia"];
-            }
+            $dt_cotacao["data_inicio_vigencia"] = $data_cotacao["data_inicio_vigencia"];
 
             $cotacao_id = $this->cotacao->insert($dt_cotacao, TRUE);
             $data_cotacao['cotacao_id'] = $cotacao_id;

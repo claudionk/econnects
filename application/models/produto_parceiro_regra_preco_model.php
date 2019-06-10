@@ -100,9 +100,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $equipamento_marca_id = issetor($params['equipamento_marca_id'], 0);
         $equipamento_categoria_id = issetor($params['equipamento_categoria_id'], 0);
         $quantidade = issetor($params['quantidade'], 0);
-
         $coberturas_adicionais = issetor($params['coberturas'], array());
-
         $repasse_comissao = app_unformat_percent($params['repasse_comissao']);
         $desconto_condicional= app_unformat_percent($params['desconto_condicional']);
         $desconto = $this->desconto->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
@@ -135,6 +133,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
         $cotacao = $cotacao[0];
         $produto_parceiro_plano_id = $cotacao["produto_parceiro_plano_id"];
+        $data_inicio_vigencia = $cotacao['data_inicio_vigencia'];
+        $data_fim_vigencia = $cotacao['data_fim_vigencia'];
 
         if(count($desconto) > 0){
             $desconto = $desconto[0];
@@ -184,7 +184,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             $quantidade = $servico_produto['quantidade_minima'];
         }
 
-        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_id, $servico_produto_id);
+        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_id, $servico_produto_id, $data_inicio_vigencia, $data_fim_vigencia);
 
         $valores_cobertura_adicional_total = $valores_cobertura_adicional = array();
 
