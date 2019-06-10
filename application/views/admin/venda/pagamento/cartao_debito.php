@@ -2,8 +2,10 @@
     if($_POST){
         $row = $_POST;
     }
+
+    //echo 'Débito!';
 ?>
-<div class="row" id="pagamento-debito">
+<div class="row forma-pagamento" id="pagamento-debito">
     <?php if(isset($forma['pagamento'])) : ?>
         <input type="hidden" name="bandeira_debito" value="<?php echo $forma['pagamento'][0]['produto_parceiro_pagamento_id']; ?>">
     <?php endif; ?>

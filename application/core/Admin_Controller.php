@@ -135,18 +135,6 @@ class Admin_Controller extends MY_Controller
                 $this->template->js(app_assets_url('core/js/termo.js', 'admin'));
             }
         }
-
-        //Verifica permissão
-
-        /*
-    if(!$this->auth->checar_permissoes_pagina_atual() && !$this->noLogin)
-    {
-
-    $this->session->set_flashdata('fail_msg', 'Você não têm permissão para acessar esta página.');
-
-    redirect("admin/home");
-
-    }*/
     }
 
     public function _setTheme($parceiro_id)
@@ -211,7 +199,7 @@ class Admin_Controller extends MY_Controller
 
         //Para cada tipo de pagamento
         foreach ($tipo_pagamento as $index => $tipo) {
-            
+
             $forma = $this->produto_pagamento->with_forma_pagamento()
                 ->filter_by_produto_parceiro($produto_parceiro_id)
                 ->filter_by_forma_pagamento_tipo($tipo['forma_pagamento_tipo_id'])
@@ -278,6 +266,7 @@ class Admin_Controller extends MY_Controller
 
         if ($_POST) {
             $tipo_forma_pagamento_id = $this->input->post('forma_pagamento_tipo_id');
+
             $validacao               = array();
             switch ($tipo_forma_pagamento_id) {
                 case self::FORMA_PAGAMENTO_CARTAO_CREDITO: //cartão de crédito
@@ -416,9 +405,12 @@ class Admin_Controller extends MY_Controller
                     break;
             }
             $this->cotacao->setValidate($validacao);
+            
             if ($this->cotacao->validate_form('pagamento')) {
 
                 if ($pedido_id == 0) {
+//echo '<pre>', print_r($_POST); exit;
+//echo 'aqui'; exit;
                     $pedido_id = $this->pedido->insertPedido($_POST);
                 } else {
                     $this->pedido->updatePedido($pedido_id, $_POST);

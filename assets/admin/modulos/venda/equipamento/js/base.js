@@ -28,6 +28,7 @@ $(function() {
         modal.find('.details-plan').html(li);
     });
 
+    /*
     // hidden all input
     var arrayDivs = [];
 
@@ -99,4 +100,5 @@ $(function() {
             $('.btn-proximo').attr('disabled', false)
         });
     }
+    */
 });

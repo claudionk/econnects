@@ -15,23 +15,68 @@
         </li>
     </ul>
 </div>
+
 <div class="">
+    <?php
+    //var_dump($this->session->userdata('logado'));
+    ?>
+
     <div class="header-logo-menu">
-        <img src="<?php echo app_assets_url("upload/parceiros/494efe1480bdf61ba9015c2f8e0af7b5.png", 'admin'); ?>" alt="" title="" />
-        <button aria-controls="bs-navbar" aria-expanded="false" class="navbar-toggle collapsed" data-target="#bs-navbar" data-toggle="collapse" type="button" id="menu-toggle">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-        </button>
+        <div class="row">
+            <div class="col-md-3 col-sm-3 col-xs-3">
+                <img src="<?php echo app_assets_url("upload/parceiros/494efe1480bdf61ba9015c2f8e0af7b5.png", 'admin'); ?>" alt="" title="" style="width: 90px;" />
+            </div>
+
+            <div class="col-md-9 col-sm-9 col-xs-9">
+
+                <ul class="nav nav-pills pull-right">
+                    <?php if( !empty($this->session->userdata('logado'))){ ?>
+                    <li role="presentation">
+                        <a href="javascript:void(0)" title="<?php echo $this->name; ?>" class="username">
+                            <?php echo $this->name; ?>
+                        </a>
+                    </li>
+                    <li role="presentation">
+                        <a href="" title="">
+                            <i class="fa fa-bell" aria-hidden="true"></i>
+                        </a>
+                    </li>
+                    <?php } ?>
+                    <li>
+                        <button aria-controls="bs-navbar" aria-expanded="false" class="navbar-toggle collapsed" data-target="#bs-navbar" data-toggle="collapse" type="button" id="menu-toggle">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
     </div>
-    <ul class="list-inline">
-        <li><img src="<?php $img = ($step >= 1) ? '2' : '1'; echo app_assets_url("core/images/icones/dados{$img}.png", 'admin');?>"></li>
-        <li><img src="<?php $img = ($step >= 2) ? '2' : '1'; echo app_assets_url("core/images/icones/service{$img}.png", 'admin');?>"></li>
-        <li><img src="<?php $img = ($step >= 3) ? '2' : '1'; echo app_assets_url("core/images/icones/doc{$img}.png", 'admin');?>"></li>
-        <li><img src="<?php $img = ($step >= 4) ? '2' : '1'; echo app_assets_url("core/images/icones/money{$img}.png", 'admin');?>"></li>
-        <li><img src="<?php $img = ($step >= 5) ? '2' : '1'; echo app_assets_url("core/images/icones/done{$img}.png", 'admin');?>"></li>
+
+    <?php
+    $step = $this->uri->segment(5);
+    ?>
+    <ul class="nav nav-pills nav-steps">
+        <li class="item">
+            <a href="" title="" class="step-radius <?php if($step >= 1){ echo 'active background-primary'; } ?>"> <i class="step-icons data <?php if($step >= 1){ echo 'active'; } ?>"></i> </a>
+        </li>
+        <li class="item">
+            <a href="" title="" class="step-radius <?php if($step >= 2){ echo 'active background-primary'; } ?>"> <i class="step-icons plano <?php if($step >= 2){ echo 'active'; } ?>"></i> </a>
+        </li>
+        <li class="item">
+            <a href="" title="" class="step-radius <?php if($step >= 3){ echo 'active background-primary'; } ?>"> <i class="step-icons pagamento <?php if($step >= 3){ echo 'active'; } ?>"></i> </a>
+        </li>
+        <li class="item">
+            <a href="" title="" class="step-radius <?php if($step >= 4){ echo 'active background-primary'; } ?>"> <i class="step-icons lista <?php if($step >= 4){ echo 'active'; } ?>"></i> </a>
+        </li>
+        <li class="item">
+            <a href="" title="" class="step-radius <?php if($step >= 5){ echo 'active background-primary'; } ?>"> <i class="step-icons feito <?php if($step >= 5){ echo 'active'; } ?>"></i> </a>
+        </li>
     </ul>
+
     <h2 class="text-light text-center title-h2"><?php echo $title; ?></h2>
 </div>
 <script>
@@ -44,31 +89,3 @@
         $("#sidebar-wrapper").toggleClass("active");
     });
 </script>
-<!--
-<div id="wizard" class="form-wizard form-wizard-horizontal">
-    <div class="form-wizard-nav">
-        <div class="progress">
-            <div class="progress-bar progress-bar-primary" style="width: <?php echo ($step-1)*20 + 10 ?>%;"></div>
-        </div>
-        <ul class="nav nav-justified">
-            <?php $max = 5; ?>
-            <li class="<?php echo ($step == 1) ? 'active' : ''; if($step > 1) echo " done"; ?>">
-                <a href="#"><span class="step">1<span class="de_max">/ <?php echo $max ?></span></span> <span class="title">Dados iniciais</span></a>
-            </li>
-            <li class="<?php echo ($step == 2) ? 'active' : ''; if($step > 2) echo " done"; ?>">
-                <a href="#"><span class="step">2<span class="de_max">/ <?php echo $max ?></span></span> <span class="title">Cotação</span></a>
-            </li>
-            <li class="<?php echo ($step == 3) ? 'active' : ''; if($step > 3) echo " done"; ?>">
-                <a href="#"><span class="step">3<span class="de_max">/ <?php echo $max ?></span></span> <span class="title">Contratação</span></a>
-            </li>
-            <li class="<?php echo ($step == 4) ? 'active' : ''; if($step > 4) echo " done"; ?>">
-                <a href="#"><span class="step">4<span class="de_max">/ <?php echo $max ?></span></span> <span class="title">Pagamento</span></a>
-            </li>
-            <li class="<?php echo ($step == 5) ? 'active' : ''; if($step > 5) echo " done"; ?>">
-                <a href="#"><span class="step">5<span class="de_max">/ <?php echo $max ?></span></span> <span class="title">Certificado / Bilhete</span></a>
-            </li>
-        </ul>
-    </div>
-    <br>
-</div>
--->

@@ -1,27 +1,6 @@
-<?php /* if ($layout != "front") { ?>
-<div class="section-header">
-    <ol class="breadcrumb">
-        <li class="active"><?php echo app_recurso_nome();?></li>
-    </ol>
-</div>
-
-<!-- // Widget END -->
-<div class="card">
-    <div class="card-body">
-        <a href="<?php echo base_url("{$current_controller_uri}/index")?>" class="btn  btn-app btn-primary">
-            <i class="fa fa-arrow-left"></i> Voltar
-        </a>
-        <a class="pull-right btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
-            <i class="fa fa-arrow-right"></i> Próximo
-        </a>
-    </div>
-</div>
-
-<?php } */ ?>
-
-<div <?php echo ((isset($layout)) && ($layout == 'front')) ? 'style="background-color: #eeeeee"' : ''; ?>>
+<div>
     <!-- Form -->
-    <form class="form form-dados" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
+    <form active="" class="form form-dados" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
         <input type="hidden" name="<?php echo $primary_key ?>" id="<?php echo $primary_key ?>" value="<?php if (isset($produto_parceiro_id)) echo $produto_parceiro_id; ?>"/>
         <input type="hidden" name="cotacao_id" value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
         <input type="hidden" id="url_busca_cliente"  name="url_busca_cliente" value="<?php echo base_url("{$current_controller_uri}/get_cliente"); ?>"/>
@@ -47,12 +26,6 @@
     </form>
 </div>
 
-<!-- btn whatsapp -->
-<div class="btn-whats">
-    <a href="" title="">
-        <i class="fa fa-whatsapp"></i>
-    </a>
-</div>
 
 <div class="btns">
     <!-- // Widget END -->
@@ -66,7 +39,7 @@
         </a>
     <?php } ?>
 
-    <a class="btn btn-app btn-primary btn-proximo" onclick="$('#validateSubmitForm').submit();">
+    <a class="btn btn-app btn-primary btn-proximo background-primary border-primary" onclick="$('#validateSubmitForm').submit();">
         Próximo <i class="fa fa-angle-right" aria-hidden="true"></i>
     </a>
 </div>
@@ -88,3 +61,6 @@
     </div>
 </div>
 
+<?php $this->load->view('admin/venda/equipamento/components/btn-whatsapp'); ?>
+
+<?php $this->load->view('admin/venda/equipamento/components/footer'); ?>

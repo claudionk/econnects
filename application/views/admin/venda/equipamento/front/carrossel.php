@@ -74,13 +74,13 @@
                                                 }
                                                 ?>
                                             </ul>
-                                            <a href="#" class="more-plan" data-toggle="modal" data-target="#modalCoberturas"
+                                            <a href="#" class="more-plan color-primary" data-toggle="modal" data-target="#modalCoberturas"
                                                data-title="<?php echo $plano['nome']; ?>"
                                                data-price="500,53"
                                                data-coberturas="<?php echo implode(',',$array_modal); ?>">Saiba mais</a>
 
                                             <div class="this-plan">
-                                                <a class="btn btn-primary add-car this-plan-btn" data-plano="<?php echo $plano['produto_parceiro_plano_id']; ?>" href="javascript: void(0);">
+                                                <a class="btn btn-primary add-car this-plan-btn background-primary border-primary" data-plano="<?php echo $plano['produto_parceiro_plano_id']; ?>" href="javascript: void(0);">
                                                     QUERO ESTE <i class="fa fa-angle-right" aria-hidden="true"></i>
                                                 </a>
                                             </div>
@@ -170,7 +170,7 @@
                     </a>
                 </div>
 
-                <?php foreach ($planos as $plano):  echo '<pre>',print_r($plano); ?>
+                <?php foreach ($planos as $plano):  //echo '<pre>',print_r($plano); ?>
 
                     <?php $div = 1;  ?>
                     <input type="hidden" class="desconto_condicional_valor" id="desconto_condicional_valor_one_<?php echo $plano['produto_parceiro_plano_id']; ?>" value="0">
