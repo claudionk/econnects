@@ -927,7 +927,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
             if (empty($dados['endereco_bairro']))
                 $dados['endereco_bairro'] = $dados['endereco_cidade'];
 
-            if (empty($dados['endereco_logradouro']))
+            if (empty($dados['endereco_logradouro']) || strlen($dados['endereco_logradouro']) <= 3)
                 $dados['endereco_logradouro'] = "ALAMEDA RIO NEGRO";
 
             if (empty($dados['endereco_numero']))
