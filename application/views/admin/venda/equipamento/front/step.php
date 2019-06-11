@@ -1,17 +1,41 @@
 <div id="sidebar-wrapper">
+    <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">
+        X
+    </a>
     <ul class="sidebar-nav">
-        <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">
-            <i class="glyphicon glyphicon-remove"></i>
-        </a>
-        <li class="sidebar-brand"></li>
         <li>
-            <a href="#">CONTRATE</a>
+            <a href="#" class="active background-primary">
+                <i class="fa fa-smile-o" aria-hidden="true"></i> CONTRATE
+            </a>
+        </li>
+
+        <li>
+            <span class="item"> SEGUROS </span>
         </li>
         <li>
-            <a href="#about">SEGURO</a>
+            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> COMPRAR </a>
         </li>
         <li>
-            <a href="#contact">SERVIÇOS</a>
+            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> COTAÇÕES SALVAS </a>
+        </li>
+
+        <li>
+            <span class="item"> SERVIÇOS </span>
+        </li>
+        <li>
+            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> COMPRAR </a>
+        </li>
+
+        <li>
+            <a href="#" class="active">
+                <i class="fa fa-briefcase" aria-hidden="true"></i> APOLICES
+            </a>
+        </li>
+
+        <li>
+            <a href="#" class="active">
+                <i class="fa fa-comments" aria-hidden="true"></i> ATENDIMENTO
+            </a>
         </li>
     </ul>
 </div>
