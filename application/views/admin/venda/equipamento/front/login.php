@@ -44,3 +44,9 @@
         </div>
     </div>
 </form>
+
+<?php $this->load->view('admin/venda/equipamento/components/btn-info'); ?>
+
+<?php $this->load->view('admin/venda/equipamento/components/btn-whatsapp'); ?>
+
+<?php $this->load->view('admin/venda/equipamento/components/footer'); ?>

@@ -6,6 +6,12 @@
     <div class="" style="background-color: #eee">
         <!-- Form -->
         <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
+            <!--  -->
+            <input type="hidden" id="getToken" value="<?php echo $this->input->get('token'); ?>" />
+            <input type="hidden" id="getLayout" value="<?php echo $this->input->get('layout'); ?>" />
+            <input type="hidden" id="getColor" value="<?php echo $this->input->get('color'); ?>" />
+            <!--  -->
+
             <input type="hidden" id="<?php echo $primary_key ?>" name="<?php echo $primary_key ?>" value="<?php if (isset($row[$primary_key])) echo $row[$primary_key]; ?>"/>
             <input type="hidden" id="url_calculo" name="url_calculo" value="<?php echo base_url("{$current_controller_uri}/calculo"); ?>"/>
             <input type="hidden" id="produto_parceiro_plano_id" name="produto_parceiro_plano_id" value="0"/>
@@ -48,15 +54,15 @@
                                         <div class="card-body">
                                             <h2 class="text-light plano_nome_one_<?php echo $plano['produto_parceiro_plano_id']; ?> name-plan"><?php echo $plano['nome'] ?></h2>
                                             <div class="price">
-                                                <H1 class="text-xl moeda-plan">R$</H1>
+                                                <h1 class="text-xl moeda-plan">R$</h1>
                                                 <h2>
-                                                    <span class="text-xl price-plan"> 500 </span>
+                                                    <span class="text-xl price-plan" id="price<?php echo $plano['produto_parceiro_plano_id']; ?>"> </span>
                                                 </h2>
-                                                <h1 class="text-xl moeda-plan">,00</h1>
+                                                <h1 class="text-xl moeda-plan" id="cents<?php echo $plano['produto_parceiro_plano_id']; ?>"></h1>
                                                 <span></span>
                                             </div>
 
-                                            <ul class="list details-plan">
+                                            <ul class="list details-plan limit-details-plan">
                                                 <?php
                                                 $array_cobertura = array();
                                                 foreach ($plano['cobertura'] as $cobertura){
@@ -74,9 +80,10 @@
                                                 }
                                                 ?>
                                             </ul>
-                                            <a href="#" class="more-plan color-primary" data-toggle="modal" data-target="#modalCoberturas"
+                                            <a href="#" class="more-plan color-primary price-moeda-<?php echo $plano['produto_parceiro_plano_id']; ?>" data-toggle="modal" data-target="#modalCoberturas"
                                                data-title="<?php echo $plano['nome']; ?>"
-                                               data-price="500,53"
+                                               data-price="00"
+                                               data-cents="00"
                                                data-coberturas="<?php echo implode(',',$array_modal); ?>">Saiba mais</a>
 
                                             <div class="this-plan">
@@ -281,20 +288,6 @@
 </div>
 <!-- // END col-app.col-unscrollable -->
 
-<!-- btn whatsapp -->
-<div class="btn-whats">
-    <a href="">
-        <i class="fa fa-whatsapp"></i>
-    </a>
-</div>
-
-<!-- btn info -->
-<div class="btn-info">
-    <a href="">
-        <i class="fa fa-info-circle"></i>
-    </a>
-</div>
-
 <!-- modal more info -->
 <div class="modal fade" id="modalCoberturas" role="dialog">
     <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -302,7 +295,7 @@
         <!-- Modal content-->
         <div class="modal-content">
             <div class="modal-body">
-                <h2 class="title">BÁSICO</h2>
+                <h2 class="title modal-title">BÁSICO</h2>
                 <div class="price-block">
                     <small class="cifrao moeda">R$</small>
                     <span class="price modal-price"> 00 </span>
@@ -331,3 +324,9 @@
 <script>
     var layout = "front";
 </script>
+
+<?php $this->load->view('admin/venda/equipamento/components/btn-info'); ?>
+
+<?php $this->load->view('admin/venda/equipamento/components/btn-whatsapp'); ?>
+
+<?php $this->load->view('admin/venda/equipamento/components/footer'); ?>

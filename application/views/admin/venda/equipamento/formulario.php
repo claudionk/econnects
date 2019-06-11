@@ -26,7 +26,6 @@
     </form>
 </div>
 
-
 <div class="btns">
     <!-- // Widget END -->
     <?php if ($layout == "base") { ?>

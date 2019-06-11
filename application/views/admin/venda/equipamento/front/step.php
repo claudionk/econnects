@@ -1,17 +1,41 @@
 <div id="sidebar-wrapper">
+    <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">
+        X
+    </a>
     <ul class="sidebar-nav">
-        <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">
-            <i class="glyphicon glyphicon-remove"></i>
-        </a>
-        <li class="sidebar-brand"></li>
         <li>
-            <a href="#">CONTRATE</a>
+            <a href="#" class="active background-primary">
+                <i class="fa fa-smile-o" aria-hidden="true"></i> CONTRATE
+            </a>
+        </li>
+
+        <li>
+            <span class="item"> SEGUROS </span>
         </li>
         <li>
-            <a href="#about">SEGURO</a>
+            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> COMPRAR </a>
         </li>
         <li>
-            <a href="#contact">SERVIÇOS</a>
+            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> COTAÇÕES SALVAS </a>
+        </li>
+
+        <li>
+            <span class="item"> SERVIÇOS </span>
+        </li>
+        <li>
+            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> COMPRAR </a>
+        </li>
+
+        <li>
+            <a href="#" class="active">
+                <i class="fa fa-briefcase" aria-hidden="true"></i> APOLICES
+            </a>
+        </li>
+
+        <li>
+            <a href="#" class="active">
+                <i class="fa fa-comments" aria-hidden="true"></i> ATENDIMENTO
+            </a>
         </li>
     </ul>
 </div>
@@ -24,7 +48,7 @@
     <div class="header-logo-menu">
         <div class="row">
             <div class="col-md-3 col-sm-3 col-xs-3">
-                <img src="<?php echo app_assets_url("upload/parceiros/494efe1480bdf61ba9015c2f8e0af7b5.png", 'admin'); ?>" alt="" title="" style="width: 90px;" />
+                <img src="<?php echo $this->template->get('theme_logo'); ?>" alt="" title="" style="width: 90px;" />
             </div>
 
             <div class="col-md-9 col-sm-9 col-xs-9">

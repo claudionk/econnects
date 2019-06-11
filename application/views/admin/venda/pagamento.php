@@ -63,28 +63,43 @@ if($_POST){
 
             <?php $this->load->view('admin/venda/partials/enviar_token_acesso'); ?>
 
+            <div class="col-md-12 col-sm-12 col-xs-12 icon-login">
+                <i class="fa fa-lock color-primary border-primary" aria-hidden="true"></i>
+            </div>
+
             <div class="col-xs-12 select-forma-pagamento">
                 <div class="form-group">
                     <label for="forma_pagamento" class="control-label"> Forma de pagamento </label>
-                    <select class="form-control" id="formaPagamento" onchange="selectFormaPagamento()">
-                        <option value=""></option>
-                        <?php foreach ($forma_pagamento as $index => $forma){ ?>
-                        <option value="<?php echo $forma['tipo']['forma_pagamento_tipo_id']; ?>"> <?php echo $forma['tipo']['nome']; ?> </option>
-                        <?php } ?>
-                    </select>
+                    <div class="label">
+                        <select class="form-control select" id="formaPagamento" onchange="selectFormaPagamento()">
+                            <option value=""></option>
+                            <?php foreach ($forma_pagamento as $index => $forma){ ?>
+                            <option value="<?php echo $forma['tipo']['forma_pagamento_tipo_id']; ?>"> <?php echo $forma['tipo']['nome']; ?> </option>
+                            <?php } ?>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <?php
-            foreach ($forma_pagamento as $index => $forma):
-                $this->load->view("admin/venda/pagamento/". $forma['tipo']['slug'], array('forma' => $forma, 'row' => issetor($campos, array())));
-            endforeach;
-            ?>
+            <div class="col-xs-12">
+                <?php
+                foreach ($forma_pagamento as $index => $forma):
+                    $this->load->view("admin/venda/pagamento/". $forma['tipo']['slug'], array('forma' => $forma, 'row' => issetor($campos, array())));
+                endforeach;
+                ?>
+            </div>
+
+            <div class="col-xs-12 btns" id="btnSubmit" style="display:none;">
+                <a class="btn btn-app btn-primary btn-proximo background-primary border-primary" 
+                    onclick="$('#validateSubmitForm').submit();">
+                Próximo <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </div>
         </div>
     </div>
 </form>
 
-<div class="card">
+<div class="card" style="display:none;">
     <div class="card-body">
         <?php if ($context != "pagamento") { ?>
             <a href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/{$step}/{$cotacao_id}")?>" class="btn  btn-app btn-primary">

@@ -57,6 +57,8 @@ class Venda_Equipamento extends Admin_Controller{
         if(! empty($this->input->get("color"))){
             $this->template->css(app_assets_url('modulos/venda/equipamento/css/'.$this->input->get("color").'.css', 'admin'));
         }
+
+        //echo '<pre>', print_r($this->session); exit;
     }
 
     /**
@@ -152,7 +154,7 @@ class Venda_Equipamento extends Admin_Controller{
                 redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/5/{$pedido['pedido_id']}");
             } else {
 
-                $this->venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real);
+                $this->venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real, $this->getUrl);
             }
         }
     }
@@ -185,6 +187,7 @@ class Venda_Equipamento extends Admin_Controller{
         // echo $step;
         // die();
         // echo ($this->name); exit;
+        // echo '<pre>', print_r($this->template->get('theme_logo')); exit;
 
         if( $step == 1 ) {
 
@@ -1419,11 +1422,14 @@ class Venda_Equipamento extends Admin_Controller{
     * @param $produto_parceiro_id
     * @param int $pedido_id
     */
-    public function equipamento_certificado($produto_parceiro_id, $pedido_id = 0){
-
+    public function equipamento_certificado($produto_parceiro_id, $pedido_id = 0)
+    {
+        $this->template->js(app_assets_url("modulos/venda/equipamento/js/baixe-app.js", "admin"));
+        
+        //echo 'estou aqui'; exit;
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('apolice_model', 'apolice');
-
+        
         $apolice = $this->apolice->getApolicePedido($pedido_id);
         $pedido = $this->pedido->get($pedido_id);
 
