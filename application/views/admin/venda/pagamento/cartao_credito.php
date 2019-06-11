@@ -14,8 +14,8 @@ if($_POST){
 
         <div class="form-group<?php echo (app_is_form_error('numero')) ? ' has-error' : ''; ?><?php echo (app_is_form_error('nome_cartao')) ? ' has-error' : ''; ?>">
             <div class="col-md-6">
-                <label class="control-label" for="numero">Número do Cartão</label>
-                <input class="form-control" id="numero" name="numero" type="tel" value="<?php echo isset($row['numero']) ? $row['numero'] : set_value('numero'); ?>" />
+                <label class="control-label" for="numero">Número do cartão</label>
+                <input class="form-control numeros_cartao" id="numero" name="numero" type="tel" value="<?php echo isset($row['numero']) ? $row['numero'] : set_value('numero'); ?>" />
                 <?php echo app_get_form_error('numero'); ?>
             </div>
             <div class="col-md-6">
@@ -28,17 +28,17 @@ if($_POST){
         <div class="row form-group<?php echo (app_is_form_error('validade')) ? ' has-error' : ''; ?><?php echo (app_is_form_error('codigo')) ? ' has-error' : ''; ?>">
             <div class="col-xs-6">
                 <label class="control-label" for="validade"> Validade </label>
-                <input class="form-control" id="validade" name="validade" type="tel" value="<?php echo isset($row['validade']) ? $row['validade'] : set_value('validade'); ?>" />
+                <input class="form-control validade_cartao" id="validade" name="validade" type="tel" value="<?php echo isset($row['validade']) ? $row['validade'] : set_value('validade'); ?>" />
                 <?php echo app_get_form_error('validade'); ?>
             </div>
             <div class="col-xs-5">
-                <label class="control-label" for="codigo">Código</label>
+                <label class="control-label" for="codigo"> CVV </label>
                 <input class="form-control" id="codigo" name="codigo" type="tel" value="<?php echo isset($row['codigo']) ? $row['codigo'] : set_value('codigo'); ?>" />
                 <?php echo app_get_form_error('codigo'); ?>
             </div>
             <div class="col-xs-1">
                 <a href="javascript:void(0)" class="tooltip-icon" data-toggle="tooltip" data-placement="left" 
-                    title="Tooltip on left">
+                    title="C&oacute;digo de seguran&ccedil;a do cart&atilde;o">
                     <i class="fa fa-question-circle" aria-hidden="true"></i>
                 </a>
             </div>
@@ -118,9 +118,9 @@ if($_POST){
     <?php } ?>
 
     <div class="col-xs-12">
-        <div class="col-xs-11 squaredFour">
+        <div class="col-xs-11">
             <label>
-                <input type="checkbox" checked="checked" id="squaredFour" /> Estou de acordo com os termos de uso.
+                <input type="checkbox" checked="checked" /> Estou de acordo com os termos de uso.
             </label>
         </div>
         <div class="col-xs-1">

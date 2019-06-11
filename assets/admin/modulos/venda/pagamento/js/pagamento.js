@@ -169,7 +169,7 @@ function selectFormaPagamento(){
 $(function() {
     $('[data-toggle="tooltip"]').tooltip()
 
-    $("#validade").inputmask("m/y",{ "placeholder": "__/____" });
+    $(".validade_cartao").inputmask("m/y",{ "placeholder": "__/____" });
 
-    $('#numero').inputmask("9999 9999 9999 9999",{ "placeholder": "____ ____ ____ ____" });
+    $('.numeros_cartao').inputmask("9999 9999 9999 9999",{ "placeholder": "____ ____ ____ ____" });
 });
