@@ -88,7 +88,7 @@ function calculo_preco()
         data: data,
     })
     .done(function( result ){
-        console.log('result', result);
+         console.log('result', result);
         // debugger;
 
         //Se sucesso
@@ -128,6 +128,13 @@ function calculo_preco()
 
                 $('.premio_total_one_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
                 $('.premio_total_two_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
+
+                var price = numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.').split(',')
+
+                $('#price'+idx).html(price[0])
+                $('#cents'+idx).html(','+price[1])
+                $('.price-moeda-'+idx).attr('data-price', price[0])
+                $('.price-moeda-'+idx).attr('data-cents', price[1])
             });
 
             console.log('coberturas; ', result.valores_cobertura_adicional);

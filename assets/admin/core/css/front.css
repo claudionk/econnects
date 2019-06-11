@@ -7,7 +7,7 @@ body{background-color: #eeeeee; color:#8c8c8c;}
 .list-inline > li { display: inline-block; }
 .list-inline > li img{ width: 58px; }
 input{ background-color: #ffffff !important; text-align: center; }
-section{background-color: #eeeeee; }
+section{ background-color: #eeeeee; padding-top: 5px!important; }
 .collection { border: none  }
 .collection .collection-item{ background-color: transparent; border: none; text-align: left }
 .header-logo-menu{
@@ -288,6 +288,13 @@ section{background-color: #eeeeee; }
     text-align: left;
     font-size: 1.5rem;
 }
+.footer-logotipo{
+    margin-top: 2rem;
+}
+.limit-details-plan{
+    height: 75px;
+    overflow: hidden;
+}
 .more-plan{
     text-transform: uppercase;
     font-size: 1.8rem;
@@ -347,7 +354,9 @@ section{background-color: #eeeeee; }
     right: 0;
     bottom: 10px;
     background-color: #828282;
-    padding: 10px 20px;
+    padding: 7px 20px;
+    width: 80px;
+    height: 55px;
 }
 .btn-whats .fa-whatsapp{
     color: #ffffff;
@@ -359,12 +368,58 @@ section{background-color: #eeeeee; }
     left: 0;
     bottom: 10px;
     background-color: #828282;
-    padding: 10px 20px;
+    padding: 9px 20px;
 }
 .btn-info .fa-info-circle{
     color: #ffffff;
     font-size: 4rem;
     font-weight: 500;
+}
+.btn-info.informacoes .xs-6{
+    float: left;
+    width: 60px;
+    text-align: center;
+}
+.btn-info.informacoes .txt{
+    text-transform: uppercase;
+    margin-left: 0;
+    display: block;
+    line-height: 16px;
+    margin-top: 4px;
+    text-align: left;
+}
+.btn-info.informacoes .txt a{
+    text-decoration: none;
+}
+.btn-info.informacoes .txt a:hover{
+    text-decoration: none;
+}
+.btn-info.informacoes{
+    width: 80px;
+    height: 55px;
+    overflow: hidden;
+    background: #828282;
+    -webkit-transition: width 2s; /* Safari */
+    transition: width 1s;
+}
+.btn-info.informacoes:hover{
+    width: 160px;
+}
+#modalCondicoes .modal-dialog{
+    margin-top: 60px;
+}
+#modalCondicoes .modal-body{
+    background: transparent;
+    color: #ffffff;
+}
+#modalCondicoes .modal-backdrop.in{
+    opacity: 0.9;
+}
+.informacoes{
+    -webkit-transition-timing-function: ease;
+}
+.informacoes{
+    transition-timing-function: ease;
 }
 .modal-more-info{
     border:1px solid red;
