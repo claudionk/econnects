@@ -933,7 +933,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
             if (empty($dados['endereco_numero']))
                 $dados['endereco_numero'] = '0';
 
-            if (empty($dados['endereco_cep']) || $dados['endereco_cep'] = "99999999")
+            if (empty($dados['endereco_cep']) || $dados['endereco_cep'] == "99999999")
                 $dados['endereco_cep'] = '06454000';
 
             if (empty($dados['sexo']))
