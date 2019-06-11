@@ -561,18 +561,23 @@ section{ background-color: #eeeeee; padding-top: 5px!important; }
     -webkit-border-radius: 0px;
     -moz-border-radius: 0px;
     border-radius: 0px;
+
+    -webkit-box-shadow: 0px 7px 14px rgba(140, 140, 140, 0.45);
+    -moz-box-shadow: 0px 7px 14px rgba(140, 140, 140, 0.45);
+    box-shadow: 0px 7px 14px rgba(140, 140, 140, 0.45);
 }
 
 .form-pagamento .select-forma-pagamento .label {
     position:relative;
     font-weight: 400;
+    padding: 0;
 }
 .form-pagamento .select-forma-pagamento .label:after {
     content: "\f107";
     font-family: "FontAwesome";
     font-size: 20px;
     right: 16px;
-    top: 0px;
+    top: -4px;
     position: absolute;
     color: #b5b5b5;
     font-weight: bold;
