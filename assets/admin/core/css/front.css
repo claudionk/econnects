@@ -533,8 +533,8 @@ section{ background-color: #eeeeee; padding-top: 5px!important; }
  .forma-pagamento{
      display:none;
  }
-.form-pagamento{
-
+.form-pagamento .form-group .form-control ~ label:after, .form-group .form-control ~ .form-control-line:after{
+    background: transparent;
 }
 .form-pagamento .control-label{
     text-align: center;
@@ -542,6 +542,49 @@ section{ background-color: #eeeeee; padding-top: 5px!important; }
 }
 .form-pagamento .select-forma-pagamento{
     margin-top: 30px;
+    z-index: 999;
+    padding: 0 24px;
+}
+.form-pagamento .select-forma-pagamento .select{
+    padding:4px;
+    margin: 0;
+    background: #fff;
+    color:#888;
+    border:none;
+    outline:none;
+    display: inline-block;
+    -webkit-appearance:none;
+    -moz-appearance:none;
+    appearance:none;
+    cursor:pointer;
+    width: 100%;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+}
+
+.form-pagamento .select-forma-pagamento .label {
+    position:relative;
+    font-weight: 400;
+}
+.form-pagamento .select-forma-pagamento .label:after {
+    content: "\f107";
+    font-family: "FontAwesome";
+    font-size: 20px;
+    right: 16px;
+    top: 0px;
+    position: absolute;
+    color: #b5b5b5;
+    font-weight: bold;
+}
+.form-pagamento .select-forma-pagamento .label:before {
+    content:'';
+    right:4px; top:0px;
+    width:23px; height:18px;
+    background:#fff;
+    position:absolute;
+    pointer-events:none;
+    display:block;
 }
 .form-pagamento .select-forma-pagamento .control-label{
     margin-top: -20px;
@@ -549,7 +592,28 @@ section{ background-color: #eeeeee; padding-top: 5px!important; }
 .form-pagamento .select-forma-pagamento .form-control{
     background-color: #ffffff;
 }
- /* END PAGAMENTO
+.form-pagamento .control-label{
+    text-transform: uppercase;
+    color: #8c8c8c;
+    opacity: 1;
+    margin-top: 10px;
+}
+.form-pagamento .tooltip-icon{
+    margin-top: 36px;
+    display: block;
+    background: transparent;
+    border: none;
+    font-size: 1.6rem;
+    color: #636161;
+    float: right;
+}
+.terms{
+    margin-top:0px !important;
+}
+.forma-pagamento .terms-checkbox{
+    padding:10px;
+}
+/* END PAGAMENTO
  */
 
 @media (max-width: 768px){

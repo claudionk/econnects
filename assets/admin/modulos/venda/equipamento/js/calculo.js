@@ -88,7 +88,7 @@ function calculo_preco()
         data: data,
     })
     .done(function( result ){
-         console.log('result', result);
+        console.log(result);
         // debugger;
 
         //Se sucesso
@@ -172,12 +172,15 @@ function calculo_preco()
             toastr.success("Calculo efetuado com sucesso!", "Calcular cotação");
             $('.td-add-car').show();
         }else{
-            toastr.error(result.mensagem, "Atenção!");
+            if(result.mensagem){
+                toastr.error(result.mensagem, "Atenção!");
+            }
+            if(result.message){
+                toastr.error(result.message, "Atenção!");
+            }
 
             $('.td-add-car').hide();
             $('#' + result.campo).focus();
-
-
         }
     });
 }

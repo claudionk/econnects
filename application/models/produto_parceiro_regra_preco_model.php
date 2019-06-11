@@ -390,7 +390,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             $pedido = $this->db->query( "SELECT * FROM pedido WHERE cotacao_id=$cotacao_id AND deletado=0" )->result_array();
             if( $pedido ) {
                 ob_clean();
-                die( json_encode( array( "status" => false, "message" => "Não foi possível efetuar o calculo. Motivo: já existe um pedido para essa cotação." ) ) );
+                return array( "status" => false, "message" => "Não foi possível efetuar o calculo. Motivo: já existe um pedido para essa cotação." );
             } else {
                 if (!empty($produto_parceiro_plano_id)){
 

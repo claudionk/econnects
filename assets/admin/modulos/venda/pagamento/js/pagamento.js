@@ -1,116 +1,6 @@
 var cartao;
 var cartao_debito;
 
-$(document).ready(function() {
-
-    $('#validade').datepicker({autoclose: true, todayHighlight: true, format: "mm/yyyy", startDate: '0d', language: 'pt-BR', forceParse : false,  minViewMode: 1});
-    $('#validade_debito').datepicker({autoclose: true, todayHighlight: true, format: "mm/yyyy", startDate: '0d', language: 'pt-BR', forceParse : false,  minViewMode: 1});
-
-
-    cartao = $('#validateSubmitForm #pagamento-credito').card({
-        // a selector or DOM element for the form where users will
-        // be entering their information
-        /*form: 'validateSubmitForm', */ // *required*
-        // a selector or DOM element for the container
-        // where you want the card to appear
-        container: '.card-wrapper', // *required*
-
-        formSelectors: {
-            numberInput: 'input[name="numero"]', // optional — default input[name="number"]
-            expiryInput: 'input[name="validade"]', // optional — default input[name="expiry"]
-            cvcInput: 'input[name="codigo"]', // optional — default input[name="cvc"]
-            nameInput: 'input[name="nome_cartao"]' // optional - defaults input[name="name"]
-        },
-        width: '280px', // optional — default 280px
-        formatting: true,
-
-        // Strings for translation - optional
-        messages: {
-            validDate: 'Validade', // optional - default 'valid\nthru'
-            monthYear: 'mm/aaaa', // optional - default 'month/year'
-        },
-
-        // Default placeholders for rendered fields - optional
-        placeholders: {
-            number: '•••• •••• •••• ••••',
-            name: 'Nome Completo',
-            expiry: '••/••',
-            cvc: '•••'
-        },
-
-        // if true, will log helpful messages for setting up Card
-        debug: true, // optional - default false
-
-        cardFromType : function (e) {
-            console.log('formatCardNumber');
-
-        }
-    });
-
-
-    cartao_debito = $('#validateSubmitForm #pagamento-debito').card({
-        // a selector or DOM element for the form where users will
-        // be entering their information
-        /*form: 'validateSubmitForm', */ // *required*
-        // a selector or DOM element for the container
-        // where you want the card to appear
-        container: '.card-wrapper-debito', // *required*
-
-        formSelectors: {
-            numberInput: 'input[name="numero_debito"]', // optional — default input[name="number"]
-            expiryInput: 'input[name="validade_debito"]', // optional — default input[name="expiry"]
-            cvcInput: 'input[name="codigo_debito"]', // optional — default input[name="cvc"]
-            nameInput: 'input[name="nome_cartao_debito"]' // optional - defaults input[name="name"]
-        },
-
-        width: '280px', // optional — default 280px
-        formatting: true, // optional - default true
-
-        // Strings for translation - optional
-        messages: {
-            validDate: 'Validade', // optional - default 'valid\nthru'
-            monthYear: 'mm/aaaa', // optional - default 'month/year'
-        },
-
-        // Default placeholders for rendered fields - optional
-        placeholders: {
-            number: '•••• •••• •••• ••••',
-            name: 'Nome Completo',
-            expiry: '••/••',
-            cvc: '•••'
-        },
-
-        // if true, will log helpful messages for setting up Card
-        debug: true // optional - default false
-    });
-
-
-    $('input[name="bandeira"]').change(function() {
-        $('.parcelamento').hide();
-        $('.parcelamento_'+ $(this).val() ).show();
-    });
-
-    $('.w-forma-pagamento').click(function() {
-        $('#forma_pagamento_tipo_id').val($(this).data('forma'));
-    });
-
-    $('#validateSubmitForm').on("submit", function(){
-
-        $('.btn-proximo').attr("disabled","disabled");
-        $('.btn-proximo').html('Aguarde...')
-        console.log('submit');
-        return true;
-    });
-
-    $( "#sacado_endereco_cep" ).blur(function() {
-        boletoBuscaCep();
-    });
-
-    boletoBuscaCep();
-    getStatusPedido();
-
-});
-
 
 function GetCardType(number)
 {
@@ -216,7 +106,6 @@ function boletoValidarCEP(cep){
 
 function boletoBuscaCep(){
 
-
     var cep = $( "#sacado_endereco_cep" ).val();
     var url = ADMIN_URL + "/helpers/buscar_cep/" + cep;
 
@@ -224,13 +113,9 @@ function boletoBuscaCep(){
         return
     }
 
-
     if(!boletoValidarCEP(cep)){
         return;
     }
-
-
-
 
     $.ajax({
         url: url,
@@ -245,15 +130,13 @@ function boletoBuscaCep(){
                 $("#sacado_endereco").val(json.data.tipo_logradouro.toUpperCase() + ' ' + json.data.logradouro.toUpperCase() );
                 $("#sacado_endereco_uf").val(json.data.uf);
 
-                $("#sacado_endereco_numero").focus();
+                //$("#sacado_endereco_numero").focus();
             }else {
 
                 alert('Não foi possivel obter informações do cep informado.');
             }
         }
     });
-
-
 }
 
 function selectFormaPagamento(){
@@ -261,21 +144,32 @@ function selectFormaPagamento(){
     var f_pagamento = $('#formaPagamento').val();
 
     $('.forma-pagamento').fadeOut('slow');
+    $('#btnSubmit').fadeOut('show');
 
     // cartão de crédito
     if(f_pagamento == 1){
         $('#pagamento-credito').fadeIn('show');
+        $('#btnSubmit').fadeIn('show');
     }
 
     // cartão de débito
     if(f_pagamento == 8){
         $('#pagamento-debito').fadeIn('show');
+        $('#btnSubmit').fadeIn('show');
     }
 
     // boleto pagmax
     if(f_pagamento == 9){
         $('#pagamento-boleto').fadeIn('show');
+        $('#btnSubmit').fadeIn('show');
     }
 
     console.log($('#formaPagamento').val());
 }
+$(function() {
+    $('[data-toggle="tooltip"]').tooltip()
+
+    $("#validade").inputmask("m/y",{ "placeholder": "__/____" });
+
+    $('#numero').inputmask("9999 9999 9999 9999",{ "placeholder": "____ ____ ____ ____" });
+});
