@@ -525,7 +525,7 @@ class Cliente_Model extends MY_Model
 
     public function getRanking($dados = [])
     {
-        $rank=1000;
+        $rank=$rankAux=1000;
         $index=0;
 
         $result = [];
@@ -536,8 +536,9 @@ class Cliente_Model extends MY_Model
                 if ($rank == 1000) {
                     $rank = $index;
                 }
-            } elseif ($data["RANKING"] <= $rank) {
+            } elseif ($data["RANKING"] <= $rankAux) {
                 $rank = $index;
+                $rankAux = $data["RANKING"];
             }
 
             $index++;
@@ -555,6 +556,7 @@ class Cliente_Model extends MY_Model
     private function getRankingContato($contatos = [])
     {
         $rankTel=$rankCel=$rankEmail=1000;
+        $rankTelAux=$rankCelAux=$rankEmailAux=1000;
         $index=0;
 
         $result = [
@@ -571,8 +573,9 @@ class Cliente_Model extends MY_Model
                         if ($rankTel == 1000) {
                             $rankTel = $index;
                         }
-                    } elseif ($contato["ranking"] <= $rankTel) {
+                    } elseif ($contato["ranking"] <= $rankTelAux) {
                         $rankTel = $index;
+                        $rankTelAux = $contato["ranking"];
                     }
                     break;
 
@@ -582,8 +585,9 @@ class Cliente_Model extends MY_Model
                         if ($rankCel == 1000) {
                             $rankCel = $index;
                         }
-                    } elseif ($contato["ranking"] <= $rankCel) {
+                    } elseif ($contato["ranking"] <= $rankCelAux) {
                         $rankCel = $index;
+                        $rankCelAux = $contato["ranking"];
                     }
                     break;
 
@@ -593,8 +597,9 @@ class Cliente_Model extends MY_Model
                         if ($rankEmail == 1000) {
                             $rankEmail = $index;
                         }
-                    } elseif ($contato["ranking"] <= $rankEmail) {
+                    } elseif ($contato["ranking"] <= $rankEmailAux) {
                         $rankEmail = $index;
+                        $rankEmailAux = $contato["ranking"];
                     }
                     break;
             }
