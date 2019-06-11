@@ -613,8 +613,23 @@ section{ background-color: #eeeeee; padding-top: 5px!important; }
 .forma-pagamento .terms-checkbox{
     padding:10px;
 }
-/* END PAGAMENTO
+
+ /* BAIXE APP
  */
+ .modal-app .modal-body{
+    padding: 6rem 2rem;
+ }
+ .modal-app .title{
+    text-transform: uppercase;
+    font-size: 3rem;
+    font-weight: 100;
+}
+ .modal-app .subtitle{
+    font-size: 1.3rem;
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 20px;
+ }
 
 @media (max-width: 768px){
     #wizard .form-wizard-nav ul li {

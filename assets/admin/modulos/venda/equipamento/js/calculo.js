@@ -177,7 +177,11 @@ function calculo_preco()
             }
             if(result.message){
                 toastr.error(result.message, "Atenção!");
-            }
+            }           
+
+            setTimeout(function() {
+                window.location.href = "/admin/venda_equipamento/equipamento/"+$('#produto_parceiro_id').val()+"/6/"+result.pedido_id+"?token="+$('#getToken').val()+"&layout="+$('#getLayout').val()+"&color="+$('#getColor').val()
+            }, 1800);
 
             $('.td-add-car').hide();
             $('#' + result.campo).focus();

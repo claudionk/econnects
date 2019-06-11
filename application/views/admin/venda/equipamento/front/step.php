@@ -24,7 +24,7 @@
     <div class="header-logo-menu">
         <div class="row">
             <div class="col-md-3 col-sm-3 col-xs-3">
-                <img src="<?php echo app_assets_url("upload/parceiros/494efe1480bdf61ba9015c2f8e0af7b5.png", 'admin'); ?>" alt="" title="" style="width: 90px;" />
+                <img src="<?php echo $this->template->get('theme_logo'); ?>" alt="" title="" style="width: 90px;" />
             </div>
 
             <div class="col-md-9 col-sm-9 col-xs-9">

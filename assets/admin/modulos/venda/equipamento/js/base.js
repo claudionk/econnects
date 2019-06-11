@@ -8,7 +8,6 @@ $(function() {
         $('#validateSubmitForm').submit();
     });
 
-    /*
     // hidden all input
     var arrayDivs = [];
 
@@ -18,7 +17,7 @@ $(function() {
 
         if(divs.context.innerText != 'CPF'){
            divs.css('display', 'none');
-           $('.btn-proximo').attr('disabled', true)
+           //$('.btn-proximo').attr('disabled', true)
         }
     });
     if($('#cnpj_cpf').length){
@@ -80,5 +79,4 @@ $(function() {
             $('.btn-proximo').attr('disabled', false)
         });
     }
-    */
 });

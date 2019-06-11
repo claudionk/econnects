@@ -150,7 +150,7 @@ class Admin_Controller extends MY_Controller
         $this->template->set('title', $this->_theme_nome);
     }
 
-    public function venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id = 0, $conclui_em_tempo_real = true)
+    public function venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id = 0, $conclui_em_tempo_real = true, $getUrl)
     {
         //error_log("Controller\n", 3, "/var/log/httpd/myapp.log");
 
@@ -432,7 +432,7 @@ class Admin_Controller extends MY_Controller
                         break;
                     default:
                         $this->session->set_flashdata('succ_msg', 'Pedido incluido com sucesso!'); //Mensagem de sucesso
-                        redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}");
+                        redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
                         break;
                 }
 

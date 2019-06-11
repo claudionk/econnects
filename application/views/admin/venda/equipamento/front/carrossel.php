@@ -6,6 +6,12 @@
     <div class="" style="background-color: #eee">
         <!-- Form -->
         <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
+            <!--  -->
+            <input type="hidden" id="getToken" value="<?php echo $this->input->get('token'); ?>" />
+            <input type="hidden" id="getLayout" value="<?php echo $this->input->get('layout'); ?>" />
+            <input type="hidden" id="getColor" value="<?php echo $this->input->get('color'); ?>" />
+            <!--  -->
+
             <input type="hidden" id="<?php echo $primary_key ?>" name="<?php echo $primary_key ?>" value="<?php if (isset($row[$primary_key])) echo $row[$primary_key]; ?>"/>
             <input type="hidden" id="url_calculo" name="url_calculo" value="<?php echo base_url("{$current_controller_uri}/calculo"); ?>"/>
             <input type="hidden" id="produto_parceiro_plano_id" name="produto_parceiro_plano_id" value="0"/>
