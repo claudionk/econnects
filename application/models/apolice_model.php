@@ -326,6 +326,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['latitude_longitude'] = $cotacao_salva['latitude_longitude'];
             $dados_equipamento['serial']             = $cotacao_salva['serial'];
             $dados_equipamento['uuid']               = $cotacao_salva['uuid'];
+            $dados_equipamento['data_aceite_termo']  = $cotacao_salva['data_aceite_termo'];
 
             $dados_equipamento['endereco_logradouro']     = $cotacao_salva['endereco_logradouro'];
             $dados_equipamento['endereco_numero']         = $cotacao_salva['endereco_numero'];
@@ -546,6 +547,7 @@ class Apolice_Model extends MY_Model
             $dados_generico['latitude_longitude'] = $cotacao_salva['latitude_longitude'];
             $dados_generico['serial']             = $cotacao_salva['serial'];
             $dados_generico['uuid']               = $cotacao_salva['uuid'];
+            $dados_generico['data_aceite_termo']  = $cotacao_salva['data_aceite_termo'];
 
             $this->apolice_generico->insert($dados_generico, true);
             $this->concluiApolice($pedido, $apolice_id);
@@ -731,6 +733,7 @@ class Apolice_Model extends MY_Model
                 $dados_seguro_viagem['latitude_longitude']            = $cotacao_salva['latitude_longitude'];
                 $dados_seguro_viagem['serial']                        = $cotacao_salva['serial'];
                 $dados_seguro_viagem['uuid']                          = $cotacao_salva['uuid'];
+                $dados_seguro_viagem['data_aceite_termo']             = $cotacao_salva['data_aceite_termo'];
 
                 $this->apolice_seguro_viagem->insert($dados_seguro_viagem, true);
                 $this->concluiApolice($pedido, $apolice_id);
