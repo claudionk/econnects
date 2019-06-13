@@ -10,7 +10,7 @@ $(function() {
 
     // hidden all input
     var arrayDivs = [];
-
+/*
     $(".form-group").each(function(){
         var divs = $(this)
         arrayDivs.push(divs)
@@ -79,4 +79,5 @@ $(function() {
             $('.btn-proximo').attr('disabled', false)
         });
     }
+    */
 });

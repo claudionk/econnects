@@ -60,6 +60,8 @@
     </div>
 </div>
 
+<?php if($this->template->get('layout') == 'front'){ ?>
 <?php $this->load->view('admin/venda/equipamento/components/btn-whatsapp'); ?>
 
 <?php $this->load->view('admin/venda/equipamento/components/footer'); ?>
+<?php } ?>
