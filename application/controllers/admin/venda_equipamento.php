@@ -130,7 +130,7 @@ class Venda_Equipamento extends Admin_Controller{
     public function step_pagto($produto_parceiro_id, $cotacao_id = 0, $pedido_id = 0, $conclui_em_tempo_real = true, $data)
     {
 
-        if(empty($this->session->userdata('logado'))){
+        if(empty($this->session->userdata('logado')) && $this->template->get('layout') == 'front'){
 
             $this->step_login($data);
 
@@ -198,7 +198,6 @@ class Venda_Equipamento extends Admin_Controller{
             $this->equipamento_carrossel($produto_parceiro_id, $cotacao_id);
 
         } elseif( $step == 3 ) {
-
             if ($conclui_em_tempo_real) {
                 $this->step_contratar( $produto_parceiro_id, $cotacao_id, $status, $conclui_em_tempo_real );
             } else {
