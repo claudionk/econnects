@@ -13,7 +13,7 @@ class Venda_Equipamento extends Admin_Controller{
     protected $layout = "base";
     protected $color  = 'default';
     protected $token;
-    protected $getUrl;
+    protected $getUrl = '';
     public $name;
 
     public function __construct()
@@ -129,13 +129,10 @@ class Venda_Equipamento extends Admin_Controller{
 
     public function step_pagto($produto_parceiro_id, $cotacao_id = 0, $pedido_id = 0, $conclui_em_tempo_real = true, $data)
     {
-
         if(empty($this->session->userdata('logado')) && $this->template->get('layout') == 'front'){
-
             $this->step_login($data);
 
         }else{
-
             $this->load->model("pedido_model", "pedido_model");
 
             /**
@@ -153,7 +150,6 @@ class Venda_Equipamento extends Admin_Controller{
                 //$this->venda_aguardando_pagamento($produto_parceiro_id, $cotacao_id);
                 redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/5/{$pedido['pedido_id']}");
             } else {
-
                 $this->venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real, $this->getUrl);
             }
         }
@@ -208,9 +204,8 @@ class Venda_Equipamento extends Admin_Controller{
             // $this->step_login($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real, $cotacao);
 
         } elseif ($step == 4) {
-
             if ($conclui_em_tempo_real) {
-                $this->step_pagto($produto_parceiro_id, $cotacao_id, $pedido_id);
+                $this->step_pagto($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real, null);
             } else {
                 $this->step_contratar( $produto_parceiro_id, $cotacao_id, $status );
             }
