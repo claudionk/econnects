@@ -1137,6 +1137,7 @@ Class Integracao_Model extends MY_Model
                 AND a.deletado = 0
                 AND b.integracao_log_status_id = 4
             ";
+            $query = $this->_database->query($sql);
 
         }
 
