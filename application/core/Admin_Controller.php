@@ -150,7 +150,7 @@ class Admin_Controller extends MY_Controller
         $this->template->set('title', $this->_theme_nome);
     }
 
-    public function venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id = 0, $conclui_em_tempo_real = true, $getUrl)
+    public function venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id = 0, $conclui_em_tempo_real = true, $getUrl = '')
     {
         //error_log("Controller\n", 3, "/var/log/httpd/myapp.log");
 
