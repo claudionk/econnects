@@ -255,6 +255,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
 
         $apolice_vigencia_regra = false;
         $data_adesao = date("Y-m-d");
+        $date_fim_vig = null;
 
         if (empty($data_base)) {
             $data_base = date("Y-m-d");
@@ -284,6 +285,11 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                             } else {
                                 $apolice_vigencia_regra = true;
                             }
+
+                            if ($cotacao_salva["data_fim_vigencia"] != "" && $cotacao_salva["data_fim_vigencia"] != "0000-00-00") {
+                                $date_fim_vig = $cotacao_salva["data_fim_vigencia"];
+                            }
+
                             break;
                     }
 
@@ -350,6 +356,12 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             $date_fim    = date('Y-m-d', mktime(0, 0, 0, $data_base2[1], $data_base2[2] + $produto_parceiro_plano['limite_vigencia'], $data_base2[0]));
         }
 
+        // caso tenha uma data fim específica
+        if ( !empty($date_fim_vig) )
+        {
+            $date_fim = $date_fim_vig;
+        }
+
         return array(
             'inicio_vigencia' => $date_inicio,
             'fim_vigencia'    => $date_fim,
@@ -362,7 +374,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
     public function getInicioFimVigenciaCapa($produto_parceiro_plano_id, $data_base, $is_controle_endosso_pelo_cliente = false)
     {
 
-        $date_inicio = $data_fim = $data_base;
+        $date_inicio = $data_base;
 
         $config = $this->with_produto_parceiro_configuracao($produto_parceiro_plano_id)->get_all();
         if ($config) {
@@ -375,6 +387,11 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                 $date_inicio = $d1->format('Y-m-d');
                 $fim = 1;
                 $date_fim = $d2 = $d1;
+
+                if ($is_controle_endosso_pelo_cliente)
+                {
+                    $config["pagamento_periodicidade_unidade"] = 'MES';
+                }
 
                 switch ($config["pagamento_periodicidade_unidade"]) {
                     case "DIA": //

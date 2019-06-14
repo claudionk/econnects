@@ -208,7 +208,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
             $arrPlanos = $this->plano->order_by('produto_parceiro_plano.ordem', 'asc')->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
         }
 
-        $valores = array();
+        $valores = array('quantidade' => $quantidade);
 
         foreach ($arrPlanos as $plano){
 

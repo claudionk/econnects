@@ -509,9 +509,6 @@ class Venda_Generico extends Admin_Controller
             }
         }
 
-
-
-
         $cotacao_salva = $this->cotacao->with_cotacao_generico()
             ->filterByID($cotacao_id)
             ->get_all();
@@ -544,7 +541,6 @@ class Venda_Generico extends Admin_Controller
         $data['cotacao'] = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $data['carrossel'] = $this->session->userdata("carrossel_{$produto_parceiro_id}");
 
-
         if(isset($cotacao_salva['cotacao_upgrade_id']) && (int)$cotacao_salva['cotacao_upgrade_id'] > 0){
            $this->set_cotacao_session($cotacao_id, $produto_parceiro_id);
         }
@@ -556,51 +552,54 @@ class Venda_Generico extends Admin_Controller
         if($_POST)
         {
 
-
             $planos = explode(';', $data['carrossel']['plano']);
-
             $planos_nome = explode(';', $data['carrossel']['plano_nome']);
-
             $validacao = $this->campo->setValidacoesCamposPlano($produto_parceiro_id, 'dados_segurado', $data['carrossel']['plano']);
 
+            $this->cotacao->setValidate($validacao);
+            if ($this->cotacao->validate_form('dados_segurado')) {
 
-           $this->cotacao->setValidate($validacao);
-           if ($this->cotacao->validate_form('dados_segurado')) {
+                foreach ($planos as $index => $plano) {
 
-
-               foreach ($planos as $index => $plano) {
-
-                   //busca cotação do cotacao_seguro_viagem
-                   $cotacao_salva = $this->cotacao->with_cotacao_generico()
+                    //busca cotação do cotacao_seguro_viagem
+                    $cotacao_salva = $this->cotacao->with_cotacao_generico()
                        ->filterByID($cotacao_id)
                        ->get_all();
 
+                    $cotacao_salva = $cotacao_salva[0];
+                    $dados_cotacao = array();
+                    $dados_cotacao['step'] = 4;
 
-                   $cotacao_salva = $cotacao_salva[0];
-                   $dados_cotacao = array();
-                   $dados_cotacao['step'] = 4;
+                    $this->campo->setDadosCampos($produto_parceiro_id, 'generico',  'dados_segurado', $plano, $dados_cotacao);
 
+                    if( isset( $_POST["data_inicio_vigencia"] ) ) {
+                        $_POST["data_inicio_vigencia"] = app_dateonly_mask_to_mysql($_POST["data_inicio_vigencia"]);
+                    }
+                    if( isset( $dados_cotacao["data_inicio_vigencia"] ) ) {
+                        $dados_cotacao["data_inicio_vigencia"] = app_dateonly_mask_to_mysql($dados_cotacao["data_inicio_vigencia"]);
+                    }
 
-                   $this->campo->setDadosCampos($produto_parceiro_id, 'generico',  'dados_segurado', $plano, $dados_cotacao);
-                   $this->cotacao_generico->update($cotacao_salva['cotacao_generico_id'], $dados_cotacao, TRUE);
+                    if( isset( $_POST["data_fim_vigencia"] ) ) {
+                        $_POST["data_fim_vigencia"] = app_dateonly_mask_to_mysql($_POST["data_fim_vigencia"]);
+                    }
+                    if( isset( $dados_cotacao["data_fim_vigencia"] ) ) {
+                        $dados_cotacao["data_fim_vigencia"] = app_dateonly_mask_to_mysql($dados_cotacao["data_fim_vigencia"]);
+                    }
 
-                   if($this->input->post("plano_{$plano}_password")){
+                    $this->cotacao_generico->update($cotacao_salva['cotacao_generico_id'], $dados_cotacao, TRUE);
+
+                    if($this->input->post("plano_{$plano}_password")){
                        $dados_cotacao['password'] = $this->input->post("plano_{$plano}_password");
-                   }
-                   $this->cliente->atualizar($cotacao_salva['cliente_id'], $dados_cotacao);
+                    }
+                    $this->cliente->atualizar($cotacao_salva['cliente_id'], $dados_cotacao);
 
-               }
+                }
 
+                $this->session->set_userdata("dados_segurado_{$produto_parceiro_id}", $_POST);
 
-
-               $this->session->set_userdata("dados_segurado_{$produto_parceiro_id}", $_POST);
-
-               redirect("{$this->controller_uri}/generico/{$produto_parceiro_id}/4/{$cotacao_id}");
-
+                redirect("{$this->controller_uri}/generico/{$produto_parceiro_id}/4/{$cotacao_id}");
            }
         }
-
-
 
         $this->template->load("admin/layouts/{$this->layout}", "admin/venda/generico/dados_segurado", $data );
 
@@ -1377,6 +1376,8 @@ class Venda_Generico extends Admin_Controller
             $dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_endereco_bairro"] = $cotacao_salva["endereco_bairro"];
             $dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_endereco_cidade"] = $cotacao_salva["endereco_cidade"];
             $dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_endereco_estado"] = $cotacao_salva["endereco_estado"];
+            $dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_data_inicio_vigencia"] = app_dateonly_mysql_to_mask($cotacao_salva["data_inicio_vigencia"]);
+            $dados_segurado["plano_{$cotacao_salva['produto_parceiro_plano_id']}_data_fim_vigencia"] = app_dateonly_mysql_to_mask($cotacao_salva["data_fim_vigencia"]);
             $this->session->set_userdata("dados_segurado_{$produto_parceiro_id}", $dados_segurado);
 
         }

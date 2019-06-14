@@ -178,5 +178,13 @@ Class Cobertura_Plano_Model extends MY_Model {
         return $this;
     }
 
+    function with_prod_parc_iof($produto_parceiro_plano_id){
+
+        $this->_database->where("produto_parceiro_plano_id", $produto_parceiro_plano_id);
+        $this->_database->where("usar_iof", 1);
+
+        return $this;
+    }
+
 }
 
