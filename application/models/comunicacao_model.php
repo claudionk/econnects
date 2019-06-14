@@ -120,8 +120,12 @@ class Comunicacao_model extends MY_Model
       'rules' => '',
       'groups' => 'default',
     ),
-
-
+    array(
+      'field' => 'cotacao_id',
+      'label' => 'cotacao_id',
+      'rules' => '',
+      'groups' => 'default',
+    ),
 
   );
 

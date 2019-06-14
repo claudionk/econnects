@@ -132,6 +132,11 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
             'label' => 'Exibição de coberturas (Mobile)',
             'rules' => 'required',
             'groups' => 'geral'
+        ),array(
+            'field' => 'ir_cotacao_salva',
+            'label' => 'Ir Para cotação salva após CPF',
+            'rules' => 'required',
+            'groups' => 'geral'
         )
     );
 
@@ -154,6 +159,7 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
                 'salvar_cotacao_formulario' => $this->input->post('salvar_cotacao_formulario'),
                 'quantidade_cobertura' => $this->input->post('quantidade_cobertura'),
                 'quantidade_cobertura_front' => $this->input->post('quantidade_cobertura_front'),
+                'ir_cotacao_salva' => $this->input->post('ir_cotacao_salva'),
             );
         }elseif ($tipo == 'comissao'){
             $data = array(

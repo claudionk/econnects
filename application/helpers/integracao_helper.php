@@ -783,6 +783,7 @@ if ( ! function_exists('app_integracao_rastrecall_sms')) {
             $comunicacao->setDestinatario(app_retorna_numeros($evento['destinatario_telefone']));
             $comunicacao->setNomeDestinatario($evento['mensagem']['nome']);
             $comunicacao->setUrl($evento['url']);
+            $comunicacao->SetCotacaoId($dados['registro']['cotacao_id']);
             $comunicacao->disparaEvento("cotacao_gerada", $evento['produto_parceiro_id']);
 
 

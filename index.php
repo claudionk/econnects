@@ -38,7 +38,7 @@ $host_servers['homologacao'] = array(
 //     define('ENVIRONMENT', 'development');
 // }
 
-define('ENVIRONMENT', 'homologacao');
+define('ENVIRONMENT', 'development');
 date_default_timezone_set('America/Sao_Paulo');
 
 /*
@@ -64,6 +64,7 @@ if (defined('ENVIRONMENT'))
         case 'development':
             error_reporting(E_ALL);
             ini_set('display_errors', 1);
+
             break;
 
         case 'testing':

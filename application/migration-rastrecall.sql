@@ -40,3 +40,95 @@ INSERT INTO `integracao_layout` (`integracao_id`, `integracao_detalhe_id`, `tipo
 INSERT INTO `integracao_layout` (`integracao_id`, `integracao_detalhe_id`, `tipo`, `ordem`, `nome`, `descricao`, `formato`, `campo_tipo`, `tamanho`, `obrigatorio`, `campo_log`, `insert`, `inicio`, `fim`, `nome_banco`, `function`, `valor_padrao`, `qnt_valor_padrao`, `str_pad`, `deletado`, `criacao`, `alteracao_usuario_id`, `alteracao`) VALUES (97, 357, 'D', 21, 'CODEBAR\r\n', 'CODEBAR', '', 'C', 100, 0, 0, 1, 410, 419, 'equipamento_codigo_barra', '', ' ', 20, 0, 0, '2018-10-18 14:23:12', 0, '0000-00-00 00:00:00');
 INSERT INTO `integracao_layout` (`integracao_id`, `integracao_detalhe_id`, `tipo`, `ordem`, `nome`, `descricao`, `formato`, `campo_tipo`, `tamanho`, `obrigatorio`, `campo_log`, `insert`, `inicio`, `fim`, `nome_banco`, `function`, `valor_padrao`, `qnt_valor_padrao`, `str_pad`, `deletado`, `criacao`, `alteracao_usuario_id`, `alteracao`) VALUES (97, 357, 'D', 22, 'IMEI\r\n', 'IMEI', '', 'C', 100, 0, 0, 1, 410, 419, 'equipamento_imei', '', ' ', 20, 0, 0, '2018-10-18 14:23:12', 0, '0000-00-00 00:00:00');
 INSERT INTO `integracao_layout` (`integracao_id`, `integracao_detalhe_id`, `tipo`, `ordem`, `nome`, `descricao`, `formato`, `campo_tipo`, `tamanho`, `obrigatorio`, `campo_log`, `insert`, `inicio`, `fim`, `nome_banco`, `function`, `valor_padrao`, `qnt_valor_padrao`, `str_pad`, `deletado`, `criacao`, `alteracao_usuario_id`, `alteracao`) VALUES (97, 357, 'D', 23, 'PRECO_VENDA_LIQ\r\n', 'VALOR NF', '', 'C', 100, 0, 0, 1, 410, 419, 'nota_fiscal_valor', '', ' ', 20, 0, 0, '2018-10-18 14:23:12', 0, '0000-00-00 00:00:00');
+
+
+-- 13;06;2019
+
+ALTER TABLE `produto_parceiro_configuracao`
+  ADD COLUMN `ir_cotacao_salva` TINYINT(1) NULL DEFAULT '0' AFTER `endosso_controle_cliente`;
+
+ALTER TABLE `comunicacao`
+  ADD COLUMN `cotacao_id` INT NULL DEFAULT '0' AFTER `chave`;
+
+
+CREATE TABLE `comunicacao_agendamento` (
+  `comunicacao_agendamento_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `produto_parceiro_comunicacao_id` INT(11) NOT NULL,
+  `comunicacao_status_id` INT(11) NOT NULL,
+  `mensagem_from` VARCHAR(100) NULL DEFAULT NULL,
+  `mensagem_from_name` VARCHAR(100) NULL DEFAULT NULL,
+  `mensagem_to` VARCHAR(100) NULL DEFAULT NULL,
+  `mensagem_to_name` VARCHAR(100) NULL DEFAULT NULL,
+  `mensagem_anexo` VARCHAR(512) NULL DEFAULT NULL,
+  `mensagem` TEXT NULL,
+  `data_enviar` TIMESTAMP NULL DEFAULT NULL,
+  `data_envio` TIMESTAMP NULL DEFAULT NULL,
+  `retorno` VARCHAR(512) NULL DEFAULT NULL,
+  `retorno_codigo` VARCHAR(100) NULL DEFAULT NULL,
+  `tabela` VARCHAR(100) NULL DEFAULT NULL,
+  `campo` VARCHAR(100) NULL DEFAULT NULL,
+  `chave` VARCHAR(100) NULL DEFAULT NULL,
+  `cotacao_id` INT(11) NULL DEFAULT '0',
+  `deletado` TINYINT(4) NULL DEFAULT '0',
+  `criacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `alteracao_usuario_id` INT(11) NULL DEFAULT '0',
+  `alteracao` TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (`comunicacao_agendamento_id`)
+)
+  COLLATE='utf8_general_ci'
+  ENGINE=InnoDB
+  AUTO_INCREMENT=1
+;
+
+CREATE TABLE `comunicacao_track` (
+  `comunicacao_track_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `comunicacao_id` INT(11) NOT NULL,
+  `data_hora` TIMESTAMP NULL DEFAULT NULL,
+  `deletado` TINYINT(4) NULL DEFAULT '0',
+  `criacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `alteracao_usuario_id` INT(11) NULL DEFAULT '0',
+  `alteracao` TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (`comunicacao_track_id`)
+)
+  COLLATE='utf8_general_ci'
+  ENGINE=InnoDB
+;
+
+
+CREATE TABLE `comunicacao_automatico` (
+  `comunicacao_automatico_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `proxima_execucao` TIMESTAMP NULL DEFAULT NULL,
+  `melhor_horario` VARCHAR(5) NULL DEFAULT '16:00',
+  `quantidade` INT(11) NULL DEFAULT '200',
+  `somente_dia_util` TINYINT(4) NULL DEFAULT '0',
+  `deletado` TINYINT(4) NULL DEFAULT '0',
+  `criacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `alteracao_usuario_id` INT(11) NULL DEFAULT '0',
+  `alteracao` TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (`comunicacao_automatico_id`)
+)
+  COLLATE='utf8_general_ci'
+  ENGINE=InnoDB
+;
+
+
+CREATE TABLE `comunicacao_automatico` (
+  `comunicacao_automatico_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `proxima_execucao` TIMESTAMP NULL DEFAULT NULL,
+  `melhor_horario` VARCHAR(5) NULL DEFAULT '16:00',
+  `quantidade` INT(11) NULL DEFAULT '200',
+  `somente_dia_util` TINYINT(4) NULL DEFAULT '0',
+  `deletado` TINYINT(4) NULL DEFAULT '0',
+  `criacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `alteracao_usuario_id` INT(11) NULL DEFAULT '0',
+  `alteracao` TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (`comunicacao_automatico_id`)
+)
+  COLLATE='utf8_general_ci'
+  ENGINE=InnoDB
+  AUTO_INCREMENT=2
+;
+
+
+INSERT INTO `comunicacao_automatico` (`comunicacao_automatico_id`, `proxima_execucao`, `melhor_horario`, `quantidade`, `somente_dia_util`, `deletado`, `criacao`, `alteracao_usuario_id`, `alteracao`) VALUES (1, '2019-06-17 09:57:00', '09:57', 200, 1, 0, '2019-06-14 19:33:32', 0, '2019-06-14 17:40:07');
+
