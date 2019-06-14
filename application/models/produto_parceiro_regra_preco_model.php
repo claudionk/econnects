@@ -100,9 +100,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $equipamento_marca_id = issetor($params['equipamento_marca_id'], 0);
         $equipamento_categoria_id = issetor($params['equipamento_categoria_id'], 0);
         $quantidade = issetor($params['quantidade'], 0);
-
         $coberturas_adicionais = issetor($params['coberturas'], array());
-
         $repasse_comissao = app_unformat_percent($params['repasse_comissao']);
         $desconto_condicional= app_unformat_percent($params['desconto_condicional']);
         $desconto = $this->desconto->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
@@ -135,6 +133,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
         $cotacao = $cotacao[0];
         $produto_parceiro_plano_id = $cotacao["produto_parceiro_plano_id"];
+        $data_inicio_vigencia = issetor($cotacao['data_inicio_vigencia'], null);
+        $data_fim_vigencia = issetor($cotacao['data_fim_vigencia'], null);
 
         if(count($desconto) > 0){
             $desconto = $desconto[0];
@@ -184,7 +184,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             $quantidade = $servico_produto['quantidade_minima'];
         }
 
-        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_id, $servico_produto_id);
+        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_id, $servico_produto_id, $data_inicio_vigencia, $data_fim_vigencia);
 
 
         $valores_cobertura_adicional_total = $valores_cobertura_adicional = array();
@@ -306,11 +306,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             $iof_calculado = false;
 
             // Tratando se tem IOF - default para todas as coberturas
-            $r = $this->plano_cobertura->get_many_by(array(
-                'produto_parceiro_plano_id' => $key,
-                'usar_iof' => 1,
-            ));
- 
+            $r = $this->plano_cobertura->with_prod_parc_iof($key)->get_all();
+
             foreach ($r as $regra) {
                 $iof_calculado = true;
                 $iofPerc = round(($regra['iof']/100) * $regra['custo'], 2);
@@ -321,7 +318,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             }
 
             if ($iof_calculado) {
-                $valores_liquido_total[$key] += $valores_liquido_total_cobertura[$key];
+                $valores_liquido_total[$key] += $valores_liquido_total_cobertura[$key] * $valores_bruto['quantidade'];
                 $valores_liquido_total[$key] -= $desconto_upgrade;
             }
 

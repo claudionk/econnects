@@ -2086,8 +2086,11 @@ Class Pedido_Model extends MY_Model
         $this->pedido_transacao->insStatus( $pedido_id, "criado" );
 
         unset( $dados["parcelamento{$dados_bandeira}"] );
-        $dados_bandeira = $dados["bandeira"];
-        unset( $dados["bandeira"] );
+        if ( isset($dados["bandeira"]) )
+        {
+            $dados_bandeira = $dados["bandeira"];
+            unset( $dados["bandeira"] );
+        }
 
         $this->fatura->insFaturaParcelas( $pedido_id, $dados["cotacao_id"], 1, $valor_total, $dados_pedido["num_parcela"], $dados_pedido["valor_parcela"], $dados["produto_parceiro_id"] );
         $faturas = $this->fatura->filterByPedido($pedido_id)->get_all();
@@ -2212,10 +2215,12 @@ Class Pedido_Model extends MY_Model
 
         $item = $this->produto_pagamento->get_by_id($dados['bandeira']);
         if( $item ) {
-            $forma_pagamento = $this->forma_pagamento->get_by_id($dados['forma_pagamento_id']);
+            $_forma_pagamento_id = issetor($item['forma_pagamento_id'], 0);
         } else {
-            $forma_pagamento = $this->forma_pagamento->get_by_id($item['forma_pagamento_id']);
+            $_forma_pagamento_id = issetor($dados['forma_pagamento_id'], 0);
         }
+
+        $forma_pagamento = $this->forma_pagamento->get_by_id($_forma_pagamento_id);
 
         if($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_CARTAO_CREDITO){
 
