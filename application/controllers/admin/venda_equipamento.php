@@ -149,6 +149,7 @@ class Venda_Equipamento extends Admin_Controller{
             if($pedido && !in_array($pedido['pedido_status_slug'], $status) && $this->layout == 'front') {
                 //$this->venda_aguardando_pagamento($produto_parceiro_id, $cotacao_id);
                 redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/5/{$pedido['pedido_id']}");
+
             } else {
                 $this->venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real, $this->getUrl);
             }
@@ -199,9 +200,6 @@ class Venda_Equipamento extends Admin_Controller{
             } else {
                 $this->step_pagto($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real, $cotacao);
             }
-
-            // esse método quem chamará o `step_pagto`
-            // $this->step_login($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real, $cotacao);
 
         } elseif ($step == 4) {
             if ($conclui_em_tempo_real) {
@@ -363,7 +361,12 @@ class Venda_Equipamento extends Admin_Controller{
             }
         }
 
-        $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/formulario", $data );
+        $view = "admin/venda/equipamento/formulario";
+        if($this->layout == 'front'){
+            $view = "admin/venda/equipamento/front/steps/step-one-formulario";
+        }
+
+        $this->template->load("admin/layouts/{$this->layout}", $view, $data );
     }
 
     /**
@@ -1007,9 +1010,9 @@ class Venda_Equipamento extends Admin_Controller{
             }
         }
 
-        $view = "admin/venda/equipamento/{$this->layout}/carrossel";
-        if(!view_exists($view))
-            $view = "admin/venda/equipamento/carrossel";
+        $view = "admin/venda/equipamento/carrossel";
+        if($this->layout == 'front')
+            $view = "admin/venda/equipamento/front/steps/step-two-carrossel";
 
         $this->template->load("admin/layouts/{$this->layout}", $view, $data);
     }
@@ -1418,9 +1421,6 @@ class Venda_Equipamento extends Admin_Controller{
     */
     public function equipamento_certificado($produto_parceiro_id, $pedido_id = 0)
     {
-        $this->template->js(app_assets_url("modulos/venda/equipamento/js/baixe-app.js", "admin"));
-        
-        //echo 'estou aqui'; exit;
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('apolice_model', 'apolice');
         
@@ -1437,8 +1437,13 @@ class Venda_Equipamento extends Admin_Controller{
 
         $this->limpa_cotacao($produto_parceiro_id);
 
-        $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/certificado", $data );
-
+        $view = "admin/venda/equipamento/certificado";
+        if($this->layout == 'front'){
+            $view = "admin/venda/equipamento/front/steps/step-six-certificado";
+            $this->template->js(app_assets_url("modulos/venda/equipamento/js/baixe-app.js", "admin"));
+        }
+        
+        $this->template->load("admin/layouts/{$this->layout}", $view, $data );
     }
 
 }
