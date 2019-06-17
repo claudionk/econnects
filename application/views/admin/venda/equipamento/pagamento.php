@@ -2,7 +2,6 @@
 if($_POST){
     $row = $_POST;
 }
-
 ?>
 <div class="section-header">
     <ol class="breadcrumb">

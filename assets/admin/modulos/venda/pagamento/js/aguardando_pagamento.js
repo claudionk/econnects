@@ -8,7 +8,6 @@ $(document).ready(function(){
         if (!$.isFunction($.fn.datepicker)) {
             return;
         }
-
         
     }; */
 
@@ -55,12 +54,9 @@ function getStatusPedido(){
 
             if(result.status_id == 3){
                 $('.box-sucesso').show();
-
-               $('.box-debito').hide();
+                $('.box-debito').hide();
                $('#modal-debito').hide();
-               $( ".close" ).trigger( "click" );
-
-                setTimeout(function(){ $('#modal-sms').modal('show'); }, 1000);
+                $( ".close" ).trigger( "click" );
             }
 
             if(result.status_id == 4){
@@ -130,4 +126,3 @@ function executePagamento(){
     });
 
 }
-

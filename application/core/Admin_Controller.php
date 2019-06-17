@@ -153,7 +153,6 @@ class Admin_Controller extends MY_Controller
     public function venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id = 0, $conclui_em_tempo_real = true, $getUrl = '')
     {
         //error_log("Controller\n", 3, "/var/log/httpd/myapp.log");
-
         $pedido_id = (int) $pedido_id;
 
         $this->load->model('apolice_model', 'apolice');
@@ -169,8 +168,14 @@ class Admin_Controller extends MY_Controller
         $this->load->model('pedido_model', 'pedido');
 
         //Carrega templates
-        $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
-        $this->template->js(app_assets_url('modulos/venda/pagamento/js/pagamento.js', 'admin'));
+        if($this->layout == 'front'){
+            $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
+            $this->template->js(app_assets_url('modulos/venda/equipamento/front/js/pagamento.js', 'admin'));
+        }else{
+            $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
+            $this->template->js(app_assets_url('modulos/venda/pagamento/js/pagamento.js', 'admin'));
+        }
+        
 
         //Retorna cotação
         $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
@@ -189,7 +194,7 @@ class Admin_Controller extends MY_Controller
                 $valor_total = $this->cotacao_generico->getValorTotal($cotacao_id);
                 break;
 
-        }
+        } 
         //error_log("Valor Total: " . print_r($valor_total, true) . "\n", 3, "/var/log/httpd/myapp.log");
 
         //formas de pagamento
@@ -409,8 +414,6 @@ class Admin_Controller extends MY_Controller
             if ($this->cotacao->validate_form('pagamento')) {
 
                 if ($pedido_id == 0) {
-//echo '<pre>', print_r($_POST); exit;
-//echo 'aqui'; exit;
                     $pedido_id = $this->pedido->insertPedido($_POST);
                 } else {
                     $this->pedido->updatePedido($pedido_id, $_POST);
@@ -441,7 +444,12 @@ class Admin_Controller extends MY_Controller
         }
 
         $data['step'] = ($conclui_em_tempo_real) ? 3 : 2;
-        $this->template->load("admin/layouts/{$this->layout}", "admin/venda/pagamento", $data);
+        $view = "admin/venda/pagamento";
+        if($this->layout == 'front'){
+            $view = "admin/venda/equipamento/front/steps/step-three-pagamento";
+        }
+
+        $this->template->load("admin/layouts/{$this->layout}", $view, $data);
     }
 
     public function venda_aguardando_pagamento($produto_parceiro_id, $pedido_id = 0)
