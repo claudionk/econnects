@@ -119,6 +119,9 @@ if($_POST)
                                                                 <option name="" value="IDADE"
                                                                     <?php if(isset($row)){if($row[$field_name] == 'IDADE') {echo " selected ";};}; ?> >Idade
                                                                 </option>
+                                                                <option name="" value="COMISSAO"
+                                                                    <?php if(isset($row)){if($row[$field_name] == 'COMISSAO') {echo " selected ";};}; ?> >Comissão
+                                                                </option>
                                                             </select>
                                                         </div>
                                                     </div>

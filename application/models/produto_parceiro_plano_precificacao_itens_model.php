@@ -37,7 +37,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         array(
             'field' => 'unidade_tempo',
             'label' => 'Unidade',
-            'rules' => 'required|enum[DIA,MES,ANO,VALOR,IDADE]',
+            'rules' => 'required|enum[DIA,MES,ANO,VALOR,IDADE,COMISSAO]',
             'groups' => 'default'
         ),
         array(
@@ -66,6 +66,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         array(
             'field' => 'cobranca',
             'label' => 'cobranca',
+            'rules' => 'required|enum[VALOR,PORCENTAGEM]',
             'groups' => 'default'
         ),
         array(
