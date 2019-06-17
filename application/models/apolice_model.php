@@ -351,6 +351,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['valor_parcela']           = round($pedido['valor_parcela'], 2);
             $dados_equipamento['valor_estorno']           = 0;
             $dados_equipamento['valor_desconto']          = round($cotacao_salva['valor_desconto'], 2);
+            $dados_equipamento['comissao_premio']         = round($cotacao_salva['comissao_premio'], 2);
 
             $this->apolice_equipamento->insert($dados_equipamento, true);
             $this->concluiApolice($pedido, $apolice_id);
@@ -520,6 +521,7 @@ class Apolice_Model extends MY_Model
             $dados_generico['pro_labore']              = round(($cotacao_salva['premio_liquido_total'] - $cotacao_salva['premio_liquido']), 2);
             $dados_generico['valor_parcela']           = round($pedido['valor_parcela'], 2);
             $dados_generico['valor_estorno']           = 0;
+            $dados_generico['comissao_premio']         = round($cotacao_salva['comissao_premio'], 2);
 
             $dados_generico['estado_civil']       = $cotacao_salva['estado_civil'];
             $dados_generico['rg_orgao_expedidor'] = $cotacao_salva['rg_orgao_expedidor'];
@@ -702,6 +704,7 @@ class Apolice_Model extends MY_Model
                 $dados_seguro_viagem['pro_labore']                    = round((($pedido['premio_liquido_total'] - $pedido['premio_liquido']) / count($cotacao_pessoas)), 2);
                 $dados_seguro_viagem['valor_parcela']                 = round(($pedido['valor_parcela'] / count($cotacao_pessoas)), 2);
                 $dados_seguro_viagem['valor_estorno']                 = 0;
+                $dados_seguro_viagem['comissao_premio']               = round($cotacao_salva['comissao_premio'], 2);
 
                 $this->apolice_seguro_viagem->insert($dados_seguro_viagem, true);
                 $this->concluiApolice($pedido, $apolice_id);
