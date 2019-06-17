@@ -66,6 +66,22 @@ if($_POST)
                                                 <!-- Column -->
                                                 <div class="col-md-6">
 
+                                                    <?php $field_name = 'cobranca';?>
+                                                    <div class="form-group">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Cobrança *</label>
+                                                        <div class="col-md-8">
+                                                            <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
+                                                                <option name="" value="">Selecione</option>
+                                                                <option name="" value="VALOR"
+                                                                    <?php if(isset($row)){if($row[$field_name] == 'VALOR') {echo " selected ";};}; ?> >Valor
+                                                                </option>
+                                                                <option name="" value="PORCENTAGEM"
+                                                                    <?php if(isset($row)){if($row[$field_name] == 'PORCENTAGEM') {echo " selected ";};}; ?> >Porcentagem
+                                                                </option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
                                                     <?php $field_name = 'tipo';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Tipo *</label>

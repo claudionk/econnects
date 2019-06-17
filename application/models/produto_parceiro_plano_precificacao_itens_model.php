@@ -87,12 +87,11 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
             'final' => app_unformat_currency($this->input->post('final')),
             'valor' => app_unformat_currency($this->input->post('valor')),
             'equipamento' => '',
-            'cobranca' => "VALOR",
+            'cobranca' => $this->input->post('cobranca'),
         );
 
         if( !empty($this->input->post('equipamento')) ) {
             $data['equipamento'] = "'" . implode ( "','", $this->input->post('equipamento') ) . "'";
-            // $data["cobranca"] = "PORCENTAGEM";
             if ($this->input->post('precificacao_tipo_id') == 5){
                 $data["tipo_equipamento"] = "EQUIPAMENTO";
             }
