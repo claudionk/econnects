@@ -265,7 +265,7 @@ Class Cotacao_Generico_Model extends MY_Model
      * @param int $cotacao_id
      *
      */
-    public function insert_update($produto_parceiro_id, $cotacao_id = 0, $step = 1){
+    public function insert_update($produto_parceiro_id, $cotacao_id = 0, $step = 1, $coberturas_adicionais = null){
 
         $this->load->model('cliente_model', 'cliente');
         $this->load->model('cliente_codigo_model', 'cliente_codigo');
@@ -547,8 +547,17 @@ Class Cotacao_Generico_Model extends MY_Model
             $cotacao_generico_id = $this->insert($data_cotacao, TRUE);
         }
 
-        $cobertura_adicional = (!empty($carrossel['cobertura_adicional'])) ? explode(';', $carrossel['cobertura_adicional']) : array();
-        $cobertura_adicional_valor = (!empty($carrossel['cobertura_adicional_valor'])) ? explode(';', $carrossel['cobertura_adicional_valor']) : array();
+        if ( !empty($coberturas_adicionais) )
+        {
+            foreach ($coberturas_adicionais as $key => $value) {
+                $valsCobAdd = explode(';', $value);
+                $cobertura_adicional[] = $valsCobAdd[0];
+                $cobertura_adicional_valor[] = $valsCobAdd[1];
+            }
+        } else {
+            $cobertura_adicional = (!empty($carrossel['cobertura_adicional'])) ? explode(';', $carrossel['cobertura_adicional']) : array();
+            $cobertura_adicional_valor = (!empty($carrossel['cobertura_adicional_valor'])) ? explode(';', $carrossel['cobertura_adicional_valor']) : array();
+        }
 
         if($cobertura_adicional){
             $this->cotacao_generico_cobertura->delete_by('cotacao_generico_id', $cotacao_generico_id);

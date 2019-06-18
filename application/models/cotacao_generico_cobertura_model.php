@@ -25,7 +25,6 @@ Class Cotacao_Generico_Cobertura_Model extends MY_Model
 
     function with_cobertura()
     {
-
         $this->_database->select('cobertura_plano.preco');
         $this->_database->select('cobertura_plano.porcentagem');
         $this->_database->select('cobertura.nome');
@@ -40,4 +39,14 @@ Class Cotacao_Generico_Cobertura_Model extends MY_Model
     {
         return $this->get_by($this->primary_key, $id);
     }
+
+    function with_cotacao($cotacao_id)
+    {
+        $this->_database->select('cotacao_generico.*');
+        $this->_database->join('cotacao_generico', 'cotacao_generico.cotacao_generico_id = cotacao_generico_cobertura.cotacao_generico_id');
+        $this->_database->where("cotacao_generico.deletado", 0);
+        $this->_database->where("cotacao_generico.cotacao_id", $cotacao_id);
+        return $this;
+    }
+
 }

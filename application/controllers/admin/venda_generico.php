@@ -466,6 +466,7 @@ class Venda_Generico extends Admin_Controller
         //Carrega models necessários
         $this->load->model('produto_parceiro_campo_model', 'campo');
         $this->load->model('cotacao_generico_model', 'cotacao_generico');
+        $this->load->model('cotacao_cobertura_model', 'cotacao_cobertura');
         $this->load->model('cliente_model', 'cliente');
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('localidade_estado_model', 'localidade_estado');
@@ -587,6 +588,8 @@ class Venda_Generico extends Admin_Controller
                     }
 
                     $this->cotacao_generico->update($cotacao_salva['cotacao_generico_id'], $dados_cotacao, TRUE);
+
+                    $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $cotacao_salva['produto_parceiro_plano_id'], $cotacao_salva["nota_fiscal_valor"], $cotacao_salva['premio_liquido']);
 
                     if($this->input->post("plano_{$plano}_password")){
                        $dados_cotacao['password'] = $this->input->post("plano_{$plano}_password");
@@ -787,6 +790,7 @@ class Venda_Generico extends Admin_Controller
 
                             $cotacao_adicional = $this->cotacao_generico_cobertura->get_many_by(array(
                                 'cotacao_generico_id' => $cotacao_salva['cotacao_generico_id'],
+                                'deletado' => 0,
                             ));
 
                             foreach ($cotacao_adicional as $ca) {
@@ -838,7 +842,7 @@ class Venda_Generico extends Admin_Controller
         /**
          * Busca Planos e coberturas
          */
-         $data['coberturas'] = $this->cobertura->getCoberturasProdutoParceiroPlano($produto_parceiro_id);
+        $data['coberturas'] = $this->cobertura->getCoberturasProdutoParceiroPlano($produto_parceiro_id);
 
         if(isset($cotacao_antiga) && $cotacao_antiga)
         {
@@ -926,13 +930,8 @@ class Venda_Generico extends Admin_Controller
                     ->get_many_by(array(
                         'produto_parceiro_id' => $produto_parceiro_id
                     ));
-                 //print_r($arrPlanos);exit;
             }
         }
-
-
-
-
 
 
         $fail_msg = '';
@@ -963,11 +962,8 @@ class Venda_Generico extends Admin_Controller
         $servico_produto = $this->servico_produto->get($servico_produto_id);
         $data['servico_produto'] = $servico_produto;
 
-
-
         if($_POST)
         {
-            //print_r($_POST);exit;
             $post_plano = $this->input->post('plano');
             if(empty($post_plano)){
                 $this->session->set_flashdata('fail_msg', 'O Carrinho esta vazio, adicione um plano');
@@ -1029,11 +1025,9 @@ class Venda_Generico extends Admin_Controller
 
                 }
 
-
             }
 
         }
-
 
         $view = "admin/venda/generico/{$this->layout}/carrossel";
         if(!view_exists($view))
