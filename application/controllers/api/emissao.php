@@ -27,6 +27,8 @@ class Emissao extends CI_Controller {
 
     public $meio_pagto_slug;
     public $campos_meios_pagto;
+    public $comissao_premio;
+    public $coberturas_opcionais;
 
     public function __construct() {
         parent::__construct();
@@ -97,6 +99,8 @@ class Emissao extends CI_Controller {
         $this->ean = '';
         $this->num_apolice = (!isset($POST['num_apolice'])) ? false : $POST['num_apolice'];
         $this->valor_premio_bruto = (!isset($POST['valor_premio_bruto'])) ? 0 : $POST['valor_premio_bruto'];
+        $this->comissao_premio = (empty($POST['comissao'])) ? 0 : $POST['comissao'];
+        $this->coberturas_opcionais = (!isset($POST['coberturas_opcionais'])) ? '' : $POST['coberturas_opcionais'];
         $this->meio_pagto_slug = (!isset($POST['meiopagamento']['meio_pagto_slug'])) ? '' : $POST['meiopagamento']['meio_pagto_slug'];
         $this->campos_meios_pagto = (!isset($POST['meiopagamento']['campos'])) ? [] : $POST['meiopagamento']['campos'];
 
@@ -142,8 +146,10 @@ class Emissao extends CI_Controller {
 
                 // Campos da cotação
                 $arrOptions = [
-                    "produto_parceiro_id" => $this->produto_parceiro_id,
-                    "produto_parceiro_plano_id" => $this->produto_parceiro_plano_id
+                    "produto_parceiro_id"       => $this->produto_parceiro_id,
+                    "produto_parceiro_plano_id" => $this->produto_parceiro_plano_id,
+                    "comissao_premio"           => $this->comissao_premio,
+                    "coberturas_opcionais"      => $this->coberturas_opcionais,
                 ];
                 if(count($parametros['campos'][0]) > 0)
                 {

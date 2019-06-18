@@ -71,6 +71,7 @@ class Cotacao extends CI_Controller {
     private function post( $POST ) {
 
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
+        $this->load->model('cobertura_plano_model', 'cobertura_plano');
 
         if( !isset( $POST["produto_parceiro_id"] ) ) {
             ob_clean();
@@ -104,11 +105,11 @@ class Cotacao extends CI_Controller {
         $validacao = array();
         foreach( $campos as $campo ) {
             $validacao[] = array(
-            "field" => $campo["campo_nome_banco"],
-            "label" => $campo["campo_nome"],
-            "rules" => $campo["validacoes"],
-            "groups" => "cotacao",
-            "value" => isset($POST[$campo["campo_nome_banco"]]) ? $POST[$campo["campo_nome_banco"]] : ""
+                "field" => $campo["campo_nome_banco"],
+                "label" => $campo["campo_nome"],
+                "rules" => $campo["validacoes"],
+                "groups" => "cotacao",
+                "value" => isset($POST[$campo["campo_nome_banco"]]) ? $POST[$campo["campo_nome_banco"]] : ""
             );
         }
 
@@ -132,24 +133,36 @@ class Cotacao extends CI_Controller {
             }
         }
 
+        $coberturas_adicionais = null;
         if (!empty($POST['produto_parceiro_plano_id'])) {
+            $POST['nota_fiscal_data'] = issetor($POST['nota_fiscal_data'], null);
             $valid = $this->produto_parceiro_plano->verifica_tempo_limite_de_uso($POST['produto_parceiro_id'], $POST['produto_parceiro_plano_id'], $POST['nota_fiscal_data']);
 
             if (!empty($valid)) {
                 die( json_encode( array( "status" => false, "message" => $valid ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
             }
+
+            // Gera o registro de coberturas adicionais
+            if ( !empty($POST["coberturas_opcionais"]) && is_array($POST["coberturas_opcionais"]))
+            {
+                $coberturas = $this->cobertura_plano->filter_adicional_by_cobertura_slug($cotacao_id, $POST["coberturas_opcionais"], $POST['produto_parceiro_plano_id'])->get_all();
+                foreach ($coberturas as $cobAdd) {
+                    $coberturas_adicionais[] = $cobAdd['cobertura_plano_id'] .";". $cobAdd['preco'];
+                }
+            }
         }
+        unset( $POST["coberturas_opcionais"] );
 
         if( $validacao_ok ) {
-            $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $POST );
 
+            $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $POST );
             $cotacao_id = (int)$cotacao_id;
 
             if( $produto["produto_slug"] == "equipamento" ) {
-                $cotacao_id = $this->cotacao_equipamento->insert_update( $produto_parceiro_id, $cotacao_id );
+                $cotacao_id = $this->cotacao_equipamento->insert_update( $produto_parceiro_id, $cotacao_id, 1, $coberturas_adicionais );
                 $cotacao_itens = $this->cotacao_equipamento->get_by( array( "cotacao_id" => $cotacao_id ) );
             } else {
-                $cotacao_id = $this->cotacao_generico->insert_update( $produto_parceiro_id, $cotacao_id );
+                $cotacao_id = $this->cotacao_generico->insert_update( $produto_parceiro_id, $cotacao_id, 1, $coberturas_adicionais );
                 $cotacao_itens = $this->cotacao_generico->get_by( array( "cotacao_id" => $cotacao_id ) );
             }
             $result["cotacao_id"] = $cotacao_id;
@@ -208,6 +221,8 @@ class Cotacao extends CI_Controller {
         $this->load->model( "cotacao_model", "cotacao" );
         $this->load->model( "produto_parceiro_campo_model", "produto_parceiro_campo" );
         $this->load->model( 'produto_parceiro_regra_preco_model', 'regra_preco');
+        $this->load->model('cobertura_plano_model', 'cobertura_plano');
+        $this->load->model('cotacao_generico_cobertura_model', 'cotacao_generico_cobertura');
 
         $cotacao_id = null;
         if( !isset( $GET["cotacao_id"] ) ) {
@@ -220,7 +235,7 @@ class Cotacao extends CI_Controller {
         $equipamento_marca_id = issetor( $GET["equipamento_marca_id"] , null);
         $equipamento_categoria_id = issetor( $GET["equipamento_categoria_id"] , null);
         $quantidade = issetor( $GET["quantidade"] , null);
-        $coberturas = issetor( $GET["coberturas"] , null);
+        $coberturas = issetor( $GET["coberturas_opcionais"] , null);
         $repasse_comissao = issetor( $GET["repasse_comissao"] , 0);
         $desconto_condicional = issetor( $GET["desconto_condicional"] , 0);
         $result = array();
@@ -234,13 +249,24 @@ class Cotacao extends CI_Controller {
         $params["cotacao_id"] = $cotacao_id;
         $params["produto_parceiro_id"] = $produto_parceiro_id;
         $params["parceiro_id"] = $this->parceiro_id;
-
         $params["equipamento_marca_id"] = $equipamento_marca_id;
         $params["equipamento_categoria_id"] = $equipamento_categoria_id;
         $params["quantidade"] = $quantidade;
-        $params["coberturas"] = $coberturas;
         $params["repasse_comissao"] = $repasse_comissao;
         $params["desconto_condicional"] = $desconto_condicional;
+
+        if ( !empty($params["coberturas_opcionais"]) && is_array($params["coberturas_opcionais"]))
+        {
+            $coberturas = $this->cobertura_plano->filter_adicional_by_cobertura_slug($cotacao_id, $params["coberturas_opcionais"])->get_all();
+            foreach ($coberturas as $cobAdd) {
+                $params["coberturas"][] = $cobAdd['cobertura_plano_id'] .";". $cobAdd['preco'];
+            }
+        } else {
+            $coberturas = $this->cotacao_generico_cobertura->with_cotacao($cotacao_id)->get_all();
+            foreach ($coberturas as $cobAdd) {
+                $params["coberturas"][] = $cobAdd['produto_parceiro_plano_id'] .";". $cobAdd['cobertura_plano_id'];
+            }
+        }
 
         $result = $this->regra_preco->calculo_plano( $params, true );
 

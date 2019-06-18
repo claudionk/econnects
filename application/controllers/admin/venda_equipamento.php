@@ -504,6 +504,7 @@ class Venda_Equipamento extends Admin_Controller{
         //Carrega models necessários
         $this->load->model('produto_parceiro_campo_model', 'campo');
         $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento');
+        $this->load->model('cotacao_cobertura_model', 'cotacao_cobertura');
         $this->load->model('cliente_model', 'cliente');
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('localidade_estado_model', 'localidade_estado');
@@ -608,6 +609,8 @@ class Venda_Equipamento extends Admin_Controller{
                     $this->campo->setDadosCampos($produto_parceiro_id, 'equipamento', 'dados_segurado', $plano,  $dados_cotacao);
 
                     $this->cotacao_equipamento->update($cotacao_salva['cotacao_equipamento_id'], $dados_cotacao, TRUE);
+
+                    $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $cotacao_salva['produto_parceiro_plano_id'], $cotacao_salva["nota_fiscal_valor"], $cotacao_salva['premio_liquido']);
 
                     if($this->input->post("plano_{$plano}_password")){
                         $dados_cotacao['password'] = $this->input->post("plano_{$plano}_password");
@@ -814,7 +817,8 @@ class Venda_Equipamento extends Admin_Controller{
                         $data['carrinho_hidden']['valor_total'][] = app_format_currency($cotacao_salva['premio_liquido_total'], false, 3);
 
                         $cotacao_adicional = $this->cotacao_equipamento_cobertura->get_many_by(array(
-                        'cotacao_equipamento_id' => $cotacao_salva['cotacao_equipamento_id'],
+                            'cotacao_equipamento_id' => $cotacao_salva['cotacao_equipamento_id'],
+                            'deletado' => 0,
                         ));
 
                         foreach ($cotacao_adicional as $ca) {

@@ -40,4 +40,14 @@ Class Cotacao_Equipamento_Cobertura_Model extends MY_Model
     {
         return $this->get_by($this->primary_key, $id);
     }
+
+    function with_cotacao($cotacao_id)
+    {
+        $this->_database->select('cotacao_equipamento.*');
+        $this->_database->join('cotacao_equipamento', 'cotacao_equipamento.cotacao_equipamento_id = cotacao_equipamento_cobertura.cotacao_equipamento_id');
+        $this->_database->where("cotacao_equipamento.deletado", 0);
+        $this->_database->where("cotacao_equipamento.cotacao_id", $cotacao_id);
+        return $this;
+    }
+
 }

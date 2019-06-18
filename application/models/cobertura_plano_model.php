@@ -178,6 +178,24 @@ Class Cobertura_Plano_Model extends MY_Model {
         return $this;
     }
 
+    function filter_adicional_by_cobertura_slug($cotacao_id = null, $slugs = [], $produto_parceiro_plano_id = null){
+
+        $this->_database->join("cobertura", "cobertura.cobertura_id = {$this->_table}.cobertura_id");
+        $this->_database->join("produto_parceiro_plano", "produto_parceiro_plano.produto_parceiro_plano_id = {$this->_table}.produto_parceiro_plano_id");
+        $this->_database->where("produto_parceiro_plano.deletado", 0);
+        $this->_database->where("cobertura.cobertura_tipo_id", 2);
+        $this->_database->where_in("cobertura.slug", $slugs);
+        if (!empty($produto_parceiro_plano_id)) {
+            $this->_database->where("produto_parceiro_plano.produto_parceiro_plano_id", $produto_parceiro_plano_id);
+        }
+        if (!empty($cotacao_id)) {
+            $this->_database->join("cotacao", "produto_parceiro_plano.produto_parceiro_id = cotacao.produto_parceiro_id");
+            $this->_database->where("cotacao.cotacao_id", $cotacao_id);
+        }
+
+        return $this;
+    }
+
     function with_prod_parc_iof($produto_parceiro_plano_id){
 
         $this->_database->where("produto_parceiro_plano_id", $produto_parceiro_plano_id);

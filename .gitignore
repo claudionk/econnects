@@ -3,3 +3,5 @@ assets/uploads/
 application/config/database\.php
 
 index\.php
+
+assets/files/
