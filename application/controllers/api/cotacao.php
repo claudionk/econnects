@@ -340,6 +340,10 @@ class Cotacao extends CI_Controller {
             $params["equipamento_categoria_id"] = $equipamento_categoria_id;
         }
 
+        if ( isset($params['coberturas_opcionais']) ) {
+            unset($params['coberturas_opcionais']);
+        }
+
         $result = $this->contratar_cotacao( $params, $produto["produto_slug"] );
 
         if(ob_get_length() > 0) {
