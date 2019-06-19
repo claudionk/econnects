@@ -186,7 +186,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         // Se estiver configurado para informar o inicio e fim de vigência, irá fazer o cálculo com esta base
         if ( !empty($data_inicio_vigencia) && !empty($data_fim_vigencia) )
         {
-            $quantidade = app_date_get_diff($data_inicio_vigencia, $data_fim_vigencia, 'M');
+            $quantidade = app_date_get_diff_vigencia($data_inicio_vigencia, $data_fim_vigencia);
         }
 
         $quantidade = ((int)$quantidade <=0) ? 1 : (int)$quantidade;
