@@ -311,6 +311,41 @@ function app_date_get_diff_mysql($d1, $d2, $type=''){
 
 }
 
+function app_date_get_diff_vigencia($d1, $d2){
+    if(!empty($d1) && !empty($d2)) {
+        $date1 = explode('-', $d1);
+        $date2 = explode('-', $d2);
+
+        $ano = $date1[0];
+        $QtdeBissexto = 0;
+        while ($ano <= $date2[0]) {
+            $bissexto = date('L', mktime(0, 0, 0, 1, 1, $ano-1));
+            if ($bissexto) $QtdeBissexto++;
+            $ano++;
+        }
+
+        $dif = date_diff(
+            date_create($d2),  
+            date_create($d1)
+        );
+
+        $years = $dif->format('%y');
+        $months = $dif->format('%m');
+        $days = $dif->format('%a');
+        $d = $dif->format('%d');
+        $dd = $days - ((365*$years) + $QtdeBissexto);
+
+        $X = (12 * $years) + $months;
+
+        // verifica a quantidade de dias
+        if ($d > 0) {
+            $X++;
+        }
+
+        return $X;
+    }
+}
+
 function app_date_get_diff($d1, $d2, $type=''){
 
     if(!empty($d1) && !empty($d2)) {

@@ -533,6 +533,20 @@ class Venda_Equipamento extends Admin_Controller{
 
                     $this->campo->setDadosCampos($produto_parceiro_id, 'equipamento', 'dados_segurado', $plano,  $dados_cotacao);
 
+                    if( isset( $_POST["data_inicio_vigencia"] ) ) {
+                        $_POST["data_inicio_vigencia"] = app_dateonly_mask_to_mysql($_POST["data_inicio_vigencia"]);
+                    }
+                    if( isset( $dados_cotacao["data_inicio_vigencia"] ) ) {
+                        $dados_cotacao["data_inicio_vigencia"] = app_dateonly_mask_to_mysql($dados_cotacao["data_inicio_vigencia"]);
+                    }
+
+                    if( isset( $_POST["data_fim_vigencia"] ) ) {
+                        $_POST["data_fim_vigencia"] = app_dateonly_mask_to_mysql($_POST["data_fim_vigencia"]);
+                    }
+                    if( isset( $dados_cotacao["data_fim_vigencia"] ) ) {
+                        $dados_cotacao["data_fim_vigencia"] = app_dateonly_mask_to_mysql($dados_cotacao["data_fim_vigencia"]);
+                    }
+
                     $this->cotacao_equipamento->update($cotacao_salva['cotacao_equipamento_id'], $dados_cotacao, TRUE);
 
                     $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $cotacao_salva['produto_parceiro_plano_id'], $cotacao_salva["nota_fiscal_valor"], $cotacao_salva['premio_liquido']);
