@@ -328,7 +328,7 @@ class Emissao extends CI_Controller {
                     {
                         // Validação valores  
                         if(!empty($this->valor_premio_bruto) && $this->valor_premio_bruto != $retorno->{"premio_liquido_total"}){
-                            die(json_encode(array("status"=>false,"message"=>"O valor do prêmio {$this->valor_premio_bruto} informado diferente do valor cálculado ".$retorno->{"premio_liquido_total"}),JSON_UNESCAPED_UNICODE));
+                            die(json_encode(array("status"=>false,"message"=>"O valor do prêmio {$this->valor_premio_bruto} informado diferente do valor calculado ".$retorno->{"premio_liquido_total"}),JSON_UNESCAPED_UNICODE));
                         }
 
                         $retorno->{"cotacao_id"} = $this->cotacao_id;
