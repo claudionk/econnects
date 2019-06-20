@@ -311,7 +311,9 @@ function app_date_get_diff_mysql($d1, $d2, $type=''){
 
 }
 
-function app_date_get_diff_vigencia($d1, $d2){
+function app_date_get_diff_master($d1, $d2){
+    $dats = ['years' => 0, 'months' => 0, 'days' => 0, 'd' => 0, 'dd' => 0, 'hours' => 0, 'minutes' => 0, 'seconds' => 0 ];
+
     if(!empty($d1) && !empty($d2)) {
         $date1 = explode('-', $d1);
         $date2 = explode('-', $d2);
@@ -329,78 +331,93 @@ function app_date_get_diff_vigencia($d1, $d2){
             date_create($d1)
         );
 
-        $years = $dif->format('%y');
-        $months = $dif->format('%m');
-        $days = $dif->format('%a');
-        $d = $dif->format('%d');
-        $dd = $days - ((365*$years) + $QtdeBissexto);
+        $dats = [
+            'years' => $dif->format('%y'),
+            'months' => $dif->format('%m'),
+            'days' => $dif->format('%a'),
+            'd' => $dif->format('%d'),
+            'hours' => $dif->format('%h'),
+            'minutes' => $dif->format('%i'),
+            'seconds' => $dif->format('%s'),
+        ];
 
-        $X = (12 * $years) + $months;
+        $dats['dd'] = $dats['days'] - ((365*$dats['years']) + $QtdeBissexto);
 
-        // verifica a quantidade de dias
-        if ($d > 0) {
-            $X++;
-        }
-
-        return $X;
     }
+    return $dats;
+}
+
+function app_date_get_diff_vigencia($d1, $d2, $type=''){
+    $dats = app_date_get_diff_master($d1, $d2);
+
+    $years   = $dats['years'];
+    $months  = $dats['months'];
+    $days    = $dats['days'];
+    $d       = $dats['d'];
+    $hours   = $dats['hours'];
+    $minutes = $dats['minutes'];
+    $seconds = $dats['seconds'];
+
+    $type = strtoupper($type);
+    switch ($type)
+    {
+        case 'Y':
+            $X = $years;
+            break;
+        case 'M':
+            $X = (12 * $years) + $months + ($d > 0 ? 1 : 0);
+            break;
+        case 'D':
+            $X = $days;
+            break;
+        case 'H':
+            $X = $hours;
+            break;
+        case 'I':
+            $X = $minutes;
+            break;
+        default:
+            $X = $seconds;
+    }
+
+    return $X;
 }
 
 function app_date_get_diff($d1, $d2, $type=''){
 
-    if(!empty($d1) && !empty($d2)) {
+    $dats = app_date_get_diff_master($d1, $d2);
 
-        $date1 = explode('-', $d1);
-        $date2 = explode('-', $d2);
+    $years   = $dats['years'];
+    $months  = $dats['months'];
+    $days    = $dats['days'];
+    $dd      = $dats['dd'];
+    $hours   = $dats['hours'];
+    $minutes = $dats['minutes'];
+    $seconds = $dats['seconds'];
 
-        $ano = $date1[0];
-        $QtdeBissexto = 0;
-        while ($ano <= $date2[0]) {
-            $bissexto = date('L', mktime(0, 0, 0, 1, 1, $ano-1));
-            if ($bissexto) $QtdeBissexto++;
-            $ano++;
-        }
-
-        $dif = date_diff(
-            date_create($d2),  
-            date_create($d1)
-        );
-
-        $years = $dif->format('%y');
-        $months = $dif->format('%m');
-        $days = $dif->format('%a');
-        $dd = $days - ((365*$years) + $QtdeBissexto);
-        $hours = $dif->format('%h');
-        $minutes = $dif->format('%i');
-        $seconds = $dif->format('%s');
-
-        $type = strtoupper($type);
-        switch ($type)
-        {
-            case 'Y':
-                $X = $years;
-                break;
-            case 'M':
-                $X = (12 * $years) + $months + ($dd > 0 ? 1 : 0);
-                break;
-            case 'D':
-                $X = $days;
-                break;
-            case 'H':
-                $X = $hours;
-                break;
-            case 'I':
-                $X = $minutes;
-                break;
-            default:
-                $X = $seconds;
-        }
-
-        return $X;
-    }else{
-        return 0;
+    $type = strtoupper($type);
+    switch ($type)
+    {
+        case 'Y':
+            $X = $years;
+            break;
+        case 'M':
+            $X = (12 * $years) + $months + ($dd > 0 ? 1 : 0);
+            break;
+        case 'D':
+            $X = $days;
+            break;
+        case 'H':
+            $X = $hours;
+            break;
+        case 'I':
+            $X = $minutes;
+            break;
+        default:
+            $X = $seconds;
     }
 
+    return $X;
 
 }
 

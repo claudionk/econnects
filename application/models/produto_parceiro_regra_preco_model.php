@@ -345,7 +345,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         //Resultado
         $result  = array(
             'status' => $sucess,
-            'mensagem' => $messagem,
+            'mensagem' => 'Cálculo realizado com sucesso',
             'produto_parceiro_id' => $produto_parceiro_id,
             'repasse_comissao' => $repasse_comissao,
             'comissao' => $comissao_corretor,
@@ -420,7 +420,6 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
             $result["importancia_segurada"] = $cotacao["nota_fiscal_valor"];
             $result["coberturas"] = $coberturas;
-            $result["mensagem"] = $mensagem;
 
             error_log( "Cotação: " . print_r( $cotacao_salva, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
         }
