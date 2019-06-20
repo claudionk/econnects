@@ -296,9 +296,10 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         ->filter_by_equipamento($equipamento_id)
                         ->get_all();
 
-                    $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $data_nascimento) * $quantidade;
+                    $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $data_nascimento);
 
                     if($calculo) {
+                        $calculo = $calculo['valor'] * $quantidade;
                         $valores[$plano['produto_parceiro_plano_id']] = $calculo;
 
                         if($moeda_padrao['moeda_id'] != $plano['moeda_id']){
