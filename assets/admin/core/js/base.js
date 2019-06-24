@@ -67,13 +67,25 @@ $(function(){
     });
 
     $(".inputmask-date").inputmask({"mask": "99/99/9999"});
-    $(".inputmask-cpf").inputmask({"mask": "999.999.999-99"});
+    $(".inputmask-cpf").inputmask({
+        mask: ['999.999.999-99'],
+        keepStatic: true
+    });
     $(".inputmask-cnpj").inputmask({"mask": "99.999.999/9999-99"});
  	$(".inputmask-celular").inputmask("mask", {"mask": "(99)9999-99999"});
     $(".inputmask-telefone").inputmask("mask", {"mask": "(99)9999-9999"});
     $(".inputmask-moeda").inputmask('999,99', { numericInput: true, rightAlignNumerics: false, greedy: true});
     $(".inputmask-moeda2").inputmask('999.999.999,99', { numericInput: true, rightAlignNumerics: false, greedy: true});
-    $(".inputmask-valor").inputmask('999.999.999,99', { numericInput: true, rightAlignNumerics: false, greedy: true});
+    $(".inputmask-valor").inputmask( 'currency',{"autoUnmask": true,
+        radixPoint:",",
+        groupSeparator: ".",
+        allowMinus: false,
+        prefix: 'R$ ',            
+        digits: 2,
+        digitsOptional: false,
+        rightAlign: true,
+        unmaskAsNumber: true
+    });
     $(".inputmask-numero").inputmask('', {numericInput: true, rightAlignNumerics: false});
     $(".inputmask-cep").inputmask("mask", {"mask": "99999-999"});
     $(".time-mask").inputmask('h:s', {placeholder: 'hh:mm'});
