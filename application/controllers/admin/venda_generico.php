@@ -662,6 +662,7 @@ class Venda_Generico extends Admin_Controller
         $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
         $this->load->model('contato_tipo_model', 'contato_tipo');
         $this->load->model('servico_produto_model', 'servico_produto');
+        $this->load->model('comunicacao_track_model', 'comunicacao_track');
 
 
         //Carrega JS
@@ -670,6 +671,11 @@ class Venda_Generico extends Admin_Controller
         $this->template->js(app_assets_url('modulos/venda/generico/js/calculo.js', 'admin'));
         $this->template->css(app_assets_url('modulos/venda/generico/css/carrossel.css', 'admin'));
         $this->template->css(app_assets_url('modulos/venda/generico/css/base.css', 'admin'));
+
+        if($cotacao_id > 0){
+            $this->comunicacao_track->insert_or_update($cotacao_id);
+        }
+
 
         //Dados para template
         $data = array();

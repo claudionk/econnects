@@ -137,6 +137,11 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
             'label' => 'Conclui a venda em Tempo Real',
             'rules' => 'required',
             'groups' => 'geral'
+        ),array(
+            'field' => 'ir_cotacao_salva',
+            'label' => 'Ir Para cotação salva após CPF',
+            'rules' => 'required',
+            'groups' => 'geral'
         )
     );
 
@@ -161,6 +166,7 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
                 'quantidade_cobertura_front' => $this->input->post('quantidade_cobertura_front'),
                 'conclui_em_tempo_real' => $this->input->post('conclui_em_tempo_real'),
                 'endosso_controle_cliente' => $this->input->post('endosso_controle_cliente'),
+                'ir_cotacao_salva' => $this->input->post('ir_cotacao_salva'),
             );
         }elseif ($tipo == 'comissao'){
             $data = array(

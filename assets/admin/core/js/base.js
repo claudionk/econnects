@@ -294,6 +294,37 @@ function parseNumero(valor)
 }
 
 
+function busca_cotacao_salva(){
+
+    var data = {
+        cpf: $('#cnpj_cpf').val(),
+        produto_parceiro_id: $('#produto_parceiro_id').val(),
+    }
+
+    var url = base_url + 'admin/venda/cotacao_salva';
+
+    $.ajax({
+        type: "POST",
+        url: url,
+        cache: false,
+        data: data,
+    }).done(function( result ) {
+        console.log('result', result);
+        if(result.sucess == true) {
+
+
+            var url_redirect = base_url + 'admin/venda_'+ result.produto_slug +  '/' +result.produto_slug + '/' + $('#produto_parceiro_id').val() + '/2/' + result.cotacao_id;
+            window.location.href = url_redirect;
+            return;
+        }
+    });
+
+
+
+}
+
+
+
 function busca_cliente(){
 
     var data = {

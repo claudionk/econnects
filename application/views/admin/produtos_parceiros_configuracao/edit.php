@@ -267,6 +267,22 @@ if ($_POST) {
                                         <span>Não</span>
                                       </label>
                                     </div>
+
+
+                                      <?php $field_name = 'ir_cotacao_salva';?>
+                                      <div class="radio radio-styled">
+                                          <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Ir Para cotação salva após CPF *</label>
+                                          <label class="radio-inline radio-styled radio-primary">
+                                              <input type="radio" id="<?php echo $field_name; ?>_nao" name="<?php echo $field_name; ?>" class="required styled"
+                                                     value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
+                                              <span>Não</span>
+                                          </label>
+                                          <label class="radio-inline radio-styled radio-primary">
+                                              <input type="radio" id="<?php echo $field_name; ?>_sim" name="<?php echo $field_name; ?>" class="required styled"
+                                                     value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
+                                              <span>Sim</span>
+                                          </label>
+                                      </div>
                                     
                                   </div>
 

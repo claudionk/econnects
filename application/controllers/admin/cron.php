@@ -347,4 +347,16 @@ class Cron extends Admin_Controller
         }
     }
 
+    public function update_horario_sms()
+    {
+        $this->load->model('comunicacao_automatico_model', 'comunicacao_automatico');
+        $this->comunicacao_automatico->update_track();
+    }
+
+    public function enviar_mensagem_automatico()
+    {
+        $this->load->model('comunicacao_automatico_model', 'comunicacao_automatico');
+        $this->comunicacao_automatico->enviarMensagem();
+    }
+
 }

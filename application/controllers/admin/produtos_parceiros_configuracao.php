@@ -83,6 +83,7 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
             $data['row']['pagmaneto_cobranca'] = 'DATA_COMPRA';
             $data['row']['quantidade_cobertura'] = 10;
             $data['row']['endosso_controle_cliente'] = 0;
+            $data['row']['ir_cotacao_salva'] = 0;
             $data['new_record'] = '1';
         }else{
             $data['new_record'] = '0';
