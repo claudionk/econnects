@@ -299,7 +299,7 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
     display: block;
 }
 .details-plan{
-    margin-left: 50px;
+    margin-left: 5px;
 }
 .details-plan .success{
     color:#10bb10;
@@ -724,5 +724,11 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
     }
     .modal-app .title {
         font-size: 2.4rem;
+    }
+    .card-body {
+        padding: 0 13px;
+    }
+    .block-plans .card {
+        height: 285px;
     }
 }
