@@ -37,7 +37,7 @@ if($_POST){
                 <div class="form-group">
                     <label for="forma_pagamento" class="control-label"> Forma de pagamento </label>
                     <div class="label">
-                        <select class="form-control select" id="formaPagamento" onchange="selectFormaPagamento()">
+                        <select class="form-control select" id="formaPagamento" name="forma_pagamento_tipo_id" onchange="selectFormaPagamento()">
                             <option value=""></option>
                             <?php foreach ($forma_pagamento as $index => $forma){ ?>
                             <option value="<?php echo $forma['tipo']['forma_pagamento_tipo_id']; ?>"> <?php echo $forma['tipo']['nome']; ?> </option>

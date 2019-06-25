@@ -271,7 +271,6 @@ class Admin_Controller extends MY_Controller
 
         if ($_POST) {
             $tipo_forma_pagamento_id = $this->input->post('forma_pagamento_tipo_id');
-
             $validacao               = array();
             switch ($tipo_forma_pagamento_id) {
                 case self::FORMA_PAGAMENTO_CARTAO_CREDITO: //cartão de crédito
@@ -410,9 +409,9 @@ class Admin_Controller extends MY_Controller
                     break;
             }
             $this->cotacao->setValidate($validacao);
-            
-            if ($this->cotacao->validate_form('pagamento')) {
 
+
+            if ($this->cotacao->validate_form('pagamento')) {
                 if ($pedido_id == 0) {
                     $pedido_id = $this->pedido->insertPedido($_POST);
                 } else {
@@ -430,8 +429,17 @@ class Admin_Controller extends MY_Controller
                     case self::FORMA_PAGAMENTO_CARTAO_CREDITO:
                     case self::FORMA_PAGAMENTO_CARTAO_DEBITO:
                     case self::FORMA_PAGAMENTO_BOLETO:
-                        $this->session->set_flashdata('succ_msg', 'Aguardando confirmação do pagamento'); //Mensagem de sucesso
-                        redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/{$pedido_id}");
+
+                        if($getUrl == ''){
+                            $this->session->set_flashdata('succ_msg', 'Aguardando confirmação do pagamento'); //Mensagem de sucesso
+                            redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/{$pedido_id}");
+
+                        }else{
+
+                            $this->session->set_flashdata('succ_msg', 'Pedido incluido com sucesso!'); //Mensagem de sucesso
+                            redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
+                        }
+
                         break;
                     default:
                         $this->session->set_flashdata('succ_msg', 'Pedido incluido com sucesso!'); //Mensagem de sucesso

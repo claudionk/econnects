@@ -145,9 +145,15 @@ class Venda_Equipamento extends Admin_Controller{
             ));
 
             $status = array('pagamento_negado', 'cancelado', 'cancelado_stornado', 'aprovacao_cancelamento', 'cancelamento_aprovado');
+
             //error_log( "Pedido: " . print_r( $pedido, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
-            if($pedido && !in_array($pedido['pedido_status_slug'], $status) && $this->layout == 'front') {
-                //$this->venda_aguardando_pagamento($produto_parceiro_id, $cotacao_id);
+            if($pedido && !in_array($pedido['pedido_status_slug'], $status)) {
+
+                if($this->layout == 'front'){
+                    redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/6/{$pedido['pedido_id']}?token={$this->token}&layout={$this->layout}&color={$this->color}");
+                    exit;
+                }
+
                 redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/5/{$pedido['pedido_id']}");
 
             } else {
@@ -209,7 +215,13 @@ class Venda_Equipamento extends Admin_Controller{
             }
 
         } elseif ($step == 5){
-            $this->venda_aguardando_pagamento($produto_parceiro_id, $cotacao_id);
+
+            if($this->layout == 'front'){
+                $this->equipamento_certificado($produto_parceiro_id, $cotacao_id);
+            }else{
+                $this->venda_aguardando_pagamento($produto_parceiro_id, $cotacao_id);
+            }
+
         } elseif ($step == 6) {
             $this->equipamento_certificado($produto_parceiro_id, $cotacao_id);
         } elseif ($step == 7) {
@@ -1468,7 +1480,7 @@ class Venda_Equipamento extends Admin_Controller{
             $view = "admin/venda/equipamento/front/steps/step-six-certificado";
             $this->template->js(app_assets_url("modulos/venda/equipamento/js/baixe-app.js", "admin"));
         }
-        
+
         $this->template->load("admin/layouts/{$this->layout}", $view, $data );
     }
 
