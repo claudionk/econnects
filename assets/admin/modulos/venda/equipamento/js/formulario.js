@@ -4,6 +4,7 @@ $(document).ready(function(){
         busca_cliente();
     });
 
+    /*
     // hidden all input
     var arrayDivs = [];
 
@@ -88,4 +89,5 @@ $(document).ready(function(){
             $('.btn-proximo').attr('disabled', false)
         });
     }
+    */
 });
