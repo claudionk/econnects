@@ -80,6 +80,7 @@
 }
 </style>
 <script>
+/*
 $(document).ready(function(){
     // hidden all input
     var arrayDivs = [];
@@ -166,4 +167,5 @@ $(document).ready(function(){
         });
     }
 });
+*/
 </script>
