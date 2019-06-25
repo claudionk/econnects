@@ -5,6 +5,7 @@ $(document).ready(function(){
         busca_cotacao_salva();
     });
 
+    /*
     // hidden all input
     var arrayDivs = [];
 
@@ -89,4 +90,5 @@ $(document).ready(function(){
             $('.btn-proximo').attr('disabled', false)
         });
     }
+    */
 });
