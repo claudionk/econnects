@@ -128,10 +128,10 @@ Class Comissao_Gerada_Model extends MY_Model {
         if (empty($parceiro_relacionamento))
             return;
 
-        $this->geraComissao($item, $parceiro_relacionamento, $comissao);
+        $this->geraComissao($item, $parceiro_relacionamento);
     }
 
-    private function geraComissao($item, $parceiro, $comissao = 0) {
+    private function geraComissao($item, $parceiro) {
 
         $comissao_classe_id = ( $parceiro["pai_id"] == 0 ) ? 1 : 4;
         $comissao_classe = $this->comissao_classe->get($comissao_classe_id);
@@ -140,7 +140,7 @@ Class Comissao_Gerada_Model extends MY_Model {
         $premio_liquido_total = $item["premio_liquido"];
 
         // valida se possui uma Comissão específica da venda
-        if ( !empty($item['comissao_premio']) && $item['codigo_interno'] == 'representante')
+        if ( !empty($item['comissao_premio']) && $item['comissao_premio'] > 0 && $item['codigo_interno'] == 'representante')
         {
             $comissao_premio = $item['comissao_premio'];
         } else {
