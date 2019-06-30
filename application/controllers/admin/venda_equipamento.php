@@ -962,10 +962,6 @@ class Venda_Equipamento extends Admin_Controller{
         $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento');
         $this->load->model('cotacao_model', 'cotacao');
 
-        $this->load->model('produto_parceiro_capitalizacao_model', 'parceiro_capitalizacao');
-        $this->load->model('capitalizacao_model', 'capitalizacao');
-        $this->load->model('capitalizacao_serie_titulo_model', 'titulo');
-
         $valor_total = $this->cotacao_equipamento->getValorTotal($cotacao_id);
 
         $dados_pedido = array();

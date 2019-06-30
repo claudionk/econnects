@@ -1335,8 +1335,6 @@ class Venda extends Admin_Controller {
 
   private function updatePedidoCarrinho($pedido_id, $cotacao_id){
 
-
-
     $this->load->model('pedido_model', 'pedido');
     $this->load->model('pedido_codigo_model', 'pedido_codigo');
     $this->load->model('pedido_cartao_model', 'pedido_cartao');
@@ -1344,17 +1342,7 @@ class Venda extends Admin_Controller {
     $this->load->model('cotacao_seguro_viagem_model', 'seguro_viagem');
     $this->load->model('cotacao_model', 'cotacao');
 
-    $this->load->model('produto_parceiro_capitalizacao_model', 'parceiro_capitalizacao');
-    $this->load->model('capitalizacao_model', 'capitalizacao');
-    $this->load->model('capitalizacao_serie_titulo_model', 'titulo');
-
-
-
-
     $valor_total = $this->seguro_viagem->getValorTotal($cotacao_id);
-
-
-
 
     $dados_pedido = array();
     $dados_pedido['produto_parceiro_pagamento_id'] = 0;
