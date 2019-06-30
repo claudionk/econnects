@@ -58,6 +58,7 @@ Class Cotacao_Cobertura_Model extends MY_Model
             $cobertura = $coberturas[$i];
             $cobertura_plano_id = $cobertura["cobertura_plano_id"];
             $percentagem = $valor_cobertura = $valor_config = 0;
+            $subTotal = true;
 
             switch ($cobertura["mostrar"]) {
                 case 'importancia_segurada':
@@ -66,6 +67,7 @@ Class Cotacao_Cobertura_Model extends MY_Model
                     $valor_cobertura = ( $importancia_segurada * $percentagem ) / 100;
                     break;
                 case 'preco':
+                    $subTotal = false;
                     $valor_cobertura = $valor_config = floatval($cobertura["preco"]);
                     break;
                 case 'descricao':
@@ -91,7 +93,11 @@ Class Cotacao_Cobertura_Model extends MY_Model
 
             $coberturas[$i]["valor_cobertura"] = $valor_cobertura;
             $cob[$i]['cotacao_cobertura_id'] = $idInsert;
-            $total += $valor_cobertura;
+
+            // se será totalizado para descontar o percentual
+            if ($subTotal) {
+                $total += $valor_cobertura;
+            }
         }
 
         $produto_parceiro = $this->produto_parceiro->with_produto()->get($produto_parceiro_id);
