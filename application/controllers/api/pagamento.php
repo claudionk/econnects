@@ -436,7 +436,7 @@ class Pagamento extends CI_Controller
         $numero          = ""; //$scope.dadosPagamento.CardNumber,
         $validade        = ""; //$scope.dadosPagamento.ExpirationDate,
         $codigo          = ""; //$scope.dadosPagamento.SecurityCode,
-        $num_parcela     = ""; //$scope.dadosPagamento.Installments,
+        $num_parcela     = issetor($POST["parcelas"], 1); //$scope.dadosPagamento.Installments,
 
         switch ($forma_pagamento_tipo_id) {
             case $this->config->item("FORMA_PAGAMENTO_CARTAO_CREDITO"):
@@ -821,7 +821,7 @@ class Pagamento extends CI_Controller
                     $pedido_data["pedido_id"]               = $pedido_id;
                     $pedido_data["forma_pagamento_id"]      = $forma_pagamento_id;
                     $pedido_data["forma_pagamento_tipo_id"] = $forma_pagamento_tipo_id;
-                    $pedido_data["num_parcela"]             = 1;
+                    $pedido_data["num_parcela"]             = $num_parcela;
                     $pedido_data["bandeira"]                = $produto_parceiro_pagamento_id;
                     break;
 
