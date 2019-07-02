@@ -1975,18 +1975,15 @@ Class Pedido_Model extends MY_Model
             $dados['num_parcela'] = 1;
         }
 
-        if($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_CREDITO ) {
+        if ( !empty($dados["bandeira"]) )
+        {
             $item = $this->produto_pagamento->get_by_id($dados["bandeira"]);
-        }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) {
-            $item = $this->produto_pagamento->get_by_id($dados["bandeira"]);
-        }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_FATURADO ) {
-            $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_FATURADO)->limit(1)->get_all();
-            $item = $item[0];
-        }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_TERCEIROS ) {
-            $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_TERCEIROS)->limit(1)->get_all();
-            $item = $item[0];
-        }elseif ($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_BOLETO ) {
-            $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_BOLETO)->limit(1)->get_all();
+        } else {
+            $item = $this->produto_pagamento
+                ->with_forma_pagamento()
+                ->filter_by_produto_parceiro($dados['produto_parceiro_id'])
+                ->filter_by_forma_pagamento_tipo($dados["forma_pagamento_tipo_id"])
+                ->limit(1)->get_all();
             $item = $item[0];
         }
 

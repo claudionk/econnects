@@ -29,6 +29,7 @@ class Emissao extends CI_Controller {
     public $campos_meios_pagto;
     public $comissao_premio;
     public $coberturas_opcionais;
+    public $parcelas;
 
     public function __construct() {
         parent::__construct();
@@ -103,6 +104,7 @@ class Emissao extends CI_Controller {
         $this->coberturas_opcionais = (!isset($POST['coberturas_opcionais'])) ? '' : $POST['coberturas_opcionais'];
         $this->meio_pagto_slug = (!isset($POST['meiopagamento']['meio_pagto_slug'])) ? '' : $POST['meiopagamento']['meio_pagto_slug'];
         $this->campos_meios_pagto = (!isset($POST['meiopagamento']['campos'])) ? [] : $POST['meiopagamento']['campos'];
+        $this->parcelas = (!isset($POST['meiopagamento']['parcelas'])) ? null : $POST['meiopagamento']['parcelas'];
 
         $this->etapas('cotacao',$POST);
     }
@@ -429,12 +431,16 @@ class Emissao extends CI_Controller {
                 if($parametros["status"])
                 {
                     $arrOptions = [
-                        "cotacao_id" => $parametros["cotacao_id"], 
-                        "produto_parceiro_id" => $parametros["produto_parceiro_id"], 
-                        "forma_pagamento_id" => $parametros["forma_pagamento_id"], 
+                        "cotacao_id"                    => $parametros["cotacao_id"], 
+                        "produto_parceiro_id"           => $parametros["produto_parceiro_id"], 
+                        "forma_pagamento_id"            => $parametros["forma_pagamento_id"], 
                         "produto_parceiro_pagamento_id" => $parametros["produto_parceiro_pagamento_id"], 
-                        "campos" => $parametros["campos"]  
+                        "campos"                        => $parametros["campos"]  
                     ]; 
+
+                    if ( !empty($this->parcelas) ) {
+                        $arrOptions["parcelas"] = $this->parcelas;
+                    }
 
                     $url = base_url() ."api/pagamento/pagar";
                     $obj = new Api();
