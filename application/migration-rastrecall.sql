@@ -112,23 +112,148 @@ CREATE TABLE `comunicacao_automatico` (
 ;
 
 
-CREATE TABLE `comunicacao_automatico` (
-  `comunicacao_automatico_id` INT(11) NOT NULL AUTO_INCREMENT,
-  `proxima_execucao` TIMESTAMP NULL DEFAULT NULL,
-  `melhor_horario` VARCHAR(5) NULL DEFAULT '16:00',
-  `quantidade` INT(11) NULL DEFAULT '200',
-  `somente_dia_util` TINYINT(4) NULL DEFAULT '0',
-  `deletado` TINYINT(4) NULL DEFAULT '0',
+INSERT INTO `comunicacao_automatico` (`comunicacao_automatico_id`, `proxima_execucao`, `melhor_horario`, `quantidade`, `somente_dia_util`, `deletado`, `criacao`, `alteracao_usuario_id`, `alteracao`) VALUES (1, '2019-06-17 09:57:00', '09:57', 200, 1, 0, '2019-06-14 19:33:32', 0, '2019-06-14 17:40:07');
+
+-- 24/06/2019
+
+CREATE TABLE `enquete` (
+  `enquete_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `nome` VARCHAR(64) NULL DEFAULT NULL,
+  `titulo` VARCHAR(128) NULL DEFAULT NULL,
+  `texto_inicial` MEDIUMTEXT NULL,
+  `texto_final` MEDIUMTEXT NULL,
+  `data_corte` DATETIME NULL DEFAULT NULL,
   `criacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `alteracao_usuario_id` INT(11) NULL DEFAULT '0',
   `alteracao` TIMESTAMP NULL DEFAULT NULL,
-  PRIMARY KEY (`comunicacao_automatico_id`)
+  `deletado` TINYINT(4) NULL DEFAULT '0',
+  PRIMARY KEY (`enquete_id`)
 )
   COLLATE='utf8_general_ci'
   ENGINE=InnoDB
-  AUTO_INCREMENT=2
+  AUTO_INCREMENT=1
 ;
 
 
-INSERT INTO `comunicacao_automatico` (`comunicacao_automatico_id`, `proxima_execucao`, `melhor_horario`, `quantidade`, `somente_dia_util`, `deletado`, `criacao`, `alteracao_usuario_id`, `alteracao`) VALUES (1, '2019-06-17 09:57:00', '09:57', 200, 1, 0, '2019-06-14 19:33:32', 0, '2019-06-14 17:40:07');
+CREATE TABLE `enquete_configuracao` (
+  `enquete_configuracao_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `enquete_id` INT(11) NOT NULL DEFAULT '0',
+  `envio_tipo` ENUM('sms','email') NULL DEFAULT NULL,
+  `envio_mensagem` TEXT NULL,
+  `ativo` TINYINT(4) NULL DEFAULT '0',
+  `criacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `alteracao_usuario_id` INT(11) NULL DEFAULT '0',
+  `alteracao` TIMESTAMP NULL DEFAULT NULL,
+  `deletado` TINYINT(4) NULL DEFAULT '0',
+  PRIMARY KEY (`enquete_configuracao_id`),
+  INDEX `FK_enquete_configuracao_enquete` (`enquete_id`),
+  CONSTRAINT `FK_enquete_configuracao_enquete` FOREIGN KEY (`enquete_id`) REFERENCES `enquete` (`enquete_id`)
+)
+  COLLATE='utf8_general_ci'
+  ENGINE=InnoDB
+  AUTO_INCREMENT=1
+;
 
+
+CREATE TABLE `enquete_gatilho` (
+  `enquete_gatilho_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `nome` VARCHAR(64) NULL DEFAULT NULL,
+  `parametro` VARCHAR(512) NULL DEFAULT NULL,
+  `criacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `alteracao_usuario_id` INT(11) NULL DEFAULT '0',
+  `alteracao` TIMESTAMP NULL DEFAULT NULL,
+  `deletado` TINYINT(4) NULL DEFAULT '0',
+  PRIMARY KEY (`enquete_gatilho_id`)
+)
+  COLLATE='utf8_general_ci'
+  ENGINE=InnoDB
+  AUTO_INCREMENT=1
+;
+
+
+CREATE TABLE `enquete_gatilho_configuracao` (
+  `enquete_gatilho_configuracao_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `enquete_gatilho_id` INT(11) NOT NULL DEFAULT '0',
+  `enquete_configuracao_id` INT(11) NOT NULL DEFAULT '0',
+  `criacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `alteracao_usuario_id` INT(11) NULL DEFAULT '0',
+  `alteracao` TIMESTAMP NULL DEFAULT NULL,
+  `deletado` TINYINT(4) NULL DEFAULT '0',
+  PRIMARY KEY (`enquete_gatilho_configuracao_id`)
+)
+  COLLATE='utf8_general_ci'
+  ENGINE=InnoDB
+  AUTO_INCREMENT=1
+;
+
+
+CREATE TABLE `enquete_pergunta` (
+  `enquete_pergunta_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `enquete_id` INT(11) NULL DEFAULT NULL,
+  `tipo` ENUM('texto','select','multiselect','sim_nao','zero_a_dez') NULL DEFAULT NULL,
+  `pergunta` VARCHAR(256) NULL DEFAULT NULL,
+  `opcoes` VARCHAR(2048) NULL DEFAULT NULL,
+  `ordem` INT(11) NULL DEFAULT NULL,
+  `criacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `alteracao_usuario_id` INT(11) NULL DEFAULT '0',
+  `alteracao` TIMESTAMP NULL DEFAULT NULL,
+  `deletado` TINYINT(4) NULL DEFAULT '0',
+  PRIMARY KEY (`enquete_pergunta_id`),
+  INDEX `FK_enquete_pergunta_enquete` (`enquete_id`),
+  CONSTRAINT `FK_enquete_pergunta_enquete` FOREIGN KEY (`enquete_id`) REFERENCES `enquete` (`enquete_id`)
+)
+  COLLATE='utf8_general_ci'
+  ENGINE=InnoDB
+  AUTO_INCREMENT=1
+;
+
+CREATE TABLE `enquete_resposta` (
+  `enquete_resposta_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `enquete_id` INT(11) NOT NULL DEFAULT '0',
+  `enquete_configuracao_id` INT(11) NOT NULL DEFAULT '0',
+  `apolice_id` INT(11) NULL DEFAULT NULL,
+  `id_resposta_api` VARCHAR(255) NULL DEFAULT NULL,
+  `tentativas_envio` INT(11) NULL DEFAULT '0',
+  `respondido` ENUM('nao','parcial','total','erro') NULL DEFAULT NULL,
+  `data_enviada` DATETIME NULL DEFAULT NULL,
+  `data_respondido` DATETIME NULL DEFAULT NULL,
+  `criacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `alteracao_usuario_id` INT(11) NULL DEFAULT '0',
+  `alteracao` TIMESTAMP NULL DEFAULT NULL,
+  `deletado` TINYINT(4) NULL DEFAULT '0',
+  `locked` TINYINT(1) NULL DEFAULT '0',
+  `ultimo_erro` VARCHAR(100) NULL DEFAULT '0',
+  PRIMARY KEY (`enquete_resposta_id`),
+  INDEX `apolice_id` (`apolice_id`),
+  INDEX `FK_enquete_resposta_enquete` (`enquete_id`),
+  CONSTRAINT `FK_enquete_resposta_enquete` FOREIGN KEY (`enquete_id`) REFERENCES `enquete` (`enquete_id`)
+)
+  COLLATE='utf8_general_ci'
+  ENGINE=InnoDB
+  AUTO_INCREMENT=1
+;
+
+CREATE TABLE `enquete_resposta_pergunta` (
+  `enquete_resposta_pergunta_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `enquete_resposta_id` INT(11) NOT NULL DEFAULT '0',
+  `enquete_pergunta_id` INT(11) NOT NULL DEFAULT '0',
+  `resposta` VARCHAR(256) NULL DEFAULT '0',
+  `respondida` TINYINT(1) NULL DEFAULT '0',
+  `criacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `alteracao_usuario_id` INT(11) NULL DEFAULT '0',
+  `alteracao` TIMESTAMP NULL DEFAULT NULL,
+  `deletado` TINYINT(4) NULL DEFAULT '0',
+  PRIMARY KEY (`enquete_resposta_pergunta_id`),
+  INDEX `FK_enquete_resposta_pergunta_enquete_resposta` (`enquete_resposta_id`),
+  INDEX `FK_enquete_resposta_pergunta_enquete_pergunta` (`enquete_pergunta_id`),
+  CONSTRAINT `FK_enquete_resposta_pergunta_enquete_pergunta` FOREIGN KEY (`enquete_pergunta_id`) REFERENCES `enquete_pergunta` (`enquete_pergunta_id`),
+  CONSTRAINT `FK_enquete_resposta_pergunta_enquete_resposta` FOREIGN KEY (`enquete_resposta_id`) REFERENCES `enquete_resposta` (`enquete_resposta_id`)
+)
+  COLLATE='utf8_general_ci'
+  ENGINE=InnoDB
+  AUTO_INCREMENT=1
+;
+
+
+ALTER TABLE `produto_parceiro_configuracao`
+  ADD COLUMN `enquete_id` INT NULL DEFAULT '0' AFTER `ir_cotacao_salva`;
