@@ -27,6 +27,7 @@ class Emissao extends CI_Controller {
 
     public $meio_pagto_slug;
     public $campos_meios_pagto;
+    public $numero_sorte;
 
     public function __construct() {
         parent::__construct();
@@ -92,15 +93,15 @@ class Emissao extends CI_Controller {
             die(json_encode(array("status"=>false,"message"=>"Parametros não informados"),JSON_UNESCAPED_UNICODE));
         }
 
+        $this->equipamento_nome     = '';
+        $this->ean                  = '';
+        $this->num_apolice          = (!isset($POST['num_apolice'])) ? false : $POST['num_apolice'];
+        $this->valor_premio_bruto   = (!isset($POST['valor_premio_bruto'])) ? 0 : $POST['valor_premio_bruto'];
+        $this->meio_pagto_slug      = (!isset($POST['meiopagamento']['meio_pagto_slug'])) ? '' : $POST['meiopagamento']['meio_pagto_slug'];
+        $this->campos_meios_pagto   = (!isset($POST['meiopagamento']['campos'])) ? [] : $POST['meiopagamento']['campos'];
+        $this->numero_sorte         = (!isset($POST['numero_sorte'])) ? null : $POST['numero_sorte'];
 
-        $this->equipamento_nome = '';
-        $this->ean = '';
-        $this->num_apolice = (!isset($POST['num_apolice'])) ? false : $POST['num_apolice'];
-        $this->valor_premio_bruto = (!isset($POST['valor_premio_bruto'])) ? 0 : $POST['valor_premio_bruto'];
-        $this->meio_pagto_slug = (!isset($POST['meiopagamento']['meio_pagto_slug'])) ? '' : $POST['meiopagamento']['meio_pagto_slug'];
-        $this->campos_meios_pagto = (!isset($POST['meiopagamento']['campos'])) ? [] : $POST['meiopagamento']['campos'];
-
-        $this->etapas('cotacao',$POST);
+        $this->etapas('cotacao', $POST);
     }
 
     public function etapas($etapa = null, $parametros = []){
@@ -145,6 +146,13 @@ class Emissao extends CI_Controller {
                     "produto_parceiro_id" => $this->produto_parceiro_id,
                     "produto_parceiro_plano_id" => $this->produto_parceiro_plano_id
                 ];
+
+                // número da sorte
+                if ( $this->numero_sorte )
+                {
+                    $arrOptions['numero_sorte'] =  $this->numero_sorte;
+                }
+
                 if(count($parametros['campos'][0]) > 0)
                 {
                     foreach ($parametros['campos'][0] as $key => $vl) {
@@ -512,9 +520,4 @@ class Emissao extends CI_Controller {
     }
 
 }
-?>
-
-
-
-
 
