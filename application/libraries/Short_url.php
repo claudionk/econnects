@@ -15,9 +15,10 @@ class Short_url
             "cache-control: no-cache",
         );
 
+        $CI =& get_instance();
         $curl = curl_init();
         curl_setopt_array($curl, array(
-            CURLOPT_URL => URL_SGS .'v1/api/encurtador/gerar',
+            CURLOPT_URL => $CI->config->item("URL_SGS") .'v1/api/encurtador/gerar',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
