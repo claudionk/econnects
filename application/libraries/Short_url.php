@@ -17,7 +17,7 @@ class Short_url
 
         $curl = curl_init();
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://sgs-h.jelastic.saveincloud.net/v1/api/encurtador/gerar',
+            CURLOPT_URL => URL_SGS .'v1/api/encurtador/gerar',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
