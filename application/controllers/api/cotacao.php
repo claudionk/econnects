@@ -332,17 +332,18 @@ class Cotacao extends CI_Controller {
     public function contratar_cotacao( $params, $produto_slug ) {
         $this->load->model( "produto_parceiro_campo_model", "campo" );
         $this->load->model( "cotacao_equipamento_model", "cotacao_equipamento" );
+        $this->load->model( "cotacao_generico_model", "cotacao_generico" );
+        $this->load->model( "cotacao_seguro_viagem_model", "cotacao_seguro_viagem" );
         $this->load->model( "cliente_model", "cliente" );
         $this->load->model( "cotacao_model", "cotacao" );
         $this->load->model( "localidade_estado_model", "localidade_estado" );
+        $this->load->model( "capitalizacao_model", "capitalizacao" );
 
+        //$parceiro_id = issetor($params['parceiro_id'], 0);
         $produto_parceiro_id = issetor($params['produto_parceiro_id'], 0);
         $produto_parceiro_plano_id = issetor($params['produto_parceiro_plano_id'], 0);
-        //$parceiro_id = issetor($params['parceiro_id'], 0);
-
         $repasse_comissao = $params["repasse_comissao"];
         $desconto_condicional= $params["desconto_condicional"];
-
         $cotacao_id = issetor($params['cotacao_id'], 0);
 
         $result  = array(
@@ -351,6 +352,7 @@ class Cotacao extends CI_Controller {
         );
 
         if( $cotacao_id > 0 ) {
+
             if( $this->cotacao->isCotacaoValida( $cotacao_id ) == FALSE ) {
                 $result  = array(
                     "status" => false,
@@ -359,13 +361,18 @@ class Cotacao extends CI_Controller {
                 );
                 return $result;
             }
-            $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $params );
 
-            if ($produto_slug == 'equipamento') {
-                $this->cotacao_equipamento->insert_update( $produto_parceiro_id, $cotacao_id, 3 );
+            // Define qual o auxiliar
+            if ( $produto_slug == "equipamento" ) {
+                $cotacao_aux = $this->cotacao_equipamento;
+            } elseif ( $produto_slug == "seguro_viagem" ) {
+                $cotacao_aux = $this->cotacao_seguro_viagem;
             } else {
-                $this->cotacao_generico->insert_update( $produto_parceiro_id, $cotacao_id, 3 );
+                $cotacao_aux = $this->cotacao_generico;
             }
+
+            $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $params );
+            $cotacao_aux->insert_update( $produto_parceiro_id, $cotacao_id, 3 );
 
             unset( $params["parceiro_id"] );
         } else {
@@ -460,21 +467,36 @@ class Cotacao extends CI_Controller {
                 "errors" => $erros,
             );
         } else {
-            $dados_cotacao["step"] = 4;
-            $this->campo->setDadosCampos( $produto_parceiro_id, "equipamento", "dados_segurado", $produto_parceiro_plano_id,  $dados_cotacao );
+
+            // Salva o plano na cotação
             $dados_cotacao["produto_parceiro_plano_id"] = $produto_parceiro_plano_id;
+            $cotacao_aux->update( $cotacao_salva["cotacao_equipamento_id"], $dados_cotacao, true );
 
-            $this->cotacao_equipamento->update( $cotacao_salva["cotacao_equipamento_id"], $dados_cotacao, true );
-            //$this->cliente->atualizar( $cotacao_salva["cliente_id"], $dados_cotacao );
+            // valida Capitalização
+            $capitalizacao = $this->capitalizacao->validaNumeroSorte($cotacao_salva["cotacao_id"]);
+            if ( empty($capitalizacao['status']) ) {
 
-            $result  = array(
-                "status" => true,
-                "mensagem" => "Cotação finalizada. Efetuar pagamento.",
-                "cotacao_id" => $cotacao_salva["cotacao_id"],
-                "produto_parceiro_id" => $cotacao_salva["produto_parceiro_id"],
-                "validacao" => $validacao
-            );
+                $result = $capitalizacao;
+
+            } else {
+
+                $dados_cotacao["step"] = 4;
+                $this->campo->setDadosCampos( $produto_parceiro_id, "equipamento", "dados_segurado", $produto_parceiro_plano_id,  $dados_cotacao );
+                $cotacao_aux->update( $cotacao_salva["cotacao_equipamento_id"], $dados_cotacao, true );
+                //$this->cliente->atualizar( $cotacao_salva["cliente_id"], $dados_cotacao );
+
+                $result  = array(
+                    "status" => true,
+                    "mensagem" => "Cotação finalizada. Efetuar pagamento.",
+                    "cotacao_id" => $cotacao_salva["cotacao_id"],
+                    "produto_parceiro_id" => $cotacao_salva["produto_parceiro_id"],
+                    "validacao" => $validacao
+                );
+
+            }
+
         }
+
         return $result;
     }
 

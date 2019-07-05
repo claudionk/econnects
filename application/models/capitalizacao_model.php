@@ -220,24 +220,24 @@ Class Capitalizacao_Model extends MY_Model
     }
 
 
-    function validaNumSorte($capitalizacao_id, $numero_sorte){
+    public function getDadosSerie($capitalizacao_id, $numero_sorte){
 
         $date = date('Y-m-d H:i:s');
         $sql = "
-                SELECT *
-                from capitalizacao
-                INNER JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
-                LEFT JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id AND capitalizacao_serie_titulo.titulo = '{$numero_sorte}'
-                WHERE capitalizacao.capitalizacao_id = {$capitalizacao_id}
-                AND capitalizacao_serie.ativo = 1
-                AND capitalizacao_serie.deletado = 0
-                AND capitalizacao_serie_titulo.utilizado = 0
-                AND capitalizacao_serie_titulo.ativo = 1 
-                AND capitalizacao_serie.data_inicio < '{$date}'
-                AND capitalizacao_serie.data_fim > '{$date}'
-                AND '{$numero_sorte}' BETWEEN capitalizacao_serie.numero_inicio AND capitalizacao_serie.numero_fim
-                AND capitalizacao_serie_titulo.capitalizacao_serie_id IS NULL #Não exista o número da sorte
-                LIMIT 1;
+            SELECT *
+            FROM capitalizacao
+            INNER JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
+            LEFT JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id AND capitalizacao_serie_titulo.titulo = '{$numero_sorte}'
+            WHERE capitalizacao.capitalizacao_id = {$capitalizacao_id}
+            AND capitalizacao_serie.ativo = 1
+            AND capitalizacao_serie.deletado = 0
+            AND capitalizacao_serie_titulo.utilizado = 0
+            AND capitalizacao_serie_titulo.ativo = 1 
+            AND capitalizacao_serie.data_inicio < '{$date}'
+            AND capitalizacao_serie.data_fim > '{$date}'
+            AND '{$numero_sorte}' BETWEEN capitalizacao_serie.numero_inicio AND capitalizacao_serie.numero_fim
+            AND capitalizacao_serie_titulo.capitalizacao_serie_id IS NULL #Não exista o número da sorte
+            LIMIT 1;
         ";
 
         $result = $this->_database->query($sql)->result_array();
@@ -245,19 +245,68 @@ Class Capitalizacao_Model extends MY_Model
 
     }
 
-    public function validaNumeroSorte($produto_parceiro_id, $pedido_id, $numero_sorte)
+    public function numSorteRange($capitalizacao_id, $numero_sorte){
+
+        $date = date('Y-m-d H:i:s');
+        $sql = "
+            SELECT *
+            FROM capitalizacao
+            INNER JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
+            WHERE capitalizacao.capitalizacao_id = {$capitalizacao_id}
+            AND capitalizacao_serie.ativo = 1
+            AND capitalizacao_serie.deletado = 0
+            AND capitalizacao_serie_titulo.utilizado = 0
+            AND capitalizacao_serie_titulo.ativo = 1 
+            AND capitalizacao_serie.data_inicio < '{$date}'
+            AND capitalizacao_serie.data_fim > '{$date}'
+            AND '{$numero_sorte}' BETWEEN capitalizacao_serie.numero_inicio AND capitalizacao_serie.numero_fim
+            LIMIT 1;
+        ";
+
+        $result = $this->_database->query($sql)->result_array();
+        return ($result) ? $result[0] : [];
+
+    }
+
+    public function numSorteUtilizado($capitalizacao_id, $numero_sorte){
+
+        $date = date('Y-m-d H:i:s');
+        $sql = "
+            SELECT *
+            FROM capitalizacao
+            INNER JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
+            INNER JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id 
+            WHERE capitalizacao.capitalizacao_id = {$capitalizacao_id}
+            AND capitalizacao_serie.ativo = 1
+            AND capitalizacao_serie.deletado = 0
+            AND capitalizacao_serie_titulo.deletado = 0
+            AND capitalizacao_serie_titulo.utilizado = 0
+            AND capitalizacao_serie_titulo.ativo = 1 
+            AND capitalizacao_serie.data_inicio < '{$date}'
+            AND capitalizacao_serie.data_fim > '{$date}'
+            AND capitalizacao_serie_titulo.titulo = '{$numero_sorte}'
+            LIMIT 1;
+        ";
+
+        $result = $this->_database->query($sql)->result_array();
+        return ($result) ? $result[0] : [];
+
+    }
+
+    public function validaNumeroSorte($cotacao_id)
     {
 
         $this->load->model('produto_parceiro_capitalizacao_model', 'produto_parceiro_capitalizacao');
-        $this->load->model('capitalizacao_model', 'capitalizacao');
-        $this->load->model('capitalizacao_serie_titulo_model', 'capitalizacao_serie_titulo');
+        $this->load->model('cotacao_model', 'cotacao');
 
         $result['status'] = true;
         $result['message'] = 'OK';
 
+        $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
+
         //verifica se tem capitalização configurado
         $parceiro_capitalizacao = $this->produto_parceiro_capitalizacao->with_capitalizacao()
-            ->filter_by_produto_parceiro($produto_parceiro_id)
+            ->filter_by_produto_parceiro($cotacao['produto_parceiro_id'])
             ->filter_by_capitalizacao_ativa()
             ->get_all();
 
@@ -266,19 +315,39 @@ Class Capitalizacao_Model extends MY_Model
 
             foreach ($parceiro_capitalizacao as $index => $item) {
 
-                $capitalizacaoItem = $this->capitalizacao->get($item['capitalizacao_id']);
+                $capitalizacaoItem = $this->get($item['capitalizacao_id']);
                 if (count($capitalizacaoItem) > 0) {
 
-                    // Parceiro
-                    if ($capitalizacaoItem['responsavel_num_sorte'] == 1)
+                    // Parceiro é o responsável por gerar o número da sorte
+                    if ( $capitalizacaoItem['responsavel_num_sorte'] == 1 )
                     {
-                        // validar se está dentro da range
-                        if ( !$this->capitalizacao->validaNumSorte($item['capitalizacao_id'], $numero_sorte) )
+                        // verifica se possui capitalizacao nas coberturas
+                        if ( $this->cotacao->tem_capitalizacao($cotacao_id) )
                         {
-                            $result['status'] = false;
-                            $result['message'] = 'Número da Sorte fora do Range aceito ou já utilizado';
+
+                            if ( empty($cotacao["numero_sorte"]) ) {
+
+                                $result['status'] = false;
+                                $result['message'] = 'O Número da Sorte não foi informado';
+
+                            // validar se está dentro da range
+                            } elseif ( !$this->numSorteRange($item['capitalizacao_id'], $numero_sorte) ) {
+
+                                $result['status'] = false;
+                                $result['message'] = 'Número da Sorte fora do Range aceito';
+
+                            } elseif ( $this->numSorteUtilizado($item['capitalizacao_id'], $numero_sorte) ) {
+
+                                $result['status'] = false;
+                                $result['message'] = 'Número da Sorte já utilizado';
+
+                            }
+                        } else {
+                            $result['message'] = "A cotação não possui cobertura de Capitalização";
                         }
 
+                    } else {
+                        $result['message'] = "Parceiro não é o responsável por gerar o Número da Sorte";
                     }
 
                 }
@@ -286,7 +355,6 @@ Class Capitalizacao_Model extends MY_Model
             }
 
         } else {
-            $result['status'] = false;
             $result['message'] = "Produto não está configurado para aceitar Número da Sorte";
         }
 

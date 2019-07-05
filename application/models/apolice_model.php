@@ -1231,7 +1231,7 @@ class Apolice_Model extends MY_Model
                                 // Se foi enviado o número da sorte
                                 if ($numero_sorte){
                                     // validar se está dentro da range
-                                    if ($capitalizacao_serie = $this->capitalizacao->validaNumSorte($item['capitalizacao_id'], $numero_sorte) )
+                                    if ($capitalizacao_serie = $this->capitalizacao->getDadosSerie($item['capitalizacao_id'], $numero_sorte) )
                                     {
                                         $dados_capitalizacao['capitalizacao_serie_id'] = $capitalizacao_serie['capitalizacao_serie_id'];
                                         $dados_capitalizacao['contemplado'] = 0;
