@@ -26,7 +26,7 @@ class Short_url
             CURLOPT_TIMEOUT => 30,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => array('url'=>$longUrl),
+            CURLOPT_POSTFIELDS => array('url'=>$url),
             CURLOPT_HTTPHEADER => $httpHeader
         ));
 
