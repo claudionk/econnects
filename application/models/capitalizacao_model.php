@@ -255,8 +255,6 @@ Class Capitalizacao_Model extends MY_Model
             WHERE capitalizacao.capitalizacao_id = {$capitalizacao_id}
             AND capitalizacao_serie.ativo = 1
             AND capitalizacao_serie.deletado = 0
-            AND capitalizacao_serie_titulo.utilizado = 0
-            AND capitalizacao_serie_titulo.ativo = 1 
             AND capitalizacao_serie.data_inicio < '{$date}'
             AND capitalizacao_serie.data_fim > '{$date}'
             AND '{$numero_sorte}' BETWEEN capitalizacao_serie.numero_inicio AND capitalizacao_serie.numero_fim
@@ -331,12 +329,12 @@ Class Capitalizacao_Model extends MY_Model
                                 $result['message'] = 'O Número da Sorte não foi informado';
 
                             // validar se está dentro da range
-                            } elseif ( !$this->numSorteRange($item['capitalizacao_id'], $numero_sorte) ) {
+                            } elseif ( !$this->numSorteRange($item['capitalizacao_id'], $cotacao["numero_sorte"]) ) {
 
                                 $result['status'] = false;
                                 $result['message'] = 'Número da Sorte fora do Range aceito';
 
-                            } elseif ( $this->numSorteUtilizado($item['capitalizacao_id'], $numero_sorte) ) {
+                            } elseif ( $this->numSorteUtilizado($item['capitalizacao_id'], $cotacao["numero_sorte"]) ) {
 
                                 $result['status'] = false;
                                 $result['message'] = 'Número da Sorte já utilizado';
