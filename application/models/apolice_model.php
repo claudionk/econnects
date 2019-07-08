@@ -1338,7 +1338,7 @@ class Apolice_Model extends MY_Model
                                         $dados_capitalizacao['contemplado'] = 0;
                                         $dados_capitalizacao['numero'] = $numero_sorte;
                                         $dados_capitalizacao['ativo'] = 1;
-                                        $this->titulo->insert($dados_capitalizacao, TRUE);
+                                        $this->capitalizacao_serie_titulo->insert($dados_capitalizacao, TRUE);
                                     }
 
                                 }
