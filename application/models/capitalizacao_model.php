@@ -257,7 +257,7 @@ Class Capitalizacao_Model extends MY_Model
             AND capitalizacao_serie.deletado = 0
             AND capitalizacao_serie.data_inicio < '{$date}'
             AND capitalizacao_serie.data_fim > '{$date}'
-            AND '{$numero_sorte}' BETWEEN capitalizacao_serie.numero_inicio AND capitalizacao_serie.numero_fim
+            AND '{$numero_sorte}' BETWEEN CAST(capitalizacao_serie.numero_inicio as SIGNED) AND CAST(capitalizacao_serie.numero_fim as SIGNED)
             LIMIT 1;
         ";
 
