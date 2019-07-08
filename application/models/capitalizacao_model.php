@@ -227,15 +227,16 @@ Class Capitalizacao_Model extends MY_Model
             SELECT *
             FROM capitalizacao
             INNER JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
-            LEFT JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id AND capitalizacao_serie_titulo.numero = '{$numero_sorte}'
+            LEFT JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id 
+                AND capitalizacao_serie_titulo.numero = '{$numero_sorte}'
+                AND capitalizacao_serie_titulo.utilizado = 0
+                AND capitalizacao_serie_titulo.ativo = 1 
             WHERE capitalizacao.capitalizacao_id = {$capitalizacao_id}
             AND capitalizacao_serie.ativo = 1
             AND capitalizacao_serie.deletado = 0
-            AND capitalizacao_serie_titulo.utilizado = 0
-            AND capitalizacao_serie_titulo.ativo = 1 
             AND capitalizacao_serie.data_inicio < '{$date}'
             AND capitalizacao_serie.data_fim > '{$date}'
-            AND '{$numero_sorte}' BETWEEN capitalizacao_serie.numero_inicio AND capitalizacao_serie.numero_fim
+            AND '{$numero_sorte}' BETWEEN CAST(capitalizacao_serie.numero_inicio as SIGNED) AND CAST(capitalizacao_serie.numero_fim as SIGNED)
             AND capitalizacao_serie_titulo.capitalizacao_serie_id IS NULL #Não exista o número da sorte
             LIMIT 1;
         ";
