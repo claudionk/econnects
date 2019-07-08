@@ -180,20 +180,19 @@ Class Capitalizacao_Model extends MY_Model
 
         $date = date('Y-m-d H:i:s');
         $sql = "
-                SELECT *
-                from capitalizacao
-                inner JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
-                inner JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id
-                where 
-                capitalizacao.capitalizacao_id = {$capitalizacao_id}
-                and capitalizacao_serie.ativo = 1
-                and capitalizacao_serie.deletado = 0
-                and capitalizacao_serie_titulo.utilizado = 0
-                and capitalizacao_serie_titulo.ativo = 1 
-                and capitalizacao_serie.data_inicio < '{$date}'
-                and capitalizacao_serie.data_fim > '{$date}'
-                LIMIT 1;
-        
+            SELECT *
+            from capitalizacao
+            inner JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
+            inner JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id
+            where 
+            capitalizacao.capitalizacao_id = {$capitalizacao_id}
+            and capitalizacao_serie.ativo = 1
+            and capitalizacao_serie.deletado = 0
+            and capitalizacao_serie_titulo.utilizado = 0
+            and capitalizacao_serie_titulo.ativo = 1 
+            and capitalizacao_serie.data_inicio < '{$date}'
+            and capitalizacao_serie.data_fim > '{$date}'
+            LIMIT 1;
         ";
 
         return $this->_database->query($sql)->result_array();
@@ -202,29 +201,25 @@ Class Capitalizacao_Model extends MY_Model
 
     function get_titulos_pedido($pedido_id){
         $sql = "
-                SELECT *
-                from capitalizacao
-                inner JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
-                inner JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id
-                where 
-                capitalizacao_serie.ativo = 1
-                and capitalizacao_serie.deletado = 0
-                  and capitalizacao_serie_titulo.ativo = 1 
-                and capitalizacao_serie_titulo.pedido_id = {$pedido_id}
-                ORDER BY capitalizacao_serie_titulo.data_compra 
-        
+            SELECT *
+            FROM capitalizacao
+            INNER JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
+            INNER JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id
+            WHERE capitalizacao_serie.ativo = 1
+                AND capitalizacao_serie.deletado = 0
+                AND capitalizacao_serie_titulo.ativo = 1 
+                AND capitalizacao_serie_titulo.pedido_id = {$pedido_id}
+            ORDER BY capitalizacao_serie_titulo.data_compra 
         ";
-
 
         return $this->_database->query($sql)->result_array();
     }
-
 
     public function getDadosSerie($capitalizacao_id, $numero_sorte){
 
         $date = date('Y-m-d H:i:s');
         $sql = "
-            SELECT *
+            SELECT capitalizacao.*, capitalizacao_serie.*
             FROM capitalizacao
             INNER JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
             LEFT JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id 
@@ -276,14 +271,14 @@ Class Capitalizacao_Model extends MY_Model
             INNER JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
             INNER JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id 
             WHERE capitalizacao.capitalizacao_id = {$capitalizacao_id}
-            AND capitalizacao_serie.ativo = 1
-            AND capitalizacao_serie.deletado = 0
-            AND capitalizacao_serie_titulo.deletado = 0
-            AND capitalizacao_serie_titulo.utilizado = 0
-            AND capitalizacao_serie_titulo.ativo = 1 
-            AND capitalizacao_serie.data_inicio < '{$date}'
-            AND capitalizacao_serie.data_fim > '{$date}'
-            AND capitalizacao_serie_titulo.numero = '{$numero_sorte}'
+                AND capitalizacao_serie.ativo = 1
+                AND capitalizacao_serie.deletado = 0
+                AND capitalizacao_serie_titulo.deletado = 0
+                AND capitalizacao_serie_titulo.utilizado = 0
+                AND capitalizacao_serie_titulo.ativo = 1 
+                AND capitalizacao_serie.data_inicio < '{$date}'
+                AND capitalizacao_serie.data_fim > '{$date}'
+                AND capitalizacao_serie_titulo.numero = '{$numero_sorte}'
             LIMIT 1;
         ";
 
