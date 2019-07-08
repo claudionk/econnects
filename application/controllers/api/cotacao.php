@@ -390,10 +390,13 @@ class Cotacao extends CI_Controller {
             // Define qual o auxiliar
             if ( $produto_slug == "equipamento" ) {
                 $cotacao_aux = $this->cotacao_equipamento;
+                $cotacao_aux_id = "cotacao_equipamento_id";
             } elseif ( $produto_slug == "seguro_viagem" ) {
                 $cotacao_aux = $this->cotacao_seguro_viagem;
+                $cotacao_aux_id = "cotacao_seguro_viagem_id";
             } else {
                 $cotacao_aux = $this->cotacao_generico;
+                $cotacao_aux_id = "cotacao_generico_id";
             }
 
             $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $params );
@@ -495,7 +498,7 @@ class Cotacao extends CI_Controller {
 
             // Salva o plano na cotação
             $dados_cotacao["produto_parceiro_plano_id"] = $produto_parceiro_plano_id;
-            $cotacao_aux->update( $cotacao_salva["cotacao_equipamento_id"], $dados_cotacao, true );
+            $cotacao_aux->update( $cotacao_salva[$cotacao_aux_id], $dados_cotacao, true );
 
             // valida Capitalização
             $capitalizacao = $this->capitalizacao->validaNumeroSorte($cotacao_salva["cotacao_id"]);
@@ -507,7 +510,7 @@ class Cotacao extends CI_Controller {
 
                 $dados_cotacao["step"] = 4;
                 $this->campo->setDadosCampos( $produto_parceiro_id, "equipamento", "dados_segurado", $produto_parceiro_plano_id,  $dados_cotacao );
-                $cotacao_aux->update( $cotacao_salva["cotacao_equipamento_id"], $dados_cotacao, true );
+                $cotacao_aux->update( $cotacao_salva[$cotacao_aux_id], $dados_cotacao, true );
 
                 $result  = array(
                     "status" => true,
