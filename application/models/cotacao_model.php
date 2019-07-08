@@ -373,12 +373,12 @@ Class Cotacao_Model extends MY_Model
         $this->_database->join('cotacao_equipamento ce', 'cotacao.cotacao_id = ce.cotacao_id', 'left');
         $this->_database->join('cotacao_seguro_viagem csv', 'cotacao.cotacao_id = csv.cotacao_id', 'left');
 
-        $this->_database->join('cobertura_plano cp', 'cp.produto_parceiro_plano_id = IFNULL(IFNULL(ce.produto_parceiro_plano_id, cg.produto_parceiro_plano_id), csv.cg.produto_parceiro_plano_id) ');
+        $this->_database->join('cobertura_plano cp', 'cp.produto_parceiro_plano_id = IFNULL(IFNULL(ce.produto_parceiro_plano_id, cg.produto_parceiro_plano_id), csv.produto_parceiro_plano_id) ');
         $this->_database->join('cobertura c', 'cp.cobertura_id = c.cobertura_id');
 
         $this->filterByID($cotacao_id);
 
-        $this->_database->where("ct.deletado", 0);
+        $this->_database->where("cotacao.deletado", 0);
         $this->_database->where("cp.deletado", 0);
         $this->_database->where("c.deletado", 0);
         $this->_database->where("c.slug", 'sorteio_mensal');
