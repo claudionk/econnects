@@ -412,6 +412,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['serial']             = $cotacao_salva['serial'];
             $dados_equipamento['uuid']               = $cotacao_salva['uuid'];
             $dados_equipamento['data_aceite_termo']  = $cotacao_salva['data_aceite_termo'];
+            $dados_equipamento['numero_sorte']       = $cotacao_salva['numero_sorte'];
 
             $dados_equipamento['endereco_logradouro']     = $cotacao_salva['endereco_logradouro'];
             $dados_equipamento['endereco_numero']         = $cotacao_salva['endereco_numero'];
@@ -625,6 +626,7 @@ class Apolice_Model extends MY_Model
             $dados_generico['serial']             = $cotacao_salva['serial'];
             $dados_generico['uuid']               = $cotacao_salva['uuid'];
             $dados_generico['data_aceite_termo']  = $cotacao_salva['data_aceite_termo'];
+            $dados_generico['numero_sorte']       = $cotacao_salva['numero_sorte'];
 
             $this->apolice_generico->insert($dados_generico, true);
             $this->concluiApolice($pedido, $apolice_id);
@@ -802,6 +804,7 @@ class Apolice_Model extends MY_Model
                 $dados_seguro_viagem['uuid']                          = $cotacao_salva['uuid'];
                 $dados_seguro_viagem['data_aceite_termo']             = $cotacao_salva['data_aceite_termo'];
                 $dados_seguro_viagem['comissao_premio']               = round($cotacao_salva['comissao_premio'], 2);
+                $dados_seguro_viagem['numero_sorte']                  = $cotacao_salva['numero_sorte'];
 
                 $this->apolice_seguro_viagem->insert($dados_seguro_viagem, true);
                 $this->concluiApolice($pedido, $apolice_id);
@@ -840,7 +843,6 @@ class Apolice_Model extends MY_Model
                     /**
                      * Dispara email
                      */
-
                     log_message('debug', 'APOLICE DISPARO EMAIL');
                     if (!empty($evento['destinatario_email'])) {
                         $comunicacao = new Comunicacao();
@@ -1308,21 +1310,49 @@ class Apolice_Model extends MY_Model
         if (count($parceiro_capitalizacao) > 0) {
 
             foreach ($parceiro_capitalizacao as $index => $item) {
-                $capitalizacao = $this->capitalizacao->getTituloNaoUtilizado($item['capitalizacao_id']);
 
-                if (count($capitalizacao) > 0) {
-                    $capitalizacao                      = $capitalizacao[0];
+                $capitalizacaoItem = $this->capitalizacao->get($item['capitalizacao_id']);
+                if (count($capitalizacaoItem) > 0) {
+
+                    // Dados de entrada
                     $dados_capitalizacao                = array();
                     $dados_capitalizacao['pedido_id']   = $pedido_id;
                     $dados_capitalizacao['utilizado']   = 1;
                     $dados_capitalizacao['data_compra'] = date('Y-m-d H:i:s');
-                    $this->capitalizacao_serie_titulo->update($capitalizacao['capitalizacao_serie_titulo_id'], $dados_capitalizacao, true);
 
-                    /*
-                $dados_tipo_apolice = array();
-                $dados_tipo_apolice['apolice_id'] = $apolice_id;
-                $dados_tipo_apolice['capitalizacao_serie_titulo_id'] = $capitalizacao['capitalizacao_serie_titulo_id'];
-                $this->insert($dados_tipo_apolice, TRUE); */
+                    // Parceiro
+                    if ($capitalizacaoItem['responsavel_num_sorte'] == 1)
+                    {
+                        // Recupera o número da Sorte
+                        $apolices = $this->getApolicePedido($pedido_id);
+                        if ($apolices) {
+                            foreach ($apolices as $apolice) {
+                                $numero_sorte = $apolice['numero_sorte'];
+
+                                // Se foi enviado o número da sorte
+                                if ($numero_sorte){
+                                    // validar se está dentro da range
+                                    if ($capitalizacao_serie = $this->capitalizacao->getDadosSerie($item['capitalizacao_id'], $numero_sorte) )
+                                    {
+                                        $dados_capitalizacao['capitalizacao_serie_id'] = $capitalizacao_serie['capitalizacao_serie_id'];
+                                        $dados_capitalizacao['contemplado'] = 0;
+                                        $dados_capitalizacao['numero'] = $numero_sorte;
+                                        $dados_capitalizacao['ativo'] = 1;
+                                        $this->titulo->insert($dados_capitalizacao, TRUE);
+                                    }
+
+                                }
+                            }
+                        }
+
+                    } else {
+                        $capitalizacao = $this->capitalizacao->getTituloNaoUtilizado($item['capitalizacao_id']);
+
+                        if (count($capitalizacao) > 0) {
+                            $capitalizacao = $capitalizacao[0];
+                            $this->capitalizacao_serie_titulo->update($capitalizacao['capitalizacao_serie_titulo_id'], $dados_capitalizacao, true);
+                        }
+                    }
 
                 }
 
@@ -1347,7 +1377,6 @@ class Apolice_Model extends MY_Model
 
     public function getApoliceByNumero($num_apolice, $parceiro_id)
     {
-
         $this->_database->select("apolice.apolice_id, apolice.apolice_status_id, apolice_status.nome")
             ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
             ->where("apolice.num_apolice", $num_apolice)

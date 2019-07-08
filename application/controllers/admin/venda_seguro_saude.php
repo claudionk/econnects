@@ -414,6 +414,7 @@ class Venda_Seguro_Saude extends Admin_Controller {
     $this->load->model('cliente_model', 'cliente');
     $this->load->model('cotacao_model', 'cotacao');
     $this->load->model('localidade_estado_model', 'localidade_estado');
+    $this->load->model('capitalizacao_model', 'capitalizacao');
 
     //Carrega JS para template
     $this->template->css(app_assets_url('modulos/venda/seguro_saude/css/select2.css', 'admin'));
@@ -472,12 +473,14 @@ class Venda_Seguro_Saude extends Admin_Controller {
       redirect("{$this->controller_uri}/index");
     }
 
-
-
-
+    // valida Capitalização
+    $capitalizacao = $this->capitalizacao->validaNumeroSorte($cotacao_id);
+    if ( empty($capitalizacao['status']) ) {
+        $this->session->set_flashdata('fail_msg', $capitalizacao["message"]);
+        redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/3/{$cotacao_id}");
+    }
 
     $data = array();
-
     $data['cotacao_id'] = $cotacao_id;
     $data['campos'] = $this->campo->with_campo()
       ->with_campo_tipo()

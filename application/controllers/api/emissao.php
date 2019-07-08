@@ -30,6 +30,7 @@ class Emissao extends CI_Controller {
     public $comissao_premio;
     public $coberturas_opcionais;
     public $parcelas;
+    public $numero_sorte;
 
     public function __construct() {
         parent::__construct();
@@ -55,6 +56,7 @@ class Emissao extends CI_Controller {
         } else {
             die( json_encode( array( "status" => false, "message" => "APIKEY is missing" ) ) );
         }
+
         $this->usuario_id = $webservice["usuario_id"];
         $this->parceiro_id = $webservice["parceiro_id"];
         $this->load->database('default');
@@ -95,18 +97,19 @@ class Emissao extends CI_Controller {
             die(json_encode(array("status"=>false,"message"=>"Parametros não informados"),JSON_UNESCAPED_UNICODE));
         }
 
-
-        $this->equipamento_nome = '';
-        $this->ean = '';
-        $this->num_apolice = (!isset($POST['num_apolice'])) ? false : $POST['num_apolice'];
-        $this->valor_premio_bruto = (!isset($POST['valor_premio_bruto'])) ? 0 : $POST['valor_premio_bruto'];
-        $this->comissao_premio = (empty($POST['comissao'])) ? 0 : $POST['comissao'];
+        $this->equipamento_nome     = '';
+        $this->ean                  = '';
+        $this->num_apolice          = (!isset($POST['num_apolice'])) ? false : $POST['num_apolice'];
+        $this->valor_premio_bruto   = (!isset($POST['valor_premio_bruto'])) ? 0 : $POST['valor_premio_bruto'];
+        $this->comissao_premio      = (empty($POST['comissao'])) ? 0 : $POST['comissao'];
         $this->coberturas_opcionais = (!isset($POST['coberturas_opcionais'])) ? '' : $POST['coberturas_opcionais'];
-        $this->meio_pagto_slug = (!isset($POST['meiopagamento']['meio_pagto_slug'])) ? '' : $POST['meiopagamento']['meio_pagto_slug'];
-        $this->campos_meios_pagto = (!isset($POST['meiopagamento']['campos'])) ? [] : $POST['meiopagamento']['campos'];
-        $this->parcelas = (!isset($POST['meiopagamento']['parcelas'])) ? null : $POST['meiopagamento']['parcelas'];
+        $this->meio_pagto_slug      = (!isset($POST['meiopagamento']['meio_pagto_slug'])) ? '' : $POST['meiopagamento']['meio_pagto_slug'];
+        $this->campos_meios_pagto   = (!isset($POST['meiopagamento']['campos'])) ? [] : $POST['meiopagamento']['campos'];
+        $this->parcelas             = (!isset($POST['meiopagamento']['parcelas'])) ? null : $POST['meiopagamento']['parcelas'];
+        $this->numero_sorte         = (!isset($POST['numero_sorte'])) ? null : $POST['numero_sorte'];
 
-        $this->etapas('cotacao',$POST);
+        $this->etapas('cotacao', $POST);
+
     }
 
     public function etapas($etapa = null, $parametros = []){
@@ -153,6 +156,13 @@ class Emissao extends CI_Controller {
                     "comissao_premio"           => $this->comissao_premio,
                     "coberturas_opcionais"      => $this->coberturas_opcionais,
                 ];
+
+                // número da sorte
+                if ( $this->numero_sorte )
+                {
+                    $arrOptions['numero_sorte'] =  $this->numero_sorte;
+                }
+
                 if(count($parametros['campos'][0]) > 0)
                 {
                     foreach ($parametros['campos'][0] as $key => $vl) {
@@ -524,9 +534,4 @@ class Emissao extends CI_Controller {
     }
 
 }
-?>
-
-
-
-
 
