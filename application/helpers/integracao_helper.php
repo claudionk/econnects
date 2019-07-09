@@ -125,11 +125,8 @@ if ( ! function_exists('app_integracao_get_total_titulos')) {
     }
 }
 if ( ! function_exists('app_integracao_format_sequencia')) {
-
-
     function app_integracao_format_sequencia($formato, $dados = array())
     {
-
         if((isset($dados['registro'][0]['num_remessa'])) && (isset($dados['registro'][0]['capitalizacao_id'])) ){
             $num_remessa =  $dados['registro'][0]['num_remessa'] += 1;
             $CI =& get_instance();
@@ -141,9 +138,7 @@ if ( ! function_exists('app_integracao_format_sequencia')) {
         }else{
             return date('Y') . '000001';
         }
-
     }
-
 }
 
 if ( ! function_exists('app_integracao_format_sequencia_cap_mapfre')) {
@@ -1941,5 +1936,22 @@ if ( ! function_exists('app_integracao_cap_data_sorteio')) {
         }
 
         return $data;
+    }
+}
+if ( ! function_exists('app_integracao_cap_remessa')) {
+    function app_integracao_cap_remessa($formato, $dados = array())
+    {
+        $CI =& get_instance();
+        $CI->load->model('capitalizacao_model');
+
+        if((isset($dados['registro']['dados'][0]['num_remessa'])) && (isset($dados['registro']['dados'][0]['capitalizacao_id'])) ){
+            $num_remessa = $dados['registro']['dados'][0]['num_remessa'] += 1;
+            $data_cap    = array('num_remessa' => $num_remessa);
+            $CI->capitalizacao_model->update($dados['registro']['dados'][0]['capitalizacao_id'], $data_cap, TRUE);
+
+            return true;
+        }else{
+            return false;
+        }
     }
 }

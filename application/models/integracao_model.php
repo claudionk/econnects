@@ -327,7 +327,7 @@ Class Integracao_Model extends MY_Model
             $dados_integracao['status'] = 'A';
             $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
-            //execute before execute
+            //execute after execute
             if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
                 call_user_func($result['after_execute'], null, array('item' => $result, 'registro' => $result_file, 'log' => $result_process, 'valor' => null));
             }
@@ -356,7 +356,6 @@ Class Integracao_Model extends MY_Model
 
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
-                echo $result['before_execute']."<br>";
                 call_user_func($result['before_execute'], null, array('item' => $result, 'registro' => array(), 'log' => array(), 'valor' => null));
             }
 
@@ -399,6 +398,10 @@ Class Integracao_Model extends MY_Model
             $dados_integracao['status'] = 'A';
             $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
+            //execute after execute
+            if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
+                call_user_func($result['after_execute'], null, array('item' => $result, 'registro' => $result_file, 'log' => $dados_log, 'valor' => null));
+            }
         }
     }
 
@@ -708,6 +711,7 @@ Class Integracao_Model extends MY_Model
         }
 
         $arRet['file'] = "{$diretorio}/{$filename}";
+        $arRet['dados'] = $registros;
 
         //gera todas as linhas
         foreach ($layout as $lay) {
