@@ -1031,22 +1031,7 @@ Class Integracao_Model extends MY_Model
 
         foreach ($layout as $ind => $item) {
 
-            // Se for obrigatório precisa validar e retornar erro para gerar log de retorno
-            if ($item['obrigatorio'] == 1 && !empty($item['nome_banco']) ){
-                if ( !isset($registro[$item['nome_banco']]) || strlen(trim($registro[$item['nome_banco']])) == 0 
-                    || ( $item['campo_tipo']=='M' && !($registro[$item['nome_banco']] > 0) ) 
-                    // || ( $item['campo_tipo']=='D' && !($registro[$item['nome_banco']] > 0) ) 
-                ) {
-                    // seta para erro
-                    $integracao_log_status_id = 8;
-
-                    // gera log do erro
-                    $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, 1, "O campo {$item['nome']} é obrigatório", $item['nome_banco']);
-
-                    // não gera a linha
-                    continue;
-                }
-            }
+            
 
             $campo = null;
             $pre_result = '';
@@ -1080,6 +1065,25 @@ Class Integracao_Model extends MY_Model
                     $campo = '';
                 }
 
+            }
+
+            // Se for obrigatório precisa validar e retornar erro para gerar log de retorno
+            if ($item['obrigatorio'] == 1 && !empty($item['nome_banco']) && empty($campo)){
+                if ( !isset($registro[$item['nome_banco']]) || strlen(trim($registro[$item['nome_banco']])) == 0
+                    || ( $item['campo_tipo']=='M' && !($registro[$item['nome_banco']] > 0) ) 
+                    // || ( $item['campo_tipo']=='D' && !($registro[$item['nome_banco']] > 0) ) 
+                ) {
+                    var_dump(!isset($registro[$item['nome_banco']]));die();
+
+                    // seta para erro
+                    $integracao_log_status_id = 8;
+
+                    // gera log do erro
+                    $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, 1, "O campo {$item['nome']} é obrigatório", $item['nome_banco']);
+
+                    // não gera a linha
+                    continue;
+                }
             }
 
             if (!is_null($campo)){
