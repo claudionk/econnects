@@ -55,11 +55,11 @@ Class Produto_Parceiro_Apolice_Range_Model extends MY_Model
         );
         return $data;
     }
-    function get_by_id($id)
+
+    public function get_by_id($id)
     {
         return $this->get($id);
     }
-
 
     public function get_proximo_codigo($produto_parceiro_id){
 
@@ -87,11 +87,26 @@ Class Produto_Parceiro_Apolice_Range_Model extends MY_Model
         }
     }
 
-    function  filter_by_produto_parceiro($produto_parceiro_id){
-
+    public function  filter_by_produto_parceiro($produto_parceiro_id){
         $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
-
         return $this;
+    }
+
+    public function get_range($produto_parceiro_id){
+        $this->_database->select("{$this->_table}.*");
+        $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
+        $this->_database->where("{$this->_table}.deletado", 0);
+        $this->_database->where("{$this->_table}.habilitado", 1);
+        #$this->_database->where("{$this->_table}.sequencia < ", "{$this->_table}.numero_fim");
+        $this->_database->from($this->_table);
+        $this->_database->limit(1);
+
+        $query = $this->_database->get();
+        if ( empty($query->num_rows()) ){
+            return null;
+        }
+
+        return $query->result_array()[0];
     }
 
 }

@@ -338,6 +338,7 @@ class Cotacao extends CI_Controller {
 
         $produto_parceiro_id = issetor($params['produto_parceiro_id'], 0);
         $produto_parceiro_plano_id = issetor($params['produto_parceiro_plano_id'], 0);
+        $num_apolice = issetor($params['num_apolice'], null);
         //$parceiro_id = issetor($params['parceiro_id'], 0);
 
         $repasse_comissao = $params["repasse_comissao"];
@@ -460,21 +461,35 @@ class Cotacao extends CI_Controller {
                 "errors" => $erros,
             );
         } else {
-            $dados_cotacao["step"] = 4;
-            $this->campo->setDadosCampos( $produto_parceiro_id, "equipamento", "dados_segurado", $produto_parceiro_plano_id,  $dados_cotacao );
-            $dados_cotacao["produto_parceiro_plano_id"] = $produto_parceiro_plano_id;
 
-            $this->cotacao_equipamento->update( $cotacao_salva["cotacao_equipamento_id"], $dados_cotacao, true );
-            //$this->cliente->atualizar( $cotacao_salva["cliente_id"], $dados_cotacao );
+            // TODO: enviar o número da apolice ou o id para pegar os parametros produto_parceiro_id e num_apolice
+            //Valida Número do Certificado
+            $valNumApolice = $this->cotacao->validaNumApolice($produto_parceiro_id, $num_apolice);
+            if ( empty($valNumApolice['status']) ) {
 
-            $result  = array(
-                "status" => true,
-                "mensagem" => "Cotação finalizada. Efetuar pagamento.",
-                "cotacao_id" => $cotacao_salva["cotacao_id"],
-                "produto_parceiro_id" => $cotacao_salva["produto_parceiro_id"],
-                "validacao" => $validacao
-            );
+                $valNumApolice["mensagem"] = $valNumApolice["message"];
+                $result = $valNumApolice;
+
+            } else {
+
+                $dados_cotacao["step"] = 4;
+                $this->campo->setDadosCampos( $produto_parceiro_id, "equipamento", "dados_segurado", $produto_parceiro_plano_id,  $dados_cotacao );
+                $dados_cotacao["produto_parceiro_plano_id"] = $produto_parceiro_plano_id;
+
+                $this->cotacao_equipamento->update( $cotacao_salva["cotacao_equipamento_id"], $dados_cotacao, true );
+                //$this->cliente->atualizar( $cotacao_salva["cliente_id"], $dados_cotacao );
+
+                $result  = array(
+                    "status" => true,
+                    "mensagem" => "Cotação finalizada. Efetuar pagamento.",
+                    "cotacao_id" => $cotacao_salva["cotacao_id"],
+                    "produto_parceiro_id" => $cotacao_salva["produto_parceiro_id"],
+                    "validacao" => $validacao
+                );
+
+            }
         }
+
         return $result;
     }
 
