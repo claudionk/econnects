@@ -306,7 +306,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['cnpj_cpf']        = $cotacao_salva['cnpj_cpf'];
             $dados_equipamento['rg']              = $cotacao_salva['rg'];
             $dados_equipamento['nome']            = $cotacao_salva['nome'];
-            $dados_equipamento['nome_mae']        = $cotacao_salva['nome'];
+            $dados_equipamento['nome_mae']        = $cotacao_salva['nome_mae'];
             $dados_equipamento['data_nascimento'] = $cotacao_salva['data_nascimento'];
             $dados_equipamento['sexo']            = $cotacao_salva['sexo'];
             $dados_equipamento['email']           = $cotacao_salva['email'];
@@ -500,7 +500,7 @@ class Apolice_Model extends MY_Model
             $dados_generico['cnpj_cpf']                = $cotacao_salva['cnpj_cpf'];
             $dados_generico['rg']                      = $cotacao_salva['rg'];
             $dados_generico['nome']                    = $cotacao_salva['nome'];
-            $dados_generico['nome_mae']                = $cotacao_salva['nome'];
+            $dados_generico['nome_mae']                = $cotacao_salva['nome_mae'];
             $dados_generico['data_nascimento']         = $cotacao_salva['data_nascimento'];
             $dados_generico['sexo']                    = $cotacao_salva['sexo'];
             $dados_generico['email']                   = $cotacao_salva['email'];
