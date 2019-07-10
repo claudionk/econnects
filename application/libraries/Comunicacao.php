@@ -262,10 +262,11 @@ class Comunicacao
                 $response['retorno_codigo'] = $resp['messageId'];
 
                 //sucesso
-                if ($response['status']['name'] == "PENDING_ENROUTE") {
-                    $retorno['status'] = true;
-                } else {
-                    $retorno['retorno'] = "O SMS para o Número {$resp['to']} retornou o status {$resp['status']['name']} [{$resp['status']['description']}]";
+                if($resp['status']['name'] == "PENDING_ENROUTE"){
+                    $response['status'] = true;
+                }else
+                {
+                    $response['retorno'] = "O SMS para o Número {$resp['to']} retornou o status {$resp['status']['name']} [{$resp['status']['description']}]";
                 }
             }
 
