@@ -48,25 +48,13 @@ class Comunicacao
                 'comunicacao_status.slug' => "aguardando",
             ));
 
-        echo "<pre>";
-        // $this->disparaEvento('powerbiz_new', 72);
-        // print($this->_ci->db->last_query());
-        // print_r($mensagens);
-        // die();
-
         foreach ($mensagens as $mensagem) {
 
             $template = $this->_ci->comunicacao_template->get($mensagem['produto_parceiro_comunicacao_comunicacao_template_id']);
-            // print_r($template);die();
 
             $engine_id = $template['comunicacao_engine_configuracao_id']; //produto_parceiro_comunicacao_comunicacao_engine_configuracao_id
 
             $engine = $this->_ci->comunicacao_engine_configuracao->with_foreign()->get($engine_id);
-
-            // print_r($this->_ci->db->last_query());
-            // print_r($engine);
-            // die();
-
             if ($engine) {
                 $tipo_engine = $this->_ci->comunicacao_tipo->get($engine['comunicacao_engine_comunicacao_tipo_id']);
 
@@ -79,10 +67,7 @@ class Comunicacao
                 }
 
                 $metodo      = "envia_{$tipo_engine['slug']}";
-                // print_r($metodo);die();
                 $response    = $this->{$metodo}($mensagem, $engine);
-                print_r($response);die();
-
                 $update = array();
 
                 $log_descricao = "";
