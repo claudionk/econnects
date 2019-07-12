@@ -86,7 +86,7 @@ Class Comissao_Gerada_Model extends MY_Model {
         $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
         $this->load->model('comissao_classe_model', 'comissao_classe');
 
-        $sql = "SELECT parceiro_tipo.codigo_interno,
+        $sql = "SELECT 
                 cotacao.cotacao_id,
                 cotacao.parceiro_id,
                 pedido.pedido_id,
@@ -105,8 +105,6 @@ Class Comissao_Gerada_Model extends MY_Model {
             LEFT JOIN  cotacao_generico ON cotacao_generico.cotacao_id = cotacao.cotacao_id AND cotacao_generico.deletado = 0
             INNER JOIN parceiro_relacionamento_produto ON cotacao.parceiro_id = parceiro_relacionamento_produto.parceiro_id AND parceiro_relacionamento_produto.produto_parceiro_id = ifnull(ifnull(cotacao_equipamento.produto_parceiro_id, cotacao_generico.produto_parceiro_id), cotacao_seguro_viagem.produto_parceiro_id)
             LEFT JOIN comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.deletado = 0 
-            INNER JOIN parceiro ON parceiro.parceiro_id = parceiro_relacionamento_produto.parceiro_id
-            INNER JOIN parceiro_tipo ON parceiro.parceiro_tipo_id = parceiro_tipo.parceiro_tipo_id
             WHERE pedido.pedido_status_id IN (3,8) 
                 AND cotacao.deletado = 0
                 AND pedido.deletado = 0
@@ -122,6 +120,8 @@ Class Comissao_Gerada_Model extends MY_Model {
 
     private function geraComissaoRelacionamento($item, $pai_id) {
         $parceiro_relacionamento = $this->parceiro_relacionamento_produto
+            ->with_parceiro()
+            ->with_parceiro_tipo()
             ->filter_by_produto_parceiro($item['produto_parceiro_id'])
             ->get($pai_id);
 
@@ -140,7 +140,7 @@ Class Comissao_Gerada_Model extends MY_Model {
         $premio_liquido_total = $item["premio_liquido"];
 
         // valida se possui uma Comissão específica da venda
-        if ( !empty($item['comissao_premio']) && $item['comissao_premio'] > 0 && $item['codigo_interno'] == 'representante')
+        if ( !empty($item['comissao_premio']) && $item['comissao_premio'] > 0 && $parceiro['codigo_interno'] == 'representante')
         {
             $comissao_premio = $item['comissao_premio'];
         } else {
