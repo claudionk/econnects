@@ -1967,7 +1967,7 @@ Class Pedido_Model extends MY_Model
         $this->load->model("cotacao_equipamento_model", "cotacao_equipamento");
         $this->load->model("cotacao_model", "cotacao");
         $this->load->model("produto_parceiro_pagamento_model", "produto_pagamento");
-
+        $this->load->model('apolice_model', 'apolice');
         $this->load->model("forma_pagamento_model", "forma_pagamento");
 
         //se é debito ou credito
@@ -2064,7 +2064,6 @@ Class Pedido_Model extends MY_Model
                 ) 
             );
         }
-        //die( json_encode( $dados, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );    
 
         $dados_pedido = array();
         $dados_pedido["cotacao_id"] = $dados["cotacao_id"];
@@ -2072,12 +2071,14 @@ Class Pedido_Model extends MY_Model
         $dados_pedido["pedido_status_id"] = 1;
         $dados_pedido["codigo"] = $this->pedido_codigo->get_codigo_pedido_formatado("BE");
         $dados_pedido["status_data"] = date("Y-m-d H:i:s");
+        $dados_pedido["alteracao_usuario_id"] = $this->session->userdata("usuario_id");
         $dados_pedido["valor_total"] = $valor_total;
         $dados_pedido["num_parcela"] = $dados["parcelamento{$dados_bandeira}"];
-        $dados_pedido["valor_parcela"] = $parcelamento[$dados["parcelamento{$dados_bandeira}"]];
-        $dados_pedido["alteracao_usuario_id"] = $this->session->userdata("usuario_id");
-
-        //die( json_encode( $dados_pedido, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+        if ( $this->apolice->isControleEndossoPeloClienteByProdutoParceiroId($dados["produto_parceiro_id"]) ) {
+            $dados_pedido["valor_parcela"] =  $valor_total;
+        } else {
+            $dados_pedido["valor_parcela"] =  $parcelamento[$dados["parcelamento{$dados_bandeira}"]];            
+        }
 
         $pedido_id = $this->insert( $dados_pedido, true );
         $this->pedido_transacao->insStatus( $pedido_id, "criado" );

@@ -1391,4 +1391,19 @@ class Apolice_Model extends MY_Model
         return $dadosPP;
     }
 
+    /**
+     * Valida se a apolice se encontra no status desejado
+     * @param int $apolice_id
+     * @param string $slug_status
+     * @return boolean
+     * @author Cristiano Arruda
+     * @since  12/07/2019
+     */
+    function getApoliceStatus($apolice_id, $slug_status) {
+        $this->_database->join("apolice_status as ast ", "ast.apolice_status_id = {$this->_table}.apolice_status_id", "inner");
+        $this->_database->where("{$this->_table}.apolice_id", $apolice_id);
+        $this->_database->where("ast.slug", $slug_status);
+        return !empty($this->get_all());
+    }
+
 }

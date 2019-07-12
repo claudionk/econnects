@@ -32,8 +32,10 @@ Class Apolice_Cobertura_Model extends MY_Model
     }
 
     function filterByPedidoID($pedido_id){
-        $this->_database->select("{$this->_table}.*, apolice_equipamento.valor_premio_net");
-        $this->_database->join("apolice_equipamento","apolice_equipamento.apolice_id = {$this->_table}.apolice_id");
+        $this->_database->select("{$this->_table}.*, IFNULL(IFNULL(apolice_equipamento.valor_premio_net,apolice_generico.valor_premio_net),apolice_seguro_viagem.valor_premio_net) AS valor_premio_net", FALSE);
+        $this->_database->join("apolice_equipamento","apolice_equipamento.apolice_id = {$this->_table}.apolice_id", "left");
+        $this->_database->join("apolice_generico","apolice_generico.apolice_id = {$this->_table}.apolice_id", "left");
+        $this->_database->join("apolice_seguro_viagem","apolice_seguro_viagem.apolice_id = {$this->_table}.apolice_id", "left");
         $this->_database->where("{$this->_table}.pedido_id", $pedido_id);
         $this->_database->where("{$this->_table}.deletado", 0);
         return $this;
