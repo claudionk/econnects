@@ -904,18 +904,19 @@ class Apolice_Model extends MY_Model
             ->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
             ->join("produto", "produto_parceiro.produto_id = produto.produto_id", 'inner')
             ->join("parceiro parceiro_seg", "parceiro_seg.parceiro_id = produto_parceiro.parceiro_id", 'inner')
-            ->join("parceiro", "parceiro.parceiro_id = apolice.parceiro_id", 'inner');
+            ->join("parceiro", "parceiro.parceiro_id = apolice.parceiro_id", 'inner')
+            ->join("capitalizacao_serie_titulo", "apolice.pedido_id = capitalizacao_serie_titulo.pedido_id and capitalizacao_serie_titulo.deletado = 0", 'left');
 
-            if ($pedido) {
-                $pedido = $pedido[0];
-                if ($pedido['slug'] == 'seguro_viagem') {
-                    $this->_database->select("apolice_seguro_viagem.*")
+        if ($pedido) {
+            $pedido = $pedido[0];
+            if ($pedido['slug'] == 'seguro_viagem') {
+                $this->_database->select("apolice_seguro_viagem.*, IFNULL(apolice_seguro_viagem.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte ", FALSE)
                     ->join("apolice_seguro_viagem", "apolice.apolice_id = apolice_seguro_viagem.apolice_id", 'inner');
-                } elseif ($pedido['slug'] == 'equipamento') {
-                    $this->_database->select("apolice_equipamento.*")
+            } elseif ($pedido['slug'] == 'equipamento') {
+                $this->_database->select("apolice_equipamento.*, IFNULL(apolice_equipamento.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte ", FALSE)
                     ->join("apolice_equipamento", "apolice.apolice_id = apolice_equipamento.apolice_id", 'inner');
-                } elseif ($pedido["slug"] == "generico" || $pedido["slug"] == "seguro_saude") {
-                    $this->_database->select("apolice_generico.*")
+            } elseif ($pedido["slug"] == "generico" || $pedido["slug"] == "seguro_saude") {
+                $this->_database->select("apolice_generico.*, IFNULL(apolice_generico.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte ", FALSE)
                     ->join("apolice_generico", "apolice.apolice_id = apolice_generico.apolice_id", 'inner');
                 }
                 
