@@ -357,6 +357,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['valor_parcela']           = round($pedido['valor_parcela'], 2);
             $dados_equipamento['valor_estorno']           = 0;
             $dados_equipamento['valor_desconto']          = round($cotacao_salva['valor_desconto'], 2);
+            $dados_equipamento['comissao_premio']         = round($cotacao_salva['comissao_premio'], 2);
 
             $this->apolice_equipamento->insert($dados_equipamento, true);
             $this->concluiApolice($pedido, $apolice_id);
@@ -526,6 +527,7 @@ class Apolice_Model extends MY_Model
             $dados_generico['pro_labore']              = round(($cotacao_salva['premio_liquido_total'] - $cotacao_salva['premio_liquido']), 2);
             $dados_generico['valor_parcela']           = round($pedido['valor_parcela'], 2);
             $dados_generico['valor_estorno']           = 0;
+            $dados_generico['comissao_premio']         = round($cotacao_salva['comissao_premio'], 2);
 
             $dados_generico['estado_civil']       = $cotacao_salva['estado_civil'];
             $dados_generico['rg_orgao_expedidor'] = $cotacao_salva['rg_orgao_expedidor'];
@@ -720,6 +722,7 @@ class Apolice_Model extends MY_Model
                 $dados_seguro_viagem['serial']                        = $cotacao_salva['serial'];
                 $dados_seguro_viagem['uuid']                          = $cotacao_salva['uuid'];
                 $dados_seguro_viagem['data_aceite_termo']             = $cotacao_salva['data_aceite_termo'];
+                $dados_seguro_viagem['comissao_premio']               = round($cotacao_salva['comissao_premio'], 2);
 
                 $this->apolice_seguro_viagem->insert($dados_seguro_viagem, true);
                 $this->concluiApolice($pedido, $apolice_id);
@@ -1429,6 +1432,21 @@ class Apolice_Model extends MY_Model
 
         return $this->get_all();
 
+    }
+
+    /**
+     * Valida se a apolice se encontra no status desejado
+     * @param int $apolice_id
+     * @param string $slug_status
+     * @return boolean
+     * @author Cristiano Arruda
+     * @since  12/07/2019
+     */
+    function getApoliceStatus($apolice_id, $slug_status) {
+        $this->_database->join("apolice_status as ast ", "ast.apolice_status_id = {$this->_table}.apolice_status_id", "inner");
+        $this->_database->where("{$this->_table}.apolice_id", $apolice_id);
+        $this->_database->where("ast.slug", $slug_status);
+        return !empty($this->get_all());
     }
 
 }

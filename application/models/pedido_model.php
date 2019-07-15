@@ -1967,7 +1967,7 @@ Class Pedido_Model extends MY_Model
         $this->load->model("cotacao_equipamento_model", "cotacao_equipamento");
         $this->load->model("cotacao_model", "cotacao");
         $this->load->model("produto_parceiro_pagamento_model", "produto_pagamento");
-
+        $this->load->model('apolice_model', 'apolice');
         $this->load->model("forma_pagamento_model", "forma_pagamento");
 
         //se é debito ou credito
@@ -1975,18 +1975,15 @@ Class Pedido_Model extends MY_Model
             $dados['num_parcela'] = 1;
         }
 
-        if($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_CREDITO ) {
+        if ( !empty($dados["bandeira"]) )
+        {
             $item = $this->produto_pagamento->get_by_id($dados["bandeira"]);
-        }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) {
-            $item = $this->produto_pagamento->get_by_id($dados["bandeira"]);
-        }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_FATURADO ) {
-            $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_FATURADO)->limit(1)->get_all();
-            $item = $item[0];
-        }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_TERCEIROS ) {
-            $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_TERCEIROS)->limit(1)->get_all();
-            $item = $item[0];
-        }elseif ($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_BOLETO ) {
-            $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_BOLETO)->limit(1)->get_all();
+        } else {
+            $item = $this->produto_pagamento
+                ->with_forma_pagamento()
+                ->filter_by_produto_parceiro($dados['produto_parceiro_id'])
+                ->filter_by_forma_pagamento_tipo($dados["forma_pagamento_tipo_id"])
+                ->limit(1)->get_all();
             $item = $item[0];
         }
 
@@ -2067,7 +2064,6 @@ Class Pedido_Model extends MY_Model
                 ) 
             );
         }
-        //die( json_encode( $dados, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );    
 
         $dados_pedido = array();
         $dados_pedido["cotacao_id"] = $dados["cotacao_id"];
@@ -2075,19 +2071,24 @@ Class Pedido_Model extends MY_Model
         $dados_pedido["pedido_status_id"] = 1;
         $dados_pedido["codigo"] = $this->pedido_codigo->get_codigo_pedido_formatado("BE");
         $dados_pedido["status_data"] = date("Y-m-d H:i:s");
+        $dados_pedido["alteracao_usuario_id"] = $this->session->userdata("usuario_id");
         $dados_pedido["valor_total"] = $valor_total;
         $dados_pedido["num_parcela"] = $dados["parcelamento{$dados_bandeira}"];
-        $dados_pedido["valor_parcela"] = $parcelamento[$dados["parcelamento{$dados_bandeira}"]];
-        $dados_pedido["alteracao_usuario_id"] = $this->session->userdata("usuario_id");
-
-        //die( json_encode( $dados_pedido, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+        if ( $this->apolice->isControleEndossoPeloClienteByProdutoParceiroId($dados["produto_parceiro_id"]) ) {
+            $dados_pedido["valor_parcela"] =  $valor_total;
+        } else {
+            $dados_pedido["valor_parcela"] =  $parcelamento[$dados["parcelamento{$dados_bandeira}"]];            
+        }
 
         $pedido_id = $this->insert( $dados_pedido, true );
         $this->pedido_transacao->insStatus( $pedido_id, "criado" );
 
         unset( $dados["parcelamento{$dados_bandeira}"] );
-        $dados_bandeira = $dados["bandeira"];
-        unset( $dados["bandeira"] );
+        if ( isset($dados["bandeira"]) )
+        {
+            $dados_bandeira = $dados["bandeira"];
+            unset( $dados["bandeira"] );
+        }
 
         $this->fatura->insFaturaParcelas( $pedido_id, $dados["cotacao_id"], 1, $valor_total, $dados_pedido["num_parcela"], $dados_pedido["valor_parcela"], $dados["produto_parceiro_id"] );
         $faturas = $this->fatura->filterByPedido($pedido_id)->get_all();
@@ -2212,10 +2213,12 @@ Class Pedido_Model extends MY_Model
 
         $item = $this->produto_pagamento->get_by_id($dados['bandeira']);
         if( $item ) {
-            $forma_pagamento = $this->forma_pagamento->get_by_id($dados['forma_pagamento_id']);
+            $_forma_pagamento_id = issetor($item['forma_pagamento_id'], 0);
         } else {
-            $forma_pagamento = $this->forma_pagamento->get_by_id($item['forma_pagamento_id']);
+            $_forma_pagamento_id = issetor($dados['forma_pagamento_id'], 0);
         }
+
+        $forma_pagamento = $this->forma_pagamento->get_by_id($_forma_pagamento_id);
 
         if($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_CARTAO_CREDITO){
 

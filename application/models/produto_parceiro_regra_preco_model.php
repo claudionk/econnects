@@ -93,6 +93,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
         $sucess = TRUE;
         $messagem = '';
+        $desconto_upgrade = 0;
 
         $produto_parceiro_id = issetor($params['produto_parceiro_id'], 0);
         $parceiro_id = issetor($params['parceiro_id'], 0);
@@ -100,14 +101,10 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $equipamento_marca_id = issetor($params['equipamento_marca_id'], 0);
         $equipamento_categoria_id = issetor($params['equipamento_categoria_id'], 0);
         $quantidade = issetor($params['quantidade'], 0);
-
         $coberturas_adicionais = issetor($params['coberturas'], array());
-
         $repasse_comissao = app_unformat_percent($params['repasse_comissao']);
         $desconto_condicional= app_unformat_percent($params['desconto_condicional']);
         $desconto = $this->desconto->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
-
-        $desconto_upgrade = 0;
         $cotacao_id = issetor($params['cotacao_id'], 0);
 
         if($cotacao_id) {
@@ -130,11 +127,21 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         }
 
         $cotacao = $cotacao
-                ->filterByID($cotacao_id)
-                ->get_all();
+            ->filterByID($cotacao_id)
+            ->get_all();
 
         $cotacao = $cotacao[0];
         $produto_parceiro_plano_id = $cotacao["produto_parceiro_plano_id"];
+        $data_inicio_vigencia = issetor($cotacao['data_inicio_vigencia'], null);
+        $data_fim_vigencia = issetor($cotacao['data_fim_vigencia'], null);
+
+        // Comissão para realizar o calculo do premio
+        if ( !empty($params['comissao']) )
+        {
+            $comissao = app_unformat_percent($params['comissao']);
+        } else {
+            $comissao = issetor($cotacao['comissao_premio'], null);
+        }
 
         if(count($desconto) > 0){
             $desconto = $desconto[0];
@@ -184,7 +191,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             $quantidade = $servico_produto['quantidade_minima'];
         }
 
-        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_id, $servico_produto_id);
+        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_id, $servico_produto_id, $data_inicio_vigencia, $data_fim_vigencia, $comissao);
 
         $valores_cobertura_adicional_total = $valores_cobertura_adicional = array();
 
@@ -196,7 +203,6 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                 $valor = $this->getValorCoberturaAdicional($cobertura[0], $cobertura[1], $vigencia['dias']);
                 $valores_cobertura_adicional_total[$cobertura[0]] = (isset($valores_cobertura_adicional_total[$cobertura[0]])) ? ($valores_cobertura_adicional_total[$cobertura[0]] + $valor) : $valor;
                 $valores_cobertura_adicional[$cobertura[0]][] = $valor;
-
             }
         }
 
@@ -306,26 +312,21 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             $valores_liquido_total_cobertura[$key] = 0;
             $iof_calculado = false;
 
-            if (!empty($produto_parceiro_plano_id)) {
+            // Tratando se tem IOF - default para todas as coberturas
+            $r = $this->plano_cobertura->with_prod_parc_iof($key)->get_all();
 
-                // Tratando se tem IOF - default para todas as coberturas
-                $sql = "SELECT * FROM cobertura_plano WHERE produto_parceiro_plano_id = ".$produto_parceiro_plano_id." AND deletado = 0 AND usar_iof = 1";
-                $r = $this->_database->query($sql)->result_array();
-     
-                foreach ($r as $regra) {
-                    $iof_calculado = true;
-                    $iofPerc = round(($regra['iof']/100) * $regra['custo'], 2);
-                    $iofPerc = ($iofPerc == 0) ? 0.01 : $iofPerc;
+            foreach ($r as $regra) {
+                $iof_calculado = true;
+                $iofPerc = round(($regra['iof']/100) * $regra['custo'], 2);
+                $iofPerc = ($iofPerc == 0) ? 0.01 : $iofPerc;
 
-                    $valores_liquido_total_cobertura[$key] += $iofPerc;
-                    $iof = $regra['iof'];
-                }
+                $valores_liquido_total_cobertura[$key] += $iofPerc;
+                $iof = $regra['iof'];
+            }
 
-                if ($iof_calculado) {
-                    $valores_liquido_total[$key] += $valores_liquido_total_cobertura[$key];
-                    $valores_liquido_total[$key] -= $desconto_upgrade;
-                }
-
+            if ($iof_calculado) {
+                $valores_liquido_total[$key] += $valores_liquido_total_cobertura[$key] * $valores_bruto['quantidade'];
+                $valores_liquido_total[$key] -= $desconto_upgrade;
             }
 
             foreach ($regra_preco as $regra) {
@@ -345,7 +346,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         //Resultado
         $result  = array(
             'status' => $sucess,
-            'mensagem' => $messagem,
+            'mensagem' => 'Cálculo realizado com sucesso',
             'produto_parceiro_id' => $produto_parceiro_id,
             'repasse_comissao' => $repasse_comissao,
             'comissao' => $comissao_corretor,
@@ -416,7 +417,6 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
             $result["importancia_segurada"] = $cotacao["nota_fiscal_valor"];
             $result["coberturas"] = $coberturas;
-            $result["mensagem"] = $mensagem;
 
             error_log( "Cotação: " . print_r( $cotacao_salva, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
         }
@@ -433,7 +433,15 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         ));
 
         if($cobertura){
-            return (app_calculo_porcentagem($cobertura['porcentagem'],$cobertura['preco'])*$qntDias);
+            switch ($cobertura['mostrar']) {
+                case 'preco':
+                    return $cobertura['preco'];
+                    break;
+                default:
+                    return (app_calculo_porcentagem($cobertura['porcentagem'],$cobertura['preco'])*$qntDias);
+                    break;
+            }
+
         }else{
             return 0;
         }
