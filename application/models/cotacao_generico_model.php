@@ -549,7 +549,7 @@ Class Cotacao_Generico_Model extends MY_Model
                 $dados_cobertura_adicional = array();
                 $dados_cobertura_adicional['cotacao_generico_id'] = $cotacao_generico_id;
                 $dados_cobertura_adicional['cobertura_plano_id'] = $item;
-                $dados_cobertura_adicional['valor'] = $cobertura_adicional_valor[$index];
+                $dados_cobertura_adicional['valor'] = !empty($cobertura_adicional_valor[$index]) ? $cobertura_adicional_valor[$index] : 0;
                 $this->cotacao_generico_cobertura->insert($dados_cobertura_adicional, TRUE);
 
             }
