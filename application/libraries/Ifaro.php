@@ -266,7 +266,15 @@ class Ifaro
             "ZIG-ZAG" => "ZIGUE-ZAGUE",
         ];
 
-        $LogadouroTipo = isset($tipos[$LogadouroTipo]) ? $tipos[$LogadouroTipo] . ' ' : '';
+        // Caso tenha algum tipo de logradouro
+        if ( !empty($LogadouroTipo) )
+        {
+            // valida se existe alguma necessidade de DE x PARA
+            $LogadouroTipo = (isset($tipos[$LogadouroTipo]) ? $tipos[$LogadouroTipo] : $LogadouroTipo) . ' ';
+        } else {
+            $LogadouroTipo = '';
+        }
+
         return $LogadouroTipo.trim($Logadouro);
     }
 

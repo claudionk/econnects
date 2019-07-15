@@ -606,6 +606,11 @@ Class Integracao_Model extends MY_Model
 
                     // caso tenha que pegar o campo do detalhe
                     if (!empty($lm['sql'])) {
+                        $this->data_template_script['pedido_id']            = issetor($registro['pedido_id'], 0);
+                        $this->data_template_script['apolice_status_id']    = issetor($registro['apolice_status_id'], 0);
+                        $this->data_template_script['apolice_id']           = issetor($registro['apolice_id'], 0);
+                        $this->data_template_script['apolice_endosso_id']   = issetor($registro['apolice_endosso_id'], 0);
+                        $this->data_template_script['num_sequencial']       = issetor($registro['num_sequencial'], 0);
                         $lm['sql'] = $this->parser->parse_string($lm['sql'], $this->data_template_script, TRUE);
                         $reg = $this->_database->query($lm['sql'])->result_array();
                         $inserir=false;
