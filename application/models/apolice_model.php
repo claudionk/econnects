@@ -333,6 +333,12 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['aux_08']             = $cotacao_salva['aux_08'];
             $dados_equipamento['aux_09']             = $cotacao_salva['aux_09'];
             $dados_equipamento['aux_10']             = $cotacao_salva['aux_10'];
+            $dados_equipamento['tempo_uso']          = $cotacao_salva['tempo_uso'];
+            $dados_equipamento['imei2']              = $cotacao_salva['imei2'];
+            $dados_equipamento['latitude_longitude'] = $cotacao_salva['latitude_longitude'];
+            $dados_equipamento['serial']             = $cotacao_salva['serial'];
+            $dados_equipamento['uuid']               = $cotacao_salva['uuid'];
+            $dados_equipamento['data_aceite_termo']  = $cotacao_salva['data_aceite_termo'];
 
             $dados_equipamento['endereco_logradouro']     = $cotacao_salva['endereco_logradouro'];
             $dados_equipamento['endereco_numero']         = $cotacao_salva['endereco_numero'];
@@ -535,6 +541,12 @@ class Apolice_Model extends MY_Model
             $dados_generico['aux_08']             = $cotacao_salva['aux_08'];
             $dados_generico['aux_09']             = $cotacao_salva['aux_09'];
             $dados_generico['aux_10']             = $cotacao_salva['aux_10'];
+            $dados_generico['tempo_uso']          = $cotacao_salva['tempo_uso'];
+            $dados_generico['imei2']              = $cotacao_salva['imei2'];
+            $dados_generico['latitude_longitude'] = $cotacao_salva['latitude_longitude'];
+            $dados_generico['serial']             = $cotacao_salva['serial'];
+            $dados_generico['uuid']               = $cotacao_salva['uuid'];
+            $dados_generico['data_aceite_termo']  = $cotacao_salva['data_aceite_termo'];
 
             $this->apolice_generico->insert($dados_generico, true);
             $this->concluiApolice($pedido, $apolice_id);
@@ -702,6 +714,12 @@ class Apolice_Model extends MY_Model
                 $dados_seguro_viagem['pro_labore']                    = round((($pedido['premio_liquido_total'] - $pedido['premio_liquido']) / count($cotacao_pessoas)), 2);
                 $dados_seguro_viagem['valor_parcela']                 = round(($pedido['valor_parcela'] / count($cotacao_pessoas)), 2);
                 $dados_seguro_viagem['valor_estorno']                 = 0;
+                $dados_seguro_viagem['tempo_uso']                     = $cotacao_salva['tempo_uso'];
+                $dados_seguro_viagem['imei2']                         = $cotacao_salva['imei2'];
+                $dados_seguro_viagem['latitude_longitude']            = $cotacao_salva['latitude_longitude'];
+                $dados_seguro_viagem['serial']                        = $cotacao_salva['serial'];
+                $dados_seguro_viagem['uuid']                          = $cotacao_salva['uuid'];
+                $dados_seguro_viagem['data_aceite_termo']             = $cotacao_salva['data_aceite_termo'];
 
                 $this->apolice_seguro_viagem->insert($dados_seguro_viagem, true);
                 $this->concluiApolice($pedido, $apolice_id);
