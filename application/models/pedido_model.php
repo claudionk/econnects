@@ -2018,7 +2018,7 @@ Class Pedido_Model extends MY_Model
         $parcelamento = array();
         if( isset( $item['parcelamento_maximo'] ) ) {
 
-            if( $item['parcelamento_maximo'] < intval( $dados["num_parcela"] )) {
+            if( $item['parcelamento_maximo'] < intval( $dados["num_parcela"] ) && intval($dados["num_parcela"]) > 1) {
                 die( 
                     json_encode( 
                         array( 
