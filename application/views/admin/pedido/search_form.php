@@ -42,6 +42,13 @@
                                 <input class="form-control inputmask-date" id="filter_<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo app_get_value($field_name)?>" />
                             </div>
                         </div>
+                        <?php $field_name = 'num_apolice'; $field_label = 'Apólices / Bilhete'; ?>
+                        <div class="col-md-3">
+                            <h5><?php echo $field_label;?></h5>
+                            <div class="innerB">
+                                <input class="form-control" id="filter_<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo app_get_value($field_name)?>" />
+                            </div>
+                        </div>
 
                         <?php $field_name = 'pedido_status_id'; $field_label = 'Status do pedido'; ?>
                         <div class="col-md-3">

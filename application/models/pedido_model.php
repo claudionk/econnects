@@ -185,10 +185,13 @@ Class Pedido_Model extends MY_Model
                             $this->_database->where('cliente.data_nascimento', app_dateonly_mask_to_mysql($value));
                             break;
                         case "pedido_status_id":
-                            $this->_database->where('pedido.pedido_status_id', ($value));
+                            $this->_database->where('pedido.pedido_status_id', $value);
                             break;
                         case "fatura_status_id":
-                            $this->_database->where('fatura.fatura_status_id', ($value));
+                            $this->_database->where('fatura.fatura_status_id', $value);
+                            break;
+                        case "num_apolice":
+                            $this->_database->where("pedido.pedido_id IN(SELECT pedido_id FROM apolice WHERE num_apolice = '{$value}')");
                             break;
 
                         case "inadimplencia":
