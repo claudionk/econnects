@@ -1370,3 +1370,25 @@ if ( ! function_exists('app_integracao_gera_sinistro')) {
         $CI->db->query("call sp_gera_sinistro(27)");
     }
 }
+
+if ( ! function_exists('app_integracao_novo_mundo_ge')) {
+
+    function app_integracao_novo_mundo_ge($formato, $dados = array())
+    {
+        $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
+
+        $CI =& get_instance();
+
+        // definir operação pelo nome do arquivo ou por integracao?
+        // identificar se é emissão ou cancelamento
+        // validar regra de negócio
+        // é necessário realizar o enriquecimento de CPF
+        // realizar o enriquecimento do EAN
+
+        // Validar valor do plano
+        // realizar a emissão / cancelamento
+
+        return $response;
+    }
+}
+

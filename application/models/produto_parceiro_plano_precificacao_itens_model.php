@@ -64,6 +64,11 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
             'groups' => 'default'
         ),
         array(
+            'field' => 'equipamento_de_para',
+            'label' => 'equipamento_de_para',
+            'groups' => 'default'
+        ),
+        array(
             'field' => 'cobranca',
             'label' => 'cobranca',
             'rules' => 'required|enum[VALOR,PORCENTAGEM]',
@@ -88,6 +93,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
             'final' => app_unformat_currency($this->input->post('final')),
             'valor' => app_unformat_currency($this->input->post('valor')),
             'equipamento' => '',
+            'equipamento_de_para' => $this->input->post('equipamento_de_para'),
             'cobranca' => $this->input->post('cobranca'),
         );
 
@@ -103,6 +109,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         }
         return $data;
     }
+
     function get_by_id($id)
     {
         return $this->get($id);
