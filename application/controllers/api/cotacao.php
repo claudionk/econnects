@@ -230,8 +230,8 @@ class Cotacao extends CI_Controller {
         $this->load->model( "cotacao_model", "cotacao" );
         $this->load->model( "produto_parceiro_campo_model", "produto_parceiro_campo" );
         $this->load->model( 'produto_parceiro_regra_preco_model', 'regra_preco');
-        $this->load->model('cobertura_plano_model', 'cobertura_plano');
-        $this->load->model('cotacao_generico_cobertura_model', 'cotacao_generico_cobertura');
+        $this->load->model( 'cobertura_plano_model', 'cobertura_plano');
+        $this->load->model( 'cotacao_generico_cobertura_model', 'cotacao_generico_cobertura');
 
         $cotacao_id = null;
         if( !isset( $GET["cotacao_id"] ) ) {
@@ -241,9 +241,11 @@ class Cotacao extends CI_Controller {
         $cotacao_id = $GET["cotacao_id"];
 
         $produto_parceiro_id = issetor( $GET["produto_parceiro_id"], null );
+        $equipamento_id = issetor( $GET["equipamento_id"] , null);
         $equipamento_marca_id = issetor( $GET["equipamento_marca_id"] , null);
         $equipamento_categoria_id = issetor( $GET["equipamento_categoria_id"] , null);
-        $quantidade = issetor( $GET["quantidade"] , null);
+        $equipamento_de_para = issetor( $GET["equipamento_de_para"] , null);
+        $quantidade = issetor( $GET["quantidade"] , 1);
         $coberturas = issetor( $GET["coberturas_opcionais"] , null);
         $repasse_comissao = issetor( $GET["repasse_comissao"] , 0);
         $desconto_condicional = issetor( $GET["desconto_condicional"] , 0);
@@ -254,15 +256,22 @@ class Cotacao extends CI_Controller {
             $produto_parceiro_id = $cotacao["produto_parceiro_id"];
         }
         $produto = $this->current_model->with_produto()->get($produto_parceiro_id);
+        if ( $produto['produto_slug'] == 'equipamento') {
+            $cotacao_aux = $this->cotacao_equipamento->get_by(['cotacao_id' => $cotacao_id]);
+        } else {
+            $cotacao_aux = $this->cotacao_generico->get_by(['cotacao_id' => $cotacao_id]);
+        }
 
         $params["cotacao_id"] = $cotacao_id;
         $params["produto_parceiro_id"] = $produto_parceiro_id;
         $params["parceiro_id"] = $this->parceiro_id;
-        $params["equipamento_marca_id"] = $equipamento_marca_id;
-        $params["equipamento_categoria_id"] = $equipamento_categoria_id;
+        $params["equipamento_id"] = emptyor($equipamento_id, $cotacao_aux['equipamento_id']);
+        $params["equipamento_marca_id"] = emptyor($equipamento_marca_id, $cotacao_aux['equipamento_marca_id']);
+        $params["equipamento_categoria_id"] = emptyor($equipamento_categoria_id, $cotacao_aux['equipamento_categoria_id']);
+        $params["equipamento_de_para"] = emptyor($$equipamento_de_para, $cotacao_aux['equipamento_de_para']);
         $params["quantidade"] = $quantidade;
-        $params["repasse_comissao"] = $repasse_comissao;
-        $params["desconto_condicional"] = $desconto_condicional;
+        $params["repasse_comissao"] = emptyor($repasse_comissao, $cotacao_aux['repasse_comissao']);
+        $params["desconto_condicional"] = emptyor($desconto_condicional, $cotacao_aux['desconto_condicional']);
 
         if ( !empty($params["coberturas_opcionais"]) && is_array($params["coberturas_opcionais"]))
         {

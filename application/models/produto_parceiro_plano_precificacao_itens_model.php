@@ -137,10 +137,14 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
         return $this;
     }
+
     function filter_by_equipamento($equipamento){
-
         $this->_database->like("{$this->_table}.equipamento", "'{$equipamento}'");
+        return $this;
+    }
 
+    function filter_by_equipamento_de_para($equipamento_de_para){
+        $this->_database->where("{$this->_table}.equipamento_de_para", "{$equipamento_de_para}");
         return $this;
     }
 
@@ -192,7 +196,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param int $num_passageiro
     * @return array
     */
-    public function getValoresPlano( $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_id = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
+    public function getValoresPlano( $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_id = NULL, $equipamento_de_para = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
@@ -299,11 +303,18 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     $valor = $this
                         ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
                         ->filter_by_faixa( $valor_nota )
-                        ->filter_by_tipo_equipamento("EQUIPAMENTO")
-                        ->filter_by_equipamento($equipamento_id)
-                        ->get_all();
+                        ->filter_by_tipo_equipamento("EQUIPAMENTO");
 
-                    $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $data_nascimento);
+                    // Caso tenha um DE x PARA
+                    if ( !empty($equipamento_de_para) ) {
+                        $valor = $this->filter_by_equipamento_de_para($equipamento_de_para);
+                    } else {
+                        $valor = $this->filter_by_equipamento($equipamento_id);
+                    }
+
+                    $valor = $this->get_all();
+
+                    $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia);
 
                     if($calculo) {
                         $calculo = $calculo['valor'] * $quantidade;

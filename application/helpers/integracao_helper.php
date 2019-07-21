@@ -764,9 +764,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
             if (!empty($enriquecido['status'])){
                 $enriquecido = $enriquecido['response'];
 
-                $dados['nome'] = isemptor($dados['nome'], $enriquecido->nome);
-                $dados['sexo'] = isemptor($dados['sexo'], $enriquecido->sexo);
-                $dados['data_nascimento'] = isemptor($dados['data_nascimento'], $enriquecido->data_nascimento);
+                $dados['nome'] = emptyor($dados['nome'], $enriquecido->nome);
+                $dados['sexo'] = emptyor($dados['sexo'], $enriquecido->sexo);
+                $dados['data_nascimento'] = emptyor($dados['data_nascimento'], $enriquecido->data_nascimento);
 
                 // Endereço
                 $ExtraEnderecos = $enriquecido->endereco;
@@ -779,13 +779,13 @@ if ( ! function_exists('app_integracao_valida_regras'))
                         $index++;
                     }
 
-                    $dados['endereco_logradouro'] = isemptor($dados['endereco_logradouro'], $ExtraEnderecos[$rank]->{"endereco"});
-                    $dados['endereco_numero'] = isemptor($dados['endereco_numero'], $ExtraEnderecos[$rank]->{"endereco_numero"});
-                    $dados['complemento'] = isemptor($dados['complemento'], $ExtraEnderecos[$rank]->{"endereco_complemento"});
-                    $dados['endereco_bairro'] = isemptor($dados['endereco_bairro'], $ExtraEnderecos[$rank]->{"endereco_bairro"});
-                    $dados['endereco_cidade'] = isemptor($dados['endereco_cidade'], $ExtraEnderecos[$rank]->{"endereco_cidade"});
-                    $dados['endereco_estado'] = isemptor($dados['endereco_estado'], $ExtraEnderecos[$rank]->{"endereco_uf"});
-                    $dados['endereco_cep'] = isemptor($dados['endereco_cep'], str_replace("-", "", $ExtraEnderecos[$rank]->{"endereco_cep"}));
+                    $dados['endereco_logradouro'] = emptyor($dados['endereco_logradouro'], $ExtraEnderecos[$rank]->{"endereco"});
+                    $dados['endereco_numero'] = emptyor($dados['endereco_numero'], $ExtraEnderecos[$rank]->{"endereco_numero"});
+                    $dados['complemento'] = emptyor($dados['complemento'], $ExtraEnderecos[$rank]->{"endereco_complemento"});
+                    $dados['endereco_bairro'] = emptyor($dados['endereco_bairro'], $ExtraEnderecos[$rank]->{"endereco_bairro"});
+                    $dados['endereco_cidade'] = emptyor($dados['endereco_cidade'], $ExtraEnderecos[$rank]->{"endereco_cidade"});
+                    $dados['endereco_estado'] = emptyor($dados['endereco_estado'], $ExtraEnderecos[$rank]->{"endereco_uf"});
+                    $dados['endereco_cep'] = emptyor($dados['endereco_cep'], str_replace("-", "", $ExtraEnderecos[$rank]->{"endereco_cep"}));
                     $dados['pais'] = "BRASIL";
                 }
 
