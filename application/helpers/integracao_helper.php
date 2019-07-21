@@ -561,11 +561,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
         if (!empty($formato)) {
 
-
-            //$geraDados = $dados['registro'];
-            //$geraDados['integracao_log_detalhe_id'] = $formato;
-
-
             $geraDados['tipo_transacao']            = $dados['registro']['tipo_transacao'];
             $geraDados['cod_loja']                  = $dados['registro']['cod_loja'];
             $geraDados['num_apolice']               = $dados['registro']['num_apolice'];
@@ -588,11 +583,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $geraDados['nota_fiscal_valor']         = $dados['registro']['nota_fiscal_valor'];
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
-
-
-            //unset($geraDados['id_log']);
-            //unset($geraDados['tipo_arquivo']);
-
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
             $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
         }
@@ -603,7 +593,13 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
         echo "****************** CPF: $cpf - {$dados['registro']['tipo_transacao']}<br>";
 
-        if ( !in_array($dados['registro']['tipo_transacao'], ['NS','XS','XX','XP','XD']) ) {
+        // Emissão
+        if ( in_array($dados['registro']['tipo_transacao'], ['NS','XP']) ) {
+            $dados['registro']['acao'] = '1';
+        // Cancelamento
+        } else if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX','XD']) ) {
+            $dados['registro']['acao'] = '9';
+        } else {
             // XI = Cancelamento por Inadimplência
             switch ($dados['registro']['tipo_transacao']) {
                 case 'XI':
@@ -617,106 +613,18 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             return $response;
         }
 
-        if (empty($num_apolice)){
-            $response->msg[] = ['id' => 8, 'msg' => "Apólice não recebida no arquivo", 'slug' => "apolice"];
-            return $response;
-        }
-
         $acesso = app_integracao_generali_dados();
         $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
         $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
+        $dados['registro']['data_adesao'] = $dados['registro']['data_adesao_cancel'];
         $eanErro = true;
         $eanErroMsg = "";
 
-        // usar a pesquisa por nome
-        $CI->load->model("apolice_model", "apolice");
-        $CI->load->model("integracao_log_detalhe_model", "integracao_log_detalhe");
-
-        //Busca a apólice pelo número
-        $apolice = $CI->apolice->getApoliceByNumero($num_apolice, $acesso->parceiro_id);
-
-        // Emissão
-        if ( in_array($dados['registro']['tipo_transacao'], ['NS','XP']) ) {
-
-            if (!empty($apolice)) {
-                $response->status = 2;
-                $response->msg[] = ['id' => 16, 'msg' => "Apólice já emitida [{$num_apolice}]", 'slug' => "emissao"];
-                return $response;
-            }
-
-            if (!empty($cpf)) $cpf = substr($cpf, -11);
-
-            if( !app_validate_cpf($cpf) ){
-                $response->msg[] = ['id' =>  2, 'msg' => "Campo CPF deve ser um CPF válido [{$cpf}]", 'slug' => 'cnpj_cpf'];
-                return $response;
-            }
-
-            if (!empty($ean)) {
-                $ean = (int)$ean;
-                $EANenriquecido = app_get_api("enriqueceEAN/$ean");
-                // echo "<pre>";print_r($EANenriquecido);echo "</pre>";
-
-                if (!empty($EANenriquecido['status'])){
-                    $EANenriquecido = $EANenriquecido['response'];
-                    $response->ean = $EANenriquecido;
-                    $eanErro = false;
-
-                    $dados['registro']['equipamento_id'] = $EANenriquecido->equipamento_id;
-                    $dados['registro']['equipamento_marca_id'] = $EANenriquecido->equipamento_marca_id;
-                    $dados['registro']['equipamento_categoria_id'] = $EANenriquecido->equipamento_categoria_id;
-                    $dados['registro']['equipamento_sub_categoria_id'] = $EANenriquecido->equipamento_sub_categoria_id;
-                    $dados['registro']['imei'] = "";
-                } else {
-                    $inputField = [
-                        'modelo' => $dados['registro']['equipamento_nome'],
-                        'quantidade' => 1,
-                        'emailAPI' => app_get_userdata("email"),
-                    ];
-
-                    $EANenriquecido = app_get_api("enriqueceModelo", "POST", json_encode($inputField));
-                    // echo "<pre>";print_r($EANenriquecido);echo "</pre>";
-
-                    if (!empty($EANenriquecido['status'])){
-                        $EANenriquecido = $EANenriquecido['response']->dados[0];
-                        $response->ean = $EANenriquecido;
-                        $eanErro = false;
-
-                        $dados['registro']['equipamento_id'] = $EANenriquecido->equipamento_id;
-                        $dados['registro']['equipamento_marca_id'] = $EANenriquecido->equipamento_marca_id;
-                        $dados['registro']['equipamento_categoria_id'] = $EANenriquecido->equipamento_categoria_id;
-                        $dados['registro']['equipamento_sub_categoria_id'] = $EANenriquecido->equipamento_sub_categoria_id;
-                        $dados['registro']['imei'] = "";
-                    } else {
-                        $eanErroMsg = "Equipamento não identificado - [{$dados['registro']['equipamento_nome']}]";
-                    }
-
-                }
-            }
-
-            if ($eanErro){
-                echo "<pre>";print_r($EANenriquecido);echo "</pre>";
-
-                $response->msg[] = ['id' => 11, 'msg' => $eanErroMsg ." [{$ean}]", 'slug' => "enriquece_ean"];
-                return $response;
-            }
-
-        // Cancelamento
-        } else if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX','XD']) ) {
-
-            if (empty($apolice)) {
-                $response->msg[] = ['id' => 8, 'msg' => "Apólice não encontrada [{$num_apolice}]", 'slug' => "cancelamento"];
-                return $response;
-            } else {
-                $apolice = $apolice[0];
-                if ($apolice['apolice_status_id'] != 1) {
-                    $response->status = 2;
-                    $response->msg[] = ['id' => 17, 'msg' => "Apólice {$num_apolice} já está Cancelada e/ou em um status inválido [{$apolice['nome']}]", 'slug' => "cancelamento"];
-                    return $response;
-                }
-
-                $dados['registro']['apolice_id'] = $apolice['apolice_id'];
-            }
-
+        // validações iniciais
+        $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados);
+        if ( empty($valid->status) ) {
+            $response = $valid;
+            return $response;
         }
 
         // Campos para cotação
@@ -825,24 +733,27 @@ if ( ! function_exists('app_integracao_valida_regras'))
         // echo "<pre>";print_r($dados);echo "</pre>";
 
         // Emissão
-        if ( in_array($dados['tipo_transacao'], ['NS','XP']) ) {
+        if ( $dados['acao'] == '1' ) {
 
             $errors = $fields = [];
             $now = new DateTime(date('Y-m-d'));
 
             // VIGÊNCIA
-            if (empty($dados["data_adesao_cancel"])){
-                $errors[] = ['id' => 4, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser obrigatório", 'slug' => "data_adesao_cancel"];
+            if (empty($dados["data_adesao"])){
+                $errors[] = ['id' => 4, 'msg' => "Campo DATA DA VENDA deve ser obrigatório", 'slug' => "data_adesao"];
             } else {
-                $d1 = new DateTime($dados["data_adesao_cancel"]);
-                $d2 = $d1->format('Y-m-d');
-                $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
-                $dados["data_inicio_vigencia"] = $d1->format('Y-m-d');
+                if ( empty($dados["data_inicio_vigencia"]) ) {
 
-                // Período de Vigência: 12 meses
-                $diff = $now->diff($d1);
-                if ($d2 < date("Y-m-d", strtotime("-1 year"))) {
-                    $errors[] = ['id' => 5, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser inferior ou igual à 12 meses", 'slug' => "nota_fiscal_data"];
+                    $d1 = new DateTime($dados["data_adesao"]);
+                    $d2 = $d1->format('Y-m-d');
+                    $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
+                    $dados["data_inicio_vigencia"] = $d1->format('Y-m-d');
+
+                    // Período de Vigência: 12 meses
+                    $diff = $now->diff($d1);
+                    if ($d2 < date("Y-m-d", strtotime("-1 year"))) {
+                        $errors[] = ['id' => 5, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser inferior ou igual à 12 meses", 'slug' => "data_inicio_vigencia"];
+                    }
                 }
             }
 
@@ -853,9 +764,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
             if (!empty($enriquecido['status'])){
                 $enriquecido = $enriquecido['response'];
 
-                $dados['nome'] = $enriquecido->nome;
-                $dados['sexo'] = $enriquecido->sexo;
-                $dados['data_nascimento'] = $enriquecido->data_nascimento;
+                $dados['nome'] = isemptor($dados['nome'], $enriquecido->nome);
+                $dados['sexo'] = isemptor($dados['sexo'], $enriquecido->sexo);
+                $dados['data_nascimento'] = isemptor($dados['data_nascimento'], $enriquecido->data_nascimento);
 
                 // Endereço
                 $ExtraEnderecos = $enriquecido->endereco;
@@ -868,13 +779,13 @@ if ( ! function_exists('app_integracao_valida_regras'))
                         $index++;
                     }
 
-                    $dados['endereco_logradouro'] = $ExtraEnderecos[$rank]->{"endereco"};
-                    $dados['endereco_numero'] = $ExtraEnderecos[$rank]->{"endereco_numero"};
-                    $dados['complemento'] = $ExtraEnderecos[$rank]->{"endereco_complemento"};
-                    $dados['endereco_bairro'] = $ExtraEnderecos[$rank]->{"endereco_bairro"};
-                    $dados['endereco_cidade'] = $ExtraEnderecos[$rank]->{"endereco_cidade"};
-                    $dados['endereco_estado'] = $ExtraEnderecos[$rank]->{"endereco_uf"};
-                    $dados['endereco_cep'] = str_replace("-", "", $ExtraEnderecos[$rank]->{"endereco_cep"});
+                    $dados['endereco_logradouro'] = isemptor($dados['endereco_logradouro'], $ExtraEnderecos[$rank]->{"endereco"});
+                    $dados['endereco_numero'] = isemptor($dados['endereco_numero'], $ExtraEnderecos[$rank]->{"endereco_numero"});
+                    $dados['complemento'] = isemptor($dados['complemento'], $ExtraEnderecos[$rank]->{"endereco_complemento"});
+                    $dados['endereco_bairro'] = isemptor($dados['endereco_bairro'], $ExtraEnderecos[$rank]->{"endereco_bairro"});
+                    $dados['endereco_cidade'] = isemptor($dados['endereco_cidade'], $ExtraEnderecos[$rank]->{"endereco_cidade"});
+                    $dados['endereco_estado'] = isemptor($dados['endereco_estado'], $ExtraEnderecos[$rank]->{"endereco_uf"});
+                    $dados['endereco_cep'] = isemptor($dados['endereco_cep'], str_replace("-", "", $ExtraEnderecos[$rank]->{"endereco_cep"}));
                     $dados['pais'] = "BRASIL";
                 }
 
@@ -1001,12 +912,12 @@ if ( ! function_exists('app_integracao_valida_regras'))
 
                 $fields['produto_parceiro_id'] = $dados['produto_parceiro_id'];
                 $fields['produto_parceiro_plano_id'] = $dados['produto_parceiro_plano_id'];
-                $fields['data_adesao'] = $dados['data_adesao_cancel'];
+                $fields['data_adesao'] = $dados['data_adesao'];
                 $fields['equipamento_nome'] = $dados['equipamento_nome'];
                 if (!empty($dados['equipamento_marca_id']))
                     $fields['equipamento_marca_id'] = $dados['equipamento_marca_id'];
                 if (!empty($dados['equipamento_categoria_id']))
-                $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
+                    $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
                 $fields['ean'] = $dados['ean'];
                 $fields['emailAPI'] = app_get_userdata("email");
 
@@ -1225,7 +1136,6 @@ if ( ! function_exists('app_integracao_apolice')) {
         return $num_apolice_aux;
     }
 }
-
 if ( ! function_exists('app_integracao_apolice_revert')) {
     function app_integracao_apolice_revert($formato, $dados = array())
     {
@@ -1252,22 +1162,6 @@ if ( ! function_exists('app_integracao_apolice_revert')) {
         return $result[0]['num_apolice'];
     }
 }
-/*
-if ( ! function_exists('app_integracao_apolice_revert')) {
-    function app_integracao_apolice_revert($formato, $dados = array())
-    {
-        $dados = $dados['valor'];
-        $cod_tpa = substr($dados,4,3);
-        $num_apolice_custom = substr($dados,-8);
-        $CI =& get_instance();
-        $CI->load->model('integracao_model');
-        return $CI->integracao_model->app_integracao_apolice_revert($num_apolice_custom, $cod_tpa);
-    }
-}
-*/
-
-
-
 if ( ! function_exists('app_integracao_id_transacao')) {
     function app_integracao_id_transacao($formato, $dados = array())
     {
@@ -1414,30 +1308,248 @@ if ( ! function_exists('app_integracao_novo_mundo_ge')) {
         $cpf            = $reg['cpf'];
         $ean            = $reg['ean'];
 
-        if (empty($num_apolice)){
-            $response->msg[] = ['id' => 8, 'msg' => "Apólice não recebida no arquivo", 'slug' => "apolice"];
-            return $response;
-        }
-
-        $acesso = app_integracao_generali_dados();
         $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
         $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
         $eanErro = true;
         $eanErroMsg = "";
 
+        // validações iniciais
+        $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados);
+        if ( empty($valid->status) ) {
+            $response = $valid;
+            return $response;
+        }
 
-        print_r($reg);
+        // Campos para cotação
+        $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id);
+        if (empty($camposCotacao['status'])){
+            $response->msg[] = ['id' => -1, 'msg' => $camposCotacao['response'], 'slug' => "cotacao_campos"];
+            return $response;
+        }
 
-        // validar regra de negócio
+        $camposCotacao = $camposCotacao['response'];
+
+        // Validar Regras
+        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao);
+        echo "<pre>";print_r($validaRegra);echo "</pre>";die();
+
+        if (!empty($validaRegra->status)) {
+            $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
+            $dados['registro']['fields'] = $validaRegra->fields;
+            $emissao = app_integracao_emissao($formato, $dados);
+
+            if (empty($emissao->status)) {
+                $response->msg = $emissao->msg;
+            } else {
+                $response->status = true;
+            }
+
+        } else {
+            if (!empty($response->msg)) {
+                $response->msg = array_merge($validaRegra->errors, $response->msg);
+            } else {
+                $response->msg = $validaRegra->errors;
+            }
+        }
+
+        // Validar valor do plano
+        // realizar a emissão / cancelamento
+
+        return $response;
+    }
+}
+if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
+    function app_integracao_novo_mundo_define_operacao($nome_arquivo)
+    {
+        /*
+         * Nomenclatura dos arquivos:
+         * ssssOOnnnn_xx_data.ext (len 26), onde:
+         * ssss - Sigla do seguro: GAES - Garantia Estendida, ROFU - Roubo e Furto, QUAC - Quebra Acidental, APVE - AP Vendedor, APCA - AP Caixa, PRES - Prestamista
+         * OO - Operação (31 Móvies e 32 Amazônia)
+         * nnnn - Número sequencial da remessa.
+         * xx - Sequência de envio de uma mesma remessa.
+         * data - Data da geração do arquivo no formato YYYMMDD
+         * ext - Extensão (REM = Remessa, RET = Retorno)
+        */
+        $result = (object) ['status' => false, 'message' => 'Arquivo Invalido'];
+
+        if (empty($nome_arquivo)) {
+            return $result;
+        }
+
+        if ( strlen($nome_arquivo) <> 26) {
+            $result->message = "Nome do arquivo deve possuir 26 caracteres.";
+            return $result;
+        }
+
+        $result->produto = substr($nome_arquivo, 0, 4);
+        $result->operacao = substr($nome_arquivo, 4, 2);
+        $result->sequencial = substr($nome_arquivo, 6, 4);
+        $result->sequencial_remessa = substr($nome_arquivo, 11, 2);
+        $result->data = app_integracao_format_date_r("Ymd|Y-m-d", ['valor' => substr($nome_arquivo, 14, 8)]);
+
+
+        switch ($result->operacao) {
+            case '31':
+                $result->parceiro_id = 72;
+
+                switch ($result->produto) {
+                    case 'GAES':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+                    
+                    case 'ROFU':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    case 'QUAC':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    case 'APVE':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    case 'APCA':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    case 'PRES':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    default:
+                        $result->message = "Seguro ({$result->produto}) não configurado";
+                        return $result;
+                        break;
+                }
+
+                break;
+            case '32':
+                $result->parceiro_id = 74;
+
+                switch ($result->produto) {
+                    case 'GAES':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+                    
+                    case 'ROFU':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    case 'QUAC':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    case 'APVE':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    case 'APCA':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    case 'PRES':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    default:
+                        $result->message = "Seguro ({$result->produto}) não configurado";
+                        return $result;
+                        break;
+                }
+
+                break;
+
+            default:
+                // TODO: remover essa linha e deixar apenas a mensagem de erro
+                $result->parceiro_id = 72; 
+                switch ($result->produto) {
+                    case 'GAES':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+                    
+                    case 'ROFU':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    case 'QUAC':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    case 'APVE':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    case 'APCA':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    case 'PRES':
+                        $result->produto_parceiro_id = 80;
+                        $result->produto_parceiro_plano_id = 103;
+                        break;
+
+                    default:
+                        $result->message = "Seguro ({$result->produto}) não configurado";
+                        return $result;
+                        break;
+                }
+
+                //$result->message = "Operação ({$result->operacao}) não configurada";
+                //return $result;
+                break;
+        }
+
+        app_integracao_generali_dados();
+
+        $result->message = "OK";
+        $result->status = true;
+        return $result;
+    }
+}
+if ( ! function_exists('app_integracao_inicio')) {
+    function app_integracao_inicio($parceiro_id, $num_apolice = '', $cpf = '', $ean = '', &$dados = array())
+    {
+        $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
+
+        $CI =& get_instance();
+        $reg = $dados['registro'];
+
+        if (empty($num_apolice)){
+            $response->msg[] = ['id' => 8, 'msg' => "Apólice não recebida no arquivo", 'slug' => "apolice"];
+            return $response;
+        }
+
+        $eanErro = true;
+        $eanErroMsg = "";
+
         // usar a pesquisa por nome
         $CI->load->model("apolice_model", "apolice");
         $CI->load->model("integracao_log_detalhe_model", "integracao_log_detalhe");
 
         //Busca a apólice pelo número
-        $apolice = $CI->apolice->getApoliceByNumero($num_apolice, $acesso->parceiro_id);
+        $apolice = $CI->apolice->getApoliceByNumero($num_apolice, $parceiro_id);
 
         // Emissão
-        if ($reg['tipo_operacao'] == '1') {
+        if ($dados['registro']['acao'] == '1') {
 
             if (!empty($apolice)) {
                 $response->status = 2;
@@ -1507,98 +1619,25 @@ if ( ! function_exists('app_integracao_novo_mundo_ge')) {
             }
 
         // Cancelamento
-        }
+        } else if ( $dados['registro']['acao'] = '9' ) {
 
-        // é necessário realizar o enriquecimento de CPF
-        // realizar o enriquecimento do EAN
-
-        // Validar valor do plano
-        // realizar a emissão / cancelamento
-
-        return $response;
-    }
-}
-if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
-    function app_integracao_novo_mundo_define_operacao($nome_arquivo)
-    {
-        /*
-         * Nomenclatura dos arquivos:
-         * ssssOOnnnn_xx_data.ext (len 26), onde:
-         * ssss - Sigla do seguro: GAES - Garantia Estendida, ROFU - Roubo e Furto, QUAC - Quebra Acidental, APVE - AP Vendedor, APCA - AP Caixa, PRES - Prestamista
-         * OO - Operação (31 Móvies e 32 Amazônia)
-         * nnnn - Número sequencial da remessa.
-         * xx - Sequência de envio de uma mesma remessa.
-         * data - Data da geração do arquivo no formato YYYMMDD
-         * ext - Extensão (REM = Remessa, RET = Retorno)
-        */
-        $result = (object) ['status' => false, 'message' => 'Arquivo Invalido'];
-
-        if (empty($nome_arquivo)) {
-            return $result;
-        }
-
-        if ( strlen($nome_arquivo) <> 26) {
-            $result->message = "Nome do arquivo deve possuir 26 caracteres.";
-            return $result;
-        }
-
-        $result->produto = substr($nome_arquivo, 0, 4);
-        $result->operacao = substr($nome_arquivo, 4, 2);
-        $result->sequencial = substr($nome_arquivo, 6, 4);
-        $result->sequencial_remessa = substr($nome_arquivo, 11, 2);
-        $result->data = app_integracao_format_date_r("Ymd|Y-m-d", ['valor' => substr($nome_arquivo, 14, 8)]);
-
-
-        switch ($result->operacao) {
-            case '31':
-                $result->parceiro_id = 72;
-
-                switch ($result->produto) {
-                    case 'GAES':
-                        $result->produto_parceiro_id = 80;
-                        break;
-                    
-                    case 'ROFU':
-                        $result->produto_parceiro_id = 80;
-                        break;
-
-                    case 'QUAC':
-                        $result->produto_parceiro_id = 80;
-                        break;
-
-                    case 'APVE':
-                        $result->produto_parceiro_id = 80;
-                        break;
-
-                    case 'APCA':
-                        $result->produto_parceiro_id = 80;
-                        break;
-
-                    case 'PRES':
-                        $result->produto_parceiro_id = 80;
-                        break;
-
-                    default:
-                        $result->produto_parceiro_id = 80;
-                        # code...
-                        break;
+            if (empty($apolice)) {
+                $response->msg[] = ['id' => 8, 'msg' => "Apólice não encontrada [{$num_apolice}]", 'slug' => "cancelamento"];
+                return $response;
+            } else {
+                $apolice = $apolice[0];
+                if ($apolice['apolice_status_id'] != 1) {
+                    $response->status = 2;
+                    $response->msg[] = ['id' => 17, 'msg' => "Apólice {$num_apolice} já está Cancelada e/ou em um status inválido [{$apolice['nome']}]", 'slug' => "cancelamento"];
+                    return $response;
                 }
 
-                $result->produto_parceiro_plano_id;
-                break;
-            case '32':
-                $result->parceiro_id = 74;
-                break;
+                $dados['registro']['apolice_id'] = $apolice['apolice_id'];
+            }
 
-            default:
-                $result->parceiro_id = 72; // TODO: remover essa linha e deixar a validação
-                //$result->message = "Operação ({$result->operacao}) não configurada";
-                //return $result;
-                break;
         }
 
-        $result->message = "OK";
-        $result->status = true;
-        return $result;
+        $response->status = true;
+        return $response;
     }
 }
