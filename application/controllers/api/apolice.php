@@ -401,6 +401,7 @@ class Apolice extends CI_Controller {
         $this->load->model("apolice_endosso_model", "apolice_endosso");
         $this->load->model('apolice_movimentacao_tipo_model', 'tipo');
         $this->load->model('pedido_model', 'pedido');
+        $this->load->model('fatura_model', 'fatura');
 
         $apolices = [];
         $result = [];
@@ -429,13 +430,17 @@ class Apolice extends CI_Controller {
             (array_key_exists('total_parcelas', $validacao['dados'])) ? $total_parcelas = $validacao['dados']['total_parcelas'] : $erros[] = $this->parcelaReturn($apolice_id,"Campo total_parcelas é obrigatório");
             (array_key_exists('valor', $validacao['dados'])) ? $valor = trim(str_replace(",", ".", $validacao['dados']['valor'])) : $erros[] = $this->parcelaReturn($apolice_id,"Campo valor é obrigatório");
             (array_key_exists('valor_pago', $validacao['dados'])) ? $valor_pago = trim(str_replace(",", ".", $validacao['dados']['valor_pago'])) : $erros[] = $this->parcelaReturn($apolice_id,"Campo valor_pago é obrigatório");
-            (array_key_exists('data_vencimento', $validacao['dados'])) ? $data_vencimento = trim(str_replace(",", ".", $validacao['dados']['data_vencimento'])) : $erros[] = $this->parcelaReturn($apolice_id,"Campo data_vencimento é obrigatório");
-            (array_key_exists('data_pagamento', $validacao['dados'])) ? $data_pagamento = trim(str_replace(",", ".", $validacao['dados']['data_pagamento'])) : $erros[] = $this->parcelaReturn($apolice_id,"Campo data_pagamento é obrigatório");
+            (array_key_exists('data_vencimento', $validacao['dados'])) ? $data_vencimento = trim($validacao['dados']['data_vencimento']) : $erros[] = $this->parcelaReturn($apolice_id,"Campo data_vencimento é obrigatório");
+            (array_key_exists('data_pagamento', $validacao['dados'])) ? $data_pagamento = trim($validacao['dados']['data_pagamento']) : $erros[] = $this->parcelaReturn($apolice_id,"Campo data_pagamento é obrigatório");
 
             if ( !empty($erros) ){
                 $errosResult[] = $erros;
                 continue;
             }
+
+            // Validar campos de data
+            if (!app_validate_data_americana($data_vencimento)) $erros[] = $this->parcelaReturn($apolice_id,"Campo data_vencimento deve ser uma data válida (YYYY-MM-DD)");
+            if (!app_validate_data_americana($data_pagamento)) $erros[] = $this->parcelaReturn($apolice_id,"Campo data_pagamento deve ser uma data válida (YYYY-MM-DD)");
 
             // Validar campos numéricos
             if (! is_numeric($valor)) $erros[] = $this->parcelaReturn($apolice_id,"Campo valor deve ser um campo númerico");
@@ -450,6 +455,8 @@ class Apolice extends CI_Controller {
                 $erros[] = $this->parcelaReturn($apolice_id,"O total de parcelas informado é inválido" );
 
             $produto_parceiro_pagamento_id = $pedido['produto_parceiro_pagamento_id'];
+            $cotacao_id = $pedido['cotacao_id'];
+            $produto_parceiro_id = $pedido['produto_parceiro_id'];
 
             // Selecionar parcela atual
             $ultima_parcela = $this->apolice_endosso->lastSequencial($apolice_id);
@@ -464,10 +471,12 @@ class Apolice extends CI_Controller {
             $apolices[] = [
                 'apolice_id'                    => $apolice_id,
                 'pedido_id'                     => $pedido_id,
+                'cotacao_id'                    => $cotacao_id,
                 'parcela'                       => $parcela,
                 'total_parcelas'                => $total_parcelas,
                 'valor'                         => $valor,
                 'valor_pago'                    => $valor_pago,
+                'produto_parceiro_id'           => $produto_parceiro_id,
                 'produto_parceiro_pagamento_id' => $produto_parceiro_pagamento_id,
                 'data_vencimento'               => $data_vencimento,
                 'data_pagamento'                => $data_pagamento,
@@ -493,15 +502,26 @@ class Apolice extends CI_Controller {
 
             $apolice_id                     = $ap['apolice_id'];
             $pedido_id                      = $ap['pedido_id'];
+            $cotacao_id                     = $ap['cotacao_id'];
+            $produto_parceiro_id            = $ap['produto_parceiro_id'];
             $produto_parceiro_pagamento_id  = $ap['produto_parceiro_pagamento_id'];
             $parcela                        = $ap['parcela'];
             $valor                          = $ap['valor'];
+            $data_vencimento                = $ap['data_vencimento'];
+            $data_pagamento                 = $ap['data_pagamento'];
 
             // Carregar tipo
             $tipo = $this->tipo->filter_by_slug('A')->get_all();
             $tipo = $tipo[0];
 
             $this->apolice_endosso->insEndosso($tipo["slug"], $tipo["apolice_movimentacao_tipo_id"], $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela, $valor);
+
+            $fatura = $this->fatura->filterByPedido($pedido_id)->get_all();
+            if ( !empty($fatura) )
+            {
+                $fatura = $fatura[0];
+                $this->fatura->insFaturaParcelamentoDet($fatura['fatura_id'], $cotacao_id, $produto_parceiro_id, $parcela, $valor, $data_vencimento, $data_pagamento);
+            }
 
             $result[] = [
                 'status' => true,

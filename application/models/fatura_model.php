@@ -101,46 +101,58 @@ class Fatura_Model extends MY_Model
     public function insFaturaParcelas($pedido_id, $cotacao_id, $fatura_status_id, $valor_total, $num_parcela, $valor_parcela, $produto_parceiro_id)
     {
 
+        $dados_faturamento = array();
+        $dados_faturamento['fatura_status_id'] = $fatura_status_id;
+        $dados_faturamento['pedido_id'] = $pedido_id;
+        $dados_faturamento['valor_total'] = $valor_total;
+        $dados_faturamento['num_parcela'] = $num_parcela;
+        $dados_faturamento['valor_parcela'] = $valor_parcela;
+        $dados_faturamento['data_processamento'] = date('Y-m-d H:i:s');
+
+        $fatura_id = $this->insert($dados_faturamento, TRUE);
+        $this->insFaturaParcelamentoDet($fatura_id, $cotacao_id, $produto_parceiro_id);
+
+    }
+
+    public function insFaturaParcelamentoDet($fatura_id, $cotacao_id, $produto_parceiro_id, $num_parcela = 1, $valor = 0, $dt_vencimento = NULL, $dt_pagamento = NULL){
+
+        if ( empty($dt_vencimento) )
+        {
+            $dt_vencimento = date('Y-m-d', mktime(0,0,0, date('m'), date('d'), date('Y') ));
+        }
+
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
         $this->load->model('cotacao_model', 'cotacao');
 
+        $insereItem = true;
         $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
-
-        $dados_faturamento                       = array();
-        $dados_faturamento['fatura_status_id']   = $fatura_status_id;
-        $dados_faturamento['pedido_id']          = $pedido_id;
-        $dados_faturamento['valor_total']        = $valor_total;
-        $dados_faturamento['num_parcela']        = $num_parcela;
-        $dados_faturamento['valor_parcela']      = $valor_parcela;
-        $dados_faturamento['data_processamento'] = date('Y-m-d H:i:s');
-
-        $fatura_id = $this->insert($dados_faturamento, true);
-
-        if ($cotacao['produto_slug'] == 'seguro_viagem') {
-            $vigencia = array(
-                'inicio_vigencia' => $cotacao['data_saida'],
-                'fim_vigencia'    => $cotacao['data_retorno'],
-                'dias'            => $cotacao['qnt_dias'],
-            );
-        } elseif ($cotacao['produto_slug'] == 'equipamento') {
-            $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao['produto_parceiro_plano_id'], $cotacao['nota_fiscal_data']);
-        } elseif ($cotacao['produto_slug'] == 'generico') {
-            $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao['produto_parceiro_plano_id'], date('Y-m-d'));
-        }
-
         $configuracao = $this->produto_parceiro_configuracao
             ->filter_by_produto_parceiro($produto_parceiro_id)
             ->get_all();
 
-        if ($configuracao) {
+        if($configuracao){
             $configuracao = $configuracao[0];
-            if ($configuracao['pagamento_tipo'] == 'RECORRENTE') {
-                switch ($configuracao['pagamento_periodicidade_unidade']) {
+            if($configuracao['pagamento_tipo'] == 'RECORRENTE'){
+
+                if($cotacao['produto_slug'] == 'seguro_viagem'){
+                    $vigencia = array(
+                        'inicio_vigencia' => $cotacao['data_saida'],
+                        'fim_vigencia' =>  $cotacao['data_retorno'],
+                        'dias' => $cotacao['qnt_dias']
+                    );
+                }elseif($cotacao['produto_slug'] == 'equipamento') {
+                    $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao['produto_parceiro_plano_id'], $cotacao['nota_fiscal_data']);
+                }elseif($cotacao['produto_slug'] == 'generico') {
+                    $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao['produto_parceiro_plano_id'], date('Y-m-d'));
+                }
+
+                switch ($configuracao['pagamento_periodicidade_unidade']){
                     case 'DIA':
                         $qnt_parcelas = round($vigencia['dias'] / $configuracao['pagamento_periodicidade']);
                         $dia          = 0;
                         for ($i = 1; $i <= $qnt_parcelas; $i++) {
+                            $insereItem                               = false;
                             $dt_vencimento                            = date('Y-m-d', mktime(0, 0, 0, date('m'), date('d') + $dia, date('Y')));
                             $dados_parcelamento                       = array();
                             $dados_parcelamento['fatura_status_id']   = 1;
@@ -154,10 +166,11 @@ class Fatura_Model extends MY_Model
                         }
                         break;
                     case 'MES':
-                        $qnt_parcelas = round($vigencia['dias'] / ($configuracao['pagamento_periodicidade'] * 30));
-                        $mes          = 0;
-                        for ($i = 1; $i <= $qnt_parcelas; $i++) {
-                            $dt_vencimento                            = date('Y-m-d', mktime(0, 0, 0, date('m') + $mes, date('d'), date('Y')));
+                        $qnt_parcelas = round($vigencia['dias']/($configuracao['pagamento_periodicidade']*30));
+                        $mes = 0;
+                        for($i = 1; $i <= $qnt_parcelas;$i++){
+                            $insereItem                               = false;
+                            $dt_vencimento                            = date('Y-m-d', mktime(0,0,0, date('m')+$mes, date('d'), date('Y')));
                             $dados_parcelamento                       = array();
                             $dados_parcelamento['fatura_status_id']   = 1;
                             $dados_parcelamento['fatura_id']          = $fatura_id;
@@ -174,6 +187,7 @@ class Fatura_Model extends MY_Model
                         $qnt_parcelas = round($vigencia['dias'] / ($configuracao['pagamento_periodicidade'] * 365));
                         $ano          = 0;
                         for ($i = 1; $i <= $qnt_parcelas; $i++) {
+                            $insereItem                               = false;
                             $dt_vencimento                            = date('Y-m-d', mktime(0, 0, 0, date('m'), date('d'), date('Y') + $ano));
                             $dados_parcelamento                       = array();
                             $dados_parcelamento['fatura_status_id']   = 1;
@@ -187,75 +201,26 @@ class Fatura_Model extends MY_Model
                         }
                         break;
                 }
-            } else {
-                $dt_vencimento                            = date('Y-m-d', mktime(0, 0, 0, date('m'), date('d'), date('Y')));
-                $dados_parcelamento                       = array();
-                $dados_parcelamento['fatura_status_id']   = 1;
-                $dados_parcelamento['fatura_id']          = $fatura_id;
-                $dados_parcelamento['num_parcela']        = 1;
-                $dados_parcelamento['valor']              = $cotacao['premio_liquido_total'];
-                $dados_parcelamento['data_vencimento']    = $dt_vencimento;
-                $dados_parcelamento['data_processamento'] = date('Y-m-d H:i:s');
-                $this->fatura_parcela->insert($dados_parcelamento, true);
             }
 
         }
 
-    }
-
-    /*
-
-    function faturamento(){
-
-    $this->load->model('produto_parceiro_model', 'produto_parceiro');
-    $this->load->model('pedido_model', 'pedido');
-    $this->load->model('fatura_parcela_model', 'fatura_parcela');
-
-    $produtos = $this->produto_parceiro
-    ->with_produto_parceiro_configuracao()
-    ->with_produto()
-    ->get_many_by(array(
-    'produto_parceiro_configuracao.pagamento_tipo' => 'RECORRENTE'
-
-    ));
-
-    foreach ($produtos as $index => $produto) {
-
-    print_r($produto);
-    $pedidos = $this->pedido
-    ->build_faturamento($produto['produto_slug'])
-    ->where("apolice_{$produto['produto_slug']}.data_fim_vigencia", '>=', date('Y-m-d') )
-    ->where("apolice_{$produto['produto_slug']}.data_ini_vigencia", '<=', date('Y-m-d') )
-    ->where("pedido.pedido_status_id", '<>', 5 ) //na trazer cancelados
-    ->get_all();
-
-    foreach ($pedidos as $index => $pedido) {
-
-    print_r($pedido);
-    $ultima_parcela = $this->fatura_parcela
-    ->filterByFatura($pedido['fatura_id'])
-    ->order_by('num_parcela', 'desc')
-    ->limit(1)
-    ->get_all();
-    print_r($ultima_parcela);
-
-    //$referencia = mktime(0, 0, 0, date('m'), date('d'), date('Y')));
-
-    if($produto['produto_parceiro_configuracao_pagamento_periodicidade_unidade'] == 'MES'){
-
-    }elseif($produto['produto_parceiro_configuracao_pagamento_periodicidade_unidade'] == 'ANO'){
+        if ($insereItem)
+        {
+            $dados_parcelamento = array();
+            $dados_parcelamento['fatura_status_id'] = 1;
+            $dados_parcelamento['fatura_id'] = $fatura_id;
+            $dados_parcelamento['num_parcela'] = $num_parcela;
+            $dados_parcelamento['valor'] = emptyor($valor, $cotacao['premio_liquido_total']);
+            $dados_parcelamento['data_vencimento'] = $dt_vencimento;
+            $dados_parcelamento['data_pagamento'] = $dt_pagamento;
+            $dados_parcelamento['data_processamento'] = date('Y-m-d H:i:s');
+            $this->fatura_parcela->insert($dados_parcelamento, TRUE);
+        }
 
     }
 
-    exit;
-    }
-
-    }
-
-    }*/
-
-    public function estornoCompletoEfetuado($pedido_id)
-    {
+    function estornoCompletoEfetuado($pedido_id){
 
         $this->load->model('fatura_parcela_model', 'parcela');
 
