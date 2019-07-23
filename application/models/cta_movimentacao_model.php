@@ -69,6 +69,7 @@ Class Cta_Movimentacao_Model extends MY_Model
             , ultimo_envio_cliente
             , ultimo_envio_parcela
             , ultimo_envio_comissao
+            , CTA_arquivo_ok
         )
         SELECT 
             pedido_id 
@@ -86,12 +87,14 @@ Class Cta_Movimentacao_Model extends MY_Model
             , ultimo_envio_cliente
             , ultimo_envio_parcela
             , ultimo_envio_comissao
+            , CTA_arquivo_ok
         FROM (
             SELECT 
                   ctaEmissao(chave_emi, 0) as CTA_Enviado
                 , ctaEmissaoSucesso(chave_emi) as CTA_Retorno_ok
                 , ctaEmissao(chave_emi, 5) as CTA_Retorno
                 , ctaEmissaoErro(chave_emi) as Erro
+                , ctaEmissaoSucesso_arquivo(chave_emi) as CTA_arquivo_ok
                 , num_apolice, pedido_id, apolice_id, cotacao_id, cliente_id
                 , apolice_movimentacao_tipo_id, apolice_endosso_id
                 , (
