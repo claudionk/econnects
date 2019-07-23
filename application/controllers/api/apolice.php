@@ -330,6 +330,8 @@ class Apolice extends CI_Controller {
             // Validar campos numéricos
             if (! is_numeric($valor)) $erros[] = $this->parcelaReturn($apolice_id,"Campo valor deve ser um campo númerico");
             if (! is_numeric($total_parcelas)) $erros[] = $this->parcelaReturn($apolice_id,"Campo total_parcelas deve ser um campo númerico");
+            if ( empty($valor) ) $erros[] = $this->parcelaReturn($apolice_id,"Campo valor deve ser maior que zero");
+            if ( empty($valor_pago) ) $erros[] = $this->parcelaReturn($apolice_id,"Campo valor_pago deve ser maior que zero");
 
             // Carregar pedido
             $pedido = $this->pedido->getPedidosByID($pedido_id);
