@@ -311,10 +311,10 @@ function app_date_get_diff_mysql($d1, $d2, $type=''){
 
 }
 
-function app_date_get_diff($d1, $d2, $type=''){
+function app_date_get_diff_master($d1, $d2){
+    $dats = ['years' => 0, 'months' => 0, 'days' => 0, 'd' => 0, 'dd' => 0, 'hours' => 0, 'minutes' => 0, 'seconds' => 0 ];
 
     if(!empty($d1) && !empty($d2)) {
-
         $date1 = explode('-', $d1);
         $date2 = explode('-', $d2);
 
@@ -331,41 +331,93 @@ function app_date_get_diff($d1, $d2, $type=''){
             date_create($d1)
         );
 
-        $years = $dif->format('%y');
-        $months = $dif->format('%m');
-        $days = $dif->format('%a');
-        $dd = $days - ((365*$years) + $QtdeBissexto);
-        $hours = $dif->format('%h');
-        $minutes = $dif->format('%i');
-        $seconds = $dif->format('%s');
+        $dats = [
+            'years' => $dif->format('%y'),
+            'months' => $dif->format('%m'),
+            'days' => $dif->format('%a'),
+            'd' => $dif->format('%d'),
+            'hours' => $dif->format('%h'),
+            'minutes' => $dif->format('%i'),
+            'seconds' => $dif->format('%s'),
+        ];
 
-        $type = strtoupper($type);
-        switch ($type)
-        {
-            case 'Y':
-                $X = $years;
-                break;
-            case 'M':
-                $X = (12 * $years) + $months + ($dd > 0 ? 1 : 0);
-                break;
-            case 'D':
-                $X = $days;
-                break;
-            case 'H':
-                $X = $hours;
-                break;
-            case 'I':
-                $X = $minutes;
-                break;
-            default:
-                $X = $seconds;
-        }
+        $dats['dd'] = $dats['days'] - ((365*$dats['years']) + $QtdeBissexto);
 
-        return $X;
-    }else{
-        return 0;
+    }
+    return $dats;
+}
+
+function app_date_get_diff_vigencia($d1, $d2, $type=''){
+    $dats = app_date_get_diff_master($d1, $d2);
+
+    $years   = $dats['years'];
+    $months  = $dats['months'];
+    $days    = $dats['days'];
+    $d       = $dats['d'];
+    $hours   = $dats['hours'];
+    $minutes = $dats['minutes'];
+    $seconds = $dats['seconds'];
+
+    $type = strtoupper($type);
+    switch ($type)
+    {
+        case 'Y':
+            $X = $years;
+            break;
+        case 'M':
+            $X = (12 * $years) + $months + ($d > 0 ? 1 : 0);
+            break;
+        case 'D':
+            $X = $days;
+            break;
+        case 'H':
+            $X = $hours;
+            break;
+        case 'I':
+            $X = $minutes;
+            break;
+        default:
+            $X = $seconds;
     }
 
+    return $X;
+}
+
+function app_date_get_diff($d1, $d2, $type=''){
+
+    $dats = app_date_get_diff_master($d1, $d2);
+
+    $years   = $dats['years'];
+    $months  = $dats['months'];
+    $days    = $dats['days'];
+    $dd      = $dats['dd'];
+    $hours   = $dats['hours'];
+    $minutes = $dats['minutes'];
+    $seconds = $dats['seconds'];
+
+    $type = strtoupper($type);
+    switch ($type)
+    {
+        case 'Y':
+            $X = $years;
+            break;
+        case 'M':
+            $X = (12 * $years) + $months + ($dd > 0 ? 1 : 0);
+            break;
+        case 'D':
+            $X = $days;
+            break;
+        case 'H':
+            $X = $hours;
+            break;
+        case 'I':
+            $X = $minutes;
+            break;
+        default:
+            $X = $seconds;
+    }
+
+    return $X;
 
 }
 

@@ -228,7 +228,6 @@ class Apolice extends CI_Controller {
         if(!$pedido) {
             die( json_encode( array( "status" => false, "message" => "Apólice não encontrada" ) ) );
         }
-        
 
         return [ 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
     }
@@ -257,7 +256,6 @@ class Apolice extends CI_Controller {
         $this->checkKey();
 
         $validacao = $this->validarDadosEntrada();
-
 
         $pedido_id = $validacao['pedido_id'];
         $define_date = !empty($validacao['dados']["define_date"]) ? $validacao['dados']["define_date"] : date("Y-m-d H:i:s") ;
@@ -309,6 +307,13 @@ class Apolice extends CI_Controller {
 
             $apolice_id = $validacao['dados']['apolice_id'];
             $pedido_id  = $validacao['pedido_id'];
+
+            if ( $this->apolice->getApoliceStatus($apolice_id, 'cancelada') ) {
+                $errosResult[] = $this->parcelaReturn($apolice_id,"A apólice já está cancelada" );
+                continue;
+            }
+
+            // TODO: validar se o valor da parcela está correto para não aceitar qualquer valor
 
             // Validar outros parâmetros
             (array_key_exists('parcela', $validacao['dados'])) ? $parcela = $validacao['dados']['parcela'] : $erros[] = $this->parcelaReturn($apolice_id,"Campo parcela é obrigatório");

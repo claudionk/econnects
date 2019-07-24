@@ -47,4 +47,19 @@ Class Produto_Parceiro_Servico_Log_Model extends MY_Model
 
     }
 
+    function filter_by_idConsulta($idConsulta){
+        $this->_database->where('idConsulta', $idConsulta);
+        return $this;
+    }
+
+    function filter_by_produto_parceiro_servico_id($produto_parceiro_servico_id){
+        $this->_database->where('produto_parceiro_servico_id', $produto_parceiro_servico_id);
+        return $this;
+    }
+
+    function filter_by_consulta($consulta){
+        $this->_database->where('consulta', $consulta);
+        return $this;
+    }
+
 }

@@ -306,7 +306,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['cnpj_cpf']        = $cotacao_salva['cnpj_cpf'];
             $dados_equipamento['rg']              = $cotacao_salva['rg'];
             $dados_equipamento['nome']            = $cotacao_salva['nome'];
-            $dados_equipamento['nome_mae']        = $cotacao_salva['nome'];
+            $dados_equipamento['nome_mae']        = $cotacao_salva['nome_mae'];
             $dados_equipamento['data_nascimento'] = $cotacao_salva['data_nascimento'];
             $dados_equipamento['sexo']            = $cotacao_salva['sexo'];
             $dados_equipamento['email']           = $cotacao_salva['email'];
@@ -333,6 +333,12 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['aux_08']             = $cotacao_salva['aux_08'];
             $dados_equipamento['aux_09']             = $cotacao_salva['aux_09'];
             $dados_equipamento['aux_10']             = $cotacao_salva['aux_10'];
+            $dados_equipamento['tempo_uso']          = $cotacao_salva['tempo_uso'];
+            $dados_equipamento['imei2']              = $cotacao_salva['imei2'];
+            $dados_equipamento['latitude_longitude'] = $cotacao_salva['latitude_longitude'];
+            $dados_equipamento['serial']             = $cotacao_salva['serial'];
+            $dados_equipamento['uuid']               = $cotacao_salva['uuid'];
+            $dados_equipamento['data_aceite_termo']  = $cotacao_salva['data_aceite_termo'];
             $dados_equipamento['numero_sorte']       = $cotacao_salva['numero_sorte'];
 
             $dados_equipamento['endereco_logradouro']     = $cotacao_salva['endereco_logradouro'];
@@ -352,6 +358,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['valor_parcela']           = round($pedido['valor_parcela'], 2);
             $dados_equipamento['valor_estorno']           = 0;
             $dados_equipamento['valor_desconto']          = round($cotacao_salva['valor_desconto'], 2);
+            $dados_equipamento['comissao_premio']         = round($cotacao_salva['comissao_premio'], 2);
 
             $this->apolice_equipamento->insert($dados_equipamento, true);
             $this->concluiApolice($pedido, $apolice_id);
@@ -501,7 +508,7 @@ class Apolice_Model extends MY_Model
             $dados_generico['cnpj_cpf']                = $cotacao_salva['cnpj_cpf'];
             $dados_generico['rg']                      = $cotacao_salva['rg'];
             $dados_generico['nome']                    = $cotacao_salva['nome'];
-            $dados_generico['nome_mae']                = $cotacao_salva['nome'];
+            $dados_generico['nome_mae']                = $cotacao_salva['nome_mae'];
             $dados_generico['data_nascimento']         = $cotacao_salva['data_nascimento'];
             $dados_generico['sexo']                    = $cotacao_salva['sexo'];
             $dados_generico['email']                   = $cotacao_salva['email'];
@@ -521,6 +528,7 @@ class Apolice_Model extends MY_Model
             $dados_generico['pro_labore']              = round(($cotacao_salva['premio_liquido_total'] - $cotacao_salva['premio_liquido']), 2);
             $dados_generico['valor_parcela']           = round($pedido['valor_parcela'], 2);
             $dados_generico['valor_estorno']           = 0;
+            $dados_generico['comissao_premio']         = round($cotacao_salva['comissao_premio'], 2);
 
             $dados_generico['estado_civil']       = $cotacao_salva['estado_civil'];
             $dados_generico['rg_orgao_expedidor'] = $cotacao_salva['rg_orgao_expedidor'];
@@ -536,6 +544,12 @@ class Apolice_Model extends MY_Model
             $dados_generico['aux_08']             = $cotacao_salva['aux_08'];
             $dados_generico['aux_09']             = $cotacao_salva['aux_09'];
             $dados_generico['aux_10']             = $cotacao_salva['aux_10'];
+            $dados_generico['tempo_uso']          = $cotacao_salva['tempo_uso'];
+            $dados_generico['imei2']              = $cotacao_salva['imei2'];
+            $dados_generico['latitude_longitude'] = $cotacao_salva['latitude_longitude'];
+            $dados_generico['serial']             = $cotacao_salva['serial'];
+            $dados_generico['uuid']               = $cotacao_salva['uuid'];
+            $dados_generico['data_aceite_termo']  = $cotacao_salva['data_aceite_termo'];
             $dados_generico['numero_sorte']       = $cotacao_salva['numero_sorte'];
 
             $this->apolice_generico->insert($dados_generico, true);
@@ -704,6 +718,13 @@ class Apolice_Model extends MY_Model
                 $dados_seguro_viagem['pro_labore']                    = round((($pedido['premio_liquido_total'] - $pedido['premio_liquido']) / count($cotacao_pessoas)), 2);
                 $dados_seguro_viagem['valor_parcela']                 = round(($pedido['valor_parcela'] / count($cotacao_pessoas)), 2);
                 $dados_seguro_viagem['valor_estorno']                 = 0;
+                $dados_seguro_viagem['tempo_uso']                     = $cotacao_salva['tempo_uso'];
+                $dados_seguro_viagem['imei2']                         = $cotacao_salva['imei2'];
+                $dados_seguro_viagem['latitude_longitude']            = $cotacao_salva['latitude_longitude'];
+                $dados_seguro_viagem['serial']                        = $cotacao_salva['serial'];
+                $dados_seguro_viagem['uuid']                          = $cotacao_salva['uuid'];
+                $dados_seguro_viagem['data_aceite_termo']             = $cotacao_salva['data_aceite_termo'];
+                $dados_seguro_viagem['comissao_premio']               = round($cotacao_salva['comissao_premio'], 2);
                 $dados_seguro_viagem['numero_sorte']                  = $cotacao_salva['numero_sorte'];
 
                 $this->apolice_seguro_viagem->insert($dados_seguro_viagem, true);
@@ -868,29 +889,29 @@ class Apolice_Model extends MY_Model
         }
 
         /*
-    $apolice_id = (int)$apolice_id;
+        $apolice_id = (int)$apolice_id;
 
-    $sql = "
-    SELECT apolice.apolice_id,
-    apolice.pedido_id,
-    apolice.num_apolice,
-    apolice.apolice_status_id,
-    apolice.produto_parceiro_plano_id,
-    apolice.parceiro_id,
-    apolice_status.nome as apolice_status_nome,
-    apolice_status.slug as apolice_status_slug,
-    apolice_seguro_viagem.*
-    FROM apolice
-    INNER JOIN apolice_status ON apolice.apolice_status_id = apolice_status.apolice_status_id
-    INNER JOIN apolice_seguro_viagem ON apolice.apolice_id = apolice_seguro_viagem.apolice_id
-    WHERE
-    apolice.deletado = 0
-    AND apolice_seguro_viagem.deletado = 0
-    AND apolice.apolice_id = {$apolice_id}
-    ";
+        $sql = "
+        SELECT apolice.apolice_id,
+        apolice.pedido_id,
+        apolice.num_apolice,
+        apolice.apolice_status_id,
+        apolice.produto_parceiro_plano_id,
+        apolice.parceiro_id,
+        apolice_status.nome as apolice_status_nome,
+        apolice_status.slug as apolice_status_slug,
+        apolice_seguro_viagem.*
+        FROM apolice
+        INNER JOIN apolice_status ON apolice.apolice_status_id = apolice_status.apolice_status_id
+        INNER JOIN apolice_seguro_viagem ON apolice.apolice_id = apolice_seguro_viagem.apolice_id
+        WHERE
+        apolice.deletado = 0
+        AND apolice_seguro_viagem.deletado = 0
+        AND apolice.apolice_id = {$apolice_id}
+        ";
 
-    return $this->_database->query($sql)->result_array();
-     */
+        return $this->_database->query($sql)->result_array();
+         */
     }
 
     public function getApoliceAll($limit, $offset)
@@ -1287,10 +1308,10 @@ class Apolice_Model extends MY_Model
     public function search_apolice_produto_parceiro_plano_id($num_apolice, $produto_parceiro_plano_id)
     {
         $sql = "
-                    SELECT apolice_id
-                    FROM apolice
-                    WHERE num_apolice = '{$num_apolice}' and produto_parceiro_plano_id = '{$produto_parceiro_plano_id}'
-                    LIMIT 1
+            SELECT apolice_id
+            FROM apolice
+            WHERE num_apolice = '{$num_apolice}' and produto_parceiro_plano_id = '{$produto_parceiro_plano_id}'
+            LIMIT 1
         ";
         return (int) $this->_database->query($sql)->num_rows() == 1;
     }
@@ -1416,6 +1437,46 @@ class Apolice_Model extends MY_Model
         }
 
         return $dadosPP;
+    }
+
+    function getByRespoCobertura($parceiro_slug = null)
+    {
+        $this->_database->distinct()
+            // ->select("72 as parceiroID, produto_parceiro_plano.produto_parceiro_id, IFNULL(apm.apolice_movimentacao_id, apolice_movimentacao.apolice_movimentacao_id) AS apolice_movimentacao_id, apolice_movimentacao_tipo.slug as slugMov, produto_parceiro_servico.produto_parceiro_servico_id, produto_parceiro_servico.param", FALSE)
+            ->select("parceiro.parceiro_id as parceiroID, produto_parceiro_plano.produto_parceiro_id, IFNULL(apm.apolice_movimentacao_id, apolice_movimentacao.apolice_movimentacao_id) AS apolice_movimentacao_id, apolice_movimentacao_tipo.slug as slugMov, produto_parceiro_servico.produto_parceiro_servico_id, produto_parceiro_servico.param", false)
+            ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
+            ->join("apolice_movimentacao", "apolice.apolice_id = apolice_movimentacao.apolice_id", 'inner')
+            ->join("apolice_movimentacao apm", "apolice.apolice_id = apm.apolice_id AND apm.apolice_movimentacao_tipo_id = 1", 'left')
+            ->join("apolice_movimentacao_tipo", "apolice_movimentacao.apolice_movimentacao_tipo_id = apolice_movimentacao_tipo.apolice_movimentacao_tipo_id", 'inner')
+            ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner')
+            ->join("cobertura_plano", "produto_parceiro_plano.produto_parceiro_plano_id = cobertura_plano.produto_parceiro_plano_id", 'inner')
+            ->join("parceiro", "parceiro.parceiro_id = cobertura_plano.parceiro_id", 'inner')
+            ->join("produto_parceiro_servico", "produto_parceiro_servico.produto_parceiro_id = produto_parceiro_plano.produto_parceiro_id AND produto_parceiro_servico.deletado = 0", 'inner')
+            ->join("produto_parceiro_servico_log", "produto_parceiro_servico.produto_parceiro_servico_id = produto_parceiro_servico_log.produto_parceiro_servico_id AND apolice_movimentacao.apolice_movimentacao_id = produto_parceiro_servico_log.idConsulta AND produto_parceiro_servico_log.deletado = 0 AND produto_parceiro_servico_log.consulta = IF(apolice_movimentacao_tipo.slug = 'A', 'new', 'cancel')", 'left')
+            ->where("apolice_status.slug IN('ativa','cancelada')")
+            ->where('produto_parceiro_servico_log.produto_parceiro_servico_log_id IS NULL', null, FALSE);
+
+        if (!empty($parceiro_slug)) {
+            $this->_database->where('parceiro.slug', $parceiro_slug);
+        }
+
+        return $this->get_all();
+
+    }
+
+    /**
+     * Valida se a apolice se encontra no status desejado
+     * @param int $apolice_id
+     * @param string $slug_status
+     * @return boolean
+     * @author Cristiano Arruda
+     * @since  12/07/2019
+     */
+    function getApoliceStatus($apolice_id, $slug_status) {
+        $this->_database->join("apolice_status as ast ", "ast.apolice_status_id = {$this->_table}.apolice_status_id", "inner");
+        $this->_database->where("{$this->_table}.apolice_id", $apolice_id);
+        $this->_database->where("ast.slug", $slug_status);
+        return !empty($this->get_all());
     }
 
 }

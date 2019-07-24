@@ -511,7 +511,7 @@
                                                                                    value="<?php if (isset($carrossel['repasse_comissao'])) echo $carrossel['repasse_comissao']; ?>">
                                                                         </td>
                                                                     </tr>
-                                                                    <tr  class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>"">
+                                                                    <tr  class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>">
                                                                     <td><span class="comissao_corretor"
                                                                               id="comissao_corretor_two_<?php echo $plano['produto_parceiro_plano_id']; ?>">---</span>
                                                                     </td>

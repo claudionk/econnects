@@ -1,7 +1,6 @@
 $(function(){
 
     $('.deleteRowButton').on('click', function(){
-
         return confirm("Deseja realmente excluir esse registro?");
     });
 
@@ -17,9 +16,8 @@ $(function(){
                     window.location.reload();
                 }
             },
-
-
         });
+
     });
 
     $('#ean').on('blur',function() {
@@ -396,6 +394,8 @@ function buscaDadosEAN(){
     });
 }
 function populaSelectCategoria(id){
+    if (!id) return false;
+
     $.ajax({
         url: base_url + "admin/equipamento/service_categorias/" + id,
         type: "GET",
@@ -412,6 +412,8 @@ function populaSelectCategoria(id){
     });
 }
 function populaSelectMarca(id){
+    if (!id) return false;
+
     $.ajax({
         url: base_url + "admin/equipamento/service_marcas/" + id,
         type: "GET",
@@ -428,6 +430,8 @@ function populaSelectMarca(id){
     });
 }
 function populaSelectModelo(id){
+
+    if (!id) return false;
 
     var $data = {}, url='/'+encodeURI(id);
     if (String(id).indexOf(",") >= 0) {

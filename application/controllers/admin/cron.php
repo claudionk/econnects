@@ -115,10 +115,10 @@ class Cron extends Admin_Controller
         $this->comunicacao();
     }
 
-    public function comunicacao()
+    public function comunicacao($data = [])
     {
         $comunicacao = new Comunicacao();
-        $comunicacao->enviaCronMensagens();
+        $comunicacao->enviaCronMensagens($data);
     }
 
     public function comissao()
@@ -290,6 +290,61 @@ class Cron extends Admin_Controller
     {
         $this->load->model('cta_movimentacao_model', 'cta_movimentacao');
         $this->cta_movimentacao->run($time);
+    }
+
+    /**
+     * Coberturas de Parceiros Terceiros para integração
+     */
+    public function cobertura_parceiro()
+    {
+        $this->load->model("apolice_model", "apolice");
+        $this->load->model('produto_parceiro_servico_model', 'produto_parceiro_servico');
+        $this->load->model('produto_parceiro_servico_log_model', 'produto_parceiro_servico_log');
+        $this->load->library('Powerbiz');
+
+        $powerbiz = new Powerbiz();
+        $apolices = $this->apolice->getByRespoCobertura('powerbiz');
+        $configs = [];
+
+        foreach ($apolices as $apolice) {
+            // Consulta o log da emissão
+            $logs = $this->produto_parceiro_servico_log
+                ->filter_by_produto_parceiro_servico_id( $apolice['produto_parceiro_servico_id'] )
+                ->filter_by_idConsulta( $apolice['apolice_movimentacao_id'] )
+                ->filter_by_consulta(($apolice['slugMov'] == 'A') ? 'new' : 'cancel')
+                ->get_all();
+
+            if ( empty($logs) ) {
+
+                $config = $this->produto_parceiro_servico
+                    ->with_servico()
+                    ->with_servico_tipo()
+                    ->filter_by_servico_tipo('powerbiz')
+                    ->filter_by_produto_parceiro($apolice['produto_parceiro_id'])
+                    ->get_all();
+
+                if ( !empty($config) ){
+                    $config = $config[0];
+
+                    if ($apolice['slugMov'] == 'A')
+                    {
+                        $powerbiz->powerbiz_new($config, [ 
+                            'apolice_movimentacao_id' => $apolice['apolice_movimentacao_id'], 
+                            'param' => $apolice['param'], 
+                            'produto_parceiro_servico_id' => $apolice['produto_parceiro_servico_id'] 
+                        ]);
+                    } else {
+                        $powerbiz->powerbiz_cancel($config, [ 
+                            'apolice_movimentacao_id' => $apolice['apolice_movimentacao_id'], 
+                            'param' => $apolice['param'], 
+                            'produto_parceiro_servico_id' => $apolice['produto_parceiro_servico_id'] 
+                        ]);
+                    }
+                }
+
+            }
+
+        }
     }
 
 }

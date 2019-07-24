@@ -37,7 +37,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         array(
             'field' => 'unidade_tempo',
             'label' => 'Unidade',
-            'rules' => 'required|enum[DIA,MES,ANO,VALOR,IDADE]',
+            'rules' => 'required|enum[DIA,MES,ANO,VALOR,IDADE,COMISSAO]',
             'groups' => 'default'
         ),
         array(
@@ -66,6 +66,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         array(
             'field' => 'cobranca',
             'label' => 'cobranca',
+            'rules' => 'required|enum[VALOR,PORCENTAGEM]',
             'groups' => 'default'
         ),
         array(
@@ -87,12 +88,11 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
             'final' => app_unformat_currency($this->input->post('final')),
             'valor' => app_unformat_currency($this->input->post('valor')),
             'equipamento' => '',
-            'cobranca' => "VALOR",
+            'cobranca' => $this->input->post('cobranca'),
         );
 
         if( !empty($this->input->post('equipamento')) ) {
             $data['equipamento'] = "'" . implode ( "','", $this->input->post('equipamento') ) . "'";
-            // $data["cobranca"] = "PORCENTAGEM";
             if ($this->input->post('precificacao_tipo_id') == 5){
                 $data["tipo_equipamento"] = "EQUIPAMENTO";
             }
@@ -167,13 +167,25 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         return $this;
     }
 
+    public function getQuantidade($quantidade = 1, $data_inicio_vigencia = null, $data_fim_vigencia = null, $unidade = 'M') {
+        // Se estiver configurado para informar o inicio e fim de vigência, irá fazer o cálculo com esta base
+        if ( !empty($data_inicio_vigencia) && !empty($data_fim_vigencia) )
+        {
+            $quantidade = app_date_get_diff_vigencia($data_inicio_vigencia, $data_fim_vigencia, $unidade);
+        }
+
+        $quantidade = ((int)$quantidade <=0) ? 1 : (int)$quantidade;
+
+        return $quantidade;
+    }
+
     /**
     * Retorna valores do plano
     * @param $produto_parceiro_id
     * @param int $num_passageiro
     * @return array
     */
-    public function getValoresPlano( $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_id = NULL, $servico_produto_id = NULL){
+    public function getValoresPlano( $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_id = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
@@ -182,7 +194,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
         $moeda_padrao = $this->moeda->filter_by_moeda_padrao()->get_all();
         $moeda_padrao = $moeda_padrao[0];
-        $quantidade = ((int)$quantidade <=0) ? 1 : (int)$quantidade;
+        $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, 'M');
 
         $produto_parceiro =  $this->current_model->get_by_id($produto_parceiro_id);
         if($produto_parceiro['venda_agrupada']) {
@@ -214,12 +226,15 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             ->filter_by_tipo_equipamento('TODOS')
                             ->get_all();
 
-                        $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $data_nascimento) * $quantidade;
+                        $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia);
+                        $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, $calculo['unidade']);
+
+                        $calculo = $calculo['valor'] * $quantidade;
 
                     } elseif( $produto_slug == 'generico' || $produto_slug == 'seguro_saude' ) {
 
                         $vigencia = $this->plano->getInicioFimVigencia($plano['produto_parceiro_plano_id']);
-                        $calculo = $this->getValorTabelaFixaGenerico($plano['produto_parceiro_plano_id'], $vigencia['dias'])*$quantidade;
+                        $calculo = $this->getValorTabelaFixaGenerico($plano['produto_parceiro_plano_id'], $vigencia['dias'], $valor_nota, $data_nascimento, $comissao )*$quantidade;
 
                     }
 
@@ -281,9 +296,10 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         ->filter_by_equipamento($equipamento_id)
                         ->get_all();
 
-                    $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $data_nascimento) * $quantidade;
+                    $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $data_nascimento);
 
                     if($calculo) {
+                        $calculo = $calculo['valor'] * $quantidade;
                         $valores[$plano['produto_parceiro_plano_id']] = $calculo;
 
                         if($moeda_padrao['moeda_id'] != $plano['moeda_id']){
@@ -311,15 +327,15 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     break;
                 }
             }
+        $valores['quantidade'] = $quantidade;
 
         return $valores;
 
     }
 
-    private function getValorTabelaFixaGenerico($produto_parceiro_plano_id, $qntDias, $valor_nota = null, $data_nascimento = null){
+    private function getValorTabelaFixaGenerico($produto_parceiro_plano_id, $qntDias, $valor_nota = null, $data_nascimento = null, $comissao = null){
 
         $valor = $this->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-            // ->filter_by_intevalo_dias($qntDias, 'DIA')
             ->filter_by_tipo('RANGE')
             ->get_all();
 
@@ -342,14 +358,15 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     $d = $dn->diff(new DateTime());
                     $base = $d->y;
                     break;
+                case 'COMISSAO':
+                    $base = $comissao;
+                    break;
                 default:
                     $base = 0;
                     break; 
             }
 
-            // echo $base ." -> ". $vl['inicial'] ." > ". $vl['final'] ."\n";
             if ($base >= $vl['inicial'] && $base <= $vl['final']) {
-                // echo "encontrou\n";
                 return $vl['valor'];
             }
         }
@@ -363,9 +380,9 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param $equipamento_nome
     * @return mixed|null
     */
-    public function getValorTabelaFixa($valor, $valor_nota = null, $data_nascimento = null){
+    public function getValorTabelaFixa($valor, $valor_nota = null, $data_nascimento = null, $comissao = null, $data_inicio_vigencia = null, $data_fim_vigencia = null){
 
-        $valores = [];
+        $valores = ['unidade' => 1, 'valor' => null];
         if(count($valor) > 0)
         {
             foreach ($valor as $vl) {
@@ -374,29 +391,40 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                 switch ($vl['unidade_tempo']) {
                     case 'DIA':
                         $base = date('d');
+                        $valores['unidade'] = 'D';
                         break;
                     case 'MES':
                         $base = date('m');
+                        $valores['unidade'] = 'M';
                         break;
                     case 'ANO':
-                        $base = date('Y');
+                        // $base = date('Y');
+                        $base = $this->getQuantidade(1, $data_inicio_vigencia, $data_fim_vigencia, 'Y');
+                        $valores['unidade'] = 'Y';
                         break;
                     case 'VALOR':
                         $base = $valor_nota;
+                        $valores['unidade'] = 'V';
                         break;
                     case 'IDADE':
                         $dn = new DateTime($data_nascimento);
                         $d = $dn->diff(new DateTime());
                         $base = $d->y;
+                        $valores['unidade'] = 'I';
+                        break;
+                    case 'COMISSAO':
+                        $base = $comissao;
+                        $valores['unidade'] = 'C';
                         break;
                 }
 
                 if (!empty($base) && $base >= $vl['inicial'] && $base <= $vl['final']) {
                     if ($vl['cobranca'] == 'PORCENTAGEM') {
-                        return app_calculo_porcentagem($vl['valor'], $valor_nota);
+                        $valores['valor'] = app_calculo_porcentagem($vl['valor'], $valor_nota);
                     } else {
-                        return $vl['valor'];
+                        $valores['valor'] = $vl['valor'];
                     }
+                    return $valores;
                 }
 
             }
