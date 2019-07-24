@@ -324,7 +324,7 @@ Class Integracao_Model extends MY_Model
             $dados_integracao['status'] = 'A';
             $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
-            //execute before execute
+            //execute after execute
             if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
                 call_user_func($result['after_execute'], null, array('item' => $result, 'registro' => $result_file, 'log' => $result_process, 'valor' => null));
             }
@@ -353,7 +353,6 @@ Class Integracao_Model extends MY_Model
 
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
-                echo $result['before_execute']."<br>";
                 call_user_func($result['before_execute'], null, array('item' => $result, 'registro' => array(), 'log' => array(), 'valor' => null));
             }
 
@@ -396,6 +395,10 @@ Class Integracao_Model extends MY_Model
             $dados_integracao['status'] = 'A';
             $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
+            //execute after execute
+            if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
+                call_user_func($result['after_execute'], null, array('item' => $result, 'registro' => $result_file, 'log' => $dados_log, 'valor' => null));
+            }
         }
     }
 
@@ -586,22 +589,20 @@ Class Integracao_Model extends MY_Model
 
     private function processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao) {
         if (!empty($layout_m)){
-
             foreach ($registros as $registro) {
-
                 $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $this->data_template_script['totalRegistros']+1, $this->geraCampoChave($integracao['campo_chave'], $registro), null, $this->geraCampoChave($integracao['parametros'], $registro));
 
                 foreach ($layout_m as $lm) {
 
                     $inserir=true;
+                    $this->data_template_script['pedido_id']            = issetor($registro['pedido_id'], 0);
+                    $this->data_template_script['apolice_status_id']    = issetor($registro['apolice_status_id'], 0);
+                    $this->data_template_script['apolice_id']           = issetor($registro['apolice_id'], 0);
+                    $this->data_template_script['apolice_endosso_id']   = issetor($registro['apolice_endosso_id'], 0);
+                    $this->data_template_script['num_sequencial']       = issetor($registro['num_sequencial'], 0);
 
                     // caso tenha que pegar o campo do detalhe
                     if (!empty($lm['sql'])) {
-                        $this->data_template_script['pedido_id']            = issetor($registro['pedido_id'], 0);
-                        $this->data_template_script['apolice_status_id']    = issetor($registro['apolice_status_id'], 0);
-                        $this->data_template_script['apolice_id']           = issetor($registro['apolice_id'], 0);
-                        $this->data_template_script['apolice_endosso_id']   = issetor($registro['apolice_endosso_id'], 0);
-                        $this->data_template_script['num_sequencial']       = issetor($registro['num_sequencial'], 0);
                         $lm['sql'] = $this->parser->parse_string($lm['sql'], $this->data_template_script, TRUE);
                         $reg = $this->_database->query($lm['sql'])->result_array();
                         $inserir=false;
@@ -657,7 +658,7 @@ Class Integracao_Model extends MY_Model
             SELECT il.*, id.multiplo, id.script_sql
             FROM integracao_layout il 
             INNER JOIN integracao_detalhe id ON il.integracao_detalhe_id=id.integracao_detalhe_id
-            WHERE il.integracao_id = {$integracao['integracao_id']} AND il.deletado = 0
+            WHERE il.integracao_id = {$integracao['integracao_id']} AND il.deletado = 0 AND id.deletado = 0
             ORDER BY id.ordem, il.ordem
         ");
         $layout_all = $query->result_array();
@@ -707,6 +708,7 @@ Class Integracao_Model extends MY_Model
         }
 
         $arRet['file'] = "{$diretorio}/{$filename}";
+        $arRet['dados'] = $registros;
 
         //gera todas as linhas
         foreach ($layout as $lay) {
@@ -724,7 +726,7 @@ Class Integracao_Model extends MY_Model
         // Trata o header
         if ( $idxH >= 0 ) {
             $rmQtdeLine++;
-            $header = $this->getLinha($lH['dados'], $registros, $integracao_log);
+            $header = $this->getLinha($lH['dados'], !empty($registros) ? $registros[0] : [], $integracao_log);
             $linhas = array_merge([$header], $linhas);
         }
 
@@ -985,22 +987,7 @@ Class Integracao_Model extends MY_Model
 
         foreach ($layout as $ind => $item) {
 
-            // Se for obrigatório precisa validar e retornar erro para gerar log de retorno
-            if ($item['obrigatorio'] == 1 && !empty($item['nome_banco']) ){
-                if ( !isset($registro[$item['nome_banco']]) || strlen(trim($registro[$item['nome_banco']])) == 0 
-                    || ( $item['campo_tipo']=='M' && !($registro[$item['nome_banco']] > 0) ) 
-                    // || ( $item['campo_tipo']=='D' && !($registro[$item['nome_banco']] > 0) ) 
-                ) {
-                    // seta para erro
-                    $integracao_log_status_id = 8;
-
-                    // gera log do erro
-                    $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, 1, "O campo {$item['nome']} é obrigatório", $item['nome_banco']);
-
-                    // não gera a linha
-                    continue;
-                }
-            }
+            
 
             $campo = null;
             $pre_result = '';
@@ -1034,6 +1021,25 @@ Class Integracao_Model extends MY_Model
                     $campo = '';
                 }
 
+            }
+
+            // Se for obrigatório precisa validar e retornar erro para gerar log de retorno
+            if ($item['obrigatorio'] == 1 && !empty($item['nome_banco']) && empty($campo)){
+                if ( !isset($registro[$item['nome_banco']]) || strlen(trim($registro[$item['nome_banco']])) == 0
+                    || ( $item['campo_tipo']=='M' && !($registro[$item['nome_banco']] > 0) ) 
+                    // || ( $item['campo_tipo']=='D' && !($registro[$item['nome_banco']] > 0) ) 
+                ) {
+                    var_dump(!isset($registro[$item['nome_banco']]));die();
+
+                    // seta para erro
+                    $integracao_log_status_id = 8;
+
+                    // gera log do erro
+                    $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, 1, "O campo {$item['nome']} é obrigatório", $item['nome_banco']);
+
+                    // não gera a linha
+                    continue;
+                }
             }
 
             if (!is_null($campo)){

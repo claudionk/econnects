@@ -426,6 +426,7 @@ class Venda_Equipamento extends Admin_Controller{
         $this->load->model('cliente_model', 'cliente');
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('localidade_estado_model', 'localidade_estado');
+        $this->load->model('capitalizacao_model', 'capitalizacao');
 
         //Carrega JS para template
         $this->template->css(app_assets_url('modulos/venda/equipamento/css/select2.css', 'admin'));
@@ -488,6 +489,13 @@ class Venda_Equipamento extends Admin_Controller{
             redirect("$this->controller_uri/index");
         }
 
+        // valida Capitalização
+        $capitalizacao = $this->capitalizacao->validaNumeroSorte($cotacao_id);
+        if ( empty($capitalizacao['status']) ) {
+            $this->session->set_flashdata('fail_msg', $capitalizacao["message"]);
+            redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/3/{$cotacao_id}");
+        }
+
         $data = array();
 
         $data['cotacao_id'] = $cotacao_id;
@@ -519,13 +527,12 @@ class Venda_Equipamento extends Admin_Controller{
             $this->cotacao->setValidate($validacao);
             if ($this->cotacao->validate_form('dados_segurado')) {
 
-
                 foreach ($planos as $index => $plano) {
 
                     //busca cotação do cotacao_seguro_viagem
                     $cotacao_salva = $this->cotacao->with_cotacao_equipamento()
-                    ->filterByID($cotacao_id)
-                    ->get_all();
+                        ->filterByID($cotacao_id)
+                        ->get_all();
 
                     $cotacao_salva = $cotacao_salva[0];
                     $dados_cotacao = array();
@@ -979,10 +986,6 @@ class Venda_Equipamento extends Admin_Controller{
         $this->load->model('pedido_transacao_model', 'pedido_transacao');
         $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento');
         $this->load->model('cotacao_model', 'cotacao');
-
-        $this->load->model('produto_parceiro_capitalizacao_model', 'parceiro_capitalizacao');
-        $this->load->model('capitalizacao_model', 'capitalizacao');
-        $this->load->model('capitalizacao_serie_titulo_model', 'titulo');
 
         $valor_total = $this->cotacao_equipamento->getValorTotal($cotacao_id);
 

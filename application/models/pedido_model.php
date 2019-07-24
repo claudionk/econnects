@@ -2131,10 +2131,6 @@ Class Pedido_Model extends MY_Model
         $this->load->model('produto_parceiro_pagamento_model', 'produto_pagamento');
         $this->load->model('forma_pagamento_model', 'forma_pagamento');
 
-        $this->load->model('produto_parceiro_capitalizacao_model', 'parceiro_capitalizacao');
-        $this->load->model('capitalizacao_model', 'capitalizacao');
-        $this->load->model('capitalizacao_serie_titulo_model', 'titulo');
-
         //  $item = $this->produto_pagamento->get_by_id($dados['bandeira']);
         if($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_CARTAO_CREDITO) {
             $item = $this->produto_pagamento->get_by_id($dados['bandeira']);
