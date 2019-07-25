@@ -27,10 +27,10 @@ class Emissao extends CI_Controller {
 
     public $meio_pagto_slug;
     public $campos_meios_pagto;
+    public $numero_sorte;
     public $comissao_premio;
     public $coberturas_opcionais;
     public $parcelas;
-    public $numero_sorte;
 
     public function __construct() {
         parent::__construct();
@@ -109,7 +109,6 @@ class Emissao extends CI_Controller {
         $this->numero_sorte         = (!isset($POST['numero_sorte'])) ? null : $POST['numero_sorte'];
 
         $this->etapas('cotacao', $POST);
-
     }
 
     public function etapas($etapa = null, $parametros = []){
