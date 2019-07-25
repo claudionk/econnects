@@ -464,6 +464,16 @@ if ( ! function_exists('app_integracao_format_file_name_generali')) {
     }
 
 }
+if ( ! function_exists('app_integracao_file_name_sulacap')) {
+
+    function app_integracao_file_name_sulacap($formato, $dados = array())
+    {
+        $data = date('dmy');
+        $file = "{$formato}{$data}.txt";
+        return $file;
+    }
+
+}
 if ( ! function_exists('app_integracao_format_file_name_ret_sis')) {
 
     function app_integracao_format_file_name_ret_sis($formato, $dados = array())
@@ -1369,75 +1379,13 @@ if ( ! function_exists('app_integracao_cap_data_sorteio')) {
     function app_integracao_cap_data_sorteio($formato, $dados = array())
     {
         $data = null;
-        $capitalizacao_id   = issetor($dados["registro"]["capitalizacao_id"], 0);
-        $data_compra        = issetor($dados["registro"]["data_adesao"], date('Y-m-d'));
-        $data_ini_vigencia  = issetor($dados["registro"]["data_ini_vigencia"], date('Y-m-d'));
-        $data_fim_vigencia  = issetor($dados["registro"]["data_fim_vigencia"], date('Y-m-d'));
-        $formato            = emptyor($formato, 'dmY');
-
-        if (empty($capitalizacao_id))
-            return $data;
+        $pedido_id = issetor($dados["registro"]["pedido_id"], 0);
+        $formato   = emptyor($formato, 'dmY');
 
         $CI =& get_instance();
-        $q = $CI->db->query("
-            SELECT slug 
-            FROM capitalizacao_sorteio 
-            WHERE capitalizacao_sorteio_id IN(SELECT capitalizacao_sorteio_id FROM capitalizacao WHERE capitalizacao_id = $capitalizacao_id);
-        ");
-        if (empty($q->num_rows())) {
-            return $data;
-        }
+        $CI->load->model("Capitalizacao_Sorteio_Model", "capitalizacao_sorteio");
 
-        $q = $q->result_array()[0];
-
-        // Tipo de Sorteio
-        switch ($q['slug']) {
-            case 'ultimo_sabado_mes':
-                #%w = Sunday=0 and Saturday=6
-                $d1 = new DateTime();
-                $d1->add(new DateInterval('P1M')); // add 1 month
-                $d2 = $d1->format('d'); // dia do mês para ser retirado
-                $d1->sub(new DateInterval("P{$d2}D")); // -1 dia (último dia do mês)
-
-                // se não for um sábado
-                if ($d1->format('w') != 0)
-                {
-                    $d2 = $d1->format('w') + 1; // dia da semana do último dia do mês
-                    $d1->sub(new DateInterval("P{$d2}D")); // -1 dia (último dia do mês)
-                }
-
-                $data = $d1->format($formato);
-                break;
-
-            case 'sabado_compra':
-                #%w = Sunday=0 and Saturday=6
-                $d1 = new DateTime($data_compra);
-                $d2 = 6 - $d1->format('w'); // diferença de dias para chegar ao sábado
-                $d1->add(new DateInterval("P{$d2}D"));
-
-                $data = $d1->format($formato);
-                break;
-
-             case 'sabado_inicio_vigência':
-                #%w = Sunday=0 and Saturday=6
-                $d1 = new DateTime($data_ini_vigencia);
-                $d2 = 6 - $d1->format('w'); // diferença de dias para chegar ao sábado
-                $d1->add(new DateInterval("P{$d2}D"));
-
-                $data = $d1->format($formato);
-                break;
-
-             case 'sabado_fim_vigencia':
-                #%w = Sunday=0 and Saturday=6
-                $d1 = new DateTime($data_fim_vigencia);
-                $d2 = 6 - $d1->format('w'); // diferença de dias para chegar ao sábado
-                $d1->add(new DateInterval("P{$d2}D"));
-
-                $data = $d1->format($formato);
-                break;
-        }
-
-        return $data;
+        return $CI->capitalizacao_sorteio->defineDataSorteio($pedido_id, $formato);
     }
 }
 if ( ! function_exists('app_integracao_cap_remessa')) {
