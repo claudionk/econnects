@@ -1244,6 +1244,17 @@ function app_calculo_valor($tipo, $quantidade, $valor){
 function app_calculo_porcentagem ( $porcentagem, $total ) {
     return ( $porcentagem / 100 ) * $total;
 }
+/**
+ * Truncar Valor com Precisão definida
+ * @param $number float
+ * @param $precision int
+ * @return float
+ */
+function truncate($number, $precision = 0) {
+   // warning: precision is limited by the size of the int type
+   $shift = pow(10, $precision);
+   return intval($number * $shift)/$shift;
+}
 
 /**
  * Converte para UTF8 recursivamente
