@@ -98,6 +98,24 @@ Class Cobertura_Plano_Model extends MY_Model {
             'rules' => '',
             'groups' => 'default'
         ),
+        array(
+            'field' => 'cod_cobertura',
+            'label' => 'Código da Cobertura',
+            'rules' => '',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'cod_ramo',
+            'label' => 'Código do Ramo',
+            'rules' => '',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'cod_produto',
+            'label' => 'Código do Produto',
+            'rules' => '',
+            'groups' => 'default'
+        ),
     );
 
     //Get dados
@@ -105,20 +123,23 @@ Class Cobertura_Plano_Model extends MY_Model {
 
         //Dados
         $data =  array(
-            'cobertura_id' => $this->input->post('cobertura_id'),
+            'cobertura_id'              => $this->input->post('cobertura_id'),
             'produto_parceiro_plano_id' => $this->input->post('produto_parceiro_plano_id'),
-            'parceiro_id' => $this->input->post('parceiro_id'),
-            'porcentagem' => app_unformat_currency($this->input->post('porcentagem')),
-            'preco' => app_unformat_currency($this->input->post('preco')),
-            'custo' => app_unformat_currency($this->input->post('custo')),
-            'mostrar' => $this->input->post('mostrar'),
-            'descricao' => $this->input->post('descricao'),
-            'cobertura_custo' => $this->input->post('cobertura_custo'),
-            'iof' => app_unformat_currency($this->input->post('iof')),
-            'usar_iof' => $this->input->post('usar_iof'),
-            'diarias'  => $this->input->post('diarias'),
-            'franquia' => $this->input->post('franquia'),
-            'carencia' => $this->input->post('carencia')
+            'parceiro_id'               => $this->input->post('parceiro_id'),
+            'porcentagem'               => app_unformat_currency($this->input->post('porcentagem')),
+            'preco'                     => app_unformat_currency($this->input->post('preco')),
+            'custo'                     => app_unformat_currency($this->input->post('custo')),
+            'mostrar'                   => $this->input->post('mostrar'),
+            'descricao'                 => $this->input->post('descricao'),
+            'cobertura_custo'           => $this->input->post('cobertura_custo'),
+            'iof'                       => app_unformat_currency($this->input->post('iof')),
+            'usar_iof'                  => $this->input->post('usar_iof'),
+            'diarias'                   => $this->input->post('diarias'),
+            'franquia'                  => $this->input->post('franquia'),
+            'carencia'                  => $this->input->post('carencia'),
+            'cod_cobertura'             => $this->input->post('cod_cobertura'),
+            'cod_ramo'                  => $this->input->post('cod_ramo'),
+            'cod_produto'               => $this->input->post('cod_produto'),
         );
         return $data;
     }
@@ -127,14 +148,10 @@ Class Cobertura_Plano_Model extends MY_Model {
         return $this->get($id);
     }
 
-
     function  filter_by_produto_parceiro_plano($produto_parceiro_plano_id) {
-
         $this->_database->where("{$this->_table}.produto_parceiro_plano_id", $produto_parceiro_plano_id);
-
         return $this;
     }
-
 
     //Agrega Coberturas
     function with_cobertura($fields = array('nome')) {
