@@ -1712,12 +1712,17 @@ if ( ! function_exists('app_integracao_apolice')) {
     {
         $num_apolice = $dados['registro']['num_apolice'];
         $num_apolice_aux = $dados['registro']['cod_sucursal'] . $dados['registro']['cod_ramo'] . $dados['registro']['cod_tpa'];
-        $num_apolice_aux .= str_pad(substr($num_apolice, 7, 8), 8, '0', STR_PAD_LEFT);
+
+        if ($dados['registro']['cod_tpa'] == '025')
+        {
+            $num_apolice_aux .= substr($num_apolice, 3, 3) . str_pad(substr($num_apolice, 10, 5), 5, '0', STR_PAD_LEFT);
+        } else {
+            $num_apolice_aux .= str_pad(substr($num_apolice, 7, 8), 8, '0', STR_PAD_LEFT);
+        }
 
         return $num_apolice_aux;
     }
 }
-
 if ( ! function_exists('app_integracao_apolice_revert')) {
     function app_integracao_apolice_revert($formato, $dados = array())
     {
@@ -1730,6 +1735,11 @@ if ( ! function_exists('app_integracao_apolice_revert')) {
         $seq = right($num_apolice, 8);
         $tpa = left(right($num_apolice, 11), 3);
 
+        if ($tpa == '025')
+        {
+            $seq = left($seq, 3) ."%". right($seq, 5);
+        }
+
         if ( empty($seq) || empty($tpa) ) {
             return '';
         }
@@ -1739,7 +1749,7 @@ if ( ! function_exists('app_integracao_apolice_revert')) {
         $result = $CI->apolice_model->filter_by_numApolice($seq, $tpa)->get_all();
 
         if (empty($result))
-            return "7840001".$seq;
+            return '';
 
         return $result[0]['num_apolice'];
     }
