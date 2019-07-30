@@ -318,6 +318,7 @@ Class Pedido_Model extends MY_Model
                 pedido.valor_parcela,
                 cotacao.produto_parceiro_id, 
                 produto.slug,
+                parceiro.slug as slug_parceiro,
                 produto_parceiro.parceiro_id,
                 produto_parceiro_apolice.template as template_apolice,
                 CASE produto.slug 
@@ -331,9 +332,10 @@ Class Pedido_Model extends MY_Model
                     ELSE cotacao_seguro_viagem.premio_liquido_total
                 END AS premio_liquido_total
             FROM pedido
-            INNER JOIN cotacao ON ( cotacao.cotacao_id = pedido.cotacao_id )
-            INNER JOIN  produto_parceiro ON ( cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id)
-            INNER JOIN produto ON (produto.produto_id = produto_parceiro.produto_id)
+            INNER JOIN cotacao ON cotacao.cotacao_id = pedido.cotacao_id
+            INNER JOIN produto_parceiro ON cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id
+            INNER JOIN parceiro ON produto_parceiro.parceiro_id = parceiro.parceiro_id
+            INNER JOIN produto ON produto.produto_id = produto_parceiro.produto_id
             LEFT JOIN produto_parceiro_apolice ON ( produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id)
             LEFT JOIN cotacao_seguro_viagem ON ( cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id)
             LEFT JOIN cotacao_equipamento ON ( cotacao_equipamento.cotacao_id = cotacao.cotacao_id)
