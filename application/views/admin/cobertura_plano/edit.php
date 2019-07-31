@@ -230,8 +230,29 @@ if($_POST)
                               <input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo $row[$field_name]; ?>" />
                             </div>
                           </div>
-                          
 
+                          <div class="form-group">
+                            <div class="col-md-12">
+                              <h4>Dados do CTA</h4>
+                              <hr>
+                            </div>
+                          </div>
+                          <?php $field_name = 'cod_cobertura';?>
+                          <div class="form-group">
+                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Código da Cobertura</label>
+                            <div class="col-md-4"><input class="form-control" ui-number-mask="5" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                          </div>
+                          <?php $field_name = 'cod_ramo';?>
+                          <div class="form-group">
+                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Código do Ramo</label>
+                            <div class="col-md-4"><input class="form-control" ui-number-mask="2" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                          </div>
+                          <?php $field_name = 'cod_produto';?>
+                          <div class="form-group">
+                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Código do Produto</label>
+                            <div class="col-md-4"><input class="form-control" ui-number-mask="5" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                          </div>
+                          
                         </div>
                         <!-- // Column END -->
                       </div>
