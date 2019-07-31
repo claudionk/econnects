@@ -1246,6 +1246,8 @@ class Apolice_Model extends MY_Model
             'plano'      => $plano,
             'coberturas' => $coberturas,
             //  'capitalizacao' => $capitalizacao,
+            'premio_liquido' => $apolice['valor_premio_net'],
+            'premio_bruto' => $apolice['valor_premio_total'],
             'pagamento'  => $pagamento,
             'dados'      => $dados),
             true);

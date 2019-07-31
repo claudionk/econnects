@@ -11,7 +11,7 @@
 
         <?php $premio_total = 0; foreach ($coberturas as $i => $cobertura) {
 
-            $premio = $pagamento['valor_total']/(1-(0.38/100)) * $cobertura['porcentagem'];
+            $premio = $premio_bruto * ($cobertura['porcentagem']/100);
             $premio_total += $premio;
             ?>
             <tr>
