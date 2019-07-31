@@ -184,6 +184,7 @@ Class Cobertura_Plano_Model extends MY_Model {
         $this->_database->select("{$this->_table}.*, cobertura.*, produto_parceiro_plano.*");
         $this->_database->join("cobertura", "cobertura.cobertura_id = {$this->_table}.cobertura_id");
         $this->_database->join("produto_parceiro_plano", "produto_parceiro_plano.produto_parceiro_plano_id = {$this->_table}.produto_parceiro_plano_id");
+        $this->_database->join("produto_parceiro", "produto_parceiro.produto_parceiro_id = produto_parceiro_plano.produto_parceiro_id AND produto_parceiro.parceiro_id = cobertura_plano.parceiro_id");
 
         $this->_database->where("produto_parceiro_plano.produto_parceiro_id", $produto_parceiro_id);
         $this->_database->where("produto_parceiro_plano.deletado", 0);
@@ -219,6 +220,88 @@ Class Cobertura_Plano_Model extends MY_Model {
         $this->_database->where("usar_iof", 1);
 
         return $this;
+    }
+
+    public function getCoberturasApolice($apolice_id)
+    {
+        $sql = "
+        select *, premio_liquido + valor_iof as premio_liquido_total
+        from (
+
+        select 
+        cobertura_plano.cod_cobertura,
+        cobertura.nome as cobertura,
+        cobertura_plano.usar_iof,
+        cobertura_plano.iof,
+        cobertura_plano.diarias,
+        cobertura_plano.carencia,
+        cobertura_plano.franquia,
+        apolice_cobertura.valor AS premio_liquido,
+        #TRUNCATE(IF(apolice_cobertura.iof > 0, IF(TRUNCATE(apolice_cobertura.valor * apolice_cobertura.iof / 100,2) = 0, 0.01, apolice_cobertura.valor * apolice_cobertura.iof / 100), 0), 2) AS valor_iof,
+        #ROUND(apolice_cobertura.valor + IF(apolice_cobertura.iof > 0, IF(ROUND(apolice_cobertura.valor * apolice_cobertura.iof / 100,2) = 0, 0.01, apolice_cobertura.valor * apolice_cobertura.iof / 100), 0), 2) AS premio_liquido_total,
+        cobertura_plano.preco as nota_fiscal_valor
+
+        #se o IOF é menor que 0.01, joga o valor na maior
+        , TRUNCATE(
+                IF(
+                    TRUNCATE(apolice_cobertura.valor * apolice_cobertura.iof / 100,2) = 0, 
+                        IF(
+                            menor.apolice_id IS NULL, 
+                            IF(apolice_cobertura.iof > 0, 0.01, 0), 
+                            IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, IF( TRUNCATE(menor.valor, 2) = 0, 0.01, menor.valor), 0)
+                        ),
+                        TRUNCATE(apolice_cobertura.valor * apolice_cobertura.iof / 100,2)
+                        
+                        #add a diferenca do IOF total à cobertura de +valor
+                        + IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, menor.valor-menor.valor_t, 0)
+                )
+        ,2) AS valor_iof
+
+        from pedido
+        inner join apolice on apolice.pedido_id = pedido.pedido_id
+        inner join produto_parceiro_plano on apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id
+        inner join produto_parceiro on produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id
+        inner join parceiro on produto_parceiro.parceiro_id = parceiro.parceiro_id
+        inner join apolice_cobertura on apolice.apolice_id = apolice_cobertura.apolice_id
+        inner join cobertura_plano on apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id AND produto_parceiro.parceiro_id = cobertura_plano.parceiro_id
+        inner join cobertura on cobertura_plano.cobertura_id = cobertura.cobertura_id
+        inner join apolice_endosso on apolice.apolice_id = apolice_endosso.apolice_id AND apolice_endosso.apolice_movimentacao_tipo_id = 1
+
+
+        #caso o IOF seja menor que 0.01, soma as comissoes e identifica a de maior valor
+        LEFT JOIN (
+            select apolice_id, max(apolice_cobertura_id) as apolice_cobertura_id, valor, valor_t
+            from (
+                select apolice.apolice_id, ac.apolice_cobertura_id apolice_cobertura_id, IF( ROUND(x.valor, 2) = 0, 0.01, x.valor) as valor, IF( ROUND(x.valor_t, 2) = 0, 0.01, x.valor_t) as valor_t
+                from apolice_cobertura ac
+                join (
+                    select round(sum(IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0)), 2) as valor, round(sum(TRUNCATE(IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0),2)), 2) as valor_t, max(apolice_cobertura.valor) c
+                    FROM pedido
+                    INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id
+                    INNER JOIN apolice_cobertura ON apolice.apolice_id = apolice_cobertura.apolice_id
+                    where apolice.apolice_id = {$apolice_id}
+                    and pedido.deletado = 0
+                    and apolice.deletado = 0
+                    and apolice_cobertura.deletado = 0
+                    having round(round(sum(apolice_cobertura.valor * apolice_cobertura.iof / 100), 2) / count(1) ,2) <= 0.01
+                ) x on x.c = ac.valor
+                INNER JOIN apolice ON apolice.apolice_id = ac.apolice_id
+                where apolice.apolice_id = {$apolice_id}
+            ) z  group by apolice_id, valor
+        ) AS menor ON apolice.apolice_id = menor.apolice_id
+
+        where 
+        pedido.deletado = 0
+        and apolice.deletado = 0
+        and apolice_cobertura.deletado = 0
+        and cobertura_plano.deletado = 0
+        and apolice_cobertura.valor > 0
+        and apolice.apolice_id = {$apolice_id}
+        ) as y
+        ";
+
+        $result = $this->db->query($sql)->result_array();
+        return $result;
     }
 
 }
