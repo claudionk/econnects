@@ -108,9 +108,24 @@ if($_POST)
                                                         </div>
                                                     </div>
 
+                                                    <?php $field_name = 'tipo_qnt_sorteio';?>
+                                                    <div class="form-group radio radio-styled">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Tipo de Qtde. de Sorteios *</label>
+                                                        <div class="col-md-8">
+                                                            <label class="radio-inline">
+                                                                <input type="radio" id="<?php echo $field_name; ?>2" name="<?php echo $field_name; ?>" class="required styled tipo_qnt_sorteio" value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
+                                                                Fixa
+                                                            </label>
+                                                            <label class="radio-inline">
+                                                                <input type="radio" id="<?php echo $field_name; ?>1" name="<?php echo $field_name; ?>" class="required styled tipo_qnt_sorteio" value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
+                                                                Meses de Vigência
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
                                                     <?php $field_name = 'qnt_sorteio';?>
-                                                    <div class="form-group">
-                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Quantidade de Sorteios *</label>
+                                                    <div class="form-group qnt_sorteio <?php if (isset($row['tipo_qnt_sorteio']) && $row['tipo_qnt_sorteio'] == '1') echo 'hide'; ?>">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Quantidade de Sorteios</label>
                                                         <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
 
@@ -178,7 +193,7 @@ if($_POST)
                                                     </div>
 
                                                     <?php $field_name = 'valor_custo_titulo';?>
-                                                    <div class="form-group">
+                                                    <div class="form-group valor_custo_titulo <?php if (isset($row['tipo_custo']) && $row['tipo_custo'] == '1') echo 'hide'; ?>">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Custo do título *</label>
                                                         <div class="col-md-8"><input class="form-control inputmask-valor" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
@@ -305,9 +320,21 @@ if($_POST)
 <script type="text/javascript">
 jQuery(function($){
     $('.tipo_custo').change(function(){
-        if ( $(this).val() == 0 )
+        if ( $(this).val() == 1 )
         {
             $('#valor_custo_titulo').val('0,00');
+            $('.valor_custo_titulo').addClass('hide');
+        } else {
+            $('.valor_custo_titulo').removeClass('hide');
+        }
+    });
+
+    $('.tipo_qnt_sorteio').change(function(){
+        if ( $(this).val() == 0 )
+        {
+            $('.qnt_sorteio').removeClass('hide');
+        } else {
+            $('.qnt_sorteio').addClass('hide');
         }
     });
 });
