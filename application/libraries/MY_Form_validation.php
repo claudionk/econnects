@@ -477,6 +477,20 @@ class MY_Form_validation extends CI_Form_validation
 
     }
 
+    public function required_if($data, $values)
+    {
+        $this->set_message('required_if', 'O campo Quantidade de Sorteios é obrigatório');
 
+        $values = explode(",", $values);
+        $valueField = $_POST[$values[0]];
+        $valueExpected = $values[1];
+
+        if ($valueField == $valueExpected)
+        {
+            return !empty($data);
+        }
+
+        return TRUE;
+    }
 
 }

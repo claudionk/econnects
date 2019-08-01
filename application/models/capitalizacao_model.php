@@ -71,7 +71,7 @@ Class Capitalizacao_Model extends MY_Model
         array(
             'field' => 'valor_custo_titulo',
             'label' => 'Custo do título',
-            'rules' => 'required',
+            'rules' => 'required_if[tipo_custo,0]',
             'groups' => 'default'
         ),
         array(
@@ -99,9 +99,15 @@ Class Capitalizacao_Model extends MY_Model
             'groups' => 'default'
         ),
         array(
+            'field' => 'tipo_qnt_sorteio',
+            'label' => 'Tipo de Qtde. de Sorteios',
+            'rules' => "requerid",
+            'groups' => 'default'
+        ),
+        array(
             'field' => 'qnt_sorteio',
             'label' => 'Quantidade Sorteios',
-            'rules' => 'required',
+            'rules' => "required_if[tipo_qnt_sorteio,0]",
             'groups' => 'default'
         ),
         array(
@@ -143,6 +149,7 @@ Class Capitalizacao_Model extends MY_Model
         $data =  array(
             'capitalizacao_tipo_id' => $this->input->post('capitalizacao_tipo_id'),
             'capitalizacao_sorteio_id' => $this->input->post('capitalizacao_sorteio_id'),
+            'tipo_qnt_sorteio' => $this->input->post('tipo_qnt_sorteio'),
             'qnt_sorteio' => $this->input->post('qnt_sorteio'),
             'nome' => $this->input->post('nome'),
             'descricao' => $this->input->post('descricao'),
