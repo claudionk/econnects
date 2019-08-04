@@ -57,8 +57,8 @@ class Equipamento extends Admin_Controller
 
         if($filter)
         {
-            $data->_database->or_where('(equipamento_categoria.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('equipamento_categoria.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
+            $data->_database->or_where('(vw_Equipamentos_Linhas.nome LIKE "%'.$filter.'%"', NULL, FALSE);
+            $data->_database->or_where('vw_Equipamentos_Linhas.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
         }
 
         $data = $data
@@ -69,8 +69,8 @@ class Equipamento extends Admin_Controller
 
         if($filter)
         {
-              $total->_database->or_where('(equipamento_categoria.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-              $total->_database->or_where('equipamento_categoria.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
+              $total->_database->or_where('(vw_Equipamentos_Linhas.nome LIKE "%'.$filter.'%"', NULL, FALSE);
+              $total->_database->or_where('vw_Equipamentos_Linhas.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
         }
 
         $total = $total
@@ -130,8 +130,8 @@ class Equipamento extends Admin_Controller
 
         if($filter)
         {
-            $data->_database->or_where('(equipamento_marca.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('equipamento_marca.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
+            $data->_database->or_where('(vw_Equipamentos_Marcas.nome LIKE "%'.$filter.'%"', NULL, FALSE);
+            $data->_database->or_where('vw_Equipamentos_Marcas.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
         }
 
         $data = $data
@@ -141,8 +141,8 @@ class Equipamento extends Admin_Controller
         $total = $this->equipamento_marca;
 
         if($filter) {
-            $total->_database->or_where('(equipamento_marca.nome LIKE "%' . $filter . '%"', NULL, FALSE);
-            $total->_database->or_where('equipamento_marca.descricao LIKE "%' . $filter . '%")', NULL, FALSE);
+            $total->_database->or_where('(vw_Equipamentos_Marcas.nome LIKE "%' . $filter . '%"', NULL, FALSE);
+            $total->_database->or_where('vw_Equipamentos_Marcas.descricao LIKE "%' . $filter . '%")', NULL, FALSE);
         }
 
         $total = $total
@@ -224,10 +224,10 @@ class Equipamento extends Admin_Controller
             $data->_database->or_where('vw_Equipamentos.nome LIKE "%'.$filter.'%"', NULL, FALSE);
             $data->_database->or_where('vw_Equipamentos.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
             $data->_database->or_where('vw_Equipamentos.tags LIKE "%'.$filter.'%")', NULL, FALSE);
-            /*$data->_database->or_where('equipamento_marca.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('equipamento_marca.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('equipamento_categoria.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('equipamento_categoria.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
+            /*$data->_database->or_where('vw_Equipamentos_Marcas.nome LIKE "%'.$filter.'%"', NULL, FALSE);
+            $data->_database->or_where('vw_Equipamentos_Marcas.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
+            $data->_database->or_where('vw_Equipamentos_Linhas.nome LIKE "%'.$filter.'%"', NULL, FALSE);
+            $data->_database->or_where('vw_Equipamentos_Linhas.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
 */
 
         }
@@ -242,10 +242,10 @@ class Equipamento extends Admin_Controller
             $total->_database->or_where('vw_Equipamentos.nome LIKE "%'.$filter.'%"', NULL, FALSE);
             $total->_database->or_where('vw_Equipamentos.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
             $total->_database->or_where('vw_Equipamentos.tags LIKE "%'.$filter.'%")', NULL, FALSE);
-          /*  $total->_database->or_where('equipamento_marca.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $total->_database->or_where('equipamento_marca.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
-            $total->_database->or_where('equipamento_categoria.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $total->_database->or_where('equipamento_categoria.descricao LIKE "%'.$filter.'%")', NULL, FALSE);*/
+          /*  $total->_database->or_where('vw_Equipamentos_Marcas.nome LIKE "%'.$filter.'%"', NULL, FALSE);
+            $total->_database->or_where('vw_Equipamentos_Marcas.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
+            $total->_database->or_where('vw_Equipamentos_Linhas.nome LIKE "%'.$filter.'%"', NULL, FALSE);
+            $total->_database->or_where('vw_Equipamentos_Linhas.descricao LIKE "%'.$filter.'%")', NULL, FALSE);*/
         }
 
         $total = $total->with_foreign()->get_total();

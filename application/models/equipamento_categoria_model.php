@@ -2,7 +2,7 @@
 Class Equipamento_Categoria_Model extends MY_Model
 {
     //Dados da tabela e chave primária
-    protected $_table = 'equipamento_categoria';
+    protected $_table = 'vw_Equipamentos_Linhas';
     protected $primary_key = 'equipamento_categoria_id';
 
     //Configurações
@@ -58,9 +58,8 @@ Class Equipamento_Categoria_Model extends MY_Model
     );
 
     function filter_by_nviel($nivel){
-        $this->_database->where('equipamento_categoria.equipamento_categoria_nivel', $nivel);
-        // $this->_database->where('equipamento_categoria.deletado', '0');
-
+        $this->_database->where("{$this->_table}.equipamento_categoria_nivel", $nivel);
         return $this;
     }
+
 }

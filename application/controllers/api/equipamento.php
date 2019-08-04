@@ -79,7 +79,8 @@ class Equipamento extends CI_Controller {
             die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
         }
 
-        $Categorias = $this->db->query( "SELECT * FROM equipamento_categoria WHERE deletado=0 AND equipamento_categoria_nivel=1 ORDER BY nome" )->result_array();
+        $this->load->model("equipamento_categoria_model", "equipamento_categoria");
+        $Categorias = $this->equipamento_categoria->filter_by_nviel(1)->order_by('nome')->get_all();
         die( json_encode( $Categorias, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
@@ -90,7 +91,8 @@ class Equipamento extends CI_Controller {
             die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
         }
 
-        $Marcas = $this->db->query( "SELECT * FROM equipamento_marca WHERE deletado=0 ORDER BY nome" )->result_array();
+        $this->load->model("equipamento_marca_model", "equipamento_marca");
+        $Marcas = $this->equipamento_marca->getl_all();
         die( json_encode( $Marcas, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 

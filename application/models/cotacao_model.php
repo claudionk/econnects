@@ -327,11 +327,11 @@ Class Cotacao_Model extends MY_Model
 
     public function with_cotacao_equipamento_equipamento()
     {
-        $this->_database->select('equipamento_marca.nome as equipamento_marca_nome');
-        $this->_database->select('equipamento_categoria.nome as equipamento_categoria_nome');
+        $this->_database->select('em.nome as equipamento_marca_nome');
+        $this->_database->select('el.nome as equipamento_categoria_nome');
 
-        $this->_database->join('equipamento_marca', 'cotacao_equipamento.equipamento_marca_id = equipamento_marca.equipamento_marca_id');
-        $this->_database->join('equipamento_categoria', 'cotacao_equipamento.equipamento_categoria_id = equipamento_categoria.equipamento_categoria_id');
+        $this->_database->join('vw_Equipamentos_Marcas em', 'cotacao_equipamento.equipamento_marca_id = em.equipamento_marca_id');
+        $this->_database->join('vw_Equipamentos_Linhas el', 'cotacao_equipamento.equipamento_categoria_id = el.equipamento_categoria_id');
         return $this;
     }
 
