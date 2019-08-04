@@ -35,6 +35,8 @@ class Equipamento extends CI_Controller {
         
         $this->usuario_id = $webservice["usuario_id"];
         $this->load->database('default');
+
+        $this->load->model("equipamento_model", "equipamento");
     }
 
     public function index() {
@@ -50,16 +52,18 @@ class Equipamento extends CI_Controller {
 
         $ean = $GET["ean"];
 
-        $Equipamento = $this->db->query( "SELECT * FROM equipamento WHERE ean='$ean'" )->result_array();
+        $Equipamento = $this->equipamento->filterByEAN($ean)->get_all();
         if( sizeof( $Equipamento ) ) {
+            $Equipamento = $Equipamento[0];
+
             die( json_encode( array( 
                 "status" => true, 
-                "equipamento_id" => $Equipamento[0]["equipamento_id"],
-                "ean" => $Equipamento[0]["ean"],
-                "nome" => $Equipamento[0]["nome"],
-                "equipamento_marca_id" => $Equipamento[0]["equipamento_marca_id"],
-                "equipamento_categoria_id" => $Equipamento[0]["equipamento_categoria_id"],
-                "equipamento_sub_categoria_id" => $Equipamento[0]["equipamento_sub_categoria_id"]
+                "equipamento_id" => $Equipamento["equipamento_id"],
+                "ean" => $Equipamento["ean"],
+                "nome" => $Equipamento["nome"],
+                "equipamento_marca_id" => $Equipamento["equipamento_marca_id"],
+                "equipamento_categoria_id" => $Equipamento["equipamento_categoria_id"],
+                "equipamento_sub_categoria_id" => $Equipamento["equipamento_sub_categoria_id"]
             ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
         } else {          	
         	if( !isset( $GET["ret"] ) ) { /*rcarpi - gambiarra para nao gerar erro no header ao consumit o metodo*/
@@ -109,8 +113,6 @@ class Equipamento extends CI_Controller {
             ob_clean();
             die( json_encode( array( "status" => false, "message" => "O campo Modelo é obrigatório" ) ) );
         }
-
-        $this->load->model("equipamento_model", "equipamento");
 
         //Faz o MATCH para consulta do Equipamento
         $indiceMax = 20;

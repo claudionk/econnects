@@ -250,7 +250,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                 case $this->config->item("PRECO_TIPO_COBERTURA"):
 
                     $this->load->model("produto_parceiro_plano_precificacao_model", "produto_parceiro_plano_precificacao");
-                    $this->load->model("equipamento_model", "equipamento");
                     $this->load->model("cobertura_plano_model", "plano_cobertura");
                     $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
                     $arrCoberturas = $this->plano_cobertura->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)->get_all();
@@ -265,7 +264,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     $valores[$produto_parceiro_plano_id] = $valor_cobertura_plano;
                     break;
                 case $this->config->item("PRECO_TIPO_VALOR_SEGURADO"):
-                    $this->load->model('equipamento_model', 'equipamento');
                     $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
                     $valor = $this
                         ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
@@ -274,7 +272,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
                     break;
                 case $this->config->item("PRECO_POR_LINHA");
-                    $this->load->model('equipamento_model', 'equipamento');
                     $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
                     $valor = $this
                         ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
@@ -288,7 +285,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     break;
                 case $this->config->item("PRECO_POR_EQUIPAMENTO");
 
-                    $this->load->model('equipamento_model', 'equipamento');
                     $valor = $this
                         ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
                         ->filter_by_faixa( $valor_nota )
