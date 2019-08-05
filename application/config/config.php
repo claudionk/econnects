@@ -14,7 +14,7 @@
 | path to your installation.
 |
 */
-$config['base_url']	= 'http://192.168.25.223/econnects/';
+$config['base_url']	= '';
 
 /*
 |--------------------------------------------------------------------------
@@ -383,7 +383,7 @@ $config["Pagmax360_merchantKey"] = "25fbb99741c739dd84d7b06ec78c9bac718838630f30
 
 
 // $config["URL_sisconnects"] = "http://econnects-h.jelastic.saveincloud.net/";
- $config["URL_sisconnects"] = "http://192.168.25.223/econnects/";
+ $config["URL_sisconnects"] = "http://localhost/econnects/";
 
 $config['PRECO_TIPO_TABELA'] = 1;
 $config['PRECO_TIPO_COBERTURA'] = 2;
