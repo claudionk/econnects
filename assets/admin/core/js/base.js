@@ -1,4 +1,5 @@
 $(function(){
+debugger;
 
     $('.deleteRowButton').on('click', function(){
         return confirm("Deseja realmente excluir esse registro?");
@@ -147,7 +148,8 @@ $(function(){
             data: function (params) {
                 return {
                     q: params.term, // search term
-                    page: params.page
+                    page: params.page,
+                    categoria_id: ($(".js-categorias-ajax").val() != '') ? $(".js-categorias-ajax").val() : 0
                 };
             },
             processResults: function (data, params)
@@ -185,7 +187,9 @@ $(function(){
             data: function (params) {
                 return {
                     q: params.term, // search term
-                    page: params.page
+                    page: params.page,
+                    categoria_id: ($(".js-categorias-ajax").val() != '') ? $(".js-categorias-ajax").val() : 0,
+                    marca_id: ($(".js-equipamento_marca_id-ajax").val() != '') ? $(".js-equipamento_marca_id-ajax").val() : 0
                 };
             },
             processResults: function (data, params) {
@@ -203,7 +207,6 @@ $(function(){
                 };
             },
             cache: true
-
         },
         escapeMarkup: function (markup) { return markup ; }, // let our custom formatter work
         minimumInputLength: 1,
@@ -395,6 +398,7 @@ function buscaDadosEAN(){
 }
 function populaSelectCategoria(id){
     if (!id) return false;
+    if ($(".js-categorias-ajax").val() == id) return false;
 
     $.ajax({
         url: base_url + "admin/equipamento/service_categorias/" + id,
@@ -413,6 +417,7 @@ function populaSelectCategoria(id){
 }
 function populaSelectMarca(id){
     if (!id) return false;
+    if ($(".js-equipamento_marca_id-ajax").val() == id) return false;
 
     $.ajax({
         url: base_url + "admin/equipamento/service_marcas/" + id,
@@ -430,8 +435,8 @@ function populaSelectMarca(id){
     });
 }
 function populaSelectModelo(id){
-
     if (!id) return false;
+    if ($(".js-equipamento_id-ajax").val() == id) return false;
 
     var $data = {}, url='/'+encodeURI(id);
     if (String(id).indexOf(",") >= 0) {

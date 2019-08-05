@@ -96,11 +96,12 @@ class Equipamento extends Admin_Controller
     /**
      * Serviço para buscar equipamentos na tela de inicial
      */
-    public function service_marcas($marca_id = 0)
+    public function service_marcas($marca_id = 0, $categoria_id = 0)
     {
         $this->load->model("equipamento_marca_model", "equipamento_marca");
 
         $filter = $this->input->get_post("q");
+        $categoria_id = (!empty($categoria_id)) ? $categoria_id : $this->input->get_post("categoria_id");
         $page = ($this->input->get_post("page")) ? $this->input->get_post("page") : 1;
         $limit = 30;
 
@@ -124,24 +125,15 @@ class Equipamento extends Admin_Controller
         }
 
         //Retorna tudo
-        $data = $this->equipamento_marca;
-
-        $data->limit($limit, $limit*($page-1));
-
-        if($filter)
-        {
-            $data->_database->or_where('(vw_Equipamentos_Marcas.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('vw_Equipamentos_Marcas.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
-        }
-
-        $data = $data
-            ->with_foreign()
-            ->get_all();
-
         $total = $this->equipamento_marca;
 
+        if (!empty($categoria_id))
+        {
+            $total->_database->where("vw_Equipamentos_Marcas.equipamento_marca_id IN(SELECT DISTINCT equipamento_marca_id FROM vw_Equipamentos WHERE deletado = 0 AND equipamento_categoria_id = {$categoria_id})", NULL, FALSE);
+        }
+
         if($filter) {
-            $total->_database->or_where('(vw_Equipamentos_Marcas.nome LIKE "%' . $filter . '%"', NULL, FALSE);
+            $total->_database->where('(vw_Equipamentos_Marcas.nome LIKE "%' . $filter . '%"', NULL, FALSE);
             $total->_database->or_where('vw_Equipamentos_Marcas.descricao LIKE "%' . $filter . '%")', NULL, FALSE);
         }
 
@@ -149,6 +141,24 @@ class Equipamento extends Admin_Controller
             ->with_foreign()
             ->get_total();
 
+        $data = $this->equipamento_marca;
+
+        $data->limit($limit, $limit*($page-1));
+
+        if (!empty($categoria_id))
+        {
+            $data->_database->where("vw_Equipamentos_Marcas.equipamento_marca_id IN(SELECT DISTINCT equipamento_marca_id FROM vw_Equipamentos WHERE deletado = 0 AND equipamento_categoria_id = {$categoria_id})", NULL, FALSE);
+        }
+
+        if($filter)
+        {
+            $data->_database->where('(vw_Equipamentos_Marcas.nome LIKE "%'.$filter.'%"', NULL, FALSE);
+            $data->_database->or_where('vw_Equipamentos_Marcas.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
+        }
+
+        $data = $data
+            ->with_foreign()
+            ->get_all();
 
         foreach ($data as $index => $item)
         {
@@ -168,7 +178,7 @@ class Equipamento extends Admin_Controller
     /**
      * Serviço para buscar equipamentos na tela de inicial
      */
-    public function service($equipamento_id = 0)
+    public function service($equipamento_id = 0, $marca_id = 0, $categoria_id = 0)
     {
         $json = array();
 
@@ -205,51 +215,59 @@ class Equipamento extends Admin_Controller
             return;
         }
 
-
-        $filter = $this->input->get_post("q");
+        $filter         = $this->input->get_post("q");
+        $marca_id       = (!empty($marca_id)) ? $marca_id : $this->input->get_post("marca_id");
+        $categoria_id   = (!empty($categoria_id)) ? $categoria_id : $this->input->get_post("categoria_id");
         $limit = 30;
         $page = ($this->input->get_post("page")) ? $this->input->get_post("page") : 1;
 
 
         //Retorna tudo
         $data = $this->current_model;
-        // ->with_active();
 
         $data->limit($limit, $limit*($page-1));
 
+        if (!empty($marca_id))
+        {
+            $data->_database->where("equipamento_marca_id = {$marca_id}", NULL, FALSE);
+        }
+
+        if (!empty($categoria_id))
+        {
+            $data->_database->where("equipamento_categoria_id = {$categoria_id}", NULL, FALSE);
+        }
 
         if($filter)
         {
-            $data->_database->or_where('(vw_Equipamentos.ean LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('vw_Equipamentos.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('vw_Equipamentos.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('vw_Equipamentos.tags LIKE "%'.$filter.'%")', NULL, FALSE);
-            /*$data->_database->or_where('vw_Equipamentos_Marcas.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('vw_Equipamentos_Marcas.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('vw_Equipamentos_Linhas.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('vw_Equipamentos_Linhas.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
-*/
-
+            $data->_database->where('(ean LIKE "%'.$filter.'%"', NULL, FALSE);
+            $data->_database->or_where('nome LIKE "%'.$filter.'%"', NULL, FALSE);
+            $data->_database->or_where('descricao LIKE "%'.$filter.'%"', NULL, FALSE);
+            $data->_database->or_where('tags LIKE "%'.$filter.'%")', NULL, FALSE);
         }
 
         $data = $data->with_foreign()->get_all();
 
         $total = $this->current_model;
 
+        if (!empty($marca_id))
+        {
+            $total->_database->where("equipamento_marca_id = {$marca_id}", NULL, FALSE);
+        }
+
+        if (!empty($categoria_id))
+        {
+            $total->_database->where("equipamento_categoria_id = {$categoria_id}", NULL, FALSE);
+        }
+
         if($filter)
         {
-            $total->_database->or_where('(vw_Equipamentos.ean LIKE "%'.$filter.'%"', NULL, FALSE);
-            $total->_database->or_where('vw_Equipamentos.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $total->_database->or_where('vw_Equipamentos.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
-            $total->_database->or_where('vw_Equipamentos.tags LIKE "%'.$filter.'%")', NULL, FALSE);
-          /*  $total->_database->or_where('vw_Equipamentos_Marcas.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $total->_database->or_where('vw_Equipamentos_Marcas.descricao LIKE "%'.$filter.'%"', NULL, FALSE);
-            $total->_database->or_where('vw_Equipamentos_Linhas.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $total->_database->or_where('vw_Equipamentos_Linhas.descricao LIKE "%'.$filter.'%")', NULL, FALSE);*/
+            $total->_database->where('(ean LIKE "%'.$filter.'%"', NULL, FALSE);
+            $total->_database->or_where('nome LIKE "%'.$filter.'%"', NULL, FALSE);
+            $total->_database->or_where('descricao LIKE "%'.$filter.'%"', NULL, FALSE);
+            $total->_database->or_where('tags LIKE "%'.$filter.'%")', NULL, FALSE);
         }
 
         $total = $total->with_foreign()->get_total();
-
 
         foreach ($data as $index => $item) {
             $data[$index]['id'] = $item['equipamento_id'];

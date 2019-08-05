@@ -1,0 +1,13 @@
+- criado dois novos campos
+INSERT INTO `sisconnects`.`campo` (`campo_id`, `campo_classe_id`, `nome`, `slug`, `opcoes`, `nome_banco`, `nome_banco_equipamento`, `nome_banco_generico`, `nome_banco_viagem`, `classes`, `deletado`, `criacao`, `alteracao_usuario_id`, `alteracao`) VALUES (NULL, '1', 'EQUIPAMENTO CATEGORIA', 'equipamento_categoria', '', 'equipamento_categoria_id', 'equipamento_categoria_id', 'equipamento_categoria_id', 'equipamento_categoria_id', 'js-categorias-ajax', '0', now(), '0', NULL);
+
+INSERT INTO `sisconnects`.`campo` (`campo_id`, `campo_classe_id`, `nome`, `slug`, `opcoes`, `nome_banco`, `nome_banco_equipamento`, `nome_banco_generico`, `nome_banco_viagem`, `classes`, `deletado`, `criacao`, `alteracao_usuario_id`, `alteracao`) VALUES (NULL, '1', 'EQUIPAMENTO MARCA', 'equipamento_marca', '', 'equipamento_marca_id', 'equipamento_marca_id', 'equipamento_marca_id', 'equipamento_marca_id', 'js-equipamento_marca_id-ajax', '0', now(), '0', NULL);
+
+- ativado o EAN
+UPDATE `sisconnects`.`campo` SET `deletado` = '0', `alteracao` = 'now()' WHERE (`campo_id` = '120');
+
+-- alterando a forma de exibição do campo de equipamento
+UPDATE `sisconnects`.`campo` SET slug = 'select', classes = 'js-equipamento_id-ajax' WHERE (`campo_id` = '63');
+
+-- alterar o tamanho da configuração do campo equipamento no produto para o devido
+
