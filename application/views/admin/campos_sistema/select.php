@@ -18,3 +18,7 @@ if($_POST)
         <?php echo app_get_form_error($field_name); ?>
     </div>
 </div>
+
+<?php if ($field_name == 'equipamento_id'){ ?>
+<input type="hidden" name="equipamento_nome" id="equipamento_nome" value="">
+<?php } ?>

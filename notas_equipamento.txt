@@ -3,11 +3,34 @@ INSERT INTO `sisconnects`.`campo` (`campo_id`, `campo_classe_id`, `nome`, `slug`
 
 INSERT INTO `sisconnects`.`campo` (`campo_id`, `campo_classe_id`, `nome`, `slug`, `opcoes`, `nome_banco`, `nome_banco_equipamento`, `nome_banco_generico`, `nome_banco_viagem`, `classes`, `deletado`, `criacao`, `alteracao_usuario_id`, `alteracao`) VALUES (NULL, '1', 'EQUIPAMENTO MARCA', 'equipamento_marca', '', 'equipamento_marca_id', 'equipamento_marca_id', 'equipamento_marca_id', 'equipamento_marca_id', 'js-equipamento_marca_id-ajax', '0', now(), '0', NULL);
 
+INSERT INTO `sisconnects`.`campo` (`campo_id`, `campo_classe_id`, `nome`, `slug`, `opcoes`, `nome_banco`, `nome_banco_equipamento`, `nome_banco_generico`, `nome_banco_viagem`, `classes`, `deletado`, `criacao`, `alteracao_usuario_id`, `alteracao`) VALUES (NULL, '1', 'EQUIPAMENTO', 'select', '', 'equipamento_sub_categoria_id', 'equipamento_sub_categoria_id', 'equipamento_sub_categoria_id', 'equipamento_sub_categoria_id', 'js-equipamento_sub_categoria_id-ajax', '0', now(), '0', NULL);
+
 - ativado o EAN
 UPDATE `sisconnects`.`campo` SET `deletado` = '0', `alteracao` = 'now()' WHERE (`campo_id` = '120');
 
 -- alterando a forma de exibição do campo de equipamento
-UPDATE `sisconnects`.`campo` SET slug = 'select', classes = 'js-equipamento_id-ajax' WHERE (`campo_id` = '63');
+UPDATE `sisconnects`.`campo` SET slug = 'select', classes = 'js-equipamento_id-ajax', nome = 'MODELO' WHERE (`campo_id` = '63');
 
+-- o campo equipamento foi alterado para modelo e um novo campo chamado equipamento foi criado
 -- alterar o tamanho da configuração do campo equipamento no produto para o devido
+-- add o campo equipamento
+
+-- criar o campo nas tabelas correspondentes
+ALTER TABLE `sisconnects`.`cotacao_equipamento` 
+ADD COLUMN `equipamento_sub_categoria_id` INT NULL AFTER `equipamento_categoria_id`;
+
+ALTER TABLE `sisconnects`.`cotacao_generico` 
+ADD COLUMN `equipamento_sub_categoria_id` INT NULL AFTER `equipamento_categoria_id`;
+
+ALTER TABLE `sisconnects`.`cotacao_seguro_viagem` 
+ADD COLUMN `equipamento_sub_categoria_id` INT NULL AFTER `equipamento_categoria_id`;
+
+ALTER TABLE `sisconnects`.`apolice_equipamento` 
+ADD COLUMN `equipamento_sub_categoria_id` INT NULL AFTER `equipamento_categoria_id`;
+
+ALTER TABLE `sisconnects`.`apolice_generico` 
+ADD COLUMN `equipamento_sub_categoria_id` INT NULL AFTER `equipamento_categoria_id`;
+
+ALTER TABLE `sisconnects`.`apolice_seguro_viagem` 
+ADD COLUMN `equipamento_sub_categoria_id` INT NULL AFTER `equipamento_categoria_id`;
 

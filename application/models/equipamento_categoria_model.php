@@ -62,4 +62,14 @@ Class Equipamento_Categoria_Model extends MY_Model
         return $this;
     }
 
+    function with_sub_categoria($categoria_pai_id = 0, $equipamento_marca_id = 0){
+        $this->_database->distinct();
+        $this->_database->join("vw_Equipamentos e", "e.equipamento_sub_categoria_id = {$this->_table}.equipamento_categoria_id");
+        $this->_database->where("e.deletado", 0);
+        $this->_database->where("{$this->_table}.equipamento_categoria_nivel > 1", NULL, FALSE);
+        if (!empty($categoria_pai_id)) $this->_database->where("e.equipamento_categoria_id", $categoria_pai_id);
+        if (!empty($equipamento_marca_id)) $this->_database->where("e.equipamento_marca_id", $equipamento_marca_id);
+        return $this;
+    }
+
 }

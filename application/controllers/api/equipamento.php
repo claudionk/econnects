@@ -84,6 +84,21 @@ class Equipamento extends CI_Controller {
         die( json_encode( $Categorias, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
+    public function equipamentos() {
+        if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
+            $GET = $_GET;
+        } else {
+            die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
+        }
+
+        $categoria_pai_id   = isempty($GET["equipamento_categoria_id"], 0);
+        $marca_id           = isempty($GET["equipamneto_marca_id"], 0);
+
+        $this->load->model("equipamento_categoria_model", "equipamento_categoria");
+        $Categorias = $this->equipamento_categoria->with_sub_categoria($categoria_pai_id, $marca_id)->order_by('nome')->get_all();
+        die( json_encode( $Categorias, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+    }
+
     public function marcas() {
         if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
             $GET = $_GET;
@@ -103,8 +118,6 @@ class Equipamento extends CI_Controller {
         }
 
         $payload = json_decode( file_get_contents( "php://input" ) );
-        // print_r($payload);
-        // die();
 
         if (empty($payload)) {
             ob_clean();

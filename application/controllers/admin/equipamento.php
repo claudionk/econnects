@@ -24,16 +24,17 @@ class Equipamento extends Admin_Controller
     /**
      * Serviço para buscar equipamentos na tela de inicial
      */
-    public function service_categorias($categoria_id = 0)
+    public function service_categorias($categoria_id = 0, $nivel = 1)
     {
         $this->load->model("equipamento_categoria_model", "equipamento_categoria");
-
-        $filter = $this->input->get_post("q");
-        $page = ($this->input->get_post("page")) ? $this->input->get_post("page") : 1;
-        $limit = 30;
+        $filter             = $this->input->get_post("q");
+        $marca_id           = $this->input->get_post("marca_id");
+        $categoria_pai_id   = (!empty($categoria_pai_id)) ? $categoria_pai_id : $this->input->get_post("categoria_pai_id");
+        $page               = ($this->input->get_post("page")) ? $this->input->get_post("page") : 1;
+        $limit              = 30;
 
         //Se houver categoria
-        if($categoria_id > 0)
+        if( !empty($categoria_id) )
         {
             $itens = $this->equipamento_categoria
                 ->with_foreign()
@@ -61,10 +62,18 @@ class Equipamento extends Admin_Controller
             $data->_database->or_where('vw_Equipamentos_Linhas.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
         }
 
-        $data = $data
-            ->with_foreign()
-            ->filter_by_nviel(1)
-            ->get_all();
+        $data = $data->with_foreign();
+
+        if (!empty($nivel)) {
+            if ($nivel == 1) {
+                $data = $data->filter_by_nviel(1);
+            } else {
+                $data = $data->with_sub_categoria($categoria_pai_id, $marca_id);
+            }
+        }
+
+        $data = $data->get_all();
+
         $total = $this->equipamento_categoria;
 
         if($filter)
@@ -73,10 +82,17 @@ class Equipamento extends Admin_Controller
               $total->_database->or_where('vw_Equipamentos_Linhas.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
         }
 
-        $total = $total
-            ->with_foreign()
-            ->filter_by_nviel(1)
-            ->get_total();
+        $total = $total->with_foreign();
+
+        if (!empty($nivel)) {
+            if ($nivel == 1) {
+                $total = $total->filter_by_nviel(1);
+            } else {
+                $total = $total->with_sub_categoria($categoria_pai_id, $marca_id);
+            }
+        }
+
+        $total = $total->get_total();
 
         foreach ($data as $index => $item)
         {
@@ -215,11 +231,12 @@ class Equipamento extends Admin_Controller
             return;
         }
 
-        $filter         = $this->input->get_post("q");
-        $marca_id       = (!empty($marca_id)) ? $marca_id : $this->input->get_post("marca_id");
-        $categoria_id   = (!empty($categoria_id)) ? $categoria_id : $this->input->get_post("categoria_id");
-        $limit = 30;
-        $page = ($this->input->get_post("page")) ? $this->input->get_post("page") : 1;
+        $filter             = $this->input->get_post("q");
+        $marca_id           = (!empty($marca_id)) ? $marca_id : $this->input->get_post("marca_id");
+        $categoria_id       = (!empty($categoria_id)) ? $categoria_id : $this->input->get_post("categoria_id");
+        $sub_categoria_id   = $this->input->get_post("sub_categoria_id");
+        $limit              = 30;
+        $page               = ($this->input->get_post("page")) ? $this->input->get_post("page") : 1;
 
 
         //Retorna tudo
@@ -235,6 +252,11 @@ class Equipamento extends Admin_Controller
         if (!empty($categoria_id))
         {
             $data->_database->where("equipamento_categoria_id = {$categoria_id}", NULL, FALSE);
+        }
+
+        if (!empty($sub_categoria_id))
+        {
+            $data->_database->where("equipamento_sub_categoria_id = {$sub_categoria_id}", NULL, FALSE);
         }
 
         if($filter)
@@ -257,6 +279,11 @@ class Equipamento extends Admin_Controller
         if (!empty($categoria_id))
         {
             $total->_database->where("equipamento_categoria_id = {$categoria_id}", NULL, FALSE);
+        }
+
+        if (!empty($sub_categoria_id))
+        {
+            $total->_database->where("equipamento_sub_categoria_id = {$sub_categoria_id}", NULL, FALSE);
         }
 
         if($filter)
