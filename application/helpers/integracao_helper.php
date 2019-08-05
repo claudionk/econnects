@@ -1494,7 +1494,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 if (!empty($dados['equipamento_marca_id']))
                     $fields['equipamento_marca_id'] = $dados['equipamento_marca_id'];
                 if (!empty($dados['equipamento_categoria_id']))
-                $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
+                    $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
+                if (!empty($dados['equipamento_sub_categoria_id']))
+                    $fields['equipamento_sub_categoria_id'] = $dados['equipamento_sub_categoria_id'];
                 $fields['ean'] = $dados['ean'];
                 $fields['emailAPI'] = app_get_userdata("email");
 

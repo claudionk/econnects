@@ -234,6 +234,7 @@ class Cotacao extends CI_Controller {
         $produto_parceiro_id = issetor( $GET["produto_parceiro_id"], null );
         $equipamento_marca_id = issetor( $GET["equipamento_marca_id"] , null);
         $equipamento_categoria_id = issetor( $GET["equipamento_categoria_id"] , null);
+        $equipamento_sub_categoria_id = issetor( $GET["equipamento_sub_categoria_id"] , null);
         $quantidade = issetor( $GET["quantidade"] , null);
         $coberturas = issetor( $GET["coberturas_opcionais"] , null);
         $repasse_comissao = issetor( $GET["repasse_comissao"] , 0);
@@ -251,6 +252,7 @@ class Cotacao extends CI_Controller {
         $params["parceiro_id"] = $this->parceiro_id;
         $params["equipamento_marca_id"] = $equipamento_marca_id;
         $params["equipamento_categoria_id"] = $equipamento_categoria_id;
+        $params["equipamento_sub_categoria_id"] = $equipamento_sub_categoria_id;
         $params["quantidade"] = $quantidade;
         $params["repasse_comissao"] = $repasse_comissao;
         $params["desconto_condicional"] = $desconto_condicional;

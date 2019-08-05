@@ -1154,8 +1154,8 @@ class Apolice_Model extends MY_Model
                                           INNER JOIN apolice a ON (a.apolice_id=ae.apolice_id)
                                           INNER JOIN pedido p ON (p.pedido_id=a.pedido_id)
                                           INNER JOIN cotacao_equipamento ce ON (ce.cotacao_id=p.cotacao_id)
-                                          INNER JOIN equipamento_categoria ec ON (ec.equipamento_categoria_id=ce.equipamento_categoria_id)
-                                          INNER JOIN equipamento_marca em ON (em.equipamento_marca_id = ce.equipamento_marca_id)
+                                          INNER JOIN vw_Equipamentos_Linhas ec ON (ec.equipamento_categoria_id=ce.equipamento_categoria_id)
+                                          INNER JOIN vw_Equipamentos_Marcas em ON (em.equipamento_marca_id = ce.equipamento_marca_id)
                                           WHERE a.apolice_id=" . $apolice["apolice_id"])->result_array();
 
         if (sizeof($equipamento)) {

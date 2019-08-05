@@ -2,7 +2,7 @@
 Class Equipamento_Marca_Model extends MY_Model
 {
     //Dados da tabela e chave primária
-    protected $_table = 'equipamento_marca';
+    protected $_table = 'vw_Equipamentos_Marcas';
     protected $primary_key = 'equipamento_marca_id';
 
     //Configurações
