@@ -1149,6 +1149,24 @@ function issetor(&$var, $default = ' ') {
     }
 }
 
+/** 
+ * Se for setado uma variável ele a retorna, caso contrário retorna vazio 
+ * @param $var 
+ * @param bool $default 
+ * @return string 
+ */ 
+function emptyor(&$var, $default = ' ') { 
+ 
+    if(!empty($var)) 
+    { 
+        return $var; 
+    } 
+    else 
+    { 
+        return $default; 
+    } 
+} 
+
 /**
  * Se for setado uma variável ele a retorna, caso contrário retorna vazio
  * @param $var
@@ -1172,7 +1190,6 @@ function emptyor(&$var, $default = ' ') {
  * @param $var
  * @return string
  */
-
 if ( ! function_exists('isempty')) {
     function isempty(&$var, $default = ' ')
     {
