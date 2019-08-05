@@ -1168,24 +1168,6 @@ function emptyor(&$var, $default = ' ') {
 } 
 
 /**
- * Se for setado uma variável ele a retorna, caso contrário retorna vazio
- * @param $var
- * @param bool $default
- * @return string
- */
-function emptyor(&$var, $default = ' ') {
-
-    if(!empty($var))
-    {
-        return $var;
-    }
-    else
-    {
-        return $default;
-    }
-}
-
-/**
  * @description Se for uma variavel vazia ele retorna com o default
  * @param $var
  * @return string
