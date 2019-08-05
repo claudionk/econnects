@@ -92,7 +92,7 @@ class Equipamento extends Admin_Controller
             }
         }
 
-        $total = $total->get_total();
+        $total = $total->get_total("DISTINCT vw_Equipamentos_Linhas.equipamento_categoria_id");
 
         foreach ($data as $index => $item)
         {

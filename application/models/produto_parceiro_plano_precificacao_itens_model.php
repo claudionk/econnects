@@ -185,7 +185,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param int $num_passageiro
     * @return array
     */
-    public function getValoresPlano( $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_id = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
+    public function getValoresPlano( $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_sub_categoria_id = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
@@ -289,7 +289,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
                         ->filter_by_faixa( $valor_nota )
                         ->filter_by_tipo_equipamento("EQUIPAMENTO")
-                        ->filter_by_equipamento($equipamento_id)
+                        ->filter_by_equipamento($equipamento_sub_categoria_id)
                         ->get_all();
 
                     $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $data_nascimento);

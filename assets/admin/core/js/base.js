@@ -458,8 +458,20 @@ function populaSelectSubCategoria(id){
     if (!id) return false;
     if ($(".js-equipamento_sub_categoria_id-ajax").val() == id) return false;
 
+    var $data = {}, url='/'+encodeURI(id);
+    if (String(id).indexOf(",") >= 0 || String(id).indexOf("'") >= 0) {
+        id = id.replace(/'/g, '');
+        var x = id.split(",");
+
+        if (x.length > 1) {
+            $data = Object.assign({}, x), url = '';
+        } else {
+            url='/'+encodeURI(x[0]);
+        }
+    }
+
     $.ajax({
-        url: base_url + "admin/equipamento/service_categorias/" + id +"/2",
+        url: base_url + "admin/equipamento/service_categorias"+ url +"/2",
         type: "GET",
         async: false,
         dataType: "json",
