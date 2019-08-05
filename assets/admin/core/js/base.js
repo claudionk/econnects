@@ -469,16 +469,23 @@ function populaSelectSubCategoria(id){
             url='/'+encodeURI(x[0]);
         }
     }
-
     $.ajax({
         url: base_url + "admin/equipamento/service_categorias"+ url +"/2",
-        type: "GET",
+        type: "POST",
         async: false,
+        data: $data,
         dataType: "json",
         success: function(data){
-            $(".js-equipamento_sub_categoria_id-ajax").select2("trigger", "select", {
-                data: data.items
-            });
+            var vet = data.items;
+            if (typeof data.items.length == 'undefined') {
+                var vet = {0: data.items};
+            }
+
+            for (var key in vet) {
+                $(".js-equipamento_sub_categoria_id-ajax").select2("trigger", "select", {
+                    data: vet[key]
+                });
+            }
         },
         error: function(error){
             console.log("Error:", error);

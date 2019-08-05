@@ -64,6 +64,10 @@ class Equipamento extends Admin_Controller
 
         $data = $data->with_foreign();
 
+        if (isset($_POST['0'])) {
+            $data = $data->whith_multiples_ids($_POST);
+        }
+
         if (!empty($nivel)) {
             if ($nivel == 1) {
                 $data = $data->filter_by_nviel(1);
@@ -83,6 +87,10 @@ class Equipamento extends Admin_Controller
         }
 
         $total = $total->with_foreign();
+
+        if (isset($_POST['0'])) {
+            $total = $total->whith_multiples_ids($_POST);
+        }
 
         if (!empty($nivel)) {
             if ($nivel == 1) {

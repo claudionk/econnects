@@ -72,4 +72,9 @@ Class Equipamento_Categoria_Model extends MY_Model
         return $this;
     }
 
+    public function whith_multiples_ids($values = []) {
+        $this->db->where_in("{$this->_table}.equipamento_categoria_id", $values);
+        return $this;
+    }
+
 }
