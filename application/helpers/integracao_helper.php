@@ -125,11 +125,8 @@ if ( ! function_exists('app_integracao_get_total_titulos')) {
     }
 }
 if ( ! function_exists('app_integracao_format_sequencia')) {
-
-
     function app_integracao_format_sequencia($formato, $dados = array())
     {
-
         if((isset($dados['registro'][0]['num_remessa'])) && (isset($dados['registro'][0]['capitalizacao_id'])) ){
             $num_remessa =  $dados['registro'][0]['num_remessa'] += 1;
             $CI =& get_instance();
@@ -141,9 +138,7 @@ if ( ! function_exists('app_integracao_format_sequencia')) {
         }else{
             return date('Y') . '000001';
         }
-
     }
-
 }
 
 if ( ! function_exists('app_integracao_format_sequencia_cap_mapfre')) {
@@ -464,6 +459,16 @@ if ( ! function_exists('app_integracao_format_file_name_generali')) {
 
         $file = "{$formato}-{$num_sequencia}-{$data}.TXT";
         return  $file;
+    }
+
+}
+if ( ! function_exists('app_integracao_file_name_sulacap')) {
+
+    function app_integracao_file_name_sulacap($formato, $dados = array())
+    {
+        $data = date('dmy');
+        $file = "{$formato}{$data}.txt";
+        return $file;
     }
 
 }
@@ -918,6 +923,10 @@ if ( ! function_exists('app_integracao_valida_regras'))
                     $fields['equipamento_marca_id'] = $dados['equipamento_marca_id'];
                 if (!empty($dados['equipamento_categoria_id']))
                     $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
+                if (!empty($dados['equipamento_sub_categoria_id']))
+                    $fields['equipamento_sub_categoria_id'] = $dados['equipamento_sub_categoria_id'];
+                if (!empty($dados['equipamento_de_para']))
+                    $fields['equipamento_de_para'] = $dados['equipamento_de_para'];
                 $fields['ean'] = $dados['ean'];
                 $fields['emailAPI'] = app_get_userdata("email");
 
@@ -1131,7 +1140,13 @@ if ( ! function_exists('app_integracao_apolice')) {
     {
         $num_apolice = $dados['registro']['num_apolice'];
         $num_apolice_aux = $dados['registro']['cod_sucursal'] . $dados['registro']['cod_ramo'] . $dados['registro']['cod_tpa'];
-        $num_apolice_aux .= str_pad(substr($num_apolice, 7, 8), 8, '0', STR_PAD_LEFT);
+
+        if ($dados['registro']['cod_tpa'] == '025')
+        {
+            $num_apolice_aux .= substr($num_apolice, 3, 3) . str_pad(substr($num_apolice, 10, 5), 5, '0', STR_PAD_LEFT);
+        } else {
+            $num_apolice_aux .= str_pad(substr($num_apolice, 7, 8), 8, '0', STR_PAD_LEFT);
+        }
 
         return $num_apolice_aux;
     }
@@ -1148,6 +1163,11 @@ if ( ! function_exists('app_integracao_apolice_revert')) {
         $seq = right($num_apolice, 8);
         $tpa = left(right($num_apolice, 11), 3);
 
+        if ($tpa == '025')
+        {
+            $seq = left($seq, 3) ."%". right($seq, 5);
+        }
+
         if ( empty($seq) || empty($tpa) ) {
             return '';
         }
@@ -1157,7 +1177,7 @@ if ( ! function_exists('app_integracao_apolice_revert')) {
         $result = $CI->apolice_model->filter_by_numApolice($seq, $tpa)->get_all();
 
         if (empty($result))
-            return "7840001".$seq;
+            return '';
 
         return $result[0]['num_apolice'];
     }
@@ -1165,9 +1185,16 @@ if ( ! function_exists('app_integracao_apolice_revert')) {
 if ( ! function_exists('app_integracao_id_transacao')) {
     function app_integracao_id_transacao($formato, $dados = array())
     {
-        $num_apolice = app_integracao_apolice($formato, $dados);
-        $num_apolice .= $dados['registro']['num_endosso'].$dados['registro']['cod_ramo'].$dados['registro']['num_parcela'];
-        return $num_apolice;
+        $num_apolice = app_integracao_apolice($formato, $dados).$dados['registro']['num_endosso'];
+
+        if ($dados['registro']['cod_tpa'] == '025')
+        {
+            $num_apolice .= $dados['registro']['cod_ramo_cob'];
+        } else {
+            $num_apolice .= $dados['registro']['cod_ramo'];
+        }
+
+        return $num_apolice.$dados['registro']['num_parcela'];
     }
 }
 if ( ! function_exists('app_integracao_id_transacao_canc')) {
@@ -1175,8 +1202,16 @@ if ( ! function_exists('app_integracao_id_transacao_canc')) {
     {
         $id_transacao = '';
         if ( in_array($dados['registro']['cod_tipo_emissao'], ['10','11']) ) {
-            $id_transacao = app_integracao_apolice($formato, $dados);
-            $id_transacao .= "0".$dados['registro']['cod_ramo'].$dados['registro']['num_parcela'];
+            $id_transacao = app_integracao_apolice($formato, $dados)."0";
+
+            if ($dados['registro']['cod_tpa'] == '025')
+            {
+                $id_transacao .= $dados['registro']['cod_ramo_cob'];
+            } else {
+                $id_transacao .= $dados['registro']['cod_ramo'];
+            }
+
+            $id_transacao .= $dados['registro']['num_parcela'];
         }
         return $id_transacao;
     }
@@ -1639,5 +1674,35 @@ if ( ! function_exists('app_integracao_inicio')) {
 
         $response->status = true;
         return $response;
+    }
+}
+if ( ! function_exists('app_integracao_cap_data_sorteio')) {
+    function app_integracao_cap_data_sorteio($formato, $dados = array())
+    {
+        $data = null;
+        $pedido_id = issetor($dados["registro"]["pedido_id"], 0);
+        $formato   = emptyor($formato, 'dmY');
+
+        $CI =& get_instance();
+        $CI->load->model("Capitalizacao_Sorteio_Model", "capitalizacao_sorteio");
+
+        return $CI->capitalizacao_sorteio->defineDataSorteio($pedido_id, $formato);
+    }
+}
+if ( ! function_exists('app_integracao_cap_remessa')) {
+    function app_integracao_cap_remessa($formato, $dados = array())
+    {
+        $CI =& get_instance();
+        $CI->load->model('capitalizacao_model');
+
+        if((isset($dados['registro']['dados'][0]['num_remessa'])) && (isset($dados['registro']['dados'][0]['capitalizacao_id'])) ){
+            $num_remessa = $dados['registro']['dados'][0]['num_remessa'] += 1;
+            $data_cap    = array('num_remessa' => $num_remessa);
+            $CI->capitalizacao_model->update($dados['registro']['dados'][0]['capitalizacao_id'], $data_cap, TRUE);
+
+            return true;
+        }else{
+            return false;
+        }
     }
 }

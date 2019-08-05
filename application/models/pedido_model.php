@@ -454,7 +454,7 @@ Class Pedido_Model extends MY_Model
 
     public function with_cotacao_cliente_contato(){
         $this->_database->select("cliente.cliente_id as cod_cliente", false);
-        $this->_database->select("cliente.razao_nome, cotacao_equipamento.equipamento_nome, equipamento_marca.nome as marca, equipamento_categoria.nome as categoria");
+        $this->_database->select("cliente.razao_nome, cotacao_equipamento.equipamento_nome, em.nome as marca, ec.nome as categoria");
         /*
         $this->_database->select("(SELECT contato FROM cliente_contato INNER JOIN contato on contato.contato_id = cliente_contato.contato_id WHERE cliente_contato.deletado = 0 AND contato.deletado = 0 AND contato.contato_tipo_id = 1 AND cliente_contato.cliente_id = cliente.cliente_id LIMIT 1) AS email");
         $this->_database->select("(SELECT contato FROM cliente_contato INNER JOIN contato on contato.contato_id = cliente_contato.contato_id WHERE cliente_contato.deletado = 0 AND contato.deletado = 0 AND contato.contato_tipo_id = 2 AND cliente_contato.cliente_id = cliente.cliente_id LIMIT 1)  AS celular");
@@ -463,8 +463,8 @@ Class Pedido_Model extends MY_Model
         $this->_database->join('cotacao', 'cotacao.cotacao_id = pedido.cotacao_id', 'inner');
         $this->_database->join('cliente', 'cliente.cliente_id = cotacao.cliente_id', 'inner');
         $this->_database->join("cotacao_equipamento", "cotacao_equipamento.cotacao_id = cotacao.cotacao_id", 'left');
-        $this->_database->join("equipamento_marca", "equipamento_marca.equipamento_marca_id = cotacao_equipamento.equipamento_marca_id", 'left');
-        $this->_database->join("equipamento_categoria", "equipamento_categoria.equipamento_categoria_id = cotacao_equipamento.equipamento_categoria_id", 'left');
+        $this->_database->join("vw_Equipamentos_Marcas em", "em.equipamento_marca_id = cotacao_equipamento.equipamento_marca_id", 'left');
+        $this->_database->join("vw_Equipamentos_Linhas ec", "ec.equipamento_categoria_id = cotacao_equipamento.equipamento_categoria_id", 'left');
 
         return $this;
     }
@@ -1455,8 +1455,8 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("produto pr", "pr.produto_id = pp.produto_id", "inner");
         $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "inner");
         $this->_database->join("cliente cli", "cli.cliente_id = c.cliente_id", "inner");
-        $this->_database->join("equipamento_categoria ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "left");
-        $this->_database->join("equipamento_marca em", "em.equipamento_marca_id = ae.equipamento_marca_id", "left");
+        $this->_database->join("vw_Equipamentos_Linhas ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "left");
+        $this->_database->join("vw_Equipamentos_Marcas em", "em.equipamento_marca_id = ae.equipamento_marca_id", "left");
         $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = ce.produto_parceiro_plano_id", "inner");
 
         $this->_database->join("produto_parceiro_pagamento pppag", "pppag.produto_parceiro_pagamento_id = pedido.produto_parceiro_pagamento_id", "inner");
@@ -1616,8 +1616,8 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("produto pr", "pr.produto_id = pp.produto_id", "inner");
         $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "inner");
         $this->_database->join("cliente cli", "cli.cliente_id = c.cliente_id", "inner");
-        $this->_database->join("equipamento_categoria ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "inner");
-        $this->_database->join("equipamento_marca em", "em.equipamento_marca_id = ae.equipamento_marca_id", "inner");
+        $this->_database->join("vw_Equipamentos_Linhas ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "inner");
+        $this->_database->join("vw_Equipamentos_Marcas em", "em.equipamento_marca_id = ae.equipamento_marca_id", "inner");
         $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = ce.produto_parceiro_plano_id", "inner");
         $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
         $this->_database->join("usuario u", "u.usuario_id = c.usuario_cotacao_id", "left");
@@ -1903,8 +1903,8 @@ Class Pedido_Model extends MY_Model
             INNER JOIN `produto` pr ON `pr`.`produto_id` = `pp`.`produto_id`
             INNER JOIN `apolice_equipamento` ae ON `ae`.`apolice_id` = `a`.`apolice_id` and ae.deletado = 0
             INNER JOIN `cliente` cli ON cli.cliente_id = c.cliente_id
-            LEFT JOIN `equipamento_categoria` ec ON `ec`.`equipamento_categoria_id` = `ae`.`equipamento_categoria_id`
-            LEFT JOIN `equipamento_marca` em ON `em`.`equipamento_marca_id` = `ae`.`equipamento_marca_id`
+            LEFT JOIN `vw_Equipamentos_Linhas` ec ON `ec`.`equipamento_categoria_id` = `ae`.`equipamento_categoria_id`
+            LEFT JOIN `vw_Equipamentos_Marcas` em ON `em`.`equipamento_marca_id` = `ae`.`equipamento_marca_id`
             INNER JOIN `produto_parceiro_plano` ppp ON `ppp`.`produto_parceiro_plano_id` = `ce`.`produto_parceiro_plano_id`
             LEFT JOIN `localidade_estado` le ON `le`.`localidade_estado_id` = `p`.`localidade_estado_id`
             LEFT JOIN `usuario` u ON `u`.`usuario_id` = `c`.`usuario_cotacao_id`
@@ -2130,10 +2130,6 @@ Class Pedido_Model extends MY_Model
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('produto_parceiro_pagamento_model', 'produto_pagamento');
         $this->load->model('forma_pagamento_model', 'forma_pagamento');
-
-        $this->load->model('produto_parceiro_capitalizacao_model', 'parceiro_capitalizacao');
-        $this->load->model('capitalizacao_model', 'capitalizacao');
-        $this->load->model('capitalizacao_serie_titulo_model', 'titulo');
 
         //  $item = $this->produto_pagamento->get_by_id($dados['bandeira']);
         if($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_CARTAO_CREDITO) {

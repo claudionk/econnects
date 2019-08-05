@@ -241,8 +241,6 @@ Class Cotacao_Model extends MY_Model
         return $this;
     }
 
-
-
     public function with_cotacao_seguro_viagem_plano()
     {
         $this->_database->select('produto_parceiro_plano.nome as plano_nome');
@@ -298,6 +296,7 @@ Class Cotacao_Model extends MY_Model
         $this->_database->join('moeda', 'moeda.moeda_id = moeda_cambio.moeda_id');
         return $this;
     }
+
     public function with_cotacao_seguro_viagem_produto()
     {
         $this->_database->select('produto_parceiro.nome as produto_nome');
@@ -307,6 +306,7 @@ Class Cotacao_Model extends MY_Model
         $this->_database->where("produto_parceiro.deletado", 0);
         return $this;
     }
+
     public function with_cotacao_equipamento_produto()
     {
         $this->_database->select('produto_parceiro.nome as produto_nome');
@@ -315,6 +315,7 @@ Class Cotacao_Model extends MY_Model
         $this->_database->join('produto_parceiro', 'produto_parceiro.produto_parceiro_id = cotacao.produto_parceiro_id');
         return $this;
     }
+
     public function with_cotacao_generico_produto()
     {
         $this->_database->select('produto_parceiro.nome as produto_nome');
@@ -323,15 +324,19 @@ Class Cotacao_Model extends MY_Model
         $this->_database->join('produto_parceiro', 'produto_parceiro.produto_parceiro_id = cotacao.produto_parceiro_id');
         return $this;
     }
+
     public function with_cotacao_equipamento_equipamento()
     {
-        $this->_database->select('equipamento_marca.nome as equipamento_marca_nome');
-        $this->_database->select('equipamento_categoria.nome as equipamento_categoria_nome');
+        $this->_database->select('em.nome as equipamento_marca_nome');
+        $this->_database->select('el.nome as equipamento_categoria_nome');
+        $this->_database->select('esc.nome as equipamento_sub_categoria_nome');
 
-        $this->_database->join('equipamento_marca', 'cotacao_equipamento.equipamento_marca_id = equipamento_marca.equipamento_marca_id');
-        $this->_database->join('equipamento_categoria', 'cotacao_equipamento.equipamento_categoria_id = equipamento_categoria.equipamento_categoria_id');
+        $this->_database->join('vw_Equipamentos_Marcas em', 'cotacao_equipamento.equipamento_marca_id = em.equipamento_marca_id');
+        $this->_database->join('vw_Equipamentos_Linhas el', 'cotacao_equipamento.equipamento_categoria_id = el.equipamento_categoria_id');
+        $this->_database->join('vw_Equipamentos_Linhas esc', 'cotacao_equipamento.equipamento_sub_categoria_id = esc.equipamento_categoria_id', 'left');
         return $this;
     }
+
     public function with_cotacao_seguro_viagem_origem_destino()
     {
         $this->_database->select('origem.tipo as origem_tipo');
@@ -362,6 +367,24 @@ Class Cotacao_Model extends MY_Model
         $this->_database->where("cotacao.cotacao_status_id", $cotacao_status_id);
         $this->_database->where("cotacao.deletado", 0);
         return $this;
+    }
+
+    public function tem_capitalizacao($cotacao_id)
+    {
+        $this->_database->join('cotacao_generico cg', 'cotacao.cotacao_id = cg.cotacao_id', 'left');
+        $this->_database->join('cotacao_equipamento ce', 'cotacao.cotacao_id = ce.cotacao_id', 'left');
+        $this->_database->join('cotacao_seguro_viagem csv', 'cotacao.cotacao_id = csv.cotacao_id', 'left');
+
+        $this->_database->join('cobertura_plano cp', 'cp.produto_parceiro_plano_id = IFNULL(IFNULL(ce.produto_parceiro_plano_id, cg.produto_parceiro_plano_id), csv.produto_parceiro_plano_id) ');
+        $this->_database->join('cobertura c', 'cp.cobertura_id = c.cobertura_id');
+
+        $this->filterByID($cotacao_id);
+
+        $this->_database->where("cotacao.deletado", 0);
+        $this->_database->where("cp.deletado", 0);
+        $this->_database->where("c.deletado", 0);
+        $this->_database->where("c.slug", 'sorteio_mensal');
+        return !empty($this->get_total());
     }
 
     /**

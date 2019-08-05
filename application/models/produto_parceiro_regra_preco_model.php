@@ -94,19 +94,19 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $sucess = TRUE;
         $messagem = '';
         $desconto_upgrade = 0;
-
-        $produto_parceiro_id = issetor($params['produto_parceiro_id'], 0);
-        $parceiro_id = issetor($params['parceiro_id'], 0);
-        $equipamento_id = issetor($params['equipamento_id'], 0);
-        $equipamento_marca_id = issetor($params['equipamento_marca_id'], 0);
-        $equipamento_categoria_id = issetor($params['equipamento_categoria_id'], 0);
-        $equipamento_de_para = issetor($params['equipamento_de_para'], '');
-        $quantidade = issetor($params['quantidade'], 0);
-        $coberturas_adicionais = issetor($params['coberturas'], array());
-        $repasse_comissao = app_unformat_percent($params['repasse_comissao']);
-        $desconto_condicional= app_unformat_percent($params['desconto_condicional']);
-        $desconto = $this->desconto->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
-        $cotacao_id = issetor($params['cotacao_id'], 0);
+        $produto_parceiro_id            = issetor($params['produto_parceiro_id'], 0);
+        $parceiro_id                    = issetor($params['parceiro_id'], 0);
+        $equipamento_id                 = issetor($params['equipamento_id'], 0);
+        $equipamento_marca_id           = issetor($params['equipamento_marca_id'], 0);
+        $equipamento_sub_categoria_id   = issetor($params['equipamento_sub_categoria_id'], 0);
+        $equipamento_categoria_id       = issetor($params['equipamento_categoria_id'], 0);
+        $equipamento_de_para            = issetor($params['equipamento_de_para'], '');
+        $quantidade                     = issetor($params['quantidade'], 0);
+        $coberturas_adicionais          = issetor($params['coberturas'], array());
+        $repasse_comissao               = app_unformat_percent($params['repasse_comissao']);
+        $desconto_condicional           = app_unformat_percent($params['desconto_condicional']);
+        $desconto                       = $this->desconto->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
+        $cotacao_id                     = issetor($params['cotacao_id'], 0);
 
         if($cotacao_id) {
             $cotacao = $this->cotacao->get($cotacao_id);
@@ -192,7 +192,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             $quantidade = $servico_produto['quantidade_minima'];
         }
 
-        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_id, $equipamento_de_para, $servico_produto_id, $data_inicio_vigencia, $data_fim_vigencia, $comissao);
+        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_sub_categoria_id, $equipamento_de_para, $servico_produto_id, $data_inicio_vigencia, $data_fim_vigencia, $comissao);
 
         $valores_cobertura_adicional_total = $valores_cobertura_adicional = array();
 
@@ -318,14 +318,26 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
             foreach ($r as $regra) {
                 $iof_calculado = true;
-                $iofPerc = round(($regra['iof']/100) * $regra['custo'], 2);
-                $iofPerc = ($iofPerc == 0) ? 0.01 : $iofPerc;
+
+                // trunca o valor do IOF por cobertura
+                $iofPerc = truncate(($regra['iof']/100) * $regra['custo'], 2);
 
                 $valores_liquido_total_cobertura[$key] += $iofPerc;
                 $iof = $regra['iof'];
             }
 
             if ($iof_calculado) {
+
+                // arredonda a soma to IOF do bilhete
+                $valores_liquido_total_cobertura[$key] = round($valores_liquido_total_cobertura[$key], 2);
+
+                // Caso o IOF calculado sobre o prêmio da apólice/bilhete seja = 0,00
+                if ($valores_liquido_total_cobertura[$key] == 0)
+                {
+                    // deve-se atribuir à cobertura de maior peso na formação do prêmio o valor de 0,01, propagando o mesmo valor para o IOF da apólice;
+                    $valores_liquido_total_cobertura[$key] = 0.01;
+                }
+
                 $valores_liquido_total[$key] += $valores_liquido_total_cobertura[$key] * $valores_bruto['quantidade'];
                 $valores_liquido_total[$key] -= $desconto_upgrade;
             }

@@ -1168,6 +1168,24 @@ function emptyor(&$var, $default = ' ') {
 } 
 
 /**
+ * Se for setado uma variável ele a retorna, caso contrário retorna vazio
+ * @param $var
+ * @param bool $default
+ * @return string
+ */
+function emptyor(&$var, $default = ' ') {
+
+    if(!empty($var))
+    {
+        return $var;
+    }
+    else
+    {
+        return $default;
+    }
+}
+
+/**
  * @description Se for uma variavel vazia ele retorna com o default
  * @param $var
  * @return string
@@ -1242,6 +1260,17 @@ function app_calculo_valor($tipo, $quantidade, $valor){
  */
 function app_calculo_porcentagem ( $porcentagem, $total ) {
     return ( $porcentagem / 100 ) * $total;
+}
+/**
+ * Truncar Valor com Precisão definida
+ * @param $number float
+ * @param $precision int
+ * @return float
+ */
+function truncate($number, $precision = 0) {
+   // warning: precision is limited by the size of the int type
+   $shift = pow(10, $precision);
+   return intval($number * $shift)/$shift;
 }
 
 /**

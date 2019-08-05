@@ -771,13 +771,13 @@ class MY_Model extends CI_Model
     }
 
 
-    function get_total()
+    function get_total($field = NULL)
     {
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
             $this->_database->where("{$this->_table}.{$this->soft_delete_key}", (bool)$this->_temporary_only_deleted);
         }
-        $result =  $this->_database->count_all_results($this->_table);
+        $result =  $this->_database->count_all_results($this->_table, $field);
 
 
         return $result;
