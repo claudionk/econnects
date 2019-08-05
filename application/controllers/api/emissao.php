@@ -330,7 +330,7 @@ class Emissao extends CI_Controller {
 
 
                 // Validar o valor passado se diferente alertar e abortar
-                $url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/cotacao/calculo?cotacao_id=".$this->cotacao_id;
+                $url = base_url() ."api/cotacao/calculo?cotacao_id=".$this->cotacao_id;
 
                 $obj = new Api();
                 $r = $obj->execute($url, 'GET');
@@ -398,7 +398,7 @@ class Emissao extends CI_Controller {
                 if($parametros->{"status"})
                 {
 
-                    $url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/pagamento/forma_pagamento_cotacao?cotacao_id={$this->cotacao_id}";
+                    $url = base_url() ."api/pagamento/forma_pagamento_cotacao?cotacao_id={$this->cotacao_id}";
                     $obj = new Api();
                     $r = $obj->execute($url, 'GET');
                     if(!empty($r))
