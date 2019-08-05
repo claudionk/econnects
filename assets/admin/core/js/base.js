@@ -505,7 +505,7 @@ function populaSelectSubCategoria(id){
         var x = id.split(",");
 
         if (x.length > 1) {
-            $data = Object.assign({}, x), url = '';
+            $data = Object.assign({}, x), url = '/0';
         } else {
             url='/'+encodeURI(x[0]);
         }
