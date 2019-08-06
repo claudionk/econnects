@@ -39,5 +39,9 @@ Class Equipamento_Marca_Model extends MY_Model
         )
     );
 
-
+    public function get_by_categoria($categoria_id)
+    {
+        $this->_database->where("{$this->_table}.equipamento_marca_id IN(SELECT DISTINCT equipamento_marca_id FROM vw_Equipamentos WHERE deletado = 0 AND equipamento_categoria_id = {$categoria_id})", NULL, FALSE);
+        return $this;
+    }
 }
