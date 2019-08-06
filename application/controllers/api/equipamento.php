@@ -107,7 +107,15 @@ class Equipamento extends CI_Controller {
         }
 
         $this->load->model("equipamento_marca_model", "equipamento_marca");
-        $Marcas = $this->equipamento_marca->getl_all();
+        $Marcas         = $this->equipamento_marca;
+        $categoria_id   = isempty($GET["equipamento_categoria_id"], 0);
+
+        if (!empty($categoria_id))
+        {
+            $Marcas = $Marcas->get_by_categoria($categoria_id);
+        }
+
+        $Marcas = $Marcas->get_all();
         die( json_encode( $Marcas, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 

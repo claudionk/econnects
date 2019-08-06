@@ -153,7 +153,7 @@ class Equipamento extends Admin_Controller
 
         if (!empty($categoria_id))
         {
-            $total->_database->where("vw_Equipamentos_Marcas.equipamento_marca_id IN(SELECT DISTINCT equipamento_marca_id FROM vw_Equipamentos WHERE deletado = 0 AND equipamento_categoria_id = {$categoria_id})", NULL, FALSE);
+            $total = $total->get_by_categoria($categoria_id);
         }
 
         if($filter) {
@@ -171,7 +171,7 @@ class Equipamento extends Admin_Controller
 
         if (!empty($categoria_id))
         {
-            $data->_database->where("vw_Equipamentos_Marcas.equipamento_marca_id IN(SELECT DISTINCT equipamento_marca_id FROM vw_Equipamentos WHERE deletado = 0 AND equipamento_categoria_id = {$categoria_id})", NULL, FALSE);
+            $data = $data->get_by_categoria($categoria_id);
         }
 
         if($filter)
