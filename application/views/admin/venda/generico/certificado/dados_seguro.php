@@ -22,7 +22,7 @@
         <?php } ?>
 
         <tr>
-            <td colspan="2">Prêmio Total (com IOF de 0,38%)</td>
+            <td colspan="2">Prêmio Total</td>
             <td>R$<?php echo app_format_currency($premio_total) ?></td>
         </tr>
 
