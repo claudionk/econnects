@@ -1048,7 +1048,7 @@ if ( ! function_exists('app_integracao_emissao'))
         // echo "<pre>";print_r($fields);echo "</pre>";
 
         // Emissão
-        if ( in_array($dados['tipo_transacao'], ['NS','XP']) ) {
+        if ( $dados['acao'] == '1' ) {
 
             // Cotação Contratar
             $fields['emailAPI'] = app_get_userdata("email");
@@ -1120,8 +1120,8 @@ if ( ! function_exists('app_integracao_emissao'))
             }
 
         // Cancelamento
-        } else if ( in_array($dados['tipo_transacao'], ['XS','XX','XD']) ) {
-            
+        } else if ( $dados['acao'] == '9' ) {
+
             // Cancelamento
             $cancelaApolice = app_get_api("cancelar", "POST", json_encode(["apolice_id" => $dados['apolice_id'], "define_date" => $dados['data_adesao_cancel'], "emailAPI" => app_get_userdata("email")]));
             if (empty($cancelaApolice['status'])) {
@@ -1366,7 +1366,7 @@ if ( ! function_exists('app_integracao_novo_mundo_ge')) {
 
         // Validar Regras
         $validaRegra = app_integracao_valida_regras($dados, $camposCotacao);
-        echo "<pre>";print_r($validaRegra);echo "</pre>";die();
+        // echo "<pre>";print_r($validaRegra);echo "</pre>";die();
 
         if (!empty($validaRegra->status)) {
             $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
