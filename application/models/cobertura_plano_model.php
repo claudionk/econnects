@@ -232,7 +232,7 @@ Class Cobertura_Plano_Model extends MY_Model {
         cobertura_plano.cod_cobertura,
         cobertura.nome as cobertura,
         cobertura_plano.usar_iof,
-        cobertura_plano.iof,
+        IF(cobertura_plano.usar_iof > 0, cobertura_plano.iof, IFNULL(pprp.parametros,0)) as iof,
         cobertura_plano.diarias,
         cobertura_plano.carencia,
         cobertura_plano.franquia,
@@ -242,20 +242,18 @@ Class Cobertura_Plano_Model extends MY_Model {
         IFNULL( IFNULL(apolice_equipamento.nota_fiscal_valor, apolice_generico.nota_fiscal_valor), cobertura_plano.preco) AS importancia_segurada
 
         #se o IOF é menor que 0.01, joga o valor na maior
-        , TRUNCATE(
+        , IF(
+            TRUNCATE(apolice_cobertura.valor * IF(cobertura_plano.usar_iof > 0, apolice_cobertura.iof / 100, IFNULL(IFNULL(apolice_equipamento.pro_labore, apolice_generico.pro_labore),0)) / IFNULL(apolice_equipamento.valor_premio_net, apolice_generico.valor_premio_net),2) = 0,  
                 IF(
-                    TRUNCATE(apolice_cobertura.valor * apolice_cobertura.iof / 100,2) = 0, 
-                        IF(
-                            menor.apolice_id IS NULL, 
-                            IF(apolice_cobertura.iof > 0, 0.01, 0), 
-                            IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, IF( TRUNCATE(menor.valor, 2) = 0, 0.01, menor.valor), 0)
-                        ),
-                        TRUNCATE(apolice_cobertura.valor * apolice_cobertura.iof / 100,2)
-                        
-                        #add a diferenca do IOF total à cobertura de +valor
-                        + IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, menor.valor-menor.valor_t, 0)
-                )
-        ,2) AS valor_iof
+                    menor.apolice_id IS NULL, 
+                    IF(apolice_cobertura.iof > 0, 0.01, IFNULL(IFNULL(apolice_equipamento.pro_labore, apolice_generico.pro_labore),0)),  
+                    IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, IF( TRUNCATE(menor.valor, 2) = 0, 0.01, menor.valor), 0)
+                ),
+                TRUNCATE( apolice_cobertura.valor * IF(apolice_cobertura.iof > 0, apolice_cobertura.iof, IFNULL(pprp.parametros,0)) / 100 ,2)
+                
+                #add a diferenca do IOF total à cobertura de +valor
+                + IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, menor.valor-menor.valor_t, 0)
+        ) AS valor_iof
 
         FROM pedido
         INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id
@@ -268,6 +266,9 @@ Class Cobertura_Plano_Model extends MY_Model {
         LEFT JOIN apolice_generico ON apolice_generico.apolice_id = apolice.apolice_id
         LEFT JOIN apolice_equipamento ON apolice_equipamento.apolice_id = apolice.apolice_id
 
+        LEFT JOIN produto_parceiro_regra_preco pprp ON produto_parceiro_plano.produto_parceiro_id = pprp.produto_parceiro_id AND pprp.deletado = 0
+        LEFT JOIN regra_preco rp on pprp.regra_preco_id = rp.regra_preco_id AND rp.slug = 'iof' 
+
         #caso o IOF seja menor que 0.01, soma as comissoes e identifica a de maior valor
         LEFT JOIN (
             SELECT apolice_id, max(apolice_cobertura_id) as apolice_cobertura_id, valor, valor_t
@@ -275,10 +276,16 @@ Class Cobertura_Plano_Model extends MY_Model {
                 SELECT apolice.apolice_id, ac.apolice_cobertura_id apolice_cobertura_id, IF( ROUND(x.valor, 2) = 0, 0.01, x.valor) as valor, IF( ROUND(x.valor_t, 2) = 0, 0.01, x.valor_t) as valor_t
                 FROM apolice_cobertura ac
                 JOIN (
-                    SELECT round(sum(IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0)), 2) as valor, round(sum(TRUNCATE(IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0),2)), 2) as valor_t, max(apolice_cobertura.valor) c
+                   SELECT
+                          round(sum(apolice_cobertura.valor * IF(apolice_cobertura.iof > 0, apolice_cobertura.iof, IFNULL(pprp.parametros,0)) / 100), 2) as valor
+                        , round(sum(TRUNCATE( apolice_cobertura.valor * IF(apolice_cobertura.iof > 0, apolice_cobertura.iof, IFNULL(pprp.parametros,0)) / 100 ,2)), 2) as valor_t
+                        , max(apolice_cobertura.valor) c 
                     FROM pedido
                     INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id
                     INNER JOIN apolice_cobertura ON apolice.apolice_id = apolice_cobertura.apolice_id
+                    INNER JOIN produto_parceiro_plano ppp ON apolice.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
+                    LEFT JOIN produto_parceiro_regra_preco pprp ON ppp.produto_parceiro_id = pprp.produto_parceiro_id AND pprp.deletado = 0
+                    LEFT JOIN regra_preco rp on pprp.regra_preco_id = rp.regra_preco_id AND rp.slug = 'iof'
                     LEFT JOIN apolice_generico ON apolice_generico.apolice_id = apolice.apolice_id
                     LEFT JOIN apolice_equipamento ON apolice_equipamento.apolice_id = apolice.apolice_id
                     WHERE apolice.apolice_id = {$apolice_id}
