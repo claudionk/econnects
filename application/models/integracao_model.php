@@ -1029,8 +1029,6 @@ Class Integracao_Model extends MY_Model
                     || ( $item['campo_tipo']=='M' && !($registro[$item['nome_banco']] > 0) ) 
                     // || ( $item['campo_tipo']=='D' && !($registro[$item['nome_banco']] > 0) ) 
                 ) {
-                    var_dump(!isset($registro[$item['nome_banco']]));die();
-
                     // seta para erro
                     $integracao_log_status_id = 8;
 

@@ -98,6 +98,24 @@ Class Cobertura_Plano_Model extends MY_Model {
             'rules' => '',
             'groups' => 'default'
         ),
+        array(
+            'field' => 'cod_cobertura',
+            'label' => 'Código da Cobertura',
+            'rules' => '',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'cod_ramo',
+            'label' => 'Código do Ramo',
+            'rules' => '',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'cod_produto',
+            'label' => 'Código do Produto',
+            'rules' => '',
+            'groups' => 'default'
+        ),
     );
 
     //Get dados
@@ -105,20 +123,23 @@ Class Cobertura_Plano_Model extends MY_Model {
 
         //Dados
         $data =  array(
-            'cobertura_id' => $this->input->post('cobertura_id'),
+            'cobertura_id'              => $this->input->post('cobertura_id'),
             'produto_parceiro_plano_id' => $this->input->post('produto_parceiro_plano_id'),
-            'parceiro_id' => $this->input->post('parceiro_id'),
-            'porcentagem' => app_unformat_currency($this->input->post('porcentagem')),
-            'preco' => app_unformat_currency($this->input->post('preco')),
-            'custo' => app_unformat_currency($this->input->post('custo')),
-            'mostrar' => $this->input->post('mostrar'),
-            'descricao' => $this->input->post('descricao'),
-            'cobertura_custo' => $this->input->post('cobertura_custo'),
-            'iof' => app_unformat_currency($this->input->post('iof')),
-            'usar_iof' => $this->input->post('usar_iof'),
-            'diarias'  => $this->input->post('diarias'),
-            'franquia' => $this->input->post('franquia'),
-            'carencia' => $this->input->post('carencia')
+            'parceiro_id'               => $this->input->post('parceiro_id'),
+            'porcentagem'               => app_unformat_currency($this->input->post('porcentagem')),
+            'preco'                     => app_unformat_currency($this->input->post('preco')),
+            'custo'                     => app_unformat_currency($this->input->post('custo')),
+            'mostrar'                   => $this->input->post('mostrar'),
+            'descricao'                 => $this->input->post('descricao'),
+            'cobertura_custo'           => $this->input->post('cobertura_custo'),
+            'iof'                       => app_unformat_currency($this->input->post('iof')),
+            'usar_iof'                  => $this->input->post('usar_iof'),
+            'diarias'                   => $this->input->post('diarias'),
+            'franquia'                  => $this->input->post('franquia'),
+            'carencia'                  => $this->input->post('carencia'),
+            'cod_cobertura'             => $this->input->post('cod_cobertura'),
+            'cod_ramo'                  => $this->input->post('cod_ramo'),
+            'cod_produto'               => $this->input->post('cod_produto'),
         );
         return $data;
     }
@@ -163,6 +184,7 @@ Class Cobertura_Plano_Model extends MY_Model {
         $this->_database->select("{$this->_table}.*, cobertura.*, produto_parceiro_plano.*");
         $this->_database->join("cobertura", "cobertura.cobertura_id = {$this->_table}.cobertura_id");
         $this->_database->join("produto_parceiro_plano", "produto_parceiro_plano.produto_parceiro_plano_id = {$this->_table}.produto_parceiro_plano_id");
+        $this->_database->join("produto_parceiro", "produto_parceiro.produto_parceiro_id = produto_parceiro_plano.produto_parceiro_id AND produto_parceiro.parceiro_id = cobertura_plano.parceiro_id");
 
         $this->_database->where("produto_parceiro_plano.produto_parceiro_id", $produto_parceiro_id);
         $this->_database->where("produto_parceiro_plano.deletado", 0);
@@ -203,10 +225,10 @@ Class Cobertura_Plano_Model extends MY_Model {
     public function getCoberturasApolice($apolice_id)
     {
         $sql = "
-        select *, premio_liquido + valor_iof as premio_liquido_total
-        from (
+        SELECT *, premio_liquido + valor_iof as premio_liquido_total
+        FROM (
 
-        select 
+        SELECT 
         cobertura_plano.cod_cobertura,
         cobertura.nome as cobertura,
         cobertura_plano.usar_iof,
@@ -236,44 +258,47 @@ Class Cobertura_Plano_Model extends MY_Model {
         ,2) AS valor_iof
 
         FROM pedido
-        INNER JOIN apolice on apolice.pedido_id = pedido.pedido_id
-        INNER JOIN apolice_cobertura on apolice.apolice_id = apolice_cobertura.apolice_id
-        INNER JOIN cobertura_plano on apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id
-        INNER JOIN cobertura on cobertura_plano.cobertura_id = cobertura.cobertura_id
+        INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id
+        INNER JOIN produto_parceiro_plano ON apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id
+        INNER JOIN produto_parceiro ON produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id
+        INNER JOIN parceiro ON produto_parceiro.parceiro_id = parceiro.parceiro_id
+        INNER JOIN apolice_cobertura ON apolice.apolice_id = apolice_cobertura.apolice_id
+        INNER JOIN cobertura_plano ON apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id AND produto_parceiro.parceiro_id = cobertura_plano.parceiro_id
+        INNER JOIN cobertura ON cobertura_plano.cobertura_id = cobertura.cobertura_id
         LEFT JOIN apolice_generico ON apolice_generico.apolice_id = apolice.apolice_id
         LEFT JOIN apolice_equipamento ON apolice_equipamento.apolice_id = apolice.apolice_id
 
         #caso o IOF seja menor que 0.01, soma as comissoes e identifica a de maior valor
         LEFT JOIN (
-            select apolice_id, max(apolice_cobertura_id) as apolice_cobertura_id, valor, valor_t
-            from (
-                select apolice.apolice_id, ac.apolice_cobertura_id apolice_cobertura_id, IF( ROUND(x.valor, 2) = 0, 0.01, x.valor) as valor, IF( ROUND(x.valor_t, 2) = 0, 0.01, x.valor_t) as valor_t
-                from apolice_cobertura ac
-                join (
-                    select round(sum(IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0)), 2) as valor, round(sum(TRUNCATE(IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0),2)), 2) as valor_t, max(apolice_cobertura.valor) c
+            SELECT apolice_id, max(apolice_cobertura_id) as apolice_cobertura_id, valor, valor_t
+            FROM (
+                SELECT apolice.apolice_id, ac.apolice_cobertura_id apolice_cobertura_id, IF( ROUND(x.valor, 2) = 0, 0.01, x.valor) as valor, IF( ROUND(x.valor_t, 2) = 0, 0.01, x.valor_t) as valor_t
+                FROM apolice_cobertura ac
+                JOIN (
+                    SELECT round(sum(IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0)), 2) as valor, round(sum(TRUNCATE(IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0),2)), 2) as valor_t, max(apolice_cobertura.valor) c
                     FROM pedido
                     INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id
                     INNER JOIN apolice_cobertura ON apolice.apolice_id = apolice_cobertura.apolice_id
                     LEFT JOIN apolice_generico ON apolice_generico.apolice_id = apolice.apolice_id
                     LEFT JOIN apolice_equipamento ON apolice_equipamento.apolice_id = apolice.apolice_id
-                    where apolice.apolice_id = {$apolice_id}
-                    and pedido.deletado = 0
-                    and apolice.deletado = 0
-                    and apolice_cobertura.deletado = 0
-                ) x on x.c = ac.valor
+                    WHERE apolice.apolice_id = {$apolice_id}
+                        AND pedido.deletado = 0
+                        AND apolice.deletado = 0
+                        AND apolice_cobertura.deletado = 0
+                ) x ON x.c = ac.valor
                 INNER JOIN apolice ON apolice.apolice_id = ac.apolice_id
-                where apolice.apolice_id = {$apolice_id}
-            ) z  group by apolice_id, valor
+                WHERE apolice.apolice_id = {$apolice_id}
+            ) z  GROUP BY apolice_id, valor
         ) AS menor ON apolice.apolice_id = menor.apolice_id
 
-        where 
-        pedido.deletado = 0
-        and apolice.deletado = 0
-        and apolice_cobertura.deletado = 0
-        and cobertura_plano.deletado = 0
-        and apolice_cobertura.valor > 0
-        and apolice.apolice_id = {$apolice_id}
-        ) as y
+        WHERE 
+            pedido.deletado = 0
+            AND apolice.deletado = 0
+            AND apolice_cobertura.deletado = 0
+            AND cobertura_plano.deletado = 0
+            AND apolice_cobertura.valor > 0
+            AND apolice.apolice_id = {$apolice_id}
+        ) AS y
         ";
 
         $result = $this->db->query($sql)->result_array();
