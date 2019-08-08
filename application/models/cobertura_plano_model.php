@@ -230,7 +230,7 @@ Class Cobertura_Plano_Model extends MY_Model {
 
         SELECT 
         cobertura_plano.cod_cobertura,
-        cobertura.nome as cobertura,
+        cobertura.nome as cobertura_nome,
         cobertura_plano.usar_iof,
         IF(rp.regra_preco_id IS NOT NULL, IFNULL(pprp.parametros,0), IF(cobertura_plano.usar_iof > 0, apolice_cobertura.iof, IFNULL(pprp.parametros,0))) as iof,
         cobertura_plano.diarias,
