@@ -118,7 +118,7 @@ Class Equipamento_Model extends MY_Model
         }
 
         if (!empty($equipamento_marca_id)) {
-            $where .= " AND e.equipamento_marca_id = $equipamneto_marca_id";
+            $where .= " AND e.equipamento_marca_id = $equipamento_marca_id";
         }
 
         $equip = $this->_database->query("
