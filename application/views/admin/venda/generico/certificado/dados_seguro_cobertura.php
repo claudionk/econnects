@@ -23,7 +23,7 @@
         </tr>
     <?php } ?>
     <tr>
-        <td colspan="4" align="right">Prêmio Total: </td>
+        <td colspan="4" align="right">Prêmio Total (com IOF): </td>
         <td>R$<?php echo app_format_currency($premio_total) ?></td>
     </tr>
     </tbody>
