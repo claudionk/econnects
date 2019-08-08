@@ -110,6 +110,32 @@ Class Equipamento_Model extends MY_Model
         return $row;
     }
 
+    public function get_equipamentos($equipamento_categoria_id = null, $equipamento_marca_id = null)
+    {
+        $where='';
+        if (!empty($equipamento_categoria_id)) {
+            $where .= " AND e.equipamento_categoria_id = $equipamento_categoria_id";
+        }
+
+        if (!empty($equipamento_marca_id)) {
+            $where .= " AND e.equipamento_marca_id = $equipamneto_marca_id";
+        }
+
+        $equip = $this->_database->query("
+            SELECT e.equipamento_id, e.equipamento_marca_id, e.equipamento_categoria_id, e.nome, e.ean, e.equipamento_sub_categoria_id
+            FROM {$this->_table} e
+            INNER JOIN vw_Equipamentos_Marcas em on e.equipamento_marca_id = em.equipamento_marca_id
+            WHERE {$where}
+            ORDER BY 1 DESC
+        ");
+        $row = null;
+        if ($equip){
+            $row = $equip->result();
+        }
+
+        return $row;
+    }
+
     public function matchOLD($equipamento)
     {
         $equipamento_tratado = $this->trata_string_match($equipamento);
