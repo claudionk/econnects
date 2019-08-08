@@ -15,7 +15,7 @@
         $premio_total += $premio;
         ?>
         <tr>
-            <td><?= $cobertura['cobertura']; ?></td>
+            <td><?= $cobertura['cobertura_nome']; ?></td>
             <td>R$<?= app_format_currency($cobertura['importancia_segurada']); ?></td>
             <td><?= isempty($cobertura['franquia'], 'Não Há'); ?></td>
             <td><?= isempty($cobertura['carencia'], 'Não Há'); ?></td>
@@ -23,7 +23,7 @@
         </tr>
     <?php } ?>
     <tr>
-        <td colspan="4" align="right">Prêmio Total: </td>
+        <td colspan="4" align="right">Prêmio Total (com IOF): </td>
         <td>R$<?php echo app_format_currency($premio_total) ?></td>
     </tr>
     </tbody>
