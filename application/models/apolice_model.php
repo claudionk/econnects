@@ -1165,7 +1165,7 @@ class Apolice_Model extends MY_Model
         } elseif($dados['slug_parceiro'] == 'lojasamericanas')
         {
             $viewseguro = 'dados_seguro_cobertura';
-        } 
+        }
 
         $data_template['seguro']   = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/{$viewseguro}", array(
             'plano'          => $plano,

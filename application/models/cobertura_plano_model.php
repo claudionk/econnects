@@ -217,7 +217,7 @@ Class Cobertura_Plano_Model extends MY_Model {
         apolice_cobertura.valor AS premio_liquido,
         #TRUNCATE(IF(apolice_cobertura.iof > 0, IF(TRUNCATE(apolice_cobertura.valor * apolice_cobertura.iof / 100,2) = 0, 0.01, apolice_cobertura.valor * apolice_cobertura.iof / 100), 0), 2) AS valor_iof,
         #ROUND(apolice_cobertura.valor + IF(apolice_cobertura.iof > 0, IF(ROUND(apolice_cobertura.valor * apolice_cobertura.iof / 100,2) = 0, 0.01, apolice_cobertura.valor * apolice_cobertura.iof / 100), 0), 2) AS premio_liquido_total,
-        cobertura_plano.preco as nota_fiscal_valor
+        IFNULL( IFNULL(apolice_equipamento.nota_fiscal_valor, apolice_generico.nota_fiscal_valor), cobertura_plano.preco) AS importancia_segurada
 
         #se o IOF é menor que 0.01, joga o valor na maior
         , TRUNCATE(
@@ -235,12 +235,13 @@ Class Cobertura_Plano_Model extends MY_Model {
                 )
         ,2) AS valor_iof
 
-        from pedido
-        inner join apolice on apolice.pedido_id = pedido.pedido_id
-        inner join apolice_cobertura on apolice.apolice_id = apolice_cobertura.apolice_id
-        inner join cobertura_plano on apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id
-        inner join cobertura on cobertura_plano.cobertura_id = cobertura.cobertura_id
-        inner join apolice_generico ON apolice_generico.apolice_id = apolice.apolice_id
+        FROM pedido
+        INNER JOIN apolice on apolice.pedido_id = pedido.pedido_id
+        INNER JOIN apolice_cobertura on apolice.apolice_id = apolice_cobertura.apolice_id
+        INNER JOIN cobertura_plano on apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id
+        INNER JOIN cobertura on cobertura_plano.cobertura_id = cobertura.cobertura_id
+        LEFT JOIN apolice_generico ON apolice_generico.apolice_id = apolice.apolice_id
+        LEFT JOIN apolice_equipamento ON apolice_equipamento.apolice_id = apolice.apolice_id
 
         #caso o IOF seja menor que 0.01, soma as comissoes e identifica a de maior valor
         LEFT JOIN (
@@ -253,11 +254,12 @@ Class Cobertura_Plano_Model extends MY_Model {
                     FROM pedido
                     INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id
                     INNER JOIN apolice_cobertura ON apolice.apolice_id = apolice_cobertura.apolice_id
+                    LEFT JOIN apolice_generico ON apolice_generico.apolice_id = apolice.apolice_id
+                    LEFT JOIN apolice_equipamento ON apolice_equipamento.apolice_id = apolice.apolice_id
                     where apolice.apolice_id = {$apolice_id}
                     and pedido.deletado = 0
                     and apolice.deletado = 0
                     and apolice_cobertura.deletado = 0
-                    having round(round(sum(apolice_cobertura.valor * apolice_cobertura.iof / 100), 2) / count(1) ,2) <= 0.01
                 ) x on x.c = ac.valor
                 INNER JOIN apolice ON apolice.apolice_id = ac.apolice_id
                 where apolice.apolice_id = {$apolice_id}
