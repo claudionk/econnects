@@ -112,6 +112,9 @@ Class Equipamento_Model extends MY_Model
 
     public function get_equipamentos($equipamento_categoria_id = null, $equipamento_marca_id = null)
     {
+        if (empty($equipamento_categoria_id) && empty($equipamento_marca_id))
+            return null;
+
         $where='1=1';
         if (!empty($equipamento_categoria_id)) {
             $where .= " AND e.equipamento_categoria_id = $equipamento_categoria_id";
