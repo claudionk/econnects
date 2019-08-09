@@ -92,7 +92,7 @@ class Equipamento extends CI_Controller {
         }
 
         $categoria_pai_id   = isempty($GET["equipamento_categoria_id"], 0);
-        $marca_id           = isempty($GET["equipamneto_marca_id"], 0);
+        $marca_id           = isempty($GET["equipamento_marca_id"], 0);
 
         $this->load->model("equipamento_categoria_model", "equipamento_categoria");
         $Categorias = $this->equipamento_categoria->with_sub_categoria($categoria_pai_id, $marca_id)->order_by('nome')->get_all();
@@ -117,6 +117,20 @@ class Equipamento extends CI_Controller {
 
         $Marcas = $Marcas->get_all();
         die( json_encode( $Marcas, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+    }
+
+    public function modeloMarca() {
+        if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
+            $GET = $_GET;
+        } else {
+            die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
+        }
+
+        $categoria_id = isempty($GET["equipamento_categoria_id"], null);
+        $marca_id     = isempty($GET["equipamento_marca_id"], null);
+        $result = $this->equipamento->get_equipamentos($categoria_id, $marca_id);
+
+        die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
     public function modelo() {
