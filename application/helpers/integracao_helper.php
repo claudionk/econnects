@@ -1398,9 +1398,9 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
     {
         /*
          * Nomenclatura dos arquivos:
-         * ssssOOnnnn_xx_data.ext (len 26), onde:
+         * ssssOOnnnn_xx_data.ext (len 27), onde:
          * ssss - Sigla do seguro: GAES - Garantia Estendida, ROFU - Roubo e Furto, QUAC - Quebra Acidental, APVE - AP Vendedor, APCA - AP Caixa, PRES - Prestamista
-         * OO - Operação (31 Móvies e 32 Amazônia)
+         * 0OO - Operação (031 Móvies e 032 Amazônia)
          * nnnn - Número sequencial da remessa.
          * xx - Sequência de envio de uma mesma remessa.
          * data - Data da geração do arquivo no formato YYYMMDD
@@ -1412,17 +1412,16 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
             return $result;
         }
 
-        if ( strlen($nome_arquivo) <> 26) {
-            $result->message = "Nome do arquivo deve possuir 26 caracteres.";
+        if ( strlen($nome_arquivo) <> 27) {
+            $result->message = "Nome do arquivo deve possuir 27 caracteres.";
             return $result;
         }
 
         $result->produto = substr($nome_arquivo, 0, 4);
-        $result->operacao = substr($nome_arquivo, 4, 2);
-        $result->sequencial = substr($nome_arquivo, 6, 4);
-        $result->sequencial_remessa = substr($nome_arquivo, 11, 2);
-        $result->data = app_integracao_format_date_r("Ymd|Y-m-d", ['valor' => substr($nome_arquivo, 14, 8)]);
-
+        $result->operacao = substr($nome_arquivo, 4, 3);
+        $result->sequencial = substr($nome_arquivo, 7, 4);
+        $result->sequencial_remessa = substr($nome_arquivo, 12, 2);
+        $result->data = app_integracao_format_date_r("Ymd|Y-m-d", ['valor' => substr($nome_arquivo, 15, 8)]);
 
         switch ($result->operacao) {
             case '31':
