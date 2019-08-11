@@ -848,7 +848,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $geraDados['equipamento_nome']          = $dados['registro']['equipamento_nome'];
             $geraDados['nota_fiscal_valor_desc']    = $dados['registro']['nota_fiscal_valor_desc'];
             $geraDados['nota_fiscal_data']          = $dados['registro']['nota_fiscal_data'];
-            $geraDados['premio_liquido']            = $dados['registro']['premio_liquido'];
+            $geraDados['premio_liquido']            = $dados['registro']['premio_bruto'];
             $geraDados['vigencia']                  = $dados['registro']['vigencia'];
             $geraDados['cod_vendedor']              = $dados['registro']['cod_vendedor'];
             $geraDados['cpf']                       = $dados['registro']['cpf'];
@@ -1419,6 +1419,8 @@ if ( ! function_exists('app_integracao_valida_regras'))
                     $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
                 if (!empty($dados['equipamento_sub_categoria_id']))
                     $fields['equipamento_sub_categoria_id'] = $dados['equipamento_sub_categoria_id'];
+                if (!empty($dados['equipamento_de_para']))
+                    $fields['equipamento_de_para'] = $dados['equipamento_de_para'];
                 $fields['ean'] = $dados['ean'];
                 $fields['emailAPI'] = app_get_userdata("email");
 
@@ -1434,8 +1436,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $response->cotacao_id = $cotacao_id;
 
                 // Cálculo do prêmio
-                echo "<pre>";
-                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_liquido"], $dados["nota_fiscal_valor"]);
+                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], $dados["nota_fiscal_valor"]);
                 if (empty($calcPremio['status'])){
                     $response->errors = ['id' => -1, 'msg' => $calcPremio['response'], 'slug' => "calcula_premio"];
                     return $response;
@@ -1445,7 +1446,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $valor_premio = $calcPremio['valor_premio'];
 
                 if (!$premioValid) {
-                    $errors[] = ['id' => 7, 'msg' => "Valor do prêmio bruto [". $dados["premio_liquido"] ."] difere do prêmio calculado [". $valor_premio ."]", 'slug' => "premio_liquido"];
+                    $errors[] = ['id' => 7, 'msg' => "Valor do prêmio bruto [". $dados["premio_bruto"] ."] difere do prêmio calculado [". $valor_premio ."]", 'slug' => "premio_liquido"];
                 }
 
                 $response->fields = $fields;
@@ -1468,7 +1469,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
 
 if ( ! function_exists('app_integracao_calcula_premio'))
 {
-    function app_integracao_calcula_premio($cotacao_id, $premio_liquido, $is){
+    function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is){
         // Cálculo do prêmio
         $calcPremio = app_get_api("calculo_premio/". $cotacao_id);
         if (empty($calcPremio['status'])){
@@ -1480,10 +1481,10 @@ if ( ! function_exists('app_integracao_calcula_premio'))
         $premioValid = true;
         $aceitaPorcentagem = false;
 
-        echo "Calculo do Premio: $valor_premio | $premio_liquido<br>";
+        echo "Calculo do Premio: $valor_premio | $premio_bruto<br>";
 
-        if ($valor_premio != $premio_liquido) {
-            if ($valor_premio >= $premio_liquido-0.01 && $valor_premio <= $premio_liquido+0.01) {
+        if ($valor_premio != $premio_bruto) {
+            if ($valor_premio >= $premio_bruto-0.01 && $valor_premio <= $premio_bruto+0.01) {
                 $premioValid = true;
                 echo "dif de 1 centavo<br>";
             }else {
@@ -1492,7 +1493,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
 
                 if ($is > 0) {
                     // calcula o percentual
-                    $percent = (float)$premio_liquido / (float)$is * 100;
+                    $percent = (float)$premio_bruto / (float)$is * 100;
 
                     echo "calculado $percent % <br>";
 
@@ -1517,7 +1518,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
                         $CI->cobertura_plano->update(281, ['porcentagem' => $percRF], TRUE);
                         $CI->cobertura_plano->update(282, ['porcentagem' => $percQA], TRUE);
 
-                        return app_integracao_calcula_premio($cotacao_id, $premio_liquido, $is);
+                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is);
                     }
                 }
             }
@@ -1544,7 +1545,7 @@ if ( ! function_exists('app_integracao_emissao'))
         // echo "<pre>";print_r($fields);echo "</pre>";
 
         // Emissão
-        if ( in_array($dados['tipo_transacao'], ['NS','XP']) ) {
+        if ( $dados['acao'] == '1' ) {
 
             // Cotação Contratar
             $fields['emailAPI'] = app_get_userdata("email");
@@ -1616,8 +1617,8 @@ if ( ! function_exists('app_integracao_emissao'))
             }
 
         // Cancelamento
-        } else if ( in_array($dados['tipo_transacao'], ['XS','XX','XD']) ) {
-            
+        } else if ( $dados['acao'] == '9' ) {
+
             // Cancelamento
             $cancelaApolice = app_get_api("cancelar", "POST", json_encode(["apolice_id" => $dados['apolice_id'], "define_date" => $dados['data_adesao_cancel'], "emailAPI" => app_get_userdata("email")]));
             if (empty($cancelaApolice['status'])) {
@@ -1892,7 +1893,7 @@ if ( ! function_exists('app_integracao_novo_mundo_ge')) {
 
         // Validar Regras
         $validaRegra = app_integracao_valida_regras($dados, $camposCotacao);
-        echo "<pre>";print_r($validaRegra);echo "</pre>";die();
+        // echo "<pre>";print_r($validaRegra);echo "</pre>";die();
 
         if (!empty($validaRegra->status)) {
             $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
@@ -1924,9 +1925,9 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
     {
         /*
          * Nomenclatura dos arquivos:
-         * ssssOOnnnn_xx_data.ext (len 26), onde:
+         * ssssOOnnnn_xx_data.ext (len 27), onde:
          * ssss - Sigla do seguro: GAES - Garantia Estendida, ROFU - Roubo e Furto, QUAC - Quebra Acidental, APVE - AP Vendedor, APCA - AP Caixa, PRES - Prestamista
-         * OO - Operação (31 Móvies e 32 Amazônia)
+         * 0OO - Operação (031 Móvies e 032 Amazônia)
          * nnnn - Número sequencial da remessa.
          * xx - Sequência de envio de uma mesma remessa.
          * data - Data da geração do arquivo no formato YYYMMDD
@@ -1938,17 +1939,16 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
             return $result;
         }
 
-        if ( strlen($nome_arquivo) <> 26) {
-            $result->message = "Nome do arquivo deve possuir 26 caracteres.";
+        if ( strlen($nome_arquivo) <> 27) {
+            $result->message = "Nome do arquivo deve possuir 27 caracteres.";
             return $result;
         }
 
         $result->produto = substr($nome_arquivo, 0, 4);
-        $result->operacao = substr($nome_arquivo, 4, 2);
-        $result->sequencial = substr($nome_arquivo, 6, 4);
-        $result->sequencial_remessa = substr($nome_arquivo, 11, 2);
-        $result->data = app_integracao_format_date_r("Ymd|Y-m-d", ['valor' => substr($nome_arquivo, 14, 8)]);
-
+        $result->operacao = substr($nome_arquivo, 4, 3);
+        $result->sequencial = substr($nome_arquivo, 7, 4);
+        $result->sequencial_remessa = substr($nome_arquivo, 12, 2);
+        $result->data = app_integracao_format_date_r("Ymd|Y-m-d", ['valor' => substr($nome_arquivo, 15, 8)]);
 
         switch ($result->operacao) {
             case '31':

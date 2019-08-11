@@ -235,8 +235,8 @@ class Cotacao extends CI_Controller {
         $equipamento_id = issetor( $GET["equipamento_id"] , null);
         $equipamento_marca_id = issetor( $GET["equipamento_marca_id"] , null);
         $equipamento_categoria_id = issetor( $GET["equipamento_categoria_id"] , null);
-        $equipamento_sub_categoria_id = issetor( $GET["equipamento_sub_categoria_id"] , null);
         $equipamento_de_para = issetor( $GET["equipamento_de_para"] , null);
+        $equipamento_sub_categoria_id = issetor( $GET["equipamento_sub_categoria_id"] , null);
         $quantidade = issetor( $GET["quantidade"] , 1);
         $coberturas = issetor( $GET["coberturas_opcionais"] , null);
         $repasse_comissao = issetor( $GET["repasse_comissao"] , 0);
@@ -260,8 +260,8 @@ class Cotacao extends CI_Controller {
         $params["equipamento_id"] = emptyor($equipamento_id, $cotacao_aux['equipamento_id']);
         $params["equipamento_marca_id"] = emptyor($equipamento_marca_id, $cotacao_aux['equipamento_marca_id']);
         $params["equipamento_categoria_id"] = emptyor($equipamento_categoria_id, $cotacao_aux['equipamento_categoria_id']);
-        $params["equipamento_de_para"] = emptyor($equipamento_de_para, $cotacao_aux['equipamento_de_para']);
         $params["equipamento_sub_categoria_id"] = emptyor($equipamento_sub_categoria_id, $cotacao_aux['equipamento_sub_categoria_id']);
+        $params["equipamento_de_para"] = emptyor($$equipamento_de_para, $cotacao_aux['equipamento_de_para']);
         $params["quantidade"] = $quantidade;
         $params["repasse_comissao"] = emptyor($repasse_comissao, $cotacao_aux['repasse_comissao']);
         $params["desconto_condicional"] = emptyor($desconto_condicional, $cotacao_aux['desconto_condicional']);

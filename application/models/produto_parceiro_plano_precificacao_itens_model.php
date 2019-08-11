@@ -295,7 +295,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                     break;
                 case $this->config->item("PRECO_POR_EQUIPAMENTO");
-
                     $valor = $this
                         ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
                         ->filter_by_faixa( $valor_nota )
@@ -309,7 +308,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     }
 
                     $valor = $this->get_all();
-
                     $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia);
 
                     if($calculo) {

@@ -96,6 +96,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $desconto_upgrade = 0;
         $produto_parceiro_id            = issetor($params['produto_parceiro_id'], 0);
         $parceiro_id                    = issetor($params['parceiro_id'], 0);
+        $equipamento_id                 = issetor($params['equipamento_id'], 0);
         $equipamento_marca_id           = issetor($params['equipamento_marca_id'], 0);
         $equipamento_sub_categoria_id   = issetor($params['equipamento_sub_categoria_id'], 0);
         $equipamento_categoria_id       = issetor($params['equipamento_categoria_id'], 0);
