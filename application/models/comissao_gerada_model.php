@@ -97,7 +97,8 @@ Class Comissao_Gerada_Model extends MY_Model {
                 ifnull(ifnull(cotacao_equipamento.premio_liquido_total, cotacao_generico.premio_liquido_total), cotacao_seguro_viagem.premio_liquido_total) as premio_liquido_total,
                 ifnull(ifnull(cotacao_equipamento.comissao_corretor, cotacao_generico.comissao_corretor), cotacao_seguro_viagem.comissao_corretor) as comissao_corretor,
                 ifnull(ifnull(cotacao_equipamento.comissao_premio, cotacao_generico.comissao_premio), cotacao_seguro_viagem.comissao_premio) as comissao_premio,
-                parceiro_relacionamento_produto.parceiro_relacionamento_produto_id
+                parceiro_relacionamento_produto.parceiro_relacionamento_produto_id,
+                parceiro_relacionamento_produto.comissao_tipo
             FROM pedido
             INNER JOIN cotacao ON pedido.cotacao_id = cotacao.cotacao_id
             LEFT JOIN  cotacao_equipamento ON cotacao_equipamento.cotacao_id = cotacao.cotacao_id AND cotacao_equipamento.deletado = 0
