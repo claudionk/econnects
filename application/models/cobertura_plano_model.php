@@ -116,6 +116,12 @@ Class Cobertura_Plano_Model extends MY_Model {
             'rules' => '',
             'groups' => 'default'
         ),
+        array(
+            'field' => 'cod_sucursal',
+            'label' => 'Código da Sucursal',
+            'rules' => '',
+            'groups' => 'default'
+        ),
     );
 
     //Get dados
@@ -140,6 +146,7 @@ Class Cobertura_Plano_Model extends MY_Model {
             'cod_cobertura'             => $this->input->post('cod_cobertura'),
             'cod_ramo'                  => $this->input->post('cod_ramo'),
             'cod_produto'               => $this->input->post('cod_produto'),
+            'cod_sucursal'              => $this->input->post('cod_sucursal'),
         );
         return $data;
     }
@@ -306,16 +313,21 @@ Class Cobertura_Plano_Model extends MY_Model {
                                     IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0)
                                 ),2))
                             ), 2) as valor_por_cob
-                        , max(apolice_cobertura.valor) c 
+                        , max(IF(cobertura_plano.cobertura_plano_id IS NOT NULL, apolice_cobertura.valor, 0)) c 
                     FROM pedido
                     INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id
                     INNER JOIN apolice_cobertura ON apolice.apolice_id = apolice_cobertura.apolice_id
                     INNER JOIN produto_parceiro_plano ppp ON apolice.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
+                    INNER JOIN produto_parceiro ON ppp.produto_parceiro_id = produto_parceiro.produto_parceiro_id
                     INNER JOIN apolice_endosso ON apolice_endosso.apolice_id = apolice.apolice_id AND apolice_endosso.apolice_movimentacao_tipo_id = 1
                     LEFT JOIN produto_parceiro_regra_preco pprp ON ppp.produto_parceiro_id = pprp.produto_parceiro_id AND pprp.deletado = 0
                     LEFT JOIN regra_preco rp on pprp.regra_preco_id = rp.regra_preco_id AND rp.slug = 'iof' 
                     LEFT JOIN apolice_generico ON apolice_generico.apolice_id = apolice.apolice_id
                     LEFT JOIN apolice_equipamento ON apolice_equipamento.apolice_id = apolice.apolice_id
+
+                    #APENAS COBERTURAS (SEM ASSISTENCIAS)
+                    LEFT JOIN cobertura_plano ON apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id AND produto_parceiro.parceiro_id = cobertura_plano.parceiro_id
+
                     WHERE apolice.apolice_id = {$apolice_id}
                         AND pedido.deletado = 0
                         AND apolice.deletado = 0
