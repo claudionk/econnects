@@ -229,19 +229,20 @@ class Cotacao extends CI_Controller {
             ob_clean();
             die( json_encode( array( "status" => false, "message" => "Campo cotacao_id é obrigatório" ) ) );
         }
-        $cotacao_id = $GET["cotacao_id"];
 
-        $produto_parceiro_id = issetor( $GET["produto_parceiro_id"], null );
-        $equipamento_id = issetor( $GET["equipamento_id"] , null);
-        $equipamento_marca_id = issetor( $GET["equipamento_marca_id"] , null);
-        $equipamento_categoria_id = issetor( $GET["equipamento_categoria_id"] , null);
-        $equipamento_de_para = issetor( $GET["equipamento_de_para"] , null);
-        $equipamento_sub_categoria_id = issetor( $GET["equipamento_sub_categoria_id"] , null);
-        $quantidade = issetor( $GET["quantidade"] , 1);
-        $coberturas = issetor( $GET["coberturas_opcionais"] , null);
-        $repasse_comissao = issetor( $GET["repasse_comissao"] , 0);
-        $desconto_condicional = issetor( $GET["desconto_condicional"] , 0);
         $result = array();
+        $cotacao_id                     = $GET["cotacao_id"];
+        $produto_parceiro_id            = issetor( $GET["produto_parceiro_id"], null );
+        $equipamento_id                 = issetor( $GET["equipamento_id"] , null);
+        $equipamento_marca_id           = issetor( $GET["equipamento_marca_id"] , null);
+        $equipamento_categoria_id       = issetor( $GET["equipamento_categoria_id"] , null);
+        $equipamento_de_para            = issetor( $GET["equipamento_de_para"] , null);
+        $equipamento_sub_categoria_id   = issetor( $GET["equipamento_sub_categoria_id"] , null);
+        $quantidade                     = issetor( $GET["quantidade"] , 1);
+        $coberturas                     = issetor( $GET["coberturas_opcionais"] , null);
+        $repasse_comissao               = issetor( $GET["repasse_comissao"] , 0);
+        $desconto_condicional           = issetor( $GET["desconto_condicional"] , 0);
+        $comissao_premio                = issetor( $GET["comissao_premio"] , 0);
 
         if( is_null( $produto_parceiro_id ) ) {
             $cotacao = $this->cotacao->get_by_id( $cotacao_id );
@@ -254,17 +255,18 @@ class Cotacao extends CI_Controller {
             $cotacao_aux = $this->cotacao_generico->get_by(['cotacao_id' => $cotacao_id]);
         }
 
-        $params["cotacao_id"] = $cotacao_id;
-        $params["produto_parceiro_id"] = $produto_parceiro_id;
-        $params["parceiro_id"] = $this->parceiro_id;
-        $params["equipamento_id"] = emptyor($equipamento_id, $cotacao_aux['equipamento_id']);
-        $params["equipamento_marca_id"] = emptyor($equipamento_marca_id, $cotacao_aux['equipamento_marca_id']);
-        $params["equipamento_categoria_id"] = emptyor($equipamento_categoria_id, $cotacao_aux['equipamento_categoria_id']);
+        $params["cotacao_id"]                   = $cotacao_id;
+        $params["produto_parceiro_id"]          = $produto_parceiro_id;
+        $params["parceiro_id"]                  = $this->parceiro_id;
+        $params["equipamento_id"]               = emptyor($equipamento_id, $cotacao_aux['equipamento_id']);
+        $params["equipamento_marca_id"]         = emptyor($equipamento_marca_id, $cotacao_aux['equipamento_marca_id']);
+        $params["equipamento_categoria_id"]     = emptyor($equipamento_categoria_id, $cotacao_aux['equipamento_categoria_id']);
         $params["equipamento_sub_categoria_id"] = emptyor($equipamento_sub_categoria_id, $cotacao_aux['equipamento_sub_categoria_id']);
-        $params["equipamento_de_para"] = emptyor($$equipamento_de_para, $cotacao_aux['equipamento_de_para']);
-        $params["quantidade"] = $quantidade;
-        $params["repasse_comissao"] = emptyor($repasse_comissao, $cotacao_aux['repasse_comissao']);
-        $params["desconto_condicional"] = emptyor($desconto_condicional, $cotacao_aux['desconto_condicional']);
+        $params["equipamento_de_para"]          = emptyor($$equipamento_de_para, $cotacao_aux['equipamento_de_para']);
+        $params["quantidade"]                   = $quantidade;
+        $params["repasse_comissao"]             = emptyor($repasse_comissao, $cotacao_aux['repasse_comissao']);
+        $params["desconto_condicional"]         = emptyor($desconto_condicional, $cotacao_aux['desconto_condicional']);
+        $params["comissao_premio"]              = emptyor($comissao_premio, $cotacao_aux['comissao_premio']);
 
         if ( !empty($params["coberturas_opcionais"]) && is_array($params["coberturas_opcionais"]))
         {
