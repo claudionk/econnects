@@ -140,9 +140,9 @@ Class Comissao_Gerada_Model extends MY_Model {
         $premio_liquido_total = $item["premio_liquido"];
 
         // valida se possui uma Comissão específica da venda
-        if ( !empty($item['comissao_premio']) && $item['comissao_premio'] > 0 && $parceiro['codigo_interno'] == 'representante')
+        if ( !empty($item['comissao_tipo']) && !empty($item['comissao_premio']) && $item['comissao_premio'] > 0 && $parceiro['codigo_interno'] == 'representante')
         {
-            $comissao_premio = $item['comissao_premio'];
+            $comissao_premio = $item['comissao_premio'] - ($item['comissao_tipo'] == 1 ? $item['comissao_corretor'] : 0);
         } else {
             $comissao_premio = $parceiro['comissao'];
         }
