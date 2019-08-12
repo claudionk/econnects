@@ -1423,39 +1423,39 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                         break;
                     
                     case 'ROFU':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
+                        $result->produto_parceiro_id = 81;
+                        $result->produto_parceiro_plano_id = 105;
                         break;
 
                     case 'QUAC':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
+                        $result->produto_parceiro_id = 82;
+                        $result->produto_parceiro_plano_id = 106;
                         break;
 
                     case 'APVE':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
+                        $result->produto_parceiro_id = 83;
+                        $result->produto_parceiro_plano_id = 107;
                         break;
 
                     case 'APCA':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
+                        $result->produto_parceiro_id = 84;
+                        $result->produto_parceiro_plano_id = 108;
                         break;
 
                     case 'PRES':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
+                        $result->produto_parceiro_id = 85;
+                        $result->produto_parceiro_plano_id = 109;
                         break;
 
                     default:
-                        $result->message = "Seguro ({$result->produto}) não configurado";
+                        $result->message = "Produto ({$result->produto}) não configurado";
                         return $result;
                         break;
                 }
 
                 break;
             case '032':
-                $result->parceiro_id = 74;
+                $result->parceiro_id = 76;
                 $result->email = "novomundoamazonia@sisconnects.com.br";
 
                 switch ($result->produto) {
@@ -1490,7 +1490,7 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                         break;
 
                     default:
-                        $result->message = "Seguro ({$result->produto}) não configurado";
+                        $result->message = "Produto ({$result->produto}) não configurado";
                         return $result;
                         break;
                 }
@@ -1498,47 +1498,8 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                 break;
 
             default:
-                // TODO: remover essa linha e deixar apenas a mensagem de erro
-                $result->parceiro_id = 72; 
-                switch ($result->produto) {
-                    case 'GAES':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
-                        break;
-                    
-                    case 'ROFU':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
-                        break;
-
-                    case 'QUAC':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
-                        break;
-
-                    case 'APVE':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
-                        break;
-
-                    case 'APCA':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
-                        break;
-
-                    case 'PRES':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
-                        break;
-
-                    default:
-                        $result->message = "Seguro ({$result->produto}) não configurado";
-                        return $result;
-                        break;
-                }
-
-                //$result->message = "Operação ({$result->operacao}) não configurada";
-                //return $result;
+                $result->message = "Operação ({$result->operacao}) não configurada";
+                return $result;
                 break;
         }
 
