@@ -531,7 +531,6 @@ if ( ! function_exists('app_integracao_generali_dados')) {
 
         if ( !empty($data) )
         {
-
             $dados = (object)$data;
 
         } elseif ( $operacao == 'lasa') {
@@ -623,14 +622,14 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         $eanErroMsg = "";
 
         // validações iniciais
-        $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados);
-        if ( empty($valid->status) ) {
+        $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, $acesso);
+        if ( $valid->status !== true ) {
             $response = $valid;
             return $response;
         }
 
         // Campos para cotação
-        $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id);
+        $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id, 'GET', [], $acesso);
         if (empty($camposCotacao['status'])){
             $response->msg[] = ['id' => -1, 'msg' => $camposCotacao['response'], 'slug' => "cotacao_campos"];
             return $response;
@@ -639,13 +638,13 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         $camposCotacao = $camposCotacao['response'];
 
         // Validar Regras
-        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao);
+        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, $acesso);
         // echo "<pre>";print_r($validaRegra);echo "</pre>";
 
         if (!empty($validaRegra->status)) {
             $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
             $dados['registro']['fields'] = $validaRegra->fields;
-            $emissao = app_integracao_emissao($formato, $dados);
+            $emissao = app_integracao_emissao($formato, $dados, $acesso);
 
             if (empty($emissao->status)) {
                 $response->msg = $emissao->msg;
@@ -666,11 +665,11 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 }
 if ( ! function_exists('app_get_api'))
 {
-    function app_get_api($service, $method = 'GET', $fields = [], $print = false)
+    function app_get_api($service, $method = 'GET', $fields = [], $acesso = null)
     {
 
         $CI =& get_instance();
-        $apikey = $CI->session->userdata("apikey");
+        $apikey = empty($acesso) ? $CI->session->userdata("apikey") : $acesso->apikey;
         $url = $CI->config->item("URL_sisconnects") ."admin/api/{$service}";
         $header = ["Content-Type: application/json", "APIKEY: {$apikey}"];
 
@@ -691,11 +690,6 @@ if ( ! function_exists('app_get_api'))
             'fields' => $fields,
             'header' => $header
         ]);
-
-        if ($print){
-            echo "<pre>";print_r($retorno);echo "</pre>";
-            exit();
-        }
 
         $ret = ['status' => false, 'response' => "Falha na chamada do serviço ($service)", 'ret' => $retorno];
         $response = (!empty($retorno["response"])) ? json_decode($retorno["response"]) : '';
@@ -720,7 +714,7 @@ if ( ! function_exists('app_get_api'))
 }
 if ( ! function_exists('app_integracao_valida_regras'))
 {
-    function app_integracao_valida_regras($dados, $camposCotacao){
+    function app_integracao_valida_regras($dados, $camposCotacao, $acesso = null){
 
         $response = (object) ['status' => false, 'msg' => '', 'errors' => [], 'fields' => []];
 
@@ -759,7 +753,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
 
             // Enriquecimento do CPF
             $cpf = substr($dados['cpf'], -11);
-            $enriquecido = app_get_api("enriqueceCPF/$cpf/". $dados['produto_parceiro_id']);
+            $enriquecido = app_get_api("enriqueceCPF/$cpf/". $dados['produto_parceiro_id'], 'GET', [], $acesso);
 
             if (!empty($enriquecido['status'])){
                 $enriquecido = $enriquecido['response'];
@@ -928,9 +922,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $fields['emailAPI'] = app_get_userdata("email");
 
                 // Cotação
-                $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields));
+                $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields), $acesso);
                 if (empty($cotacao['status'])) {
-                    $response->errors = ['id' => -1, 'msg' => $cotacao['response'], 'slug' => "insere_cotacao"];
+                    $response->errors[] = ['id' => -1, 'msg' => $cotacao['response'], 'slug' => "insere_cotacao"];
                     return $response;
                 }
 
@@ -939,9 +933,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $response->cotacao_id = $cotacao_id;
 
                 // Cálculo do prêmio
-                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], $dados["nota_fiscal_valor"]);
+                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], $dados["nota_fiscal_valor"], $acesso);
                 if (empty($calcPremio['status'])){
-                    $response->errors = ['id' => -1, 'msg' => $calcPremio['response'], 'slug' => "calcula_premio"];
+                    $response->errors[] = ['id' => -1, 'msg' => $calcPremio['response'], 'slug' => "calcula_premio"];
                     return $response;
                 }
 
@@ -968,9 +962,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
 }
 if ( ! function_exists('app_integracao_calcula_premio'))
 {
-    function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is){
+    function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso = null){
         // Cálculo do prêmio
-        $calcPremio = app_get_api("calculo_premio/". $cotacao_id, 'GET', [], true);
+        $calcPremio = app_get_api("calculo_premio/". $cotacao_id, 'GET', [], $acesso);
         if (empty($calcPremio['status'])){
             return ['status' => false, 'response' => $calcPremio['response']];
         }
@@ -1017,7 +1011,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
                         $CI->cobertura_plano->update(281, ['porcentagem' => $percRF], TRUE);
                         $CI->cobertura_plano->update(282, ['porcentagem' => $percQA], TRUE);
 
-                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is);
+                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso);
                     }
                 }
             }
@@ -1028,7 +1022,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
 }
 if ( ! function_exists('app_integracao_emissao'))
 {
-    function app_integracao_emissao($format, $dados){
+    function app_integracao_emissao($format, $dados, $acesso = null){
         $response = (object) ['status' => false, 'msg' => '', 'pedido_id' => 0];
 
         if (empty($dados['registro'])){
@@ -1047,14 +1041,14 @@ if ( ! function_exists('app_integracao_emissao'))
 
             // Cotação Contratar
             $fields['emailAPI'] = app_get_userdata("email");
-            $cotacao = app_get_api("cotacao_contratar", "POST", json_encode($fields));
+            $cotacao = app_get_api("cotacao_contratar", "POST", json_encode($fields), $acesso);
             if (empty($cotacao['status'])) {
                 $response->msg[] = ['id' => -1, 'msg' => $cotacao['response'], 'slug' => "cotacao_contratar"];
                 return $response;
             }
 
             // Formas de Pagamento
-            $formPagto = app_get_api("forma_pagamento_cotacao/$cotacao_id");
+            $formPagto = app_get_api("forma_pagamento_cotacao/$cotacao_id", 'GET', [], $acesso);
             if (empty($formPagto['status'])) {
                 $response->msg[] = ['id' => -1, 'msg' => $formPagto['response'], 'slug' => "forma_pagamento_cotacao"];
                 return $response;
@@ -1083,7 +1077,7 @@ if ( ! function_exists('app_integracao_emissao'))
                     "emailAPI" => app_get_userdata("email"),
                 ];
 
-                $efetuaPagto = app_get_api("pagamento_pagar", "POST", json_encode($camposPagto));
+                $efetuaPagto = app_get_api("pagamento_pagar", "POST", json_encode($camposPagto), $acesso);
                 if (empty($efetuaPagto['status'])) {
                     $response->msg[] = ['id' => -1, 'msg' => $efetuaPagto['response'], 'slug' => "pagamento_pagar"];
                     return $response;
@@ -1100,7 +1094,7 @@ if ( ! function_exists('app_integracao_emissao'))
                     "emailAPI" => app_get_userdata("email"),
                 ];
 
-                $getApolice = app_get_api("apolice", "POST", json_encode($fieldApolice));
+                $getApolice = app_get_api("apolice", "POST", json_encode($fieldApolice), $acesso);
                 if (empty($getApolice['status'])) {
                     $response->msg[] = ['id' => -1, 'msg' => $getApolice['response'], 'slug' => "apolice_get"];
                     return $response;
@@ -1118,7 +1112,11 @@ if ( ! function_exists('app_integracao_emissao'))
         } else if ( $dados['acao'] == '9' ) {
 
             // Cancelamento
-            $cancelaApolice = app_get_api("cancelar", "POST", json_encode(["apolice_id" => $dados['apolice_id'], "define_date" => $dados['data_adesao_cancel'], "emailAPI" => app_get_userdata("email")]));
+            $cancelaApolice = app_get_api("cancelar", "POST", json_encode( [
+                "apolice_id" => $dados['apolice_id'], 
+                "define_date" => $dados['data_adesao_cancel'], 
+                "emailAPI" => app_get_userdata("email")
+            ]), $acesso);
             if (empty($cancelaApolice['status'])) {
                 $response->msg[] = ['id' => 9, 'msg' => $cancelaApolice['response'], 'slug' => "cancelamento"];
                 return $response;
@@ -1342,14 +1340,14 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
         $eanErroMsg = "";
 
         // validações iniciais
-        $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados);
-        if ( empty($valid->status) ) {
+        $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, $acesso);
+        if ( $valid->status !== true ) {
             $response = $valid;
             return $response;
         }
 
         // Campos para cotação
-        $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id);
+        $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id, 'GET', [], $acesso);
         if (empty($camposCotacao['status'])){
             $response->msg[] = ['id' => -1, 'msg' => $camposCotacao['response'], 'slug' => "cotacao_campos"];
             return $response;
@@ -1358,13 +1356,13 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
         $camposCotacao = $camposCotacao['response'];
 
         // Validar Regras
-        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao);
+        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, $acesso);
         // echo "<pre>";print_r($validaRegra);echo "</pre>";die();
 
         if (!empty($validaRegra->status)) {
             $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
             $dados['registro']['fields'] = $validaRegra->fields;
-            $emissao = app_integracao_emissao($formato, $dados);
+            $emissao = app_integracao_emissao($formato, $dados, $acesso);
 
             if (empty($emissao->status)) {
                 $response->msg = $emissao->msg;
@@ -1545,20 +1543,21 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
         }
 
         // Dados para definição do parceiro, produto e plano
-        app_integracao_generali_dados([
+        $acesso = app_integracao_generali_dados([
             "email" => $result->email,
             "parceiro_id" => $result->parceiro_id,
             "produto_parceiro_id" => $result->produto_parceiro_id,
             "produto_parceiro_plano_id" => $result->produto_parceiro_plano_id,
         ]);
 
+        $result->apikey = $acesso->apikey;
         $result->message = "OK";
         $result->status = true;
         return $result;
     }
 }
 if ( ! function_exists('app_integracao_inicio')) {
-    function app_integracao_inicio($parceiro_id, $num_apolice = '', $cpf = '', $ean = '', &$dados = array())
+    function app_integracao_inicio($parceiro_id, $num_apolice = '', $cpf = '', $ean = '', &$dados = array(), $acesso = null)
     {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
 
@@ -1581,7 +1580,7 @@ if ( ! function_exists('app_integracao_inicio')) {
         $apolice = $CI->apolice->getApoliceByNumero($num_apolice, $parceiro_id);
 
         // Emissão
-        if ($dados['registro']['acao'] == '1') {
+        if ($reg['acao'] == '1') {
 
             if (!empty($apolice)) {
                 $response->status = 2;
@@ -1599,7 +1598,7 @@ if ( ! function_exists('app_integracao_inicio')) {
             // Consulta com o ean enviado
             if (!empty($ean)) {
                 $ean = (int)$ean;
-                $EANenriquecido = app_get_api("enriqueceEAN/$ean");
+                $EANenriquecido = app_get_api("enriqueceEAN/$ean", 'GET', [], $acesso);
                 // echo "<pre>";print_r($EANenriquecido);echo "</pre>";
 
                 if (!empty($EANenriquecido['status'])){
@@ -1624,7 +1623,7 @@ if ( ! function_exists('app_integracao_inicio')) {
                     'emailAPI' => app_get_userdata("email"),
                 ];
 
-                $EANenriquecido = app_get_api("enriqueceModelo", "POST", json_encode($inputField));
+                $EANenriquecido = app_get_api("enriqueceModelo", "POST", json_encode($inputField), $acesso);
                 // echo "<pre>";print_r($EANenriquecido);echo "</pre>";
 
                 if (!empty($EANenriquecido['status'])){
@@ -1651,7 +1650,7 @@ if ( ! function_exists('app_integracao_inicio')) {
             }
 
         // Cancelamento
-        } else if ( $dados['registro']['acao'] = '9' ) {
+        } else if ( $reg['acao'] = '9' ) {
 
             if (empty($apolice)) {
                 $response->msg[] = ['id' => 8, 'msg' => "Apólice não encontrada [{$num_apolice}]", 'slug' => "cancelamento"];
