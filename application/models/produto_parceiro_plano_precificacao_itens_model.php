@@ -205,6 +205,9 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
         $moeda_padrao = $this->moeda->filter_by_moeda_padrao()->get_all();
         $moeda_padrao = $moeda_padrao[0];
+
+        // TODO: Criar configuração no plano para definir se o valor é por unidade de vigênica
+        // Ex: Casos onde o valor do plano é variável de acordo com a vigência está configurado por mês, logo, valor x 5 = valor final
         $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, 'M');
 
         $produto_parceiro =  $this->current_model->get_by_id($produto_parceiro_id);
@@ -311,7 +314,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia);
 
                     if($calculo) {
-                        $calculo = $calculo['valor'] * $quantidade;
+                        $calculo = $calculo['valor'];
                         $valores[$plano['produto_parceiro_plano_id']] = $calculo;
 
                         if($moeda_padrao['moeda_id'] != $plano['moeda_id']){
