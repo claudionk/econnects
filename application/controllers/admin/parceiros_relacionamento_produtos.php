@@ -18,7 +18,6 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
         $this->template->set_breadcrumb("Relacionamento / Produtos", base_url("$this->controller_uri/index"));
 
         //Carrega modelos
-
         $this->load->model('parceiro_relacionamento_produto_model', 'current_model');
         $this->load->model('parceiro_model', 'parceiro');
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
@@ -62,7 +61,6 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
             $i++;
         }
 
-
         //Carrega dados para a página
         $data = array();
         $data['rows'] = $relacionamentos;
@@ -73,7 +71,6 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
 
     public function add() //Função que adiciona registro
     {
-
 
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
@@ -121,6 +118,7 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
+
     public function edit($id) //Função que edita registro
     {
         //Adicionar Bibliotecas
@@ -149,7 +147,6 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
             redirect("$this->controller_uri/index");
         }
 
-
         //Caso post
         if($_POST)
         {
@@ -167,7 +164,6 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
             }
         }
 
-
         $data['produtos'] = $this->produto_parceiro->with_produto()->with_parceiro()->get_all();
         $data['parceiros'] = $this->parceiro->get_all();
         $data['pais'] = $this->current_model->with_produto_parceiro()->with_parceiro()->get_all();
@@ -179,9 +175,6 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
     public  function delete($id)
     {
         //Deleta registro
-
-
-
         $row =  $this->current_model->get($id);
 
         //Verifica se registro existe
@@ -204,7 +197,6 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
         $this->load->model('produto_parceiro_configuracao_model', 'configuracao');
         $comissao = app_unformat_currency($comissao);
         $this->load->library('form_validation');
-
 
         $produto_parceiro_id = $this->input->post('produto_parceiro_id');
         $parceiro_relacionamento_produto_id = $this->input->post('parceiro_relacionamento_produto_id');
@@ -245,30 +237,21 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
 
         $comissao = $this->input->post('comissao');
 
-
         $repasse = app_unformat_currency($repasse);
         $comissao = app_unformat_currency($comissao);
-
 
         if($repasse > $comissao){
             return false;
 
         }else{
             return true;
-
         }
 
     }
 
-
     public function check_desconto_habilitado($desconto_habilitado)
     {
-
-
-
         $produto_parceiro_id = $this->input->post('produto_parceiro_id');
-
-
         $configuracao = $this->produto_parceiro_configuracao->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
         $result = TRUE;
         if($configuracao && $desconto_habilitado == 1){
@@ -284,8 +267,6 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
         }
 
         return $result;
-
-
     }
 
 }

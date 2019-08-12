@@ -1468,17 +1468,16 @@ class Venda extends Admin_Controller {
       $configuracao = array();
     }
 
-
     $markup = 0;
     if($row['parceiro_id'] != $parceiro_id){
 
-
       $rel = $this->relacionamento->get_comissao($produto_parceiro_id, $parceiro_id);
-
-      $configuracao['repasse_comissao'] =  $rel['repasse_comissao'];
-      $configuracao['repasse_maximo'] = $rel['repasse_maximo'];
-      $configuracao['comissao'] = $rel['comissao'];
-
+      if ( !empty($rel) )
+      {
+        $configuracao['repasse_comissao'] =  $rel['repasse_comissao'];
+        $configuracao['repasse_maximo'] = $rel['repasse_maximo'];
+        $configuracao['comissao'] = $rel['comissao'];
+      }
 
       //buscar o markup
       $markup = $this->relacionamento->get_comissao_markup($produto_parceiro_id, $parceiro_id);
