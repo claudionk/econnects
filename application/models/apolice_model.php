@@ -225,7 +225,7 @@ class Apolice_Model extends MY_Model
 
     }
 
-    public function concluiApolice($pedido, $apolice_id)
+    public function concluiApolice($pedido, $apolice_id, $produto_parceiro_plano_id)
     {
         $this->load->model('apolice_cobertura_model', 'apolice_cobertura');
         $this->load->model('apolice_movimentacao_model', 'movimentacao');
@@ -240,7 +240,10 @@ class Apolice_Model extends MY_Model
 
         $this->apolice_cobertura->deleteByCotacao($cotacao_id);
 
+        $dados_bilhete = $this->defineDadosBilhete($produto_parceiro_plano_id);
+
         $coberturas = $this->cotacao_cobertura
+            ->with_cobertura_plano()
             ->filterByID($cotacao_id)
             ->get_all();
 
@@ -255,6 +258,10 @@ class Apolice_Model extends MY_Model
                 'iof'                => $cobertura["iof"],
                 'mostrar'            => $cobertura["mostrar"],
                 'valor_config'       => $cobertura['valor_config'],
+                'cod_cobertura'      => $cobertura['cod_cobertura'],
+                'cod_ramo'           => isempty($cobertura['cod_ramo'], $dados_bilhete['cod_ramo']),
+                'cod_produto'        => isempty($cobertura['cod_produto'], $dados_bilhete['cod_produto']),
+                'cod_sucursal'       => isempty($cobertura['cod_sucursal'], $dados_bilhete['cod_sucursal']),
                 'criacao'            => date("Y-m-d H:i:s"),
             ];
 
@@ -364,6 +371,12 @@ class Apolice_Model extends MY_Model
             // Define o número da apólice
             $dados_apolice['num_apolice'] = $this->defineNumApolice($pedido['produto_parceiro_id']);
 
+            // Define os dados do CTA
+            $dados_bilhete = $this->defineDadosBilhete($dados_apolice['produto_parceiro_plano_id']);
+            $dados_apolice['cod_ramo']      = $dados_bilhete['cod_ramo'];
+            $dados_apolice['cod_produto']   = $dados_bilhete['cod_produto'];
+            $dados_apolice['cod_sucursal']  = $dados_bilhete['cod_sucursal'];
+
             $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
             $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao_salva['produto_parceiro_plano_id'], null, $cotacao_salva);
 
@@ -435,7 +448,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['comissao_premio']         = round($cotacao_salva['comissao_premio'], 2);
 
             $this->apolice_equipamento->insert($dados_equipamento, true);
-            $this->concluiApolice($pedido, $apolice_id);
+            $this->concluiApolice($pedido, $apolice_id, $dados_apolice['produto_parceiro_plano_id']);
 
             $evento['mensagem']['apolices'] .= "Nome: {$dados_equipamento['nome']} - Apólice código: {$apolice_id} <br>";
             $evento['mensagem']['apolice_codigo'] = $this->get_codigo_apolice($apolice_id);
@@ -568,6 +581,12 @@ class Apolice_Model extends MY_Model
             // Define o número da apólice
             $dados_apolice['num_apolice'] = $this->defineNumApolice($pedido['produto_parceiro_id']);
 
+            // Define os dados do CTA
+            $dados_bilhete = $this->defineDadosBilhete($dados_apolice['produto_parceiro_plano_id']);
+            $dados_apolice['cod_ramo']      = $dados_bilhete['cod_ramo'];
+            $dados_apolice['cod_produto']   = $dados_bilhete['cod_produto'];
+            $dados_apolice['cod_sucursal']  = $dados_bilhete['cod_sucursal'];
+
             $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
             $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($produto_parceiro_plano_id, null, $cotacao_salva);
 
@@ -630,7 +649,7 @@ class Apolice_Model extends MY_Model
             $dados_generico['numero_sorte']       = $cotacao_salva['numero_sorte'];
 
             $this->apolice_generico->insert($dados_generico, true);
-            $this->concluiApolice($pedido, $apolice_id);
+            $this->concluiApolice($pedido, $apolice_id, $dados_apolice['produto_parceiro_plano_id']);
 
             $evento['mensagem']['apolices'] .= "Nome: {$dados_generico['nome']} - Apólice código: {$apolice_id} <br>";
             $evento['mensagem']['apolice_codigo'] = $this->get_codigo_apolice($apolice_id);
@@ -766,6 +785,12 @@ class Apolice_Model extends MY_Model
                 // Define o número da apólice
                 $dados_apolice['num_apolice'] = $this->defineNumApolice($pedido['produto_parceiro_id']);
 
+                // Define os dados do CTA
+                $dados_bilhete = $this->defineDadosBilhete($dados_apolice['produto_parceiro_plano_id']);
+                $dados_apolice['cod_ramo']      = $dados_bilhete['cod_ramo'];
+                $dados_apolice['cod_produto']   = $dados_bilhete['cod_produto'];
+                $dados_apolice['cod_sucursal']  = $dados_bilhete['cod_sucursal'];
+
                 $apolice_id                                           = $this->insert($dados_apolice, true);
                 $dados_seguro_viagem                                  = array();
                 $dados_seguro_viagem['apolice_id']                    = $apolice_id;
@@ -808,7 +833,7 @@ class Apolice_Model extends MY_Model
                 $dados_seguro_viagem['numero_sorte']                  = $cotacao_salva['numero_sorte'];
 
                 $this->apolice_seguro_viagem->insert($dados_seguro_viagem, true);
-                $this->concluiApolice($pedido, $apolice_id);
+                $this->concluiApolice($pedido, $apolice_id, $dados_apolice['produto_parceiro_plano_id']);
 
                 $evento['mensagem']['apolices'] .= "Nome: {$cotacao_pessoa['nome']} - Apólice código: {$apolice_id} <br>";
                 $evento['mensagem']['apolice_codigo'] = $this->get_codigo_apolice($apolice_id);
@@ -1415,6 +1440,35 @@ class Apolice_Model extends MY_Model
         $this->db->where('produto_parceiro.cod_tpa', $tpa);
         $this->db->where("{$this->_table}.num_apolice LIKE '%{$num_apolice}%'");
         return $this;
+    }
+
+    /**
+     * Busca dados da Seguradora para montagem do número do bilhete
+     * @param $localidade_id
+     * @return $this
+     */
+    public function defineDadosBilhete($produto_parceiro_plano_id)
+    {
+        $this->load->model('produto_parceiro_model', 'produto_parceiro');
+
+        $dados = $this
+            ->produto_parceiro
+            ->getDadosToBilhete($produto_parceiro_plano_id);
+
+        $result['cod_ramo']      = '';
+        $result['cod_produto']   = '';
+        $result['cod_sucursal']  = '';
+
+        if ( !empty($dados) )
+        {
+            // salva os dados do CTA
+            $dados = $dados[0];
+            $result['cod_ramo']      = $dados['cod_ramo'];
+            $result['cod_produto']   = $dados['cod_produto'];
+            $result['cod_sucursal']  = $dados['cod_ramo'];
+        }
+
+        return $result;
     }
 
     /**
