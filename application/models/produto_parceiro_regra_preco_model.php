@@ -163,12 +163,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         }
 
         // Comissão para realizar o calculo do premio
-        if ( !empty($params['comissao']) )
-        {
-            $comissao = app_unformat_percent($params['comissao']);
-        } else {
-            $comissao = (double) issetor($cotacao['comissao_premio'], 0);
-        }
+        $comissao = isempty($params['comissao_premio'], issetor($cotacao['comissao_premio'], 0));
 
         if(count($desconto) > 0){
             $desconto = $desconto[0];
@@ -200,8 +195,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
             if ($markup > $configuracao['markup'] )
             {
-                $markup = number_format($markup, 2);
-                $configuracao['markup'] = number_format($configuracao['markup'], 2);
+                $markup = number_format($markup, 2, ',', '.');
+                $configuracao['markup'] = number_format($configuracao['markup'], 2, ',', '.');
                 $result['mensagem'] = "O markup [{$markup}] ultrapassou o máximo permitido [{$configuracao['markup']}]";
                 return $result;
             }

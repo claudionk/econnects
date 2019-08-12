@@ -525,32 +525,29 @@ if ( ! function_exists('app_integracao_sequencia_mapfre_rf')) {
 }
 if ( ! function_exists('app_integracao_generali_dados')) {
 
-    function app_integracao_generali_dados()
+    function app_integracao_generali_dados($data = [])
     {
         $operacao = app_get_userdata("operacao");
 
-        if ( $operacao == 'lasa') 
+        if ( !empty($data) )
         {
+
+            $dados = (object)$data;
+
+        } elseif ( $operacao == 'lasa') {
             $dados = (object)[
                 "email" => "lasa@econnects.com.br",
                 "parceiro_id" => 30,
                 "produto_parceiro_id" => 57,
                 "produto_parceiro_plano_id" => 49,
             ];
-        } elseif ( $operacao == 'novomundo') {
-            $dados = (object)[
-                "email" => "novomundo@sisconnects.com.br",
-                // "parceiro_id" => 72,
-                // "produto_parceiro_id" => 57,
-                // "produto_parceiro_plano_id" => 49,
-            ];
         }
 
         $CI =& get_instance();
-        $CI->session->set_userdata("email", $dados->email);
-
+        $CI->session->set_userdata("email", $dados->email); // importante setar o e-mail antes de recuperar a apikey
         $dados->apikey = app_get_token($dados->email);
 
+        $CI->session->set_userdata("apikey", $dados->apikey);
         return $dados;
     }
 
@@ -669,15 +666,13 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 }
 if ( ! function_exists('app_get_api'))
 {
-    function app_get_api($service, $method = 'GET', $fields = [], $print = false){
-
-        $acesso = app_integracao_generali_dados();
+    function app_get_api($service, $method = 'GET', $fields = [], $print = false)
+    {
 
         $CI =& get_instance();
-        $CI->session->set_userdata("email", $acesso->email);
-
+        $apikey = $CI->session->userdata("apikey");
         $url = $CI->config->item("URL_sisconnects") ."admin/api/{$service}";
-        $header = ["Content-Type: application/json", "APIKEY: {$acesso->apikey}"];
+        $header = ["Content-Type: application/json", "APIKEY: {$apikey}"];
 
         $CI->load->model('integracao_log_detalhe_api_model', 'integracao_log_detalhe_api');
         $insertArray = [
@@ -927,6 +922,8 @@ if ( ! function_exists('app_integracao_valida_regras'))
                     $fields['equipamento_sub_categoria_id'] = $dados['equipamento_sub_categoria_id'];
                 if (!empty($dados['equipamento_de_para']))
                     $fields['equipamento_de_para'] = $dados['equipamento_de_para'];
+                if (!empty($dados['comissao_premio']))
+                    $fields['comissao_premio'] = $dados['comissao_premio'];
                 $fields['ean'] = $dados['ean'];
                 $fields['emailAPI'] = app_get_userdata("email");
 
@@ -942,7 +939,6 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $response->cotacao_id = $cotacao_id;
 
                 // Cálculo do prêmio
-                echo "<pre>";
                 $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], $dados["nota_fiscal_valor"]);
                 if (empty($calcPremio['status'])){
                     $response->errors = ['id' => -1, 'msg' => $calcPremio['response'], 'slug' => "calcula_premio"];
@@ -974,9 +970,9 @@ if ( ! function_exists('app_integracao_calcula_premio'))
 {
     function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is){
         // Cálculo do prêmio
-        $calcPremio = app_get_api("calculo_premio/". $cotacao_id);
+        $calcPremio = app_get_api("calculo_premio/". $cotacao_id, 'GET', [], true);
         if (empty($calcPremio['status'])){
-            return ['status'=> false, 'response'=>$calcPremio['response']];
+            return ['status' => false, 'response' => $calcPremio['response']];
         }
 
         $calcPremio = $calcPremio['response'];
@@ -1045,7 +1041,6 @@ if ( ! function_exists('app_integracao_emissao'))
         $num_apolice = $dados["num_apolice"];
         $fields = $dados["fields"];
         $fields['cotacao_id'] = $cotacao_id;
-        // echo "<pre>";print_r($fields);echo "</pre>";
 
         // Emissão
         if ( $dados['acao'] == '1' ) {
@@ -1310,17 +1305,15 @@ if ( ! function_exists('app_integracao_gera_sinistro')) {
         $CI->db->query("call sp_gera_sinistro(27)");
     }
 }
-if ( ! function_exists('app_integracao_novo_mundo_ge')) {
-    function app_integracao_novo_mundo_ge($formato, $dados = array())
+if ( ! function_exists('app_integracao_novo_mundo')) {
+    function app_integracao_novo_mundo($formato, $dados = array())
     {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
+        $reg = $dados['registro'];
+        // echo "<pre>";print_r($reg);echo "</pre>";die();
 
         $CI =& get_instance();
         $CI->session->set_userdata("operacao", "novomundo");
-
-        echo "<pre>";
-        $reg = $dados['registro'];
-        // print_r($reg);
 
         if ($reg['tipo_produto'] == '06') 
         {
@@ -1387,9 +1380,6 @@ if ( ! function_exists('app_integracao_novo_mundo_ge')) {
             }
         }
 
-        // Validar valor do plano
-        // realizar a emissão / cancelamento
-
         return $response;
     }
 }
@@ -1424,8 +1414,9 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
         $result->data = app_integracao_format_date_r("Ymd|Y-m-d", ['valor' => substr($nome_arquivo, 15, 8)]);
 
         switch ($result->operacao) {
-            case '31':
+            case '031':
                 $result->parceiro_id = 72;
+                $result->email = "novomundo@sisconnects.com.br";
 
                 switch ($result->produto) {
                     case 'GAES':
@@ -1465,8 +1456,9 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                 }
 
                 break;
-            case '32':
+            case '032':
                 $result->parceiro_id = 74;
+                $result->email = "novomundoamazonia@sisconnects.com.br";
 
                 switch ($result->produto) {
                     case 'GAES':
@@ -1552,7 +1544,13 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                 break;
         }
 
-        app_integracao_generali_dados();
+        // Dados para definição do parceiro, produto e plano
+        app_integracao_generali_dados([
+            "email" => $result->email,
+            "parceiro_id" => $result->parceiro_id,
+            "produto_parceiro_id" => $result->produto_parceiro_id,
+            "produto_parceiro_plano_id" => $result->produto_parceiro_plano_id,
+        ]);
 
         $result->message = "OK";
         $result->status = true;
