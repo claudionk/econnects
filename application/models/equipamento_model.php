@@ -133,7 +133,7 @@ Class Equipamento_Model extends MY_Model
         ");
         $row = null;
         if ($equip){
-            $row = $equip->result_array();
+            $row = $equip->result();
         }
 
         return $row;

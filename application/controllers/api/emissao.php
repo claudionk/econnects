@@ -273,9 +273,9 @@ class Emissao extends CI_Controller {
                             die(json_encode(array("status"=>false,"message"=>"Não foi possível realizar a consulta do equipamento por Marca/Modelo"),JSON_UNESCAPED_UNICODE));
                         }
                         else{
-                            $retorno = convert_objeto_to_array($r);
-                            if( empty($retorno->{"status"}) ) {
-                                $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
+                            $retorno = json_decode($r,true);
+                            if( empty($retorno["status"]) ) {
+                                $msg = ( !empty($retorno["mensagem"]) ) ? $retorno["mensagem"] : $r;
                                 die(json_encode(array("status"=>false,"message"=>$msg),JSON_UNESCAPED_UNICODE));
                             }
                             else{
