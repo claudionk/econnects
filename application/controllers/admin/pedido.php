@@ -260,7 +260,7 @@ class Pedido extends Admin_Controller
                     'pedido_cartao_id' => $cartao['pedido_cartao_id']
                 ));
         }
-        
+
         $data['produto_parceiro_configuracao'] = $this->produto_parceiro_configuracao->get_by(array(
             'produto_parceiro_id' => $data['produto']['produto_parceiro_id']
         ));
@@ -298,7 +298,6 @@ class Pedido extends Admin_Controller
                 ->with_cotacao_equipamento_equipamento()
                 ->filterByID($data['pedido']['cotacao_id'])
                 ->get_all();
-
 
             foreach ($data['itens'] as $index => $item) {
                 $data['itens'][$index]['cobertura_adicionais'] = array();
