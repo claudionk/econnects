@@ -112,7 +112,7 @@ Class Apolice_Endosso_Model extends MY_Model
 
         // tratamento para gerar o id da transacao
         if (!empty($dadosPP)) {
-            $id_transacao = $dadosPP['num_apolice'].$endosso.$dadosPP['cod_ramo'].$parcela;
+            $id_transacao = $dadosPP['num_apolice'].$endosso.$dadosPP['cd_ramo'].$parcela;
         }
 
         return $id_transacao;
@@ -188,7 +188,7 @@ Class Apolice_Endosso_Model extends MY_Model
             $dadosPP = $this->apolice->getProdutoParceiro($apolice_id);
             if ( !empty($dadosPP) ) {
                 if ($dadosPP['slug'] == 'generali') {
-                    $endosso = $dadosPP['codigo_sucursal'] . $dadosPP['cod_ramo']. str_pad($sequencial-1, 7, "0", STR_PAD_LEFT);
+                    $endosso = $dadosPP['codigo_sucursal'] . $dadosPP['cd_ramo']. str_pad($sequencial-1, 7, "0", STR_PAD_LEFT);
                 }
             }
         }
