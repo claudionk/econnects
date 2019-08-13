@@ -304,7 +304,7 @@ class Apolice_Model extends MY_Model
                 'cod_tpa'       => $dados_bilhete['cod_tpa'],
                 'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
                 'cod_ramo'      => $dados_bilhete['cod_ramo'],
-                'num_apolice'   => $dados_bilhete['num_apolice'],
+                'num_apolice'   => $dados_apolice['num_apolice'],
             ]);
 
             $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
@@ -516,7 +516,7 @@ class Apolice_Model extends MY_Model
                 'cod_tpa'       => $dados_bilhete['cod_tpa'],
                 'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
                 'cod_ramo'      => $dados_bilhete['cod_ramo'],
-                'num_apolice'   => $dados_bilhete['num_apolice'],
+                'num_apolice'   => $dados_apolice['num_apolice'],
             ]);
 
             $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
@@ -723,7 +723,7 @@ class Apolice_Model extends MY_Model
                     'cod_tpa'       => $dados_bilhete['cod_tpa'],
                     'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
                     'cod_ramo'      => $dados_bilhete['cod_ramo'],
-                    'num_apolice'   => $dados_bilhete['num_apolice'],
+                    'num_apolice'   => $dados_apolice['num_apolice'],
                 ]);
 
                 $apolice_id                                           = $this->insert($dados_apolice, true);
@@ -1480,6 +1480,7 @@ class Apolice_Model extends MY_Model
     function getProdutoParceiro($apolice_id) {
         $this->_database->select('pa.slug, pp.cod_tpa');
         $this->_database->join("pedido p", "p.pedido_id = {$this->_table}.pedido_id", "inner");
+        $this->_database->join("cotacao c", "p.cotacao_id = c.cotacao_id", "inner");
         $this->_database->join("produto_parceiro pp", "pp.produto_parceiro_id = c.produto_parceiro_id", "inner");
         $this->_database->join("parceiro pa", "pa.parceiro_id = pp.parceiro_id", "inner");
         $this->_database->where("{$this->_table}.apolice_id", $apolice_id);
