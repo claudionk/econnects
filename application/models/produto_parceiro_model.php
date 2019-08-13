@@ -73,7 +73,7 @@ Class Produto_Parceiro_Model extends MY_Model
             'groups' => 'default'
         ),
         array(
-            'field' => 'cod_tpa',
+            'field' => 'cod_ramo',
             'label' => 'Código Ramo',
             'groups' => 'default'
         ),
@@ -93,7 +93,7 @@ Class Produto_Parceiro_Model extends MY_Model
             'slug_produto' => $this->input->post('slug_produto'),
             'cod_tpa' => $this->input->post('cod_tpa'),
             'cod_sucursal' => $this->input->post('cod_sucursal'),
-            'cod_ramo' => $this->input->post('cod_ramopa'),
+            'cod_ramo' => $this->input->post('cod_ramo'),
         );
         return $data;
     }
@@ -124,7 +124,7 @@ Class Produto_Parceiro_Model extends MY_Model
     }
 
     function getDadosToBilhete( $produto_parceiro_plano_id ){
-        $this->_database->select("{$this->_table}.cod_ramo, IFNULL({$this->_table}.cod_sucursal, parceiro.codigo_sucursal) AS cod_sucursal", FALSE);
+        $this->_database->select("{$this->_table}.cod_tpa, {$this->_table}.cod_ramo, IFNULL({$this->_table}.cod_sucursal, parceiro.codigo_sucursal) AS cod_sucursal", FALSE);
         $this->_database->select('produto_parceiro_plano.codigo_operadora AS cod_produto');
         $this->_database->join("produto_parceiro_plano", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id");
         $this->_database->join("parceiro", "parceiro.parceiro_id = produto_parceiro.parceiro_id");

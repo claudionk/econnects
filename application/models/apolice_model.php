@@ -29,7 +29,6 @@ class Apolice_Model extends MY_Model
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('cotacao_seguro_viagem_pessoa_model', 'cotacao_pessoa');
         $this->load->model('apolice_seguro_viagem_model', 'apolice_seguro_viagem');
-
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
 
         $pedido = $this->pedido->getPedidoProdutoParceiro($pedido_id);
@@ -97,7 +96,6 @@ class Apolice_Model extends MY_Model
         /**
          * Dispara SMS
          */
-
         $comunicacao = new Comunicacao();
         $comunicacao->setMensagemParametros($evento['mensagem']);
         $comunicacao->setDestinatario(app_retorna_numeros($evento['destinatario_telefone']));
@@ -280,7 +278,6 @@ class Apolice_Model extends MY_Model
                     $dados_saldo['utilizado'] = $desconto_condicional['utilizado'] + $cotacao_salva['desconto_condicional_valor'];
                     $this->parceiro_desconto->update($desconto_condicional['produto_parceiro_desconto_id'], $dados_saldo, true);
                 }
-
             }
 
             log_message('debug', 'UPDATE STATUS CLIENTE');
@@ -295,14 +292,20 @@ class Apolice_Model extends MY_Model
             $dados_apolice['parceiro_id']               = $cotacao_salva['parceiro_id']; //$this->session->userdata('parceiro_id'); //parceiro da venda
             $dados_apolice['apolice_status_id']         = 1;
 
-            // Define o número da apólice
-            $dados_apolice['num_apolice'] = $this->defineNumApolice($pedido['produto_parceiro_id']);
-
             // Define os dados do CTA
             $dados_bilhete = $this->defineDadosBilhete($dados_apolice['produto_parceiro_plano_id']);
             $dados_apolice['cod_ramo']      = $dados_bilhete['cod_ramo'];
             $dados_apolice['cod_produto']   = $dados_bilhete['cod_produto'];
             $dados_apolice['cod_sucursal']  = $dados_bilhete['cod_sucursal'];
+
+            // Define o número da apólice
+            $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id']);
+            $dados_apolice['num_apolice_cliente']   = $this->defineNumApoliceCliente([
+                'cod_tpa'       => $dados_bilhete['cod_tpa'],
+                'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
+                'cod_ramo'      => $dados_bilhete['cod_ramo'],
+                'num_apolice'   => $dados_bilhete['num_apolice'],
+            ]);
 
             $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
             $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao_salva['produto_parceiro_plano_id'], null, $cotacao_salva);
@@ -501,14 +504,20 @@ class Apolice_Model extends MY_Model
             $dados_apolice['parceiro_id']               = $cotacao_salva['parceiro_id']; //$this->session->userdata('parceiro_id'); //parceiro da venda
             $dados_apolice['apolice_status_id']         = 1;
 
-            // Define o número da apólice
-            $dados_apolice['num_apolice'] = $this->defineNumApolice($pedido['produto_parceiro_id']);
-
             // Define os dados do CTA
             $dados_bilhete = $this->defineDadosBilhete($dados_apolice['produto_parceiro_plano_id']);
             $dados_apolice['cod_ramo']      = $dados_bilhete['cod_ramo'];
             $dados_apolice['cod_produto']   = $dados_bilhete['cod_produto'];
             $dados_apolice['cod_sucursal']  = $dados_bilhete['cod_sucursal'];
+
+            // Define o número da apólice
+            $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id']);
+            $dados_apolice['num_apolice_cliente']   = $this->defineNumApoliceCliente([
+                'cod_tpa'       => $dados_bilhete['cod_tpa'],
+                'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
+                'cod_ramo'      => $dados_bilhete['cod_ramo'],
+                'num_apolice'   => $dados_bilhete['num_apolice'],
+            ]);
 
             $produto_parceiro_plano_id = $cotacao_salva["produto_parceiro_plano_id"];
             $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($produto_parceiro_plano_id, null, $cotacao_salva);
@@ -702,14 +711,20 @@ class Apolice_Model extends MY_Model
                 $dados_apolice['parceiro_id']               = $cotacao_salva['parceiro_id']; //$this->session->userdata('parceiro_id'); //parceiro da venda
                 $dados_apolice['apolice_status_id']         = 1;
 
-                // Define o número da apólice
-                $dados_apolice['num_apolice'] = $this->defineNumApolice($pedido['produto_parceiro_id']);
-
                 // Define os dados do CTA
                 $dados_bilhete = $this->defineDadosBilhete($dados_apolice['produto_parceiro_plano_id']);
                 $dados_apolice['cod_ramo']      = $dados_bilhete['cod_ramo'];
                 $dados_apolice['cod_produto']   = $dados_bilhete['cod_produto'];
                 $dados_apolice['cod_sucursal']  = $dados_bilhete['cod_sucursal'];
+
+                // Define o número da apólice
+                $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id']);
+                $dados_apolice['num_apolice_cliente']   = $this->defineNumApoliceCliente([
+                    'cod_tpa'       => $dados_bilhete['cod_tpa'],
+                    'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
+                    'cod_ramo'      => $dados_bilhete['cod_ramo'],
+                    'num_apolice'   => $dados_bilhete['num_apolice'],
+                ]);
 
                 $apolice_id                                           = $this->insert($dados_apolice, true);
                 $dados_seguro_viagem                                  = array();
@@ -1399,13 +1414,11 @@ class Apolice_Model extends MY_Model
     {
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
 
-        $dados = $this
-            ->produto_parceiro
-            ->getDadosToBilhete($produto_parceiro_plano_id);
-
+        $dados = $this->produto_parceiro->getDadosToBilhete($produto_parceiro_plano_id);
         $result['cod_ramo']      = '';
         $result['cod_produto']   = '';
         $result['cod_sucursal']  = '';
+        $result['cod_tpa']       = '';
 
         if ( !empty($dados) )
         {
@@ -1414,6 +1427,7 @@ class Apolice_Model extends MY_Model
             $result['cod_ramo']      = $dados['cod_ramo'];
             $result['cod_produto']   = $dados['cod_produto'];
             $result['cod_sucursal']  = $dados['cod_sucursal'];
+            $result['cod_tpa']       = $dados['cod_tpa'];
         }
 
         return $result;
@@ -1480,8 +1494,20 @@ class Apolice_Model extends MY_Model
     }
 
     function defineApoliceCliente($apolice_id) {
-
         $dadosPP = $this->getProdutoParceiro($apolice_id);
+        $dadosPP['num_apolice'] = $this->defineNumApoliceCliente($dadosPP);
+        return $dadosPP;
+    }
+
+    /**
+     * Valida o número da apólice do Cliente DE / PARA
+     * @param array $dadosPP (códigos do CTA)
+     * @return string
+     * @author Cristiano Arruda
+     * @since  08/04/2019
+     */
+    function defineNumApoliceCliente($dadosPP) {
+        $num_apolice_cliente = '';
 
         if (!empty($dadosPP)) {
             // LASA RF+QA NOVOS && POMPEIA
@@ -1493,11 +1519,13 @@ class Apolice_Model extends MY_Model
                 } else {
                     $num_apolice_aux .= str_pad(substr($dadosPP['num_apolice'], 7, 8), 8, '0', STR_PAD_LEFT);
                 }
-                $dadosPP['num_apolice'] = $num_apolice_aux;
+                $num_apolice_cliente = $num_apolice_aux;
+            } else {
+                $num_apolice_cliente = $dadosPP['num_apolice'];
             }
         }
 
-        return $dadosPP;
+        return $num_apolice_cliente;
     }
 
     function getByRespoCobertura($parceiro_slug = null)
