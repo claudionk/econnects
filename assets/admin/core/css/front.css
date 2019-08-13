@@ -200,7 +200,7 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
 .toggle {
     background: transparent;
     border: none;
-    font-size: 3rem;
+    font-size: 4rem;
     color: #ffffff;
     opacity: 1;
     text-shadow: none;
@@ -547,6 +547,22 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
 .form-login .form-group .control-label{
     text-transform: uppercase;
     font-size: 12px;
+}
+.bg-progress-warning {
+    background-color: #faebd4;
+    height: 5px;
+}
+.bg-progress-info {
+    background-color: #d4e9fa;
+    height: 5px;
+}
+.bg-progress-danger {
+    background-color: #fad7d4;
+    height: 5px;
+}
+.bg-progress-success {
+    background-color: #d4fad6;
+    height: 5px;
 }
 /* END LOGIN
  */

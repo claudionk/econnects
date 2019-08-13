@@ -115,6 +115,8 @@ class Venda_Equipamento extends Admin_Controller{
         $this->load->model('cliente_model', 'cliente');
 
         $this->template->js(app_assets_url("modulos/venda/equipamento/js/login.js", "admin"));
+        $this->template->js(app_assets_url("core/js/SenhaForte.js", "admin"));
+        $this->template->js(app_assets_url("template/js/libs/popper.min.js", "admin"));
 
         if($_POST){
             $this->cliente->atualizar($this->input->post('cliente_id'), $_POST);

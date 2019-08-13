@@ -24,9 +24,15 @@
         </div>
     </div>
     <div class="col-md-6 ">
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 0px;margin-top: 10px;>
             <label class="control-label" for="password"> Senha </label>
-            <input class="form-control" type="password" name="password" id="password" required="required" />
+            <input class="form-control" type="password" name="password" id="password" required="required" onkeyup="validarSenhaForca()" />
+        </div>
+        <div class="form-group row" style="margin-bottom: 0px; height: 20px;">
+                
+                <div class="col-sm-5" style=" margin-top: 10px;">
+                    <div id="erroSenhaForca"></div>
+                </div>
         </div>
     </div>
     <div class="col-md-6 ">

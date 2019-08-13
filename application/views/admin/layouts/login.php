@@ -52,6 +52,7 @@
 <script src="<?php echo app_assets_url('template/js/libs/spin.js/spin.min.js', 'admin');?>"></script>
 <script src="<?php echo app_assets_url('template/js/libs/autosize/jquery.autosize.min.js', 'admin');?>"></script>
 <script src="<?php echo app_assets_url('template/js/libs/nanoscroller/jquery.nanoscroller.min.js', 'admin');?>"></script>
+<script src="<?php echo app_assets_url('template/js/libs/popper.min.js', 'admin');?>"></script>
 <script src="<?php echo app_assets_url('template/js/core/source/App.js', 'admin');?>"></script>
 <script src="<?php echo app_assets_url('template/js/core/source/AppNavigation.js', 'admin');?>"></script>
 <script src="<?php echo app_assets_url('template/js/core/source/AppOffcanvas.js', 'admin');?>"></script>
@@ -61,6 +62,7 @@
 <script src="<?php echo app_assets_url('template/js/core/source/AppVendor.js', 'admin');?>"></script>
 <script src="<?php echo app_assets_url('template/js/core/demo/Demo.js', 'admin');?>"></script>
 <script src="<?php echo app_assets_url('core/js/login.js', 'admin');?>"></script>
+<script src="<?php echo app_assets_url('core/js/SenhaForte.js', 'admin');?>"></script>
 <!-- END JAVASCRIPT -->
 
 </body>

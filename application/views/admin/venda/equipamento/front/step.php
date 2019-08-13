@@ -1,7 +1,5 @@
 <div id="sidebar-wrapper">
-    <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">
-        X
-    </a>
+    <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">&times;</a>
     <ul class="sidebar-nav">
         <li>
             <a href="#" class="active background-primary">
