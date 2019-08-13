@@ -1413,7 +1413,7 @@ class Apolice_Model extends MY_Model
             $dados = $dados[0];
             $result['cod_ramo']      = $dados['cod_ramo'];
             $result['cod_produto']   = $dados['cod_produto'];
-            $result['cod_sucursal']  = $dados['cod_ramo'];
+            $result['cod_sucursal']  = $dados['cod_sucursal'];
         }
 
         return $result;
@@ -1464,23 +1464,18 @@ class Apolice_Model extends MY_Model
      * @since  08/04/2019
      */
     function getProdutoParceiro($apolice_id) {
-        $this->_database->select('a.num_apolice, pa.slug, pa.codigo_sucursal, pp.cod_ramo as cd_ramo, pp.cod_tpa');
-        $this->_database->join("apolice a", "a.apolice_id = {$this->_table}.apolice_id", "inner");
-        $this->_database->join("pedido p", "p.pedido_id = a.pedido_id", "inner");
-        $this->_database->join("cotacao c", "c.cotacao_id = p.cotacao_id", "inner");
+        $this->_database->select('pa.slug, pp.cod_tpa');
+        $this->_database->join("pedido p", "p.pedido_id = {$this->_table}.pedido_id", "inner");
         $this->_database->join("produto_parceiro pp", "pp.produto_parceiro_id = c.produto_parceiro_id", "inner");
         $this->_database->join("parceiro pa", "pa.parceiro_id = pp.parceiro_id", "inner");
-
-        $this->_database->where("a.apolice_id", $apolice_id);
-        $this->_database->where('a.deletado', 0);
-        $this->_database->where('p.deletado', 0);
-        $this->_database->where('c.deletado', 0);
-        $this->_database->where('pp.deletado', 0);
+        $this->_database->where("{$this->_table}.apolice_id", $apolice_id);
+        $this->_database->where("{$this->_table}.deletado", 0);
+        $this->_database->where("p.deletado", 0);
+        $this->_database->where("pp.deletado", 0);
         $result = $this->get_all();
         if (!empty($result)) {
             return $result[0];
         }
-
         return null;
     }
 
@@ -1491,7 +1486,7 @@ class Apolice_Model extends MY_Model
         if (!empty($dadosPP)) {
             // LASA RF+QA NOVOS && POMPEIA
             if ($dadosPP['cod_tpa'] == '007' || $dadosPP['cod_tpa'] == '025') {
-                $num_apolice_aux = $dadosPP['codigo_sucursal'] . $dadosPP['cd_ramo'] . $dadosPP['cod_tpa'];
+                $num_apolice_aux = $dadosPP['cod_sucursal'] . $dadosPP['cod_ramo'] . $dadosPP['cod_tpa'];
 
                 if ($dadosPP['cod_tpa'] == '025') {
                     $num_apolice_aux .= substr($dadosPP['num_apolice'], 3, 3) . str_pad(substr($dadosPP['num_apolice'], 10, 5), 5, '0', STR_PAD_LEFT);

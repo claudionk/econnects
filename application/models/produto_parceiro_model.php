@@ -55,7 +55,28 @@ Class Produto_Parceiro_Model extends MY_Model
             'label' => 'Venda Agrupada',
             'rules' => 'required',
             'groups' => 'default'
-        )
+        ),
+         array( 
+            'field' => 'slug_produto', 
+            'label' => 'Slug', 
+            'rules' => 'required', 
+            'groups' => 'default' 
+        ), 
+        array(
+            'field' => 'cod_tpa',
+            'label' => 'Código TPA',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'cod_sucursal',
+            'label' => 'Código Sucursal',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'cod_tpa',
+            'label' => 'Código Ramo',
+            'groups' => 'default'
+        ),
     );
 
     //Get dados
@@ -68,7 +89,11 @@ Class Produto_Parceiro_Model extends MY_Model
             'produto_id' => $this->input->post('produto_id'),
             'parceiro_id' => $this->input->post('parceiro_id'),
             'seguradora_id' => $this->input->post('seguradora_id'),
-            'venda_agrupada' => $this->input->post('venda_agrupada')
+            'venda_agrupada' => $this->input->post('venda_agrupada'),
+            'slug_produto' => $this->input->post('slug_produto'),
+            'cod_tpa' => $this->input->post('cod_tpa'),
+            'cod_sucursal' => $this->input->post('cod_sucursal'),
+            'cod_ramo' => $this->input->post('cod_ramopa'),
         );
         return $data;
     }
@@ -82,6 +107,7 @@ Class Produto_Parceiro_Model extends MY_Model
         $this->with_simple_relation('produto', 'produto_', 'produto_id', array('nome', 'produto_ramo_id', 'slug'));
         return $this;
     }
+
     function with_produto_parceiro_configuracao(){
         $this->with_simple_relation('produto_parceiro_configuracao', 'produto_parceiro_configuracao_', 'produto_parceiro_id', array('pagamento_tipo', 'pagamento_periodicidade_unidade', 'pagamento_periodicidade', 'pagmaneto_cobranca', 'pagmaneto_cobranca_dia', 'pagamento_teimosinha'));
         return $this;
