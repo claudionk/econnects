@@ -1444,7 +1444,7 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
         $this->_database->join("apolice a", "a.pedido_id = {$this->_table}.pedido_id", "inner");
         $this->_database->join("apolice_movimentacao am", "a.apolice_id = am.apolice_id AND am.apolice_movimentacao_tipo_id = 1", "inner"); // para identificar a data de emissão
-        $this->_database->join("apolice_cobertura ac", "ac.pedido_id = a.apolice_id", "inner");
+        $this->_database->join("apolice_cobertura ac", "ac.apolice_id = a.apolice_id", "inner");
         $this->_database->join("cobertura_plano cp", "ac.cobertura_plano_id = cp.cobertura_plano_id", "inner");
         $this->_database->join("cobertura cb", "cb.cobertura_id = cp.cobertura_id", "inner");
 
@@ -1604,7 +1604,7 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("apolice_movimentacao am", "a.apolice_id = am.apolice_id AND am.apolice_movimentacao_tipo_id = 1", "inner"); // para identificar a data de emissão
 
         /* */
-        $this->_database->join("apolice_cobertura ac", "ac.pedido_id = a.apolice_id", "inner");
+        $this->_database->join("apolice_cobertura ac", "ac.apolice_id = a.apolice_id", "inner");
         $this->_database->join("cobertura_plano cp", "ac.cobertura_plano_id = cp.cobertura_plano_id", "inner");
         $this->_database->join("cobertura cb", "cb.cobertura_id = cp.cobertura_id", "inner");
         /* */
