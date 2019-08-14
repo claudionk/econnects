@@ -833,6 +833,8 @@ Class Integracao_Model extends MY_Model
         foreach ($detail as  $rows) {
             $data_row = $ids = array();
             foreach ($rows as $index => $row) {
+                $row['valor_anterior'] = $row['valor'];
+
                 if ($row['layout']['insert'] == 1) {
                     if(function_exists($row['layout']['function'])){
                         $row['valor'] = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor']));
@@ -844,7 +846,7 @@ Class Integracao_Model extends MY_Model
 
                     if(function_exists($row['layout']['function'])){
 
-                        $id_log = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor']));
+                        $id_log = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor_anterior']));
                     }
 
                     if (!empty($id_log)) {

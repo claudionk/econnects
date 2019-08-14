@@ -1070,6 +1070,8 @@ class Apolice_Model extends MY_Model
 
         $plano      = $this->plano->get($apolice['produto_parceiro_plano_id']);
         $coberturas = $this->plano_cobertura->with_cobertura()->filter_by_produto_parceiro_plano($apolice['produto_parceiro_plano_id'])->get_all();
+        $coberturasAll = $this->plano_cobertura->getCoberturasApolice($apolice["apolice_id"]);
+
 
         $equipamento = $this->db->query("SELECT em.nome as marca, ec.nome as categoria, esc.nome as equipamento, ce.equipamento_nome as modelo, ae.imei FROM apolice_equipamento ae
                                           INNER JOIN apolice a ON (a.apolice_id=ae.apolice_id)
@@ -1157,24 +1159,27 @@ class Apolice_Model extends MY_Model
 
         $data_template['segurado'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/dados_segurado", array('segurado' => $apolice), true);
 
-
         $viewseguro = 'dados_seguro';
 
-        if($dados['produto_parceiro_id'] == 64)
+        if($dados['slug_parceiro'] == 'tem')
         {
             $viewseguro = 'dados_seguro_tem';
-        } 
+
+        } elseif($dados['slug_parceiro'] == 'lojasamericanas')
+        {
+            $viewseguro = 'dados_seguro_cobertura';
+        }
 
         $data_template['seguro']   = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/{$viewseguro}", array(
-            'plano'      => $plano,
-            'coberturas' => $coberturas,
+            'plano'          => $plano,
+            'coberturas'     => $coberturas,
+            'coberturas_all' => $coberturasAll,
             //  'capitalizacao' => $capitalizacao,
             'premio_liquido' => $apolice['valor_premio_net'],
             'premio_bruto' => $apolice['valor_premio_total'],
             'pagamento'  => $pagamento,
             'dados'      => $dados),
             true);
-
 
         error_log(print_r($data_template['seguro'], true) . "\n", 3, "/var/log/httpd/myapp.log");
         $data_template['premio']    = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/premio", array('premio_liquido' => $apolice['valor_premio_net'], 'premio_total' => $apolice['valor_premio_total']), true);
@@ -1408,7 +1413,7 @@ class Apolice_Model extends MY_Model
      * @since  08/04/2019
      */
     function getProdutoParceiro($apolice_id) {
-        $this->_database->select('a.num_apolice, pa.slug, pa.codigo_sucursal, pp.cod_ramo, pp.cod_tpa');
+        $this->_database->select('a.num_apolice, pa.slug, pa.codigo_sucursal, pp.cod_ramo as cd_ramo, pp.cod_tpa');
         $this->_database->join("apolice a", "a.apolice_id = {$this->_table}.apolice_id", "inner");
         $this->_database->join("pedido p", "p.pedido_id = a.pedido_id", "inner");
         $this->_database->join("cotacao c", "c.cotacao_id = p.cotacao_id", "inner");
@@ -1435,7 +1440,7 @@ class Apolice_Model extends MY_Model
         if (!empty($dadosPP)) {
             // LASA RF+QA NOVOS && POMPEIA
             if ($dadosPP['cod_tpa'] == '007' || $dadosPP['cod_tpa'] == '025') {
-                $num_apolice_aux = $dadosPP['codigo_sucursal'] . $dadosPP['cod_ramo'] . $dadosPP['cod_tpa'];
+                $num_apolice_aux = $dadosPP['codigo_sucursal'] . $dadosPP['cd_ramo'] . $dadosPP['cod_tpa'];
 
                 if ($dadosPP['cod_tpa'] == '025') {
                     $num_apolice_aux .= substr($dadosPP['num_apolice'], 3, 3) . str_pad(substr($dadosPP['num_apolice'], 10, 5), 5, '0', STR_PAD_LEFT);
