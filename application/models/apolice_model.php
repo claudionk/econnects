@@ -1458,6 +1458,19 @@ class Apolice_Model extends MY_Model
     }
 
     /**
+     * Busca por número da apólice do cliente
+     * @param string $num_apolice_cliente
+     * @return array
+     * @author Cristiano Arruda
+     * @since  15/08/2019
+     */
+    function filter_by_numApoliceCliente($num_apolice_cliente)
+    {
+        $this->db->where("{$this->_table}.num_apolice_cliente = '{$num_apolice_cliente}' ");
+        return $this;
+    }
+
+    /**
      * Busca dados da Seguradora para montagem do número do bilhete
      * @param $localidade_id
      * @return $this
@@ -1545,7 +1558,6 @@ class Apolice_Model extends MY_Model
         }
         return null;
     }
-
 
     public function defineNumApolice($produto_parceiro_id)
     {
