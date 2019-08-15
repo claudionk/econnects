@@ -1374,6 +1374,19 @@ class Apolice_Model extends MY_Model
         return $this;
     }
 
+    /**
+     * Busca por número da apólice do cliente
+     * @param string $num_apolice_cliente
+     * @return array
+     * @author Cristiano Arruda
+     * @since  15/08/2019
+     */
+    function filter_by_numApoliceCliente($num_apolice_cliente)
+    {
+        $this->db->where("{$this->_table}.num_apolice_cliente = '{$num_apolice_cliente}' ");
+        return $this;
+    }
+
     public function defineNumApolice($produto_parceiro_id)
     {
         $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
