@@ -80,12 +80,17 @@
                                                 }
                                                 ?>
                                             </ul>
-                                            <a href="#" class="more-plan color-primary price-moeda-<?php echo $plano['produto_parceiro_plano_id']; ?>" data-toggle="modal" data-target="#modalCoberturas"
-                                               data-title="<?php echo $plano['nome']; ?>"
-                                               data-price="00"
-                                               data-cents="00"
-                                               data-coberturas="<?php echo implode(',',$array_modal); ?>">Saiba mais</a>
-
+                                            <?php
+                                            if (count($coberturas) > 3){
+                                            ?>
+                                                <a href="#" class="more-plan color-primary price-moeda-<?php echo $plano['produto_parceiro_plano_id']; ?>" data-toggle="modal" data-target="#modalCoberturas"
+                                                   data-title="<?php echo $plano['nome']; ?>"
+                                                   data-price="00"
+                                                   data-cents="00"
+                                                   data-coberturas="<?php echo implode(',',$array_modal); ?>">Saiba mais</a>
+                                            <?php 
+                                            }
+                                            ?>
                                             <div class="this-plan">
                                                 <a class="btn btn-primary add-car this-plan-btn background-primary border-primary" data-plano="<?php echo $plano['produto_parceiro_plano_id']; ?>" href="javascript: void(0);">
                                                     QUERO ESTE <i class="fa fa-angle-right" aria-hidden="true"></i>
