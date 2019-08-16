@@ -1083,7 +1083,7 @@ if ( ! function_exists('app_integracao_emissao'))
                     return $response;
                 }
 
-                $response->msg = $efetuaPagto['response']->mensagem;
+                $response->msg[] = $efetuaPagto['response']->mensagem;
                 $response->pedido_id = $efetuaPagto['response']->dados->pedido_id;
                 $response->apolice_id = $efetuaPagto['response']->dados->apolice_id;
 
@@ -1313,13 +1313,6 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
         $CI =& get_instance();
         $CI->session->set_userdata("operacao", "novomundo");
 
-        if ($reg['tipo_produto'] == '06') 
-        {
-            $response->status = 2;
-            $response->msg[] = ['id' => 19, 'msg' => "O Tipo de Produto não é de Venda", 'slug' => "processamento"];
-            return $response;
-        }
-
         // definir operação pelo nome do arquivo ou por integracao?
         $acesso = app_integracao_novo_mundo_define_operacao($dados['log']['nome_arquivo']);
         // print_r($acesso);
@@ -1421,7 +1414,7 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                         $result->produto_parceiro_id = 80;
                         $result->produto_parceiro_plano_id = 103;
                         break;
-                    
+
                     case 'ROFU':
                         $result->produto_parceiro_id = 81;
                         $result->produto_parceiro_plano_id = 105;
@@ -1432,7 +1425,7 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                         $result->produto_parceiro_plano_id = 106;
                         break;
 
-                    case 'APVE':
+                    /*case 'APVE':
                         $result->produto_parceiro_id = 83;
                         $result->produto_parceiro_plano_id = 107;
                         break;
@@ -1445,7 +1438,7 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                     case 'PRES':
                         $result->produto_parceiro_id = 85;
                         $result->produto_parceiro_plano_id = 109;
-                        break;
+                        break;*/
 
                     default:
                         $result->message = "Produto ({$result->produto}) não configurado";
@@ -1463,7 +1456,7 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                         $result->produto_parceiro_id = 80;
                         $result->produto_parceiro_plano_id = 103;
                         break;
-                    
+
                     case 'ROFU':
                         $result->produto_parceiro_id = 80;
                         $result->produto_parceiro_plano_id = 103;
@@ -1474,7 +1467,7 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                         $result->produto_parceiro_plano_id = 103;
                         break;
 
-                    case 'APVE':
+                    /*case 'APVE':
                         $result->produto_parceiro_id = 80;
                         $result->produto_parceiro_plano_id = 103;
                         break;
@@ -1487,7 +1480,7 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                     case 'PRES':
                         $result->produto_parceiro_id = 80;
                         $result->produto_parceiro_plano_id = 103;
-                        break;
+                        break;*/
 
                     default:
                         $result->message = "Produto ({$result->produto}) não configurado";

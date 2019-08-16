@@ -1321,6 +1321,7 @@ class Apolice_Model extends MY_Model
             SELECT apolice_id
             FROM apolice
             WHERE num_apolice = '{$num_apolice}' and produto_parceiro_plano_id = '{$produto_parceiro_plano_id}'
+            AND deletado = 0
             LIMIT 1
         ";
         return (int) $this->_database->query($sql)->num_rows() == 1;
