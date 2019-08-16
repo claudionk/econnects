@@ -144,9 +144,9 @@ Class Cobertura_Plano_Model extends MY_Model {
             'franquia'                  => $this->input->post('franquia'),
             'carencia'                  => $this->input->post('carencia'),
             'cod_cobertura'             => $this->input->post('cod_cobertura'),
-            'cod_ramo'                  => $this->input->post('cod_ramo'),
-            'cod_produto'               => $this->input->post('cod_produto'),
-            'cod_sucursal'              => $this->input->post('cod_sucursal'),
+            'cod_ramo'                  => isempty($this->input->post('cod_ramo'), null),
+            'cod_produto'               => isempty($this->input->post('cod_produto'), null),
+            'cod_sucursal'              => isempty($this->input->post('cod_sucursal'), null),
         );
         return $data;
     }
