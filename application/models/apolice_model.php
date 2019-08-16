@@ -217,8 +217,19 @@ class Apolice_Model extends MY_Model
 
         $this->load->model("apolice_endosso_model", "apolice_endosso");
 
+
+        // Define o número da apólice do cliente
+        $dados_bilhete                        = $this->defineDadosBilhete($result['produto_parceiro_plano_id']);
+        $dados_apolice['num_apolice']         = $num_apolice;
+        $dados_apolice['num_apolice_cliente'] = $this->defineNumApoliceCliente([
+            'cod_tpa'       => $dados_bilhete['cod_tpa'],
+            'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
+            'cod_ramo'      => $dados_bilhete['cod_ramo'],
+            'num_apolice'   => $dados_apolice['num_apolice'],
+        ]);
+
         // Atualiza o numero da apólice
-        $this->update($apolice_id, ['num_apolice' => $num_apolice], true);
+        $this->update($apolice_id, $dados_apolice, true);
 
         // atualiza dados do endosso
         $this->apolice_endosso->updateEndosso($apolice_id);
