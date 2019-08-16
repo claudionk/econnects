@@ -1491,10 +1491,10 @@ class Apolice_Model extends MY_Model
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
 
         $dados = $this->produto_parceiro->getDadosToBilhete($produto_parceiro_plano_id);
-        $result['cod_ramo']      = '';
-        $result['cod_produto']   = '';
-        $result['cod_sucursal']  = '';
-        $result['cod_tpa']       = '';
+        $result['cod_ramo']      = null;
+        $result['cod_produto']   = null;
+        $result['cod_sucursal']  = null;
+        $result['cod_tpa']       = null;
 
         if ( !empty($dados) )
         {

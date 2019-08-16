@@ -84,16 +84,16 @@ Class Produto_Parceiro_Model extends MY_Model
     {
         //Dados
         $data =  array(
-            'nome' => $this->input->post('nome'),
-            'codigo_susep' => $this->input->post('codigo_susep'),
-            'produto_id' => $this->input->post('produto_id'),
-            'parceiro_id' => $this->input->post('parceiro_id'),
-            'seguradora_id' => $this->input->post('seguradora_id'),
-            'venda_agrupada' => $this->input->post('venda_agrupada'),
-            'slug_produto' => $this->input->post('slug_produto'),
-            'cod_tpa' => $this->input->post('cod_tpa'),
-            'cod_sucursal' => $this->input->post('cod_sucursal'),
-            'cod_ramo' => $this->input->post('cod_ramo'),
+            'nome'              => $this->input->post('nome'),
+            'codigo_susep'      => $this->input->post('codigo_susep'),
+            'produto_id'        => $this->input->post('produto_id'),
+            'parceiro_id'       => $this->input->post('parceiro_id'),
+            'seguradora_id'     => $this->input->post('seguradora_id'),
+            'venda_agrupada'    => $this->input->post('venda_agrupada'),
+            'slug_produto'      => $this->input->post('slug_produto'),
+            'cod_tpa'           => $this->input->post('cod_tpa'),
+            'cod_sucursal'      => isempty($this->input->post('cod_sucursal'), null),
+            'cod_ramo'          => isempty($this->input->post('cod_ramo'), null),
         );
         return $data;
     }
