@@ -55,7 +55,28 @@ Class Produto_Parceiro_Model extends MY_Model
             'label' => 'Venda Agrupada',
             'rules' => 'required',
             'groups' => 'default'
-        )
+        ),
+         array( 
+            'field' => 'slug_produto', 
+            'label' => 'Slug', 
+            'rules' => 'required', 
+            'groups' => 'default' 
+        ), 
+        array(
+            'field' => 'cod_tpa',
+            'label' => 'Código TPA',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'cod_sucursal',
+            'label' => 'Código Sucursal',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'cod_ramo',
+            'label' => 'Código Ramo',
+            'groups' => 'default'
+        ),
     );
 
     //Get dados
@@ -63,12 +84,16 @@ Class Produto_Parceiro_Model extends MY_Model
     {
         //Dados
         $data =  array(
-            'nome' => $this->input->post('nome'),
-            'codigo_susep' => $this->input->post('codigo_susep'),
-            'produto_id' => $this->input->post('produto_id'),
-            'parceiro_id' => $this->input->post('parceiro_id'),
-            'seguradora_id' => $this->input->post('seguradora_id'),
-            'venda_agrupada' => $this->input->post('venda_agrupada')
+            'nome'              => $this->input->post('nome'),
+            'codigo_susep'      => $this->input->post('codigo_susep'),
+            'produto_id'        => $this->input->post('produto_id'),
+            'parceiro_id'       => $this->input->post('parceiro_id'),
+            'seguradora_id'     => $this->input->post('seguradora_id'),
+            'venda_agrupada'    => $this->input->post('venda_agrupada'),
+            'slug_produto'      => $this->input->post('slug_produto'),
+            'cod_tpa'           => $this->input->post('cod_tpa'),
+            'cod_sucursal'      => isempty($this->input->post('cod_sucursal'), null),
+            'cod_ramo'          => isempty($this->input->post('cod_ramo'), null),
         );
         return $data;
     }
@@ -82,6 +107,7 @@ Class Produto_Parceiro_Model extends MY_Model
         $this->with_simple_relation('produto', 'produto_', 'produto_id', array('nome', 'produto_ramo_id', 'slug'));
         return $this;
     }
+
     function with_produto_parceiro_configuracao(){
         $this->with_simple_relation('produto_parceiro_configuracao', 'produto_parceiro_configuracao_', 'produto_parceiro_id', array('pagamento_tipo', 'pagamento_periodicidade_unidade', 'pagamento_periodicidade', 'pagmaneto_cobranca', 'pagmaneto_cobranca_dia', 'pagamento_teimosinha'));
         return $this;
@@ -90,6 +116,22 @@ Class Produto_Parceiro_Model extends MY_Model
     function with_parceiro(){
         $this->with_simple_relation('parceiro', 'parceiro_', 'parceiro_id', array('nome'));
         return $this;
+    }
+
+    function with_produto_parceiro_plano(){
+        $this->with_simple_relation('produto_parceiro_plano', 'produto_parceiro_plano_', 'produto_parceiro_plano_id', array('nome', 'slug_plano', 'codigo_operadora'));
+        return $this;
+    }
+
+    function getDadosToBilhete( $produto_parceiro_plano_id ){
+        $this->_database->select("{$this->_table}.cod_tpa, {$this->_table}.cod_ramo, IFNULL({$this->_table}.cod_sucursal, parceiro.codigo_sucursal) AS cod_sucursal", FALSE);
+        $this->_database->select('produto_parceiro_plano.codigo_operadora AS cod_produto');
+        $this->_database->join("produto_parceiro_plano", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id");
+        $this->_database->join("parceiro", "parceiro.parceiro_id = produto_parceiro.parceiro_id");
+        $this->_database->where("produto_parceiro_plano.produto_parceiro_plano_id", $produto_parceiro_plano_id);
+
+        // remove o * da sql
+        return $this->get_all(0,0,true,false);
     }
 
     function get_produtos_venda_admin( $parceiro_id = null, $produto_id = null, $produto_parceiro_id = null ){
@@ -273,28 +315,32 @@ Class Produto_Parceiro_Model extends MY_Model
         return array();
     }
 
-    function  filter_by_parceiro($parceiro_id){
+    function filter_by_parceiro($parceiro_id){
         $this->_database->where('parceiro_id', $parceiro_id);
         return $this;
     }
 
-    function  filter_by_produto_parceiro($produto_parceiro_id){
+    function filter_by_produto_parceiro($produto_parceiro_id){
         $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
         return $this;
     }
 
-    // Criado - ALR
-    function  filter_by_slug($slug){
+    function filter_by_produto_parceiro_plano($produto_parceiro_plano_id){
+        $this->_database->where('produto_parceiro_plano.produto_parceiro_plano_id', $produto_parceiro_plano_id);
+        return $this;
+    }
+
+    function filter_by_slug($slug){
         $this->_database->where('slug_produto', $slug);
         return $this;
     }
 
-    public function get_all($limit = 0, $offset = 0, $processa = true) {
+    public function get_all($limit = 0, $offset = 0, $processa = true, $viewAll = true) {
         if($processa) {
             $parceiro_id = $this->session->userdata('parceiro_id');
             $this->processa_parceiros_permitidos("{$this->_table}.parceiro_id");
         }
-        return parent::get_all($limit, $offset);
+        return parent::get_all($limit, $offset, $viewAll);
     }
 
     public function get_total($processa = true) {

@@ -70,12 +70,31 @@ if($_POST)
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>"> Nome fantasia</label>
                                                         <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
+                                                    <?php $field_name = 'slug_produto';?> 
+                                                    <div class="form-group"> 
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Slug *</label> 
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div> 
+                                                    </div>
                                                     <?php $field_name = 'codigo_susep';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Código SUSEP</label>
                                                         <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
-
+                                                    <?php $field_name = 'cod_tpa';?> 
+                                                    <div class="form-group"> 
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Código TPA</label> 
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div> 
+                                                    </div>
+                                                    <?php $field_name = 'cod_sucursal';?> 
+                                                    <div class="form-group"> 
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Código Sucursal</label> 
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div> 
+                                                    </div>
+                                                    <?php $field_name = 'cod_ramo';?> 
+                                                    <div class="form-group"> 
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Código Ramo</label> 
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div> 
+                                                    </div>
                                                     <?php $field_name = 'produto_ramo_id';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Ramo / Produto *</label>
@@ -129,7 +148,7 @@ if($_POST)
                                                         </div>
                                                     </div>
                                                     <?php $field_name = 'venda_agrupada';?>
-                                                    <div class="radio radio-styled">
+                                                    <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Venda Multi Parceiros *</label>
                                                         <label class="radio-inline radio-styled radio-primary">
                                                             <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"

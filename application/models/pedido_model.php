@@ -1399,7 +1399,7 @@ Class Pedido_Model extends MY_Model
         , DATE_FORMAT({$this->_table}.status_data, '%d/%m/%Y') AS data_emissao
         , DATE_FORMAT(ae.data_ini_vigencia, '%d/%m/%Y') AS ini_vigencia
         , DATE_FORMAT(ae.data_fim_vigencia, '%d/%m/%Y') AS fim_vigencia
-        , CONCAT(p.codigo_sucursal, '71', pp.cod_tpa, LPAD(substr(a.num_apolice, 8, LENGTH(a.num_apolice) ),8,'0')) AS num_apolice
+        , CONCAT(a.cod_sucursal, a.cod_ramo, pp.cod_tpa, LPAD(substr(a.num_apolice, 8, LENGTH(a.num_apolice) ),8,'0')) AS num_apolice
         , cli.razao_nome AS segurado_nome
         , cli.cnpj_cpf AS documento
         , ec.nome as equipamento
@@ -1409,7 +1409,7 @@ Class Pedido_Model extends MY_Model
         , pp.nome as nome_produto_parceiro
         , ae.nota_fiscal_valor as importancia_segurada
         , fp.nome AS forma_pagto
-        , IF(a.apolice_status_id = 2, CONCAT(p.codigo_sucursal, '71', LPAD(1,7,'0')), '0') AS num_endosso
+        , IF(a.apolice_status_id = 2, CONCAT(a.cod_sucursal, a.cod_ramo, LPAD(1,7,'0')), '0') AS num_endosso
         , DATE_FORMAT({$this->_table}.status_data, '%b/%y') AS vigencia_parcela
         , '1|1' as parcela
         , 'PAGO' as status_parcela
@@ -1531,7 +1531,7 @@ Class Pedido_Model extends MY_Model
         , DATE_FORMAT({$this->_table}.status_data, '%d/%m/%Y') AS data_emissao
         , DATE_FORMAT(ae.data_ini_vigencia, '%d/%m/%Y') AS ini_vigencia
         , DATE_FORMAT(ae.data_fim_vigencia, '%d/%m/%Y') AS fim_vigencia
-        , CONCAT(p.codigo_sucursal, '71', pp.cod_tpa, LPAD(substr(a.num_apolice, 8, LENGTH(a.num_apolice) ),8,'0')) AS num_apolice
+        , CONCAT(a.cod_sucursal, a.cod_ramo, pp.cod_tpa, LPAD(substr(a.num_apolice, 8, LENGTH(a.num_apolice) ),8,'0')) AS num_apolice
         , cli.razao_nome AS segurado_nome
         , cli.cnpj_cpf AS documento
         , ec.nome as equipamento
@@ -1540,7 +1540,7 @@ Class Pedido_Model extends MY_Model
         , ae.imei
         , pp.nome as nome_produto_parceiro
         , ae.nota_fiscal_valor as importancia_segurada
-        , IF(a.apolice_status_id = 2, CONCAT(p.codigo_sucursal, '71', LPAD(1,7,'0')), '0') AS num_endosso
+        , IF(a.apolice_status_id = 2, CONCAT(a.cod_sucursal, a.cod_ramo, LPAD(1,7,'0')), '0') AS num_endosso
         , DATE_FORMAT({$this->_table}.status_data, '%b/%y') AS vigencia_parcela
         , '1|1' as parcela
         , 'PAGO' as status_parcela
