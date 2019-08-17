@@ -47,14 +47,14 @@ Class Cotacao_Equipamento_Model extends MY_Model
       'label' => 'Equipamento Categoria ID',
       'rules' => 'required',
       'groups' => 'default',
-      'foreign' => 'equipamento_categoria',
+      // 'foreign' => 'equipamento_categoria',
     ),
     array(
       'field' => 'equipamento_marca_id',
       'label' => 'Equipamento Marca ID',
       'rules' => 'required',
       'groups' => 'default',
-      'foreign' => 'equipamento_marca',
+      // 'foreign' => 'equipamento_marca',
     ),
     array(
       'field' => 'step',

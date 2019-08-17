@@ -1000,7 +1000,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 if (!empty($dados['equipamento_marca_id']))
                     $fields['equipamento_marca_id'] = $dados['equipamento_marca_id'];
                 if (!empty($dados['equipamento_categoria_id']))
-                $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
+                    $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
+                if (!empty($dados['equipamento_sub_categoria_id']))
+                    $fields['equipamento_sub_categoria_id'] = $dados['equipamento_sub_categoria_id'];
                 $fields['ean'] = $dados['ean'];
                 $fields['emailAPI'] = app_get_userdata("email");
 
@@ -1228,27 +1230,14 @@ if ( ! function_exists('app_integracao_apolice')) {
 if ( ! function_exists('app_integracao_apolice_revert')) {
     function app_integracao_apolice_revert($formato, $dados = array())
     {
-        $num_apolice = $dados['valor'];
+        $num_apolice_cliente = !empty(trim($dados['valor'])) ? trim($dados['valor']) : '';
 
-        if(empty($num_apolice))
+        if(empty($num_apolice_cliente))
             return '';
-
-        // pega o TPA e o Sequencial
-        $seq = right($num_apolice, 8);
-        $tpa = left(right($num_apolice, 11), 3);
-
-        if ($tpa == '025')
-        {
-            $seq = left($seq, 3) ."%". right($seq, 5);
-        }
-
-        if ( empty($seq) || empty($tpa) ) {
-            return '';
-        }
 
         $CI =& get_instance();
         $CI->load->model('apolice_model');
-        $result = $CI->apolice_model->filter_by_numApolice($seq, $tpa)->get_all();
+        $result = $CI->apolice_model->filter_by_numApoliceCliente($num_apolice_cliente)->get_all();
 
         if (empty($result))
             return '';

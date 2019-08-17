@@ -24,8 +24,8 @@ Class Cotacao_Cobertura_Model extends MY_Model
     );
 
     function filterByID($cotacao_id){
-        $this->_database->where("cotacao_id", $cotacao_id);
-        $this->_database->where("deletado", 0);
+        $this->_database->where("{$this->_table}.cotacao_id", $cotacao_id);
+        $this->_database->where("{$this->_table}.deletado", 0);
         return $this;
     }
 
@@ -37,6 +37,12 @@ Class Cotacao_Cobertura_Model extends MY_Model
     public function deleteByCotacao($cotacao_id){
         $this->db->where('cotacao_id', $cotacao_id);
         $this->db->delete($this->_table);
+    }
+
+    function with_cobertura_plano($fields = array('cobertura_plano.cod_cobertura', 'cobertura_plano.cod_ramo', 'cobertura_plano.cod_produto', 'cobertura_plano.cod_sucursal')) {
+        $this->_database->select($fields);
+        $this->_database->join("cobertura_plano", "cobertura_plano.cobertura_plano_id = {$this->_table}.cobertura_plano_id");
+        return $this;
     }
 
     public function geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $produto_parceiro_plano_id = null, $importancia_segurada = null, $premio_liquido = null) {

@@ -2,7 +2,7 @@
 Class Equipamento_Model extends MY_Model
 {
     //Dados da tabela e chave primária
-    protected $_table = 'equipamento';
+    protected $_table = 'vw_Equipamentos';
     protected $primary_key = 'equipamento_id';
 
     //Configurações
@@ -24,24 +24,24 @@ Class Equipamento_Model extends MY_Model
             'label' => 'Marca',
             'rules' => 'required',
             'groups' => 'default',
-            'foreign' => 'equipamento_marca'
+            // 'foreign' => 'equipamento_marca'
         ),
         array(
             'field' => 'equipamento_categoria_id',
             'label' => 'Categoria',
             'rules' => 'required',
             'groups' => 'default',
-            'foreign' => 'equipamento_categoria'
-        ), /*
+            // 'foreign' => 'equipamento_categoria'
+        ), 
         array(
             'field' => 'equipamento_sub_categoria_id',
             'label' => 'Sub Categoria',
             'rules' => '',
             'groups' => 'default',
-            'foreign' => 'equipamento_categoria',
-            'foreign_key' => 'equipamento_categoria_id',
-            'foreign_join' => 'left'
-        ), */
+            // 'foreign' => 'equipamento_categoria',
+            // 'foreign_key' => 'equipamento_categoria_id',
+            // 'foreign_join' => 'left'
+        ), 
         array(
             'field' => 'ean',
             'label' => 'EAN',
@@ -85,7 +85,6 @@ Class Equipamento_Model extends MY_Model
         return $this;
     }
 
-
     public function match($equipamento, $marca = null, $limit = 10)
     {
         $where='';
@@ -96,12 +95,41 @@ Class Equipamento_Model extends MY_Model
         $equipamento_tratado = $this->trata_string_match($equipamento);
         $equip = $this->_database->query("
             SELECT MATCH(e.nome) against('{$equipamento_tratado}' IN BOOLEAN MODE) as indice, e.equipamento_id, e.equipamento_marca_id, e.equipamento_categoria_id, e.nome, e.ean, e.equipamento_sub_categoria_id
-            FROM equipamento e
-            INNER JOIN equipamento_marca em on e.equipamento_marca_id = em.equipamento_marca_id
+            FROM {$this->_table} e
+            INNER JOIN vw_Equipamentos_Marcas em on e.equipamento_marca_id = em.equipamento_marca_id
             WHERE MATCH(e.nome) AGAINST('{$equipamento_tratado}' IN BOOLEAN MODE) > 0
                 {$where}
             ORDER BY 1 DESC
             LIMIT {$limit}
+        ");
+        $row = null;
+        if ($equip){
+            $row = $equip->result();
+        }
+
+        return $row;
+    }
+
+    public function get_equipamentos($equipamento_categoria_id = null, $equipamento_marca_id = null)
+    {
+        if (empty($equipamento_categoria_id) && empty($equipamento_marca_id))
+            return null;
+
+        $where='1=1';
+        if (!empty($equipamento_categoria_id)) {
+            $where .= " AND e.equipamento_categoria_id = $equipamento_categoria_id";
+        }
+
+        if (!empty($equipamento_marca_id)) {
+            $where .= " AND e.equipamento_marca_id = $equipamento_marca_id";
+        }
+
+        $equip = $this->_database->query("
+            SELECT e.equipamento_id, e.equipamento_marca_id, e.equipamento_categoria_id, e.nome, e.ean, e.equipamento_sub_categoria_id
+            FROM {$this->_table} e
+            INNER JOIN vw_Equipamentos_Marcas em on e.equipamento_marca_id = em.equipamento_marca_id
+            WHERE {$where}
+            ORDER BY 1 DESC
         ");
         $row = null;
         if ($equip){
@@ -161,4 +189,16 @@ Class Equipamento_Model extends MY_Model
 
         return $string;
     }
+
+    public function get_by_id($id)
+    {
+        return $this->get_by($this->primary_key, $id);
+    }
+
+    public function filterByEAN($ean='')
+    {
+        $this->_database->where("{$this->_table}.ean", $ean);
+        return $this;
+    }
+
 }
