@@ -80,7 +80,7 @@
                                     <dd>R$ <?php echo app_format_currency($item['premio_liquido_total'], false, 2); ?></dd>
                                     <dt>Câmbio</dt>
                                     <dd><?php echo $item['moeda'] ?> - R$ <?php echo app_format_currency($item['cambio']) ?> - <?php echo app_date_mysql_to_mask($item['data_cambio'], 'd/m/Y'); ?></dd>
-                                <?php elseif($produto['slug'] == 'equipamento') : ?>
+                                    <?php elseif($produto['slug'] == 'equipamento') : ?>
 
                                     <dt>Categoria do Equipamento:</dt>
                                     <dd><?php echo issetor($item['equipamento_categoria_nome']) ?></dd>
@@ -89,6 +89,9 @@
                                     <dd><?php echo issetor($item['equipamento_marca_nome']) ?></dd>
 
                                     <dt>Equipamento:</dt>
+                                    <dd><?php echo issetor($item['equipamento_sub_categoria_nome']) ?></dd>
+
+                                    <dt>Modelo:</dt>
                                     <dd><?php echo issetor($item['equipamento_nome']) ?></dd>
 
                                     <dt>Valor Nota Fiscal:</dt>

@@ -311,13 +311,14 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['sexo']            = $cotacao_salva['sexo'];
             $dados_equipamento['email']           = $cotacao_salva['email'];
 
-            $dados_equipamento['ean']                      = $cotacao_salva['ean'];
-            $dados_equipamento['equipamento_id']           = $cotacao_salva['equipamento_id'];
-            $dados_equipamento['equipamento_nome']         = $cotacao_salva['equipamento_nome'];
-            $dados_equipamento['equipamento_categoria_id'] = $cotacao_salva['equipamento_categoria_id'];
-            $dados_equipamento['equipamento_marca_id']     = $cotacao_salva['equipamento_marca_id'];
-            $dados_equipamento['nota_fiscal_data']         = $cotacao_salva['nota_fiscal_data'];
-            $dados_equipamento['nota_fiscal_valor']        = $cotacao_salva['nota_fiscal_valor'];
+            $dados_equipamento['ean']                           = $cotacao_salva['ean'];
+            $dados_equipamento['equipamento_id']                = $cotacao_salva['equipamento_id'];
+            $dados_equipamento['equipamento_nome']              = $cotacao_salva['equipamento_nome'];
+            $dados_equipamento['equipamento_categoria_id']      = $cotacao_salva['equipamento_categoria_id'];
+            $dados_equipamento['equipamento_sub_categoria_id']  = $cotacao_salva['equipamento_sub_categoria_id'];
+            $dados_equipamento['equipamento_marca_id']          = $cotacao_salva['equipamento_marca_id'];
+            $dados_equipamento['nota_fiscal_data']              = $cotacao_salva['nota_fiscal_data'];
+            $dados_equipamento['nota_fiscal_valor']             = $cotacao_salva['nota_fiscal_valor'];
 
             $dados_equipamento['estado_civil']       = $cotacao_salva['estado_civil'];
             $dados_equipamento['rg_orgao_expedidor'] = $cotacao_salva['rg_orgao_expedidor'];
@@ -1072,15 +1073,17 @@ class Apolice_Model extends MY_Model
         $coberturasAll = $this->plano_cobertura->getCoberturasApolice($apolice["apolice_id"]);
 
 
-        $equipamento = $this->db->query("SELECT em.nome as marca, ec.nome as equipamento, ce.equipamento_nome as modelo, ae.imei FROM apolice_equipamento ae
+        $equipamento = $this->db->query("SELECT em.nome as marca, ec.nome as categoria, esc.nome as equipamento, ce.equipamento_nome as modelo, ae.imei FROM apolice_equipamento ae
                                           INNER JOIN apolice a ON (a.apolice_id=ae.apolice_id)
                                           INNER JOIN pedido p ON (p.pedido_id=a.pedido_id)
                                           INNER JOIN cotacao_equipamento ce ON (ce.cotacao_id=p.cotacao_id)
-                                          INNER JOIN equipamento_categoria ec ON (ec.equipamento_categoria_id=ce.equipamento_categoria_id)
-                                          INNER JOIN equipamento_marca em ON (em.equipamento_marca_id = ce.equipamento_marca_id)
+                                          INNER JOIN vw_Equipamentos_Linhas ec ON (ec.equipamento_categoria_id=ce.equipamento_categoria_id)
+                                          INNER JOIN vw_Equipamentos_Linhas esc ON (esc.equipamento_categoria_id=ce.equipamento_sub_categoria_id)
+                                          INNER JOIN vw_Equipamentos_Marcas em ON (em.equipamento_marca_id = ce.equipamento_marca_id)
                                           WHERE a.apolice_id=" . $apolice["apolice_id"])->result_array();
 
         if (sizeof($equipamento)) {
+            $data_template['categoria'] = $equipamento[0]["categoria"];
             $data_template['equipamento'] = $equipamento[0]["equipamento"];
             $data_template['modelo']      = $equipamento[0]["modelo"];
             $data_template['marca']       = $equipamento[0]["marca"];

@@ -199,7 +199,7 @@ class Emissao extends CI_Controller {
                     if ($validaModelo) break;
 
                     foreach ($ret->campos as $campo) {
-                        if ( in_array($campo->nome_banco, ['ean', 'equipamento_id', 'equipamento_nome', 'equipamento_marca_id', 'equipamento_categoria_id']) ) {
+                        if ( in_array($campo->nome_banco, ['ean', 'equipamento_id', 'equipamento_nome', 'equipamento_marca_id', 'equipamento_sub_categoria_id', 'equipamento_categoria_id']) ) {
                             $pos = strpos($campo->validacoes, "required");
                             if ( !($pos === false) ) {
                                 $validaModelo = true;
@@ -211,27 +211,29 @@ class Emissao extends CI_Controller {
 
                 if ($validaModelo) {
                     // Caso não tenha sido informado os ID dos equipamentos
-                    if ( empty($this->campos_estrutura["equipamento_id"]) || empty($this->campos_estrutura["equipamento_marca_id"]) || empty($this->campos_estrutura["equipamento_categoria_id"]) || empty($this->campos_estrutura["ean"]) ) {
+                    if ( empty($this->campos_estrutura["equipamento_id"]) || empty($this->campos_estrutura["equipamento_marca_id"]) || empty($this->campos_estrutura["equipamento_sub_categoria_id"]) || empty($this->campos_estrutura["equipamento_categoria_id"]) || empty($this->campos_estrutura["ean"]) ) {
 
                         //Caso tenha sido passado o EAN, faz a busca do equipamento consumindo o WS com base no EAN
                         if( ! empty($parametros['ean']) ){
-                            $url = base_url() /*$this->config->item("URL_sisconnects")*/ . "api/equipamento?ean=". $parametros['ean'] . "&ret=yes" ;
+                            $url = base_url() . "api/equipamento?ean=". $parametros['ean'] . "&ret=yes" ;
                             $r = $obj->execute($url);
 
                             // Ajuste ALR
                             if(!empty($r)) {
                                 $retorno = json_decode($r,true);
-                                $arrOptions["ean"] = $retorno["ean"];  
-                                $arrOptions["equipamento_id"] = $retorno["equipamento_id"];
-                                $arrOptions["equipamento_nome"] = $parametros['modelo'];
-                                $arrOptions["equipamento_marca_id"] = $retorno["equipamento_marca_id"];
-                                $arrOptions["equipamento_categoria_id"] = $retorno["equipamento_sub_categoria_id"];
-                                $validaModelo = false ;
+                                $arrOptions["ean"]                          = $retorno["ean"];  
+                                $arrOptions["equipamento_id"]               = $retorno["equipamento_id"];
+                                $arrOptions["equipamento_nome"]             = $parametros['modelo'];
+                                $arrOptions["equipamento_marca_id"]         = $retorno["equipamento_marca_id"];
+                                $arrOptions["equipamento_sub_categoria_id"] = $retorno["equipamento_sub_categoria_id"];
+                                $arrOptions["equipamento_categoria_id"]     = $retorno["equipamento_categoria_id"];
+                                $validaModelo                               = false ;
 
-                                $this->equipamento_nome = $arrOptions["equipamento_nome"];
-                                $this->campos_estrutura["equipamento_id"] = $retorno["equipamento_id"];
-                                $this->campos_estrutura["equipamento_marca_id"] = $retorno["equipamento_marca_id"];
-                                $this->campos_estrutura["equipamento_categoria_id"] = $retorno["equipamento_categoria_id"];
+                                $this->equipamento_nome                                 = $arrOptions["equipamento_nome"];
+                                $this->campos_estrutura["equipamento_id"]               = $retorno["equipamento_id"];
+                                $this->campos_estrutura["equipamento_marca_id"]         = $retorno["equipamento_marca_id"];
+                                $this->campos_estrutura["equipamento_sub_categoria_id"] = $retorno["equipamento_sub_categoria_id"];
+                                $this->campos_estrutura["equipamento_categoria_id"]     = $retorno["equipamento_categoria_id"];
                             }
                         }
                         else{
@@ -270,9 +272,9 @@ class Emissao extends CI_Controller {
                             die(json_encode(array("status"=>false,"message"=>"Não foi possível realizar a consulta do equipamento por Marca/Modelo"),JSON_UNESCAPED_UNICODE));
                         }
                         else{
-                            $retorno = convert_objeto_to_array($r);
-                            if( empty($retorno->{"status"}) ) {
-                                $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
+                            $retorno = json_decode($r,true);
+                            if( empty($retorno["status"]) ) {
+                                $msg = ( !empty($retorno["mensagem"]) ) ? $retorno["mensagem"] : $r;
                                 die(json_encode(array("status"=>false,"message"=>$msg),JSON_UNESCAPED_UNICODE));
                             }
                             else{
@@ -280,11 +282,13 @@ class Emissao extends CI_Controller {
                                 $arrOptions["equipamento_id"] = $retorno["dados"][0]["equipamento_id"];
                                 $arrOptions["equipamento_nome"] = $parametros['modelo'];
                                 $arrOptions["equipamento_marca_id"] = $retorno["dados"][0]["equipamento_marca_id"];
-                                $arrOptions["equipamento_categoria_id"] = $retorno["dados"][0]["equipamento_sub_categoria_id"];
+                                $arrOptions["equipamento_sub_categoria_id"] = $retorno["dados"][0]["equipamento_sub_categoria_id"];
+                                $arrOptions["equipamento_categoria_id"] = $retorno["dados"][0]["equipamento_categoria_id"];
 
                                 $this->equipamento_nome = $arrOptions["equipamento_nome"] ;
                                 $this->campos_estrutura["equipamento_id"] = $retorno["dados"][0]["equipamento_id"] ;
                                 $this->campos_estrutura["equipamento_marca_id"] = $retorno["dados"][0]["equipamento_marca_id"] ;
+                                $this->campos_estrutura["equipamento_sub_categoria_id"] = $retorno["dados"][0]["equipamento_sub_categoria_id"] ;
                                 $this->campos_estrutura["equipamento_categoria_id"] = $retorno["dados"][0]["equipamento_categoria_id"] ;
                             }
                         }
@@ -326,7 +330,7 @@ class Emissao extends CI_Controller {
 
 
                 // Validar o valor passado se diferente alertar e abortar
-                $url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/cotacao/calculo?cotacao_id=".$this->cotacao_id;
+                $url = base_url() ."api/cotacao/calculo?cotacao_id=".$this->cotacao_id;
 
                 $obj = new Api();
                 $r = $obj->execute($url, 'GET');
@@ -394,7 +398,7 @@ class Emissao extends CI_Controller {
                 if($parametros->{"status"})
                 {
 
-                    $url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/pagamento/forma_pagamento_cotacao?cotacao_id={$this->cotacao_id}";
+                    $url = base_url() ."api/pagamento/forma_pagamento_cotacao?cotacao_id={$this->cotacao_id}";
                     $obj = new Api();
                     $r = $obj->execute($url, 'GET');
                     if(!empty($r))

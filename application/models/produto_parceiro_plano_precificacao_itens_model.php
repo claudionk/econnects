@@ -185,7 +185,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param int $num_passageiro
     * @return array
     */
-    public function getValoresPlano( $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_id = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
+    public function getValoresPlano( $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_sub_categoria_id = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
@@ -250,7 +250,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                 case $this->config->item("PRECO_TIPO_COBERTURA"):
 
                     $this->load->model("produto_parceiro_plano_precificacao_model", "produto_parceiro_plano_precificacao");
-                    $this->load->model("equipamento_model", "equipamento");
                     $this->load->model("cobertura_plano_model", "plano_cobertura");
                     $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
                     $arrCoberturas = $this->plano_cobertura->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)->get_all();
@@ -265,7 +264,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     $valores[$produto_parceiro_plano_id] = $valor_cobertura_plano;
                     break;
                 case $this->config->item("PRECO_TIPO_VALOR_SEGURADO"):
-                    $this->load->model('equipamento_model', 'equipamento');
                     $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
                     $valor = $this
                         ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
@@ -274,7 +272,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
                     break;
                 case $this->config->item("PRECO_POR_LINHA");
-                    $this->load->model('equipamento_model', 'equipamento');
                     $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
                     $valor = $this
                         ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
@@ -288,12 +285,11 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     break;
                 case $this->config->item("PRECO_POR_EQUIPAMENTO");
 
-                    $this->load->model('equipamento_model', 'equipamento');
                     $valor = $this
                         ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
                         ->filter_by_faixa( $valor_nota )
                         ->filter_by_tipo_equipamento("EQUIPAMENTO")
-                        ->filter_by_equipamento($equipamento_id)
+                        ->filter_by_equipamento($equipamento_sub_categoria_id)
                         ->get_all();
 
                     $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $data_nascimento);
