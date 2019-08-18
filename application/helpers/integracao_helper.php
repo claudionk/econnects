@@ -567,7 +567,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $geraDados['num_apolice']               = $dados['registro']['num_apolice'];
             $geraDados['data_adesao_cancel']        = $dados['registro']['data_adesao_cancel'];
             $geraDados['telefone']                  = $dados['registro']['telefone'];
-            $geraDados['endereco']                  = $dados['registro']['endereco'];
+            $geraDados['endereco_logradouro']       = $dados['registro']['endereco_logradouro'];
             $geraDados['sexo']                      = $dados['registro']['sexo'];
             $geraDados['cod_produto_sap']           = $dados['registro']['cod_produto_sap'];
             $geraDados['ean']                       = $dados['registro']['ean'];
@@ -576,6 +576,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $geraDados['nota_fiscal_valor_desc']    = $dados['registro']['nota_fiscal_valor_desc'];
             $geraDados['nota_fiscal_data']          = $dados['registro']['nota_fiscal_data'];
             $geraDados['premio_liquido']            = $dados['registro']['premio_bruto'];
+            $geraDados['premio_bruto']              = $dados['registro']['premio_bruto'];
             $geraDados['vigencia']                  = $dados['registro']['vigencia'];
             $geraDados['cod_vendedor']              = $dados['registro']['cod_vendedor'];
             $geraDados['cpf']                       = $dados['registro']['cpf'];
@@ -638,7 +639,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         $camposCotacao = $camposCotacao['response'];
 
         // Validar Regras
-        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, $acesso);
+        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, true, $acesso);
         // echo "<pre>";print_r($validaRegra);echo "</pre>";
 
         if (!empty($validaRegra->status)) {
@@ -714,7 +715,7 @@ if ( ! function_exists('app_get_api'))
 }
 if ( ! function_exists('app_integracao_valida_regras'))
 {
-    function app_integracao_valida_regras($dados, $camposCotacao, $acesso = null){
+    function app_integracao_valida_regras($dados, $camposCotacao, $enriqueceCPF = true, $acesso = null){
 
         $response = (object) ['status' => false, 'msg' => '', 'errors' => [], 'fields' => []];
 
@@ -753,80 +754,85 @@ if ( ! function_exists('app_integracao_valida_regras'))
 
             // Enriquecimento do CPF
             $cpf = substr($dados['cpf'], -11);
-            $enriquecido = app_get_api("enriqueceCPF/$cpf/". $dados['produto_parceiro_id'], 'GET', [], $acesso);
+            
+            if ($enriqueceCPF)
+            {
+                $enriquecido = app_get_api("enriqueceCPF/$cpf/". $dados['produto_parceiro_id'], 'GET', [], $acesso);
 
-            if (!empty($enriquecido['status'])){
-                $enriquecido = $enriquecido['response'];
+                if (!empty($enriquecido['status'])){
+                    $enriquecido = $enriquecido['response'];
 
-                $dados['nome'] = emptyor($dados['nome'], $enriquecido->nome);
-                $dados['sexo'] = emptyor($dados['sexo'], $enriquecido->sexo);
-                $dados['data_nascimento'] = emptyor($dados['data_nascimento'], $enriquecido->data_nascimento);
+                    $dados['nome'] = emptyor($dados['nome'], $enriquecido->nome);
+                    $dados['sexo'] = emptyor($dados['sexo'], $enriquecido->sexo);
+                    $dados['data_nascimento'] = emptyor($dados['data_nascimento'], $enriquecido->data_nascimento);
 
-                // Endereço
-                $ExtraEnderecos = $enriquecido->endereco;
-                if( sizeof( $ExtraEnderecos ) ) {
-                    $rank=1000;
-                    $index=0;
+                    // Endereço
+                    $ExtraEnderecos = $enriquecido->endereco;
+                    if( sizeof( $ExtraEnderecos ) ) {
+                        $rank=1000;
+                        $index=0;
 
-                    foreach ($ExtraEnderecos as $end) {
-                        $rank = ($end->ranking <= $rank) ? $index : $rank;
-                        $index++;
-                    }
-
-                    $dados['endereco_logradouro'] = emptyor($dados['endereco_logradouro'], $ExtraEnderecos[$rank]->{"endereco"});
-                    $dados['endereco_numero'] = emptyor($dados['endereco_numero'], $ExtraEnderecos[$rank]->{"endereco_numero"});
-                    $dados['complemento'] = emptyor($dados['complemento'], $ExtraEnderecos[$rank]->{"endereco_complemento"});
-                    $dados['endereco_bairro'] = emptyor($dados['endereco_bairro'], $ExtraEnderecos[$rank]->{"endereco_bairro"});
-                    $dados['endereco_cidade'] = emptyor($dados['endereco_cidade'], $ExtraEnderecos[$rank]->{"endereco_cidade"});
-                    $dados['endereco_estado'] = emptyor($dados['endereco_estado'], $ExtraEnderecos[$rank]->{"endereco_uf"});
-                    $dados['endereco_cep'] = emptyor($dados['endereco_cep'], str_replace("-", "", $ExtraEnderecos[$rank]->{"endereco_cep"}));
-                    $dados['pais'] = "BRASIL";
-                }
-
-                $ExtraContatos = $enriquecido->contato;
-                if( sizeof( $ExtraContatos ) ) {
-                    $rankTel=$rankCel=$rankEmail=1000;
-                    $index=0;
-
-                    // Valida o ranking
-                    foreach ($ExtraContatos as $cont) {
-                        switch ($cont->contato_tipo_id) {
-                            // Telefone Residencial
-                            case 3:
-                                $rankTel = ($cont->ranking <= $rankTel) ? $index : $rankTel;
-                                break;
-                            
-                            // Celular
-                            case 2:
-                                $rankCel = ($cont->ranking <= $rankCel) ? $index : $rankCel;
-                                break;
-
-                            // Email
-                            case 1:
-                                $rankEmail = ($cont->ranking <= $rankEmail) ? $index : $rankEmail;
-                                break;
+                        foreach ($ExtraEnderecos as $end) {
+                            $rank = ($end->ranking <= $rank) ? $index : $rank;
+                            $index++;
                         }
-                        $index++;
+
+                        $dados['endereco_logradouro'] = emptyor($dados['endereco_logradouro'], $ExtraEnderecos[$rank]->{"endereco"});
+                        $dados['endereco_numero'] = emptyor($dados['endereco_numero'], $ExtraEnderecos[$rank]->{"endereco_numero"});
+                        $dados['complemento'] = emptyor($dados['complemento'], $ExtraEnderecos[$rank]->{"endereco_complemento"});
+                        $dados['endereco_bairro'] = emptyor($dados['endereco_bairro'], $ExtraEnderecos[$rank]->{"endereco_bairro"});
+                        $dados['endereco_cidade'] = emptyor($dados['endereco_cidade'], $ExtraEnderecos[$rank]->{"endereco_cidade"});
+                        $dados['endereco_estado'] = emptyor($dados['endereco_estado'], $ExtraEnderecos[$rank]->{"endereco_uf"});
+                        $dados['endereco_cep'] = emptyor($dados['endereco_cep'], str_replace("-", "", $ExtraEnderecos[$rank]->{"endereco_cep"}));
+                        $dados['pais'] = "BRASIL";
                     }
 
-                    // Telefone Residencial
-                    if ($rankTel != 1000) {
-                        $dados['ddd_residencial'] = left($ExtraContatos[$rankTel]->contato,2);
-                        $dados['telefone_residencial'] = trim(right($ExtraContatos[$rankTel]->contato, strlen($ExtraContatos[$rankTel]->contato)-2));
-                        $dados['telefone'] = trim($ExtraContatos[$rankTel]->contato);
-                    }
+                    $ExtraContatos = $enriquecido->contato;
+                    if( sizeof( $ExtraContatos ) ) {
+                        $rankTel=$rankCel=$rankEmail=1000;
+                        $index=0;
 
-                    // Celular
-                    if ($rankCel != 1000) {
-                        $dados['ddd_celular'] = left($ExtraContatos[$rankCel]->contato,2);
-                        $dados['telefone_celular'] = trim(right($ExtraContatos[$rankCel]->contato, strlen($ExtraContatos[$rankCel]->contato)-2));
-                    }
+                        // Valida o ranking
+                        foreach ($ExtraContatos as $cont) {
+                            switch ($cont->contato_tipo_id) {
+                                // Telefone Residencial
+                                case 3:
+                                    $rankTel = ($cont->ranking <= $rankTel) ? $index : $rankTel;
+                                    break;
+                                
+                                // Celular
+                                case 2:
+                                    $rankCel = ($cont->ranking <= $rankCel) ? $index : $rankCel;
+                                    break;
 
-                    // Email
-                    if ($rankEmail != 1000)
-                        $dados['email'] = $ExtraContatos[$rankEmail]->contato;
-                }
-            }
+                                // Email
+                                case 1:
+                                    $rankEmail = ($cont->ranking <= $rankEmail) ? $index : $rankEmail;
+                                    break;
+                            }
+                            $index++;
+                        }
+
+                        // Telefone Residencial
+                        if ($rankTel != 1000) {
+                            $dados['ddd_residencial'] = left($ExtraContatos[$rankTel]->contato,2);
+                            $dados['telefone_residencial'] = trim(right($ExtraContatos[$rankTel]->contato, strlen($ExtraContatos[$rankTel]->contato)-2));
+                            $dados['telefone'] = trim($ExtraContatos[$rankTel]->contato);
+                        }
+
+                        // Celular
+                        if ($rankCel != 1000) {
+                            $dados['ddd_celular'] = left($ExtraContatos[$rankCel]->contato,2);
+                            $dados['telefone_celular'] = trim(right($ExtraContatos[$rankCel]->contato, strlen($ExtraContatos[$rankCel]->contato)-2));
+                        }
+
+                        // Email
+                        if ($rankEmail != 1000)
+                            $dados['email'] = $ExtraContatos[$rankEmail]->contato;
+                    }
+                } // if (!empty($enriquecido['status']))
+
+            } // if ($enriqueceCPF)
 
             // Regras DE/PARA
             $dados['cnpj_cpf'] = $cpf;
@@ -1313,6 +1319,77 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
         $CI =& get_instance();
         $CI->session->set_userdata("operacao", "novomundo");
 
+        if (!empty($formato)) {
+
+            $geraDados['tipo_produto']              = $dados['registro']['tipo_produto'];
+            $geraDados['tipo_operacao']             = $dados['registro']['tipo_operacao'];
+            $geraDados['ramo']                      = $dados['registro']['ramo'];
+            $geraDados['agrupador']                 = $dados['registro']['agrupador'];
+            $geraDados['cod_loja']                  = $dados['registro']['cod_loja'];
+            $geraDados['num_apolice']               = $dados['registro']['num_apolice'];
+            $geraDados['nota_fiscal_numero']        = $dados['registro']['nota_fiscal_numero'];
+            $geraDados['cod_vendedor']              = $dados['registro']['cod_vendedor'];
+            $geraDados['cpf_vendedor']              = $dados['registro']['cpf_vendedor'];
+            $geraDados['nome_vendedor']             = $dados['registro']['nome_vendedor'];
+            $geraDados['nome']                      = $dados['registro']['nome'];
+            $geraDados['sexo']                      = 'F';
+            $geraDados['ddd_residencial']           = $dados['registro']['ddd_residencial'];
+            $geraDados['telefone']                  = $dados['registro']['telefone'];
+            $geraDados['ddd_comercial']             = $dados['registro']['ddd_comercial'];
+            $geraDados['telefone_comercial']        = $dados['registro']['telefone_comercial'];
+            $geraDados['ddd_celular']               = $dados['registro']['ddd_celular'];
+            $geraDados['telefone_celular']          = $dados['registro']['telefone_celular'];
+            $geraDados['endereco_logradouro']       = $dados['registro']['endereco_logradouro'];
+            $geraDados['endereco_numero']           = $dados['registro']['endereco_numero'];
+            $geraDados['complemento']               = $dados['registro']['complemento'];
+            $geraDados['endereco_bairro']           = $dados['registro']['endereco_bairro'];
+            $geraDados['endereco_cidade']           = $dados['registro']['endereco_cidade'];
+            $geraDados['endereco_estado']           = $dados['registro']['endereco_estado'];
+            $geraDados['endereco_cep']              = $dados['registro']['endereco_cep'];
+            $geraDados['email']                     = $dados['registro']['email'];
+            $geraDados['tipo_pessoa']               = $dados['registro']['tipo_pessoa'];
+            $geraDados['cpf']                       = $dados['registro']['cpf'];
+            $geraDados['outro_doc']                 = $dados['registro']['outro_doc'];
+            $geraDados['tipo_doc']                  = $dados['registro']['tipo_doc'];
+            $geraDados['outro_doc']                 = $dados['registro']['outro_doc'];
+            $geraDados['premio_liquido']            = $dados['registro']['premio_liquido'];
+            $geraDados['premio_bruto']              = $dados['registro']['premio_bruto'];
+            $geraDados['valor_iof']                 = $dados['registro']['valor_iof'];
+            $geraDados['valor_custo']               = $dados['registro']['valor_custo'];
+            $geraDados['num_parcela']               = 1;
+            $geraDados['vigencia']                  = $dados['registro']['vigencia'];
+            $geraDados['garantia_fabricante']       = $dados['registro']['garantia_fabricante'];
+            $geraDados['marca']                     = $dados['registro']['marca'];
+            $geraDados['modelo']                    = $dados['registro']['modelo'];
+            $geraDados['cod_produto_sap']           = $dados['registro']['cod_produto_sap'];
+            $geraDados['equipamento_nome']          = $dados['registro']['equipamento_nome'];
+            $geraDados['num_serire']                = $dados['registro']['num_serire'];
+            $geraDados['nota_fiscal_data']          = $dados['registro']['nota_fiscal_data'];
+            $geraDados['data_adesao_cancel']        = $dados['registro']['data_adesao_cancel'];
+            $geraDados['data_inicio_vigencia']      = $dados['registro']['data_inicio_vigencia'];
+            $geraDados['data_fim_vigencia']         = $dados['registro']['data_fim_vigencia'];
+            $geraDados['ean']                       = $dados['registro']['ean'];
+            $geraDados['nota_fiscal_valor']         = $dados['registro']['nota_fiscal_valor'];
+            $geraDados['cod_cancelamento']          = $dados['registro']['cod_cancelamento'];
+            $geraDados['data_cancelamento']         = $dados['registro']['data_cancelamento'];
+            $geraDados['status_carga']              = $dados['registro']['status_carga'];
+            $geraDados['cod_erro']                  = $dados['registro']['cod_erro'];
+            $geraDados['dado_financ']               = $dados['registro']['dado_financ'];
+            $geraDados['id_garantia_fornecedor']    = $dados['registro']['id_garantia_fornecedor'];
+            $geraDados['id_garantia_loja']          = $dados['registro']['id_garantia_loja'];
+            $geraDados['num_sorte']                 = $dados['registro']['num_sorte'];
+            $geraDados['num_serie_cap']             = $dados['registro']['num_serie_cap'];
+            $geraDados['canal_venda']               = $dados['registro']['canal_venda'];
+            $geraDados['valor_prolabore']           = $dados['registro']['valor_prolabore'];
+            $geraDados['perc_prolabore']            = $dados['registro']['perc_prolabore'];
+            $geraDados['produto_seg']               = $dados['registro']['produto_seg'];
+            $geraDados['cod_faixa_preco']           = $dados['registro']['cod_faixa_preco'];
+            $geraDados['integracao_log_detalhe_id'] = $formato;
+
+            $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
+            $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
+        }
+
         // definir operação pelo nome do arquivo ou por integracao?
         $acesso = app_integracao_novo_mundo_define_operacao($dados['log']['nome_arquivo']);
         // print_r($acesso);
@@ -1349,7 +1426,7 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
         $camposCotacao = $camposCotacao['response'];
 
         // Validar Regras
-        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, $acesso);
+        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, false, $acesso);
         // echo "<pre>";print_r($validaRegra);echo "</pre>";die();
 
         if (!empty($validaRegra->status)) {
