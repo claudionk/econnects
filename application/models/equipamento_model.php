@@ -89,7 +89,8 @@ Class Equipamento_Model extends MY_Model
     {
         $where='';
         if (!empty($marca)) {
-            $where .= " AND em.nome like '%". str_replace("'", "\'", $marca) ."%' ";
+            $marca = $this->trata_string_match($marca);
+            $where .= " AND MATCH(em.nome) AGAINST('{$marca}' IN BOOLEAN MODE) > 0 ";
         }
 
         $equipamento_tratado = $this->trata_string_match($equipamento);
