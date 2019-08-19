@@ -1363,7 +1363,7 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
             $geraDados['modelo']                    = $dados['registro']['modelo'];
             $geraDados['cod_produto_sap']           = $dados['registro']['cod_produto_sap'];
             $geraDados['equipamento_nome']          = $dados['registro']['equipamento_nome'];
-            $geraDados['num_serire']                = $dados['registro']['num_serire'];
+            $geraDados['num_serie']                 = $dados['registro']['num_serie'];
             $geraDados['nota_fiscal_data']          = $dados['registro']['nota_fiscal_data'];
             $geraDados['data_adesao_cancel']        = $dados['registro']['data_adesao_cancel'];
             $geraDados['data_inicio_vigencia']      = $dados['registro']['data_inicio_vigencia'];
