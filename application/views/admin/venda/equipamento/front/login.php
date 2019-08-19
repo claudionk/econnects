@@ -2,7 +2,7 @@
 <?php $this->load->view('admin/venda/equipamento/front/step', array('step' => 3, 'produto_parceiro_id' =>  issetor($produto_parceiro_id), 'title' => 'LOGIN')); ?>
 
 <div class="col-md-12 col-sm-12 col-xs-12 icon-login">
-    <i class="fa fa-lock color-primary border-primary" aria-hidden="true"></i>
+    <i class="fa fa-lock text-primary-dark border-primary" aria-hidden="true"></i>
 </div>
 
 <form method="post" id="formLogin" class="form-login">

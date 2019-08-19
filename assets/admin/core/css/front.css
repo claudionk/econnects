@@ -56,17 +56,11 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
 .color-tertiary{
     color: #68B2C6 !important;
 }
-.background-primary{
-    background-color: #006799 !important;
-}
 .background-secondary{
     background-color: #3E3E3F !important;
 }
 .background-tertiary{
     background-color: #68B2C6 !important;
-}
-.border-primary{
-    border-color: #006799 !important;
 }
 .border-secondary{
     border-color: #3E3E3F !important;
