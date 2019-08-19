@@ -1825,7 +1825,7 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
         if (!empty($formato)) {
 
             $geraDados['tipo_produto']              = $dados['registro']['tipo_produto'];
-            $geraDados['tipo_operacao']             = $dados['registro']['tipo_operacao'];
+            $geraDados['tipo_operacao']             = $dados['registro']['acao'];
             $geraDados['ramo']                      = $dados['registro']['ramo'];
             $geraDados['agrupador']                 = $dados['registro']['agrupador'];
             $geraDados['cod_loja']                  = $dados['registro']['cod_loja'];
@@ -1876,17 +1876,19 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
             $geraDados['cod_cancelamento']          = $dados['registro']['cod_cancelamento'];
             $geraDados['data_cancelamento']         = $dados['registro']['data_cancelamento'];
             $geraDados['status_carga']              = $dados['registro']['status_carga'];
-            $geraDados['cod_erro']                  = $dados['registro']['cod_erro'];
+            $geraDados['status_reenvio']            = $dados['registro']['status_reenvio'];
+            $geraDados['codigo_erro']               = $dados['registro']['codigo_erro'];
             $geraDados['dado_financ']               = $dados['registro']['dado_financ'];
             $geraDados['id_garantia_fornecedor']    = $dados['registro']['id_garantia_fornecedor'];
             $geraDados['id_garantia_loja']          = $dados['registro']['id_garantia_loja'];
             $geraDados['num_sorte']                 = $dados['registro']['num_sorte'];
             $geraDados['num_serie_cap']             = $dados['registro']['num_serie_cap'];
             $geraDados['canal_venda']               = $dados['registro']['canal_venda'];
-            $geraDados['valor_prolabore']           = $dados['registro']['valor_prolabore'];
-            $geraDados['perc_prolabore']            = $dados['registro']['perc_prolabore'];
+            $geraDados['valor_prolabore']           = $dados['registro']['comissao_valor'];
+            $geraDados['perc_prolabore']            = $dados['registro']['comissao_premio'];
+            $geraDados['dias_canc_apos_venda']      = $dados['registro']['dias_canc_apos_venda'];
             $geraDados['produto_seg']               = $dados['registro']['produto_seg'];
-            $geraDados['cod_faixa_preco']           = $dados['registro']['cod_faixa_preco'];
+            $geraDados['cod_faixa_preco']           = $dados['registro']['equipamento_de_para'];
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
@@ -1909,6 +1911,7 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
 
         $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
         $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
+        $dados['registro']['data_adesao'] = $dados['registro']['data_adesao_cancel'];
         $eanErro = true;
         $eanErroMsg = "";
 
@@ -2152,7 +2155,7 @@ if ( ! function_exists('app_integracao_inicio')) {
             if ($eanErro){
                 $inputField = [
                     'modelo' => $dados['registro']['equipamento_nome'],
-                    'marca' => $dados['registro']['equipamento_marca'],
+                    'marca' => $dados['registro']['marca'],
                     'quantidade' => 1,
                     'emailAPI' => app_get_userdata("email"),
                 ];
