@@ -106,6 +106,18 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             'rules'  => '',
             'groups' => 'default',
         ),
+        array(
+            'field'  => 'idade_minima',
+            'label'  => 'Idade Mínima',
+            'rules'  => '',
+            'groups' => 'default',
+        ),
+        array(
+            'field'  => 'idade_maxima',
+            'label'  => 'Idade Máxima',
+            'rules'  => '',
+            'groups' => 'default',
+        ),
     );
 
     /**

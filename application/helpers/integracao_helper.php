@@ -852,6 +852,12 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $geraDados['nota_fiscal_numero']        = $dados['registro']['nota_fiscal_numero'];
             $geraDados['num_parcela']               = $dados['registro']['num_parcela'];
             $geraDados['nota_fiscal_valor']         = $dados['registro']['nota_fiscal_valor'];
+
+            // Emissão
+            if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX','XD']) ) {
+                $geraDados['data_cancelamento'] = $dados['registro']['data_adesao_cancel'];
+            }
+
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
@@ -865,12 +871,17 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         echo "****************** CPF: $cpf - {$dados['registro']['tipo_transacao']}<br>";
 
         // Emissão
-        if ( in_array($dados['registro']['tipo_transacao'], ['NS','XP']) ) {
-            $dados['registro']['acao'] = '1';
+        if ( in_array($dados['registro']['tipo_transacao'], ['NS','XP']) )
+        {
+            $dados['registro']['acao']        = '1';
+            $dados['registro']['data_adesao'] = $dados['registro']['data_adesao_cancel'];
         // Cancelamento
-        } else if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX','XD']) ) {
-            $dados['registro']['acao'] = '9';
+        } else if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX','XD']) )
+        {
+            $dados['registro']['acao']              = '9';
+            $dados['registro']['data_cancelamento'] = $dados['registro']['data_adesao_cancel'];
         } else {
+
             // XI = Cancelamento por Inadimplência
             switch ($dados['registro']['tipo_transacao']) {
                 case 'XI':
@@ -882,12 +893,12 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             }
             $response->msg[] = ['id' => $integracao_log_detalhe_erro_id, 'msg' => "Registro recebido como {$dados['registro']['tipo_transacao']}", 'slug' => "ignorado"];
             return $response;
+
         }
 
         $acesso = app_integracao_generali_dados();
         $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
         $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
-        $dados['registro']['data_adesao'] = $dados['registro']['data_adesao_cancel'];
         $eanErro = true;
         $eanErroMsg = "";
 
@@ -1239,7 +1250,8 @@ if ( ! function_exists('app_integracao_valida_regras'))
 
             // Enriquecimento do CPF
             $cpf = substr($dados['cpf'], -11);
-            
+            $dados['cnpj_cpf'] = $cpf;
+
             if ($enriqueceCPF)
             {
                 $enriquecido = app_get_api("enriqueceCPF/$cpf/". $dados['produto_parceiro_id'], 'GET', [], $acesso);
@@ -1317,39 +1329,69 @@ if ( ! function_exists('app_integracao_valida_regras'))
                     }
                 } // if (!empty($enriquecido['status']))
 
+                // Regras DE/PARA
+                if (empty($dados['nome']))
+                    $dados['nome'] = "NOME SOBRENOME";
+
+                if (empty($dados['endereco_estado']))
+                    $dados['endereco_estado'] = "SP";
+
+                if (empty($dados['endereco_cidade']))
+                    $dados['endereco_cidade'] = "BARUERI";
+
+                if (empty($dados['endereco_bairro']))
+                    $dados['endereco_bairro'] = $dados['endereco_cidade'];
+
+                if (empty($dados['endereco_logradouro']) || strlen($dados['endereco_logradouro']) <= 3)
+                    $dados['endereco_logradouro'] = "ALAMEDA RIO NEGRO";
+
+                if (empty($dados['endereco_numero']))
+                    $dados['endereco_numero'] = '0';
+
+                if (empty($dados['endereco_cep']) || $dados['endereco_cep'] == "99999999")
+                    $dados['endereco_cep'] = '06454000';
+
+                if (empty($dados['sexo']))
+                    $dados['sexo'] = 'M';
+
+                if (empty($dados['data_nascimento'])) {
+                    $dados['data_nascimento'] = '2000-01-01';
+                } elseif (!app_validate_data_americana($dados['data_nascimento'])) {
+                    $dados['data_nascimento'] = '2000-01-01';
+                }
+
             } // if ($enriqueceCPF)
 
-            // Regras DE/PARA
-            $dados['cnpj_cpf'] = $cpf;
+            if (empty($dados['nome'])) {
+                $errors[] = ['id' => 20, 'msg' => "Nome inválido/Não informado", 'slug' => "nome"];
+            }
 
-            if (empty($dados['nome']))
-                $dados['nome'] = "NOME SOBRENOME";
+            if (empty($dados['endereco_estado'])) {
+                $errors[] = ['id' => 21, 'msg' => "UF inválido.", 'slug' => "uf"];
+            }
 
-            if (empty($dados['endereco_estado']))
-                $dados['endereco_estado'] = "SP";
+            if (empty($dados['endereco_bairro'])) {
+                $errors[] = ['id' => 22, 'msg' => "Bairro inválido.", 'slug' => "bairro"];
+            }
 
-            if (empty($dados['endereco_cidade']))
-                $dados['endereco_cidade'] = "BARUERI";
+            if (empty($dados['endereco_cidade'])) {
+                $errors[] = ['id' => 23, 'msg' => "Cidade inválida.", 'slug' => "cidade"];
+            }
 
-            if (empty($dados['endereco_bairro']))
-                $dados['endereco_bairro'] = $dados['endereco_cidade'];
+            if (empty($dados['endereco_numero'])) {
+                $errors[] = ['id' => 24, 'msg' => "Nº logradouro inválido.", 'slug' => "numero"];
+            }
 
-            if (empty($dados['endereco_logradouro']) || strlen($dados['endereco_logradouro']) <= 3)
-                $dados['endereco_logradouro'] = "ALAMEDA RIO NEGRO";
+            if (empty($dados['endereco_logradouro']) || strlen($dados['endereco_logradouro']) <= 3) {
+                $errors[] = ['id' => 25, 'msg' => "Logradouro inválido.", 'slug' => "logradouro"];
+            }
 
-            if (empty($dados['endereco_numero']))
-                $dados['endereco_numero'] = '0';
+            if (empty($dados['endereco_cep']) || $dados['endereco_cep'] == "99999999") {
+                $errors[] = ['id' => 26, 'msg' => "CEP inválido.", 'slug' => "logradouro"];
+            }
 
-            if (empty($dados['endereco_cep']) || $dados['endereco_cep'] == "99999999")
-                $dados['endereco_cep'] = '06454000';
-
-            if (empty($dados['sexo']))
-                $dados['sexo'] = 'M';
-
-            if (empty($dados['data_nascimento'])) {
-                $dados['data_nascimento'] = '2000-01-01';
-            } elseif (!app_validate_data_americana($dados['data_nascimento'])) {
-                $dados['data_nascimento'] = '2000-01-01';
+            if (!empty($dados['email']) && !app_valida_email($dados['email'])) {
+                $errors[] = ['id' => 40, 'msg' => "E-mail inválido", 'slug' => "email"];
             }
 
             // IDADE - Pessoa física maior de 18 anos
@@ -1897,10 +1939,9 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
 
         // definir operação pelo nome do arquivo ou por integracao?
         $acesso = app_integracao_novo_mundo_define_operacao($dados['log']['nome_arquivo']);
-        // print_r($acesso);
         if ( empty($acesso->status) ) {
             $response->status = 2;
-            $response->msg[] = ['id' => 19, 'msg' => $acesso->message, 'slug' => "processamento"];
+            $response->msg[] = $acesso->msg;
             return $response;
         }
 
@@ -1970,14 +2011,14 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
          * data - Data da geração do arquivo no formato YYYMMDD
          * ext - Extensão (REM = Remessa, RET = Retorno)
         */
-        $result = (object) ['status' => false, 'message' => 'Arquivo Invalido'];
+        $result = (object) ['status' => false, 'msg' => []];
 
         if (empty($nome_arquivo)) {
             return $result;
         }
 
         if ( strlen($nome_arquivo) <> 27) {
-            $result->message = "Nome do arquivo deve possuir 27 caracteres.";
+            $result->msg = ['id' => -1, 'msg' => "Nome do arquivo deve possuir 27 caracteres.", 'slug' => "nome_arquivo"];
             return $result;
         }
 
@@ -2024,7 +2065,7 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                         break;*/
 
                     default:
-                        $result->message = "Produto ({$result->produto}) não configurado";
+                        $result->msg = ['id' => 39, 'msg' => "Produto ({$result->produto}) não configurado", 'slug' => "produto"];
                         return $result;
                         break;
                 }
@@ -2066,7 +2107,7 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                         break;*/
 
                     default:
-                        $result->message = "Produto ({$result->produto}) não configurado";
+                        $result->msg = ['id' => 39, 'msg' => "Produto ({$result->produto}) não configurado", 'slug' => "produto"];
                         return $result;
                         break;
                 }
@@ -2074,7 +2115,7 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                 break;
 
             default:
-                $result->message = "Operação ({$result->operacao}) não configurada";
+                $result->msg = ['id' => -1, 'msg' => "Operação ({$result->operacao}) não configurada", 'slug' => "operacao"];
                 return $result;
                 break;
         }
@@ -2088,7 +2129,6 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
         ]);
 
         $result->apikey = $acesso->apikey;
-        $result->message = "OK";
         $result->status = true;
         return $result;
     }
@@ -2102,7 +2142,7 @@ if ( ! function_exists('app_integracao_inicio')) {
         $reg = $dados['registro'];
 
         if (empty($num_apolice)){
-            $response->msg[] = ['id' => 8, 'msg' => "Apólice não recebida no arquivo", 'slug' => "apolice"];
+            $response->msg[] = ['id' => 27, 'msg' => "Apólice não recebida no arquivo", 'slug' => "apolice"];
             return $response;
         }
 
@@ -2189,10 +2229,16 @@ if ( ! function_exists('app_integracao_inicio')) {
         // Cancelamento
         } else if ( $reg['acao'] = '9' ) {
 
+            if ( empty($reg['data_cancelamento']) && !app_validate_data_americana($dados['data_cancelamento']) ) {
+                $response->msg[] = ['id' => 42, 'msg' => "Data de Cancelamento inválida [{$dados['data_cancelamento']}]", 'slug' => "cancelamento"];
+                return $response;
+            }
+
             if (empty($apolice)) {
                 $response->msg[] = ['id' => 8, 'msg' => "Apólice não encontrada [{$num_apolice}]", 'slug' => "cancelamento"];
                 return $response;
             } else {
+
                 $apolice = $apolice[0];
                 if ($apolice['apolice_status_id'] != 1) {
                     $response->status = 2;

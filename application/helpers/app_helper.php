@@ -451,6 +451,11 @@ function app_cnpj_to_mask($cpf)
     return $string;
 }
 
+function app_valida_email($str)
+{
+    return ( ! preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $str)) ? FALSE : TRUE;
+}
+
 function app_verifica_cpf_cnpj ($cpf_cnpj) {
     // Verifica CPF
     if ( strlen($cpf_cnpj ) === 11 ) {
