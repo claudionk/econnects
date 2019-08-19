@@ -1339,7 +1339,7 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
             $geraDados['telefone_comercial']        = $dados['registro']['telefone_comercial'];
             $geraDados['ddd_celular']               = $dados['registro']['ddd_celular'];
             $geraDados['telefone_celular']          = $dados['registro']['telefone_celular'];
-            $geraDados['endereco_logradouro']       = $dados['registro']['endereco_logradouro'];
+            $geraDados['endereco']                  = $dados['registro']['endereco_logradouro'];
             $geraDados['endereco_numero']           = $dados['registro']['endereco_numero'];
             $geraDados['complemento']               = $dados['registro']['complemento'];
             $geraDados['endereco_bairro']           = $dados['registro']['endereco_bairro'];
