@@ -715,7 +715,7 @@ Class Integracao_Model extends MY_Model
             if ($lay['multiplo'] == 0) {
                 $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
                 $layout_m = [];
-                $line = $this->processLine($lay['multiplo'], $lay['dados'], $registros, $integracao_log);
+                $line = $this->processLine($lay['multiplo'], $lay['dados'], !empty($registros) ? $registros[0] : [], null);
                 if (!empty($line)) $linhas[] = $line;
             } else {
                 $layout_m[] = $lay;
@@ -993,8 +993,6 @@ Class Integracao_Model extends MY_Model
         $v = 0;
 
         foreach ($layout as $ind => $item) {
-
-            
 
             $campo = null;
             $pre_result = '';
