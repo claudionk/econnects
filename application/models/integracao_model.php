@@ -831,7 +831,12 @@ Class Integracao_Model extends MY_Model
         $id_log = 0;
         $num_linha = 0;
         foreach ($detail as  $rows) {
+
+            // add o header em cada linha
+            $rows = array_merge($rows, $header);
+            $rows = array_merge($rows, $trailler);
             $data_row = $ids = array();
+
             foreach ($rows as $index => $row) {
                 $row['valor_anterior'] = $row['valor'];
 
