@@ -9,6 +9,8 @@ class Admin_Controller extends MY_Controller
     protected $_theme_logo = '';
     protected $_theme_nome = 'Connects Insurance';
     protected $layout      = "base";
+    protected $whatsapp    = '';
+    protected $whatsapp_msg    = '';
 
     protected $controller_name;
     protected $controller_uri;
@@ -145,9 +147,14 @@ class Admin_Controller extends MY_Controller
         $this->_theme      = (!empty($parceiro['theme'])) ? $parceiro['theme'] : 'theme-1';
         $this->_theme_logo = (!empty($parceiro['logo'])) ? app_assets_url("upload/parceiros/{$parceiro['logo']}", 'admin') : app_assets_url('template/img/logo-connects.png', 'admin');
         $this->_theme_nome = (!empty($parceiro['apelido'])) ? $parceiro['apelido'] : $this->_theme_nome;
+        $this->whatsapp    = (!empty($parceiro['whatsapp_num'])) ? $parceiro['whatsapp_num'] : '';
+        $this->whatsapp_msg= (!empty($parceiro['whatsapp_msg'])) ? $parceiro['whatsapp_msg'] : '';
         $this->template->set('theme', $this->_theme);
         $this->template->set('theme_logo', $this->_theme_logo);
         $this->template->set('title', $this->_theme_nome);
+        $this->template->set('whatsapp', $this->whatsapp);
+        $this->template->set('whatsapp_msg', $this->whatsapp_msg);
+
     }
 
     public function venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id = 0, $conclui_em_tempo_real = true, $getUrl = '')

@@ -320,6 +320,29 @@ if($_POST)
                                                     </div>
 
                                                 </div>
+
+                                                 <div class="col-md-6">
+                                                    <div class="panel panel-default">
+                                                        <div class="panel-heading">
+                                                            <h3 class="panel-title">WhatsApp</h3>
+                                                        </div>
+                                                        <div class="panel-body">
+                                                            <?php $field_name = 'whatsapp_num';?>
+                                                            <div class="form-group">
+                                                                <label class="col-md-3 control-label" for="<?php echo $field_name;?>">Número:</label>
+                                                                <div class="col-md-9"><input class="form-control inputmask-celular" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                            </div>
+
+                                                            <?php $field_name = 'whatsapp_msg';?>
+                                                            <div class="form-group">
+                                                                <label class="col-md-3 control-label" for="<?php echo $field_name;?>">Mensagem Padrão:</label>
+                                                                <div class="col-md-9"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+
                                                 <div class="row"></div>
                                                 <div class="col-md-12">
                                                     <div class="panel panel-default">

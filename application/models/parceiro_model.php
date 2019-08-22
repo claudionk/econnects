@@ -117,6 +117,18 @@ Class Parceiro_Model extends MY_Model
             'groups' => 'default, add, edit'
         ),
         array(
+            'field' => 'whatsapp_num',
+            'label' => 'Número',
+            'rules' => '',
+            'groups' => 'default, add, edit'
+        ),
+        array(
+            'field' => 'whatsapp_msg',
+            'label' => 'Mensagem Padrão',
+            'rules' => '',
+            'groups' => 'default, add, edit'
+        ),
+        array(
             'field' => 'parceiro_tipo_id',
             'label' => 'Tipo',
             'rules' => 'required',
@@ -165,6 +177,10 @@ Class Parceiro_Model extends MY_Model
             'extranet_url' => $this->input->post('extranet_url'),
             'extranet_codigo_acesso' => $this->input->post('extranet_codigo_acesso'),
             'extranet_senha' => $this->input->post('extranet_senha'),
+
+             //WhatsApp
+            'whatsapp_msg' => $this->input->post('whatsapp_msg'),
+            'whatsapp_num' => app_clear_number($this->input->post('whatsapp_num')),
 
             //Termo Aceite Usuário
             'termo_aceite_usuario' => $this->input->post('termo_aceite_usuario'),
