@@ -894,6 +894,10 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $errors[] = ['id' => 20, 'msg' => "Nome inválido/Não informado", 'slug' => "nome"];
             }
 
+            if (empty($dados['sexo'])) {
+                $errors[] = ['id' => 57, 'msg' => "Sexo inválido/não informado", 'slug' => "sexo"];
+            }
+
             if (empty($dados['endereco_estado'])) {
                 $errors[] = ['id' => 21, 'msg' => "UF inválido.", 'slug' => "uf"];
             }
@@ -1464,9 +1468,10 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
         $cpf            = $reg['cpf'];
         $ean            = $reg['ean'];
 
-        $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
+        $dados['registro']['produto_parceiro_id']       = $acesso->produto_parceiro_id;
         $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
-        $dados['registro']['data_adesao'] = $dados['registro']['data_adesao_cancel'];
+        $dados['registro']['data_adesao']               = $dados['registro']['data_adesao_cancel'];
+        $dados['registro']['sexo']                      = 'F';
         $eanErro = true;
         $eanErroMsg = "";
 
