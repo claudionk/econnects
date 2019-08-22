@@ -723,7 +723,7 @@ Class Integracao_Model extends MY_Model
             if ($lay['multiplo'] == 0) {
                 $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
                 $layout_m = [];
-                $line = $this->processLine($lay['multiplo'], $lay['dados'], $registros, $integracao_log);
+                $line = $this->processLine($lay['multiplo'], $lay['dados'], !empty($registros) ? $registros[0] : [], null);
                 if (!empty($line)) $linhas[] = $line;
             } else {
                 $layout_m[] = $lay;
@@ -878,8 +878,11 @@ Class Integracao_Model extends MY_Model
         $id_log = 0;
         $num_linha = 0;
         foreach ($detail as  $rows) {
-            $data_row = $ids = array();
 
+            // add o header em cada linha
+            $rows = array_merge($rows, $header);
+            $rows = array_merge($rows, $trailler);
+            $data_row = $ids = array();
 
             foreach ($rows as $index => $row) {
                 $row['valor_anterior'] = $row['valor'];
@@ -1041,8 +1044,6 @@ Class Integracao_Model extends MY_Model
         $v = 0;
 
         foreach ($layout as $ind => $item) {
-
-            
 
             $campo = null;
             $pre_result = '';

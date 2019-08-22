@@ -504,6 +504,19 @@ if ( ! function_exists('app_integracao_format_file_name_generali_conciliacao')) 
     }
 
 }
+if ( ! function_exists('app_integracao_format_file_name_novo_mundo')) {
+
+    function app_integracao_format_file_name_novo_mundo($formato, $dados = array())
+    {
+        if ( empty($dados['registro'][0]['nome_arquivo']) ) {
+            return '';
+        }
+
+        $file = str_replace(".REM", ".RET", $dados['registro'][0]['nome_arquivo']);
+        return  $file;
+    }
+
+}
 if ( ! function_exists('app_integracao_sequencia_mapfre_rf')) {
 
     function app_integracao_sequencia_mapfre_rf($formato, $dados = array())
@@ -1931,6 +1944,10 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
             $geraDados['dias_canc_apos_venda']      = $dados['registro']['dias_canc_apos_venda'];
             $geraDados['produto_seg']               = $dados['registro']['produto_seg'];
             $geraDados['cod_faixa_preco']           = $dados['registro']['equipamento_de_para'];
+            $geraDados['numero_seq_lote']           = $dados['registro']['numero_seq_lote'];
+            $geraDados['arquivo_data']              = $dados['registro']['arquivo_data'];
+            $geraDados['arquivo_hora']              = $dados['registro']['arquivo_hora'];
+            $geraDados['versao_layout']             = $dados['registro']['versao_layout'];
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
