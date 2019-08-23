@@ -542,20 +542,20 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
     font-size: 12px;
 }
 .bg-progress-warning {
-    background-color: #faebd4;
-    height: 5px;
+    background-color: #ffc107;
+    height: 7px;
 }
 .bg-progress-info {
-    background-color: #d4e9fa;
-    height: 5px;
+    background-color: #f8f9fa;
+    height: 7px;
 }
 .bg-progress-danger {
-    background-color: #fad7d4;
-    height: 5px;
+    background-color: #dc3545;
+    height: 7px;
 }
 .bg-progress-success {
-    background-color: #d4fad6;
-    height: 5px;
+    background-color: #28a745;
+    height: 7px;
 }
 /* END LOGIN
  */
