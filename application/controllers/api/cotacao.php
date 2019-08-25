@@ -72,6 +72,7 @@ class Cotacao extends CI_Controller {
 
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
         $this->load->model('cobertura_plano_model', 'cobertura_plano');
+        $this->load->model( "produto_parceiro_campo_model", "campo" );
 
         if( !isset( $POST["produto_parceiro_id"] ) ) {
             ob_clean();
@@ -98,39 +99,10 @@ class Cotacao extends CI_Controller {
         $POST["parceiro_id"] = $this->parceiro_id;
         $POST["usuario_cotacao_id"] = $this->usuario_id;
 
-        $campos = $this->produto_parceiro_campo->with_campo()->with_campo_tipo()->filter_by_produto_parceiro( $produto_parceiro_id )->filter_by_campo_tipo_slug( "cotacao" )->order_by( "ordem", "ASC" )->get_all();
-
-        $erros = array();
-
-        $validacao = array();
-        foreach( $campos as $campo ) {
-            $validacao[] = array(
-                "field" => $campo["campo_nome_banco"],
-                "label" => $campo["campo_nome"],
-                "rules" => $campo["validacoes"],
-                "groups" => "cotacao",
-                "value" => isset($POST[$campo["campo_nome_banco"]]) ? $POST[$campo["campo_nome_banco"]] : ""
-            );
-        }
-
-        $validacao_ok = true;
-        foreach( $validacao as $check ) {
-            if( strpos( $check["rules"], "required" ) !== false && $check["value"] == "" ) {
-                $validacao_ok = false;
-                $erros[] = $check;
-            }
-
-            // Validando dados dos campos
-            switch ($check["field"]) {                
-                case 'cnpj_cpf':
-                    if( !empty($check["value"]) && !app_validate_cpf_cnpj( $check["value"] ) ) {
-                        $validacao_ok = false;
-                        $erros[] = $check;
-                        break;
-                    }
-                default:
-                    break;
-            }
+        $result = $this->campo->validate_campos( $produto_parceiro_id, "cotacao", $POST );
+        if ( empty($result['status']) ) {
+            ob_clean();
+            die( json_encode( $result , JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
         }
 
         $coberturas_adicionais = null;
@@ -153,30 +125,25 @@ class Cotacao extends CI_Controller {
         }
         unset( $POST["coberturas_opcionais"] );
 
-        if( $validacao_ok ) {
+        $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $POST );
+        $cotacao_id = (int)$cotacao_id;
 
-            $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $POST );
-            $cotacao_id = (int)$cotacao_id;
-
-            if( $produto["produto_slug"] == "equipamento" ) {
-                $cotacao_id = $this->cotacao_equipamento->insert_update( $produto_parceiro_id, $cotacao_id, 1, $coberturas_adicionais );
-                $cotacao_itens = $this->cotacao_equipamento->get_by( array( "cotacao_id" => $cotacao_id ) );
-            } else {
-                $cotacao_id = $this->cotacao_generico->insert_update( $produto_parceiro_id, $cotacao_id, 1, $coberturas_adicionais );
-                $cotacao_itens = $this->cotacao_generico->get_by( array( "cotacao_id" => $cotacao_id ) );
-            }
-            $result["cotacao_id"] = $cotacao_id;
-
-            $cotacao = $this->cotacao->get_by_id($cotacao_id);
-            $cotacao["detalhes"] = $cotacao_itens;
-            $cotacao["status"] = true;
-            $cotacao["message"] = "Validação OK"; 
-            ob_clean();
-            die( json_encode( $cotacao, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+        if( $produto["produto_slug"] == "equipamento" ) {
+            $cotacao_id = $this->cotacao_equipamento->insert_update( $produto_parceiro_id, $cotacao_id, 1, $coberturas_adicionais );
+            $cotacao_itens = $this->cotacao_equipamento->get_by( array( "cotacao_id" => $cotacao_id ) );
         } else {
-            ob_clean();
-            die( json_encode( array( "status" => false, "message" => "Erro de validação", "erros" => $erros ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+            $cotacao_id = $this->cotacao_generico->insert_update( $produto_parceiro_id, $cotacao_id, 1, $coberturas_adicionais );
+            $cotacao_itens = $this->cotacao_generico->get_by( array( "cotacao_id" => $cotacao_id ) );
         }
+        $result["cotacao_id"] = $cotacao_id;
+
+        $cotacao = $this->cotacao->get_by_id($cotacao_id);
+        $cotacao["detalhes"] = $cotacao_itens;
+        $cotacao["status"] = true;
+        $cotacao["message"] = "Validação OK"; 
+        ob_clean();
+        die( json_encode( $cotacao, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+
     }
 
     private function get( $GET ) {
@@ -437,112 +404,42 @@ class Cotacao extends CI_Controller {
 
         $cotacao_salva = $cotacao_salva[0];
 
-        $validacao = $this->campo->setValidacoesCamposPlano( $produto_parceiro_id, "dados_segurado", $produto_parceiro_plano_id );
-        $campos = $this->produto_parceiro_campo->with_campo()->with_campo_tipo()->filter_by_produto_parceiro( $produto_parceiro_id )->filter_by_campo_tipo_slug( "dados_segurado" )->order_by( "ordem", "ASC" )->get_all();
-
-        $erros = array();
-        $validacao_ok = true;
-        foreach( $campos as $campo ) {
-            if( strpos( $campo["validacoes"], "required" ) !== false ) {
-                if( !isset( $cotacao_salva[$campo["campo_nome_banco_equipamento"]] ) ) {
-                    $erros[] = "O campo " . $campo["campo_nome_banco_equipamento"] . " não foi informado";
-                    $validacao_ok = false;
-                }
-            }
-        }
-
-        if( !$validacao_ok || sizeof( $erros ) > 0 ) {
-            $result = array(
-                "status" => false,
-                "mensagem" => $erros,
-                "errors" => $erros,
-            );
+        $result = $this->campo->validate_campos( $produto_parceiro_id, ["cotacao", "dados_segurado"], $cotacao_salva );
+        if ( empty($result['status']) ) {
             return $result;
         }
 
-        $validacao = array();
-        foreach( $campos as $campo ) {
-            $rule_check = "OK";
-            if( strpos( $campo["validacoes"], "required" ) !== false && ( $cotacao_salva[$campo["campo_nome_banco_equipamento"]] == "" || is_null( $cotacao_salva[$campo["campo_nome_banco_equipamento"]] ) ) ) {
-                $rule_check = "O preenchimento do campo " . $campo["campo_nome_banco_equipamento"] . " é obrigatório";
-                $erros[] = $rule_check;
-            } else {
-                if( $cotacao_salva[$campo["campo_nome_banco_equipamento"]] != "" && $cotacao_salva[$campo["campo_nome_banco_equipamento"]] != "0000-00-00" && !is_null( $cotacao_salva[$campo["campo_nome_banco_equipamento"]] )  ) {
-                    if( strpos( $campo["validacoes"], "validate_data" ) !== false ) {
-                        $valida_data = date_parse_from_format("Y-m-d", $cotacao_salva[$campo["campo_nome_banco_equipamento"]]);
-                        if( !checkdate( $valida_data["month"], $valida_data["day"], $valida_data["year"] ) ) {
-                            $rule_check = "Data inválida (" . $campo["campo_nome_banco_equipamento"] . ")";
-                            $erros[] = $rule_check;
-                        }
-                    }
-                    if( strpos( $campo["validacoes"], "validate_email" ) !== false ) {
-                        $valida_email = filter_var( $cotacao_salva[$campo["campo_nome_banco_equipamento"]], FILTER_VALIDATE_EMAIL );
-                        if( !$valida_email ) {
-                            $rule_check = "E-mail inválido (" . $campo["campo_nome_banco_equipamento"] . ")";
-                            $erros[] = $rule_check;
-                        }
-                    }
-                    if( strpos( $campo["validacoes"], "validate_celular" ) !== false ) {
-                        $valida_celular = preg_match( "#^\(\d{2}\) 9?[6789]\d{3}-\d{4}$#", $this->celular( $cotacao_salva[$campo["campo_nome_banco_equipamento"]] ) );
-                        if( $valida_celular ) {
-                            $rule_check = "Número de telefone celular inválido (" . $campo["campo_nome_banco_equipamento"] . ")";
-                            $erros[] = $rule_check;
-                        }
-                    }
-                }
-            }
+        // Salva o plano na cotação
+        $dados_cotacao["produto_parceiro_plano_id"] = $produto_parceiro_plano_id;
+        $cotacao_aux->update( $cotacao_salva[$cotacao_aux_id], $dados_cotacao, true );
 
-            $validacao[] = array(
-                "field" => $campo["campo_nome_banco_equipamento"],
-                "label" => $campo["campo_nome"],
-                "value" => $cotacao_salva[$campo["campo_nome_banco_equipamento"]],
-                "rules" => $campo["validacoes"],
-                "rule_check" => $rule_check,
-                "groups" => "dados_segurado"
-            );
-        }
-        if( !$validacao_ok || sizeof( $erros ) > 0 ) {
-            $result  = array(
-                "status" => false,
-                "mensagem" => "Cotação inválida (003)",
-                "errors" => $erros,
-            );
+        // valida Capitalização
+        $capitalizacao = $this->capitalizacao->validaNumeroSorte($cotacao_salva["cotacao_id"]);
+        if ( empty($capitalizacao['status']) ) {
+
+            $result = $capitalizacao;
+
         } else {
 
-            // Salva o plano na cotação
-            $dados_cotacao["produto_parceiro_plano_id"] = $produto_parceiro_plano_id;
+            $dados_cotacao["step"] = 4;
+            $this->campo->setDadosCampos( $produto_parceiro_id, "equipamento", "dados_segurado", $produto_parceiro_plano_id,  $dados_cotacao );
             $cotacao_aux->update( $cotacao_salva[$cotacao_aux_id], $dados_cotacao, true );
 
-            // valida Capitalização
-            $capitalizacao = $this->capitalizacao->validaNumeroSorte($cotacao_salva["cotacao_id"]);
-            if ( empty($capitalizacao['status']) ) {
+            $result  = array(
+                "status" => true,
+                "mensagem" => "Cotação finalizada com Sucesso.",
+                "produto_parceiro_id" => $cotacao_salva["produto_parceiro_id"],
+                "cotacao_id" => $cotacao_salva["cotacao_id"],
+                "validacao" => $result['validacao'],
+            );
 
-                $result = $capitalizacao;
-
-            } else {
-
-                $dados_cotacao["step"] = 4;
-                $this->campo->setDadosCampos( $produto_parceiro_id, "equipamento", "dados_segurado", $produto_parceiro_plano_id,  $dados_cotacao );
-                $cotacao_aux->update( $cotacao_salva[$cotacao_aux_id], $dados_cotacao, true );
-
-                $result  = array(
-                    "status" => true,
-                    "mensagem" => "Cotação finalizada com Sucesso.",
-                    "produto_parceiro_id" => $cotacao_salva["produto_parceiro_id"],
-                    "cotacao_id" => $cotacao_salva["cotacao_id"],
-                );
-
-                // Valida config do produto para definir se gera apólice ao contratar ou não
-                $pedido = $this->pedido->filter_by_cotacao($cotacao_id)->get_all();
-                if (!empty($pedido)) {
-                    $pedido_id = $pedido[0]['pedido_id'];
-                    $apolice_id = $this->apolice->insertApolice($pedido_id, 'contratar');
-                    $result['apolice_id'] = $apolice_id;
-                    $result['pedido_id'] = $pedido_id;
-                }
-
-                $result["validacao"] = $validacao;
-
+            // Valida config do produto para definir se gera apólice ao contratar ou não
+            $pedido = $this->pedido->filter_by_cotacao($cotacao_id)->get_all();
+            if (!empty($pedido)) {
+                $pedido_id = $pedido[0]['pedido_id'];
+                $apolice_id = $this->apolice->insertApolice($pedido_id, 'contratar');
+                $result['apolice_id'] = $apolice_id;
+                $result['pedido_id'] = $pedido_id;
             }
 
         }

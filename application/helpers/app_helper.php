@@ -1551,6 +1551,25 @@ function app_validate_mobile_phone($phone) {
     }
 }
 
+function app_validate_cep($cep){
+
+    if (empty($cep))
+        return false;
+
+    if(strlen($cep) != 8)
+        return false;
+
+    $cep = app_retorna_numeros($cep);
+
+    if(strlen($cep) != 8)
+        return false;
+
+    if($cep == '00000000')
+        return false;
+
+    return true;
+}
+
 /**
  * Verifica se uma view existe
  * @param $view
