@@ -404,7 +404,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                             }
                         }
                         if( $campo["campo_nome_banco_equipamento"] == 'endereco_logradouro' ) {
-                            if( !empty($values[$campo["campo_nome_banco_equipamento"]]) && strlen($values[$campo["campo_nome_banco_equipamento"]]) < 3 ) {
+                            if( !empty($values[$campo["campo_nome_banco_equipamento"]]) && strlen(trataRetorno($values[$campo["campo_nome_banco_equipamento"]])) < 3 ) {
                                 $rule_check = "Logradouro precisa ter mais que 3 caracteres (". $campo["campo_nome_banco_equipamento"] .")";
                                 $erros[] = $rule_check;
                             }
