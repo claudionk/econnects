@@ -1027,15 +1027,6 @@ Class Integracao_Model extends MY_Model
         return $integracao_log;
     }
 
-    private function trataRetorno($txt) {
-        $txt = mb_strtoupper(trim($txt), 'UTF-8');
-        $txt = app_remove_especial_caracteres($txt);
-        $txt = preg_replace("/[^ |A-Z|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
-        $txt = preg_replace("/\s{2,3000}/", "", $txt);
-        $txt = preg_replace("/[\\|\/]/", "-", $txt);
-        return $txt;
-    }
-
     private function getLinha($layout, $registro = array(), $log = array(), $integracao_log_detalhe_id = null, $integracao = null){
 
         $result = "";
@@ -1097,7 +1088,7 @@ Class Integracao_Model extends MY_Model
             }
 
             if (!is_null($campo)){
-                $pre_result .= mb_str_pad($this->trataRetorno($campo), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
+                $pre_result .= mb_str_pad(trataRetorno($campo), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
             }
 
             $result .= mb_substr($pre_result,0,$item['tamanho']);
