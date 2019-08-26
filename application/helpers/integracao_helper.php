@@ -723,7 +723,7 @@ if ( ! function_exists('app_get_api'))
             if (empty($response)){
                 $ret['response'] = $retorno["response"];
             } else{
-                $ret = ['status' => true, 'response' => $response];
+                $ret = ['status' => isset($response->status) ? $response->status : true, 'response' => $response];
             }
         }
 
@@ -1001,7 +1001,19 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 // Cotação
                 $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields), $acesso);
                 if (empty($cotacao['status'])) {
-                    $response->errors[] = ['id' => -1, 'msg' => $cotacao['response'], 'slug' => "insere_cotacao"];
+                    if ( is_object($cotacao['response']) )
+                    {
+                        $erros = isset($cotacao['response']->erros) ? $cotacao['response']->erros : $cotacao['response']->errors;
+                        foreach ($erros as $er) {
+                            $response->errors[] = [
+                                'id' => -1, 
+                                'msg' => $er, 
+                                'slug' => "insere_cotacao"
+                            ];
+                        }
+                    } else {
+                        $response->errors[] = ['id' => -1, 'msg' => $cotacao['response'], 'slug' => "insere_cotacao"];
+                    }
                     return $response;
                 }
 

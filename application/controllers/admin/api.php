@@ -75,7 +75,7 @@ class Api extends Site_Controller
             }
         }
 
-        return$retorno["response"];
+        return $retorno["response"];
     }
 
     private function extractEmail($json){

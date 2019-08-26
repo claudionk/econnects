@@ -457,7 +457,7 @@ class CI_Output {
 	{
 		if (is_array($output))
 		{
-			echo json_encode($output, true);
+			echo json_encode($output);
 		} else {
 			echo $output;
 		}
