@@ -1458,16 +1458,28 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $fields['produto_parceiro_plano_id'] = $dados['produto_parceiro_plano_id'];
                 $fields['data_adesao'] = $dados['data_adesao'];
                 $fields['equipamento_nome'] = $dados['equipamento_nome'];
+
                 if (!empty($dados['equipamento_marca_id']))
                     $fields['equipamento_marca_id'] = $dados['equipamento_marca_id'];
+
                 if (!empty($dados['equipamento_categoria_id']))
                     $fields['equipamento_categoria_id'] = $dados['equipamento_categoria_id'];
+
                 if (!empty($dados['equipamento_sub_categoria_id']))
                     $fields['equipamento_sub_categoria_id'] = $dados['equipamento_sub_categoria_id'];
+
                 if (!empty($dados['equipamento_de_para']))
                     $fields['equipamento_de_para'] = $dados['equipamento_de_para'];
+
                 if (!empty($dados['comissao_premio']))
                     $fields['comissao_premio'] = $dados['comissao_premio'];
+
+                if (!empty($dados['data_inicio_vigencia']))
+                    $fields['data_inicio_vigencia'] = $dados['data_inicio_vigencia'];
+
+                if (!empty($dados['data_fim_vigencia']))
+                    $fields['data_fim_vigencia'] = $dados['data_fim_vigencia'];
+
                 $fields['ean'] = $dados['ean'];
                 $fields['emailAPI'] = app_get_userdata("email");
 

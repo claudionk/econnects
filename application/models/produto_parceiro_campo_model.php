@@ -340,8 +340,8 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         
             $result  = array(
                 "status"    => false,
-                "message"   => "Erro de validação dos campos",
-                "mensagem"  => "Erro de validação dos campos",
+                "message"   => "Erro na validação dos campos",
+                "mensagem"  => "Erro na validação dos campos",
                 "group"     => $tipo_slug,
             );
             $erros = array();
@@ -391,8 +391,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                             }
                         }
                         if( strpos( $campo["validacoes"], "validate_celular" ) !== false ) {
-                            $valida_celular = preg_match( "#^\(\d{2}\) 9?[6789]\d{3}-\d{4}$#", $this->celular( $values[$campo["campo_nome_banco_equipamento"]] ) );
-                            if( $valida_celular ) {
+                            if( !app_validate_celular( $values[$campo["campo_nome_banco_equipamento"]] ) ) {
                                 $rule_check = "Número de telefone celular inválido (". $campo["campo_nome_banco_equipamento"] .")";
                                 $erros[] = $rule_check;
                             }
@@ -421,7 +420,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                 $validacao[] = array(
                     "field" => $campo["campo_nome_banco_equipamento"],
                     "label" => $campo["campo_nome"],
-                    "value" => $values[$campo["campo_nome_banco_equipamento"]],
+                    "value" => isempty($values[$campo["campo_nome_banco_equipamento"]], ''),
                     "rules" => $campo["validacoes"],
                     "rule_check" => $rule_check,
                     "groups" => $tipo_slug

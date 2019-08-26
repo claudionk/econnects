@@ -1570,6 +1570,16 @@ function app_validate_cep($cep){
     return true;
 }
 
+function app_validate_celular( $number ){
+    if (empty($number))
+        return '';
+
+    $number = preg_replace( "/[^0-9]/", "", $number );
+    $number = "(" . substr( $number, 0, 2 ) . ") " . substr( $number, 2, -4) . " - " . substr( $number, -4 );
+    $number = preg_match( "#^\(\d{2}\) 9?[6789]\d{3}-\d{4}$#", $number );
+    return !$number;
+}
+
 /**
  * Verifica se uma view existe
  * @param $view

@@ -224,7 +224,7 @@ class Emissao extends CI_Controller {
                                 $retorno = json_decode($r,true);
                                 $arrOptions["ean"]                          = $retorno["ean"];  
                                 $arrOptions["equipamento_id"]               = $retorno["equipamento_id"];
-                                $arrOptions["equipamento_nome"]             = $parametros['modelo'];
+                                $arrOptions["equipamento_nome"]             = isempty($parametros['modelo'], $retorno['nome']);
                                 $arrOptions["equipamento_marca_id"]         = $retorno["equipamento_marca_id"];
                                 $arrOptions["equipamento_sub_categoria_id"] = $retorno["equipamento_sub_categoria_id"];
                                 $arrOptions["equipamento_categoria_id"]     = $retorno["equipamento_categoria_id"];
