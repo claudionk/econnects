@@ -340,8 +340,8 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         
             $result  = array(
                 "status"    => false,
-                "message"   => "Erro de validação dos campos",
-                "mensagem"  => "Erro de validação dos campos",
+                "message"   => "Erro na validação dos campos",
+                "mensagem"  => "Erro na validação dos campos",
                 "group"     => $tipo_slug,
             );
             $erros = array();
