@@ -336,7 +336,7 @@ Class Pedido_Model extends MY_Model
             INNER JOIN produto_parceiro ON cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id
             INNER JOIN parceiro ON cotacao.parceiro_id = parceiro.parceiro_id
             INNER JOIN produto ON produto.produto_id = produto_parceiro.produto_id
-            LEFT JOIN produto_parceiro_apolice ON ( produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id)
+            LEFT JOIN produto_parceiro_apolice ON ( produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id) AND produto_parceiro_apolice.deletado = 0
             LEFT JOIN cotacao_seguro_viagem ON ( cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id)
             LEFT JOIN cotacao_equipamento ON ( cotacao_equipamento.cotacao_id = cotacao.cotacao_id)
             LEFT JOIN cotacao_generico ON ( cotacao_generico.cotacao_id = cotacao.cotacao_id)
