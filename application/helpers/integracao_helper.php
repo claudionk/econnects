@@ -1553,9 +1553,9 @@ if ( ! function_exists('app_integracao_calcula_premio'))
         // diferença do cálculo
         if (!empty($acesso) )
         {
-            if ( $acesso->parceiro = 'lasa' ) {
+            if ( $acesso->parceiro == 'lasa' ) {
                 $dif_accept = 0.01;
-            } elseif ( $acesso->parceiro = 'novomundo' ) {
+            } elseif ( $acesso->parceiro == 'novomundo' ) {
                 $dif_accept = 0.50;
             }
         }
