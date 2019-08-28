@@ -558,7 +558,7 @@ if ( ! function_exists('app_integracao_generali_dados')) {
         $CI =& get_instance();
         $CI->session->set_userdata("email", $dados->email); // importante setar o e-mail antes de recuperar a apikey
         $dados->apikey = app_get_token($dados->email);
-
+        $dados->parceiro = $operacao;
         $CI->session->set_userdata("apikey", $dados->apikey);
         return $dados;
     }
@@ -1062,13 +1062,24 @@ if ( ! function_exists('app_integracao_calcula_premio'))
         $valor_premio = $calcPremio->premio_liquido_total;
         $premioValid = true;
         $aceitaPorcentagem = false;
+        $dif_accept = 0;
+
+        // diferença do cálculo
+        if (!empty($acesso) )
+        {
+            if ( $acesso->parceiro = 'lasa' ) {
+                $dif_accept = 0.01;
+            } elseif ( $acesso->parceiro = 'novomundo' ) {
+                $dif_accept = 0.50;
+            }
+        }
 
         echo "Calculo do Premio: $valor_premio | $premio_bruto<br>";
 
         if ($valor_premio != $premio_bruto) {
-            if ($valor_premio >= $premio_bruto-0.01 && $valor_premio <= $premio_bruto+0.01) {
+            if ($valor_premio >= $premio_bruto-$dif_accept && $valor_premio <= $premio_bruto+$dif_accept) {
                 $premioValid = true;
-                echo "dif de 1 centavo<br>";
+                echo "dif de R$ $dif_accept<br>";
             }else {
 
                 $premioValid = false;
@@ -1415,7 +1426,8 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
             $geraDados['cpf_vendedor']              = $dados['registro']['cpf_vendedor'];
             $geraDados['nome_vendedor']             = $dados['registro']['nome_vendedor'];
             $geraDados['nome']                      = $dados['registro']['nome'];
-            $geraDados['sexo']                      = 'F';
+            $geraDados['sexo']                      = 'M';
+            $geraDados['data_nascimento']           = '1981-12-02';
             $geraDados['ddd_residencial']           = $dados['registro']['ddd_residencial'];
             $geraDados['telefone']                  = $dados['registro']['telefone'];
             $geraDados['ddd_comercial']             = $dados['registro']['ddd_comercial'];
@@ -1672,6 +1684,7 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
         ]);
 
         $result->apikey = $acesso->apikey;
+        $result->parceiro = $acesso->parceiro;
         $result->status = true;
         return $result;
     }
