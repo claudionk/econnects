@@ -1419,13 +1419,14 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
     function app_integracao_novo_mundo($formato, $dados = array())
     {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
+
+        $dados['registro']['sexo'] = 'M';
+        $dados['registro']['data_nascimento'] = '1981-12-02';
         $reg = $dados['registro'];
         // echo "<pre>";print_r($reg);echo "</pre>";die();
 
         $CI =& get_instance();
         $CI->session->set_userdata("operacao", "novomundo");
-        $dados['registro']['sexo'] = 'M';
-        $dados['registro']['data_nascimento'] = '1981-12-02';
 
         if (!empty($formato)) {
             $geraDados['tipo_produto']              = $reg['tipo_produto'];
