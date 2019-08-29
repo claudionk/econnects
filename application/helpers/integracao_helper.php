@@ -1143,7 +1143,19 @@ if ( ! function_exists('app_integracao_emissao'))
             $fields['emailAPI'] = app_get_userdata("email");
             $cotacao = app_get_api("cotacao_contratar", "POST", json_encode($fields), $acesso);
             if (empty($cotacao['status'])) {
-                $response->msg[] = ['id' => -1, 'msg' => $cotacao['response'], 'slug' => "cotacao_contratar"];
+                if ( is_object($cotacao['response']) )
+                {
+                    $erros = isset($cotacao['response']->erros) ? $cotacao['response']->erros : $cotacao['response']->errors;
+                    foreach ($erros as $er) {
+                        $response->errors[] = [
+                            'id' => -1, 
+                            'msg' => $er, 
+                            'slug' => "cotacao_contratar"
+                        ];
+                    }
+                } else {
+                    $response->errors[] = ['id' => -1, 'msg' => $cotacao['response'], 'slug' => "cotacao_contratar"];
+                }
                 return $response;
             }
 
