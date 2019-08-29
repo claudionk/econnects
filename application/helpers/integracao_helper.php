@@ -2122,21 +2122,6 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                         $result->produto_parceiro_plano_id = 106;
                         break;
 
-                    /*case 'APVE':
-                        $result->produto_parceiro_id = 83;
-                        $result->produto_parceiro_plano_id = 107;
-                        break;
-
-                    case 'APCA':
-                        $result->produto_parceiro_id = 84;
-                        $result->produto_parceiro_plano_id = 108;
-                        break;
-
-                    case 'PRES':
-                        $result->produto_parceiro_id = 85;
-                        $result->produto_parceiro_plano_id = 109;
-                        break;*/
-
                     default:
                         $result->msg = ['id' => 39, 'msg' => "Produto ({$result->produto}) não configurado", 'slug' => "produto"];
                         return $result;
@@ -2150,34 +2135,19 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
 
                 switch ($result->produto) {
                     case 'GAES':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
+                        $result->produto_parceiro_id = 83;
+                        $result->produto_parceiro_plano_id = 107;
                         break;
 
                     case 'ROFU':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
+                        $result->produto_parceiro_id = 84;
+                        $result->produto_parceiro_plano_id = 108;
                         break;
 
                     case 'QUAC':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
+                        $result->produto_parceiro_id = 85;
+                        $result->produto_parceiro_plano_id = 109;
                         break;
-
-                    /*case 'APVE':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
-                        break;
-
-                    case 'APCA':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
-                        break;
-
-                    case 'PRES':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
-                        break;*/
 
                     default:
                         $result->msg = ['id' => 39, 'msg' => "Produto ({$result->produto}) não configurado", 'slug' => "produto"];
