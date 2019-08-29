@@ -1427,6 +1427,9 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
 
         if (!empty($formato)) {
 
+            $dados['registro']['sexo'] = 'M';
+            $dados['registro']['data_nascimento'] = '1981-12-02';
+
             $geraDados['tipo_produto']              = $dados['registro']['tipo_produto'];
             $geraDados['tipo_operacao']             = $dados['registro']['acao'];
             $geraDados['ramo']                      = $dados['registro']['ramo'];
@@ -1438,8 +1441,8 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
             $geraDados['cpf_vendedor']              = $dados['registro']['cpf_vendedor'];
             $geraDados['nome_vendedor']             = $dados['registro']['nome_vendedor'];
             $geraDados['nome']                      = $dados['registro']['nome'];
-            $geraDados['sexo']                      = 'M';
-            $geraDados['data_nascimento']           = '1981-12-02';
+            $geraDados['sexo']                      = $dados['registro']['sexo'];
+            $geraDados['data_nascimento']           = $dados['registro']['data_nascimento'];
             $geraDados['ddd_residencial']           = $dados['registro']['ddd_residencial'];
             $geraDados['telefone']                  = $dados['registro']['telefone'];
             $geraDados['ddd_comercial']             = $dados['registro']['ddd_comercial'];
