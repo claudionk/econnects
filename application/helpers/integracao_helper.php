@@ -840,6 +840,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
 
         $CI =& get_instance();
+        $CI->session->sess_destroy();
         $CI->session->set_userdata("operacao", "lasa");
 
         if (!empty($formato)) {
@@ -1929,6 +1930,7 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
         // echo "<pre>";print_r($reg);echo "</pre>";die();
 
         $CI =& get_instance();
+        $CI->session->sess_destroy();
         $CI->session->set_userdata("operacao", "novomundo");
 
         if (!empty($formato)) {
