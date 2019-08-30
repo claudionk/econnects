@@ -344,7 +344,7 @@ Class Cobertura_Plano_Model extends MY_Model {
             AND apolice.deletado = 0
             AND apolice_cobertura.deletado = 0
             AND cobertura_plano.deletado = 0
-            AND apolice_cobertura.valor > 0
+            AND apolice_cobertura.valor >= 0
             AND apolice.apolice_id = {$apolice_id}
         ) AS y
         ";
