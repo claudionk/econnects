@@ -942,7 +942,19 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $emissao = app_integracao_emissao($formato, $dados, $acesso);
 
             if (empty($emissao->status)) {
-                $response->msg = $emissao->msg;
+
+                if ( !empty($emissao->msg) ) {
+
+                    if ( !is_array($emissao->msg) ) {
+                        $response->msg[] = $emissao->msg;
+                    } else {
+                        $response->msg = $emissao->msg;
+                    }
+
+                } else {
+                    $response->msg = $emissao->errors;
+                }
+
             } else {
                 $response->status = true;
             }
@@ -2055,7 +2067,19 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
             $emissao = app_integracao_emissao($formato, $dados, $acesso);
 
             if (empty($emissao->status)) {
-                $response->msg = $emissao->msg;
+
+                if ( !empty($emissao->msg) ) {
+
+                    if ( !is_array($emissao->msg) ) {
+                        $response->msg[] = $emissao->msg;
+                    } else {
+                        $response->msg = $emissao->msg;
+                    }
+
+                } else {
+                    $response->msg = $emissao->errors;
+                }
+
             } else {
                 $response->status = true;
             }
