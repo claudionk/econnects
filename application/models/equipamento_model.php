@@ -168,8 +168,7 @@ Class Equipamento_Model extends MY_Model
         $string = str_replace('\'', '', $string);
         $string = str_replace('(', '', $string);
         $string = str_replace(')', '', $string);
-        $string = str_replace(' -', ' ', $string);
-        $string = str_replace('- ', ' ', $string);
+        $string = str_replace('-', ' ', $string);
         $string = str_replace('+', '', $string);
         $string = str_replace('*', '', $string);
         $string = str_replace('>', '', $string);
