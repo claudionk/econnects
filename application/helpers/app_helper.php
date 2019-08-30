@@ -451,6 +451,11 @@ function app_cnpj_to_mask($cpf)
     return $string;
 }
 
+function app_valida_email($str)
+{
+    return ( ! preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $str)) ? FALSE : TRUE;
+}
+
 function app_verifica_cpf_cnpj ($cpf_cnpj) {
     // Verifica CPF
     if ( strlen($cpf_cnpj ) === 11 ) {
@@ -1149,30 +1154,29 @@ function issetor(&$var, $default = ' ') {
     }
 }
 
-/**
- * Se for setado uma variável ele a retorna, caso contrário retorna vazio
- * @param $var
- * @param bool $default
- * @return string
- */
-function emptyor(&$var, $default = ' ') {
-
-    if(!empty($var))
-    {
-        return $var;
-    }
-    else
-    {
-        return $default;
-    }
-}
+/** 
+ * Se for setado uma variável ele a retorna, caso contrário retorna vazio 
+ * @param $var 
+ * @param bool $default 
+ * @return string 
+ */ 
+function emptyor(&$var, $default = ' ') { 
+ 
+    if(!empty($var)) 
+    { 
+        return $var; 
+    } 
+    else 
+    { 
+        return $default; 
+    } 
+} 
 
 /**
  * @description Se for uma variavel vazia ele retorna com o default
  * @param $var
  * @return string
  */
-
 if ( ! function_exists('isempty')) {
     function isempty(&$var, $default = ' ')
     {
@@ -1547,6 +1551,35 @@ function app_validate_mobile_phone($phone) {
     }
 }
 
+function app_validate_cep($cep){
+
+    if (empty($cep))
+        return false;
+
+    if(strlen($cep) != 8)
+        return false;
+
+    $cep = app_retorna_numeros($cep);
+
+    if(strlen($cep) != 8)
+        return false;
+
+    if($cep == '00000000')
+        return false;
+
+    return true;
+}
+
+function app_validate_celular( $number ){
+    if (empty($number))
+        return '';
+
+    $number = preg_replace( "/[^0-9]/", "", $number );
+    $number = "(" . substr( $number, 0, 2 ) . ") " . substr( $number, 2, -4) . " - " . substr( $number, -4 );
+    $number = preg_match( "#^\(\d{2}\) 9?[6789]\d{3}-\d{4}$#", $number );
+    return !$number;
+}
+
 /**
  * Verifica se uma view existe
  * @param $view
@@ -1770,5 +1803,17 @@ if ( ! function_exists('app_search'))
         }
 
         return -1;
+    }
+}
+
+if ( ! function_exists('trataRetorno'))
+{
+    function trataRetorno($txt) {
+        $txt = mb_strtoupper(trim($txt), 'UTF-8');
+        $txt = app_remove_especial_caracteres($txt);
+        $txt = preg_replace("/[^ |A-Z|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
+        $txt = preg_replace("/\s{2,3000}/", " ", $txt);
+        $txt = preg_replace("/[\\|\/]/", "-", $txt);
+        return $txt;
     }
 }

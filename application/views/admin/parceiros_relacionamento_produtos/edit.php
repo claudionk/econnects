@@ -67,7 +67,7 @@ if($_POST)
                       <div class="row innerLR">
 
                         <!-- Column -->
-                        <div class="col-md-6">
+                        <div class="col-md-8">
 
                           <?php $field_name = 'produto_parceiro_id';?>
                           <div class="form-group">
@@ -127,19 +127,19 @@ if($_POST)
                       </div>
                       <div class="row">&nbsp;</div>
                       <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-8">
                           <div class="card">
                             <div class="card-head"><header>Comissão</header></div>
                             <div class="card-body">
                               <?php $field_name = 'repasse_comissao';?>
-                              <div class="radio radio-styled">
+                              <div class="form-group">
                                 <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Repasse da comissão *</label>
-                                <label class="radio-inline">
+                                <label class="radio-inline radio-styled radio-primary">
                                   <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
                                          value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
                                   Sim
                                 </label>
-                                <label class="radio-inline">
+                                <label class="radio-inline radio-styled radio-primary">
                                   <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
                                          value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
                                   Não
@@ -150,6 +150,28 @@ if($_POST)
                               <div class="form-group repasse_habilitado">
                                 <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Repasse máximo(%) *</label>
                                 <div class="col-md-4"><input ng-model="repasse_maximo" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/></div>
+                              </div>
+
+                              <?php $field_name = 'comissao_tipo';?> 
+                              <div class="form-group"> 
+                                <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Tipo de comissão *</label> 
+                                <label>
+                                  <label class="radio-styled radio-primary" style="display: block;"> 
+                                    <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled" 
+                                           value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> /> 
+                                    Fixa 
+                                  </label> 
+                                  <label class="radio-styled radio-primary" style="display: block;"> 
+                                    <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled" 
+                                           value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> /> 
+                                    Variável (<b>com</b> comissão do corretor)
+                                  </label>
+                                  <label class="radio-styled radio-primary" style="display: block;">
+                                    <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled" 
+                                           value="2" <?php if (isset($row[$field_name]) && $row[$field_name] == '2') echo 'checked="checked"'; ?> /> 
+                                    Variável (<b>sem</b> comissão do corretor)
+                                  </label>
+                                </label>
                               </div>
 
                               <?php $field_name = 'comissao';?>
@@ -170,7 +192,7 @@ if($_POST)
                       </div>
                       <!-- // Row END -->
                       <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-8">
                           <div class="card">
                             <div class="card-head"><header>Desconto Condicional</header></div>
                             <div class="card-body">
@@ -206,7 +228,7 @@ if($_POST)
                               <div class="form-group desconto_habilitado">
                                 <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Saldo</label>
                                 <div class="col-md-4">
-                                  <input ng-disabled="true" ng-model="desconto_valor-desconto_utilizado" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" ng-value=""/>
+                                  <input ng-disabled="true" ng-model="desconto_saldo" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" ng-value="desconto_valor-desconto_utilizado"/>
                                 </div>
                                 
                               </div>
@@ -265,7 +287,5 @@ if($_POST)
     $scope.desconto_valor = parseFloat( "<?php echo isset($row['desconto_valor']) ? $row['desconto_valor'] : '0'; ?>" );
     $scope.desconto_utilizado = parseFloat( "<?php echo isset($row['desconto_utilizado']) ? $row['desconto_utilizado'] : '0'; ?>" );
     $scope.desconto_saldo = parseFloat( "<?php echo isset($row['desconto_saldo']) ? $row['desconto_saldo'] : '0'; ?>" );
-    
-    
   }]);
 </script>

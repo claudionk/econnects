@@ -223,7 +223,7 @@ class Emissao extends CI_Controller {
                                 $retorno = json_decode($r,true);
                                 $arrOptions["ean"]                          = $retorno["ean"];  
                                 $arrOptions["equipamento_id"]               = $retorno["equipamento_id"];
-                                $arrOptions["equipamento_nome"]             = $parametros['modelo'];
+                                $arrOptions["equipamento_nome"]             = isempty($parametros['modelo'], $retorno['nome']);
                                 $arrOptions["equipamento_marca_id"]         = $retorno["equipamento_marca_id"];
                                 $arrOptions["equipamento_sub_categoria_id"] = $retorno["equipamento_sub_categoria_id"];
                                 $arrOptions["equipamento_categoria_id"]     = $retorno["equipamento_categoria_id"];
@@ -328,7 +328,6 @@ class Emissao extends CI_Controller {
 
             case 'calculocotacao':
 
-
                 // Validar o valor passado se diferente alertar e abortar
                 $url = base_url() ."api/cotacao/calculo?cotacao_id=".$this->cotacao_id;
 
@@ -351,7 +350,7 @@ class Emissao extends CI_Controller {
                     else
                     {
                         $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
-                        die(json_encode(array("status"=>false,"message"=>"O cálculo da cotação não realizado"),JSON_UNESCAPED_UNICODE));
+                        die(json_encode(array("status"=>false, "message"=>$msg, "cotacao_id" => $this->cotacao_id),JSON_UNESCAPED_UNICODE));
                     }
                 }
                 else

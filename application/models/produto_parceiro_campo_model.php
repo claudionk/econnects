@@ -329,9 +329,121 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
 
     }
 
+    public function validate_campos($produto_parceiro_id, $slugsCampos = [], $values = [])
+    {
+        if ( !is_array($slugsCampos) ) {
+            $slugsCampos = [$slugsCampos];
+        }
 
+        $validacao = [];
+        foreach ($slugsCampos as $tipo_slug) {
+        
+            $result  = array(
+                "status"    => false,
+                "message"   => "Erro na validação dos campos",
+                "mensagem"  => "Erro na validação dos campos",
+                "group"     => $tipo_slug,
+            );
+            $erros = array();
+            $campos = $this
+                ->with_campo()
+                ->with_campo_tipo()
+                ->filter_by_produto_parceiro( $produto_parceiro_id )
+                ->filter_by_campo_tipo_slug( $tipo_slug )
+                ->order_by( "ordem", "ASC" )
+                ->get_all();
 
+            $validacao_ok = true;
+            foreach( $campos as $campo ) {
+                if( strpos( $campo["validacoes"], "required" ) !== false ) {
+                    if( !isset( $values[$campo["campo_nome_banco_equipamento"]] ) || empty( trim($values[$campo["campo_nome_banco_equipamento"]]) ) ) {
+                        $erros[] = "O campo ". $campo["campo_nome"] ." (". $campo["campo_nome_banco_equipamento"] .") não foi informado";
+                        $validacao_ok = false;
+                    }
+                }
+            }
+
+            if( !$validacao_ok || sizeof( $erros ) > 0 ) {
+                $result["erros"] = $erros;
+                $result["errors"] = $erros;
+                return $result;
+            }
+
+            foreach( $campos as $campo ) {
+                $rule_check = "OK";
+                if( strpos( $campo["validacoes"], "required" ) !== false && ( empty($values[$campo["campo_nome_banco_equipamento"]]) || is_null( $values[$campo["campo_nome_banco_equipamento"]] ) ) ) {
+                    $rule_check = "O preenchimento do campo ". $campo["campo_nome_banco_equipamento"] ." é obrigatório";
+                    $erros[] = $rule_check;
+                } else {
+                    if( !empty($values[$campo["campo_nome_banco_equipamento"]]) && $values[$campo["campo_nome_banco_equipamento"]] != "0000-00-00" && !is_null( $values[$campo["campo_nome_banco_equipamento"]] )  ) {
+                        if( strpos( $campo["validacoes"], "validate_data" ) !== false ) {
+                            $valida_data = date_parse_from_format("Y-m-d", $values[$campo["campo_nome_banco_equipamento"]]);
+                            if( !checkdate( $valida_data["month"], $valida_data["day"], $valida_data["year"] ) ) {
+                                $rule_check = "Data inválida (". $campo["campo_nome_banco_equipamento"] .")";
+                                $erros[] = $rule_check;
+                            }
+                        }
+                        if( strpos( $campo["validacoes"], "validate_email" ) !== false ) {
+                            $valida_email = filter_var( $values[$campo["campo_nome_banco_equipamento"]], FILTER_VALIDATE_EMAIL );
+                            if( !$valida_email ) {
+                                $rule_check = "E-mail inválido (". $campo["campo_nome_banco_equipamento"] .")";
+                                $erros[] = $rule_check;
+                            }
+                        }
+                        if( strpos( $campo["validacoes"], "validate_celular" ) !== false ) {
+                            if( !app_validate_celular( $values[$campo["campo_nome_banco_equipamento"]] ) ) {
+                                $rule_check = "Número de telefone celular inválido (". $campo["campo_nome_banco_equipamento"] .")";
+                                $erros[] = $rule_check;
+                            }
+                        }
+                        if( $campo["campo_nome_banco_equipamento"] == 'endereco_cep' ) {
+                            if( !app_validate_cep($values[$campo["campo_nome_banco_equipamento"]]) ) {
+                                $rule_check = "CEP inválido (". $campo["campo_nome_banco_equipamento"] .")";
+                                $erros[] = $rule_check;
+                            }
+                        }
+                        if( $campo["campo_nome_banco_equipamento"] == 'endereco_logradouro' ) {
+                            if( !empty($values[$campo["campo_nome_banco_equipamento"]]) && strlen(trataRetorno($values[$campo["campo_nome_banco_equipamento"]])) < 3 ) {
+                                $rule_check = "Logradouro precisa ter mais que 3 caracteres (". $campo["campo_nome_banco_equipamento"] .")";
+                                $erros[] = $rule_check;
+                            }
+                        }
+                        if( $campo["campo_nome_banco_equipamento"] == 'cnpj_cpf' ) {
+                            if( !empty($values[$campo["campo_nome_banco_equipamento"]]) && !app_validate_cpf_cnpj( $values[$campo["campo_nome_banco_equipamento"]] ) ) {
+                                $rule_check = "CPF / CNPJ não é válido (". $campo["campo_nome_banco_equipamento"] .")";
+                                $erros[] = $rule_check;
+                            }
+                        }
+                    }
+                }
+
+                $validacao[] = array(
+                    "field" => $campo["campo_nome_banco_equipamento"],
+                    "label" => $campo["campo_nome"],
+                    "value" => isempty($values[$campo["campo_nome_banco_equipamento"]], ''),
+                    "rules" => $campo["validacoes"],
+                    "rule_check" => $rule_check,
+                    "groups" => $tipo_slug
+                );
+            }
+
+            if( !$validacao_ok || sizeof( $erros ) > 0 ) {
+                $result["erros"] = $erros;
+                $result["errors"] = $erros;
+                return $result;
+            }
+
+        }
+
+        $result = [
+            "status"    => true,
+            "message"   => 'OK',
+            "mensagem"  => 'OK',
+            'validacao' => $validacao,
+        ];
+
+        return $result;
+
+    }
 
 }
-
-

@@ -346,6 +346,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['equipamento_marca_id']          = $cotacao_salva['equipamento_marca_id'];
             $dados_equipamento['nota_fiscal_data']              = $cotacao_salva['nota_fiscal_data'];
             $dados_equipamento['nota_fiscal_valor']             = $cotacao_salva['nota_fiscal_valor'];
+            $dados_equipamento['imei']                          = $cotacao_salva['imei'];
 
             $dados_equipamento['estado_civil']       = $cotacao_salva['estado_civil'];
             $dados_equipamento['rg_orgao_expedidor'] = $cotacao_salva['rg_orgao_expedidor'];
@@ -1372,6 +1373,7 @@ class Apolice_Model extends MY_Model
             SELECT apolice_id
             FROM apolice
             WHERE num_apolice = '{$num_apolice}' and produto_parceiro_plano_id = '{$produto_parceiro_plano_id}'
+            AND deletado = 0
             LIMIT 1
         ";
         return (int) $this->_database->query($sql)->num_rows() == 1;
