@@ -30,7 +30,7 @@ if($_POST){
             <?php $this->load->view('admin/venda/partials/enviar_token_acesso'); ?>
 
             <div class="col-md-12 col-sm-12 col-xs-12 icon-login">
-                <i class="fa fa-lock color-primary border-primary" aria-hidden="true"></i>
+                <i class="fa fa-lock text-primary-dark border-primary" aria-hidden="true"></i>
             </div>
 
             <div class="col-xs-12 select-forma-pagamento">

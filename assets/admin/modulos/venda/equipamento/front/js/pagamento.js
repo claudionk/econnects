@@ -134,12 +134,24 @@ function boletoValidarCEP(cep){
     return false;
 }
 
-function boletoBuscaCep(){
+function mostraInput(id){
+    //$(".form-group").find('input').focus().next("div").css( 'display', 'block' );
+    var mudar = document.getElementById("float_btn");   
+    document.getElementById(id).style.display = "block";
+    if (id == 'div_nome'){
+        mudar.setAttribute('onclick', 'mostraInput("div_cep")');
+        $("#sacado_nome").focus();
+    }else if (id == 'div_cep'){
+        mudar.setAttribute('onclick', 'boletoBuscaCep()');
+        $("#sacado_endereco_cep").focus();  
+    }   
+}
 
+function boletoBuscaCep(){
     var cep = $( "#sacado_endereco_cep" ).val();
     var url = ADMIN_URL + "/helpers/buscar_cep/" + cep;
 
-    if (typeof value === "undefined") {
+    if (typeof cep === "undefined") {
         return
     }
 
@@ -160,7 +172,15 @@ function boletoBuscaCep(){
                 $("#sacado_endereco").val(json.data.tipo_logradouro.toUpperCase() + ' ' + json.data.logradouro.toUpperCase() );
                 $("#sacado_endereco_uf").val(json.data.uf);
 
-                //$("#sacado_endereco_numero").focus();
+                document.getElementById("div_endereco").style.display = "block";
+                document.getElementById("div_num").style.display = "block";
+                document.getElementById("div_compl").style.display = "block";
+                document.getElementById("div_bairro").style.display = "block";
+                document.getElementById("div_cidade").style.display = "block";
+                document.getElementById("div_uf").style.display = "block";
+                document.getElementById("div_float").style.display = "none";
+                $('#btnSubmit').fadeIn('show');
+                $("#sacado_endereco_num").focus();
             }else {
 
                 alert('Não foi possivel obter informações do cep informado.');
@@ -191,7 +211,6 @@ function selectFormaPagamento(){
     // boleto pagmax
     if(f_pagamento == 9){
         $('#pagamento-boleto').fadeIn('show');
-        $('#btnSubmit').fadeIn('show');
     }
 
     console.log($('#formaPagamento').val());

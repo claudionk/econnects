@@ -274,6 +274,17 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
     font-weight: bold;
     font-size: 2.3rem;
 }
+
+/* Botão flutuante formulário pagamento */
+.divBtnFloat{
+    display: inline-block;
+}
+.btnCircular{
+    border-radius: 50%;
+    font-size: 20px;
+}
+/***/
+
 .block-plans .card{
     height: 325px;
     border-radius: 10px;
