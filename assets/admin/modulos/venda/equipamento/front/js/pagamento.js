@@ -136,7 +136,8 @@ function boletoValidarCEP(cep){
 
 function mostraInput(id){
     //$(".form-group").find('input').focus().next("div").css( 'display', 'block' );
-    var mudar = document.getElementById("float_btn");   
+    var mudar = document.getElementById("float_btn"); 
+    
     document.getElementById(id).style.display = "block";
     if (id == 'div_nome'){
         mudar.setAttribute('onclick', 'mostraInput("div_cep")');
@@ -179,7 +180,7 @@ function boletoBuscaCep(){
                 document.getElementById("div_cidade").style.display = "block";
                 document.getElementById("div_uf").style.display = "block";
                 document.getElementById("div_float").style.display = "none";
-                $('#btnSubmit').fadeIn('show');
+                $('#btn-proximo').attr('disabled', false); 
                 $("#sacado_endereco_num").focus();
             }else {
 
@@ -211,6 +212,9 @@ function selectFormaPagamento(){
     // boleto pagmax
     if(f_pagamento == 9){
         $('#pagamento-boleto').fadeIn('show');
+        $('#btnSubmit').fadeIn('show');
+        $('#btn-proximo').attr('disabled', true);
+
     }
 
     console.log($('#formaPagamento').val());
