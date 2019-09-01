@@ -201,12 +201,14 @@ function selectFormaPagamento(){
     if(f_pagamento == 1){
         $('#pagamento-credito').fadeIn('show');
         $('#btnSubmit').fadeIn('show');
+        $('#btn-proximo').attr('disabled', false); 
     }
 
     // cartão de débito
     if(f_pagamento == 8){
         $('#pagamento-debito').fadeIn('show');
         $('#btnSubmit').fadeIn('show');
+        $('#btn-proximo').attr('disabled', false); 
     }
 
     // boleto pagmax
