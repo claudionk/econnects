@@ -40,7 +40,7 @@ class Venda_Equipamento extends Admin_Controller{
         }
         if(! empty($this->input->get("layout"))){
             $this->layout = $this->input->get("layout");
-            $this->getUrl .= '&layout='.$this->layout;
+            $this->getUrl .= '?layout='.$this->layout;
         }
         if(! empty($this->input->get("color"))){
             $this->color  = $this->input->get("color");

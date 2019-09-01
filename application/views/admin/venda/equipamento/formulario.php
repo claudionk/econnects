@@ -46,15 +46,6 @@
                 </div>
 
         </form>
-
-        <div class="col-xs-12 icon-login" id="div_float">
-                <div class="col-xs-12 divBtnFloat">
-                    <a  class="btn btn-primary btnCircular" id="float_btn" onclick="mostraInput();">
-                        <i class="fa fa-arrow-down"></i>
-                    </a>
-                </div>
-        </div>
-
     </div>
 </div>
 
@@ -71,7 +62,7 @@
             </a>
         <?php } ?>
 
-        <a class="pull-right btn btn-app btn-primary" onclick="$('#validateSubmitForm').submit();" id='btn-proximo'>
+        <a class="pull-right btn btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
             <i class="fa fa-arrow-right"></i> Próximo
         </a>
 
@@ -94,59 +85,3 @@
         </div>
     </div>
 </div>
-
-<script>
-
-var arrayDivs = [];
-
-$(document).ready(function(){
-    // hidden all input  
-    $(".form-group").each(function(key, values){
-        
-        console.log(values);
-        var divs = $(this);
-        
-        if(typeof divs.find('.form-control').attr('id') != 'undefined'){
-            var id = divs.find('.form-control').attr('id');
-
-            divs.css('display', 'none');
-            arrayDivs.push([divs, id, 0 ]);
-
-            $('#btn-proximo').attr('disabled', true);
-
-            if(arrayDivs.length == 1){
-                divs.css('display', 'block');
-                arrayDivs[0][2] = 1;//define a div atual
-            }
-
-        }
-        });
-});
-
-function mostraInput(){
-
-        for (i = 0; i < arrayDivs.length; i++) { 
-            
-            if(arrayDivs[i][2] == 1){
-
-                id_div= arrayDivs[i+1][1]; //define id do input a ser exibido
-                arrayDivs[i][2] = 0;
-                arrayDivs[i+1][2] = 1;//define div atual
-                linha = i+2; //encontra posiçao do vetor em que deverá desaparecer a div_float
-                break;
-
-            }
-
-            if ((arrayDivs.length-1) == linha){
-
-                $('#btn-proximo').attr('disabled', false);
-                document.getElementById("div_float").style.display = "none";
-            }
-           
-        }            
-            //arrayDivs[linha].css('display', 'block')
-            $('#'+id_div).parent('div').css('display', 'block');
-            $('#'+id_div).focus();
-};
-
-</script>
