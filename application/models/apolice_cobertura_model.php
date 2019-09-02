@@ -72,7 +72,7 @@ Class Apolice_Cobertura_Model extends MY_Model
                 //     break;
             }
 
-            $dados[
+            $dados = [
                 'cotacao_id'         => $cobertura["cotacao_id"],
                 'pedido_id'          => $cobertura["pedido_id"],
                 'apolice_id'         => $cobertura["apolice_id"],
