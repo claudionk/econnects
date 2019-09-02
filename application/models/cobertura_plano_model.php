@@ -189,9 +189,10 @@ Class Cobertura_Plano_Model extends MY_Model {
     function with_prod_parc($produto_parceiro_id, $produto_parceiro_plano_id = null){
 
         $this->_database->select("{$this->_table}.*, cobertura.*, produto_parceiro_plano.*");
+        $this->_database->select("IF(produto_parceiro.parceiro_id = cobertura_plano.parceiro_id, 1, 0) AS cob_resp", FALSE);
         $this->_database->join("cobertura", "cobertura.cobertura_id = {$this->_table}.cobertura_id");
         $this->_database->join("produto_parceiro_plano", "produto_parceiro_plano.produto_parceiro_plano_id = {$this->_table}.produto_parceiro_plano_id");
-        $this->_database->join("produto_parceiro", "produto_parceiro.produto_parceiro_id = produto_parceiro_plano.produto_parceiro_id AND produto_parceiro.parceiro_id = cobertura_plano.parceiro_id");
+        $this->_database->join("produto_parceiro", "produto_parceiro.produto_parceiro_id = produto_parceiro_plano.produto_parceiro_id #AND produto_parceiro.parceiro_id = cobertura_plano.parceiro_id");
 
         $this->_database->where("produto_parceiro_plano.produto_parceiro_id", $produto_parceiro_id);
         $this->_database->where("produto_parceiro_plano.deletado", 0);
