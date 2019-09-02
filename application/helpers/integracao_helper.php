@@ -850,7 +850,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $geraDados['num_apolice']               = $dados['registro']['num_apolice'];
             $geraDados['data_adesao_cancel']        = $dados['registro']['data_adesao_cancel'];
             $geraDados['telefone']                  = $dados['registro']['telefone'];
-            $geraDados['endereco_logradouro']       = $dados['registro']['endereco_logradouro'];
+            $geraDados['endereco']                  = $dados['registro']['endereco_logradouro'];
             $geraDados['sexo']                      = $dados['registro']['sexo'];
             $geraDados['cod_produto_sap']           = $dados['registro']['cod_produto_sap'];
             $geraDados['ean']                       = $dados['registro']['ean'];
@@ -889,6 +889,13 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         {
             $dados['registro']['acao']        = '1';
             $dados['registro']['data_adesao'] = $dados['registro']['data_adesao_cancel'];
+
+            // Trata o nome da marca retornada pela LASA
+            $searchWord = 'CORRIGIR';
+            if(preg_match("/{$searchWord}/i", $dados['registro']['marca'])) {
+                $dados['registro']['marca'] = '';
+            }
+
         // Cancelamento
         } else if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX','XD']) )
         {
@@ -1372,7 +1379,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                     $dados['endereco_logradouro'] = "ALAMEDA RIO NEGRO";
 
                 if (empty($dados['endereco_numero']))
-                    $dados['endereco_numero'] = '0';
+                    $dados['endereco_numero'] = 'SN';
 
                 if (empty($dados['endereco_cep']) || $dados['endereco_cep'] == "99999999")
                     $dados['endereco_cep'] = '06454000';
@@ -1408,9 +1415,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $errors[] = ['id' => 23, 'msg' => "Cidade inválida.", 'slug' => "cidade"];
             }
 
-            if (empty($dados['endereco_numero'])) {
-                $errors[] = ['id' => 24, 'msg' => "Nº logradouro inválido.", 'slug' => "numero"];
-            }
+            // if (empty($dados['endereco_numero'])) {
+            //     $errors[] = ['id' => 24, 'msg' => "Nº logradouro inválido.", 'slug' => "numero"];
+            // }
 
             if (empty($dados['endereco_logradouro']) || strlen($dados['endereco_logradouro']) <= 3) {
                 $errors[] = ['id' => 25, 'msg' => "Logradouro inválido.", 'slug' => "logradouro"];
@@ -1420,9 +1427,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $errors[] = ['id' => 26, 'msg' => "CEP inválido.", 'slug' => "logradouro"];
             }
 
-            if (!empty($dados['email']) && !app_valida_email($dados['email'])) {
-                $errors[] = ['id' => 40, 'msg' => "E-mail inválido", 'slug' => "email"];
-            }
+            // if (!empty($dados['email']) && !app_valida_email($dados['email'])) {
+            //     $errors[] = ['id' => 40, 'msg' => "E-mail inválido", 'slug' => "email"];
+            // }
 
             // IDADE - Pessoa física maior de 18 anos
             // E-mail Patini - 28 de nov de 2018 17:19
@@ -2263,7 +2270,7 @@ if ( ! function_exists('app_integracao_inicio')) {
             if ($eanErro){
                 $inputField = [
                     'modelo' => $dados['registro']['equipamento_nome'],
-                    'marca' => $dados['registro']['marca'],
+                    'marca'  => $dados['registro']['marca'],
                     'quantidade' => 1,
                     'emailAPI' => app_get_userdata("email"),
                 ];

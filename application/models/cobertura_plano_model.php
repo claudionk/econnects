@@ -272,7 +272,7 @@ Class Cobertura_Plano_Model extends MY_Model {
         LEFT JOIN regra_preco rp on pprp.regra_preco_id = rp.regra_preco_id AND rp.slug = 'iof' 
 
         INNER JOIN apolice_cobertura ON apolice.apolice_id = apolice_cobertura.apolice_id
-        INNER JOIN cobertura_plano ON apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id AND produto_parceiro.parceiro_id = cobertura_plano.parceiro_id
+        INNER JOIN cobertura_plano ON apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id #AND produto_parceiro.parceiro_id = cobertura_plano.parceiro_id
         INNER JOIN cobertura ON cobertura_plano.cobertura_id = cobertura.cobertura_id
         INNER JOIN apolice_endosso ON apolice.apolice_id = apolice_endosso.apolice_id AND apolice_endosso.apolice_movimentacao_tipo_id = 1
         LEFT JOIN apolice_generico ON apolice_generico.apolice_id = apolice.apolice_id
@@ -344,7 +344,7 @@ Class Cobertura_Plano_Model extends MY_Model {
             AND apolice.deletado = 0
             AND apolice_cobertura.deletado = 0
             AND cobertura_plano.deletado = 0
-            AND apolice_cobertura.valor > 0
+            AND apolice_cobertura.valor >= 0
             AND apolice.apolice_id = {$apolice_id}
         ) AS y
         ";
