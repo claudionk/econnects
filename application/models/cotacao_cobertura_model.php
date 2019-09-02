@@ -131,7 +131,6 @@ Class Cotacao_Cobertura_Model extends MY_Model
             $coberturas[$i+$j]["valor_cobertura"] = $cobertura["valor"];
         }
 
-
         // Calcula a diferença se o cálculo for percentual
         if ($percentual && $total != $premio_liquido)
         {
