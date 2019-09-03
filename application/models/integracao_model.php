@@ -1022,7 +1022,8 @@ Class Integracao_Model extends MY_Model
 
             // Valida a chave da criação do log
             if ( !empty($integracao) ) {
-                if ( in_array($item['nome_banco'], $integracao['campo_chave']) ) {
+                $key_field = explode("|", $integracao['campo_chave']);
+                if ( in_array($item['nome_banco'], $key_field) ) {
                     $arCampoChave[$item['nome_banco']] = $campo;
                 }
             }

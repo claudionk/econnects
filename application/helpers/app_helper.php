@@ -1817,3 +1817,11 @@ if ( ! function_exists('trataRetorno'))
         return $txt;
     }
 }
+
+function print_pre($arr, $die = true)
+{
+    echo "<pre>";
+    print_r($arr);
+
+    if ($die) die();
+}
