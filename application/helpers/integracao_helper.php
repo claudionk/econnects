@@ -1908,36 +1908,6 @@ if ( ! function_exists('app_integracao_gera_sinistro')) {
         $CI->db->query("call sp_gera_sinistro(27)");
     }
 }
-if ( ! function_exists('app_integracao_cap_data_sorteio')) {
-    function app_integracao_cap_data_sorteio($formato, $dados = array())
-    {
-        $data = null;
-        $pedido_id = issetor($dados["registro"]["pedido_id"], 0);
-        $formato   = emptyor($formato, 'dmY');
-
-        $CI =& get_instance();
-        $CI->load->model("Capitalizacao_Sorteio_Model", "capitalizacao_sorteio");
-
-        return $CI->capitalizacao_sorteio->defineDataSorteio($pedido_id, $formato);
-    }
-}
-if ( ! function_exists('app_integracao_cap_remessa')) {
-    function app_integracao_cap_remessa($formato, $dados = array())
-    {
-        $CI =& get_instance();
-        $CI->load->model('capitalizacao_model');
-
-        if((isset($dados['registro']['dados'][0]['num_remessa'])) && (isset($dados['registro']['dados'][0]['capitalizacao_id'])) ){
-            $num_remessa = $dados['registro']['dados'][0]['num_remessa'] += 1;
-            $data_cap    = array('num_remessa' => $num_remessa);
-            $CI->capitalizacao_model->update($dados['registro']['dados'][0]['capitalizacao_id'], $data_cap, TRUE);
-
-            return true;
-        }else{
-            return false;
-        }
-    }
-}
 if ( ! function_exists('app_integracao_novo_mundo')) {
     function app_integracao_novo_mundo($formato, $dados = array())
     {
@@ -2328,5 +2298,36 @@ if ( ! function_exists('app_integracao_inicio')) {
 
         $response->status = true;
         return $response;
+    }
+}
+if ( ! function_exists('app_integracao_cap_data_sorteio')) {
+    function app_integracao_cap_data_sorteio($formato, $dados = array())
+    {
+        $data           = null;
+        $pedido_id      = issetor($dados["registro"]["pedido_id"], 0);
+        $data_sorteio   = issetor($dados["registro"]["data_sorteio"], null);
+        $formato        = emptyor($formato, 'dmY');
+
+        $CI =& get_instance();
+        $CI->load->model("Capitalizacao_Sorteio_Model", "capitalizacao_sorteio");
+
+        return $CI->capitalizacao_sorteio->defineDataSorteio($pedido_id, $formato, $data_sorteio);
+    }
+}
+if ( ! function_exists('app_integracao_cap_remessa')) {
+    function app_integracao_cap_remessa($formato, $dados = array())
+    {
+        $CI =& get_instance();
+        $CI->load->model('capitalizacao_model');
+
+        if((isset($dados['registro']['dados'][0]['num_remessa'])) && (isset($dados['registro']['dados'][0]['capitalizacao_id'])) ){
+            $num_remessa = $dados['registro']['dados'][0]['num_remessa'] += 1;
+            $data_cap    = array('num_remessa' => $num_remessa);
+            $CI->capitalizacao_model->update($dados['registro']['dados'][0]['capitalizacao_id'], $data_cap, TRUE);
+
+            return true;
+        }else{
+            return false;
+        }
     }
 }
