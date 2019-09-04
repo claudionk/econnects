@@ -1015,6 +1015,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 if (!empty($dados['data_fim_vigencia']))
                     $fields['data_fim_vigencia'] = $dados['data_fim_vigencia'];
 
+                if (!empty($dados['num_sorte']))
+                    $fields['numero_sorte'] = $dados['num_sorte'];
+
                 $fields['ean'] = $dados['ean'];
                 $fields['emailAPI'] = app_get_userdata("email");
 
