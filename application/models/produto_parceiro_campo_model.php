@@ -356,7 +356,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
             $validacao_ok = true;
             foreach( $campos as $campo ) {
                 if( strpos( $campo["validacoes"], "required" ) !== false ) {
-                    if( !isset( $values[$campo["campo_nome_banco_equipamento"]] ) || empty( trim($values[$campo["campo_nome_banco_equipamento"]]) ) ) {
+                    if( !isset( $values[$campo["campo_nome_banco_equipamento"]] ) || trim($values[$campo["campo_nome_banco_equipamento"]]) == '' ) {
                         $erros[] = "O campo ". $campo["campo_nome"] ." (". $campo["campo_nome_banco_equipamento"] .") não foi informado";
                         $validacao_ok = false;
                     }
@@ -371,7 +371,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
 
             foreach( $campos as $campo ) {
                 $rule_check = "OK";
-                if( strpos( $campo["validacoes"], "required" ) !== false && ( empty($values[$campo["campo_nome_banco_equipamento"]]) || is_null( $values[$campo["campo_nome_banco_equipamento"]] ) ) ) {
+                if( strpos( $campo["validacoes"], "required" ) !== false && ( is_null( $values[$campo["campo_nome_banco_equipamento"]] ) || trim($values[$campo["campo_nome_banco_equipamento"]]) == ''  ) ) {
                     $rule_check = "O preenchimento do campo ". $campo["campo_nome_banco_equipamento"] ." é obrigatório";
                     $erros[] = $rule_check;
                 } else {

@@ -1031,6 +1031,7 @@ Class Integracao_Model extends MY_Model
 
         $result = "";
         $arResult = [];
+        $arCampoChave = [];
         $integracao_log_status_id = 4;
         $v = 0;
 
@@ -1061,13 +1062,21 @@ Class Integracao_Model extends MY_Model
             }elseif (!empty($item['nome_banco'])){
 
                 if(isset($registro[$item['nome_banco']])){
-                    $registro[$item['nome_banco']] = $campo = $registro[$item['nome_banco']];
+                    $campo = $registro[$item['nome_banco']];
                 }elseif(isset($log[$item['nome_banco']])){
                     $campo = $log[$item['nome_banco']];
                 }else{
                     $campo = '';
                 }
 
+            }
+
+            // Valida a chave da criação do log
+            if ( !empty($integracao) ) {
+                $key_field = explode("|", $integracao['campo_chave']);
+                if ( in_array($item['nome_banco'], $key_field) ) {
+                    $arCampoChave[$item['nome_banco']] = $campo;
+                }
             }
 
             // Se for obrigatório precisa validar e retornar erro para gerar log de retorno
@@ -1092,6 +1101,16 @@ Class Integracao_Model extends MY_Model
             }
 
             $result .= mb_substr($pre_result,0,$item['tamanho']);
+        }
+
+        // Valida a chave da criação do log
+        if ( !empty($arCampoChave) )
+        {
+            $this->integracao_log_detalhe->update_by(
+                array('integracao_log_detalhe_id' => $integracao_log_detalhe_id),array(
+                    'chave' => $this->geraCampoChave($integracao['campo_chave'], $arCampoChave)
+                )
+            );
         }
 
         if ($integracao_log_status_id != 4){
