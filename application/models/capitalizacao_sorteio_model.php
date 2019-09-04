@@ -83,6 +83,7 @@ Class Capitalizacao_Sorteio_Model extends MY_Model
         $data_ini_vigencia  = issetor($dados["data_ini_vigencia"], date('Y-m-d'));
         $data_fim_vigencia  = issetor($dados["data_fim_vigencia"], date('Y-m-d'));
 
+
         // Tipo de Sorteio
         switch ($dados['slug_sorteio']) {
 
@@ -131,7 +132,6 @@ Class Capitalizacao_Sorteio_Model extends MY_Model
     private function calculaDataSorteio($d1, $tipo, $formato)
     {
         #%w = Sunday=0 and Saturday=6
-
         // último Sábado do mês
         if ($tipo == 'ultimo_sabado') {
 
@@ -155,7 +155,7 @@ Class Capitalizacao_Sorteio_Model extends MY_Model
             return null;
         }
 
-        $data = $d1->format($formato);
+        return $d1->format($formato);
     }
 
 }
