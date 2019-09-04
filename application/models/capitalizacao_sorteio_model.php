@@ -69,7 +69,7 @@ Class Capitalizacao_Sorteio_Model extends MY_Model
         return $this->get_all();
     }
 
-    public function defineDataSorteio($pedido_id, $formato = 'Y-m-d')
+    public function defineDataSorteio($pedido_id, $formato = 'Y-m-d', $data_sorteio = null)
     {
         $dados = $this->getDadosCapitalizacao($pedido_id);
 
@@ -87,53 +87,75 @@ Class Capitalizacao_Sorteio_Model extends MY_Model
         switch ($dados['slug_sorteio']) {
 
             case 'ultimo_sabado_mes_2_compra':
-                #%w = Sunday=0 and Saturday=6
-                $d1 = new DateTime($data_compra);
-                $d1->add(new DateInterval('P2M')); // add 2 month
-                $d1->add(new DateInterval('P1M')); // add 1 month para encontrar o último sabado
-                $d2 = $d1->format('d'); // dia do mês para ser retirado
-                $d1->sub(new DateInterval("P{$d2}D")); // -1 dia (último dia do mês)
 
-                // se não for um sábado
-                if ($d1->format('w') != 0)
+                // Caso tenha enviado a última data do sorteio
+                if ( !empty($data_sorteio) )
                 {
-                    $d2 = $d1->format('w') + 1; // dia da semana do último dia do mês
-                    $d1->sub(new DateInterval("P{$d2}D")); // -1 dia (último dia do mês)
+                    // deve add o próximo mês
+                    $d1 = new DateTime($data_sorteio);
+                    $d1->add(new DateInterval('P1M')); // add 1 month
+
+                } else {
+
+                    $d1 = new DateTime($data_compra);
+                    $d1->add(new DateInterval('P2M')); // add 2 month
+
                 }
 
-                $data = $d1->format($formato);
+                $data = $this->calculaDataSorteio($d1, 'ultimo_sabado', $formato);
                 break;
 
             case 'sabado_compra':
                 #%w = Sunday=0 and Saturday=6
                 $d1 = new DateTime($data_compra);
-                $d2 = 6 - $d1->format('w'); // diferença de dias para chegar ao sábado
-                $d1->add(new DateInterval("P{$d2}D"));
-
-                $data = $d1->format($formato);
+                $data = $this->calculaDataSorteio($d1, 'sabado_seguinte', $formato);
                 break;
 
              case 'sabado_inicio_vigência':
                 #%w = Sunday=0 and Saturday=6
                 $d1 = new DateTime($data_ini_vigencia);
-                $d2 = 6 - $d1->format('w'); // diferença de dias para chegar ao sábado
-                $d1->add(new DateInterval("P{$d2}D"));
-
-                $data = $d1->format($formato);
+                $data = $this->calculaDataSorteio($d1, 'sabado_seguinte', $formato);
                 break;
 
              case 'sabado_fim_vigencia':
                 #%w = Sunday=0 and Saturday=6
                 $d1 = new DateTime($data_fim_vigencia);
-                $d2 = 6 - $d1->format('w'); // diferença de dias para chegar ao sábado
-                $d1->add(new DateInterval("P{$d2}D"));
-
-                $data = $d1->format($formato);
+                $data = $this->calculaDataSorteio($d1, 'sabado_seguinte', $formato);
                 break;
         }
 
         return $data;
 
+    }
+
+    private function calculaDataSorteio($d1, $tipo, $formato)
+    {
+        #%w = Sunday=0 and Saturday=6
+
+        // último Sábado do mês
+        if ($tipo == 'ultimo_sabado') {
+
+            $d1->add(new DateInterval('P1M')); // add 1 month para encontrar o último sabado
+            $d2 = $d1->format('d'); // dia do mês para ser retirado
+            $d1->sub(new DateInterval("P{$d2}D")); // -1 dia (último dia do mês)
+
+            // se não for um sábado
+            if ($d1->format('w') != 0)
+            {
+                $d2 = $d1->format('w') + 1; // dia da semana do último dia do mês
+                $d1->sub(new DateInterval("P{$d2}D")); // -1 dia (último dia do mês)
+            }
+
+        } elseif ($tipo == 'sabado_seguinte') {
+
+            $d2 = 6 - $d1->format('w'); // diferença de dias para chegar ao sábado
+            $d1->add(new DateInterval("P{$d2}D"));
+
+        } else {
+            return null;
+        }
+
+        $data = $d1->format($formato);
     }
 
 }
