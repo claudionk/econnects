@@ -1817,14 +1817,15 @@ if ( ! function_exists('app_integracao_inicio')) {
 if ( ! function_exists('app_integracao_cap_data_sorteio')) {
     function app_integracao_cap_data_sorteio($formato, $dados = array())
     {
-        $data = null;
-        $pedido_id = issetor($dados["registro"]["pedido_id"], 0);
-        $formato   = emptyor($formato, 'dmY');
+        $data           = null;
+        $pedido_id      = issetor($dados["registro"]["pedido_id"], 0);
+        $data_sorteio   = issetor($dados["registro"]["data_sorteio"], null);
+        $formato        = emptyor($formato, 'dmY');
 
         $CI =& get_instance();
         $CI->load->model("Capitalizacao_Sorteio_Model", "capitalizacao_sorteio");
 
-        return $CI->capitalizacao_sorteio->defineDataSorteio($pedido_id, $formato);
+        return $CI->capitalizacao_sorteio->defineDataSorteio($pedido_id, $formato, $data_sorteio);
     }
 }
 if ( ! function_exists('app_integracao_cap_remessa')) {
