@@ -375,7 +375,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                     $rule_check = "O preenchimento do campo ". $campo["campo_nome_banco_equipamento"] ." é obrigatório";
                     $erros[] = $rule_check;
                 } else {
-                    if( !empty($values[$campo["campo_nome_banco_equipamento"]]) && $values[$campo["campo_nome_banco_equipamento"]] != "0000-00-00" && !is_null( $values[$campo["campo_nome_banco_equipamento"]] )  ) {
+                    if( isset($values[$campo["campo_nome_banco_equipamento"]]) && $values[$campo["campo_nome_banco_equipamento"]] != "0000-00-00" && !is_null( $values[$campo["campo_nome_banco_equipamento"]] )  ) {
                         if( strpos( $campo["validacoes"], "validate_data" ) !== false ) {
                             $valida_data = date_parse_from_format("Y-m-d", $values[$campo["campo_nome_banco_equipamento"]]);
                             if( !checkdate( $valida_data["month"], $valida_data["day"], $valida_data["year"] ) ) {
