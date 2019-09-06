@@ -124,6 +124,7 @@ class Fatura_Model extends MY_Model
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
         $this->load->model('cotacao_model', 'cotacao');
+        $this->load->model('pedido_model', 'pedido');
 
         $insereItem = true;
         $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
@@ -143,9 +144,14 @@ class Fatura_Model extends MY_Model
                     );
                 }elseif($cotacao['produto_slug'] == 'equipamento') {
                     $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao['produto_parceiro_plano_id'], $cotacao['nota_fiscal_data']);
+
                 }elseif($cotacao['produto_slug'] == 'generico') {
                     $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao['produto_parceiro_plano_id'], date('Y-m-d'));
                 }
+
+                //Insere número de parcelas na tabela pedido
+                $fatura =  $this->get($fatura_id);
+                $this->pedido->update($fatura["pedido_id"], ["num_parcela" => $configuracao['pagamento_periodicidade']], TRUE);
 
                 switch ($configuracao['pagamento_periodicidade_unidade']){
                     case 'DIA':
