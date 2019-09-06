@@ -384,14 +384,17 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                             }
                         }
                         if( strpos( $campo["validacoes"], "validate_email" ) !== false ) {
-                            $valida_email = filter_var( $values[$campo["campo_nome_banco_equipamento"]], FILTER_VALIDATE_EMAIL );
-                            if( !$valida_email ) {
-                                $rule_check = "E-mail inválido (". $campo["campo_nome_banco_equipamento"] .")";
-                                $erros[] = $rule_check;
+                            if ( !empty($values[$campo["campo_nome_banco_equipamento"]]) )
+                            {
+                                $valida_email = filter_var( $values[$campo["campo_nome_banco_equipamento"]], FILTER_VALIDATE_EMAIL );
+                                if( !$valida_email ) {
+                                    $rule_check = "E-mail inválido (". $campo["campo_nome_banco_equipamento"] .")";
+                                    $erros[] = $rule_check;
+                                }
                             }
                         }
                         if( strpos( $campo["validacoes"], "validate_celular" ) !== false ) {
-                            if( !app_validate_celular( $values[$campo["campo_nome_banco_equipamento"]] ) ) {
+                            if( !empty($values[$campo["campo_nome_banco_equipamento"]]) && !app_validate_celular( $values[$campo["campo_nome_banco_equipamento"]] ) ) {
                                 $rule_check = "Número de telefone celular inválido (". $campo["campo_nome_banco_equipamento"] .")";
                                 $erros[] = $rule_check;
                             }
