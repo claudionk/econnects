@@ -1053,14 +1053,22 @@ Class Integracao_Model extends MY_Model
         }
 
         // Valida a chave da criação do log
+        /*
         if ( !empty($arCampoChave) )
         {
-            $this->integracao_log_detalhe->update_by(
-                array('integracao_log_detalhe_id' => $integracao_log_detalhe_id),array(
-                    'chave' => $this->geraCampoChave($integracao['campo_chave'], $arCampoChave)
-                )
-            );
+            // verifica se mantém a mesma quantidade de campos para não perder alguma no meio do caminho
+            // dessa forma, assume a inicial informada antes do processamento linha a linha
+            $key_field = explode("|", $integracao['campo_chave']);
+            if (count($key_field) == count($arCampoChave))
+            {
+                $this->integracao_log_detalhe->update_by(
+                    array('integracao_log_detalhe_id' => $integracao_log_detalhe_id),array(
+                        'chave' => $this->geraCampoChave($integracao['campo_chave'], $arCampoChave)
+                    )
+                );
+            }
         }
+        */
 
         if ($integracao_log_status_id != 4){
             $this->integracao_log_detalhe->update_by(
