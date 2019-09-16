@@ -23,6 +23,8 @@ Class Integracao_Model extends MY_Model
     protected $fields_uppercase = array('nome', 'descricao');
 
     private $data_template_script = array();
+    private $tipo_layout="";
+    private $layout_separador=";";
 
 
     //Dados
@@ -333,6 +335,7 @@ Class Integracao_Model extends MY_Model
     }
 
     public function run_s($integracao_id){
+	echo "run_s($integracao_id)\n";
 
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
@@ -342,10 +345,11 @@ Class Integracao_Model extends MY_Model
         $this->_database->where("integracao.status", 'A');
         $this->_database->where("integracao.deletado", 0);
         $this->_database->where("integracao.habilitado", 1);
-        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
+        //$this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
         $result = $this->get_all();
 
         if($result){
+	    echo "result" . print_r($result, true) . "\n";
             $result = $result[0];
             $dados_integracao = array();
             $dados_integracao['status'] = 'L';
@@ -638,12 +642,17 @@ Class Integracao_Model extends MY_Model
         $this->load->model('integracao_detalhe_model', 'integracao_det');
 
         $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+	echo "diretorio:$diretorio\n";
 
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
         $this->data_template_script['parceiro_id'] = $integracao['parceiro_id'];
+	$this->tipo_layout=$integracao['tipo_layout'];
+	$this->layout_separador=$integracao['layout_separador'];
 
         $integracao['script_sql'] = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
+	echo "script_sql:" . $integracao['script_sql'] . "\n";
         $registros = $this->_database->query($integracao['script_sql'])->result_array();
+	echo "registros:" . print_r($registros) . "\n";
 
         $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], count($registros));
         $arRet = ['file' => '', 'integracao_log_id' => $integracao_log['integracao_log_id'], 'qtde_reg' => count($registros)];
@@ -691,6 +700,11 @@ Class Integracao_Model extends MY_Model
             unset($layout[$idxF]);
         }
 
+	echo "filename=" . $filename . "\n";
+        if ( empty($filename) ) {
+            return $arRet;
+        }
+
         // Trata o header
         $idxH = app_search( $layout, 'H', 'tipo' );
         if ( $idxH >= 0 ) {
@@ -703,16 +717,15 @@ Class Integracao_Model extends MY_Model
             unset($layout[$idxH]);
         }
 
-        if ( empty($filename) ) {
-            return $arRet;
-        }
 
         $arRet['file'] = "{$diretorio}/{$filename}";
         $arRet['dados'] = $registros;
 
         //gera todas as linhas
+	$i=0;
         foreach ($layout as $lay) {
-            if ($lay['multiplo'] == 0) {
+		$i++;
+            if ($lay['multiplo'] == 0 || count($layout)==$i) {
                 $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
                 $layout_m = [];
                 $line = $this->processLine($lay['multiplo'], $lay['dados'], !empty($registros) ? $registros[0] : [], null);
@@ -722,6 +735,8 @@ Class Integracao_Model extends MY_Model
             }
         }
 
+	echo "layout_m=" . print_r($layout_m, true) . "\n";
+
         // echo "<pre>";print_r($linhas);echo "</pre>";
         // Trata o header
         if ( $idxH >= 0 ) {
@@ -729,11 +744,14 @@ Class Integracao_Model extends MY_Model
             $header = $this->getLinha($lH['dados'], !empty($registros) ? $registros[0] : [], $integracao_log);
             $linhas = array_merge([$header], $linhas);
         }
+	echo "linhas=" . print_r($linhas, true) . "\n";
 
         // Nao envia vazio && (nao gerou linhas ou as linhas geradas não são de detalhes)
+        echo "if ( empty(" . $integracao['envia_vazio'] . ") && (" . empty($linhas) . "||" .  count($linhas) . "<= $rmQtdeLine) ) {\n";
         if ( empty($integracao['envia_vazio']) && (empty($linhas) || count($linhas) <= $rmQtdeLine) ) {
             return $arRet;
         }
+	echo "linhas2=" . print_r($linhas, true) . "\n";
 
         $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
 
@@ -750,6 +768,8 @@ Class Integracao_Model extends MY_Model
         $arRet['qtde_reg'] = count($linhas)-$rmQtdeLine;
         $content = iconv( mb_detect_encoding( $content ), 'Windows-1252//TRANSLIT', $content );
         file_put_contents("{$diretorio}/{$filename}", $content);
+
+	echo "content:" . print_r($content) . "\n";
 
         return $arRet;
     }
@@ -985,7 +1005,9 @@ Class Integracao_Model extends MY_Model
         $v = 0;
 
         foreach ($layout as $ind => $item) {
+		//echo "ind:" . print_r($ind, true) . "\n";
 
+	    //echo "item:" . print_r($item, true) . "\n";
             $campo = null;
             $pre_result = '';
             $qnt_valor_padrao = $item['tamanho'];
@@ -1001,14 +1023,20 @@ Class Integracao_Model extends MY_Model
                         $campo = $log[$item['nome_banco']];
                     }
                 }
+                elseif (!empty($item['valor_padrao'])){
+                        $campo = $item['valor_padrao'];
+            		//echo "if1::campo=$campo \n";
+		}
 
             }elseif (!empty($item['function'])){
+            //echo "if2\n";
 
                 if(function_exists($item['function'])){
                     $campo = call_user_func($item['function'], $item['formato'], array('item' => $item, 'registro' => $registro, 'log' => $log, 'global' => $this->data_template_script));
                 }
 
             }elseif (!empty($item['nome_banco'])){
+            //echo "if3\n";
 
                 if(isset($registro[$item['nome_banco']])){
                     $campo = $registro[$item['nome_banco']];
@@ -1041,15 +1069,40 @@ Class Integracao_Model extends MY_Model
                     $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, 1, "O campo {$item['nome']} é obrigatório", $item['nome_banco']);
 
                     // não gera a linha
+                    //echo "continue\n";
                     continue;
                 }
             }
 
-            if (!is_null($campo)){
-                $pre_result .= mb_str_pad(trataRetorno($campo), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
+	    //echo "campo:" . print_r($campo, true) . "\n";
+
+            if (!is_null($campo))
+	    {
+		if($this->tipo_layout=="CSV")
+		{
+                	$pre_result = trataRetorno($campo);
+		}
+		else
+		{
+                	$pre_result .= mb_str_pad(trataRetorno($campo), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
+		}
             }
 
-            $result .= mb_substr($pre_result,0,$item['tamanho']);
+	    $sep=$this->layout_separador;
+
+	    if($this->tipo_layout=="CSV")
+	    {
+		if($ind==count($layout)-1)
+		{
+			$sep="";
+		}
+             	$result .= $pre_result . $sep;
+	    }
+	    else
+	    {
+             	$result .= mb_substr($pre_result,0,$item['tamanho']);
+	    }
+	    //echo "result:" . print_r($result, true) . "\n";
         }
 
         // Valida a chave da criação do log

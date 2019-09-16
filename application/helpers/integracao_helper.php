@@ -472,6 +472,16 @@ if ( ! function_exists('app_integracao_file_name_sulacap')) {
     }
 
 }
+if ( ! function_exists('app_integracao_file_name_novomundo')) {
+
+    function app_integracao_file_name_novomundo($formato, $dados = array())
+    {
+        $data = date('Ymd');
+        $file = "{$formato}{$data}.csv";
+        return $file;
+    }
+
+}
 if ( ! function_exists('app_integracao_format_file_name_ret_sis')) {
 
     function app_integracao_format_file_name_ret_sis($formato, $dados = array())
