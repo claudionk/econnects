@@ -277,6 +277,7 @@ Class Integracao_Model extends MY_Model
     }
 
     public function run_r($integracao_id){
+	echo "run_r($integracao_id)\n";
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
         $this->load->model('integracao_log_detalhe_campo_model', 'integracao_log_detalhe_campo');
@@ -288,7 +289,7 @@ Class Integracao_Model extends MY_Model
         $this->_database->where("integracao.status", 'A');
         $this->_database->where("integracao.deletado", 0);
         $this->_database->where("integracao.habilitado", 1);
-        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
+        //$this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
         $result = $this->get_all();
 
 
@@ -309,8 +310,13 @@ Class Integracao_Model extends MY_Model
                 ->get_all();
 
             $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
+
+            if(empty($file))
+	    {
+            	$file = $this->getFileName($result, $layout_filename);
+	    }
+
             $result_file = $this->getFile($result, $file);
-            // $result_file["file"] = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/14/R/C01.LASA.PARCEMS-RT-0145-20181214.TXT";
 
             $result_process = [];
             if(!empty($result_file['file'])){
@@ -341,7 +347,7 @@ Class Integracao_Model extends MY_Model
         $this->_database->where("integracao.status", 'A');
         $this->_database->where("integracao.deletado", 0);
         $this->_database->where("integracao.habilitado", 1);
-        //$this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
+        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
         $result = $this->get_all();
 
         if($result){
@@ -1290,5 +1296,27 @@ Class Integracao_Model extends MY_Model
         
     }
 
+    private function getFileName($integracao = array(), $layout = array())
+    {
+	echo "getFileName::integracao(" . print_r($integracao, true) . ")\n";
+	echo "getFileName::layout(" . print_r($layout, true) . ")\n";
+	switch($integracao['tipo_layout'])
+	{
+		case 'ZIP':
+			$formato	=$layout[0]['formato'];
+			$function	=$layout[0]['function'];
+			echo "getFileName::formato(" . $formato . ")\n";
+			echo "getFileName::function(" . $function . ")\n";
+			if(function_exists($function))
+			{
+			    $ret = call_user_func($function, $formato, array('item' => '', 'registro' => '', 'log' => '', 'global' => $this->data_template_script));
+			    echo "getFileName::retFunction(" . $ret . ")\n";
+			}
+		break;
+		default:
+			return '';
+		break;
+	}
+    }
 }
 
