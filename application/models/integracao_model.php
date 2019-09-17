@@ -316,7 +316,9 @@ Class Integracao_Model extends MY_Model
             	$file = $this->getFileName($result, $layout_filename);
 	    }
 
+            echo "this->getFile(\$result, $file)\n";
             $result_file = $this->getFile($result, $file);
+            echo "result_file:" . print_r($result_file, true) . "\n";
 
             $result_process = [];
             if(!empty($result_file['file'])){
@@ -1312,6 +1314,7 @@ Class Integracao_Model extends MY_Model
 			    $ret = call_user_func($function, $formato, array('item' => '', 'registro' => '', 'log' => '', 'global' => $this->data_template_script));
 			    echo "getFileName::retFunction(" . $ret . ")\n";
 			}
+			return $ret;
 		break;
 		default:
 			return '';
