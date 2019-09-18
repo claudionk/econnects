@@ -316,12 +316,11 @@ Class Integracao_Model extends MY_Model
             	$file = $this->getFileName($result, $layout_filename);
 	    }
 
-            echo "this->getFile(\$result, $file)\n";
             $result_file = $this->getFile($result, $file);
-            echo "result_file:" . print_r($result_file, true) . "\n";
 
             $result_process = [];
-            if(!empty($result_file['file'])){
+            if(!empty($result_file['file']) && $result['tipo_layout']!='ZIP')
+	    {
                 $result_process = $this->processFileIntegracao($result, $result_file['file']);
             }
 
@@ -451,6 +450,8 @@ Class Integracao_Model extends MY_Model
             }
 
         }catch (Exception $e) {
+		
+	  	echo "getFile::Exception " . print_r($e, true) . "\n";
 
         }
     }
@@ -1300,24 +1301,20 @@ Class Integracao_Model extends MY_Model
 
     private function getFileName($integracao = array(), $layout = array())
     {
-	echo "getFileName::integracao(" . print_r($integracao, true) . ")\n";
-	echo "getFileName::layout(" . print_r($layout, true) . ")\n";
 	switch($integracao['tipo_layout'])
 	{
 		case 'ZIP':
+		case 'zip':
 			$formato	=$layout[0]['formato'];
 			$function	=$layout[0]['function'];
-			echo "getFileName::formato(" . $formato . ")\n";
-			echo "getFileName::function(" . $function . ")\n";
 			if(function_exists($function))
 			{
-			    $ret = call_user_func($function, $formato, array('item' => '', 'registro' => '', 'log' => '', 'global' => $this->data_template_script));
-			    echo "getFileName::retFunction(" . $ret . ")\n";
+			    $ret = call_user_func($function, $formato, array('item' => $integracao, 'registro' => '', 'log' => '', 'global' => $this->data_template_script));
 			}
 			return $ret;
 		break;
 		default:
-			return '';
+			return ''; // para novos desenvolvimentos
 		break;
 	}
     }
