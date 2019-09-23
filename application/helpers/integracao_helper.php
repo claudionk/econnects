@@ -472,6 +472,29 @@ if ( ! function_exists('app_integracao_file_name_sulacap')) {
     }
 
 }
+if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
+
+    function app_integracao_csv_retorno_novomundo($formato, $dados = array())
+    {
+	static $a=0;
+	//echo "retorno_novomundo::formato=$formato\n";
+	//echo "retorno_novomundo::dados=" . ($dados) . "\n";
+	echo "retorno_novomundo::a=" . (++$a) . "\n";
+	//echo "retorno_novomundo::item=" . print_r($detail, true) . "\n";
+	$status_troca=$dados['registro']['status_troca'];
+
+	switch($status_troca)
+	{
+		case "UTILIZADO":
+		case "CANCELADO":
+			echo "retorno_novomundo::registro=" . print_r($dados['registro'], true) . "\n";
+		break;
+		default:
+		break;
+	}
+    }
+
+}
 if ( ! function_exists('app_integracao_file_name_novomundo')) {
 
     function app_integracao_file_name_novomundo($formato, $dados = array())

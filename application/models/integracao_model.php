@@ -290,7 +290,18 @@ Class Integracao_Model extends MY_Model
         $this->_database->where("integracao.deletado", 0);
         $this->_database->where("integracao.habilitado", 1);
         //$this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
-        $result = $this->get_all();
+
+	try
+	{
+        	$result = $this->get_all();
+	}
+	catch (Exception $e) 
+	{
+		echo "e=" . $e;
+	}
+
+	//echo "this=" . 		print_r($this, true);
+	//echo "result=" . 	print_r($result, true);
 
 
         if($result){
@@ -799,42 +810,66 @@ Class Integracao_Model extends MY_Model
         $trailler = array();
         $num_registro = 0;
 
-        while (!feof($fh)) #INICIO DO WHILE NO ARQUIVO
-        {
-            $linhas = str_replace("'"," ",fgets($fh, 4096));
+	if($integracao['tipo_layout'] == 'LAYOUT') {
+		while (!feof($fh)) #INICIO DO WHILE NO ARQUIVO
+		{
+			$linhas = str_replace("'"," ",fgets($fh, 4096));
 
-            //header
-            if(substr($linhas,($layout_header[0]['inicio'])-1,$layout_header[0]['tamanho']) == $layout_header[0]['valor_padrao']){
-                foreach ($layout_header as $idxh => $item_h) {
-                    $header[] = array(
-                        'layout' => $item_h,
-                        'valor' => substr($linhas,($item_h['inicio'])-1,$item_h['tamanho']),
-                        'linha' => $linhas,
-                    );
-                }
-            }elseif(substr($linhas,($layout_detail[0]['inicio'])-1,$layout_detail[0]['tamanho']) == $layout_detail[0]['valor_padrao']){
-                $sub_detail = array();
-                foreach ($layout_detail as $idxd => $item_d) {
-                    $sub_detail[] = array(
-                        'layout' => $item_d,
-                        'valor' => substr($linhas,($item_d['inicio'])-1,$item_d['tamanho']),
-                        'linha' => $linhas,
-                    );
-                }
+			//header
+			if(substr($linhas,($layout_header[0]['inicio'])-1,$layout_header[0]['tamanho']) == $layout_header[0]['valor_padrao']){
+				foreach ($layout_header as $idxh => $item_h) {
+					$header[] = array(
+							'layout' => $item_h,
+							'valor' => substr($linhas,($item_h['inicio'])-1,$item_h['tamanho']),
+							'linha' => $linhas,
+							);
+				}
+			}elseif(substr($linhas,($layout_detail[0]['inicio'])-1,$layout_detail[0]['tamanho']) == $layout_detail[0]['valor_padrao']){
+				$sub_detail = array();
+				foreach ($layout_detail as $idxd => $item_d) {
+					$sub_detail[] = array(
+							'layout' => $item_d,
+							'valor' => substr($linhas,($item_d['inicio'])-1,$item_d['tamanho']),
+							'linha' => $linhas,
+							);
+				}
 
-                $detail[] = $sub_detail;
-                $num_registro++;
-            }elseif(substr($linhas,($layout_trailler[0]['inicio'])-1,$layout_trailler[0]['tamanho']) == $layout_trailler[0]['valor_padrao']){
-                foreach ($layout_trailler as $idxt => $item_t) {
-                    $trailler[] = array(
-                        'layout' => $item_t,
-                        'valor' => substr($linhas,($item_t['inicio'])-1,$item_t['tamanho']),
-                        'linha' => $linhas,
-                    );
-                }
-            }
+				$detail[] = $sub_detail;
+				$num_registro++;
+			}elseif(substr($linhas,($layout_trailler[0]['inicio'])-1,$layout_trailler[0]['tamanho']) == $layout_trailler[0]['valor_padrao']){
+				foreach ($layout_trailler as $idxt => $item_t) {
+					$trailler[] = array(
+							'layout' => $item_t,
+							'valor' => substr($linhas,($item_t['inicio'])-1,$item_t['tamanho']),
+							'linha' => $linhas,
+							);
+				}
+			}
 
-        }
+		}
+	}
+	else if($integracao['tipo_layout'] == 'CSV'){
+		$ignore = TRUE;
+		while (($data = fgetcsv($fh, 4096, $integracao['layout_separador'])) !== FALSE) {
+			if($ignore){
+				$ignore = FALSE;
+				continue;
+			}
+			$sub_detail = array();
+			$c = 0;
+			$num = count($data);
+			foreach ($layout_detail as $idxd => $item_d) {
+				$sub_detail[] = array(
+						'layout' => $item_d,
+						'valor' => $data[$c],
+						'linha' => $data,
+						);
+				$c++;
+			}
+			$detail[] = $sub_detail;
+			$num_registro++;
+		}
+	}
 
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
         $integracao['script_sql'] = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
