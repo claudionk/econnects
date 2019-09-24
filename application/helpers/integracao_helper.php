@@ -476,21 +476,28 @@ if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
 
     function app_integracao_csv_retorno_novomundo($formato, $dados = array())
     {
-	static $a=0;
-	//echo "retorno_novomundo::formato=$formato\n";
-	//echo "retorno_novomundo::dados=" . ($dados) . "\n";
-	echo "retorno_novomundo::a=" . (++$a) . "\n";
-	//echo "retorno_novomundo::item=" . print_r($detail, true) . "\n";
-	$status_troca=$dados['registro']['status_troca'];
+	$CI=& get_instance();
+	$CI->load->model('integracao_model');
+
+	$os		=$dados['registro']['num_voucher'];
+	$status_troca	=$dados['registro']['status_troca'];
 
 	switch($status_troca)
 	{
 		case "UTILIZADO":
+		{
+			$status='C';
+			$CI->integracao_model->update_status_novomundo($os, $status);
+		}
+			break;
 		case "CANCELADO":
-			echo "retorno_novomundo::registro=" . print_r($dados['registro'], true) . "\n";
-		break;
+		{
+			$status='L';
+			$CI->integracao_model->update_status_novomundo($os, $status);
+		}
+			break;
 		default:
-		break;
+			break;
 	}
     }
 

@@ -1353,5 +1353,55 @@ Class Integracao_Model extends MY_Model
 		break;
 	}
     }
+
+    function update_status_novomundo($id_exp, $status)
+    {
+	    $msg="Cancelamento do Voucher pela Novo Mundo";
+
+	    try
+	    {
+		    $sql = "
+			    UPDATE sissolucoes1.sis_lote_voucher_exp 
+			    set status='$status' 
+			    WHERE id_exp='$id_exp'
+			    and last_insert_id(id_lote_voucher_exp);
+		    ";
+		    $query = $this->_database->query($sql);
+
+		    $sql = "
+			    INSERT INTO sissolucoes1.sis_lote_voucher_exp_status
+			    ( id_lote_voucher_exp			, id_exp	, status   , data_atualizacao)
+			    VALUES ( last_insert_id(id_lote_voucher_exp), $id_exp	, '$status', now() );
+
+		    ";
+		    $query = $this->_database->query($sql);
+
+		    $sql = "
+			    UPDATE sissolucoes1.sis_clientes_cupom AS cc
+			    SET chflagativo = 'N',
+				dt_log = CURRENT_TIMESTAMP,
+				vcmotivolog = '$msg'
+					WHERE cc.id_exp = $id_exp;
+
+		    ";
+		    $query = $this->_database->query($sql);
+
+		    $sql = "
+			    INSERT INTO sissolucoes1.sis_exp_fup 
+			    (id_usuario		, id_exp , data_criacao	, fup	, automatico) 
+			    values  (10058	, $id_exp, sysdate()	, '$msg', 'S');
+
+		    ";
+		    $query = $this->_database->query($sql);
+	    }
+	    catch (Exception $e) 
+	    {
+		    echo "e=" . $e->getMessage();
+		    return false;
+	    }
+
+	    return true;
+    }
+
 }
 
