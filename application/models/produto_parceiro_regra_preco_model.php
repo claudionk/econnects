@@ -328,7 +328,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                 // trunca o valor do IOF por cobertura
                 $iofPerc = ($regra['iof']/100) * $regra['custo'];
                 $valores_liquido_total_cobertura[$key] += truncate($iofPerc, 2);
-                $valores_liquido_total_round[$key] += round($iofPerc, 2);
+                $valores_liquido_total_round[$key] += $iofPerc;
                 $iof = $regra['iof'];
             }
 
@@ -336,6 +336,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
                 // arredonda a soma to IOF do bilhete
                 $valores_liquido_total_cobertura[$key] = round($valores_liquido_total_cobertura[$key], 2);
+                $valores_liquido_total_round[$key] = round($valores_liquido_total_round[$key], 2);
 
                 // Caso o IOF calculado sobre o prêmio da apólice/bilhete seja = 0,00
                 if ($valores_liquido_total_cobertura[$key] == 0)
