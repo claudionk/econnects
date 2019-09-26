@@ -274,6 +274,9 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         if( $arrCoberturas[$idx]["mostrar"] == "preco" ) {
                             $valor_cobertura_plano = $valor_cobertura_plano + floatval( $arrCoberturas[$idx]["preco"] );
                         }
+                        if( $arrCoberturas[$idx]["mostrar"] == "descricao") {
+                            $valor_cobertura_plano = $valor_cobertura_plano + floatval( $arrCoberturas[$idx]["custo"] );
+                        }
                     }
                     $valores[$produto_parceiro_plano_id] = $valor_cobertura_plano;
                     break;

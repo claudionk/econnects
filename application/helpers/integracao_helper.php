@@ -1028,7 +1028,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $response->cotacao_id = $cotacao_id;
 
                 // Cálculo do prêmio
-                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], $dados["nota_fiscal_valor"], $acesso);
+                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"], 0), $acesso);
                 if (empty($calcPremio['status'])){
                     $response->errors[] = ['id' => -1, 'msg' => $calcPremio['response'], 'slug' => "calcula_premio"];
                     return $response;
@@ -1839,7 +1839,6 @@ if ( ! function_exists('app_integracao_quero_quero')) {
             $geraDados['cod_loja']              = $reg['cod_loja'];
             $geraDados['nome_loja']             = $reg['nome_loja'];
             $geraDados['nome']                  = $reg['nome'];
-            $geraDados['data_fim_vigencia']     = $reg['data_fim_vigencia'];
             $geraDados['ddd_residencial']       = $reg['ddd_residencial'];
             $geraDados['telefone']              = $reg['telefone'];
             $geraDados['endereco']              = $reg['endereco_logradouro'];
@@ -1860,6 +1859,7 @@ if ( ! function_exists('app_integracao_quero_quero')) {
             $geraDados['cod_vendedor']          = $reg['cod_vendedor'];
             $geraDados['data_adesao_cancel']    = $reg['data_adesao_cancel'];
             $geraDados['data_inicio_vigencia']  = $reg['data_inicio_vigencia'];
+            $geraDados['data_fim_vigencia']     = $reg['data_fim_vigencia'];
             $geraDados['nome_vendedor']         = $reg['nome_vendedor'];
             $geraDados['email']                 = $reg['email'];
             $geraDados['num_apolice']           = $reg['num_apolice'];
@@ -1868,81 +1868,13 @@ if ( ! function_exists('app_integracao_quero_quero')) {
             $geraDados['produto_seg']           = $reg['produto_seg'];
             $geraDados['num_sorte']             = $reg['num_sorte'];
             $geraDados['num_serie_cap']         = $reg['num_serie_cap'];
-
-            // $geraDados['tipo_produto']              = $reg['tipo_produto'];
-            // $geraDados['tipo_operacao']             = $reg['acao'];
-            // $geraDados['ramo']                      = $reg['ramo'];
-            // $geraDados['agrupador']                 = $reg['agrupador'];
-            // $geraDados['cod_loja']                  = $reg['cod_loja'];
-            // $geraDados['num_apolice']               = $reg['num_apolice'];
-            // $geraDados['nota_fiscal_numero']        = $reg['nota_fiscal_numero'];
-            // $geraDados['cod_vendedor']              = $reg['cod_vendedor'];
-            // $geraDados['cpf_vendedor']              = $reg['cpf_vendedor'];
-            // $geraDados['nome_vendedor']             = $reg['nome_vendedor'];
-            // $geraDados['nome']                      = $reg['nome'];
-            // $geraDados['sexo']                      = $reg['sexo'];
-            // $geraDados['data_nascimento']           = $reg['data_nascimento'];
-            // $geraDados['ddd_residencial']           = $reg['ddd_residencial'];
-            // $geraDados['telefone']                  = $reg['telefone'];
-            // $geraDados['ddd_comercial']             = $reg['ddd_comercial'];
-            // $geraDados['telefone_comercial']        = $reg['telefone_comercial'];
-            // $geraDados['ddd_celular']               = $reg['ddd_celular'];
-            // $geraDados['telefone_celular']          = $reg['telefone_celular'];
-            // $geraDados['endereco']                  = $reg['endereco_logradouro'];
-            // $geraDados['endereco_numero']           = $reg['endereco_numero'];
-            // $geraDados['complemento']               = $reg['complemento'];
-            // $geraDados['endereco_bairro']           = $reg['endereco_bairro'];
-            // $geraDados['endereco_cidade']           = $reg['endereco_cidade'];
-            // $geraDados['endereco_estado']           = $reg['endereco_estado'];
-            // $geraDados['endereco_cep']              = $reg['endereco_cep'];
-            // $geraDados['email']                     = $reg['email'];
-            // $geraDados['tipo_pessoa']               = $reg['tipo_pessoa'];
-            // $geraDados['cpf']                       = $reg['cpf'];
-            // $geraDados['outro_doc']                 = $reg['outro_doc'];
-            // $geraDados['tipo_doc']                  = $reg['tipo_doc'];
-            // $geraDados['outro_doc']                 = $reg['outro_doc'];
-            // $geraDados['premio_liquido']            = $reg['premio_liquido'];
-            // $geraDados['premio_bruto']              = $reg['premio_bruto'];
-            // $geraDados['valor_iof']                 = $reg['valor_iof'];
-            // $geraDados['valor_custo']               = $reg['valor_custo'];
-            // $geraDados['num_parcela']               = 1;
-            // $geraDados['vigencia']                  = $reg['vigencia'];
-            // $geraDados['garantia_fabricante']       = $reg['garantia_fabricante'];
-            // $geraDados['marca']                     = $reg['marca'];
-            // $geraDados['modelo']                    = $reg['modelo'];
-            // $geraDados['cod_produto_sap']           = $reg['cod_produto_sap'];
-            // $geraDados['equipamento_nome']          = $reg['equipamento_nome'];
-            // $geraDados['num_serie']                 = $reg['num_serie'];
-            // $geraDados['nota_fiscal_data']          = $reg['nota_fiscal_data'];
-            // $geraDados['data_adesao_cancel']        = $reg['data_adesao_cancel'];
-            // $geraDados['data_inicio_vigencia']      = $reg['data_inicio_vigencia'];
-            // $geraDados['data_fim_vigencia']         = $reg['data_fim_vigencia'];
-            // $geraDados['ean']                       = $reg['ean'];
-            // $geraDados['nota_fiscal_valor']         = $reg['nota_fiscal_valor'];
-            // $geraDados['cod_cancelamento']          = $reg['cod_cancelamento'];
-            // $geraDados['data_cancelamento']         = $reg['data_cancelamento'];
-            // $geraDados['status_carga']              = $reg['status_carga'];
-            // $geraDados['status_reenvio']            = $reg['status_reenvio'];
-            // $geraDados['codigo_erro']               = $reg['codigo_erro'];
-            // $geraDados['dado_financ']               = $reg['dado_financ'];
-            // $geraDados['id_garantia_fornecedor']    = $reg['id_garantia_fornecedor'];
-            // $geraDados['id_garantia_loja']          = $reg['id_garantia_loja'];
-            // $geraDados['num_sorte']                 = $reg['num_sorte'];
-            // $geraDados['num_serie_cap']             = $reg['num_serie_cap'];
-            // $geraDados['canal_venda']               = $reg['canal_venda'];
-            // $geraDados['valor_prolabore']           = $reg['comissao_valor'];
-            // $geraDados['perc_prolabore']            = $reg['comissao_premio'];
-            // $geraDados['dias_canc_apos_venda']      = $reg['dias_canc_apos_venda'];
-            // $geraDados['produto_seg']               = $reg['produto_seg'];
-            // $geraDados['cod_faixa_preco']           = $reg['equipamento_de_para'];
-            // $geraDados['numero_seq_lote']           = $reg['numero_seq_lote'];
-            // $geraDados['arquivo_data']              = $reg['arquivo_data'];
-            // $geraDados['arquivo_hora']              = $reg['arquivo_hora'];
-            // $geraDados['versao_layout']             = $reg['versao_layout'];
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
             $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
+
+            // remove para realizar o cálculo do prêmio sem multiplicar por 12 meses
+            $dados['registro']['data_fim_vigencia'] = null;
         }
 
         // definir operação pelo nome do arquivo ou por integracao?
@@ -2064,9 +1996,9 @@ if ( ! function_exists('app_integracao_quero_quero_define_operacao')) {
         $result->produto_parceiro_id = 90;
 
         if ($produto_seg == '3621') {
-            $result->produto_parceiro_plano_id = 103;
+            $result->produto_parceiro_plano_id = 114;
         } elseif ($produto_seg == '3622') {
-            $result->produto_parceiro_plano_id = 103;
+            $result->produto_parceiro_plano_id = 115;
         } else {
             $result->msg = ['id' => 39, 'msg' => "Produto ({$result->produto}) não configurado", 'slug' => "produto"];
             return $result;
