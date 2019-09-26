@@ -945,6 +945,7 @@ class Apolice_Model extends MY_Model
             ->select("apolice.produto_parceiro_plano_id, apolice.apolice_status_id, apolice_status.nome as apolice_status_nome")
             ->select("apolice_status.slug as apolice_status_slug")
             ->select("produto_parceiro_plano.produto_parceiro_id")
+            ->select("produto_parceiro_plano.codigo_operadora as cod_produto_seg")
             ->select("produto_parceiro.parceiro_id as parceiro_seg_id")
             ->select("parceiro_seg.slug as slug_parceiro_seg")
             ->select("parceiro_seg.nome as seguradora")
