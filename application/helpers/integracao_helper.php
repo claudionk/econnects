@@ -485,19 +485,11 @@ if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
 	switch($status_troca)
 	{
 		case "UTILIZADO":
-		{
-			$status='C';
-			$CI->integracao_model->update_status_novomundo($os, $status);
-		}
-			break;
 		case "CANCELADO":
-		{
-			$status='L';
-			$CI->integracao_model->update_status_novomundo($os, $status);
-		}
-			break;
+			$CI->integracao_model->update_status_novomundo($os, $status_troca);
+		break;
 		default:
-			break;
+		break;
 	}
     }
 

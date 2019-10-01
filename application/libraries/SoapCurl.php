@@ -106,7 +106,7 @@ class SoapCurl
 			    'methodCurl' => $method,
 			    'headerCurl' => array(
 				    "accept: application/json",
-				    "Authorization: Basic " . $this->basic,
+				    "Authorization: Basic dXN1X3Npc3RlbWE6c2lzMTIz" ,
 				    "content-type: application/json",
 				    "cache-control: no-cache",
 				    ),

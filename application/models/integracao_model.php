@@ -289,7 +289,7 @@ Class Integracao_Model extends MY_Model
         $this->_database->where("integracao.status", 'A');
         $this->_database->where("integracao.deletado", 0);
         $this->_database->where("integracao.habilitado", 1);
-        //$this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
+        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
 
 	try
 	{
@@ -322,12 +322,16 @@ Class Integracao_Model extends MY_Model
 
             $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
 
+	    //echo "file1=" . 	print_r($file, true);
+
             if(empty($file))
 	    {
             	$file = $this->getFileName($result, $layout_filename);
 	    }
 
-            $result_file = $this->getFile($result, $file);
+	    //echo "file2=" . 	print_r($file, true);
+
+	    $result_file = $this->getFile($result, $file);
 
             $result_process = [];
             if(!empty($result_file['file']) && $result['tipo_layout']!='ZIP')
@@ -439,6 +443,7 @@ Class Integracao_Model extends MY_Model
     }
 
     private function getFile($integracao = array(), $file){
+	//echo "getFile::" . print_r($file, true);
         try{
 
             switch ($integracao['integracao_comunicacao_id']){
@@ -524,6 +529,10 @@ Class Integracao_Model extends MY_Model
             'file' => '',
             'fileget' => '',
         );
+
+	//echo "getFileFTP::" . print_r($list, true) . "\n";
+
+
         $file_processar = '';
         if($list) {
             foreach ($list as $index => $item) {
@@ -542,11 +551,14 @@ Class Integracao_Model extends MY_Model
             }
         }
 
+	//echo "getFileFTP::file_processar::" . print_r($file_processar, true) . "\n";
+
         if(!empty($file_processar)){
             $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
             if(!file_exists($diretorio)){
                 mkdir($diretorio, 0777, true);
             }
+	//echo "getFileFTP::diretorio::" . print_r($diretorio, true) . "\n";
 
             $fileget = basename($file_processar);
             if($this->ftp->download($file_processar, "{$diretorio}/{$fileget}", 'binary')){
@@ -558,6 +570,7 @@ Class Integracao_Model extends MY_Model
 
         }
         $this->ftp->close();
+	//echo "getFileFTP::result::" . print_r($result, true) . "\n";
         return $result;
     }
 
@@ -1356,51 +1369,34 @@ Class Integracao_Model extends MY_Model
 
     function update_status_novomundo($id_exp, $status)
     {
-	    $msg="Cancelamento do Voucher pela Novo Mundo";
+	    $this->load->library("SoapCurl");
+	    $SoapCurl = new SoapCurl();
+	    $retorno = false;
 
 	    try
 	    {
-		    $sql = "
-			    UPDATE sissolucoes1.sis_lote_voucher_exp 
-			    set status='$status' 
-			    WHERE id_exp='$id_exp'
-			    and last_insert_id(id_lote_voucher_exp);
-		    ";
-		    $query = $this->_database->query($sql);
-
-		    $sql = "
-			    INSERT INTO sissolucoes1.sis_lote_voucher_exp_status
-			    ( id_lote_voucher_exp			, id_exp	, status   , data_atualizacao)
-			    VALUES ( last_insert_id(id_lote_voucher_exp), $id_exp	, '$status', now() );
-
-		    ";
-		    $query = $this->_database->query($sql);
-
-		    $sql = "
-			    UPDATE sissolucoes1.sis_clientes_cupom AS cc
-			    SET chflagativo = 'N',
-				dt_log = CURRENT_TIMESTAMP,
-				vcmotivolog = '$msg'
-					WHERE cc.id_exp = $id_exp;
-
-		    ";
-		    $query = $this->_database->query($sql);
-
-		    $sql = "
-			    INSERT INTO sissolucoes1.sis_exp_fup 
-			    (id_usuario		, id_exp , data_criacao	, fup	, automatico) 
-			    values  (10058	, $id_exp, sysdate()	, '$msg', 'S');
-
-		    ";
-		    $query = $this->_database->query($sql);
+		    switch($status)
+		    {
+			    case "CANCELADO":
+				    $retorno = $SoapCurl->getAPI("atendimento/EncerrarExpediente", "PUT", json_encode( [ "idMotivoEncerramento" => 6, "idExpediente" => $id_exp ] ), 900);
+		    		    //echo "($id_exp, $status)::" .  print_r($retorno, true) . "\n" ;
+				    return $retorno;
+			    break;
+			    case "UTILIZADO":
+				    $retorno = $SoapCurl->getAPI("atendimento/ConverteExpediente", "PUT", json_encode( [ "idMotivoConversao" => 4, "idExpediente" => $id_exp ] ), 900);
+		    		    //echo "($id_exp, $status)::" .  print_r($retorno, true) . "\n" ;
+				    return $retorno;
+			    break;
+			    default:
+				    return $retorno;
+			    break;
+		    }
 	    }
 	    catch (Exception $e) 
 	    {
 		    echo "e=" . $e->getMessage();
-		    return false;
+		    return $retorno;
 	    }
-
-	    return true;
     }
 
 }
