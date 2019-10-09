@@ -140,7 +140,7 @@ Class Capitalizacao_Sorteio_Model extends MY_Model
             $d1->sub(new DateInterval("P{$d2}D")); // -1 dia (último dia do mês)
 
             // se não for um sábado
-            if ($d1->format('w') != 0)
+            if ($d1->format('w') != 6)
             {
                 $d2 = $d1->format('w') + 1; // dia da semana do último dia do mês
                 $d1->sub(new DateInterval("P{$d2}D")); // -1 dia (último dia do mês)
