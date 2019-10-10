@@ -135,12 +135,12 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
     }
 
     public function with_parceiro(){
-        return $this->with_simple_relation_foreign('parceiro', 'parceiro_', 'parceiro_id', 'parceiro_id', array('nome','cnpj','codigo_susep'), 'inner');
+        return $this->with_simple_relation_foreign('parceiro', 'parceiro_', 'parceiro_id', 'parceiro_id', array('nome','cnpj','codigo_susep','codigo_corretor'), 'inner');
     }
 
     public function with_parceiro_tipo(){
-        $this->_database->select('parceiro_tipo.nome as parceiro_tipo, parceiro_tipo.codigo_interno', 'left');
-        $this->_database->join('parceiro_tipo', 'parceiro.parceiro_tipo_id = parceiro_tipo.parceiro_tipo_id', 'left');
+        $this->_database->select("parceiro_tipo.nome as parceiro_tipo, parceiro_tipo.codigo_interno, parceiro_tipo.parceiro_tipo_id", "left");
+        $this->_database->join("parceiro_tipo", "IFNULL({$this->_table}.parceiro_tipo_id,parceiro.parceiro_tipo_id) = parceiro_tipo.parceiro_tipo_id", "left");
         return $this;
     }
 
