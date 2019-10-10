@@ -170,7 +170,7 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
 
         $this->_database->join("produto_parceiro", "{$this->_table}.produto_parceiro_id = produto_parceiro.produto_parceiro_id", "join");
         $this->_database->join("parceiro", "{$this->_table}.parceiro_id = parceiro.parceiro_id", "join");
-        $this->_database->join("parceiro_tipo", "parceiro.parceiro_tipo_id = parceiro_tipo.parceiro_tipo_id", "join");
+        $this->_database->join("parceiro_tipo", "IFNULL({$this->_table}.parceiro_tipo_id,parceiro.parceiro_tipo_id) = parceiro_tipo.parceiro_tipo_id", "join", FALSE);
         $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
         $this->_database->where("parceiro_tipo.codigo_interno", "corretora");
         $rows = $this->get_all();
