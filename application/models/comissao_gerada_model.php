@@ -156,8 +156,8 @@ Class Comissao_Gerada_Model extends MY_Model {
         $data_comissao['pedido_id']             = $item['pedido_id'];
         $data_comissao['valor']                 = $comissao_venda;
         $data_comissao['parceiro_id']           = $parceiro['parceiro_id'];
-        $data_comissao['parceiro_tipo_id']      = $parceiro['parceiro_tipo_id'];
-        $data_comissao['cod_parceiro']          = $parceiro['codigo_corretor'];
+        $data_comissao['parceiro_tipo_id']      = $parceiro['parceiro_tipo_id_parceiro'];
+        $data_comissao['cod_parceiro']          = $parceiro['parceiro_codigo_corretor'];
         $data_comissao['premio_liquido_total']  = $premio_liquido_total;
         $data_comissao['comissao']              = $comissao_premio;
         $data_comissao['descricao']             = "COMISSÃO {$comissao_classe['nome']} (". app_format_currency($comissao_premio, false, 3) ."%) REFERENTE AO PEDIDO {$item['codigo']}";
