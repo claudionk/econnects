@@ -103,7 +103,7 @@ if($_POST)
 
                           <?php $field_name = 'parceiro_tipo_id';?>
                           <div class="form-group">
-                            <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Tipo de Parceiro:</label>
+                            <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Tipo de Parceiro: *</label>
                             <div class="col-md-8">
                               <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
                                 <option name="" value="">-- Selecione --</option>
