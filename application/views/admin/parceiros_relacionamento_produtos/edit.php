@@ -75,9 +75,7 @@ if($_POST)
                             <div class="col-md-8">
                               <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
                                 <option name="" value="">-- Selecione --</option>
-                                <?php
-
-                                foreach($produtos as $linha) { ?>
+                                <?php foreach($produtos as $linha) { ?>
                                 <option name="" value="<?php echo $linha['produto_parceiro_id'] ?>"
                                         <?php if(isset($row)){if($row[$field_name] == $linha['produto_parceiro_id']) {echo " selected ";};}; ?> >
                                   <?php echo $linha['parceiro_nome'] . ' - '. $linha['nome']; ?>
@@ -87,16 +85,13 @@ if($_POST)
                             </div>
                           </div>
 
-
                           <?php $field_name = 'parceiro_id';?>
                           <div class="form-group">
                             <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Relacionamento: *</label>
                             <div class="col-md-8">
                               <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
                                 <option name="" value="">-- Selecione --</option>
-                                <?php
-
-                                foreach($parceiros as $linha) { ?>
+                                <?php foreach($parceiros as $linha) { ?>
                                 <option name="" value="<?php echo $linha['parceiro_id'] ?>"
                                         <?php if(isset($row)){if($row[$field_name] == $linha['parceiro_id']) {echo " selected ";};}; ?> >
                                   <?php echo $linha['nome']; ?>
@@ -105,15 +100,30 @@ if($_POST)
                               </select>
                             </div>
                           </div>
+
+                          <?php $field_name = 'parceiro_tipo_id';?>
+                          <div class="form-group">
+                            <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Tipo de Parceiro:</label>
+                            <div class="col-md-8">
+                              <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
+                                <option name="" value="">-- Selecione --</option>
+                                <?php foreach($tipos as $linha) { ?>
+                                <option name="" value="<?php echo $linha['parceiro_tipo_id'] ?>"
+                                        <?php if(isset($row)){if($row[$field_name] == $linha['parceiro_tipo_id']) {echo " selected ";};}; ?> >
+                                  <?php echo $linha['nome']; ?>
+                                </option>
+                                <?php }  ?>
+                              </select>
+                            </div>
+                          </div>
+
                           <?php $field_name = 'pai_id';?>
                           <div class="form-group">
                             <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Hierarquia: *</label>
                             <div class="col-md-8">
                               <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
                                 <option name="" value="">-- principal --</option>
-                                <?php
-
-                                foreach($pais as $linha) { ?>
+                                <?php foreach($pais as $linha) { ?>
                                 <option name="" class="<?php echo $linha['produto_parceiro_id'] ?>"  value="<?php echo $linha['parceiro_relacionamento_produto_id'] ?>"
                                         <?php if(isset($row)){if($row[$field_name] == $linha['parceiro_relacionamento_produto_id']) {echo " selected ";};}; ?> >
                                   <?php echo $linha['parceiro_nome'] . ' - ' . $linha['produto_parceiro_nome']; ?>
@@ -122,6 +132,7 @@ if($_POST)
                               </select>
                             </div>
                           </div>
+
                         </div>
 
                       </div>

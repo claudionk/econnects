@@ -36,6 +36,12 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
             'groups' => 'default'
         ),
         array(
+            'field' => 'parceiro_tipo_id',
+            'label' => 'Tipo de Parceiro',
+            'rules' => 'required',
+            'groups' => 'default'
+        ),
+        array(
             'field' => 'pai_id',
             'label' => 'Hierarquia',
             'rules' => '',
@@ -94,7 +100,7 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
             'label' => 'Desconto Habilitado',
             'rules' => 'callback_check_desconto_habilitado',
             'groups' => 'default'
-        )
+        ),
     );
 
     //Get dados
@@ -102,18 +108,19 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
     {
         //Dados
         $data =  array(
-            'produto_parceiro_id' => app_clear_number($this->input->post('produto_parceiro_id')),
-            'parceiro_id' => app_clear_number($this->input->post('parceiro_id')),
-            'pai_id' =>  (!empty($this->input->post('pai_id'))) ? app_clear_number($this->input->post('pai_id')) : 0,
-            'repasse_comissao' => $this->input->post('repasse_comissao'),
-            'repasse_maximo' => app_unformat_currency($this->input->post('repasse_maximo')),
-            'comissao_tipo' => $this->input->post('comissao_tipo'), 
-            'comissao' => $this->input->post('comissao_tipo') == 1 ? 0 : app_unformat_currency($this->input->post('comissao')), 
-            'comissao_indicacao' => app_unformat_currency($this->input->post('comissao_indicacao')),
-            'desconto_data_ini' => app_dateonly_mask_to_mysql($this->input->post('desconto_data_ini')),
-            'desconto_data_fim' => app_dateonly_mask_to_mysql($this->input->post('desconto_data_fim')),
-            'desconto_valor' => app_unformat_currency($this->input->post('desconto_valor')),
-            'desconto_habilitado' => $this->input->post('desconto_habilitado'),
+            'produto_parceiro_id'   => app_clear_number($this->input->post('produto_parceiro_id')),
+            'parceiro_id'           => app_clear_number($this->input->post('parceiro_id')),
+            'pai_id'                =>  (!empty($this->input->post('pai_id'))) ? app_clear_number($this->input->post('pai_id')) : 0,
+            'repasse_comissao'      => $this->input->post('repasse_comissao'),
+            'repasse_maximo'        => app_unformat_currency($this->input->post('repasse_maximo')),
+            'comissao_tipo'         => $this->input->post('comissao_tipo'), 
+            'comissao'              => $this->input->post('comissao_tipo') == 1 ? 0 : app_unformat_currency($this->input->post('comissao')), 
+            'comissao_indicacao'    => app_unformat_currency($this->input->post('comissao_indicacao')),
+            'desconto_data_ini'     => app_dateonly_mask_to_mysql($this->input->post('desconto_data_ini')),
+            'desconto_data_fim'     => app_dateonly_mask_to_mysql($this->input->post('desconto_data_fim')),
+            'desconto_valor'        => app_unformat_currency($this->input->post('desconto_valor')),
+            'desconto_habilitado'   => $this->input->post('desconto_habilitado'),
+            'parceiro_tipo_id'      => isempty($this->input->post('parceiro_tipo_id'), null),
         );
         return $data;
     }
