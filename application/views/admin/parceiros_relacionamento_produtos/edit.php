@@ -133,6 +133,14 @@ if($_POST)
                             </div>
                           </div>
 
+                          <?php $field_name = 'cod_parceiro';?>
+                          <div class="form-group">
+                            <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Código do Parceiro:</label>
+                            <div class="col-md-8">
+                              <input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : ''; ?>" />
+                            </div>
+                          </div>
+
                         </div>
 
                       </div>

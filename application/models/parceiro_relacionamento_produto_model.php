@@ -101,6 +101,12 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
             'rules' => 'callback_check_desconto_habilitado',
             'groups' => 'default'
         ),
+        array(
+            'field' => 'cod_parceiro',
+            'label' => 'Código do Parceiro',
+            'rules' => '',
+            'groups' => 'default'
+        ),
     );
 
     //Get dados
@@ -121,6 +127,7 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
             'desconto_valor'        => app_unformat_currency($this->input->post('desconto_valor')),
             'desconto_habilitado'   => $this->input->post('desconto_habilitado'),
             'parceiro_tipo_id'      => isempty($this->input->post('parceiro_tipo_id'), null),
+            'cod_parceiro'          => isempty($this->input->post('cod_parceiro'), null),
         );
         return $data;
     }
