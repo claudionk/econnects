@@ -196,7 +196,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param int $num_passageiro
     * @return array
     */
-    public function getValoresPlano( $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_sub_categoria_id = NULL, $equipamento_de_para = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
+    public function getValoresPlano( $valor_fixo = NULL, $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_sub_categoria_id = NULL, $equipamento_de_para = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
@@ -228,123 +228,131 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         foreach ($arrPlanos as $plano){
 
             $valor_cobertura_plano = 0;
-            switch ((int)$plano['precificacao_tipo_id']) {
-                case $this->config->item("PRECO_TIPO_TABELA"):
+            $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
 
-                    $calculo = [];
+            if ( !empty($valor_fixo) )
+            {
+                $valores[$produto_parceiro_plano_id] = $valor_fixo;
 
-                    if( $produto_slug == 'equipamento' ) {
+            } else  {
 
+                switch ((int)$plano['precificacao_tipo_id']) {
+                    case $this->config->item("PRECO_TIPO_TABELA"):
+
+                        $calculo = [];
+
+                        if( $produto_slug == 'equipamento' ) {
+
+                            $valor = $this
+                                ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
+                                ->filter_by_tipo_equipamento('TODOS')
+                                ->get_all();
+
+                            $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia);
+                            $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, $calculo['unidade']);
+
+                            $calculo = $calculo['valor'] * $quantidade;
+
+                        } elseif( $produto_slug == 'generico' || $produto_slug == 'seguro_saude' ) {
+
+                            $vigencia = $this->plano->getInicioFimVigencia($produto_parceiro_plano_id);
+                            $calculo = $this->getValorTabelaFixaGenerico($produto_parceiro_plano_id, $vigencia['dias'], $valor_nota, $data_nascimento, $comissao )*$quantidade;
+
+                        }
+
+                        if($calculo) {
+                            $valores[$produto_parceiro_plano_id] = $calculo;
+
+                            if($moeda_padrao['moeda_id'] != $plano['moeda_id']){
+                                $valores[$produto_parceiro_plano_id] = $this->moeda_cambio->getValor($plano['moeda_id'], $valores[$produto_parceiro_plano_id]);
+                            }
+                        }
+
+                        break;
+                    case $this->config->item("PRECO_TIPO_COBERTURA"):
+
+                        $this->load->model("produto_parceiro_plano_precificacao_model", "produto_parceiro_plano_precificacao");
+                        $this->load->model("cobertura_plano_model", "plano_cobertura");
+                        
+                        $arrCoberturas = $this->plano_cobertura->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)->get_all();
+                        foreach ($arrCoberturas as $idx => $cob) {
+                            if( $arrCoberturas[$idx]["mostrar"] == "importancia_segurada" ) {
+                                $valor_cobertura_plano = $valor_cobertura_plano + floatval( $valor_nota ) * ( floatval( $arrCoberturas[$idx]["porcentagem"] ) / 100 );
+                            }
+                            if( $arrCoberturas[$idx]["mostrar"] == "preco" ) {
+                                $valor_cobertura_plano = $valor_cobertura_plano + floatval( $arrCoberturas[$idx]["preco"] );
+                            }
+                            if( $arrCoberturas[$idx]["mostrar"] == "descricao") {
+                                $valor_cobertura_plano = $valor_cobertura_plano + floatval( $arrCoberturas[$idx]["custo"] );
+                            }
+                        }
+                        $valores[$produto_parceiro_plano_id] = $valor_cobertura_plano;
+                        break;
+                    case $this->config->item("PRECO_TIPO_VALOR_SEGURADO"):
                         $valor = $this
-                            ->filter_by_produto_parceiro_plano($plano['produto_parceiro_plano_id'])
-                            ->filter_by_tipo_equipamento('TODOS')
+                            ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
+                            ->filter_by_tipo_equipamento("TODOS")
                             ->get_all();
 
+                        $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
+                        break;
+                    case $this->config->item("PRECO_POR_LINHA");
+                        $valor = $this
+                            ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
+                            ->filter_by_faixa( $valor_nota )
+                            ->filter_by_tipo_equipamento("CATEGORIA")
+                            ->filter_by_equipamento($equipamento_categora_id)
+                            ->get_all();
+
+                        $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
+
+                        break;
+                    case $this->config->item("PRECO_POR_EQUIPAMENTO");
+                        $valor = $this
+                            ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
+                            ->filter_by_faixa( $valor_nota )
+                            ->filter_by_tipo_equipamento("EQUIPAMENTO");
+
+                        // Caso tenha um DE x PARA
+                        if ( !empty($equipamento_de_para) ) {
+                            $valor = $this->filter_by_equipamento_de_para($equipamento_de_para);
+                        } else {
+                            $valor = $this->filter_by_equipamento($equipamento_sub_categoria_id);
+                        }
+
+                        $valor = $this->get_all();
                         $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia);
-                        $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, $calculo['unidade']);
 
-                        $calculo = $calculo['valor'] * $quantidade;
+                        if($calculo) {
+                            $calculo = $calculo['valor'];
+                            $valores[$produto_parceiro_plano_id] = $calculo;
 
-                    } elseif( $produto_slug == 'generico' || $produto_slug == 'seguro_saude' ) {
-
-                        $vigencia = $this->plano->getInicioFimVigencia($plano['produto_parceiro_plano_id']);
-                        $calculo = $this->getValorTabelaFixaGenerico($plano['produto_parceiro_plano_id'], $vigencia['dias'], $valor_nota, $data_nascimento, $comissao )*$quantidade;
-
-                    }
-
-                    if($calculo) {
-                        $valores[$plano['produto_parceiro_plano_id']] = $calculo;
-
-                        if($moeda_padrao['moeda_id'] != $plano['moeda_id']){
-                            $valores[$plano['produto_parceiro_plano_id']] = $this->moeda_cambio->getValor($plano['moeda_id'], $valores[$plano['produto_parceiro_plano_id']]);
+                            if($moeda_padrao['moeda_id'] != $plano['moeda_id']){
+                                $valores[$produto_parceiro_plano_id] = $this->moeda_cambio->getValor($plano['moeda_id'], $valores[$produto_parceiro_plano_id]);
+                            }
                         }
-                    }
 
-                    break;
-                case $this->config->item("PRECO_TIPO_COBERTURA"):
+                        break;
+                    case $this->config->item("PRECO_TIPO_FIXO_SERVICO"):
 
-                    $this->load->model("produto_parceiro_plano_precificacao_model", "produto_parceiro_plano_precificacao");
-                    $this->load->model("cobertura_plano_model", "plano_cobertura");
-                    $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
-                    $arrCoberturas = $this->plano_cobertura->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)->get_all();
-                    foreach ($arrCoberturas as $idx => $cob) {
-                        if( $arrCoberturas[$idx]["mostrar"] == "importancia_segurada" ) {
-                            $valor_cobertura_plano = $valor_cobertura_plano + floatval( $valor_nota ) * ( floatval( $arrCoberturas[$idx]["porcentagem"] ) / 100 );
+                        $this->load->model('produto_parceiro_plano_precificacao_servico_model', 'produto_parceiro_plano_precificacao_servico');
+                        $preco = $this->produto_parceiro_plano_precificacao_servico
+                            ->get_by(array(
+                                'produto_parceiro_plano_id' => $produto_parceiro_plano_id,
+                                'servico_produto_id' => $servico_produto_id,
+                            ));
+
+                        if($preco)
+                        {
+                            $valores[$produto_parceiro_plano_id] = (float) $preco['valor'] * (int) $quantidade;
                         }
-                        if( $arrCoberturas[$idx]["mostrar"] == "preco" ) {
-                            $valor_cobertura_plano = $valor_cobertura_plano + floatval( $arrCoberturas[$idx]["preco"] );
-                        }
-                        if( $arrCoberturas[$idx]["mostrar"] == "descricao") {
-                            $valor_cobertura_plano = $valor_cobertura_plano + floatval( $arrCoberturas[$idx]["custo"] );
-                        }
-                    }
-                    $valores[$produto_parceiro_plano_id] = $valor_cobertura_plano;
-                    break;
-                case $this->config->item("PRECO_TIPO_VALOR_SEGURADO"):
-                    $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
-                    $valor = $this
-                        ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-                        ->filter_by_tipo_equipamento("TODOS")
-                        ->get_all();
-                    $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
-                    break;
-                case $this->config->item("PRECO_POR_LINHA");
-                    $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
-                    $valor = $this
-                        ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
-                        ->filter_by_faixa( $valor_nota )
-                        ->filter_by_tipo_equipamento("CATEGORIA")
-                        ->filter_by_equipamento($equipamento_categora_id)
-                        ->get_all();
 
-                    $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
-
-                    break;
-                case $this->config->item("PRECO_POR_EQUIPAMENTO");
-                    $valor = $this
-                        ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
-                        ->filter_by_faixa( $valor_nota )
-                        ->filter_by_tipo_equipamento("EQUIPAMENTO");
-
-                    // Caso tenha um DE x PARA
-                    if ( !empty($equipamento_de_para) ) {
-                        $valor = $this->filter_by_equipamento_de_para($equipamento_de_para);
-                    } else {
-                        $valor = $this->filter_by_equipamento($equipamento_sub_categoria_id);
-                    }
-
-                    $valor = $this->get_all();
-                    $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia);
-
-                    if($calculo) {
-                        $calculo = $calculo['valor'];
-                        $valores[$plano['produto_parceiro_plano_id']] = $calculo;
-
-                        if($moeda_padrao['moeda_id'] != $plano['moeda_id']){
-                            $valores[$plano['produto_parceiro_plano_id']] = $this->moeda_cambio->getValor($plano['moeda_id'], $valores[$plano['produto_parceiro_plano_id']]);
-                        }
-                    }
-
-                    break;
-                case $this->config->item("PRECO_TIPO_FIXO_SERVICO"):
-
-                    $this->load->model('produto_parceiro_plano_precificacao_servico_model', 'produto_parceiro_plano_precificacao_servico');
-                    $preco = $this->produto_parceiro_plano_precificacao_servico
-                        ->get_by(array(
-                            'produto_parceiro_plano_id' => $plano['produto_parceiro_plano_id'],
-                            'servico_produto_id' => $servico_produto_id,
-                        ));
-
-                    if($preco)
-                    {
-                        $valores[$plano['produto_parceiro_plano_id']] = (float) $preco['valor'] * (int) $quantidade;
-                    }
-
-                    break;
-                default:
-                    break;
+                        break;
+                    default:
+                        break;
                 }
             }
+        }
         $valores['quantidade'] = $quantidade;
 
         return $valores;

@@ -1513,7 +1513,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $response->cotacao_id = $cotacao_id;
 
                 // Cálculo do prêmio
-                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"], 0), $acesso);
+                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"], 0), $acesso, $dados["premio_liquido"]);
                 if (empty($calcPremio['status'])){
                     $response->errors[] = ['id' => -1, 'msg' => $calcPremio['response'], 'slug' => "calcula_premio"];
                     return $response;
@@ -1542,10 +1542,10 @@ if ( ! function_exists('app_integracao_valida_regras'))
 }
 if ( ! function_exists('app_integracao_calcula_premio'))
 {
-    function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso = null){
+    function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso = null, $premio_liquido = NULL, $valor_fixo = NULL, $qtde = 0){
 
         // Cálculo do prêmio
-        $calcPremio = app_get_api("calculo_premio/". $cotacao_id, 'GET', [], $acesso);
+        $calcPremio = app_get_api("calculo_premio/". $cotacao_id ."/". $valor_fixo, 'GET', [], $acesso);
         if (empty($calcPremio['status'])){
             return ['status' => false, 'response' => $calcPremio['response']];
         }
@@ -1570,8 +1570,21 @@ if ( ! function_exists('app_integracao_calcula_premio'))
 
         if ($valor_premio != $premio_bruto) {
             if ($valor_premio >= $premio_bruto-$dif_accept && $valor_premio <= $premio_bruto+$dif_accept) {
-                $premioValid = true;
                 echo "dif de R$ $dif_accept<br>";
+
+                if ( $acesso->parceiro == 'novomundo' ) {
+                    $qtde++;
+
+                    if ($qtde >= 2){
+                        $premioValid = false;
+                    } else {
+                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso, $premio_liquido, $premio_liquido, $qtde);
+                    }
+
+                } else {
+                    $premioValid = true;
+                }
+
             }else {
 
                 $premioValid = false;
