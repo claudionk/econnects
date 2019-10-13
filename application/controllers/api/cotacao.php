@@ -219,6 +219,7 @@ class Cotacao extends CI_Controller {
         $repasse_comissao               = issetor( $GET["repasse_comissao"] , 0);
         $desconto_condicional           = issetor( $GET["desconto_condicional"] , 0);
         $comissao_premio                = issetor( $GET["comissao_premio"] , 0);
+        $valor_fixo                     = issetor( $GET["valor_fixo"] , null);
 
         if( is_null( $produto_parceiro_id ) ) {
             $cotacao = $this->cotacao->get_by_id( $cotacao_id );
@@ -240,6 +241,7 @@ class Cotacao extends CI_Controller {
         $params["equipamento_sub_categoria_id"] = emptyor($equipamento_sub_categoria_id, $cotacao_aux['equipamento_sub_categoria_id']);
         $params["equipamento_de_para"]          = emptyor($$equipamento_de_para, $cotacao_aux['equipamento_de_para']);
         $params["quantidade"]                   = $quantidade;
+        $params["valor_fixo"]                   = $valor_fixo;
         $params["repasse_comissao"]             = emptyor($repasse_comissao, $cotacao_aux['repasse_comissao']);
         $params["desconto_condicional"]         = emptyor($desconto_condicional, $cotacao_aux['desconto_condicional']);
         $params["comissao_premio"]              = emptyor($comissao_premio, $cotacao_aux['comissao_premio']);
