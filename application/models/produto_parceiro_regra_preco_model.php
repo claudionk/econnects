@@ -194,7 +194,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             //buscar o markup
             $markup = $this->relacionamento->get_comissao_markup($produto_parceiro_id, $parceiro_id, $comissao);
 
-            if ($markup > $configuracao['markup'] )
+            if (number_format($markup, 2, ',', '.') > number_format($configuracao['markup'], 2, ',', '.') )
             {
                 $markup = number_format($markup, 2, ',', '.');
                 $configuracao['markup'] = number_format($configuracao['markup'], 2, ',', '.');
