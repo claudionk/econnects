@@ -78,7 +78,7 @@ Class Apolice_Cobertura_Model extends MY_Model
                 'apolice_id'         => $cobertura["apolice_id"],
                 'cobertura_plano_id' => $cobertura["cobertura_plano_id"],
                 'valor'              => round($valor_cobertura*-1,2),
-                'iof'                => (empty($cobertura["usar_iof"])) ? 0 : $cobertura["iof"],
+                'iof'                => isempty($cobertura["iof"], 0),
                 'mostrar'            => $cobertura["mostrar"],
                 'valor_config'       => $valor_config,
                 'cod_cobertura'      => $cobertura['cod_cobertura'],
