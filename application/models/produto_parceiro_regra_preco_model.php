@@ -334,7 +334,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                 $iof_calculado = true;
 
                 // trunca o valor do IOF por cobertura
-                $iofPerc = ($regra['iof']/100) * $regra['custo'];
+                $iofPerc = ($regra['iof']/100) * ($regra['custo'] * $valores_bruto['quantidade']);
                 $valores_liquido_total_cobertura[$key] += truncate($iofPerc, 2);
                 $valores_liquido_total_round[$key] += $iofPerc;
                 $iof = $regra['iof'];
@@ -356,7 +356,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                     $valores_liquido_total_cobertura[$key] += $valores_liquido_total_round[$key] - $valores_liquido_total_cobertura[$key];
                 }
 
-                $valores_liquido_total[$key] += $valores_liquido_total_cobertura[$key] * $valores_bruto['quantidade'];
+                $valores_liquido_total[$key] += $valores_liquido_total_cobertura[$key];
                 $valores_liquido_total[$key] -= $desconto_upgrade;
             }
 
