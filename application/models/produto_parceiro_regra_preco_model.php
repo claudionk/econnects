@@ -305,12 +305,11 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                             $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
                             $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
                             $valor -= $desconto_condicional_valor;
-                            $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
+                            $valores_liquido[$plano['produto_parceiro_plano_id']] = round($valor, 2);
                             break;
                         default:
                             break;
                     }
-
                 }
             }
         }
