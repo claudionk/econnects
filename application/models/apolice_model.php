@@ -1541,11 +1541,13 @@ class Apolice_Model extends MY_Model
 
         if (!empty($dadosPP)) {
             // LASA RF+QA NOVOS && POMPEIA
-            if ($dadosPP['cod_tpa'] == '007' || $dadosPP['cod_tpa'] == '025') {
+            if ($dadosPP['cod_tpa'] == '007' || $dadosPP['cod_tpa'] == '025' || $dadosPP['cod_tpa'] == '048') {
                 $num_apolice_aux = $dadosPP['cod_sucursal'] . $dadosPP['cod_ramo'] . $dadosPP['cod_tpa'];
 
                 if ($dadosPP['cod_tpa'] == '025') {
                     $num_apolice_aux .= substr($dadosPP['num_apolice'], 3, 3) . str_pad(substr($dadosPP['num_apolice'], 10, 5), 5, '0', STR_PAD_LEFT);
+                } elseif ($dadosPP['cod_tpa'] == '048') {
+                    $num_apolice_aux .= str_pad(substr($dadosPP['num_apolice'], 7, 6), 8, '0', STR_PAD_LEFT);
                 } else {
                     $num_apolice_aux .= str_pad(substr($dadosPP['num_apolice'], 7, 8), 8, '0', STR_PAD_LEFT);
                 }
