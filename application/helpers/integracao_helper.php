@@ -869,7 +869,8 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
 
             // Emissão
             if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX','XD']) ) {
-                $geraDados['data_cancelamento'] = $dados['registro']['data_adesao_cancel'];
+                $geraDados['data_cancelamento']         = $dados['registro']['data_adesao_cancel'];
+                $dados['registro']['data_cancelamento'] = $dados['registro']['data_adesao_cancel'];
             }
 
             $geraDados['integracao_log_detalhe_id'] = $formato;
@@ -900,7 +901,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         } else if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX','XD']) )
         {
             $dados['registro']['acao']              = '9';
-            $dados['registro']['data_cancelamento'] = $dados['registro']['data_adesao_cancel'];
         } else {
 
             // XI = Cancelamento por Inadimplência
@@ -1731,7 +1731,7 @@ if ( ! function_exists('app_integracao_emissao'))
             // Cancelamento
             $cancelaApolice = app_get_api("cancelar", "POST", json_encode( [
                 "apolice_id" => $dados['apolice_id'], 
-                "define_date" => $dados['data_adesao_cancel'], 
+                "define_date" => $dados['data_cancelamento'], 
                 "emailAPI" => app_get_userdata("email")
             ]), $acesso);
             if (empty($cancelaApolice['status'])) {
