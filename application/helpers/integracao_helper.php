@@ -1565,7 +1565,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
             }
         }
 
-        echo "Calculo do Premio: $valor_premio | $premio_bruto | $valor_iof<br>";
+        echo "Calculo do Premio: $valor_premio | $premio_bruto | $premio_liquido | $valor_iof | $valor_fixo<br>";
 
         if ($valor_premio != $premio_bruto) {
             if ($valor_premio >= $premio_bruto-$dif_accept && $valor_premio <= $premio_bruto+$dif_accept) {
@@ -1574,13 +1574,22 @@ if ( ! function_exists('app_integracao_calcula_premio'))
                 if ( $acesso->parceiro == 'novomundo' ) {
                     $qtde++;
 
-                    if ($qtde >= 2)
+                    if ($qtde >= 4)
                     {
                         $premioValid = false;
                     } else 
                     {
                         // encontra o liquido com casas decimais 
-                        $novo_liquido = $premio_bruto / ( 1 + round($valor_iof / $premio_liquido, 4)); 
+                        if ($qtde == 1)
+                            $novo_liquido = $premio_bruto / ( 1 + round($valor_iof / $premio_liquido, 4));
+                        elseif ($qtde == 2)
+                            $novo_liquido = $premio_bruto / ( 1 + truncate($valor_iof / $premio_liquido, 4));
+                        else
+                            $novo_liquido = $premio_liquido;
+                        echo "<pre>";
+                        print_r( [$qtde, $premio_liquido, $valor_iof, $premio_bruto, ( 1 + round($valor_iof / $premio_liquido, 4)), $novo_liquido] );
+                        echo "<br>";
+
                         return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso, $premio_liquido, $valor_iof, $novo_liquido, $qtde);
                     }
 
