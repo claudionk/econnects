@@ -1028,7 +1028,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $response->cotacao_id = $cotacao_id;
 
                 // Cálculo do prêmio
-                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"], 0), $acesso);
+                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0) );
                 if (empty($calcPremio['status'])){
                     $response->errors[] = ['id' => -1, 'msg' => $calcPremio['response'], 'slug' => "calcula_premio"];
                     return $response;
@@ -1057,9 +1057,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
 }
 if ( ! function_exists('app_integracao_calcula_premio'))
 {
-    function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso = null){
+    function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso = null, $premio_liquido = NULL, $valor_iof = NULL, $valor_fixo = NULL, $qtde = 0){
         // Cálculo do prêmio
-        $calcPremio = app_get_api("calculo_premio/". $cotacao_id, 'GET', [], $acesso);
+        $calcPremio = app_get_api("calculo_premio/". $cotacao_id ."/". $valor_fixo, 'GET', [], $acesso);
         if (empty($calcPremio['status'])){
             return ['status' => false, 'response' => $calcPremio['response']];
         }
@@ -1080,12 +1080,38 @@ if ( ! function_exists('app_integracao_calcula_premio'))
             }
         }
 
-        echo "Calculo do Premio: $valor_premio | $premio_bruto<br>";
+        echo "Calculo do Premio: $valor_premio | $premio_bruto | $premio_liquido | $valor_iof | $valor_fixo<br>";
 
         if ($valor_premio != $premio_bruto) {
             if ($valor_premio >= $premio_bruto-$dif_accept && $valor_premio <= $premio_bruto+$dif_accept) {
-                $premioValid = true;
-                echo "dif de R$ $dif_accept<br>";
+                echo "dif de R$ $dif_accept - $cotacao_id<br>";
+
+                if ( $acesso->parceiro == 'novomundo' ) {
+                    $qtde++;
+
+                    if ($qtde >= 4)
+                    {
+                        $premioValid = false;
+                    } else 
+                    {
+                        // encontra o liquido com casas decimais 
+                        if ($qtde == 1)
+                            $novo_liquido = $premio_bruto / ( 1 + round($valor_iof / $premio_liquido, 4));
+                        elseif ($qtde == 2)
+                            $novo_liquido = $premio_bruto / ( 1 + truncate($valor_iof / $premio_liquido, 4));
+                        else
+                            $novo_liquido = $premio_liquido;
+                        echo "<pre>";
+                        print_r( [$qtde, $premio_liquido, $valor_iof, $premio_bruto, ( 1 + round($valor_iof / $premio_liquido, 4)), $novo_liquido] );
+                        echo "<br>";
+
+                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso, $premio_liquido, $valor_iof, $novo_liquido, $qtde);
+                    }
+
+                } else {
+                    $premioValid = true;
+                }
+
             }else {
 
                 $premioValid = false;

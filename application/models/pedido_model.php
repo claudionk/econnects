@@ -1673,6 +1673,276 @@ Class Pedido_Model extends MY_Model
 
         $query = $this->_database->query("
         SELECT 
+            planos,
+            cod_tpa, 
+            SUM(IF(apolice_status_id = 1, IF(PB IS NOT NULL, 1, 0), 0)) AS V_quantidade,
+            SUM(IF(apolice_status_id = 1, IFNULL(IOF,0), 0)) AS V_IOF, 
+            SUM(IF(apolice_status_id = 1, IFNULL(PL,0), 0)) AS V_PL, 
+            SUM(IF(apolice_status_id = 1, IFNULL(PB,0), 0)) AS V_PB, 
+            SUM(IF(apolice_status_id = 1, IFNULL(pro_labore,0), 0)) AS V_pro_labore, 
+            SUM(IF(apolice_status_id = 1, IFNULL(valor_comissao,0), 0)) AS V_valor_comissao, 
+            SUM(IF(apolice_status_id = 2, IF(PB IS NOT NULL, 1, 0), 0)) AS C_quantidade,
+            SUM(IF(apolice_status_id = 2, IFNULL(IOF,0), 0)) AS C_IOF, 
+            SUM(IF(apolice_status_id = 2, IFNULL(PL,0), 0)) AS C_PL, 
+            SUM(IF(apolice_status_id = 2, IFNULL(PB,0), 0)) AS C_PB, 
+            SUM(IF(apolice_status_id = 2, IFNULL(pro_labore,0), 0)) AS C_pro_labore, 
+            SUM(IF(apolice_status_id = 2, IFNULL(valor_comissao,0), 0)) AS C_valor_comissao
+        FROM (
+            SELECT 
+                ppp.nome as planos,
+                pp.cod_tpa,
+                a.pedido_id,
+                a.num_apolice,
+                x.apolice_movimentacao_tipo_id as apolice_status_id
+                , x.premio_liquido_total AS PB
+                , x.valor_iof AS IOF
+                , x.premio_liquido AS PL
+                , SUM(IF(x.cd_tipo_comissao = 'P', x.valor_comissao, 0)) AS pro_labore
+                , SUM(IF(x.cd_tipo_comissao = 'C', x.valor_comissao, 0)) AS valor_comissao
+
+            FROM apolice a
+            INNER JOIN `produto_parceiro_plano` ppp ON `ppp`.`produto_parceiro_plano_id` = a.`produto_parceiro_plano_id`
+            INNER JOIN `produto_parceiro` pp ON `pp`.`produto_parceiro_id` = `ppp`.`produto_parceiro_id`
+            JOIN (
+                SELECT apolice_id, apolice_movimentacao_tipo_id, cd_tipo_comissao, sum(premio_liquido) * IF(premio_liquido >= 0, 1, -1) premio_liquido, sum(valor_iof) * IF(premio_liquido >= 0, 1, -1) valor_iof, sum(premio_liquido_total) * IF(premio_liquido >= 0, 1, -1) premio_liquido_total, sum(valor_comissao) * IF(premio_liquido >= 0, 1, -1) valor_comissao
+                FROM (
+                    SELECT apolice_id, cobertura_plano_id, apolice_movimentacao_tipo_id, cd_tipo_comissao cd_tipo_comissao, premio_liquido, valor_iof, premio_liquido+valor_iof as premio_liquido_total, sum(valor_comissao) valor_comissao
+                    FROM (
+
+                        SELECT 
+                        TRUNCATE(apolice_cobertura.valor * apolice_cobertura.iof / 100,2) a,
+                        apolice.apolice_id,
+                        apolice_cobertura.cobertura_plano_id,
+                        am.apolice_movimentacao_tipo_id,
+                        apolice_cobertura.valor as premio_liquido,
+                        #(ROUND(IF(apolice_cobertura.iof > 0, IF(ROUND(apolice_cobertura.valor * apolice_cobertura.iof / 100,2) = 0, 0.01 * IF(apolice_cobertura.valor >= 0, 1, - 1) , apolice_cobertura.valor * apolice_cobertura.iof / 100), 0), 2)) AS valor_iof,
+                        #(ROUND(apolice_cobertura.valor + IF(apolice_cobertura.iof > 0, IF(ROUND(apolice_cobertura.valor * apolice_cobertura.iof / 100,2) = 0, 0.01 * IF(apolice_cobertura.valor >= 0, 1, - 1) , apolice_cobertura.valor * apolice_cobertura.iof / 100), 0), 2)) as premio_liquido_total,
+
+                        #se o IOF é menor que 0.01, joga o valor na maior
+                        TRUNCATE(ROUND(
+                            IF(
+                                TRUNCATE(IF(apolice_endosso.valor = 0, 0, IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, IF(rp.regra_preco_id IS NOT NULL, apolice_cobertura.valor * IFNULL(pprp.parametros,0) / 100, 0) )),2)
+
+                                #add a diferenca do IOF total à cobertura de +valor
+                                + IF( menor_iof.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, menor_iof.valor-menor_iof.valor_t, 0) = 0,
+                                
+                                    IF( menor_iof.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, IF( TRUNCATE(menor_iof.valor, 2) = 0, 0.01 * IF(apolice_cobertura.valor >= 0, 1, - 1), menor_iof.valor), 0)
+                                ,
+                                    TRUNCATE(IF(apolice_endosso.valor = 0, 0, IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, IF(rp.regra_preco_id IS NOT NULL, apolice_cobertura.valor * IFNULL(pprp.parametros,0) / 100, 0) )),2)
+                                    
+
+                                    #add a diferenca do IOF total à cobertura de +valor
+                                    + IF( menor_iof.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, menor_iof.valor-menor_iof.valor_t, 0)
+                            )
+                        , 2), 2) AS valor_iof
+
+                        , ROUND(comissao_gerada.comissao, 4) as pc_comissao
+                        , IF(parceiro.parceiro_tipo_id = 2, 'C', 'P') AS cd_tipo_comissao
+
+                        #se a comissao é menor que 0.01, joga o valor na maior
+                        , (ROUND(
+                            IF(
+                                menor.apolice_id IS NULL, 
+                                    IF(ROUND(comissao_gerada.comissao / 100 * apolice_cobertura.valor,2) = 0, 0.01 * IF(apolice_cobertura.valor >= 0, 1, - 1) , comissao_gerada.comissao / 100 * apolice_cobertura.valor), 
+
+                                    IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, IF( ROUND(menor.valor, 2) = 0, 0.01 * IF(apolice_cobertura.valor >= 0, 1, - 1) , menor.valor), 0)
+                            ),2) 
+                        ) AS valor_comissao
+
+                        FROM pedido
+                        INNER JOIN apolice on apolice.pedido_id = pedido.pedido_id
+                        INNER JOIN cotacao c on pedido.cotacao_id = c.cotacao_id
+                        INNER JOIN `cotacao_status` cs ON `cs`.`cotacao_status_id` = `c`.`cotacao_status_id`
+                        INNER JOIN produto_parceiro_plano on apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id
+                        INNER JOIN produto_parceiro pp on produto_parceiro_plano.produto_parceiro_id = pp.produto_parceiro_id
+                        INNER JOIN apolice_cobertura on apolice.apolice_id = apolice_cobertura.apolice_id
+                        INNER JOIN cobertura_plano on apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id AND pp.parceiro_id = cobertura_plano.parceiro_id
+                        LEFT JOIN comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.comissao > 0 AND comissao_gerada.deletado = 0
+                        INNER JOIN parceiro on comissao_gerada.parceiro_id=parceiro.parceiro_id
+                        INNER JOIN `parceiro` parc ON `parc`.`parceiro_id` = apolice.`parceiro_id`
+                        INNER JOIN apolice_movimentacao am on apolice.apolice_id = am.apolice_id AND IF(apolice_cobertura.valor >= 0, 1, 2) = am.apolice_movimentacao_tipo_id
+                        INNER JOIN apolice_endosso ON apolice.apolice_id = apolice_endosso.apolice_id AND apolice_endosso.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
+
+                        LEFT JOIN produto_parceiro_regra_preco pprp ON produto_parceiro_plano.produto_parceiro_id = pprp.produto_parceiro_id AND pprp.deletado = 0
+                        LEFT JOIN regra_preco rp on pprp.regra_preco_id = rp.regra_preco_id AND rp.slug = 'iof' 
+
+                        #caso comissao seja menor que 0.01, soma as comissoes e identifica a de maior valor
+                        LEFT JOIN (
+                            SELECT apolice_id, apolice_movimentacao_tipo_id, max(apolice_cobertura_id) as apolice_cobertura_id, valor
+                            FROM (
+                                SELECT apolice.apolice_id, am.apolice_movimentacao_tipo_id, ac.apolice_cobertura_id apolice_cobertura_id, IF( ROUND(x.valor, 2) = 0, 0.01 * IF(ac.valor >= 0, 1, - 1) , x.valor) as valor
+                                FROM apolice_cobertura ac
+                                INNER JOIN apolice_movimentacao am on ac.apolice_id = am.apolice_id
+                                INNER JOIN (
+                                    SELECT apolice.apolice_id, am.apolice_movimentacao_tipo_id, sum(apolice_cobertura.valor * (comissao_gerada.comissao / 100)) as valor, max(apolice_cobertura.valor) c, min(apolice_cobertura.valor) d
+                                    FROM pedido 
+                                    INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id
+                                    INNER JOIN apolice_cobertura ON apolice.apolice_id = apolice_cobertura.apolice_id
+                                    INNER JOIN comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.comissao > 0
+                                    INNER JOIN `parceiro` parc ON `parc`.`parceiro_id` = apolice.`parceiro_id`
+                                    INNER JOIN cotacao c on pedido.cotacao_id = c.cotacao_id
+                                    INNER JOIN `cotacao_status` cs ON `cs`.`cotacao_status_id` = `c`.`cotacao_status_id`
+                                    INNER JOIN produto_parceiro_plano on apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id
+                                    INNER JOIN produto_parceiro pp on produto_parceiro_plano.produto_parceiro_id = pp.produto_parceiro_id
+                                    INNER JOIN apolice_movimentacao am on apolice.apolice_id = am.apolice_id AND IF(apolice_cobertura.valor >= 0, 1, 2) = am.apolice_movimentacao_tipo_id
+                                    WHERE 1
+                                    AND pedido.deletado = 0
+                                    AND apolice.deletado = 0
+                                    AND apolice_cobertura.deletado = 0
+                                    AND comissao_gerada.deletado = 0
+                                    #AND apolice.num_apolice = '784000100101034'
+                                    AND `cs`.`slug` = 'finalizada'
+                                    AND `parc`.`slug` IN('". $slug ."')
+                                    {$where}
+
+                                    GROUP BY apolice.apolice_id, am.apolice_movimentacao_tipo_id
+                                    HAVING round(sum(apolice_cobertura.valor * (comissao_gerada.comissao / 100) * IF(apolice_cobertura.valor >= 0, 1, - 1) ) / count(1) ,2) <= 0.01
+                                ) x ON ac.apolice_id = x.apolice_id AND x.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id AND ac.valor = IF(ac.valor >= 0, x.c, x.d)
+                                INNER JOIN apolice ON apolice.apolice_id = ac.apolice_id
+                            ) z  GROUP BY apolice_id, apolice_movimentacao_tipo_id, valor
+                        ) AS menor ON apolice.apolice_id = menor.apolice_id AND am.apolice_movimentacao_tipo_id = menor.apolice_movimentacao_tipo_id
+                        
+                        #caso o IOF seja menor que 0.01, soma as comissoes e identifica a de maior valor
+                        LEFT JOIN (
+                            select apolice_id, apolice_movimentacao_tipo_id, max(apolice_cobertura_id) as apolice_cobertura_id, valor, valor_t
+                            from (
+                                select apolice.apolice_id, am.apolice_movimentacao_tipo_id, ac.apolice_cobertura_id apolice_cobertura_id
+                                #, IF( ROUND(x.valor, 2) = 0, 0.01 * IF(am.apolice_movimentacao_tipo_id = 1, 1, -1), x.valor) as valor
+                                #, IF( ROUND(x.valor_t, 2) = 0, 0.01 * IF(am.apolice_movimentacao_tipo_id = 1, 1, -1), x.valor_t) as valor_t
+                                
+                                , IF( ROUND(IF(x.regra_preco_id IS NOT NULL, x.valor_por_cob, x.valor), 2) = 0, 0.01 * IF(am.apolice_movimentacao_tipo_id = 1, 1, -1), IF(x.regra_preco_id IS NOT NULL, x.valor_por_cob, x.valor)) as valor
+                                , IF( ROUND(x.valor_t, 2) = 0, 0.01 * IF(am.apolice_movimentacao_tipo_id = 1, 1, -1), x.valor_t) as valor_t
+
+                                from apolice_cobertura ac
+                                INNER JOIN apolice_movimentacao am on ac.apolice_id = am.apolice_id
+                                join (
+                                    select apolice.apolice_id, am.apolice_movimentacao_tipo_id, rp.regra_preco_id
+                                        , round(sum(IF(apolice_endosso.valor = 0, 0, IF(rp.regra_preco_id IS NOT NULL,  
+                                    
+                                            apolice_cobertura.valor * IFNULL(pprp.parametros,0) / 100
+                                            ,
+                                            IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0)
+                                            )
+                                        )), 2) as valor
+                                        , round(sum(TRUNCATE(IF(apolice_endosso.valor = 0, 0, IF(rp.regra_preco_id IS NOT NULL,  
+                                            
+                                            apolice_cobertura.valor * IFNULL(pprp.parametros,0) / 100
+                                            ,
+                                            IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0)
+                                            ))
+                                        ,2)), 2) as valor_t
+                                        , round(
+                                            IF(rp.regra_preco_id IS NOT NULL, 
+                                                IF(apolice_endosso.valor = 0, 0, IFNULL(IFNULL(apolice_equipamento.pro_labore, apolice_generico.pro_labore),0) * IF(apolice_cobertura.valor >= 0, 1, -1))
+                                                , 
+                                                sum(TRUNCATE(
+                                                    IF(apolice_endosso.valor = 0,
+                                                    0
+                                                    , 
+                                                    IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0)
+                                                ),2))
+                                            ), 2) as valor_por_cob
+                                        , max(IF(cobertura_plano.cobertura_plano_id IS NOT NULL, apolice_cobertura.valor, 0)) c 
+                                        , min(IF(cobertura_plano.cobertura_plano_id IS NOT NULL, apolice_cobertura.valor, 0)) d
+                                
+                                    FROM pedido
+                                    INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id
+                                    INNER JOIN apolice_cobertura ON apolice.apolice_id = apolice_cobertura.apolice_id
+                                    INNER JOIN produto_parceiro_plano ppp ON apolice.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
+                                    INNER JOIN produto_parceiro pp ON ppp.produto_parceiro_id = pp.produto_parceiro_id
+                                    INNER JOIN `parceiro` parc ON `parc`.`parceiro_id` = apolice.`parceiro_id`
+                                    INNER JOIN cotacao c on pedido.cotacao_id = c.cotacao_id
+                                    INNER JOIN `cotacao_status` cs ON `cs`.`cotacao_status_id` = `c`.`cotacao_status_id`
+                                    INNER JOIN apolice_movimentacao am on apolice.apolice_id = am.apolice_id AND IF(apolice_cobertura.valor >= 0, 1, 2) = am.apolice_movimentacao_tipo_id
+                                    INNER JOIN apolice_endosso ON apolice_endosso.apolice_id = apolice.apolice_id AND apolice_endosso.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
+
+                                    LEFT JOIN produto_parceiro_regra_preco pprp ON ppp.produto_parceiro_id = pprp.produto_parceiro_id AND pprp.deletado = 0
+                                    LEFT JOIN regra_preco rp on pprp.regra_preco_id = rp.regra_preco_id AND rp.slug = 'iof' 
+                                    LEFT JOIN apolice_generico ON apolice_generico.apolice_id = apolice.apolice_id
+                                    LEFT JOIN apolice_equipamento ON apolice_equipamento.apolice_id = apolice.apolice_id
+                                
+                                    #APENAS COBERTURAS (SEM ASSISTENCIAS)
+                                    LEFT JOIN cobertura_plano ON apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id AND pp.parceiro_id = cobertura_plano.parceiro_id
+
+                                    WHERE 1
+                                        AND pedido.deletado = 0
+                                        AND apolice.deletado = 0
+                                        AND apolice_cobertura.deletado = 0
+                                        #AND apolice.num_apolice = '784000100101034'
+                                        AND `cs`.`slug` = 'finalizada'
+                                        AND `parc`.`slug` IN('". $slug ."')
+                                        {$where}
+
+                                    GROUP BY apolice.apolice_id, am.apolice_movimentacao_tipo_id, rp.regra_preco_id
+
+                                ) x ON ac.apolice_id = x.apolice_id AND x.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id AND ac.valor = IF(ac.valor >= 0, x.c, x.d)
+                                INNER JOIN apolice ON apolice.apolice_id = ac.apolice_id
+                            ) z  group by apolice_id, apolice_movimentacao_tipo_id, valor
+                        ) AS menor_iof ON apolice.apolice_id = menor_iof.apolice_id AND am.apolice_movimentacao_tipo_id = menor_iof.apolice_movimentacao_tipo_id
+                        
+                        INNER JOIN cta_movimentacao cta ON cta.cta_movimentacao_id = (
+                            SELECT MAX(cta_m.cta_movimentacao_id)
+                            FROM cta_movimentacao cta_m
+                            WHERE cta_m.apolice_id = apolice.apolice_id AND cta_m.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
+                            AND cta_m.CTA_Retorno_ok IS NOT NULL
+                            GROUP BY cta_m.apolice_movimentacao_tipo_id
+                        )
+
+                        WHERE 
+                        pedido.deletado = 0
+                        AND apolice.deletado = 0
+                        AND apolice_cobertura.deletado = 0
+                        AND cobertura_plano.deletado = 0
+                        #AND apolice.num_apolice = '784000100101034'
+                        AND `cs`.`slug` = 'finalizada'
+                        AND `parc`.`slug` IN('". $slug ."')
+                        {$where}
+
+                    ) as y
+                    GROUP BY apolice_id, cobertura_plano_id, apolice_movimentacao_tipo_id, cd_tipo_comissao, premio_liquido, valor_iof#, premio_liquido_total
+                ) x
+                GROUP BY apolice_id, apolice_movimentacao_tipo_id, cd_tipo_comissao
+            ) x ON a.apolice_id = x.apolice_id
+            GROUP BY ppp.nome,
+                pp.cod_tpa,
+                a.pedido_id,
+                a.num_apolice,
+                x.apolice_movimentacao_tipo_id
+                , x.premio_liquido_total
+                , x.valor_iof
+                , x.premio_liquido
+        ) AS x
+        GROUP BY planos;");
+
+        $resp = [];
+
+        if($query->num_rows() > 0)
+        {
+            $resp = $query->result_array();
+        }
+        //print_r($this->db->last_query());
+        //die;
+        return $resp;
+    }
+
+    public function __extrairRelatorioMapaRepasseSintetico($data_inicio = null, $data_fim = null, $_parceiro_id, $slug)
+    {
+        $where = $this->restrictProdutosPorParceiro($_parceiro_id);
+
+        if (!empty($where)) $where = " AND {$where}";
+
+        // colaborador só visualiza os próprios pedidos
+        if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
+            $where .= " AND c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}";
+        }
+
+        if(isset($data_inicio) && !empty($data_inicio))
+            $where .= " AND am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'";
+        if(isset($data_fim) && !empty($data_fim))
+            $where .= " AND am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
+
+        $query = $this->_database->query("
+        SELECT 
         planos,
         cod_tpa, 
         SUM(IF(apolice_status_id = 1, IF(PB IS NOT NULL, 1, 0), 0)) AS V_quantidade,
