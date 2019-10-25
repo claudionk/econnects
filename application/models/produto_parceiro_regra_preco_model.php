@@ -298,7 +298,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                             $valor = ($valor/(1-($markup/100)));
                             $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
                             $valor -= $desconto_condicional_valor;
-                            $valores_liquido[$plano['produto_parceiro_plano_id']] = round($valor, 2);
+                            $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
                             break;
                         case self::TIPO_CALCULO_BRUTO:
                             $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
