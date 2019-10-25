@@ -209,11 +209,10 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
         if($configuracao) {
 
             $configuracao = $configuracao[0];
+            $markup = app_format_currency($configuracao['markup'], false, 2);
+            $soma = app_format_currency($soma + $comissao, false, 2);
 
-            $markup = $configuracao['markup'];
-            $soma = $soma + $comissao;
-
-            $this->form_validation->set_message('check_markup_relacionamento', 'A soma de todas as comissões dos parceiros relacionados deve ser inferior ou igual ao MARKUP configurado apara esse produto. Soma total: ' . app_format_currency($soma, false, 2) . ' - MARKUP: ' . app_format_currency($markup, false, 2));
+            $this->form_validation->set_message('check_markup_relacionamento', 'A soma de todas as comissões dos parceiros relacionados deve ser inferior ou igual ao MARKUP configurado apara esse produto. Soma total: ' . $soma . ' - MARKUP: ' . $markup);
 
             if ($soma > $markup) {
                 return false;

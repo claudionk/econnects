@@ -194,7 +194,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             //buscar o markup
             $markup = $this->relacionamento->get_comissao_markup($produto_parceiro_id, $parceiro_id, $comissao);
 
-            if ($markup > $configuracao['markup'] )
+            if (number_format($markup, 2, ',', '.') > number_format($configuracao['markup'], 2, ',', '.') )
             {
                 $markup = number_format($markup, 2, ',', '.');
                 $configuracao['markup'] = number_format($configuracao['markup'], 2, ',', '.');
@@ -298,7 +298,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                             $valor = ($valor/(1-($markup/100)));
                             $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
                             $valor -= $desconto_condicional_valor;
-                            $valores_liquido[$plano['produto_parceiro_plano_id']] = round($valor, 2);
+                            $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
                             break;
                         case self::TIPO_CALCULO_BRUTO:
                             $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
