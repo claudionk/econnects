@@ -2349,7 +2349,8 @@ Class Pedido_Model extends MY_Model
         $dados_pedido["alteracao_usuario_id"] = $this->session->userdata("usuario_id");
         $dados_pedido["valor_total"] = $valor_total;
         $dados_pedido["num_parcela"] = $dados["parcelamento{$dados_bandeira}"];
-        if ( $this->apolice->isControleEndossoPeloClienteByProdutoParceiroId($dados["produto_parceiro_id"]) ) {
+        $is_controle_endosso = $this->apolice->isControleEndossoPeloClienteByProdutoParceiroId($dados["produto_parceiro_id"]);
+        if ( $is_controle_endosso == 1 ) {
             $dados_pedido["valor_parcela"] =  $valor_total;
         } else {
             $dados_pedido["valor_parcela"] =  $parcelamento[$dados["parcelamento{$dados_bandeira}"]];            
