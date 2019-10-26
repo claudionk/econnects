@@ -203,7 +203,6 @@ Class Apolice_Endosso_Model extends MY_Model
             $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
 
             $apolice = $this->apolice->getApolice($apolice_id);
-            // print_r($apolice);die();
 
             $dados_end = array();
             $dados_end['apolice_id']                    = $apolice_id;
@@ -228,18 +227,16 @@ Class Apolice_Endosso_Model extends MY_Model
                 $is_controle_endosso_pelo_cliente = false;
             }
 
-            // print_r( [$max_parcela, $is_controle_endosso_pelo_cliente ] );die();
+            $tipo_pagto = $this->parceiro_pagamento->isRecurrent($produto_parceiro_pagamento_id) ? 1 : $is_controle_endosso_pelo_cliente;
 
             // VALIDAÇÃO DE CAPA
             // caso seja recorrência terá capa
             // Quando o controle de endosso é manual pelo cliente também entra aqui - Davi Souto 08/04/2019
-            if ($this->parceiro_pagamento->isRecurrent($produto_parceiro_pagamento_id) || $is_controle_endosso_pelo_cliente) {
+            if ($tipo_pagto) {
 
-                $capa = true;
-                $tipo_pagto = $this->parceiro_pagamento->isRecurrent($produto_parceiro_pagamento_id) ? 1 : $is_controle_endosso_pelo_cliente;
                 $max_parcela = ($tipo_pagto == 1) ? 1 : $max_parcela;
                 $dados_end['parcela'] = (empty($parcela)) ? 0 : $parcela;
-                
+
                 if ($dados_end['parcela'] == 0)
                 {
                     $dados_end['valor'] = 0;
@@ -254,9 +251,6 @@ Class Apolice_Endosso_Model extends MY_Model
                     }
                 }
 
-                $teste = $this->produto_parceiro_plano->getInicioFimVigenciaCapa($apolice['produto_parceiro_plano_id'], $dados_end['data_vencimento'], $capa);
-                print_r($teste);die();
-
                 // valida a vigência
                 // caso seja cancelamento, a vigência deve ser a mesma da parcela cancelada
                 if ($dados_end['parcela'] > 0 && $tipo != 'C') {
@@ -264,26 +258,30 @@ Class Apolice_Endosso_Model extends MY_Model
                     if ($dados_end['parcela'] > 1) {
                         $result = $this->lastSequencial($apolice_id);
 
-                        $d1 = new DateTime($result['data_fim_vigencia']);
-                        $d1->add(new DateInterval("P1D"));
-                        $dados_end['data_inicio_vigencia'] = $d1->format('Y-m-d');
+                        if ($tipo_pagto == 1)
+                        {
+                            $d1 = new DateTime($result['data_fim_vigencia']);
+                            $d1->add(new DateInterval("P1D"));
+                            $dados_end['data_inicio_vigencia']  = $d1->format('Y-m-d');
+                        }
+                        $dados_end['data_vencimento']       = $result['data_vencimento'];
                     }
 
-                    $vigencia = $this->produto_parceiro_plano->getInicioFimVigenciaCapa($apolice['produto_parceiro_plano_id'], $dados_end['data_inicio_vigencia'], $capa);
+                    $vigencia = $this->produto_parceiro_plano->getDatasCapa($apolice['produto_parceiro_plano_id'], $dados_end['data_inicio_vigencia'], $dados_end['data_vencimento'], $tipo_pagto);
                     $dados_end['data_inicio_vigencia']  = $vigencia['inicio_vigencia'];
                     $dados_end['data_fim_vigencia']     = $vigencia['fim_vigencia'];
+                    $dados_end['data_vencimento']       = $vigencia['data_vencimento'];
 
                 }
 
             } else {
 
-                $capa = false;
                 $dados_end['parcela'] = 1;
 
             }
 
             $dados_end['cd_movimento_cobranca'] = $this->defineMovCob($tipo, $dados_end['parcela'], $devolucao_integral);
-            $dados_end['tipo']                  = $this->defineTipo($tipo, $dados_end['endosso'], $capa);
+            $dados_end['tipo']                  = $this->defineTipo($tipo, $dados_end['endosso'], $tipo_pagto);
             $dados_end['id_transacao']          = $this->getIDTransacao($apolice_id, $dados_end['endosso'], $dados_end['parcela']);
 
             // caso seja cancelamento, a vigência deve ser a mesma da parcela cancelada
@@ -300,7 +298,7 @@ Class Apolice_Endosso_Model extends MY_Model
             $this->insert($dados_end, TRUE);
 
             // gera o registro adicional na Adesão da Capa
-            if ( $tipo == 'A' && $capa )
+            if ( $tipo == 'A' && $tipo_pagto )
             {
                 // Mensal - gera apenas a primeira parcela
                 if ( $tipo_pagto == 1 && $dados_end['parcela'] == 0 )
