@@ -382,8 +382,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         );
     }
 
-
-    public function getInicioFimVigenciaCapa($produto_parceiro_plano_id, $data_base, $is_controle_endosso_pelo_cliente = false)
+    public function getDatasCapa($produto_parceiro_plano_id, $data_base, $data_vencimento, $is_controle_endosso_pelo_cliente = false)
     {
 
         $date_inicio = $data_base;
@@ -400,47 +399,70 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                 $fim = 1;
                 $date_fim = $d2 = $d1;
 
+                $data_vencimento = explode('-', $data_vencimento);
+                $dvcto = new DateTime($data_vencimento[2]."-".$data_vencimento[1]."-".$data_vencimento[0]);
+
                 if ($is_controle_endosso_pelo_cliente)
                 {
                     $config["pagamento_periodicidade_unidade"] = 'MES';
                 }
 
-                switch ($config["pagamento_periodicidade_unidade"]) {
+                switch ($config["pagamento_periodicidade_unidade"])
+                {
                     case "DIA": //
-                        $d2->add(new DateInterval("P{$fim}D"));
+                        if ($is_controle_endosso_pelo_cliente == 1)
+                        {
+                            $d2->add(new DateInterval("P{$fim}D"));
+                        }
+
+                        $dvcto->add(new DateInterval("P1D"));
 
                         break;
                     case "MES":
 
-                        // Adiciona os meses no INICIO da vigência
-                        $m = $d1->format('m');
+                        if ($is_controle_endosso_pelo_cliente == 1) 
+                        {
+                            // Adiciona os meses no INICIO da vigência
+                            $m = $d1->format('m');
 
-                        // Adiciona os meses na FIM da vigência
-                        $d2->add(new DateInterval("P{$fim}M"));
+                            // Adiciona os meses na FIM da vigência
+                            $d2->add(new DateInterval("P{$fim}M"));
 
-                        // valida FEVEREIRO, onde o PHP add os meses com visão de dias
-                        if ($d2->format('m') - $m != $fim) {
-                            // volta para o último dia do mês
-                            $rem = $d2->format('d');
-                            $d2 = $d2->sub(new DateInterval("P{$rem}D"));
-                        } else {
-                            // retira um dia (-1 dia)
-                            $date_fim = $d2->sub(new DateInterval("P1D"));
+                            // valida FEVEREIRO, onde o PHP add os meses com visão de dias
+                            if ($d2->format('m') - $m != $fim) {
+                                // volta para o último dia do mês
+                                $rem = $d2->format('d');
+                                $d2 = $d2->sub(new DateInterval("P{$rem}D"));
+                            } else {
+                                // retira um dia (-1 dia)
+                                $date_fim = $d2->sub(new DateInterval("P1D"));
+                            }
                         }
+
+                        // Adiciona os meses no vencimento
+                        $dvcto->add(new DateInterval("P1M"));
 
                         break;
                     case "ANO":
-                        $d2->add(new DateInterval("P{$fim}Y"));
+                        if ($is_controle_endosso_pelo_cliente == 1) 
+                        {
+                            $d2->add(new DateInterval("P{$fim}Y"));
+                        }
+
+                        $dvcto->add(new DateInterval("P1Y"));
+
                         break;
                 }
 
                 $date_fim = $date_fim->format('Y-m-d');
+                $data_vencimento = $dvcto->format('Y-m-d');
             }
         }
 
         return array(
             'inicio_vigencia' => $date_inicio,
             'fim_vigencia'    => $date_fim,
+            'data_vencimento' => $data_vencimento,
             'dias'            => app_date_get_diff_mysql($date_inicio, $date_fim, 'D'),
         );
     }

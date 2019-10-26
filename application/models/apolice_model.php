@@ -1014,6 +1014,7 @@ class Apolice_Model extends MY_Model
             if ($arrApolice) {
                 $arrApolice                 = $arrApolice[0];
                 $arrApolice['produto_slug'] = $pedido['slug'];
+                $arrApolice['valor_parcela'] = $pedido['valor_parcela'];
                 return $arrApolice;
             } else {
                 return array();
@@ -1524,12 +1525,13 @@ class Apolice_Model extends MY_Model
         $this->load->model('pedido_model', 'pedido');
 
         // Carregar pedido
-        $pedido = $this->pedido->getPedidosByID($pedido_id);
-        $pedido = $pedido[0];
+        $pedido                 = $this->pedido->getPedidosByID($pedido_id);
+        $pedido                 = $pedido[0];
+        $produto_parceiro_id    = $pedido['produto_parceiro_id'];
+        $num_parcela            = $pedido['num_parcela'];
+        $endosso                = $this->isControleEndossoPeloClienteByProdutoParceiroId($produto_parceiro_id);
 
-        $produto_parceiro_id = $pedido['produto_parceiro_id'];
-
-        return $this->isControleEndossoPeloClienteByProdutoParceiroId($produto_parceiro_id);
+        return [ 'num_parcela' => $num_parcela, 'endosso' => $endosso ];
     }
 
     /**
