@@ -290,10 +290,9 @@ Class Apolice_Endosso_Model extends MY_Model
 
                 }
 
-            } else {
-
+            } else 
+            {
                 $dados_end['parcela'] = 1;
-
             }
 
             $dados_end['cd_movimento_cobranca'] = $this->defineMovCob($tipo, $dados_end['parcela'], $devolucao_integral);
@@ -308,7 +307,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 $dados_end['data_fim_vigencia']     = $result['data_fim_vigencia'];
                 $dados_end['valor']                 = $result['valor'];
                 $dados_end['id_transacao_canc']     = $result['id_transacao'];
-                $dados_end['data_vencimento']       = $result['data_cancelamento'];
+                $dados_end['data_vencimento']       = $result['data_vencimento'];
             }
 
             $this->insert($dados_end, TRUE);
