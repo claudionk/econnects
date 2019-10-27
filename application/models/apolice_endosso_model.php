@@ -242,12 +242,28 @@ Class Apolice_Endosso_Model extends MY_Model
                     $dados_end['valor'] = 0;
                 } else 
                 {
-                    if ($tipo_pagto == 2)
+                    // se foi informado um valor fixo
+                    if ( $valor )
                     {
-                        $dados_end['valor'] = $apolice['valor_parcela'];
-                    } else 
+                        $dados_end['valor'] = $valor;
+                    } else
                     {
-                        $dados_end['valor'] = $dados_end['valor'];
+                        // Se for um pagamento parcelado
+                        if ($tipo_pagto == 2)
+                        {
+                            $dados_end['valor'] = round($apolice['valor_premio_net'] / $max_parcela, 2);
+
+                            // Acerta o valor da última parcela
+                            $total_recalc = $dados_end['valor'] * $max_parcela;
+                            if ($parcela == $max_parcela && $total_recalc != $apolice['valor_premio_net'] )
+                            {
+                                $dados_end['valor'] += $apolice['valor_premio_net'] - $total_recalc;
+                            }
+
+                        } else 
+                        {
+                            $dados_end['valor'] = $dados_end['valor'];
+                        }
                     }
                 }
 
