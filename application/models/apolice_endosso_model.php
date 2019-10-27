@@ -56,7 +56,7 @@ Class Apolice_Endosso_Model extends MY_Model
      */
     function lastParcela($apolice_id, $parcela = null, $apolice_movimentacao_tipo_id = null) {
 
-        if ( !empty($parcela) ) {
+        if ( !is_null($parcela) ) {
             $this->_database->where('parcela', $parcela);
         }
 
