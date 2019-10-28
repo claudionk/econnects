@@ -22,6 +22,7 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
         $this->load->model('parceiro_model', 'parceiro');
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
+        $this->load->model('parceiro_tipo_model', 'parceiro_tipo');
 
     }
 
@@ -115,6 +116,8 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
         $data['produtos'] = $this->produto_parceiro->with_produto()->with_parceiro()->get_all();
         $data['parceiros'] = $this->parceiro->get_all();
         $data['pais'] = $this->current_model->with_produto_parceiro()->with_parceiro()->get_all();
+        $data['tipos'] = $this->parceiro_tipo->get_all();
+
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
@@ -167,8 +170,8 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
         $data['produtos'] = $this->produto_parceiro->with_produto()->with_parceiro()->get_all();
         $data['parceiros'] = $this->parceiro->get_all();
         $data['pais'] = $this->current_model->with_produto_parceiro()->with_parceiro()->get_all();
+        $data['tipos'] = $this->parceiro_tipo->get_all();
 
-        //print_r($data['pais']);exit;
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }

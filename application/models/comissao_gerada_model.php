@@ -101,10 +101,11 @@ Class Comissao_Gerada_Model extends MY_Model {
                 parceiro_relacionamento_produto.comissao_tipo
             FROM pedido
             INNER JOIN cotacao ON pedido.cotacao_id = cotacao.cotacao_id
-            LEFT JOIN  cotacao_equipamento ON cotacao_equipamento.cotacao_id = cotacao.cotacao_id AND cotacao_equipamento.deletado = 0
-            LEFT JOIN  cotacao_seguro_viagem ON cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id AND cotacao_seguro_viagem.deletado = 0
-            LEFT JOIN  cotacao_generico ON cotacao_generico.cotacao_id = cotacao.cotacao_id AND cotacao_generico.deletado = 0
+            LEFT JOIN cotacao_equipamento ON cotacao_equipamento.cotacao_id = cotacao.cotacao_id AND cotacao_equipamento.deletado = 0
+            LEFT JOIN cotacao_seguro_viagem ON cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id AND cotacao_seguro_viagem.deletado = 0
+            LEFT JOIN cotacao_generico ON cotacao_generico.cotacao_id = cotacao.cotacao_id AND cotacao_generico.deletado = 0
             INNER JOIN parceiro_relacionamento_produto ON cotacao.parceiro_id = parceiro_relacionamento_produto.parceiro_id AND parceiro_relacionamento_produto.produto_parceiro_id = ifnull(ifnull(cotacao_equipamento.produto_parceiro_id, cotacao_generico.produto_parceiro_id), cotacao_seguro_viagem.produto_parceiro_id)
+            INNER JOIN parceiro ON parceiro_relacionamento_produto.parceiro_id = parceiro.parceiro_id
             LEFT JOIN comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.deletado = 0 
             WHERE pedido.pedido_status_id IN (3,8) 
                 AND cotacao.deletado = 0
@@ -151,14 +152,16 @@ Class Comissao_Gerada_Model extends MY_Model {
         $comissao_venda =  ($comissao_premio/100) * $premio_liquido_total;
 
         $data_comissao = array();
-        $data_comissao['comissao_classe_id'] = $comissao_classe['comissao_classe_id'];
-        $data_comissao['pedido_id'] = $item['pedido_id'];
-        $data_comissao['valor'] = $comissao_venda;
-        $data_comissao['parceiro_id'] = $parceiro['parceiro_id'];
-        $data_comissao['premio_liquido_total'] = $premio_liquido_total;
-        $data_comissao['comissao'] = $comissao_premio;
-        $data_comissao['descricao'] = "COMISSÃO {$comissao_classe['nome']} (". app_format_currency($comissao_premio, false, 3) ."%) REFERENTE AO PEDIDO {$item['codigo']}";
-        $data_comissao['faturado'] = 0;
+        $data_comissao['comissao_classe_id']    = $comissao_classe['comissao_classe_id'];
+        $data_comissao['pedido_id']             = $item['pedido_id'];
+        $data_comissao['valor']                 = $comissao_venda;
+        $data_comissao['parceiro_id']           = $parceiro['parceiro_id'];
+        $data_comissao['parceiro_tipo_id']      = $parceiro['parceiro_tipo_id_parceiro'];
+        $data_comissao['cod_parceiro']          = isempty($parceiro['cod_parceiro'], $parceiro['parceiro_codigo_corretor']);
+        $data_comissao['premio_liquido_total']  = $premio_liquido_total;
+        $data_comissao['comissao']              = $comissao_premio;
+        $data_comissao['descricao']             = "COMISSÃO {$comissao_classe['nome']} (". app_format_currency($comissao_premio, false, 3) ."%) REFERENTE AO PEDIDO {$item['codigo']}";
+        $data_comissao['faturado']              = 0;
 
         $this->insert($data_comissao, TRUE);
 
