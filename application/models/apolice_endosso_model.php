@@ -38,6 +38,7 @@ Class Apolice_Endosso_Model extends MY_Model
         $this->_database->where('apolice_id', $apolice_id);
         $this->_database->where('deletado', 0);
         $this->_database->order_by('sequencial', 'DESC');
+        $this->_database->order_by('parcela', 'DESC');
         $this->_database->limit(1);
         $result = $this->get_all();
         if (!empty($result)) {
@@ -77,7 +78,7 @@ Class Apolice_Endosso_Model extends MY_Model
         return null;
     }
 
-    function max_seq_by_apolice_id($apolice_id) {
+    function max_seq_by_apolice_id($apolice_id, $tipo_pagto = 0) {
         $sequencia = 1;
         $endosso = 0;
 
@@ -85,7 +86,14 @@ Class Apolice_Endosso_Model extends MY_Model
 
         // tratamento para gerar o endosso e o sequencial
         if (!empty($result)) {
-            $sequencia = empty($result['sequencial']) ? 1 : $result['sequencial'] + 1;
+            $sequencia = emptyor($result['sequencial'], 0);
+
+            // no mensal, o sequencial será no máximo 2
+            if ( $tipo_pagto != 2 || $sequencia < 2 )
+            {
+                $sequencia++;
+            }
+
             $endosso = $this->defineEndosso($sequencia, $apolice_id);
         }
 
@@ -213,10 +221,6 @@ Class Apolice_Endosso_Model extends MY_Model
             $dados_end['data_fim_vigencia']             = $apolice['data_fim_vigencia'];
             $dados_end['data_vencimento']               = $apolice['data_adesao'];
 
-            $seq_end                    = $this->max_seq_by_apolice_id($apolice_id);
-            $dados_end['sequencial']    = $seq_end['sequencial'];
-            $dados_end['endosso']       = $seq_end['endosso'];
-
             $controle_endosso = $this->apolice->isControleEndossoPeloClienteByPedidoId($pedido_id);
             if ( !empty($controle_endosso) )
             {
@@ -228,6 +232,10 @@ Class Apolice_Endosso_Model extends MY_Model
             }
 
             $tipo_pagto = $this->parceiro_pagamento->isRecurrent($produto_parceiro_pagamento_id) ? 1 : $is_controle_endosso_pelo_cliente;
+
+            $seq_end                    = $this->max_seq_by_apolice_id($apolice_id, $tipo_pagto);
+            $dados_end['sequencial']    = $seq_end['sequencial'];
+            $dados_end['endosso']       = $seq_end['endosso'];
 
             // VALIDAÇÃO DE CAPA
             // caso seja recorrência terá capa
@@ -284,9 +292,13 @@ Class Apolice_Endosso_Model extends MY_Model
                     }
 
                     $vigencia = $this->produto_parceiro_plano->getDatasCapa($apolice['produto_parceiro_plano_id'], $dados_end['data_inicio_vigencia'], $dados_end['data_vencimento'], $tipo_pagto);
-                    $dados_end['data_inicio_vigencia']  = $vigencia['inicio_vigencia'];
-                    $dados_end['data_fim_vigencia']     = $vigencia['fim_vigencia'];
-                    $dados_end['data_vencimento']       = $vigencia['data_vencimento'];
+                    $dados_end['data_vencimento'] = $vigencia['data_vencimento'];
+
+                    // no mensal, a vigencia não se altera vigenia
+                    if ($tipo_pagto != 2) {
+                        $dados_end['data_inicio_vigencia']  = $vigencia['inicio_vigencia'];
+                        $dados_end['data_fim_vigencia']     = $vigencia['fim_vigencia'];
+                    }
 
                 }
 
