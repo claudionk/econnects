@@ -934,6 +934,7 @@ class Apolice_Model extends MY_Model
             if ($arrApolice) {
                 $arrApolice                 = $arrApolice[0];
                 $arrApolice['produto_slug'] = $pedido['slug'];
+                $arrApolice['valor_parcela'] = $pedido['valor_parcela'];
                 return $arrApolice;
             } else {
                 return array();
@@ -1475,12 +1476,13 @@ class Apolice_Model extends MY_Model
         $this->load->model('pedido_model', 'pedido');
 
         // Carregar pedido
-        $pedido = $this->pedido->getPedidosByID($pedido_id);
-        $pedido = $pedido[0];
+        $pedido                 = $this->pedido->getPedidosByID($pedido_id);
+        $pedido                 = $pedido[0];
+        $produto_parceiro_id    = $pedido['produto_parceiro_id'];
+        $num_parcela            = $pedido['num_parcela'];
+        $endosso                = $this->isControleEndossoPeloClienteByProdutoParceiroId($produto_parceiro_id);
 
-        $produto_parceiro_id = $pedido['produto_parceiro_id'];
-
-        return $this->isControleEndossoPeloClienteByProdutoParceiroId($produto_parceiro_id);
+        return [ 'num_parcela' => $num_parcela, 'endosso' => $endosso ];
     }
 
     /**
@@ -1542,11 +1544,13 @@ class Apolice_Model extends MY_Model
 
         if (!empty($dadosPP)) {
             // LASA RF+QA NOVOS && POMPEIA
-            if ($dadosPP['cod_tpa'] == '007' || $dadosPP['cod_tpa'] == '025') {
+            if ($dadosPP['cod_tpa'] == '007' || $dadosPP['cod_tpa'] == '025' || $dadosPP['cod_tpa'] == '048') {
                 $num_apolice_aux = $dadosPP['cod_sucursal'] . $dadosPP['cod_ramo'] . $dadosPP['cod_tpa'];
 
                 if ($dadosPP['cod_tpa'] == '025') {
                     $num_apolice_aux .= substr($dadosPP['num_apolice'], 3, 3) . str_pad(substr($dadosPP['num_apolice'], 10, 5), 5, '0', STR_PAD_LEFT);
+                } elseif ($dadosPP['cod_tpa'] == '048') {
+                    $num_apolice_aux .= str_pad(substr($dadosPP['num_apolice'], 7, 6), 8, '0', STR_PAD_LEFT);
                 } else {
                     $num_apolice_aux .= str_pad(substr($dadosPP['num_apolice'], 7, 8), 8, '0', STR_PAD_LEFT);
                 }

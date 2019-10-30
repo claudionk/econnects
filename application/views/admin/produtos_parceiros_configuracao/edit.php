@@ -238,16 +238,21 @@ Não
 
                                     <?php $field_name = 'endosso_controle_cliente';?>
                                     <div class="radio radio-styled">
-                                      <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Controle de endosso pelo cliente *</label>
-                                      <label class="radio-inline radio-styled radio-primary">
-                                        <input type="radio" id="radio_endosso" name="<?php echo $field_name; ?>" class="required styled"
-                                               value="1" <?php if ((isset($row[$field_name]) && $row[$field_name] == '1')) echo 'checked="checked"'; ?> />
-                                        <span>Sim</span>
-                                      </label>
+                                      <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Controle de endosso *</label>
                                       <label class="radio-inline radio-styled radio-primary">
                                         <input type="radio"Sim id="radio_endosso" name="<?php echo $field_name; ?>" class="required styled"
                                                value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
-                                        <span>Não</span>
+                                        <span>Único</span>
+                                      </label>
+                                      <label class="radio-inline radio-styled radio-primary">
+                                        <input type="radio" id="radio_endosso" name="<?php echo $field_name; ?>" class="required styled"
+                                               value="1" <?php if ((isset($row[$field_name]) && $row[$field_name] == '1')) echo 'checked="checked"'; ?> />
+                                        <span>Mensal</span>
+                                      </label>
+                                      <label class="radio-inline radio-styled radio-primary">
+                                        <input type="radio"Sim id="radio_endosso" name="<?php echo $field_name; ?>" class="required styled"
+                                               value="2" <?php if (isset($row[$field_name]) && $row[$field_name] == '2') echo 'checked="checked"'; ?> />
+                                        <span>Parcelado</span>
                                       </label>
                                     </div>
                                     

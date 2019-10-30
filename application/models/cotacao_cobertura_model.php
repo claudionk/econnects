@@ -134,7 +134,7 @@ Class Cotacao_Cobertura_Model extends MY_Model
         // Calcula a diferença se o cálculo for percentual
         if ($percentual && $total != $premio_liquido)
         {
-            $coberturas[$percentual]["valor_cobertura"] = $coberturas[$percentual]["valor_cobertura"] - ($total - $premio_liquido);
+            $coberturas[$percentual]["valor_cobertura"] = round($coberturas[$percentual]["valor_cobertura"] - ($total - $premio_liquido), 2); 
             $dd['valor'] = $coberturas[$percentual]["valor_cobertura"];
             $this->update($cob[$percentual]['cotacao_cobertura_id'], $dd);
         }

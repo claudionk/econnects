@@ -310,7 +310,6 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                         default:
                             break;
                     }
-
                 }
             }
         }
@@ -325,6 +324,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         foreach ($valores_liquido as $key => $value) {
             $valores_liquido_total[$key] = $value;
             $valores_liquido_total_cobertura[$key] = 0;
+            $valores_liquido_total_round[$key] = 0;
             $iof_calculado = false;
 
             // Tratando se tem IOF - default para todas as coberturas
@@ -333,9 +333,9 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                 $iof_calculado = true;
 
                 // trunca o valor do IOF por cobertura
-                $iofPerc = truncate(($regra['iof']/100) * $regra['custo'], 2);
-
-                $valores_liquido_total_cobertura[$key] += $iofPerc;
+                $iofPerc = ($regra['iof']/100) * ($regra['custo'] * $valores_bruto['quantidade']);
+                $valores_liquido_total_cobertura[$key] += truncate($iofPerc, 2);
+                $valores_liquido_total_round[$key] += $iofPerc;
                 $iof = $regra['iof'];
             }
 
@@ -343,15 +343,19 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
                 // arredonda a soma to IOF do bilhete
                 $valores_liquido_total_cobertura[$key] = round($valores_liquido_total_cobertura[$key], 2);
+                $valores_liquido_total_round[$key] = round($valores_liquido_total_round[$key], 2);
 
                 // Caso o IOF calculado sobre o prêmio da apólice/bilhete seja = 0,00
                 if ($valores_liquido_total_cobertura[$key] == 0)
                 {
                     // deve-se atribuir à cobertura de maior peso na formação do prêmio o valor de 0,01, propagando o mesmo valor para o IOF da apólice;
                     $valores_liquido_total_cobertura[$key] = 0.01;
+                } elseif ($valores_liquido_total_cobertura[$key] != $valores_liquido_total_round[$key])
+                {
+                    $valores_liquido_total_cobertura[$key] += $valores_liquido_total_round[$key] - $valores_liquido_total_cobertura[$key];
                 }
 
-                $valores_liquido_total[$key] += $valores_liquido_total_cobertura[$key] * $valores_bruto['quantidade'];
+                $valores_liquido_total[$key] += $valores_liquido_total_cobertura[$key];
                 $valores_liquido_total[$key] -= $desconto_upgrade;
             }
 
