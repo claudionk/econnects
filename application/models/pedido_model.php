@@ -586,7 +586,20 @@ Class Pedido_Model extends MY_Model
 
     function criticas_cancelamento($pedido_id, $executar = false, $dados_bancarios = [], $define_date = false ){
         if( ! $define_date ){
-            $define_date = date("Y-m-d H:i:s") ;
+            $define_date = date("Y-m-d H:i:s");
+        } else 
+        {
+
+            if (!app_validate_data_americana($define_date))
+            {
+                $result['status'] = false;
+                $result['mensagem'] = "A data de cancelamento não é válida [{$define_date}]";
+                return $result;
+            }
+
+            $d1 = new DateTime($define_date);
+            $define_date = $d1->format('Y-m-d H:i:s');
+
         }
 
         $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
@@ -810,10 +823,10 @@ Class Pedido_Model extends MY_Model
             $define_date = date("Y-m-d H:i:s");
         }
 
+        $criticas = $this->criticas_cancelamento($pedido_id, true, $dados_bancarios, $define_date);
+
         $d1 = new DateTime($define_date);
         $define_date = $d1->format('Y-m-d H:i:s');
-
-        $criticas = $this->criticas_cancelamento($pedido_id, true, $dados_bancarios, $define_date);
 
         if (!empty($criticas['result'])) {
             // efetuar o cancelamento
@@ -823,21 +836,22 @@ Class Pedido_Model extends MY_Model
         return $criticas;
     }
 
-    function cancelamento_calculo($pedido_id, $define_date = false ){
-        if( ! $define_date ){
-            $define_date = date("Y-m-d H:i:s") ;
-        }
-
-        $d1 = new DateTime($define_date);
-        $define_date = $d1->format('Y-m-d H:i:s');
-
+    function cancelamento_calculo($pedido_id, $define_date = false )
+    {
         $result = [
             'mensagem' => '',
             'status' => false,
             'valor_estorno_total' => 0, 
         ];
 
+        if( ! $define_date ){
+            $define_date = date("Y-m-d H:i:s");
+        }
+
         $criticas = $this->criticas_cancelamento($pedido_id,false,[], $define_date);
+
+        $d1 = new DateTime($define_date);
+        $define_date = $d1->format('Y-m-d H:i:s');
 
         if (!empty($criticas['result'])) {
             // efetuar o cancelamento
@@ -852,8 +866,9 @@ Class Pedido_Model extends MY_Model
     function calcula_estorno_cancelamento($pedido_id, $vigente = FALSE, $define_date = false ){
 
         if( ! $define_date ){
-            $define_date = date("Y-m-d H:i:s") ;
+            $define_date = date("Y-m-d H:i:s");
         }
+
         $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
         $this->load->model("apolice_model", "apolice");
         $this->load->model("fatura_model", "fatura");
@@ -868,7 +883,6 @@ Class Pedido_Model extends MY_Model
 
         //pega as configurações de cancelamento do pedido
         $produto_parceiro = $this->getPedidoProdutoParceiro($pedido_id);
-
         $produto_parceiro = $produto_parceiro[0];
         $produto_parceiro_cancelamento = $this->cancelamento->filter_by_produto_parceiro($produto_parceiro['produto_parceiro_id'])->get_all();
         $produto_parceiro_cancelamento = $produto_parceiro_cancelamento[0];
@@ -883,75 +897,74 @@ Class Pedido_Model extends MY_Model
         $devolucao_integral = true;
         $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro["produto_parceiro_id"] );
 
-        if($vigente == FALSE){
-            foreach ($apolices as $apolice) {
-                $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento["seg_antes_calculo"], $produto_parceiro_cancelamento["seg_antes_valor"], $apolice["valor_premio_total"]);
-                $valor_estorno_liq = app_calculo_valor($produto_parceiro_cancelamento["seg_antes_calculo"], $produto_parceiro_cancelamento["seg_antes_valor"], $apolice["valor_premio_net"]);
+        //FAZ CALCULO DO VALOR PARCIAL
+        $dias_utilizados = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
 
-                $dados_apolice = array();
-                $dados_apolice['data_cancelamento'] = $data_cancelamento;
-                $dados_apolice['valor_estorno'] = $valor_estorno;
-                $valor_estorno_total += $valor_estorno;
-                $valor_estorno_total_liquido += $valor_estorno_liq;
+        // caso não tenha iniciado a vigência, deve realizar o calculo com 100% nao usada da vigência
+        if ($dias_utilizados < 0)
+        {
+            $dias_utilizados = 0;
+            $dia_inicio = $apolice["data_ini_vigencia"];
+        } else {
+            $dia_inicio = $data_cancelamento;
+        }
 
-                if( $produto ) {
-                    $produto_slug = $produto["produto_slug"];
-                    $retorno[] = [
-                        'slug' => $produto_slug,
-                        'dados_apolice' => $dados_apolice,
-                        'apolices' => $apolice,
-                    ];
-                }
+        $dias_restantes = app_date_get_diff_dias(app_dateonly_mysql_to_mask($dia_inicio), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]), "D");
+        $dias_aderido = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_adesao"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
+        $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]),  "D");
+
+        if ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_aderido <= $produto_parceiro_cancelamento['seg_depois_dias_carencia'] )
+        {
+            $porcento_nao_utilizado = 100;
+            $dias_restantes = $dias_total;
+        } 
+        else
+        {
+            $devolucao_integral = false;
+            $porcento_nao_utilizado = (($dias_restantes / $dias_total) * 100);
+        }
+
+        // devolução integral
+        if ($devolucao_integral) {
+            $valor_premio = $apolice['valor_premio_total'];
+        } else {
+            $valor_premio = $apolice['valor_premio_net'];
+        }
+
+        $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
+        $valor_premio_liq = $valor_premio;
+
+        if($vigente == FALSE)
+        {
+            $calc_antes_depois = $produto_parceiro_cancelamento["seg_antes_calculo"];
+            $valor_antes_depois = $produto_parceiro_cancelamento["seg_antes_valor"];
+        }
+        else
+        {
+            $calc_antes_depois = $produto_parceiro_cancelamento["seg_depois_calculo"];
+            $valor_antes_depois = $produto_parceiro_cancelamento["seg_depois_valor"];
+        }
+
+        foreach ($apolices as $apolice) {
+
+            $valor_estorno = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio);
+            $valor_estorno_liq = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio_liq);
+
+            $dados_apolice = array();
+            $dados_apolice['data_cancelamento'] = $data_cancelamento;
+            $dados_apolice['valor_estorno'] = $valor_estorno;
+            $valor_estorno_total += $valor_estorno;
+            $valor_estorno_total_liquido += $valor_estorno_liq;
+
+            if( $produto ) {
+                $produto_slug = $produto["produto_slug"];
+                $retorno[] = [
+                    'slug' => $produto_slug,
+                    'dados_apolice' => $dados_apolice,
+                    'apolices' => $apolice,
+                ];
             }
 
-        }else{
-            //FAZ CALCULO DO VALOR PARCIAL
-            $dias_restantes = app_date_get_diff_dias(app_dateonly_mysql_to_mask($data_cancelamento), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]), "D");
-            $dias_utilizados = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
-            $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]),  "D");
-
-            $porcento_nao_utilizado = 0;
-            if ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_utilizados <= $produto_parceiro_cancelamento['seg_depois_dias_carencia']) {
-                $porcento_nao_utilizado = 100;
-                $dias_restantes = $dias_total;
-            }
-
-            if ($porcento_nao_utilizado == 0) {
-                $porcento_nao_utilizado = (($dias_restantes / $dias_total) * 100);
-            }
-
-            foreach ($apolices as $apolice) {
-
-                // devolução integral
-                if ($porcento_nao_utilizado == 100) {
-                    $valor_premio = $apolice['valor_premio_total'];
-                    $valor_premio_liq = $apolice['valor_premio_net'];
-                } else {
-                    $valor_premio = $apolice['valor_premio_net'];
-                    $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
-                    $valor_premio_liq = $valor_premio;
-                    $devolucao_integral = false;
-                }
-
-                $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento['seg_depois_calculo'], $produto_parceiro_cancelamento['seg_depois_valor'], $valor_premio);
-                $valor_estorno_liq = app_calculo_valor($produto_parceiro_cancelamento['seg_depois_calculo'], $produto_parceiro_cancelamento['seg_depois_valor'], $valor_premio_liq);
-
-                $dados_apolice = array();
-                $dados_apolice['data_cancelamento'] = $data_cancelamento;
-                $dados_apolice['valor_estorno'] = $valor_estorno;
-                $valor_estorno_total += $valor_estorno;
-                $valor_estorno_total_liquido += $valor_estorno_liq;
-
-                if( $produto ) {
-                    $produto_slug = $produto["produto_slug"];
-                    $retorno[] = [
-                        'slug' => $produto_slug,
-                        'dados_apolice' => $dados_apolice,
-                        'apolices' => $apolice,
-                    ];
-                }
-
-            }
         }
 
         return [
@@ -959,7 +972,8 @@ Class Pedido_Model extends MY_Model
             'mensagem' => (!empty($retorno)) ? 'Cálculo realizado com sucesso' : 'Não foi possível realizar o cálculo para Cancelamento',
             'valor_estorno_total' => $valor_estorno_total, 
             'valor_estorno_total_liquido' => $valor_estorno_total_liquido, 
-            'dias_utilizados' => (isset($dias_utilizados)) ? $dias_utilizados : '',
+            'dias_utilizados' => issetor($dias_utilizados,  0),
+            'dias_aderido' => issetor($dias_aderido, 0),
             'devolucao_integral' => $devolucao_integral,
             'dados' => $retorno,
         ];
