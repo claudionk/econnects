@@ -155,6 +155,7 @@ class Equipamento extends CI_Controller {
         $indiceMax = 20;
         $modelo = $payload->modelo;
         $marca = !empty($payload->marca) ? $payload->marca : null;
+        $categoria = !empty($payload->categoria) ? $payload->categoria : null;
 
         if (!empty($payload->marca)) {
             $marca = $payload->marca;
@@ -166,7 +167,7 @@ class Equipamento extends CI_Controller {
         }
 
         $qtdeRegistros = ( isset($payload->quantidade) && (int)$payload->quantidade > 0) ? $payload->quantidade : 10;
-        $result = $this->equipamento->match($modelo, $marca, $qtdeRegistros);
+        $result = $this->equipamento->match($modelo, $marca, $qtdeRegistros, $categoria);
 
         //se encontrou algum parecido
         if (empty($result)) {
