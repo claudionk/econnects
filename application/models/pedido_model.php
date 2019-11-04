@@ -678,8 +678,19 @@ Class Pedido_Model extends MY_Model
         $inicio_vigencia = explode('-', $apolice['data_ini_vigencia']);
         $inicio_vigencia = mktime(0, 0, 0, $inicio_vigencia[1], $inicio_vigencia[2], $inicio_vigencia[0]);
 
-        list( $current_year , $current_month , $current_day , $current_hour , $current_minute, $current_second ) = preg_split("/[- :]/",$define_date);
-        $hoje = mktime($current_hour , $current_minute , $current_second, $current_month, $current_day ,  $current_year );
+        $adesao = explode('-', $apolice['data_adesao']);
+        $adesao = mktime(0, 0, 0, $adesao[1], $adesao[2], $adesao[0]);
+
+        list( $current_year, $current_month, $current_day, $current_hour, $current_minute, $current_second ) = preg_split("/[- :]/", $define_date);
+        $hoje = mktime( $current_hour, $current_minute, $current_second, $current_month, $current_day, $current_year );
+
+        // valida a data de cancelamento
+        if ( $hoje < $adesao )
+        {
+            $result['mensagem'] = "A data de Cancelamento não pode ser inferior à data de Adesão";
+            $result['redirect'] = "admin/pedido/view/{$pedido_id}";
+            return $result;
+        }
 
         if ( $hoje >= $inicio_vigencia && $hoje <= $fim_vigencia ) {
             //Já comeceu a vigencia
