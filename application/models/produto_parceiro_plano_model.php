@@ -287,15 +287,16 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                             }
                             break;
                         case "E": //Especifica (Somente via API)
-                            if ($cotacao_salva["nota_fiscal_data"] != "") {
-                                $data_base = $data_adesao = $cotacao_salva["nota_fiscal_data"];
-                            }
 
                             if ($cotacao_salva["data_inicio_vigencia"] != "" && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00") {
                                 $data_base = $data_adesao = $cotacao_salva["data_inicio_vigencia"];
                                 $apolice_vigencia_regra = false;
                             } else {
                                 $apolice_vigencia_regra = true;
+                            }
+
+                            if ($cotacao_salva["nota_fiscal_data"] != "") {
+                                $data_base = $data_adesao = $cotacao_salva["nota_fiscal_data"];
                             }
 
                             if ($cotacao_salva["data_fim_vigencia"] != "" && $cotacao_salva["data_fim_vigencia"] != "0000-00-00") {

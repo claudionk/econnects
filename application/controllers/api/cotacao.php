@@ -114,6 +114,15 @@ class Cotacao extends CI_Controller {
                 die( json_encode( array( "status" => false, "message" => $valid ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
             }
 
+            $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($POST['produto_parceiro_plano_id'], null, $POST);
+            if (!empty($vigencia))
+            {
+                if ( app_date_get_diff_dias(app_dateonly_mysql_to_mask($vigencia["data_adesao"]), date('d/m/Y'),  "D") < 0 )
+                {
+                    die( json_encode( array( "status" => false, "message" => "A data de adesão não pode ser superior à data atual" ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+                }
+            }
+
             // Gera o registro de coberturas adicionais
             if ( !empty($POST["coberturas_opcionais"]) && is_array($POST["coberturas_opcionais"]))
             {
