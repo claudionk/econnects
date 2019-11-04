@@ -18,6 +18,7 @@ class Emissao extends CI_Controller {
     public $produto_parceiro_plano_id;
     public $cotacao_id;
     public $equipamento_nome;
+    public $categoria;
     public $ean;
 
     public $campos_estrutura;
@@ -98,6 +99,7 @@ class Emissao extends CI_Controller {
         }
 
         $this->equipamento_nome     = '';
+        $this->categoria            = '';
         $this->ean                  = '';
         $this->num_apolice          = (!isset($POST['num_apolice'])) ? false : $POST['num_apolice'];
         $this->valor_premio_bruto   = (!isset($POST['valor_premio_bruto'])) ? 0 : $POST['valor_premio_bruto'];
@@ -245,14 +247,18 @@ class Emissao extends CI_Controller {
                     } else {
                         $validaModelo = false;
                     }
-                    if ($validaModelo) {
-                        if(empty($parametros['marca'])){
+
+                    if ($validaModelo)
+                    {
+                        if(empty($parametros['marca']))
+                        {
                             if (!empty($msgBuscaEqip))
                                 die(json_encode(array("status"=>false,"message"=>$msgBuscaEqip .". Informe o atributo `marca` para realizar a pesquisa alternativa."),JSON_UNESCAPED_UNICODE));
                             else
                                 die(json_encode(array("status"=>false,"message"=>"Atributo 'marca' não informado"),JSON_UNESCAPED_UNICODE));
                         }
-                        if(empty($parametros['modelo'])){
+                        if(empty($parametros['modelo']))
+                        {
                             if (!empty($msgBuscaEqip))
                                 die(json_encode(array("status"=>false,"message"=>$msgBuscaEqip .". Informe o atributo `modelo` para realizar a pesquisa alternativa."),JSON_UNESCAPED_UNICODE));
                             else
@@ -261,8 +267,9 @@ class Emissao extends CI_Controller {
 
                         // pesquisa por marca e modelo
                         $fields = [
-                            "modelo" => $parametros['modelo'],
-                            "marca" => $parametros['marca'],
+                            "modelo"     => $parametros['modelo'],
+                            "marca"      => $parametros['marca'],
+                            "categoria"  => isempty($parametros['categoria'], null),
                             "quantidade" => 1,
                         ];
 
