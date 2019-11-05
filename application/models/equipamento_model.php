@@ -85,7 +85,7 @@ Class Equipamento_Model extends MY_Model
         return $this;
     }
 
-    public function match($equipamento, $marca = null, $limit = 10)
+    public function match($equipamento, $marca = null, $limit = 10, $categoria = null)
     {
         $where='';
         if (!empty($marca)) {
@@ -93,11 +93,17 @@ Class Equipamento_Model extends MY_Model
             $where .= " AND MATCH(em.nome) AGAINST('{$marca}' IN BOOLEAN MODE) > 0 ";
         }
 
+        if (!empty($categoria)) {
+            $categoria = $this->trata_string_match($categoria);
+            $where .= " AND MATCH(el.nome) AGAINST('{$categoria}' IN BOOLEAN MODE) > 0 ";
+        }
+
         $equipamento_tratado = $this->trata_string_match($equipamento);
         $equip = $this->_database->query("
             SELECT MATCH(e.nome) against('{$equipamento_tratado}' IN BOOLEAN MODE) as indice, e.equipamento_id, e.equipamento_marca_id, e.equipamento_categoria_id, e.nome, e.ean, e.equipamento_sub_categoria_id
             FROM {$this->_table} e
             INNER JOIN vw_Equipamentos_Marcas em on e.equipamento_marca_id = em.equipamento_marca_id
+            INNER JOIN vw_Equipamentos_Linhas el on e.equipamento_categoria_id = el.equipamento_categoria_id
             WHERE MATCH(e.nome) AGAINST('{$equipamento_tratado}' IN BOOLEAN MODE) > 0
                 {$where}
             ORDER BY 1 DESC
@@ -176,8 +182,8 @@ Class Equipamento_Model extends MY_Model
         $string = str_replace('<', '', $string);
         $string = str_replace('~', '', $string);
         $string = str_replace('"', '', $string);
-        $string = str_replace( "CELULAR", "", strtoupper( $string ) );
-        $string = str_replace( "CEL", "", strtoupper( $string ) );
+        // $string = str_replace( "CELULAR", "", strtoupper( $string ) );
+        // $string = str_replace( "CEL", "", strtoupper( $string ) );
         $string = str_replace( "  ", " ", strtoupper( $string ) );
         $string = str_replace( " ", "* ", strtoupper( $string ) );
 
