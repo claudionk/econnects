@@ -373,6 +373,18 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             }
         }
 
+        if ( isset($valores_liquido) ) {
+            foreach ($valores_liquido as $key => $value) {
+                $valores_liquido[$key] = trim($valores_liquido[$key]);
+            }
+        }
+
+        if ( isset($valores_liquido_total) ) {
+            foreach ($valores_liquido_total as $key => $value) {
+                $valores_liquido_total[$key] = trim($valores_liquido_total[$key]);
+            }
+        }
+
         //Resultado
         $result  = array(
             'status' => $sucess,
