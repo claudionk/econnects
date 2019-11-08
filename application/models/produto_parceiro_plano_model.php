@@ -303,6 +303,10 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                                 $date_fim_vig = $cotacao_salva["data_fim_vigencia"];
                             }
 
+                            if (!empty($cotacao_salva["data_adesao"]) && $cotacao_salva["data_adesao"] != "0000-00-00") {
+                                $data_base = $data_adesao = $cotacao_salva["data_adesao"];
+                            }
+
                             break;
                     }
 
