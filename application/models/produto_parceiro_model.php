@@ -110,6 +110,16 @@ Class Produto_Parceiro_Model extends MY_Model
         return $this;
     }
 
+    function filter_produto_texto($produto){
+        $this->_database->like('produto_parceiro.nome', $produto);
+        return $this;
+    }
+
+    function filter_implantacao_status_id($implantacao_status_id){
+        $this->_database->where('produto_parceiro.implantacao_status_id', $implantacao_status_id);
+        return $this;
+    }
+
     function with_produto(){
         $this->with_simple_relation('produto', 'produto_', 'produto_id', array('nome', 'produto_ramo_id', 'slug'));
         return $this;
@@ -246,14 +256,35 @@ Class Produto_Parceiro_Model extends MY_Model
         $where = '';
         if ( !empty($parceiro_id) )
         {
-            $where .= " AND h.parceiro_id = $parceiro_id ";
+            if (is_array($parceiro_id))
+            {
+                $implode = implode($parceiro_id, ",");
+                $where .= " AND h.parceiro_id IN({$implode}) ";
+            } else {
+                $where .= " AND h.parceiro_id = $parceiro_id ";
+            }
         }
+
 
         if ( !empty($produto_parceiro_id) )
         {
             $where .= " AND h.produto_parceiro_id = $produto_parceiro_id ";
         }
 
+        // print_r("
+        //     SELECT h.parceiro_id, h.produto_parceiro_id, parceiro.nome FROM (
+        //         SELECT parceiro_id, produto_parceiro_id FROM parceiro_produto where deletado = 0 
+        //         UNION
+        //         SELECT DISTINCT parceiro_plano.parceiro_id, produto_parceiro_plano.produto_parceiro_id 
+        //         FROM produto_parceiro_plano 
+        //         INNER JOIN parceiro_plano ON produto_parceiro_plano.produto_parceiro_plano_id = parceiro_plano.produto_parceiro_plano_id 
+        //         WHERE parceiro_plano.deletado = 0 AND produto_parceiro_plano.deletado = 0 
+        //     ) AS h
+        //     INNER JOIN produto_parceiro ON h.produto_parceiro_id = produto_parceiro.produto_parceiro_id
+        //     INNER JOIN parceiro ON h.parceiro_id = parceiro.parceiro_id
+        //     WHERE produto_parceiro.deletado = 0 
+        //         {$where}
+        //     ");die();
         $query = $this->db->query( "
             SELECT h.parceiro_id, h.produto_parceiro_id, parceiro.nome FROM (
                 SELECT parceiro_id, produto_parceiro_id FROM parceiro_produto where deletado = 0 

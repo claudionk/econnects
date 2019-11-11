@@ -35,10 +35,24 @@ class Implantacoes extends Admin_Controller
         $this->template->set('page_subtitle', "Implantações");
         $this->template->set_breadcrumb("Implantações", base_url("{$this->controller_uri}/index"));
 
-        //relacionamentos
         $produtos = $this->current_model
-        ->with_implantacao_staus()
-        ->get_produtos_venda_admin_parceiros($this->parceiro_id);
+        ->with_implantacao_staus();
+
+        if ( isset($_GET['filter']) )
+        {
+            if (!empty($_GET['filter']['produto']))
+                $produtos = $produtos->filter_produto_texto($_GET['filter']['produto']);
+
+            if (!empty($_GET['filter']['implantacao_status_id']))
+                $produtos = $produtos->filter_implantacao_status_id($_GET['filter']['implantacao_status_id']);
+        }
+
+        //relacionamentos
+        $produtos = $produtos->get_produtos_venda_admin_parceiros($this->parceiro_id);
+        $parceiros = [];
+        $parceiros_ids = [];
+
+        // echo "<pre>";print_r($this->db->last_query());die();
 
         //Carrega dados para a página
         $data = array();
@@ -46,18 +60,31 @@ class Implantacoes extends Admin_Controller
         $data['primary_key'] = $this->current_model->primary_key();
         $data['implantacao_status'] = $this->implantacao_status->get_all();
 
+        if ( isset($_GET['filter']) )
+        {
+            if (!empty($_GET['filter']['nome_fantasia']))
+                $parceiros = $this->parceiro->filterFromInput()->get_all();
+        }
+
+        foreach ($parceiros as $key => $value) {
+            array_push($parceiros_ids, $value['parceiro_id']);
+        }
+        // echo "<pre>";print_r($parceiros_ids);die();
+
         if ( !empty($data["rows"]) )
         {
             foreach ($data["rows"] as $key => $value) {
-                $prods = $this->current_model->getProdutosHabilitados(null, $value['produto_parceiro_id']);
+                $prods = $this->current_model->getProdutosHabilitados($parceiros_ids, $value['produto_parceiro_id']);
                 if (!empty($prods))
                 {
                     foreach ($prods as $k => $v) {
-                        if (empty($data["rows"][$key]['representante']) && $v['parceiro_id'] != $this->parceiro_id)
+                        if ( empty($data["rows"][$key]['representante']) )
                         {
                             $data["rows"][$key]['representante'] = $v['nome'];
                         }
                     }
+                } else {
+                    unset( $data["rows"][$key] );
                 }
             }
         }
