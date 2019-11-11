@@ -1,24 +1,28 @@
+<style type="text/css">
+    .border-bottom {border-bottom: 1px solid #e3e3e3;}
+    .card {border: 1px solid #e3e3e3;}
+</style>
 <div class="layout-app" ng-controller="AppController">
     <!-- row -->
     <div class="row row-app">
         <!-- col -->
-        <div class="col-md-12">
+        <div class="col-xs-12">
             <!-- col-separator.box -->
-            <div class="section-header">
+            <div class="section-header hidden-print">
                 <ol class="breadcrumb">
                     <li class="active"><?php echo app_recurso_nome();?></li>
                     <li class="active"><?php echo $page_subtitle;?></li>
                 </ol>
             </div>
 
-            <div class="card">
+            <div class="card hidden-print">
 
                 <!-- Widget heading -->
                 <div class="card-body">
                     <a href="<?php echo base_url("admin/implantacoes/index/")?>" class="btn  btn-app btn-primary">
                         <i class="fa fa-arrow-left"></i> Voltar
                     </a>
-                    <a href="<?php echo base_url("admin/implantacoes/printer/". issetor($row[$primary_key], 0)) ?>" class="btn  btn-app btn-primary" >
+                    <a href="javascript:" onclick="printer()" class="btn btn-app btn-primary">
                         <i class="fa fa-print"></i> Imprimir
                     </a>
                 </div>
@@ -43,31 +47,31 @@
                                     <input type="hidden" name="<?php echo $primary_key ?>" value="<?php if (isset($row[$primary_key])) echo $row[$primary_key]; ?>"/>
                                     <input type="hidden" name="new_record" value="<?php echo $new_record; ?>"/>
                                     <!-- Widget -->
-                                    <div class="card">
+                                    <div class="cardx">
 
-                                        <div class="card-body">
+                                        <div class="card-bodyx">
                                             <!-- Row -->
                                             <div class="row">
-                                                <div class="col-md-12">
+                                                <div class="col-xs-12">
                                                     <div class="card">
-                                                        <div class="card-head"><header>Configurações de Implantação: <?= $parceiro['nome'] ?> / <?= $row['nome'] ?> </header></div>
+                                                        <div class="card-head text-bold"><header>Configurações de Implantação: <?= $parceiro['nome'] ?> / <?= $row['nome'] ?> </header></div>
                                                         <div class="card-body">
-                                                            <div class="col-md-3">Data de Configuraçao: </div>
-                                                            <div class="col-md-3"><?php echo $row['data_configuracao'] ?></div>
-                                                            <div class="col-md-6">&nbsp;</div>
+                                                            <div class="col-xs-3">Data de Configuraçao: </div>
+                                                            <div class="col-xs-3"><?php echo $row['data_configuracao'] ?></div>
+                                                            <div class="col-xs-6">&nbsp;</div>
 
-                                                            <div class="col-md-3">Data de Aprovação: </div>
-                                                            <div class="col-md-3">-</div>
-                                                            <div class="col-md-3">Aprovado Por:</div>
-                                                            <div class="col-md-3">-</div>
+                                                            <div class="col-xs-3">Data de Aprovação: </div>
+                                                            <div class="col-xs-3">-</div>
+                                                            <div class="col-xs-3">Aprovado Por:</div>
+                                                            <div class="col-xs-3">-</div>
 
-                                                            <div class="col-md-3">Data de Produção: </div>
-                                                            <div class="col-md-3">-</div>
-                                                            <div class="col-md-6">&nbsp;</div>
+                                                            <div class="col-xs-3">Data de Produção: </div>
+                                                            <div class="col-xs-3">-</div>
+                                                            <div class="col-xs-6">&nbsp;</div>
 
-                                                            <div class="col-md-3">Data da Primeira Emissão: </div>
-                                                            <div class="col-md-3"><?php echo $row['data_primeira_emissao'] ?></div>
-                                                            <div class="col-md-6">&nbsp;</div>
+                                                            <div class="col-xs-3">Data da Primeira Emissão: </div>
+                                                            <div class="col-xs-3"><?php echo $row['data_primeira_emissao'] ?></div>
+                                                            <div class="col-xs-6">&nbsp;</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -75,21 +79,21 @@
                                             </div>
                                             <!-- // Row END -->
                                             <div class="row">
-                                                <div class="col-md-12">
+                                                <div class="col-xs-12">
                                                     <div class="card">
-                                                        <div class="card-head"><header>Cadastro de Parceiros </header></div>
+                                                        <div class="card-head text-bold"><header>Cadastro de Parceiros </header></div>
                                                         <?php foreach ($parceiros as $parc) { ?>
-                                                        <div class="card-body">
-                                                            <div class="col-md-3">Tipo de Parceiro: </div><div class="col-md-9"><?php echo $parc['parceiro_tipo']; ?></div>
-                                                            <div class="col-md-3">Razão Social: </div><div class="col-md-9"><?php echo $parc['parceiro_nome']; ?></div>
-                                                            <div class="col-md-3">CNPJ: </div><div class="col-md-9"><?php echo $parc['parceiro_cnpj']; ?></div>
-                                                            <div class="col-md-3">Código Susep: </div><div class="col-md-9"><?php echo emptyor($parc['parceiro_codigo_susep'], '-'); ?></div>
-                                                            <div class="col-md-3">Código do Parceiro: </div><div class="col-md-9"><?php echo emptyor($parc['parceiro_codigo_corretor'], '-'); ?></div>
-                                                            <div class="col-md-3">Endereço: </div><div class="col-md-9"><?php echo $parc['endereco'] .", ". $parc['numero'] .", ". $parc['complemento'] .", ". $parc['bairro'] .", ". $parc['cidade'] ."-". $parc['uf']; ?></div>
-                                                            <div class="col-md-12 text-bold">CADASTRO DE COMISSÃO</div>
-                                                            <div class="col-md-3">Tipo de Comissão: </div><div class="col-md-9"><?php echo $parc['tipo_comissao']; ?></div>
-                                                            <div class="col-md-3">Tipo de Cálculo: </div><div class="col-md-9"><?php echo $parc['comissao_tipo']; ?></div>
-                                                            <div class="col-md-3">Percentual de Comissão: </div><div class="col-md-9"><?php echo $parc['comissao'] ." %"; ?></div>
+                                                        <div class="card-body border-bottom">
+                                                            <div class="col-xs-3">Tipo de Parceiro: </div><div class="col-xs-9"><?php echo $parc['parceiro_tipo']; ?></div>
+                                                            <div class="col-xs-3">Razão Social: </div><div class="col-xs-9"><?php echo $parc['parceiro_nome']; ?></div>
+                                                            <div class="col-xs-3">CNPJ: </div><div class="col-xs-9"><?php echo $parc['parceiro_cnpj']; ?></div>
+                                                            <div class="col-xs-3">Código Susep: </div><div class="col-xs-9"><?php echo emptyor($parc['parceiro_codigo_susep'], '-'); ?></div>
+                                                            <div class="col-xs-3">Código do Parceiro: </div><div class="col-xs-9"><?php echo emptyor($parc['parceiro_codigo_corretor'], '-'); ?></div>
+                                                            <div class="col-xs-3">Endereço: </div><div class="col-xs-9"><?php echo $parc['endereco'] .", ". $parc['numero'] .", ". $parc['complemento'] .", ". $parc['bairro'] .", ". $parc['cidade'] ."-". $parc['uf']; ?></div>
+                                                            <div class="col-xs-12 text-bold">CADASTRO DE COMISSÃO</div>
+                                                            <div class="col-xs-3">Tipo de Comissão: </div><div class="col-xs-9"><?php echo $parc['tipo_comissao']; ?></div>
+                                                            <div class="col-xs-3">Tipo de Cálculo: </div><div class="col-xs-9"><?php echo $parc['comissao_tipo']; ?></div>
+                                                            <div class="col-xs-3">Percentual de Comissão: </div><div class="col-xs-9"><?php echo $parc['comissao'] ." %"; ?></div>
                                                         </div>
                                                         <?php } ?>
                                                     </div>
@@ -99,36 +103,36 @@
                                             <!-- // Row END -->
 
                                             <div class="row">
-                                                <div class="col-md-12">
+                                                <div class="col-xs-12">
                                                     <div class="card">
-                                                        <div class="card-head"><header>Cadastro de Produtos </header></div>
-                                                        <div class="card-body">
-                                                            <div class="col-md-3">Nome Produto: </div><div class="col-md-9"><?php echo emptyor($row['nome'], '-') ?></div>
-                                                            <div class="col-md-3">Slug do Produto: </div><div class="col-md-9"><?php echo emptyor($row['slug_produto'], '-') ?></div>
-                                                            <!--div class="col-md-3">Código do Produto: </div><div class="col-md-9"><?php echo 'XXXX' ?></div-->
-                                                            <div class="col-md-3">Processo SUSEP: </div><div class="col-md-9"><?php echo emptyor($row['codigo_susep'], '-') ?></div>
-                                                            <div class="col-md-3">Código Sucursal: </div><div class="col-md-9"><?php echo emptyor($row['cod_sucursal'], '-') ?></div>
-                                                            <div class="col-md-3">Código do Ramo: </div><div class="col-md-9"><?php echo emptyor($row['cod_ramo'], '-') ?></div>
-                                                            <div class="col-md-3">Ramo / Produto: </div><div class="col-md-9"><?php echo emptyor($row['ramo']['nome'], '-') ?> / <?php echo emptyor($row['produto_nome'], '-') ?></div>
-                                                            <div class="col-md-3">Código de Operação: </div><div class="col-md-9"><?php echo emptyor($row['cod_tpa'], '-') ?></div>
-                                                            <div class="col-md-3">Venda Multi-Parceiros: </div><div class="col-md-9"><?php echo emptyor($row['venda_agrupada'], '-') ?></div>
+                                                        <div class="card-head text-bold"><header>Cadastro de Produtos </header></div>
+                                                        <div class="card-body border-bottom">
+                                                            <div class="col-xs-3">Nome Produto: </div><div class="col-xs-9"><?php echo emptyor($row['nome'], '-') ?></div>
+                                                            <div class="col-xs-3">Slug do Produto: </div><div class="col-xs-9"><?php echo emptyor($row['slug_produto'], '-') ?></div>
+                                                            <!--div class="col-xs-3">Código do Produto: </div><div class="col-xs-9"><?php echo 'XXXX' ?></div-->
+                                                            <div class="col-xs-3">Processo SUSEP: </div><div class="col-xs-9"><?php echo emptyor($row['codigo_susep'], '-') ?></div>
+                                                            <div class="col-xs-3">Código Sucursal: </div><div class="col-xs-9"><?php echo emptyor($row['cod_sucursal'], '-') ?></div>
+                                                            <div class="col-xs-3">Código do Ramo: </div><div class="col-xs-9"><?php echo emptyor($row['cod_ramo'], '-') ?></div>
+                                                            <div class="col-xs-3">Ramo / Produto: </div><div class="col-xs-9"><?php echo emptyor($row['ramo']['nome'], '-') ?> / <?php echo emptyor($row['produto_nome'], '-') ?></div>
+                                                            <div class="col-xs-3">Código de Operação: </div><div class="col-xs-9"><?php echo emptyor($row['cod_tpa'], '-') ?></div>
+                                                            <div class="col-xs-3">Venda Multi-Parceiros: </div><div class="col-xs-9"><?php echo emptyor($row['venda_agrupada'], '-') ?></div>
 
-                                                            <div class="col-md-12 text-bold">REGRAS DO PRODUTO</div>
-                                                            <div class="col-md-3">Markup: </div><div class="col-md-9"><?php echo emptyor($row['configuracoes']['markup'], '-') ." %" ?></div>
-                                                            <div class="col-md-3">Tipo de Cálculo: </div><div class="col-md-9"><?php echo emptyor($row['configuracoes']['calculo_tipo'], '-') ?></div>
-                                                            <div class="col-md-3">Certificado / Bilhete: </div><div class="col-md-9"><?php echo emptyor($row['configuracoes']['apolice_sequencia'], '-') ?></div>
-                                                            <div class="col-md-3">Formas de Pagamento: </div><div class="col-md-9"><?php echo emptyor($row['forma_pagamentos'], '-') ?></div>
-                                                            <div class="col-md-3">Arrecadação: </div><div class="col-md-9"><?php echo emptyor($row['configuracoes']['arrecadacao'], '-') ?></div>
-                                                            <div class="col-md-3">Canal de Emissão: </div><div class="col-md-9"><?php echo 'XXXX' ?></div>
+                                                            <div class="col-xs-12 text-bold">REGRAS DO PRODUTO</div>
+                                                            <div class="col-xs-3">Markup: </div><div class="col-xs-9"><?php echo emptyor($row['configuracoes']['markup'], '-') ." %" ?></div>
+                                                            <div class="col-xs-3">Tipo de Cálculo: </div><div class="col-xs-9"><?php echo emptyor($row['configuracoes']['calculo_tipo'], '-') ?></div>
+                                                            <div class="col-xs-3">Certificado / Bilhete: </div><div class="col-xs-9"><?php echo emptyor($row['configuracoes']['apolice_sequencia'], '-') ?></div>
+                                                            <div class="col-xs-3">Formas de Pagamento: </div><div class="col-xs-9"><?php echo emptyor($row['forma_pagamentos'], '-') ?></div>
+                                                            <div class="col-xs-3">Arrecadação: </div><div class="col-xs-9"><?php echo emptyor($row['configuracoes']['arrecadacao'], '-') ?></div>
+                                                            <div class="col-xs-3">Canal de Emissão: </div><div class="col-xs-9"><?php echo 'XXXX' ?></div>
                                                             
-                                                            <div class="col-md-12 text-bold">SERVIÇOS</div>
-                                                            <div class="col-md-3">Enriquecimento de CPF: </div><div class="col-md-9"><?php echo emptyor($row['servico']['cpf'], '-') ?></div>
-                                                            <div class="col-md-3">E-mail com Comprovação: </div><div class="col-md-9"><?php echo emptyor($row['servico']['email_comp'], '-') ?></div>
-                                                            <div class="col-md-3">SMS com Comprovação: </div><div class="col-md-9"><?php echo emptyor($row['servico']['sms_comp'], '-') ?></div>
+                                                            <div class="col-xs-12 text-bold">SERVIÇOS</div>
+                                                            <div class="col-xs-3">Enriquecimento de CPF: </div><div class="col-xs-9"><?php echo emptyor($row['servico']['cpf'], '-') ?></div>
+                                                            <div class="col-xs-3">E-mail com Comprovação: </div><div class="col-xs-9"><?php echo emptyor($row['servico']['email_comp'], '-') ?></div>
+                                                            <div class="col-xs-3">SMS com Comprovação: </div><div class="col-xs-9"><?php echo emptyor($row['servico']['sms_comp'], '-') ?></div>
 
-                                                            <div class="col-md-12 text-bold">REGRAS DE CANCELAMENTO</div>
-                                                            <div class="col-md-3">Canal de Cancelamento: </div><div class="col-md-9">XXXX</div>
-                                                            <div class="col-md-12">
+                                                            <div class="col-xs-12 text-bold">REGRAS DE CANCELAMENTO</div>
+                                                            <div class="col-xs-3">Canal de Cancelamento: </div><div class="col-xs-9">XXXX</div>
+                                                            <div class="col-xs-12">
                                                                 <table width="100%">
                                                                     <tr>
                                                                         <td>Antes do Início da Vigência:</td>
@@ -189,28 +193,28 @@
                                             <!-- // Row END -->
 
                                             <div class="row">
-                                                <div class="col-md-12">
+                                                <div class="col-xs-12">
                                                     <div class="card">
-                                                        <div class="card-head"><header>Cadastro de Planos </header></div>
+                                                        <div class="card-head text-bold"><header>Cadastro de Planos </header></div>
                                                         <?php foreach ($row['planos'] as $plano) { ?>
-                                                        <div class="card-body">
-                                                            <div class="col-md-3">Nome Plano: </div><div class="col-md-9"><?php echo emptyor($plano['nome'], '-') ?></div>
-                                                            <div class="col-md-3">Slug do Plano: </div><div class="col-md-9"><?php echo emptyor($plano['slug_plano'], '-') ?></div>
-                                                            <div class="col-md-3">Código do Produto: </div><div class="col-md-9"><?php echo emptyor($plano['codigo_operadora'], '-') ?></div>
-                                                            <div class="col-md-3">Modelo de Precificação: </div><div class="col-md-9"><?php echo emptyor($plano['precificacao_tipo'], '-') ?></div>
-                                                            <div class="col-md-3">Moeda: </div><div class="col-md-9"><?php echo emptyor($plano['moeda'], '-') ?></div>
-                                                            <div class="col-md-3">Idade Mínima: </div><div class="col-md-9"><?php echo issetor($plano['idade_minima'], '-') ?></div>
-                                                            <div class="col-md-3">Idade Máxima </div><div class="col-md-9"><?php echo issetor($plano['idade_maxima'], '-') ?></div>
-                                                            <div class="col-md-3">Vigência Máxima: </div><div class="col-md-9"><?php echo emptyor($plano['limite_vigencia'], '-') ?> <?php echo str_replace('_A', '', emptyor($plano['unidade_tempo'], '-')) ?></div>
-                                                            <div class="col-md-3">Tempo de Uso: </div><div class="col-md-9"><?php echo (yes_no($plano['possui_limite_tempo']) == 'SIM' ? $plano['limite_tempo']." ". $plano['unidade_limite_tempo'] : 'NÃO') ?></div>
-                                                            <div class="col-md-3">Tipo de Cálculo: </div><div class="col-md-9"><?php echo emptyor($row['configuracoes']['calculo_tipo'], '-') ?></div>
-                                                            <div class="col-md-3">Regra para Início de Vigência: </div><div class="col-md-9"><?php echo emptyor($row['configuracoes']['apolice_vigencia_regra'], '-') ?></div>
-                                                            <div class="col-md-3">Visualizar Bilhete: </div><div class="col-md-9">
+                                                        <div class="card-body border-bottom">
+                                                            <div class="col-xs-3">Nome Plano: </div><div class="col-xs-9"><?php echo emptyor($plano['nome'], '-') ?></div>
+                                                            <div class="col-xs-3">Slug do Plano: </div><div class="col-xs-9"><?php echo emptyor($plano['slug_plano'], '-') ?></div>
+                                                            <div class="col-xs-3">Código do Produto: </div><div class="col-xs-9"><?php echo emptyor($plano['codigo_operadora'], '-') ?></div>
+                                                            <div class="col-xs-3">Modelo de Precificação: </div><div class="col-xs-9"><?php echo emptyor($plano['precificacao_tipo'], '-') ?></div>
+                                                            <div class="col-xs-3">Moeda: </div><div class="col-xs-9"><?php echo emptyor($plano['moeda'], '-') ?></div>
+                                                            <div class="col-xs-3">Idade Mínima: </div><div class="col-xs-9"><?php echo issetor($plano['idade_minima'], '-') ?></div>
+                                                            <div class="col-xs-3">Idade Máxima </div><div class="col-xs-9"><?php echo issetor($plano['idade_maxima'], '-') ?></div>
+                                                            <div class="col-xs-3">Vigência Máxima: </div><div class="col-xs-9"><?php echo emptyor($plano['limite_vigencia'], '-') ?> <?php echo str_replace('_A', '', emptyor($plano['unidade_tempo'], '-')) ?></div>
+                                                            <div class="col-xs-3">Tempo de Uso: </div><div class="col-xs-9"><?php echo (yes_no($plano['possui_limite_tempo']) == 'SIM' ? $plano['limite_tempo']." ". $plano['unidade_limite_tempo'] : 'NÃO') ?></div>
+                                                            <div class="col-xs-3">Tipo de Cálculo: </div><div class="col-xs-9"><?php echo emptyor($row['configuracoes']['calculo_tipo'], '-') ?></div>
+                                                            <div class="col-xs-3">Regra para Início de Vigência: </div><div class="col-xs-9"><?php echo emptyor($row['configuracoes']['apolice_vigencia_regra'], '-') ?></div>
+                                                            <div class="col-xs-3 hidden-print">Visualizar Bilhete: </div><div class="col-xs-9 hidden-print">
                                                                 <a href="<?php echo base_url("admin/parceiros_relacionamento_produtos/index/". $plano['produto_parceiro_id'] ) ?>" target="_blank" > <i class="fa fa-search"></i> </a>
                                                             </div>
                                                             <?php foreach ($plano['coberturas'] as $cob) { ?>
-                                                            <div class="col-md-12 text-bold">COBERTURAS </div>
-                                                            <div class="col-md-12">
+                                                            <div class="col-xs-12 text-bold">COBERTURAS </div>
+                                                            <div class="col-xs-12">
                                                                 <table width="100%">
                                                                 <tr>
                                                                     <td>Tipo: </td>
@@ -293,21 +297,21 @@
                                             <!-- // Row END -->
 
                                             <div class="row">
-                                                <div class="col-md-12">
+                                                <div class="col-xs-12">
                                                     <div class="card">
-                                                        <div class="card-head"><header>Regras de Capitalização </header></div>
-                                                        <div class="card-body">
-                                                            <div class="col-md-3">Nome da Campanha: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['capitalizacao_nome'], '&nbsp;') ?></div>
-                                                            <div class="col-md-3">Empresa de Capitalização: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['capitalizacao_tipo'], '&nbsp;') ?></div>
-                                                            <div class="col-md-3">Definição Data de Sorteio: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['capitalizacao_sorteio'], '&nbsp;') ?></div>
-                                                            <div class="col-md-3">Quantidade de Sorteios: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['qnt_sorteio'], '&nbsp;') ?></div>
-                                                            <div class="col-md-3">Dia de Corte: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['capitalizacao_dia_corte'], '&nbsp;') ?></div>
-                                                            <div class="col-md-3">Qtde de Numeros da Sorte por Compra: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['capitalizacao_qtde_titulos_por_compra'], '-') ?></div>
-                                                            <div class="col-md-3">Valor do Sorteio: </div><div class="col-md-9"><?php echo app_format_currency(emptyor($row['capitalizacao']['capitalizacao_valor_sorteio'], 0), true) ?></div>
-                                                            <div class="col-md-3">Custo: </div><div class="col-md-9"><?php echo app_format_currency(emptyor($row['capitalizacao']['capitalizacao_valor_custo_titulo'], 0), true) ?></div>
-                                                            <div class="col-md-3">Tipo de Serie </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['serie'], '&nbsp;') ?></div>
-                                                            <div class="col-md-3">Responsavel por Gerar o Nro da Sorte: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['responsavel_num_sorte'], '&nbsp;') ?></div>
-                                                            <div class="col-md-3">Forma de Distribuição: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['capitalizacao_nome'], '&nbsp;') ?></div>
+                                                        <div class="card-head text-bold"><header>Regras de Capitalização </header></div>
+                                                        <div class="card-body border-bottom">
+                                                            <div class="col-xs-5">Nome da Campanha: </div><div class="col-xs-7"><?php echo emptyor($row['capitalizacao']['capitalizacao_nome'], '-') ?></div>
+                                                            <div class="col-xs-5">Empresa de Capitalização: </div><div class="col-xs-7"><?php echo emptyor($row['capitalizacao']['capitalizacao_tipo'], '-') ?></div>
+                                                            <div class="col-xs-5">Definição Data de Sorteio: </div><div class="col-xs-7"><?php echo emptyor($row['capitalizacao']['capitalizacao_sorteio'], '-') ?></div>
+                                                            <div class="col-xs-5">Quantidade de Sorteios: </div><div class="col-xs-7"><?php echo emptyor($row['capitalizacao']['qnt_sorteio'], '-') ?></div>
+                                                            <div class="col-xs-5">Dia de Corte: </div><div class="col-xs-7"><?php echo emptyor($row['capitalizacao']['capitalizacao_dia_corte'], '-') ?></div>
+                                                            <div class="col-xs-5">Qtde de Nro da Sorte por Compra: </div><div class="col-xs-7"><?php echo emptyor($row['capitalizacao']['capitalizacao_qtde_titulos_por_compra'], '-') ?></div>
+                                                            <div class="col-xs-5">Valor do Sorteio: </div><div class="col-xs-7"><?php echo app_format_currency(emptyor($row['capitalizacao']['capitalizacao_valor_sorteio'], 0), true) ?></div>
+                                                            <div class="col-xs-5">Custo: </div><div class="col-xs-7"><?php echo app_format_currency(emptyor($row['capitalizacao']['capitalizacao_valor_custo_titulo'], 0), true) ?></div>
+                                                            <div class="col-xs-5">Tipo de Serie </div><div class="col-xs-7"><?php echo emptyor($row['capitalizacao']['serie'], '-') ?></div>
+                                                            <div class="col-xs-5">Responsavel por Gerar o Nro da Sorte: </div><div class="col-xs-7"><?php echo emptyor($row['capitalizacao']['responsavel_num_sorte'], '-') ?></div>
+                                                            <div class="col-xs-5">Forma de Distribuição: </div><div class="col-xs-7"><?php echo emptyor($row['capitalizacao']['capitalizacao_nome'], '-') ?></div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -319,14 +323,14 @@
                                     </div>
                                     <!-- // Widget END -->
                                     
-                                    <div class="card">
+                                    <div class="card hidden-print">
 
                                         <!-- Widget heading -->
                                         <div class="card-body">
                                             <a href="<?php echo base_url("admin/implantacoes/index/")?>" class="btn  btn-app btn-primary">
                                                 <i class="fa fa-arrow-left"></i> Voltar
                                             </a>
-                                            <a href="<?php echo base_url("admin/implantacoes/printer/". issetor($row[$primary_key], 0)) ?>" class="btn  btn-app btn-primary" >
+                                            <a href="javascript:" onclick="printer()" class="btn btn-app btn-primary">
                                                 <i class="fa fa-print"></i> Imprimir
                                             </a>
                                         </div>
@@ -347,3 +351,31 @@
         </div>
     </div>
 </div>
+
+<?php if (empty($print)) { ?>
+<script type="text/javascript">
+    function printer()
+    {
+        var url = '<?php echo base_url("admin/implantacoes/printer/". issetor($row[$primary_key], 0)) ?>';
+        var printWindow = window.open(url, '_blank');
+        printWindow.onload = function() {
+            var isIE = /(MSIE|Trident\/|Edge\/)/i.test(navigator.userAgent);
+            if (isIE) {
+
+                printWindow.print();
+                setTimeout(function () { printWindow.close(); }, 0);
+
+            } else {
+
+                printWindow.print();
+                setTimeout(function () {
+                    var ival = setInterval(function() {
+                        printWindow.close();
+                        clearInterval(ival);
+                    }, 0);
+                }, 0);
+            }
+        }
+    }
+</script>
+<?php } ?>

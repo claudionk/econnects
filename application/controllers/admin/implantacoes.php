@@ -242,36 +242,9 @@ class Implantacoes extends Admin_Controller
 
     public function printer($id, $export = 'pdf')
     {
-        ini_set('memory_limit', '1024M');
-
         $data = $this->core($id);
-        $view = $this->template->load("admin/layouts/empty", "$this->controller_uri/view", $data, true );
-
-
-        // $this->load->library('parser');
-        $this->custom_loader->library('pdf');
-        $this->pdf->setPageOrientation('P');
-        $this->pdf->AddPage();
-
-        //$this->pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
-
-        $destino_dir = FCPATH . "assets/files/implantacoes/";
-        if (!file_exists($destino_dir)) {
-            mkdir($destino_dir, 0777, true);
-        }
-        $this->pdf->SetMargins(5, 5, 5);
-        $this->pdf->writeHTML($view, true, false, true, false, '');
-        // print_r($view);die();
-        $destino = ($export == 'pdf') ? 'D' : 'F';
-        $file    = ($export == 'pdf') ? "{$id}.pdf" : "{$destino_dir}{$id}.pdf";
-        ob_end_clean();
-        $this->pdf->Output($file, $destino);
-        $this->custom_loader->unload_library('pdf');
-        if ($export == 'pdf_file') {
-            return "{$destino_dir}{$id}.pdf";
-        } else {
-            exit;
-        }
+        $data['print'] = true;
+        $this->template->load("admin/layouts/empty", "$this->controller_uri/view", $data);
     }
 
 }
