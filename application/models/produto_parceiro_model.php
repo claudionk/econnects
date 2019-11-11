@@ -182,11 +182,11 @@ Class Produto_Parceiro_Model extends MY_Model
     function get_produtos_venda_admin_parceiros($parceiro_id, $slug_produto = null, $produto_parceiro_id = null)
     {
         if( !is_null( $slug_produto ) ) {
-            $this->_database->where('pp.slug_produto', '$slug_produto');
+            $this->_database->where($this->_table.'.slug_produto', '$slug_produto');
         }
 
         if( !empty( $produto_parceiro_id ) ) {
-            $this->_database->where('pp.produto_parceiro_id', $produto_parceiro_id);
+            $this->_database->where($this->_table.'.produto_parceiro_id', $produto_parceiro_id);
         }
 
         $this->_database->select($this->_table.'.produto_parceiro_id, '.$this->_table.'.parceiro_id, '.$this->_table.'.produto_id, '.$this->_table.'.nome as nome_prod_parc, pr.slug, pr.nome, p.nome as parceiro_nome, p.nome_fantasia as parceiro_nome_fantasia, ppc.venda_carrinho_compras,  ppc.venda_multiplo_cartao, '.$this->_table.'.slug_produto');
