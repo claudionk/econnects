@@ -19,18 +19,22 @@
 
                 <!-- Widget heading -->
                 <div class="card-body">
-                    <a href="<?php echo base_url("admin/implantacoes/index/")?>" class="btn btn-app btn-primary">
-                        <i class="fa fa-arrow-left"></i> Voltar
-                    </a>
-                    <a href="javascript:" onclick="printer()" class="btn btn-app btn-primary">
-                        <i class="fa fa-print"></i> Imprimir
-                    </a>
-                    <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="aprovado">
-                        <i class="fa fa-check"></i> Autorizar
-                    </a>
-                    <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="recusado">
-                        <i class="fa fa-remove"></i> Recusar
-                    </a>
+                    <div class="col-xs-4">
+                        <a href="<?php echo base_url("admin/implantacoes/index/")?>" class="btn btn-app btn-primary">
+                            <i class="fa fa-arrow-left"></i> Voltar
+                        </a>
+                    </div>
+                    <div class="col-xs-8 text-right">
+                        <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="aprovado">
+                            <i class="fa fa-check"></i> Autorizar
+                        </a>
+                        <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="recusado">
+                            <i class="fa fa-remove"></i> Recusar
+                        </a>
+                        <a href="javascript:" onclick="printer()" class="btn btn-app btn-primary">
+                            <i class="fa fa-print"></i> Imprimir
+                        </a>
+                    </div>
                 </div>
 
             </div>
@@ -96,10 +100,13 @@
                                                             <div class="col-xs-3">Código Susep: </div><div class="col-xs-9"><?php echo emptyor($parc['parceiro_codigo_susep'], '-'); ?></div>
                                                             <div class="col-xs-3">Código do Parceiro: </div><div class="col-xs-9"><?php echo emptyor($parc['parceiro_codigo_corretor'], '-'); ?></div>
                                                             <div class="col-xs-3">Endereço: </div><div class="col-xs-9"><?php echo $parc['endereco'] .", ". $parc['numero'] .", ". $parc['complemento'] .", ". $parc['bairro'] .", ". $parc['cidade'] ."-". $parc['uf']; ?></div>
+                                                            
+                                                            <?php if ( $parc['tipo_comissao'] != '-' ) { ?>
                                                             <div class="col-xs-12 text-bold">CADASTRO DE COMISSÃO</div>
                                                             <div class="col-xs-3">Tipo de Comissão: </div><div class="col-xs-9"><?php echo $parc['tipo_comissao']; ?></div>
                                                             <div class="col-xs-3">Tipo de Cálculo: </div><div class="col-xs-9"><?php echo $parc['comissao_tipo']; ?></div>
                                                             <div class="col-xs-3">Percentual de Comissão: </div><div class="col-xs-9"><?php echo $parc['comissao'] ." %"; ?></div>
+                                                            <?php } ?>
                                                         </div>
                                                         <?php } ?>
                                                     </div>
@@ -333,18 +340,22 @@
 
                                         <!-- Widget heading -->
                                         <div class="card-body">
-                                            <a href="<?php echo base_url("admin/implantacoes/index/")?>" class="btn  btn-app btn-primary">
-                                                <i class="fa fa-arrow-left"></i> Voltar
-                                            </a>
-                                            <a href="javascript:" onclick="printer()" class="btn btn-app btn-primary">
-                                                <i class="fa fa-print"></i> Imprimir
-                                            </a>
-                                            <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="aprovado">
-                                                <i class="fa fa-check"></i> Autorizar
-                                            </a>
-                                            <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="recusado">
-                                                <i class="fa fa-remove"></i> Recusar
-                                            </a>
+                                            <div class="col-xs-4">
+                                                <a href="<?php echo base_url("admin/implantacoes/index/")?>" class="btn btn-app btn-primary">
+                                                    <i class="fa fa-arrow-left"></i> Voltar
+                                                </a>
+                                            </div>
+                                            <div class="col-xs-8 text-right">
+                                                <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="aprovado">
+                                                    <i class="fa fa-check"></i> Autorizar
+                                                </a>
+                                                <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="recusado">
+                                                    <i class="fa fa-remove"></i> Recusar
+                                                </a>
+                                                <a href="javascript:" onclick="printer()" class="btn btn-app btn-primary">
+                                                    <i class="fa fa-print"></i> Imprimir
+                                                </a>
+                                            </div>
                                         </div>
 
                                     </div>
