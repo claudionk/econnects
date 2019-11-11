@@ -302,9 +302,9 @@
                                                             <div class="col-md-3">Definição Data de Sorteio: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['capitalizacao_sorteio'], '&nbsp;') ?></div>
                                                             <div class="col-md-3">Quantidade de Sorteios: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['qnt_sorteio'], '&nbsp;') ?></div>
                                                             <div class="col-md-3">Dia de Corte: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['capitalizacao_dia_corte'], '&nbsp;') ?></div>
-                                                            <div class="col-md-3">Qtde de Numeros da Sorte por Compra: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['capitalizacao_qtde_titulos_por_compra'], '&nbsp;') ?></div>
-                                                            <div class="col-md-3">Valor do Sorteio: </div><div class="col-md-9"><?php echo app_format_currency($row['capitalizacao']['capitalizacao_valor_sorteio'], true) ?></div>
-                                                            <div class="col-md-3">Custo: </div><div class="col-md-9"><?php echo app_format_currency($row['capitalizacao']['capitalizacao_valor_custo_titulo'], true) ?></div>
+                                                            <div class="col-md-3">Qtde de Numeros da Sorte por Compra: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['capitalizacao_qtde_titulos_por_compra'], '-') ?></div>
+                                                            <div class="col-md-3">Valor do Sorteio: </div><div class="col-md-9"><?php echo app_format_currency(emptyor($row['capitalizacao']['capitalizacao_valor_sorteio'], 0), true) ?></div>
+                                                            <div class="col-md-3">Custo: </div><div class="col-md-9"><?php echo app_format_currency(emptyor($row['capitalizacao']['capitalizacao_valor_custo_titulo'], 0), true) ?></div>
                                                             <div class="col-md-3">Tipo de Serie </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['serie'], '&nbsp;') ?></div>
                                                             <div class="col-md-3">Responsavel por Gerar o Nro da Sorte: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['responsavel_num_sorte'], '&nbsp;') ?></div>
                                                             <div class="col-md-3">Forma de Distribuição: </div><div class="col-md-9"><?php echo emptyor($row['capitalizacao']['capitalizacao_nome'], '&nbsp;') ?></div>
@@ -347,14 +347,3 @@
         </div>
     </div>
 </div>
-<script>
-  AppController.controller("AppController", ["$scope", "$sce", "$http", "$filter", "$timeout", "$interval", function ( $scope, $sce, $http, $filter, $timeout, $interval ) {
-    $scope.comissao = parseFloat( "<?php echo isset($row['comissao']) ? $row['comissao'] : '0'; ?>" );
-    $scope.comissao_indicacao = parseFloat( "<?php echo isset($row['comissao_indicacao']) ? $row['comissao_indicacao'] : '0'; ?>" );
-    $scope.repasse_maximo = parseFloat( "<?php echo isset($row['repasse_maximo']) ? $row['repasse_maximo'] : '0'; ?>" );
-    
-    $scope.desconto_valor = parseFloat( "<?php echo isset($row['desconto_valor']) ? $row['desconto_valor'] : '0'; ?>" );
-    $scope.desconto_utilizado = parseFloat( "<?php echo isset($row['desconto_utilizado']) ? $row['desconto_utilizado'] : '0'; ?>" );
-    $scope.desconto_saldo = parseFloat( "<?php echo isset($row['desconto_saldo']) ? $row['desconto_saldo'] : '0'; ?>" );
-  }]);
-</script>
