@@ -63,20 +63,20 @@
                                                         <div class="card-head text-bold"><header>Configurações de Implantação: <?= $parceiro['nome'] ?> / <?= $row['nome'] ?> </header></div>
                                                         <div class="card-body">
                                                             <div class="col-xs-3">Data de Configuraçao: </div>
-                                                            <div class="col-xs-3"><?php echo $row['data_configuracao'] ?></div>
+                                                            <div class="col-xs-3"><?php echo emptyor($row['data_configuracao'], '-') ?></div>
                                                             <div class="col-xs-6">&nbsp;</div>
 
                                                             <div class="col-xs-3">Data de Aprovação: </div>
-                                                            <div class="col-xs-3"><?php echo $row['data_aprovacao'] ?></div>
+                                                            <div class="col-xs-3"><?php echo emptyor($row['data_aprovacao'], '-') ?></div>
                                                             <div class="col-xs-3">Aprovado Por:</div>
-                                                            <div class="col-xs-3"><?php echo emptyor($row['user'], '-') ?></div>
+                                                            <div class="col-xs-3"><?php echo emptyor($row['user_aprovacao'], '-') ?></div>
 
                                                             <div class="col-xs-3">Data de Produção: </div>
-                                                            <div class="col-xs-3">-</div>
+                                                            <div class="col-xs-3"><?php echo emptyor($row['data_producao'], '-') ?></div>
                                                             <div class="col-xs-6">&nbsp;</div>
 
                                                             <div class="col-xs-3">Data da Primeira Emissão: </div>
-                                                            <div class="col-xs-3"><?php echo $row['data_primeira_emissao'] ?></div>
+                                                            <div class="col-xs-3"><?php echo emptyor($row['data_primeira_emissao'], '-') ?></div>
                                                             <div class="col-xs-6">&nbsp;</div>
                                                         </div>
                                                     </div>

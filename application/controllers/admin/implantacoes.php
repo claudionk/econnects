@@ -120,13 +120,22 @@ class Implantacoes extends Admin_Controller
             $data['row']['data_primeira_emissao'] = app_date_mysql_to_mask($data['row']['apolice']['criacao'], 'd/m/Y');
         }
 
+        $data['row']['data_aprovacao'] = '-';
+        $data['row']['data_producao'] = '-';
         $data['row']['implantacao_aprovado'] = $this->produto_parceiro_implantacao->filter_by_produto_parceiro_id($id)->filter_by_implantacao_slug('aprovado')->filter_by_last()->get_all();
+        $data['row']['implantacao_producao'] = $this->produto_parceiro_implantacao->filter_by_produto_parceiro_id($id)->filter_by_implantacao_slug('producao')->filter_by_last()->get_all();
 
         if ( !empty($data['row']['implantacao_aprovado']) )
         {
             $data['row']['implantacao_aprovado'] = $data['row']['implantacao_aprovado'][0];
             $data['row']['data_aprovacao'] = app_date_mysql_to_mask($data['row']['implantacao_aprovado']['criacao'], 'd/m/Y');
-            $data['row']['user'] = $data['row']['implantacao_aprovado']['user'];
+            $data['row']['user_aprovacao'] = $data['row']['implantacao_aprovado']['user'];
+        }
+
+        if ( !empty($data['row']['implantacao_producao']) )
+        {
+            $data['row']['implantacao_producao'] = $data['row']['implantacao_producao'][0];
+            $data['row']['data_producao'] = app_date_mysql_to_mask($data['row']['implantacao_producao']['criacao'], 'd/m/Y');
         }
 
         if( $data['row']['configuracao'] )
