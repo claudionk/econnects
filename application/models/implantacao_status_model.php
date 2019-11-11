@@ -35,9 +35,10 @@ Class Implantacao_Status_Model extends MY_Model
         ),
     );
 
-    function filter_by_produto_parceiro_id( $produto_parceiro_id ){
-        $this->_database->where("produto_parceiro_plano.produto_parceiro_plano_id", $produto_parceiro_plano_id);
-        return $this->get_all();
+    function filter_by_slug( $slug ){
+        $this->_database->where($this->_table .".slug", $slug);
+        return $this;
     }
+    
 
 }

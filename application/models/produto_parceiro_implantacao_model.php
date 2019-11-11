@@ -37,12 +37,26 @@ Class Produto_Parceiro_Implantacao_Model extends MY_Model
 
     function filter_by_produto_parceiro_id( $produto_parceiro_id ){
         $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
-        return $this->get_all();
+        return $this;
     }
 
     function filter_by_implantacao_status_id( $implantacao_status_id ){
         $this->_database->where("{$this->_table}.implantacao_status_id", $implantacao_status_id);
-        return $this->get_all();
+        return $this;
+    }
+
+    function filter_by_implantacao_slug( $implantacao_slug ){
+        $this->_database->select('parceiro.nome as user');
+        $this->_database->join("implantacao_status", "implantacao_status.implantacao_status_id = {$this->_table}.implantacao_status_id", "inner");
+        $this->_database->join("parceiro", "parceiro.parceiro_id = {$this->_table}.alteracao_usuario_id", "inner");
+        $this->_database->where("implantacao_status.slug", $implantacao_slug);
+        return $this;
+    }
+
+    function filter_by_last(){
+        $this->_database->order_by("{$this->_table}.criacao", "DESC");
+        $this->_database->limit(1);
+        return $this;
     }
 
 }

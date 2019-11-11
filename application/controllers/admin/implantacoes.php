@@ -40,8 +40,6 @@ class Implantacoes extends Admin_Controller
         ->with_implantacao_staus()
         ->get_produtos_venda_admin_parceiros($this->parceiro_id);
 
-        // print_r($this->db->last_quer)y;die();
-
         //Carrega dados para a página
         $data = array();
         $data["rows"] = $produtos;
@@ -61,7 +59,6 @@ class Implantacoes extends Admin_Controller
                         }
                     }
                 }
-                // $data["rows"][$key]['implantacao_status'] = $this->produto_parceiro_implantacao->;
             }
         }
 
@@ -114,6 +111,7 @@ class Implantacoes extends Admin_Controller
         $data['row']['acrescimo_premio'] = $this->produto_parceiro_regra_preco->with_regra_preco()->filter_by_produto_parceiro($id)->get_all();
         $data['row']['capitalizacao'] = $this->produto_parceiro_capitalizacao->with_capitalizacao()->with_capitalizacao_tipo()->with_capitalizacao_sorteio()->filter_by_produto_parceiro($id)->get_all();
         $data['row']['apolice'] = $this->apolice->search_apolice_produto_parceiro_id($id)->get_all();
+
         $data['row']['data_configuracao'] = app_date_mysql_to_mask($data['row']['criacao'], 'd/m/Y');
 
         if( $data['row']['apolice'] )
@@ -122,6 +120,14 @@ class Implantacoes extends Admin_Controller
             $data['row']['data_primeira_emissao'] = app_date_mysql_to_mask($data['row']['apolice']['criacao'], 'd/m/Y');
         }
 
+        $data['row']['implantacao_aprovado'] = $this->produto_parceiro_implantacao->filter_by_produto_parceiro_id($id)->filter_by_implantacao_slug('aprovado')->filter_by_last()->get_all();
+
+        if ( !empty($data['row']['implantacao_aprovado']) )
+        {
+            $data['row']['implantacao_aprovado'] = $data['row']['implantacao_aprovado'][0];
+            $data['row']['data_aprovacao'] = app_date_mysql_to_mask($data['row']['implantacao_aprovado']['criacao'], 'd/m/Y');
+            $data['row']['user'] = $data['row']['implantacao_aprovado']['user'];
+        }
 
         if( $data['row']['configuracao'] )
         {
@@ -228,6 +234,7 @@ class Implantacoes extends Admin_Controller
         }
 
         $data['parceiro'] = array();
+        $data['implantacao_status'] = $this->implantacao_status->get_all();
 
         $prod_parc = $this->current_model->getProdutosByParceiro($this->parceiro_id, $id, false);
         foreach ($prod_parc as $key => $value) {
@@ -263,6 +270,28 @@ class Implantacoes extends Admin_Controller
         $data = $this->core($id);
         $data['print'] = true;
         $this->template->load("admin/layouts/empty", "$this->controller_uri/view", $data);
+    }
+
+    public function status($id, $slug)
+    {
+        // validar se o produto já está no status
+        $implantacao_status = $this->implantacao_status->filter_by_slug($slug)->get_all();
+        if ( empty($implantacao_status) )
+        {
+            return false;
+        }
+
+        $implantacao_status_id = $implantacao_status[0]['implantacao_status_id'];
+
+        $dados['produto_parceiro_id'] = $id;
+        $dados['implantacao_status_id'] = $implantacao_status_id;
+        $dados['criacao'] = date('Y-m-d H:i:s');
+        $dados['alteracao_usuario_id'] = $this->parceiro_id;
+        $this->produto_parceiro_implantacao->insert($dados, true);
+
+        $this->current_model->update($id, ['implantacao_status_id' => $implantacao_status_id], true);
+
+        redirect("$this->controller_uri/index");
     }
 
 }

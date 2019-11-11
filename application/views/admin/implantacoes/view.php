@@ -19,11 +19,17 @@
 
                 <!-- Widget heading -->
                 <div class="card-body">
-                    <a href="<?php echo base_url("admin/implantacoes/index/")?>" class="btn  btn-app btn-primary">
+                    <a href="<?php echo base_url("admin/implantacoes/index/")?>" class="btn btn-app btn-primary">
                         <i class="fa fa-arrow-left"></i> Voltar
                     </a>
                     <a href="javascript:" onclick="printer()" class="btn btn-app btn-primary">
                         <i class="fa fa-print"></i> Imprimir
+                    </a>
+                    <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="aprovado">
+                        <i class="fa fa-check"></i> Autorizar
+                    </a>
+                    <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="recusado">
+                        <i class="fa fa-remove"></i> Recusar
                     </a>
                 </div>
 
@@ -61,9 +67,9 @@
                                                             <div class="col-xs-6">&nbsp;</div>
 
                                                             <div class="col-xs-3">Data de Aprovação: </div>
-                                                            <div class="col-xs-3">-</div>
+                                                            <div class="col-xs-3"><?php echo $row['data_aprovacao'] ?></div>
                                                             <div class="col-xs-3">Aprovado Por:</div>
-                                                            <div class="col-xs-3">-</div>
+                                                            <div class="col-xs-3"><?php echo emptyor($row['user'], '-') ?></div>
 
                                                             <div class="col-xs-3">Data de Produção: </div>
                                                             <div class="col-xs-3">-</div>
@@ -333,6 +339,12 @@
                                             <a href="javascript:" onclick="printer()" class="btn btn-app btn-primary">
                                                 <i class="fa fa-print"></i> Imprimir
                                             </a>
+                                            <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="aprovado">
+                                                <i class="fa fa-check"></i> Autorizar
+                                            </a>
+                                            <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="recusado">
+                                                <i class="fa fa-remove"></i> Recusar
+                                            </a>
                                         </div>
 
                                     </div>
@@ -353,29 +365,75 @@
 </div>
 
 <?php if (empty($print)) { ?>
+
+<!-- MODALS -->
+<div class="modal fade" id="viewAlterarStatus" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">ALTERAR O STATUS DA IMPLANTAÇÃO</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">Confirma a <label class="Aprov hide">aprovação</label><label class="Recusa hide">recusa</label> desta configuração?
+        <input type="hidden" name="alter_satus" id="alter_satus" value="">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success Aprov hide sendAlterarStatus" >APROVAR</button>
+        <button type="button" class="btn btn-danger Recusa hide sendAlterarStatus" >RECUSAR</button>
+        <button type="button" class="btn" data-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="text/javascript">
-    function printer()
-    {
-        var url = '<?php echo base_url("admin/implantacoes/printer/". issetor($row[$primary_key], 0)) ?>';
-        var printWindow = window.open(url, '_blank');
-        printWindow.onload = function() {
-            var isIE = /(MSIE|Trident\/|Edge\/)/i.test(navigator.userAgent);
-            if (isIE) {
+jQuery(function($){
+    $('.alterarStatus').click(function(){
+        $('#alter_satus').val($(this).data('val'));
+        if ($(this).data('val') == 'aprovado')
+        {
+            $('.Aprov').removeClass('hide');
+            $('.Recusa').addClass('hide');
+        } else {
+            $('.Aprov').addClass('hide');
+            $('.Recusa').removeClass('hide');
+        }
 
-                printWindow.print();
-                setTimeout(function () { printWindow.close(); }, 0);
+        $('#viewAlterarStatus').modal('show');
+    });
 
-            } else {
+    $('.sendAlterarStatus').click(function(){
+        if ( $('#alter_satus').val() == '' )
+        {
+            alert('Informe uma opção (Aprovar / Recusar)');
+            return false;
+        }
+        $(this).attr('disabled', 'disabled');
+        window.location = '<?php echo base_url("admin/implantacoes/status/". issetor($row[$primary_key], 0)) ?>/'+ $('#alter_satus').val();
+    });
+});
 
-                printWindow.print();
-                setTimeout(function () {
-                    var ival = setInterval(function() {
-                        printWindow.close();
-                        clearInterval(ival);
-                    }, 0);
+function printer()
+{
+    var url = '<?php echo base_url("admin/implantacoes/printer/". issetor($row[$primary_key], 0)) ?>';
+    var printWindow = window.open(url, '_blank');
+    printWindow.onload = function() {
+        var isIE = /(MSIE|Trident\/|Edge\/)/i.test(navigator.userAgent);
+        if (isIE) {
+            printWindow.print();
+            setTimeout(function () { printWindow.close(); }, 0);
+        } else {
+            printWindow.print();
+            setTimeout(function () {
+                var ival = setInterval(function() {
+                    printWindow.close();
+                    clearInterval(ival);
                 }, 0);
-            }
+            }, 0);
         }
     }
+}
 </script>
 <?php } ?>
