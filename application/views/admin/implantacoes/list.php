@@ -11,20 +11,6 @@
 
             <!-- col-separator -->
             <div class="col-separator col-separator-first col-unscrollable">
-                <div class="card">
-
-                    <!-- Widget heading -->
-                    <div class="card-body">
-                        <a href="<?php echo base_url("admin/parceiros/index/")?>" class="btn  btn-app btn-primary">
-                            <i class="fa fa-arrow-left"></i> Voltar
-                        </a>
-
-                        <a href="<?php echo base_url("$current_controller_uri/add/")?>" class="btn  btn-app btn-primary">
-                            <i class="fa  fa-plus"></i> Adicionar
-                        </a>
-                    </div>
-                </div>
-
                 <div class="row">
                     <div class="col-md-6">
                         <?php $this->load->view('admin/partials/messages'); ?>
@@ -33,19 +19,19 @@
                 <?php $this->load->view('admin/implantacoes/search_form')?>
                 <!-- Widget -->
                 <div class="card">
-
-                        <div class="card-body" style="display: none;">
-
-                            <?php echo implode("\n", app_montar_relacionamento_produto($rows)); ?>
-                        </div>
+                    <div class="card-body" style="display: none;">
+                        <?php echo implode("\n", app_montar_relacionamento_produto($rows)); ?>
+                    </div>
                     <div class="card-body">
                         <table class="table table-hover">
 
                             <!-- Table heading -->
                             <thead>
                             <tr>
-                                <th width='10%'>Parceiro</th>
-                                <th width='20%'>Produto</th>
+                                <th width='30%'>Parceiro</th>
+                                <th width='40%'>Produto</th>
+                                <th width='20%'>Status</th>
+                                <th width='20%'>Data Status</th>
                                 <th class="center" width='25%'>Ações</th>
                             </tr>
                             </thead>
@@ -55,11 +41,14 @@
                             <tbody>
 
                             <!-- Table row -->
-                            <?php foreach ($rows as $row) : ?>
+                            <?php
+                            // print_pre($rows);die();
+                             foreach ($rows as $row) : ?>
                                 <tr>
-
-                                    <td><?php echo '-';?></td>
+                                    <td><?php echo emptyor($row['representante'], '-');?></td>
                                     <td><?php echo $row['nome_prod_parc'];?></td>
+                                    <td><?php echo $row['implantacao_status_nome'];?></td>
+                                    <td><?php echo app_date_mysql_to_mask($row['data_implantacao_status'], 'd/m/Y');?></td>
                                     <td class="center">
                                         <a href="<?php echo base_url("{$current_controller_uri}/view/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-search"></i>  Visualizar </a>
                                     </td>
@@ -79,20 +68,3 @@
         </div>
     </div>
 </div>
-<script type="text/javascript">
-    $(document).ready(function(){
-<?php
-
-
-
-        foreach ($rows as $produto) {
-            ?>$("#relacionamento_<?php echo $produto['produto']['produto_parceiro_id']; ?>").orgChart({container: $("#relacionamento_main_<?php echo $produto['produto']['produto_parceiro_id']; ?>")});<?php
-        }
-        
-
-
-
-
-?>
-    });
-</script>

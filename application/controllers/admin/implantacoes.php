@@ -22,31 +22,49 @@ class Implantacoes extends Admin_Controller
         $this->load->model('produto_parceiro_model', 'current_model');
         $this->load->model('parceiro_model', 'parceiro');
         $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
-        // $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
-        // $this->load->model('parceiro_tipo_model', 'parceiro_tipo');
+        $this->load->model('implantacao_status_model', 'implantacao_status');
+        $this->load->model('produto_parceiro_implantacao_model', 'produto_parceiro_implantacao');
 
         $this->parceiro_id = $this->session->userdata('parceiro_id');
     }
 
     public function index($offset = 0) //Função padrão (load)
     {
-
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Implantações");
         $this->template->set_breadcrumb("Implantações", base_url("{$this->controller_uri}/index"));
 
-        // $this->template->js(app_assets_url('template/js/libs/jquery.orgchart/jquery.orgchart.js', 'admin'));
-        // $this->template->js(app_assets_url('modulos/parceiro_relacionamento_produto/base.js', 'admin'));
-        // $this->template->css(app_assets_url("template/js/libs/jquery.orgchart/jquery.orgchart.css", "admin"));
-
         //relacionamentos
-        $produtos = $this->current_model->get_produtos_venda_admin_parceiros($this->parceiro_id);
+        $produtos = $this->current_model
+        ->with_implantacao_staus()
+        ->get_produtos_venda_admin_parceiros($this->parceiro_id);
+
+        // print_r($this->db->last_quer)y;die();
 
         //Carrega dados para a página
         $data = array();
         $data["rows"] = $produtos;
         $data['primary_key'] = $this->current_model->primary_key();
+        $data['implantacao_status'] = $this->implantacao_status->get_all();
+
+        if ( !empty($data["rows"]) )
+        {
+            foreach ($data["rows"] as $key => $value) {
+                $prods = $this->current_model->getProdutosHabilitados(null, $value['produto_parceiro_id']);
+                if (!empty($prods))
+                {
+                    foreach ($prods as $k => $v) {
+                        if ($v['parceiro_id'] != $this->parceiro_id)
+                        {
+                            $data["rows"][$key]['representante'] = $v['nome'];
+                        }
+                    }
+                }
+                // $data["rows"][$key]['implantacao_status'] = $this->produto_parceiro_implantacao->;
+            }
+        }
+
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data );
     }

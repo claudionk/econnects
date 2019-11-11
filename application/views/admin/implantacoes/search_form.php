@@ -12,8 +12,8 @@
 
                     <div class="row">
                         <?php
-                        $field_name = 'nome';
-                        $field_label = 'Razão Social';
+                        $field_name = 'parceiro';
+                        $field_label = 'Parceiro';
                         ?>
                         <div class="col-md-2">
                             <h5><?php echo $field_label;?></h5>
@@ -22,8 +22,8 @@
                             </div>
                         </div>
                         <?php
-                        $field_name = 'nome_fantasia';
-                        $field_label = 'Nome fantasia:';
+                        $field_name = 'produto';
+                        $field_label = 'Produto:';
                         ?>
                         <div class="col-md-2">
                             <h5><?php echo $field_label;?></h5>
@@ -32,38 +32,20 @@
                             </div>
                         </div>
                         <?php
-                        $field_name = 'apelido';
-                        $field_label = 'Apelido:';
+                        $field_name = 'implantacao_status_id';
+                        $field_label = 'Status:';
                         ?>
                         <div class="col-md-2">
                             <h5><?php echo $field_label;?></h5>
                             <div class="innerB">
-                                <input class="form-control" id="filter_<?php echo $field_name;?>" name="filter[<?php echo $field_name;?>]" type="text" value="<?php echo app_get_value(array('filter' => $field_name))?>" />
+                                <select class="form-control" id="filter_<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo app_get_value($field_name)?>" />
+                                <option value="0">Todos</option>
+                                <?php foreach($implantacao_status as $row) { ?>
+                                    <option <?php echo $row[$field_name] == issetor($_GET[$field_name]) ? 'selected="selected"' : '' ?> value="<?php echo $row[$field_name] ?>"><?php echo $row['nome'] ?></option>
+                                <?php } ?>
+                                </select>
                             </div>
                         </div>
-
-                        <?php
-                        $field_name = 'cnpj';
-                        $field_label = 'CNPJ';
-                        ?>
-                        <div class="col-md-2">
-                            <h5><?php echo $field_label;?></h5>
-                            <div class="innerB">
-                                <input class="form-control" id="filter_<?php echo $field_name;?>" name="filter[<?php echo $field_name;?>]" type="text" value="<?php echo app_get_value(array('filter' => $field_name))?>" />
-                            </div>
-                        </div>
-                        <?php
-                        $field_name = 'codigo_susep';
-                        $field_label = 'Código Susep';
-                        ?>
-                        <div class="col-md-2">
-                            <h5><?php echo $field_label;?></h5>
-                            <div class="innerB">
-                                <input class="form-control" id="filter_<?php echo $field_name;?>" name="filter[<?php echo $field_name;?>]" type="text" value="<?php echo app_get_value(array('filter' => $field_name))?>" />
-                            </div>
-                        </div>
-
-
 
                     </div>
 
