@@ -53,7 +53,7 @@ class Implantacoes extends Admin_Controller
                 if (!empty($prods))
                 {
                     foreach ($prods as $k => $v) {
-                        if ($v['parceiro_id'] != $this->parceiro_id)
+                        if (empty($data["rows"][$key]['representante']) && $v['parceiro_id'] != $this->parceiro_id)
                         {
                             $data["rows"][$key]['representante'] = $v['nome'];
                         }
