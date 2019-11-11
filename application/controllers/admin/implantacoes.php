@@ -51,7 +51,7 @@ class Implantacoes extends Admin_Controller
         $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data );
     }
 
-    public function view($id) //Função que edita registro
+    public function core($id) //Função que edita registro
     {
         //Setar variáveis de informação da página
         $this->template->set('page_title_info', '');
@@ -231,7 +231,44 @@ class Implantacoes extends Admin_Controller
         }
 
         //Carrega template
+        return $data;
+    }
+
+    public function view($id)
+    {
+        $data = $this->core($id);
         $this->template->load("admin/layouts/base", "$this->controller_uri/view", $data );
+    }
+
+    public function printer($id, $export = 'pdf')
+    {
+        $data = $this->core($id);
+        $data = $this->template->load("admin/layouts/base", "$this->controller_uri/view", $data, true );
+
+        // $this->load->library('parser');
+        $this->custom_loader->library('pdf');
+        $this->pdf->setPageOrientation('P');
+
+        $this->pdf->AddPage();
+
+        //$this->pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+
+        $destino_dir = FCPATH . "assets/files/implantacoes/";
+        if (!file_exists($destino_dir)) {
+            mkdir($destino_dir, 0777, true);
+        }
+        $this->pdf->SetMargins(5, 5, 5);
+        $this->pdf->writeHTML($data, true, false, true, false, '');
+        $destino = ($export == 'pdf') ? 'D' : 'F';
+        $file    = ($export == 'pdf') ? "{$id}.pdf" : "{$destino_dir}{$id}.pdf";
+        ob_end_clean();
+        $this->pdf->Output($file, $destino);
+        $this->custom_loader->unload_library('pdf');
+        if ($export == 'pdf_file') {
+            return "{$destino_dir}{$id}.pdf";
+        } else {
+            exit;
+        }
     }
 
 }

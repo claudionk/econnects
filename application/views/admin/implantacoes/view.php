@@ -15,10 +15,10 @@
 
                 <!-- Widget heading -->
                 <div class="card-body">
-                    <a href="<?php echo base_url("admin/parceiros_relacionamento_produtos/index/")?>" class="btn  btn-app btn-primary">
+                    <a href="<?php echo base_url("admin/implantacoes/index/")?>" class="btn  btn-app btn-primary">
                         <i class="fa fa-arrow-left"></i> Voltar
                     </a>
-                    <a href="javascript:void()" class="btn  btn-app btn-primary" >
+                    <a href="<?php echo base_url("admin/implantacoes/printer/". issetor($row[$primary_key], 0)) ?>" class="btn  btn-app btn-primary" >
                         <i class="fa fa-print"></i> Imprimir
                     </a>
                 </div>
@@ -323,10 +323,10 @@
 
                                         <!-- Widget heading -->
                                         <div class="card-body">
-                                            <a href="<?php echo base_url("admin/parceiros_relacionamento_produtos/index/")?>" class="btn  btn-app btn-primary">
+                                            <a href="<?php echo base_url("admin/implantacoes/index/")?>" class="btn  btn-app btn-primary">
                                                 <i class="fa fa-arrow-left"></i> Voltar
                                             </a>
-                                            <a href="javascript:void()" class="btn  btn-app btn-primary" >
+                                            <a href="<?php echo base_url("admin/implantacoes/printer/". issetor($row[$primary_key], 0)) ?>" class="btn  btn-app btn-primary" >
                                                 <i class="fa fa-print"></i> Imprimir
                                             </a>
                                         </div>
