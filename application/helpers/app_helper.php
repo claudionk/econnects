@@ -1185,6 +1185,21 @@ if ( ! function_exists('isempty')) {
 }
 
 /**
+ * Se a variável for verdadeira, retorna o texto SIM. Caso contrário, retorna o texto NÃO
+ * @param $var
+ * @return string
+ */
+function yes_no(&$var) {
+
+    if(!empty($var))
+    {
+        return 'SIM';
+    }
+
+    return 'NÃO';
+}
+
+/**
  * admin url
  * @param string $uri
  * @return mixed
