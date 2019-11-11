@@ -154,6 +154,20 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         return $this;
     }
 
+    public function with_precificacao_tipo()
+    {
+        $this->_database->select("precificacao_tipo.nome as precificacao_tipo");
+        $this->_database->join("precificacao_tipo", "precificacao_tipo.precificacao_tipo_id = {$this->_table}.precificacao_tipo_id");
+        return $this;
+    }
+
+    public function with_moeda()
+    {
+        $this->_database->select("moeda.nome as moeda");
+        $this->_database->join("moeda", "moeda.moeda_id = {$this->_table}.moeda_id");
+        return $this;
+    }
+
     public function get_by_id($id)
     {
         return $this->get($id);

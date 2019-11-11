@@ -146,8 +146,15 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
     }
 
     public function with_parceiro_tipo(){
-        $this->_database->select("parceiro_tipo.nome as parceiro_tipo, parceiro_tipo.codigo_interno, parceiro_tipo.parceiro_tipo_id as parceiro_tipo_id_parceiro", "left");
+        $this->_database->select("parceiro_tipo.nome as parceiro_tipo, parceiro_tipo.codigo_interno, parceiro_tipo.parceiro_tipo_id as parceiro_tipo_id_parceiro");
         $this->_database->join("parceiro_tipo", "IFNULL({$this->_table}.parceiro_tipo_id,parceiro.parceiro_tipo_id) = parceiro_tipo.parceiro_tipo_id", "left", FALSE);
+        return $this;
+    }
+
+    public function with_parceiro_endereco(){
+        $this->_database->select("parceiro.cep, parceiro.endereco, parceiro.numero, parceiro.bairro, parceiro.complemento, localidade_estado.sigla as uf, localidade_cidade.nome as cidade");
+        $this->_database->join("localidade_cidade", "localidade_cidade.localidade_cidade_id = parceiro.localidade_cidade_id", "left");
+        $this->_database->join("localidade_estado", "localidade_estado.localidade_estado_id = parceiro.localidade_estado_id", "left");
         return $this;
     }
 

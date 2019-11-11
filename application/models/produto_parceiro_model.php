@@ -172,7 +172,7 @@ Class Produto_Parceiro_Model extends MY_Model
         return array();
     }
 
-    function get_produtos_venda_admin_parceiros($parceiro_id, $slug_produto = null) {
+    function get_produtos_venda_admin_parceiros($parceiro_id, $slug_produto = null, $produto_parceiro_id = null) {
 
         $this->_database->select($this->_table.'.produto_parceiro_id');
         $this->_database->select($this->_table.'.parceiro_id');
@@ -204,7 +204,11 @@ Class Produto_Parceiro_Model extends MY_Model
 
         $where = '';
         if( !is_null( $slug_produto ) ) {
-            $where = "AND pp.slug_produto = '$slug_produto'";
+            $where .= "AND pp.slug_produto = '$slug_produto'";
+        }
+
+        if( !empty( $produto_parceiro_id ) ) {
+            $where .= "AND pp.produto_parceiro_id = $produto_parceiro_id ";
         }
 
         $query = $this->db->query( "
@@ -239,7 +243,7 @@ Class Produto_Parceiro_Model extends MY_Model
     public function getProdutosByParceiro($parceiro_id, $produto_id = null, $onlyEnable = true)
     {
         $produtos = $this->get_produtos_venda_admin( $parceiro_id, $produto_id );
-        $relacionamento = $this->get_produtos_venda_admin_parceiros( $parceiro_id );
+        $relacionamento = $this->get_produtos_venda_admin_parceiros( $parceiro_id, null, $produto_id );
 
         if (!empty($produtos) || !empty($relacionamento)) {
 
@@ -279,10 +283,21 @@ Class Produto_Parceiro_Model extends MY_Model
             return null;
         }
     }
-    public function getProdutosHabilitados($parceiro_id)
+    public function getProdutosHabilitados($parceiro_id = null, $produto_parceiro_id = null)
     {
+        $where = '';
+        if ( !empty($parceiro_id) )
+        {
+            $where .= " AND h.parceiro_id = $parceiro_id ";
+        }
+
+        if ( !empty($produto_parceiro_id) )
+        {
+            $where .= " AND h.produto_parceiro_id = $produto_parceiro_id ";
+        }
+
         $query = $this->db->query( "
-            SELECT h.produto_parceiro_id FROM (
+            SELECT h.parceiro_id, h.produto_parceiro_id FROM (
                 SELECT parceiro_id, produto_parceiro_id FROM parceiro_produto where deletado = 0 
                 UNION
                 SELECT DISTINCT parceiro_plano.parceiro_id, produto_parceiro_plano.produto_parceiro_id 
@@ -291,8 +306,9 @@ Class Produto_Parceiro_Model extends MY_Model
                 WHERE parceiro_plano.deletado = 0 AND produto_parceiro_plano.deletado = 0 
             ) AS h
             INNER JOIN produto_parceiro ON h.produto_parceiro_id = produto_parceiro.produto_parceiro_id
-            WHERE h.parceiro_id = $parceiro_id
-            AND produto_parceiro.deletado = 0 "
+            WHERE produto_parceiro.deletado = 0 
+                {$where}
+            "
         );
 
         if($query->num_rows() > 0)
@@ -300,10 +316,21 @@ Class Produto_Parceiro_Model extends MY_Model
         return array();
     }
 
-    public function getPlanosHabilitados($parceiro_id)
+    public function getPlanosHabilitados($parceiro_id = null, $produto_parceiro_id = null)
     {
+        $where = '';
+        if ( !empty($parceiro_id) )
+        {
+            $where .= " AND h.parceiro_id = $parceiro_id ";
+        }
+
+        if ( !empty($produto_parceiro_id) )
+        {
+            $where .= " AND h.produto_parceiro_id = $produto_parceiro_id ";
+        }
+
         $query = $this->db->query( "
-            SELECT h.produto_parceiro_plano_id FROM (
+            SELECT h.parceiro_id, h.produto_parceiro_plano_id FROM (
                 SELECT parceiro_id, produto_parceiro_plano_id FROM parceiro_plano where deletado = 0
                 UNION
                 SELECT parceiro_produto.parceiro_id, produto_parceiro_plano.produto_parceiro_plano_id
@@ -312,8 +339,9 @@ Class Produto_Parceiro_Model extends MY_Model
                 WHERE parceiro_produto.deletado = 0 AND produto_parceiro_plano.deletado = 0
             ) AS h
             INNER JOIN produto_parceiro_plano ON h.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id
-            WHERE h.parceiro_id = $parceiro_id
-            AND produto_parceiro_plano.deletado = 0"
+            WHERE produto_parceiro_plano.deletado = 0
+                {$where}
+            "
         );
 
         if($query->num_rows() > 0)

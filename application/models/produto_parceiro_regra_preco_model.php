@@ -55,7 +55,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
     }
 
     function with_regra_preco(){
-        $this->with_simple_relation('regra_preco', 'regra_preco_', 'regra_preco_id', array('nome'));
+        $this->with_simple_relation('regra_preco', 'regra_preco_', 'regra_preco_id', array('nome','slug'));
         return $this;
     }
 

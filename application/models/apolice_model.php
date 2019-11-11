@@ -1462,6 +1462,19 @@ class Apolice_Model extends MY_Model
     }
 
     //Retorna por Número da Apolice
+    function search_apolice_produto_parceiro_id($produto_parceiro_id)
+    {
+        $this->db->join('pedido', "pedido.pedido_id = {$this->_table}.pedido_id", 'join');
+        $this->db->join('cotacao', "cotacao.cotacao_id = pedido.cotacao_id", 'join');
+        $this->db->join('produto_parceiro', "produto_parceiro.produto_parceiro_id = cotacao.produto_parceiro_id", 'join');
+        $this->db->where('produto_parceiro.produto_parceiro_id', $produto_parceiro_id);
+        $this->db->order_by('pedido.pedido_id', 'ASC');
+        $this->db->limit(1);
+        return $this;
+    }
+
+
+    //Retorna por Número da Apolice
     function filter_by_numApolice($num_apolice, $tpa)
     {
         $this->db->join('pedido', "pedido.pedido_id = {$this->_table}.pedido_id", 'join');
