@@ -103,6 +103,13 @@ Class Produto_Parceiro_Model extends MY_Model
         return $this->get($id);
     }
 
+    function with_implantacao_staus(){
+        $this->_database->select("implantacao_status.nome as implantacao_status_nome, implantacao_status.implantacao_status_id, ppi.criacao as data_implantacao_status");
+        $this->_database->join("implantacao_status", "implantacao_status.implantacao_status_id = {$this->_table}.implantacao_status_id", "left");
+        $this->_database->join("produto_parceiro_implantacao ppi", "ppi.produto_parceiro_implantacao_id = (SELECT MAX(produto_parceiro_implantacao_id) FROM produto_parceiro_implantacao WHERE produto_parceiro_id = {$this->_table}.produto_parceiro_id)", "left", FALSE);
+        return $this;
+    }
+
     function with_produto(){
         $this->with_simple_relation('produto', 'produto_', 'produto_id', array('nome', 'produto_ramo_id', 'slug'));
         return $this;
@@ -172,72 +179,29 @@ Class Produto_Parceiro_Model extends MY_Model
         return array();
     }
 
-    function get_produtos_venda_admin_parceiros($parceiro_id, $slug_produto = null, $produto_parceiro_id = null) {
-
-        $this->_database->select($this->_table.'.produto_parceiro_id');
-        $this->_database->select($this->_table.'.parceiro_id');
-        $this->_database->select($this->_table.'.produto_id');
-        $this->_database->select($this->_table.'.nome');
-        $this->_database->select($this->_table.'.slug_produto');
-        $this->_database->select('produto.slug, produto.nome');
-        $this->_database->select('parceiro.nome as parceiro_nome');
-        $this->_database->select('parceiro.nome_fantasia as parceiro_nome_fantasia');
-        $this->_database->select('produto_parceiro_configuracao.venda_carrinho_compras, produto_parceiro_configuracao.venda_multiplo_cartao');
-        $this->_database->from($this->_table);
-        $this->_database->where($this->_table.'.deletado', 0);
-        $this->_database->where('parceiro_relacionamento_produto.parceiro_id', $parceiro_id);
-        $this->_database->where('parceiro_relacionamento_produto.deletado', 0);
-        $this->_database->where('produto_parceiro_configuracao.deletado', 0);
-        $this->_database->where('produto_parceiro_configuracao.venda_habilitada_admin', 1);
-        $this->_database->where('produto.deletado', 0);
+    function get_produtos_venda_admin_parceiros($parceiro_id, $slug_produto = null, $produto_parceiro_id = null)
+    {
         if( !is_null( $slug_produto ) ) {
-            $this->_database->where($this->_table.'.slug_produto', $slug_produto );
-        }
-        $this->_database->join('produto', 'produto.produto_id = '.$this->_table.'.produto_id', 'inner');
-        $this->_database->join('produto_parceiro_configuracao', $this->_table. '.produto_parceiro_id = produto_parceiro_configuracao.produto_parceiro_id', 'inner');
-        $this->_database->join('parceiro_relacionamento_produto', $this->_table. '.produto_parceiro_id = parceiro_relacionamento_produto.produto_parceiro_id', 'inner');
-        $this->_database->join('parceiro', $this->_table. '.parceiro_id = parceiro.parceiro_id', 'inner');
-        $this->_database->order_by('produto.nome', 'ASC');
-        $this->_database->order_by($this->_table.'.nome', 'ASC');
-
-        $query = $this->_database->get();
-
-        $where = '';
-        if( !is_null( $slug_produto ) ) {
-            $where .= "AND pp.slug_produto = '$slug_produto'";
+            $this->_database->where('pp.slug_produto', '$slug_produto');
         }
 
         if( !empty( $produto_parceiro_id ) ) {
-            $where .= "AND pp.produto_parceiro_id = $produto_parceiro_id ";
+            $this->_database->where('pp.produto_parceiro_id', $produto_parceiro_id);
         }
 
-        $query = $this->db->query( "
-            SELECT
-                pp.produto_parceiro_id,
-                pp.parceiro_id,
-                pp.produto_id,
-                pp.nome as nome_prod_parc,
-                pr.slug,
-                pr.nome,
-                p.nome as parceiro_nome,
-                p.nome_fantasia as parceiro_nome_fantasia,
-                ppc.venda_carrinho_compras, 
-                ppc.venda_multiplo_cartao,
-                pp.slug_produto
-            FROM parceiro p
-            INNER JOIN produto_parceiro pp ON (pp.parceiro_id=p.parceiro_id AND pp.deletado=0)
-            INNER JOIN parceiro_relacionamento_produto prp ON (prp.produto_parceiro_id=pp.produto_parceiro_id AND prp.deletado=0)
-            INNER JOIN produto pr ON (pr.produto_id=pp.produto_id AND pr.deletado=0)
-            INNER JOIN produto_parceiro_configuracao ppc ON (ppc.produto_parceiro_id=pp.produto_parceiro_id AND ppc.venda_habilitada_admin=1 AND ppc.deletado=0)
-            WHERE 
-                prp.parceiro_id=$parceiro_id 
-                AND prp.deletado=0 ".
-                $where
-        ); 
+        $this->_database->select($this->_table.'.produto_parceiro_id, '.$this->_table.'.parceiro_id, '.$this->_table.'.produto_id, '.$this->_table.'.nome as nome_prod_parc, pr.slug, pr.nome, p.nome as parceiro_nome, p.nome_fantasia as parceiro_nome_fantasia, ppc.venda_carrinho_compras,  ppc.venda_multiplo_cartao, '.$this->_table.'.slug_produto');
 
-        if($query->num_rows() > 0)
-            return $query->result_array();
-        return array();
+        $this->_database->join('parceiro p', 'p.parceiro_id = '.$this->_table.'.parceiro_id ', 'inner');
+        $this->_database->join('parceiro_relacionamento_produto prp', 'prp.produto_parceiro_id = '.$this->_table.'.produto_parceiro_id', 'inner');
+        $this->_database->join('produto pr', 'pr.produto_id = '.$this->_table.'.produto_id', 'inner');
+        $this->_database->join('produto_parceiro_configuracao ppc', 'ppc.produto_parceiro_id = '.$this->_table.'.produto_parceiro_id', 'inner');
+
+        $this->_database->where('prp.deletado', 0);
+        $this->_database->where('pr.deletado', 0);
+        $this->_database->where('ppc.deletado', 0);
+        $this->_database->where('ppc.venda_habilitada_admin', 1);
+        $this->_database->where('prp.parceiro_id', $parceiro_id);
+        return $this->get_all(0,0,true,false);
     }
 
     public function getProdutosByParceiro($parceiro_id, $produto_id = null, $onlyEnable = true)
@@ -291,7 +255,7 @@ Class Produto_Parceiro_Model extends MY_Model
         }
 
         $query = $this->db->query( "
-            SELECT h.parceiro_id, h.produto_parceiro_id FROM (
+            SELECT h.parceiro_id, h.produto_parceiro_id, parceiro.nome FROM (
                 SELECT parceiro_id, produto_parceiro_id FROM parceiro_produto where deletado = 0 
                 UNION
                 SELECT DISTINCT parceiro_plano.parceiro_id, produto_parceiro_plano.produto_parceiro_id 
@@ -300,6 +264,7 @@ Class Produto_Parceiro_Model extends MY_Model
                 WHERE parceiro_plano.deletado = 0 AND produto_parceiro_plano.deletado = 0 
             ) AS h
             INNER JOIN produto_parceiro ON h.produto_parceiro_id = produto_parceiro.produto_parceiro_id
+            INNER JOIN parceiro ON h.parceiro_id = parceiro.parceiro_id
             WHERE produto_parceiro.deletado = 0 
                 {$where}
             "
