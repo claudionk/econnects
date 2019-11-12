@@ -59,4 +59,11 @@ Class Produto_Parceiro_Implantacao_Model extends MY_Model
         return $this;
     }
 
+    function with_implantacao()
+    {
+        $this->_database->select('implantacao_status.nome, implantacao_status.slug');
+        $this->_database->join("implantacao_status", "implantacao_status.implantacao_status_id = {$this->_table}.implantacao_status_id", "inner");
+        return $this;
+    }
+
 }

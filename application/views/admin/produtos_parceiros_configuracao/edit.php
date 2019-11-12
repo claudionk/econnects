@@ -257,7 +257,7 @@ if ($_POST) {
                                     <div class="radio radio-styled">
                                       <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Controle de endosso *</label>
                                       <label class="radio-inline radio-styled radio-primary">
-                                        <input type="radio"Sim id="radio_endosso" name="<?php echo $field_name; ?>" class="required styled"
+                                        <input type="radio" id="radio_endosso" name="<?php echo $field_name; ?>" class="required styled"
                                                value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
                                         <span>Único</span>
                                       </label>
@@ -267,12 +267,11 @@ if ($_POST) {
                                         <span>Mensal</span>
                                       </label>
                                       <label class="radio-inline radio-styled radio-primary">
-                                        <input type="radio"Sim id="radio_endosso" name="<?php echo $field_name; ?>" class="required styled"
+                                        <input type="radio" id="radio_endosso" name="<?php echo $field_name; ?>" class="required styled"
                                                value="2" <?php if (isset($row[$field_name]) && $row[$field_name] == '2') echo 'checked="checked"'; ?> />
                                         <span>Parcelado</span>
                                       </label>
                                     </div>
-
 
                                       <?php $field_name = 'ir_cotacao_salva';?>
                                       <div class="radio radio-styled">
@@ -288,6 +287,28 @@ if ($_POST) {
                                               <span>Sim</span>
                                           </label>
                                       </div>
+
+                                    <?php $field_name = 'canal_emissao';?>
+                                    <div class="checkbox checkbox-styled">
+                                      <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Canal de Emissão *</label>
+                                      <?php foreach ($canais_emissao as $canal) { ?>
+                                      <label class="checkbox-inline checkbox-styled checkbox-primary">
+                                        <input type="checkbox" id="<?php echo $field_name ?>" name="<?php echo $field_name; ?>[]" class="required styled" value="<?php echo $canal['canal_id'] ?>" <?php if ($canal['checado'] == 1) echo 'checked="checked"'; ?> />
+                                        <span><?php echo $canal['nome'] ?></span>
+                                      </label>
+                                      <?php } ?>
+                                    </div>
+
+                                    <?php $field_name = 'canal_cancelamento';?>
+                                    <div class="checkbox checkbox-styled">
+                                      <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Canal de Cancelamento *</label>
+                                      <?php foreach ($canais_cancelamento as $canal) { ?>
+                                      <label class="checkbox-inline checkbox-styled checkbox-primary">
+                                        <input type="checkbox" id="<?php echo $field_name ?>" name="<?php echo $field_name; ?>[]" class="required styled" value="<?php echo $canal['canal_id'] ?>" <?php if ($canal['checado'] == 1) echo 'checked="checked"'; ?> />
+                                        <span><?php echo $canal['nome'] ?></span>
+                                      </label>
+                                      <?php } ?>
+                                    </div>
                                     
                                   </div>
 
