@@ -192,7 +192,7 @@ Class Produto_Parceiro_Model extends MY_Model
     function get_produtos_venda_admin_parceiros($parceiro_id, $slug_produto = null, $produto_parceiro_id = null)
     {
         if( !is_null( $slug_produto ) ) {
-            $this->_database->where($this->_table.'.slug_produto', '$slug_produto');
+            $this->_database->where($this->_table.'.slug_produto', $slug_produto);
         }
 
         if( !empty( $produto_parceiro_id ) ) {
