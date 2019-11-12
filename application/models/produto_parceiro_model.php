@@ -286,7 +286,7 @@ Class Produto_Parceiro_Model extends MY_Model
         //         {$where}
         //     ");die();
         $query = $this->db->query( "
-            SELECT h.parceiro_id, h.produto_parceiro_id, parceiro.nome FROM (
+            SELECT h.parceiro_id, h.produto_parceiro_id, parceiro.nome_fantasia AS nome FROM (
                 SELECT parceiro_id, produto_parceiro_id FROM parceiro_produto where deletado = 0 
                 UNION
                 SELECT DISTINCT parceiro_plano.parceiro_id, produto_parceiro_plano.produto_parceiro_id 
