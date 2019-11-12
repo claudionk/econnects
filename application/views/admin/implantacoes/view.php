@@ -260,7 +260,7 @@
                                                                     <td></td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td colspan="4">DADOS DO BILHETE</td>
+                                                                    <td colspan="4" class="text-bold">DADOS DO BILHETE</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>Descrição da Cobertura: </td>
@@ -270,31 +270,31 @@
                                                                 </tr>
                                                                 <tr>
                                                                     <td>Franquia: </td>
-                                                                    <td><?php echo emptyor($cob['franquia'], '&nbsp;') ?></td>
+                                                                    <td><?php echo emptyor($cob['franquia'], 'NÃO HÁ') ?></td>
                                                                     <td>Carência: </td>
-                                                                    <td><?php echo emptyor($cob['carencia'], '&nbsp;') ?></td>
+                                                                    <td><?php echo emptyor($cob['carencia'], 'NÃO HÁ') ?></td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>Diárias: </td>
-                                                                    <td><?php echo emptyor($cob['diarias'], '&nbsp;') ?></td>
+                                                                    <td><?php echo emptyor($cob['diarias'], 'NÃO HÁ') ?></td>
                                                                     <td></td>
                                                                     <td></td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>Código do Produto: </td>
-                                                                    <td><?php echo emptyor($cob['cod_produto'], '&nbsp;') ?></td>
+                                                                    <td><?php echo emptyor($cob['cod_produto'], emptyor($plano['codigo_operadora'], '-') ) ?></td>
                                                                     <td></td>
                                                                     <td></td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>Código Sucursal: </td>
-                                                                    <td><?php echo emptyor($cob['cod_sucursal'], '&nbsp;') ?></td>
+                                                                    <td><?php echo emptyor($cob['cod_sucursal'], emptyor($row['cod_ramo'], '-')) ?></td>
                                                                     <td></td>
                                                                     <td></td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>Código do Ramo: </td>
-                                                                    <td><?php echo emptyor($cob['cod_ramo'], '&nbsp;') ?></td>
+                                                                    <td><?php echo emptyor($cob['cod_ramo'], emptyor($row['cod_ramo'], '-')) ?></td>
                                                                     <td></td>
                                                                     <td></td>
                                                                 </tr>
@@ -325,6 +325,27 @@
                                                             <div class="col-xs-5">Tipo de Serie </div><div class="col-xs-7"><?php echo emptyor($row['capitalizacao']['serie'], '-') ?></div>
                                                             <div class="col-xs-5">Responsavel por Gerar o Nro da Sorte: </div><div class="col-xs-7"><?php echo emptyor($row['capitalizacao']['responsavel_num_sorte'], '-') ?></div>
                                                             <div class="col-xs-5">Forma de Distribuição: </div><div class="col-xs-7"><?php echo emptyor($row['capitalizacao']['capitalizacao_nome'], '-') ?></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- // Column END -->
+                                            </div>
+                                            <!-- // Row END -->
+
+                                            <div class="row">
+                                                <div class="col-xs-12">
+                                                    <div class="card">
+                                                        <div class="card-body border-bottom">
+                                                            <div class="col-xs-2">Nome: </div><div class="col-xs-4">&nbsp;</div>
+                                                            <div class="col-xs-2">Nome: </div><div class="col-xs-4">&nbsp;</div>
+                                                            <div class="col-xs-2">Assinatura: </div><div class="col-xs-4">&nbsp;</div>
+                                                            <div class="col-xs-2">Assinatura: </div><div class="col-xs-4">&nbsp;</div>
+                                                            <div class="col-xs-12">&nbsp;</div>
+                                                            <div class="col-xs-2">Nome: </div><div class="col-xs-4">&nbsp;</div>
+                                                            <div class="col-xs-2">Nome: </div><div class="col-xs-4">&nbsp;</div>
+                                                            <div class="col-xs-2">Assinatura: </div><div class="col-xs-4">&nbsp;</div>
+                                                            <div class="col-xs-2">Assinatura: </div><div class="col-xs-4">&nbsp;</div>
+                                                            <div class="col-xs-12">&nbsp;</div>
                                                         </div>
                                                     </div>
                                                 </div>

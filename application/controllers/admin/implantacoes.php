@@ -52,8 +52,6 @@ class Implantacoes extends Admin_Controller
         $parceiros = [];
         $parceiros_ids = [];
 
-        // echo "<pre>";print_r($this->db->last_query());die();
-
         //Carrega dados para a página
         $data = array();
         $data["rows"] = $produtos;
@@ -69,7 +67,6 @@ class Implantacoes extends Admin_Controller
         foreach ($parceiros as $key => $value) {
             array_push($parceiros_ids, $value['parceiro_id']);
         }
-        // echo "<pre>";print_r($parceiros_ids);die();
 
         if ( !empty($data["rows"]) )
         {
@@ -269,7 +266,6 @@ class Implantacoes extends Admin_Controller
             }
         }
 
-        $data['parceiro'] = array();
         $data['implantacao_status'] = $this->implantacao_status->get_all();
 
         $prod_parc = $this->current_model->getProdutosByParceiro($this->parceiro_id, $id, false);
@@ -281,15 +277,18 @@ class Implantacoes extends Admin_Controller
             {
                 foreach ($parc_prod as $k => $v) {
                     // se o parceiro nao seja a seguradora logada
-                    if ( $parc_prod[$k]['parceiro_id'] == $this->parceiro_id )
+                    if ( empty($data['parceiro']) && $parc_prod[$k]['parceiro_id'] != $this->parceiro_id )
                     {
-                        unset($parc_prod[$k]);
-                    } else{
                         $data['parceiro'] = $this->parceiro->get($parc_prod[$k]['parceiro_id']);
+                    } else {
+                        unset($parc_prod[$k]);
                     }
                 }
             }
         }
+
+        if (empty($data['parceiro']))
+            $data['parceiro'] = array('nome' => '');
 
         //Carrega template
         return $data;
