@@ -105,6 +105,7 @@ class Implantacoes extends Admin_Controller
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
         $this->load->model('produto_parceiro_capitalizacao_model', 'produto_parceiro_capitalizacao');
         $this->load->model('produto_parceiro_regra_preco_model', 'produto_parceiro_regra_preco');
+        $this->load->model('produto_parceiro_canal_model', 'produto_parceiro_canal');
         $this->load->model('cobertura_plano_model', 'cobertura_plano');
         $this->load->model('apolice_model', 'apolice');
 
@@ -125,6 +126,8 @@ class Implantacoes extends Admin_Controller
         }
 
         $data['row']['forma_pagamentos'] = '';
+        $data['row']['canal_emissao'] = '';
+        $data['row']['canal_cancelamento'] = '';
         $data['row']['ramo'] = $this->produto_ramo->get($data['row']['produto_produto_ramo_id']);
         $data['row']['venda_agrupada'] = yes_no($data['row']['venda_agrupada']);
         $data['row']['configuracao'] = $this->produto_parceiro_configuracao->filter_by_produto_parceiro($id)->get_all();
@@ -134,6 +137,8 @@ class Implantacoes extends Admin_Controller
         $data['row']['planos'] = $this->produto_parceiro_plano->with_precificacao_tipo()->with_moeda()->filter_by_produto_parceiro($id)->get_all();
         $data['row']['acrescimo_premio'] = $this->produto_parceiro_regra_preco->with_regra_preco()->filter_by_produto_parceiro($id)->get_all();
         $data['row']['capitalizacao'] = $this->produto_parceiro_capitalizacao->with_capitalizacao()->with_capitalizacao_tipo()->with_capitalizacao_sorteio()->filter_by_produto_parceiro($id)->get_all();
+        $data['row']['canais_emissao'] = $this->produto_parceiro_canal->with_canal()->filter_by_produto_parceiro_tipo($id, 0)->get_all();
+        $data['row']['canais_cancelamento'] = $this->produto_parceiro_canal->with_canal()->filter_by_produto_parceiro_tipo($id, 1)->get_all();
         $data['row']['apolice'] = $this->apolice->search_apolice_produto_parceiro_id($id)->get_all();
 
         $data['row']['data_configuracao'] = app_date_mysql_to_mask($data['row']['criacao'], 'd/m/Y');
@@ -178,6 +183,24 @@ class Implantacoes extends Admin_Controller
             $separator='';
             foreach ($data['row']['pagamento'] as $key => $value) {
                 $data['row']['forma_pagamentos'] .= $separator.$value['forma_pagamento_nome'];
+                $separator=' / ';
+            }
+        }
+
+        if( $data['row']['canais_emissao'] )
+        {
+            $separator='';
+            foreach ($data['row']['canais_emissao'] as $key => $value) {
+                $data['row']['canal_emissao'] .= $separator.$value['nome'];
+                $separator=' / ';
+            }
+        }
+
+        if( $data['row']['canais_cancelamento'] )
+        {
+            $separator='';
+            foreach ($data['row']['canais_cancelamento'] as $key => $value) {
+                $data['row']['canal_cancelamento'] .= $separator.$value['nome'];
                 $separator=' / ';
             }
         }
@@ -313,10 +336,28 @@ class Implantacoes extends Admin_Controller
         $implantacao_status = $this->implantacao_status->filter_by_slug($slug)->get_all();
         if ( empty($implantacao_status) )
         {
-            return false;
+            //Mensagem de erro caso registro não exista
+            $this->session->set_flashdata('fail_msg', 'O Status já se encontra como '. $last_status['nome']);
+
+            //Redireciona para index
+            redirect("$this->controller_uri/view/".$id);
         }
 
         $implantacao_status_id = $implantacao_status[0]['implantacao_status_id'];
+
+        $last_status = $this->produto_parceiro_implantacao->with_implantacao()->filter_by_produto_parceiro_id($id)->filter_by_last()->get_all();
+        if ( !empty($last_status) )
+        {
+            $last_status = $last_status[0];
+            if ( $last_status['slug'] == $slug )
+            {
+                //Mensagem de erro caso registro não exista
+                $this->session->set_flashdata('fail_msg', 'O Status já se encontra como '. $last_status['nome']);
+
+                //Redireciona para index
+                redirect("$this->controller_uri/view/".$id);
+            }
+        }
 
         $dados['produto_parceiro_id'] = $id;
         $dados['implantacao_status_id'] = $implantacao_status_id;
@@ -326,7 +367,10 @@ class Implantacoes extends Admin_Controller
 
         $this->current_model->update($id, ['implantacao_status_id' => $implantacao_status_id], true);
 
-        redirect("$this->controller_uri/index");
+        //Mensagem de erro caso registro não exista
+        $this->session->set_flashdata('succ_msg', 'O Status alterado com sucesso');
+
+        redirect("$this->controller_uri/view/".$id);
     }
 
 }

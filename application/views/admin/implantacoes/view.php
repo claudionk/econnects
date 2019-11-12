@@ -25,12 +25,14 @@
                         </a>
                     </div>
                     <div class="col-xs-8 text-right">
+                        <?php if ( empty($row['data_aprovacao']) ) { ?>
                         <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="aprovado">
                             <i class="fa fa-check"></i> Autorizar
                         </a>
                         <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="recusado">
                             <i class="fa fa-remove"></i> Recusar
                         </a>
+                        <?php } ?>
                         <a href="javascript:" onclick="printer()" class="btn btn-app btn-primary">
                             <i class="fa fa-print"></i> Imprimir
                         </a>
@@ -38,6 +40,11 @@
                 </div>
 
             </div>
+            <div class="row">
+                    <div class="col-md-6">
+                        <?php $this->load->view('admin/partials/messages'); ?>
+                    </div>
+                </div>
             <div class="col-separator col-unscrollable bg-none box col-separator-first">
 
                 <!-- col-table -->
@@ -136,7 +143,7 @@
                                                             <div class="col-xs-3">Certificado / Bilhete: </div><div class="col-xs-9"><?php echo emptyor($row['configuracoes']['apolice_sequencia'], '-') ?></div>
                                                             <div class="col-xs-3">Formas de Pagamento: </div><div class="col-xs-9"><?php echo emptyor($row['forma_pagamentos'], '-') ?></div>
                                                             <div class="col-xs-3">Arrecadação: </div><div class="col-xs-9"><?php echo emptyor($row['configuracoes']['arrecadacao'], '-') ?></div>
-                                                            <div class="col-xs-3">Canal de Emissão: </div><div class="col-xs-9"><?php echo 'XXXX' ?></div>
+                                                            <div class="col-xs-3">Canal de Emissão: </div><div class="col-xs-9"><?php echo emptyor($row['canal_emissao'], '-') ?></div>
                                                             
                                                             <div class="col-xs-12 text-bold">SERVIÇOS</div>
                                                             <div class="col-xs-3">Enriquecimento de CPF: </div><div class="col-xs-9"><?php echo emptyor($row['servico']['cpf'], '-') ?></div>
@@ -144,7 +151,7 @@
                                                             <div class="col-xs-3">SMS com Comprovação: </div><div class="col-xs-9"><?php echo emptyor($row['servico']['sms_comp'], '-') ?></div>
 
                                                             <div class="col-xs-12 text-bold">REGRAS DE CANCELAMENTO</div>
-                                                            <div class="col-xs-3">Canal de Cancelamento: </div><div class="col-xs-9">XXXX</div>
+                                                            <div class="col-xs-3">Canal de Cancelamento: </div><div class="col-xs-9"><?php echo emptyor($row['canal_cancelamento'], '-') ?></div>
                                                             <div class="col-xs-12">
                                                                 <table width="100%">
                                                                     <tr>
@@ -367,12 +374,14 @@
                                                 </a>
                                             </div>
                                             <div class="col-xs-8 text-right">
+                                                <?php if ( empty($row['data_aprovacao']) ) { ?>
                                                 <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="aprovado">
                                                     <i class="fa fa-check"></i> Autorizar
                                                 </a>
                                                 <a href="javascript:" class="btn btn-app btn-primary alterarStatus" data-val="recusado">
                                                     <i class="fa fa-remove"></i> Recusar
                                                 </a>
+                                                <?php } ?>
                                                 <a href="javascript:" onclick="printer()" class="btn btn-app btn-primary">
                                                     <i class="fa fa-print"></i> Imprimir
                                                 </a>
