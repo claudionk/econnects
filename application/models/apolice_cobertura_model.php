@@ -32,8 +32,10 @@ Class Apolice_Cobertura_Model extends MY_Model
     }
 
     function filterByPedidoID($pedido_id){
-        $this->_database->select("{$this->_table}.*, apolice_equipamento.valor_premio_net");
-        $this->_database->join("apolice_equipamento","apolice_equipamento.apolice_id = {$this->_table}.apolice_id");
+        $this->_database->select("{$this->_table}.*, IFNULL(IFNULL(apolice_equipamento.valor_premio_net,apolice_generico.valor_premio_net),apolice_seguro_viagem.valor_premio_net) AS valor_premio_net", FALSE);
+        $this->_database->join("apolice_equipamento","apolice_equipamento.apolice_id = {$this->_table}.apolice_id", "left");
+        $this->_database->join("apolice_generico","apolice_generico.apolice_id = {$this->_table}.apolice_id", "left");
+        $this->_database->join("apolice_seguro_viagem","apolice_seguro_viagem.apolice_id = {$this->_table}.apolice_id", "left");
         $this->_database->where("{$this->_table}.pedido_id", $pedido_id);
         $this->_database->where("{$this->_table}.deletado", 0);
         return $this;
@@ -44,10 +46,15 @@ Class Apolice_Cobertura_Model extends MY_Model
         return $this->get($id);
     }
 
-    public function geraDadosCancelamento($pedido_id, $valor_base) {
+    public function geraDadosCancelamento($pedido_id, $valor_base)
+    {
+        $this->load->model('apolice_model', 'apolice');
 
-        $coberturas = $this->filterByPedidoID($pedido_id)->get_all();
-        $valor_base = floatval( $valor_base );
+        $valor_base                 = floatval( $valor_base );
+        $coberturas                 = $this->filterByPedidoID($pedido_id)->get_all();
+        $apolice                    = $this->apolice->getApolicePedido($pedido_id);
+        $produto_parceiro_plano_id  = (!empty($apolice)) ? $apolice[0]['produto_parceiro_plano_id'] : null;
+        $dados_bilhete              = $this->apolice->defineDadosBilhete($produto_parceiro_plano_id);
 
         foreach ($coberturas as $cobertura) {
 
@@ -57,7 +64,7 @@ Class Apolice_Cobertura_Model extends MY_Model
                 case 'descricao':
                 case 'preco':
                     // encontra o percentual da cobertura referente ao premio liquido
-                    $percentagem = $valor_config = floatval(round($cobertura["valor"] / $cobertura['valor_premio_net'],2));
+                    $percentagem = $valor_config = floatval($cobertura["valor"] / $cobertura['valor_premio_net']);
                     $valor_cobertura = $valor_base * $percentagem;
                     break;
                 // case 'preco':
@@ -65,15 +72,21 @@ Class Apolice_Cobertura_Model extends MY_Model
                 //     break;
             }
 
-            $dados['cotacao_id'] = $cobertura["cotacao_id"];
-            $dados['pedido_id'] = $cobertura["pedido_id"];
-            $dados['apolice_id'] = $cobertura["apolice_id"];
-            $dados['cobertura_plano_id'] = $cobertura["cobertura_plano_id"];
-            $dados['valor'] = round($valor_cobertura*-1,2);
-            $dados['iof'] = (empty($cobertura["usar_iof"])) ? 0 : $cobertura["iof"];
-            $dados['mostrar'] = $cobertura["mostrar"];
-            $dados['valor_config'] = $valor_config;
-            $dados['criacao'] = date("Y-m-d H:i:s");
+            $dados = [
+                'cotacao_id'         => $cobertura["cotacao_id"],
+                'pedido_id'          => $cobertura["pedido_id"],
+                'apolice_id'         => $cobertura["apolice_id"],
+                'cobertura_plano_id' => $cobertura["cobertura_plano_id"],
+                'valor'              => round($valor_cobertura*-1,2),
+                'iof'                => isempty($cobertura["iof"], 0),
+                'mostrar'            => $cobertura["mostrar"],
+                'valor_config'       => $valor_config,
+                'cod_cobertura'      => $cobertura['cod_cobertura'],
+                'cod_ramo'           => isempty($cobertura['cod_ramo'],     $dados_bilhete['cod_ramo']),
+                'cod_produto'        => isempty($cobertura['cod_produto'],  $dados_bilhete['cod_produto']),
+                'cod_sucursal'       => isempty($cobertura['cod_sucursal'], $dados_bilhete['cod_sucursal']),
+                'criacao'            => date("Y-m-d H:i:s"),
+            ];
 
             $this->insert($dados, TRUE);
         }

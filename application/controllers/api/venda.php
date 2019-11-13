@@ -836,7 +836,6 @@ class Venda extends Api_Controller
           
           $this->load->model("produto_parceiro_plano_precificacao_itens_model", "produto_parceiro_plano_precificacao_itens");
           $this->load->model("produto_parceiro_plano_precificacao_model", "produto_parceiro_plano_precificacao");
-          $this->load->model("equipamento_model", "equipamento");
           $this->load->model("cobertura_plano_model", "plano_cobertura");
           $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
           $arrCoberturas = $this->plano_cobertura->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)->get_all();
@@ -852,7 +851,6 @@ class Venda extends Api_Controller
           break;
         case self::PRECO_TIPO_VALOR_SEGURADO:
           $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
-          $this->load->model('equipamento_model', 'equipamento');
           $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
           error_log( "PRECO_TIPO_VALOR_SEGURADO: ". print_r( $produto_parceiro_plano_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
           $valor = $this->produto_parceiro_plano_precificacao_itens
@@ -863,7 +861,6 @@ class Venda extends Api_Controller
           break;
         case self::PRECO_POR_EQUIPAMENTO;
           $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
-          $this->load->model('equipamento_model', 'equipamento');
           $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
           error_log( "PRECO_POR_EQUIPAMENTO: ". print_r( $produto_parceiro_plano_id, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
           $valor = $this->produto_parceiro_plano_precificacao_itens

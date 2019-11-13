@@ -1,12 +1,6 @@
 <?php
 if($_POST)
   $row = $_POST;
-
-
-// echo '<pre>';
-// print_r($row);
-// die;
-
 ?>
 
 <div class="layout-app" ng-controller="AppController">
@@ -160,7 +154,7 @@ if($_POST)
                           <div class="form-group <?php echo $field_name ?>">
                             <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Taxa (%) </label>
                             <div class="col-md-4">
-                              <input ng-model="porcentagem" ui-number-mask="5" class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/>
+                              <input ng-model="porcentagem" ui-number-mask="15" class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/>
                             </div>
                           </div>
                           <div class="form-group">
@@ -230,7 +224,33 @@ if($_POST)
                               <input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo $row[$field_name]; ?>" />
                             </div>
                           </div>
-                          
+
+                          <div class="form-group">
+                            <div class="col-md-12">
+                              <h4>Dados do CTA</h4>
+                              <hr>
+                            </div>
+                          </div>
+                          <?php $field_name = 'cod_sucursal';?>
+                          <div class="form-group">
+                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Código da Sucursal</label>
+                            <div class="col-md-4"><input class="form-control" ui-number-mask="2" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                          </div>
+                          <?php $field_name = 'cod_cobertura';?>
+                          <div class="form-group">
+                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Código da Cobertura</label>
+                            <div class="col-md-4"><input class="form-control" ui-number-mask="5" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                          </div>
+                          <?php $field_name = 'cod_ramo';?>
+                          <div class="form-group">
+                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Código do Ramo</label>
+                            <div class="col-md-4"><input class="form-control" ui-number-mask="2" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                          </div>
+                          <?php $field_name = 'cod_produto';?>
+                          <div class="form-group">
+                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Código do Produto</label>
+                            <div class="col-md-4"><input class="form-control" ui-number-mask="5" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                          </div>
 
                         </div>
                         <!-- // Column END -->
@@ -285,30 +305,24 @@ if($_POST)
     -ms-user-select: none;
     user-select: none
 }
-
 .switch label {
     cursor: pointer
 }
-
 .switch label input[type=checkbox] {
     opacity: 0;
     width: 0;
     height: 0
 }
-
 .switch label input[type=checkbox]:checked+.lever {
     background-color: #eb0038
 }
-
 .switch label input[type=checkbox]:checked+.lever:before,
 .switch label input[type=checkbox]:checked+.lever:after {
     left: 18px
 }
-
 .switch label input[type=checkbox]:checked+.lever:after {
     background-color: #eb0038 
 }
-
 .switch label .lever {
     content: "";
     display: inline-block;
@@ -323,7 +337,6 @@ if($_POST)
     vertical-align: middle;
     margin: 0 16px
 }
-
 .switch label .lever:before,
 .switch label .lever:after {
     content: "";
@@ -339,36 +352,30 @@ if($_POST)
     transition: left 0.3s ease, background .3s ease, box-shadow 0.1s ease, transform .1s ease;
     transition: left 0.3s ease, background .3s ease, box-shadow 0.1s ease, transform .1s ease, -webkit-box-shadow 0.1s ease, -webkit-transform .1s ease
 }
-
 .switch label .lever:before {
     background-color: rgba(38, 166, 154, 0.15)
 }
-
 .switch label .lever:after {
     background-color: #F1F1F1;
     -webkit-box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12);
     box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12)
 }
-
 input[type=checkbox]:checked:not(:disabled) ~ .lever:active::before,
 input[type=checkbox]:checked:not(:disabled).tabbed:focus ~ .lever::before {
     -webkit-transform: scale(2.4);
     transform: scale(2.4);
     background-color: rgba(38, 166, 154, 0.15)
 }
-
 input[type=checkbox]:not(:disabled) ~ .lever:active:before,
 input[type=checkbox]:not(:disabled).tabbed:focus ~ .lever::before {
     -webkit-transform: scale(2.4);
     transform: scale(2.4);
     background-color: rgba(0, 0, 0, 0.08)
 }
-
 .switch input[type=checkbox][disabled]+.lever {
     cursor: default;
     background-color: rgba(0, 0, 0, 0.12)
 }
-
 .switch label input[type=checkbox][disabled]+.lever:after,
 .switch label input[type=checkbox][disabled]:checked+.lever:after {
     background-color: #949494
@@ -376,19 +383,16 @@ input[type=checkbox]:not(:disabled).tabbed:focus ~ .lever::before {
 </style>
 <script type="text/javascript">
   var flag_iof = "<?php echo isset($row['iof']) ? $row['iof'] : ''; ?>";
-  console.log(flag_iof);
 
   if(flag_iof == '' || flag_iof == '0.00000')
     $("#field_iof").hide();
   else 
     $("#iof_on_off").click();
 
-
   $("#iof_on_off").change(function(){
     if($(this).is(":checked"))
       $("#field_iof").show();
     else
       $("#field_iof").hide();
-    
   });
 </script>

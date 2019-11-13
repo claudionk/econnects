@@ -9,8 +9,6 @@
 class Produtos_Parceiros_Regra_Preco extends Admin_Controller
 {
 
-
-
     public function __construct()
     {
         parent::__construct();
@@ -23,15 +21,10 @@ class Produtos_Parceiros_Regra_Preco extends Admin_Controller
         $this->load->model('produto_parceiro_regra_preco_model', 'current_model');
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
         $this->load->model('regra_preco_model', 'regra_preco');
-
-
     }
-
-
 
     public function index($produto_parceiro_id , $offset = 0)
     {
-
 
         $this->auth->check_permission('view', 'produto_parceiro_regra_preco', 'admin/poroduto_parceiro/');
 
@@ -53,9 +46,6 @@ class Produtos_Parceiros_Regra_Preco extends Admin_Controller
             $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
             redirect("admin/parceiros/index");
         }
-
-
-
 
         //Inicializa tabela
         $config['base_url'] = base_url("$this->controller_uri/index/{$produto_parceiro_id}");
@@ -88,12 +78,10 @@ class Produtos_Parceiros_Regra_Preco extends Admin_Controller
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
 
-
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Regra de Preços");
         $this->template->set_breadcrumb("Regra de Preços", base_url("$this->controller_uri/index"));
-
 
         $produto_parceiro =  $this->produto_parceiro->get($produto_parceiro_id);
 
@@ -128,8 +116,6 @@ class Produtos_Parceiros_Regra_Preco extends Admin_Controller
 
         }
 
-
-
         $data = array();
         $data['primary_key'] = $this->current_model->primary_key();
         $data['new_record'] = '1';
@@ -137,7 +123,7 @@ class Produtos_Parceiros_Regra_Preco extends Admin_Controller
         $data['produto_parceiro_id'] = $produto_parceiro_id;
         $data['produto_parceiro'] = $produto_parceiro;
         $data['regras'] = $this->regra_preco->get_all();
-
+        $data['row'] = null;
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
@@ -164,8 +150,6 @@ class Produtos_Parceiros_Regra_Preco extends Admin_Controller
             redirect("admin/parceiros/index");
         }
 
-
-
         //Carrega dados para a página
         $data = array();
         $data['row'] = $this->current_model->get($id);
@@ -186,8 +170,6 @@ class Produtos_Parceiros_Regra_Preco extends Admin_Controller
             redirect("$this->controller_uri/index");
         }
 
-
-
         //Caso post
         if($_POST)
         {
@@ -203,8 +185,6 @@ class Produtos_Parceiros_Regra_Preco extends Admin_Controller
                 redirect("$this->controller_uri/index/{$produto_parceiro_id}");
             }
         }
-
-
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
@@ -224,6 +204,5 @@ class Produtos_Parceiros_Regra_Preco extends Admin_Controller
 
         redirect("$this->controller_uri/index/{$produto_parceiro_id}");
     }
-
 
 }

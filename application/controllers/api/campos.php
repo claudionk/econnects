@@ -59,12 +59,18 @@ class Campos extends CI_Controller {
       die( json_encode( array( "status" => false, "message" => "Campo produto_parceiro_id é obrigatório" ) ) );
     } else {
       $produto_parceiro_id = $GET["produto_parceiro_id"];
+      $produto_parceiro_plano_id = null;
+
+      if( !empty( $GET["produto_parceiro_plano_id"] ) ) {
+        $produto_parceiro_plano_id = $GET["produto_parceiro_plano_id"];
+      }
+
       $slug = null;
       if( isset( $GET["slug"] ) ) {
         $slug = $GET["slug"];
       }
 
-      $planos = $this->produto_parceiro_plano->coreSelectPlanosProdutoParceiro( $produto_parceiro_id, null )->get_all_select();
+      $planos = $this->produto_parceiro_plano->coreSelectPlanosProdutoParceiro( $produto_parceiro_id, $produto_parceiro_plano_id )->get_all_select();
       $result = array();
       
       if( $planos ) {

@@ -63,7 +63,6 @@ Class Capitalizacao_Serie_Model extends MY_Model
     public function get_form_data($just_check = false)
     {
         //Dados
-
         $len = strlen($this->input->post('numero_inicio'));
         $data =  array(
             'capitalizacao_id' => $this->input->post('capitalizacao_id'),
@@ -77,15 +76,19 @@ Class Capitalizacao_Serie_Model extends MY_Model
         );
         return $data;
     }
+
     function get_by_id($id)
     {
         return $this->get($id);
     }
 
-    function  filter_by_capitalizacao($capitalizacao_id){
-
+    function filter_by_capitalizacao($capitalizacao_id){
         $this->_database->where("{$this->_table}.capitalizacao_id", $capitalizacao_id);
+        return $this;
+    }
 
+    function filter_by_ativo($ativo){
+        $this->_database->where("{$this->_table}.ativo", $ativo);
         return $this;
     }
 

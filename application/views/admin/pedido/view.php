@@ -80,7 +80,7 @@
                                     <dd>R$ <?php echo app_format_currency($item['premio_liquido_total'], false, 2); ?></dd>
                                     <dt>Câmbio</dt>
                                     <dd><?php echo $item['moeda'] ?> - R$ <?php echo app_format_currency($item['cambio']) ?> - <?php echo app_date_mysql_to_mask($item['data_cambio'], 'd/m/Y'); ?></dd>
-                                <?php elseif($produto['slug'] == 'equipamento') : ?>
+                                    <?php elseif($produto['slug'] == 'equipamento') : ?>
 
                                     <dt>Categoria do Equipamento:</dt>
                                     <dd><?php echo issetor($item['equipamento_categoria_nome']) ?></dd>
@@ -89,6 +89,9 @@
                                     <dd><?php echo issetor($item['equipamento_marca_nome']) ?></dd>
 
                                     <dt>Equipamento:</dt>
+                                    <dd><?php echo issetor($item['equipamento_sub_categoria_nome']) ?></dd>
+
+                                    <dt>Modelo:</dt>
                                     <dd><?php echo issetor($item['equipamento_nome']) ?></dd>
 
                                     <dt>Valor Nota Fiscal:</dt>
@@ -499,6 +502,22 @@
 </div>
 
 <!-- MODALS -->
+<div class="modal fade" id="viewModalCancelamentoError" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">CANCELAMENTO</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="modal fade" id="viewModalCancelamento" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
@@ -670,15 +689,25 @@ jQuery(function($){
                 $(".carregando").show();
             },
             success: function(data){
-                _inicio_vigencia = String( data.dados[0].apolices.data_ini_vigencia).replace(/^(....).(..).(..)/,"$3/$2/$1");
-                _fim_vigencia = String( data.dados[0].apolices.data_fim_vigencia).replace(/^(....).(..).(..)/,"$3/$2/$1");
+                if (!data.status) {
+                    if (data.mensagem) {
+                        $('#viewModalCancelamentoError .modal-body').html(data.mensagem);
+                        $('#viewModalCancelamentoError').modal('show');
+                        return;
+                    }
+                } else {
 
-                $(".carregando").hide();
-                $("#vldevolucao").html("").append(data.valor_estorno_total);
-                $("#dtvigenciaini").html("").append(_inicio_vigencia);
-                $("#dtvigenciafim").html("").append(_fim_vigencia);
-                $("#qtdutilizados").html("").append(data.dias_utilizados);
-                $('#viewModalCancelamento').modal('show');                 
+                    _inicio_vigencia = String( data.dados[0].apolices.data_ini_vigencia).replace(/^(....).(..).(..)/,"$3/$2/$1");
+                    _fim_vigencia = String( data.dados[0].apolices.data_fim_vigencia).replace(/^(....).(..).(..)/,"$3/$2/$1");
+
+                    $(".carregando").hide();
+                    $("#vldevolucao").html("").append(data.valor_estorno_total);
+                    $("#dtvigenciaini").html("").append(_inicio_vigencia);
+                    $("#dtvigenciafim").html("").append(_fim_vigencia);
+                    $("#qtdutilizados").html("").append(data.dias_utilizados);
+                    $('#viewModalCancelamento').modal('show');
+
+                }
             },
             error: function(data){
                 console.log(data);

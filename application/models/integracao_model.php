@@ -225,19 +225,19 @@ Class Integracao_Model extends MY_Model
             if($integracao){
                 switch ($integracao['periodicidade_unidade']) {
                     case 'I' :
-                        $date = date('Y-m-d H:i:s', mktime(date('h'), date('i') + $integracao['periodicidade'], 0, date('m'), date('d'), date('Y')));
+                        $date = date('Y-m-d H:i:s', mktime(date('H'), date('i') + $integracao['periodicidade'], 0, date('m'), date('d'), date('Y')));
                         break;
                     case 'H' :
-                        $date = date('Y-m-d H:i:s', mktime(date('h') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d'), date('Y')));
+                        $date = date('Y-m-d H:i:s', mktime(date('H') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d'), date('Y')));
                         break;
                     case 'D' :
-                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('h') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d') + $integracao['periodicidade'], date('Y')));
+                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('H') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d') + $integracao['periodicidade'], date('Y')));
                         break;
                     case 'M' :
-                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('h') + $integracao['periodicidade'], date('i'), 0, date('m') + $integracao['periodicidade'], date('d'), date('Y')));
+                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('H') + $integracao['periodicidade'], date('i'), 0, date('m') + $integracao['periodicidade'], date('d'), date('Y')));
                         break;
                     case 'Y' :
-                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('h') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d'), date('Y') + $integracao['periodicidade']));
+                        $date = date("Y-m-d {$integracao['periodicidade_hora']}", mktime(date('H') + $integracao['periodicidade'], date('i'), 0, date('m'), date('d'), date('Y') + $integracao['periodicidade']));
                         break;
                     case 'C' :
                         $date = date("Y-m-d h-i-s");
@@ -286,7 +286,7 @@ Class Integracao_Model extends MY_Model
         $this->_database->where("integracao.status", 'A');
         $this->_database->where("integracao.deletado", 0);
         $this->_database->where("integracao.habilitado", 1);
-        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:m:s'));
+        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
         $result = $this->get_all();
 
 
@@ -324,7 +324,7 @@ Class Integracao_Model extends MY_Model
             $dados_integracao['status'] = 'A';
             $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
-            //execute before execute
+            //execute after execute
             if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
                 call_user_func($result['after_execute'], null, array('item' => $result, 'registro' => $result_file, 'log' => $result_process, 'valor' => null));
             }
@@ -342,7 +342,7 @@ Class Integracao_Model extends MY_Model
         $this->_database->where("integracao.status", 'A');
         $this->_database->where("integracao.deletado", 0);
         $this->_database->where("integracao.habilitado", 1);
-        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:m:s'));
+        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
         $result = $this->get_all();
 
         if($result){
@@ -353,7 +353,6 @@ Class Integracao_Model extends MY_Model
 
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
-                echo $result['before_execute']."<br>";
                 call_user_func($result['before_execute'], null, array('item' => $result, 'registro' => array(), 'log' => array(), 'valor' => null));
             }
 
@@ -371,7 +370,7 @@ Class Integracao_Model extends MY_Model
             }
 
             // se gerou conteúdo no arquivo
-            if (!empty($filename)){
+            if (!empty($filename) && ( $result_file['qtde_reg'] > 0 || !empty($integracao['envia_vazio']) ) ) {
                 $this->sendFile($result, $filename);
             }
 
@@ -396,6 +395,10 @@ Class Integracao_Model extends MY_Model
             $dados_integracao['status'] = 'A';
             $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
+            //execute after execute
+            if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
+                call_user_func($result['after_execute'], null, array('item' => $result, 'registro' => $result_file, 'log' => $dados_log, 'valor' => null));
+            }
         }
     }
 
@@ -436,11 +439,55 @@ Class Integracao_Model extends MY_Model
                 case 3:
 
                     break;
+
+                // Criado para correções pontuais
+                case 100:
+                    return $this->getFileCustom($integracao);
+                    break;
             }
 
         }catch (Exception $e) {
 
         }
+    }
+
+    private function getFileCustom($integracao = array()){
+
+        $this->load->model('integracao_log_model', 'integracao_log');
+
+        $result = array(
+            'file' => '',
+            'fileget' => '',
+        );
+
+        $file_processar = '';
+        $integs = $this->integracao_log
+            ->filter_ret_CTA_custom($integracao['integracao_id']);
+
+        foreach ($integs as $int) {
+            $total = $this->integracao_log
+                ->filter_by_integracao($integracao['integracao_id'])
+                ->filter_by_file($int['nome_arquivo'])
+                ->get_total();
+
+            if ((int)$total == 0) {
+                $file_processar = $int['nome_arquivo'];
+                break;
+            }
+        }
+
+        if(!empty($file_processar)){
+            $fileget = $file_processar;
+            $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+            if(file_exists("{$diretorio}/{$fileget}")){
+                $result = array(
+                    'file' => "{$diretorio}/{$fileget}",
+                    'fileget' => $fileget,
+                );
+            }
+        }
+
+        return $result;
     }
 
     private function getFileFTP($integracao = array(), $file){
@@ -542,20 +589,20 @@ Class Integracao_Model extends MY_Model
 
     private function processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao) {
         if (!empty($layout_m)){
-
             foreach ($registros as $registro) {
-
                 $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $this->data_template_script['totalRegistros']+1, $this->geraCampoChave($integracao['campo_chave'], $registro), null, $this->geraCampoChave($integracao['parametros'], $registro));
 
                 foreach ($layout_m as $lm) {
 
                     $inserir=true;
+                    $this->data_template_script['pedido_id']            = issetor($registro['pedido_id'], 0);
+                    $this->data_template_script['apolice_status_id']    = issetor($registro['apolice_status_id'], 0);
+                    $this->data_template_script['apolice_id']           = issetor($registro['apolice_id'], 0);
+                    $this->data_template_script['apolice_endosso_id']   = issetor($registro['apolice_endosso_id'], 0);
+                    $this->data_template_script['num_sequencial']       = issetor($registro['num_sequencial'], 0);
 
                     // caso tenha que pegar o campo do detalhe
                     if (!empty($lm['sql'])) {
-                        $this->data_template_script['pedido_id'] = issetor($registro['pedido_id'], 0);
-                        $this->data_template_script['apolice_status_id'] = issetor($registro['apolice_status_id'], 0);
-                        $this->data_template_script['num_sequencial'] = issetor($registro['num_sequencial'], 0);
                         $lm['sql'] = $this->parser->parse_string($lm['sql'], $this->data_template_script, TRUE);
                         $reg = $this->_database->query($lm['sql'])->result_array();
                         $inserir=false;
@@ -600,17 +647,18 @@ Class Integracao_Model extends MY_Model
 
         $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], count($registros));
         $arRet = ['file' => '', 'integracao_log_id' => $integracao_log['integracao_log_id'], 'qtde_reg' => count($registros)];
-
-        
-        // if (empty($registros))
+        $filename = '';
+        // Não envia vazio && não retornou nenhum dado para ser enviado
+        // if ( empty($integracao['envia_vazio']) && empty($registros) ) {
         //     return $arRet;
+        // }
 
         //busca layout
         $query = $this->_database->query("
             SELECT il.*, id.multiplo, id.script_sql
             FROM integracao_layout il 
             INNER JOIN integracao_detalhe id ON il.integracao_detalhe_id=id.integracao_detalhe_id
-            WHERE il.integracao_id = {$integracao['integracao_id']} AND il.deletado = 0
+            WHERE il.integracao_id = {$integracao['integracao_id']} AND il.deletado = 0 AND id.deletado = 0
             ORDER BY id.ordem, il.ordem
         ");
         $layout_all = $query->result_array();
@@ -643,7 +691,6 @@ Class Integracao_Model extends MY_Model
             unset($layout[$idxF]);
         }
 
-
         // Trata o header
         $idxH = app_search( $layout, 'H', 'tipo' );
         if ( $idxH >= 0 ) {
@@ -656,12 +703,19 @@ Class Integracao_Model extends MY_Model
             unset($layout[$idxH]);
         }
 
+        if ( empty($filename) ) {
+            return $arRet;
+        }
+
+        $arRet['file'] = "{$diretorio}/{$filename}";
+        $arRet['dados'] = $registros;
+
         //gera todas as linhas
         foreach ($layout as $lay) {
             if ($lay['multiplo'] == 0) {
                 $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
                 $layout_m = [];
-                $line = $this->processLine($lay['multiplo'], $lay['dados'], $registros, $integracao_log);
+                $line = $this->processLine($lay['multiplo'], $lay['dados'], !empty($registros) ? $registros[0] : [], null);
                 if (!empty($line)) $linhas[] = $line;
             } else {
                 $layout_m[] = $lay;
@@ -672,15 +726,16 @@ Class Integracao_Model extends MY_Model
         // Trata o header
         if ( $idxH >= 0 ) {
             $rmQtdeLine++;
-            $header = $this->getLinha($lH['dados'], $registros, $integracao_log);
+            $header = $this->getLinha($lH['dados'], !empty($registros) ? $registros[0] : [], $integracao_log);
             $linhas = array_merge([$header], $linhas);
         }
-       
-        // if (empty($linhas) || count($linhas) <= $rmQtdeLine)
-        //     return $arRet;
-        
+
+        // Nao envia vazio && (nao gerou linhas ou as linhas geradas não são de detalhes)
+        if ( empty($integracao['envia_vazio']) && (empty($linhas) || count($linhas) <= $rmQtdeLine) ) {
+            return $arRet;
+        }
+
         $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
-        
 
         if(!file_exists($diretorio)){
             mkdir($diretorio, 0777, true);
@@ -696,7 +751,6 @@ Class Integracao_Model extends MY_Model
         $content = iconv( mb_detect_encoding( $content ), 'Windows-1252//TRANSLIT', $content );
         file_put_contents("{$diretorio}/{$filename}", $content);
 
-        $arRet['file'] = "{$diretorio}/{$filename}";
         return $arRet;
     }
 
@@ -777,8 +831,15 @@ Class Integracao_Model extends MY_Model
         $id_log = 0;
         $num_linha = 0;
         foreach ($detail as  $rows) {
+
+            // add o header em cada linha
+            $rows = array_merge($rows, $header);
+            $rows = array_merge($rows, $trailler);
             $data_row = $ids = array();
+
             foreach ($rows as $index => $row) {
+                $row['valor_anterior'] = $row['valor'];
+
                 if ($row['layout']['insert'] == 1) {
                     if(function_exists($row['layout']['function'])){
                         $row['valor'] = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor']));
@@ -790,7 +851,7 @@ Class Integracao_Model extends MY_Model
 
                     if(function_exists($row['layout']['function'])){
 
-                        $id_log = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor']));
+                        $id_log = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor_anterior']));
                     }
 
                     if (!empty($id_log)) {
@@ -843,7 +904,8 @@ Class Integracao_Model extends MY_Model
                 if ( function_exists($integracao['before_detail']) ) {
 
                     // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods 
-                    if(!empty($datum['cod_erro']) && $datum['cod_erro'] == 22 && ( $datum['tipo_arquivo'] == 'CLIENTE' || $datum['tipo_arquivo'] == 'EMSCMS' || $datum['tipo_arquivo'] == 'PARCEMS' ) ) 
+                    // Tratando o erro 110 - Registro duplicado no arquivo de origem
+                    if(!empty($datum['cod_erro']) && in_array($datum['cod_erro'], [22, 110]) && ( $datum['tipo_arquivo'] == 'CLIENTE' || $datum['tipo_arquivo'] == 'EMSCMS' || $datum['tipo_arquivo'] == 'PARCEMS' ) ) 
                     {
                         $msgDetCampo[] = ['id' => 12, 'msg' => $datum['cod_erro'] ." - ". $datum['descricao_erro'], 'slug' => "erro_retorno"];
                     } else 
@@ -914,40 +976,15 @@ Class Integracao_Model extends MY_Model
         return $integracao_log;
     }
 
-    private function trataRetorno($txt) {
-        $txt = mb_strtoupper(trim($txt), 'UTF-8');
-        $txt = app_remove_especial_caracteres($txt);
-        $txt = preg_replace("/[^ |A-Z|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
-        $txt = preg_replace("/\s{2,3000}/", "", $txt);
-        $txt = preg_replace("/[\\|\/]/", "-", $txt);
-        return $txt;
-    }
-
     private function getLinha($layout, $registro = array(), $log = array(), $integracao_log_detalhe_id = null, $integracao = null){
 
         $result = "";
         $arResult = [];
+        $arCampoChave = [];
         $integracao_log_status_id = 4;
         $v = 0;
 
         foreach ($layout as $ind => $item) {
-
-            // Se for obrigatório precisa validar e retornar erro para gerar log de retorno
-            if ($item['obrigatorio'] == 1 && !empty($item['nome_banco']) ){
-                if ( !isset($registro[$item['nome_banco']]) || strlen(trim($registro[$item['nome_banco']])) == 0 
-                    || ( $item['campo_tipo']=='M' && !($registro[$item['nome_banco']] > 0) ) 
-                    // || ( $item['campo_tipo']=='D' && !($registro[$item['nome_banco']] > 0) ) 
-                ) {
-                    // seta para erro
-                    $integracao_log_status_id = 8;
-
-                    // gera log do erro
-                    $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, 1, "O campo {$item['nome']} é obrigatório", $item['nome_banco']);
-
-                    // não gera a linha
-                    continue;
-                }
-            }
 
             $campo = null;
             $pre_result = '';
@@ -974,7 +1011,7 @@ Class Integracao_Model extends MY_Model
             }elseif (!empty($item['nome_banco'])){
 
                 if(isset($registro[$item['nome_banco']])){
-                    $registro[$item['nome_banco']] = $campo = $registro[$item['nome_banco']];
+                    $campo = $registro[$item['nome_banco']];
                 }elseif(isset($log[$item['nome_banco']])){
                     $campo = $log[$item['nome_banco']];
                 }else{
@@ -983,12 +1020,55 @@ Class Integracao_Model extends MY_Model
 
             }
 
+            // Valida a chave da criação do log
+            if ( !empty($integracao) ) {
+                $key_field = explode("|", $integracao['campo_chave']);
+                if ( in_array($item['nome_banco'], $key_field) ) {
+                    $arCampoChave[$item['nome_banco']] = $campo;
+                }
+            }
+
+            // Se for obrigatório precisa validar e retornar erro para gerar log de retorno
+            if ($item['obrigatorio'] == 1 && !empty($item['nome_banco']) && empty($campo)){
+                if ( !isset($registro[$item['nome_banco']]) || strlen(trim($registro[$item['nome_banco']])) == 0
+                    || ( $item['campo_tipo']=='M' && !($registro[$item['nome_banco']] > 0) ) 
+                    // || ( $item['campo_tipo']=='D' && !($registro[$item['nome_banco']] > 0) ) 
+                ) {
+                    // seta para erro
+                    $integracao_log_status_id = 8;
+
+                    // gera log do erro
+                    $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, 1, "O campo {$item['nome']} é obrigatório", $item['nome_banco']);
+
+                    // não gera a linha
+                    continue;
+                }
+            }
+
             if (!is_null($campo)){
-                $pre_result .= mb_str_pad($this->trataRetorno($campo), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
+                $pre_result .= mb_str_pad(trataRetorno($campo), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
             }
 
             $result .= mb_substr($pre_result,0,$item['tamanho']);
         }
+
+        // Valida a chave da criação do log
+        /*
+        if ( !empty($arCampoChave) )
+        {
+            // verifica se mantém a mesma quantidade de campos para não perder alguma no meio do caminho
+            // dessa forma, assume a inicial informada antes do processamento linha a linha
+            $key_field = explode("|", $integracao['campo_chave']);
+            if (count($key_field) == count($arCampoChave))
+            {
+                $this->integracao_log_detalhe->update_by(
+                    array('integracao_log_detalhe_id' => $integracao_log_detalhe_id),array(
+                        'chave' => $this->geraCampoChave($integracao['campo_chave'], $arCampoChave)
+                    )
+                );
+            }
+        }
+        */
 
         if ($integracao_log_status_id != 4){
             $this->integracao_log_detalhe->update_by(
@@ -1068,7 +1148,7 @@ Class Integracao_Model extends MY_Model
                 AND a.deletado = 0
                 AND b.integracao_log_status_id = 4
                 AND ehc.`status` = 'P'
-                AND ehcx.id_exp IS NULL
+                AND IF(ehc.tipo_expediente = 'AJU', 1, ehcx.id_exp IS NULL)
             ";
             $query = $this->_database->query($sql);
 
@@ -1084,6 +1164,7 @@ Class Integracao_Model extends MY_Model
                 AND a.deletado = 0
                 AND b.integracao_log_status_id = 4
             ";
+            $query = $this->_database->query($sql);
 
         }
 
@@ -1103,7 +1184,7 @@ Class Integracao_Model extends MY_Model
                 WHERE a.nome_arquivo LIKE '{$file}%'
                 AND a.deletado = 0
                 AND ehc.`status` = 'P'
-                AND ehcx.id_exp IS NULL
+                AND IF(ehc.tipo_expediente = 'AJU', 1, ehcx.id_exp IS NULL)
                 AND b.chave LIKE '{$chave}%'
             ";
             $query = $this->_database->query($sql);
@@ -1118,7 +1199,7 @@ Class Integracao_Model extends MY_Model
             AND il.deletado = 0
             AND il.integracao_log_status_id = 3
             AND ild.integracao_log_status_id NOT IN(4,5)
-            AND ild.chave LIKE '{$chave}%'
+            AND ild.chave = '{$chave}'
         ";
         $query = $this->_database->query($sql);
 
@@ -1149,11 +1230,10 @@ Class Integracao_Model extends MY_Model
                 case 'EMSCMS':
                 case 'LCTCMS':
                 case 'COBRANCA':
-                    $chave = !empty($dados['num_apolice']) ? trim($dados['num_apolice']) ."|" : '';
+                    $chave = !empty($dados['num_apolice']) ? trim($dados['num_apolice']) ."|". (int)$dados['num_sequencial'] : '';
                     break;
                 case 'SINISTRO':
                     $chave = !empty($dados['cod_sinistro']) ? (int)$dados['cod_sinistro'] ."|". (int)$dados['cod_movimento'] : '';
-                    // $chave = !empty($dados['cod_sinistro']) ? (int)$dados['cod_sinistro'] .'|' : '';
                     break;
             }
         }
@@ -1161,25 +1241,22 @@ Class Integracao_Model extends MY_Model
         return ['chave' => $chave, 'file' => $file, 'tipo' => $tipo_file];
     }
 
-    function app_integracao_apolice_revert($num_apolice_custom, $cod_tpa){
-
+    function app_integracao_apolice_revert($num_apolice_custom, $cod_tpa)
+    {
         $sql = "
-            SELECT 
-                a.num_apolice
-            FROM
-                apolice a
-                    JOIN
-                produto_parceiro_plano ppp ON a.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
-                    JOIN
-                produto_parceiro pp ON ppp.produto_parceiro_id = pp.produto_parceiro_id
+            SELECT a.num_apolice
+            FROM apolice a
+            JOIN produto_parceiro_plano ppp ON a.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
+            JOIN produto_parceiro pp ON ppp.produto_parceiro_id = pp.produto_parceiro_id
             WHERE
                 a.num_apolice LIKE '%{$num_apolice_custom}'
-                AND pp.cod_tpa = {$cod_tpa};
+                AND pp.cod_tpa = '{$cod_tpa}'
+                AND a.deletado = 0;
         ";
         $query = $this->_database->query($sql);
 
         return ($query->row()) ? $query->result()[0]->num_apolice : FALSE; 
-        
     }
 
 }
+
