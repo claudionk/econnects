@@ -1228,15 +1228,12 @@ Class Integracao_Model extends MY_Model
                     break;
                 case 'PARCEMS':
                 case 'EMSCMS':
-                    $chave = !empty($dados['num_apolice']) ? trim($dados['num_apolice']) ."|". (int)$dados['num_sequencial'] : '';
-                    break;
                 case 'LCTCMS':
                 case 'COBRANCA':
-                    $chave = !empty($dados['num_apolice']) ? trim($dados['num_apolice']) : '';
+                    $chave = !empty($dados['num_apolice']) ? trim($dados['num_apolice']) ."|". (int)$dados['num_sequencial'] : '';
                     break;
                 case 'SINISTRO':
                     $chave = !empty($dados['cod_sinistro']) ? (int)$dados['cod_sinistro'] ."|". (int)$dados['cod_movimento'] : '';
-                    // $chave = !empty($dados['cod_sinistro']) ? (int)$dados['cod_sinistro'] .'|' : '';
                     break;
             }
         }
@@ -1244,25 +1241,21 @@ Class Integracao_Model extends MY_Model
         return ['chave' => $chave, 'file' => $file, 'tipo' => $tipo_file];
     }
 
-    function app_integracao_apolice_revert($num_apolice_custom, $cod_tpa){
-
+    function app_integracao_apolice_revert($num_apolice_custom, $cod_tpa)
+    {
         $sql = "
-            SELECT 
-                a.num_apolice
-            FROM
-                apolice a
-                    JOIN
-                produto_parceiro_plano ppp ON a.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
-                    JOIN
-                produto_parceiro pp ON ppp.produto_parceiro_id = pp.produto_parceiro_id
+            SELECT a.num_apolice
+            FROM apolice a
+            JOIN produto_parceiro_plano ppp ON a.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
+            JOIN produto_parceiro pp ON ppp.produto_parceiro_id = pp.produto_parceiro_id
             WHERE
                 a.num_apolice LIKE '%{$num_apolice_custom}'
-                AND pp.cod_tpa = {$cod_tpa};
+                AND pp.cod_tpa = '{$cod_tpa}'
+                AND a.deletado = 0;
         ";
         $query = $this->_database->query($sql);
 
         return ($query->row()) ? $query->result()[0]->num_apolice : FALSE; 
-        
     }
 
 }
