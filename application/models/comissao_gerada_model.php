@@ -107,7 +107,7 @@ Class Comissao_Gerada_Model extends MY_Model {
             INNER JOIN parceiro_relacionamento_produto ON cotacao.parceiro_id = parceiro_relacionamento_produto.parceiro_id AND parceiro_relacionamento_produto.produto_parceiro_id = ifnull(ifnull(cotacao_equipamento.produto_parceiro_id, cotacao_generico.produto_parceiro_id), cotacao_seguro_viagem.produto_parceiro_id)
             INNER JOIN parceiro ON parceiro_relacionamento_produto.parceiro_id = parceiro.parceiro_id
             LEFT JOIN comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.deletado = 0 
-            WHERE pedido.pedido_status_id IN (3,8) 
+            WHERE pedido.pedido_status_id IN (3,8,5) 
                 AND cotacao.deletado = 0
                 AND pedido.deletado = 0
                 AND comissao_gerada.pedido_id IS NULL
