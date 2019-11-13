@@ -150,8 +150,8 @@ class Apolice extends CI_Controller {
         if($apolice_id || $num_apolice || $documento || $pedido_id ) {
             $pedidos = $this->pedido
             ->with_pedido_status()
-            ->with_cotacao_cliente_contato()
             ->with_apolice()
+            ->with_cotacao_cliente_contato()
             ->with_produto_parceiro()
             // ->with_fatura()
             ->filterNotCarrinho()
