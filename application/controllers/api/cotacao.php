@@ -9,15 +9,6 @@ class Cotacao extends CI_Controller {
     public $usuario_id;
     public $parceiro_id;
 
-    const FORMA_PAGAMENTO_CARTAO_CREDITO = 1;
-    const FORMA_PAGAMENTO_TRANSF_BRADESCO = 2;
-    const FORMA_PAGAMENTO_TRANSF_BB = 7;
-    const FORMA_PAGAMENTO_CARTAO_DEBITO = 8;
-    const FORMA_PAGAMENTO_BOLETO = 9;
-    const FORMA_PAGAMENTO_FATURADO = 10;
-    const FORMA_PAGAMENTO_CHECKOUT_PAGMAX = 11;
-
-
     public function __construct() {
         parent::__construct();
 
@@ -317,13 +308,13 @@ class Cotacao extends CI_Controller {
 
         $params = $POST;
 
-        $produto_parceiro_plano_id = $cotacao_itens["produto_parceiro_plano_id"];
-        $equipamento_marca_id = issetor( $POST["equipamento_marca_id"] , null);
-        $equipamento_categoria_id = issetor( $POST["equipamento_categoria_id"] , null);
-        $quantidade = issetor( $POST["quantidade"] , 1);
-        $repasse_comissao = issetor( $POST["repasse_comissao"] , 0);
-        $desconto_condicional = issetor( $POST["desconto_condicional"] , 0);
-        $data_inicio_vigencia = issetor( $POST["data_inicio_vigencia"] , null);
+        $produto_parceiro_plano_id = issetor( issetor( $POST["produto_parceiro_plano_id"], $cotacao_itens["produto_parceiro_plano_id"]), 0);
+        $equipamento_marca_id = issetor(issetor( $POST["equipamento_marca_id"], $cotacao_itens["equipamento_marca_id"]) , null);
+        $equipamento_categoria_id = issetor(issetor( $POST["equipamento_categoria_id"], $cotacao_itens["equipamento_categoria_id"]) , null);
+        $quantidade = issetor(issetor( $POST["quantidade"], $cotacao_itens["quantidade"]) , 1);
+        $repasse_comissao = issetor(issetor( $POST["repasse_comissao"], $cotacao_itens["repasse_comissao"]) , 0);
+        $desconto_condicional = issetor(issetor( $POST["desconto_condicional"], $cotacao_itens["desconto_condicional"]) , 0);
+        $data_inicio_vigencia = issetor(issetor( $POST["data_inicio_vigencia"], $cotacao_itens["data_inicio_vigencia"]) , null);
 
         $params["cotacao_id"] = $cotacao_id;
         $params["produto_parceiro_id"] = $produto_parceiro_id;
@@ -346,7 +337,9 @@ class Cotacao extends CI_Controller {
 
         $result = $this->contratar_cotacao( $params, $produto["produto_slug"] );
 
-        ob_clean();
+        if(ob_get_length() > 0) {
+            ob_clean();
+        }
         die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
@@ -357,6 +350,8 @@ class Cotacao extends CI_Controller {
         $this->load->model( "cotacao_seguro_viagem_model", "cotacao_seguro_viagem" );
         $this->load->model( "cliente_model", "cliente" );
         $this->load->model( "cotacao_model", "cotacao" );
+        $this->load->model( "pedido_model", "pedido" );
+        $this->load->model( "apolice_model", "apolice" );
         $this->load->model( "localidade_estado_model", "localidade_estado" );
         $this->load->model( "capitalizacao_model", "capitalizacao" );
 
@@ -377,7 +372,7 @@ class Cotacao extends CI_Controller {
             if( $this->cotacao->isCotacaoValida( $cotacao_id ) == FALSE ) {
                 $result  = array(
                     "status" => false,
-                    "mensagem" => "Cotação inválida (001)",
+                    "mensagem" => "O status da Cotação não permite esta operação",
                     "errors" => array(),
                 );
                 return $result;
@@ -440,19 +435,52 @@ class Cotacao extends CI_Controller {
             $dados_cotacao["step"] = 4;
             $this->campo->setDadosCampos( $produto_parceiro_id, "equipamento", "dados_segurado", $produto_parceiro_plano_id,  $dados_cotacao );
             $cotacao_aux->update( $cotacao_salva[$cotacao_aux_id], $dados_cotacao, true );
-            //$this->cliente->atualizar( $cotacao_salva["cliente_id"], $dados_cotacao );
 
             $result  = array(
                 "status" => true,
-                "mensagem" => "Cotação finalizada. Efetuar pagamento.",
-                "cotacao_id" => $cotacao_salva["cotacao_id"],
+                "mensagem" => "Cotação finalizada com Sucesso.",
                 "produto_parceiro_id" => $cotacao_salva["produto_parceiro_id"],
-                "validacao" => $result['validacao']
+                "cotacao_id" => $cotacao_salva["cotacao_id"],
             );
 
+            // Valida config do produto para definir se gera apólice ao contratar ou não
+            $pedido = $this->pedido->filter_by_cotacao($cotacao_id)->get_all();
+            if (!empty($pedido)) {
+                $pedido_id = $pedido[0]['pedido_id'];
+                $apolice_id = $this->apolice->insertApolice($pedido_id, 'contratar');
+                $result['apolice_id'] = $apolice_id;
+                $result['pedido_id'] = $pedido_id;
+            }
+
+            $result["validacao"] = $validacao;
         }
 
         return $result;
+    }
+
+    public function listPendentes()
+    {
+        $POST = json_decode( file_get_contents( "php://input" ), true );
+
+        if( empty($POST["documento"]) && empty($POST["cotacao_id"]) ) {
+            ob_clean();
+            die( json_encode( array( "status" => false, "message" => "Informe o Documento ou o ID da Cotação" ) ) );
+        }
+
+        $cotacao_id = issetor($POST["cotacao_id"], '');
+        $documento = issetor($POST["documento"], '');
+        $documento = preg_replace( "/[^0-9]/", "", $documento );
+
+        $cotacao = $this->cotacao->getCotacaoByDoc( $documento, $cotacao_id );
+
+        ob_clean();
+        die( json_encode( ['status' => true, 'itens' => $cotacao], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+    }
+
+    function celular( $number ){
+        $number = preg_replace( "/[^0-9]/", "", $number );
+        $number = "(" . substr( $number, 0, 2 ) . ") " . substr( $number, 2, -4) . " - " . substr( $number, -4 );
+        return $number;
     }
 
 }

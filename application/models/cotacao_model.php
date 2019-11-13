@@ -411,28 +411,95 @@ Class Cotacao_Model extends MY_Model
     function isCotacaoValida($cotacao_id){
 
         $this->load->model('pedido_model', 'pedido');
+        $this->load->model('apolice_model', 'apolice');
+        $this->load->model('produto_parceiro_configuracao_model', 'prod_parc_config');
+
         $cotacao = $this->get($cotacao_id);
-
         $pedido = $this->pedido->filter_by_cotacao($cotacao_id)->get_all();
-
 
         if(!$cotacao){
             return false;
         }
 
-        if(($cotacao['cotacao_status_id'] != 1) && ($cotacao['cotacao_status_id'] != 5)){
-            return false;
-        }
+        $conclui_em_tempo_real = $this->prod_parc_config->item_config($cotacao['produto_parceiro_id'], 'conclui_em_tempo_real');
+        if ( $conclui_em_tempo_real ) {
+            if ( $cotacao['cotacao_status_id'] != 1 && $cotacao['cotacao_status_id'] != 5 ) {
+                return false;
+            }
 
-        if(count($pedido) > 0){
-            return false;
+            if ( count($pedido) > 0 ) {
+                return false;
+            }
+        } else {
+            if ( count($pedido) > 0 ) {
+                $apolice = $this->apolice->getApolicePedido($pedido[0]['pedido_id']);
+                if ( count($apolice) > 0 ) {
+                    return false;
+                }
+            }
         }
 
         return true;
-
-
     }
 
+    function getCotacaoByDoc($documento = null, $cotacao_id = null){
+
+        $this->_database->select("cotacao.cotacao_id, produto_parceiro.nome as produto_nome");
+        $this->_database->select("produto.slug as produto_slug");
+        $this->with_status();
+        $this->with_parceiro();
+        $this->_database->from("{$this->_table} as cotacao");
+        $this->_database->join('pedido', 'cotacao.cotacao_id = pedido.cotacao_id');
+        $this->_database->join('produto_parceiro', 'cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id');
+        $this->_database->join('produto', 'produto_parceiro.produto_id = produto.produto_id');
+        $this->_database->join('cotacao_seguro_viagem', 'cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id AND cotacao_seguro_viagem.deletado = 0', 'left');
+        $this->_database->join('cotacao_equipamento', 'cotacao_equipamento.cotacao_id = cotacao.cotacao_id AND cotacao_equipamento.deletado = 0', 'left');
+        $this->_database->join('cotacao_generico', 'cotacao_generico.cotacao_id = cotacao.cotacao_id AND cotacao_generico.deletado = 0', 'left');
+        $this->_database->join('apolice', 'pedido.pedido_id = apolice.pedido_id AND apolice.deletado = 0', 'left');
+        $this->_database->where("cotacao_status.slug", "finalizada");
+        $this->_database->where("cotacao.deletado", 0);
+        $this->_database->where("apolice.apolice_id IS NULL");
+        $this->_database->where("parceiro.parceiro_id", $this->parceiro_id);
+
+        if ( !empty($cotacao_id) ) {
+            $this->_database->where("cotacao.cotacao_id", $cotacao_id);
+        }
+
+        if ( !empty($documento) ) {
+            $this->_database->where("REPLACE(REPLACE(REPLACE(IFNULL(IFNULL(cotacao_equipamento.cnpj_cpf, cotacao_generico.cnpj_cpf), cotacao_seguro_viagem.cnpj_cpf), '.', ''), '-', ''), '/', '') = '{$documento}'");
+        }
+
+        $query = $this->_database->get();
+        $resp = $result = [];
+
+        if($query->num_rows() > 0)
+        {
+            $resp = $query->result_array();
+            foreach ($resp as $row) {
+                $produto_slug = $row['produto_slug'];
+                $cotacao_id = $row['cotacao_id'];
+                switch ($produto_slug) {
+                    case 'seguro_viagem':
+                        $tableName = "cotacao_seguro_viagem";
+                        break;
+                    case 'equipamento':
+                        $tableName = "cotacao_equipamento";
+                        break;
+                    default:
+                        $tableName = "cotacao_generico";
+                        break;
+                }
+
+                $this->_database->from($tableName);
+                $this->_database->where("{$tableName}.cotacao_id", $cotacao_id);
+                $q = $this->_database->get();
+                $row['dados'] = ($q->num_rows() > 0) ? current($q->result_array()) : [];
+                $result[] = $row;
+            }
+        }
+
+        return $result;
+    }
 
     //Retorna por slug
     function get_by_id($id)

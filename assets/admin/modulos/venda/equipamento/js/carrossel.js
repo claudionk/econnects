@@ -456,6 +456,7 @@ $(function(){
 
         planos.push(plano);
         $('#plano').val(planos.join(';'));
+        $('#produto_parceiro_plano_id').val(plano);
 
         var quantidade = $('#quantidade').val();
         if(quantidade.length == 0){
@@ -589,6 +590,8 @@ $(function(){
 
                 //Adiciona carrinho
                 toastr.success("O plano "+ nome[i] +" foi adicionado ao carrinho com sucesso!");
+
+                $('#produto_parceiro_plano_id').val(plano[i]);
             }
         }
 
@@ -633,6 +636,8 @@ $(function(){
                 if(plano.length == 0) {
                     $('.body-carrinho').append(tr_vazio);
                 }
+
+                $('#produto_parceiro_plano_id').val(0);
 
             }
 
@@ -690,6 +695,8 @@ $(function(){
                 $('.body-carrinho').append(tr_vazio);
             }
 
+            $('#produto_parceiro_plano_id').val(0);
+
         }
 
     });
@@ -708,6 +715,8 @@ $(function(){
 
         $('.body-carrinho tr' ).remove();
         $('.body-carrinho').append(tr_vazio);
+
+        $('#produto_parceiro_plano_id').val(0);
 
     }
 });

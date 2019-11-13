@@ -85,11 +85,9 @@ $(function(){
     $('.btn-parcelas').on('click', function(){
         var fatura_id = $(this).data('fatura');
         $('.grid-grouped-'+ fatura_id).toggle( "slow");
-
-
     });
 
-    $('#validateSubmitForm').find('input[type=text],textarea,select').first().focus();
+    $('#validateSubmitForm').find('input[type=text],input[type=tel],textarea,select').first().focus();
 
 
     $("#checkAll").click(function(){

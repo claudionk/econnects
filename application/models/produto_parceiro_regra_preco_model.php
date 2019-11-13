@@ -221,6 +221,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
         $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($valor_fixo, $row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_sub_categoria_id, $equipamento_de_para, $servico_produto_id, $data_inicio_vigencia, $data_fim_vigencia, $comissao);
 
+
         $valores_cobertura_adicional_total = $valores_cobertura_adicional = array();
 
         if($coberturas_adicionais){

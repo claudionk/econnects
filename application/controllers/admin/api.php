@@ -11,7 +11,7 @@ class Api extends Site_Controller
     public function __construct() 
     {
         parent::__construct();
-        $this->url = $this->config->item("URL_sisconnects") ."api/";
+        $this->url = $this->config->item("base_url") ."api/";
         $this->stop = false;
     }
     
