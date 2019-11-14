@@ -944,7 +944,13 @@ Class Pedido_Model extends MY_Model
         }
 
         $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
-        $valor_premio_liq = $valor_premio;
+        
+        // devolução integral
+        if ($devolucao_integral) {
+            $valor_premio_liq = $apolice['valor_premio_net'];
+        } else {
+            $valor_premio_liq = $valor_premio;
+        }
 
         if($vigente == FALSE)
         {
