@@ -1553,7 +1553,8 @@ function app_validate_data_americana($date)
 }
 
 function app_validate_mobile_phone($phone) {
-    $exp_regular = '/^(\(11\) (9\d{4})-\d{4})|((\(1[2-9]{1}\)|\([2-9]{1}\d{1}\)) [5-9]\d{3}-\d{4})$/';
+   // $exp_regular = '/^(\(11\) (9\d{4})-\d{4})|((\(1[2-9]{1}\)|\([2-9]{1}\d{1}\)) [5-9]\d{3}-\d{4})$/';
+    $exp_regular = '#^\(\d{2}\) 9?[6789]\d{3}-\d{4}$#';
     $ret = preg_match($exp_regular, $phone);
 
     if($ret === 1)
@@ -1773,6 +1774,8 @@ if ( ! function_exists('app_get_token'))
             $url = '&forceEmail=1';
 
         $CI =& get_instance();
+
+
 
         $retorno = soap_curl([
             'url' => $CI->config->item('base_url') ."api/acesso?email={$email}&senha={$senha}&url={$url}",

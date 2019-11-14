@@ -454,7 +454,6 @@ class Admin_Controller extends MY_Controller
 
     public function venda_aguardando_pagamento($produto_parceiro_id, $pedido_id = 0)
     {
-
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('cotacao_model', 'cotacao');
 

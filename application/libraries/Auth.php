@@ -38,7 +38,7 @@ class Auth {
         }
     }
 
-    public function generate_page_token($token = "", $urls_can_access = "", $layout = "", $context = "")
+    public function generate_page_token($token = "", $urls_can_access = "", $layout = "", $context = "", $url = "")
     {
         if(empty($url))
             $url = current_url();

@@ -1464,6 +1464,55 @@ class MY_Model extends CI_Model
         $data = $this->get_form_data();
         return $this->update($this->input->post($this->primary_key),  $data, TRUE);
     }
+
+    public function sub_insert($sub_model, $post_name, $pk_column, $pk_value, $data_column = null)
+    {
+        $this->load->model($sub_model . '_model', $sub_model);
+
+
+        $this->{$sub_model}->delete_by(array(
+            $pk_column => $pk_value
+        ));
+
+        $data = $this->input->post($post_name);
+
+        //print_r($data);exit;
+
+        if(is_array($data))
+        {
+            foreach($data as $i => $d)
+            {
+                if(is_string($d) && is_string($data_column))
+                {
+                    $dt = $this->{$sub_model}->get_form_data2(false, "$post_name" . "[$i]");
+                    $dt[$data_column] = $d;
+                    $dt[$pk_column] = $pk_value;
+
+                    $this->{$sub_model}->insert($dt, true);
+                }
+                else
+                {
+                    $keys = array_keys($d);
+
+
+                    foreach ($keys as $jj => $vvv) {
+                        $dt[$vvv] = $d[$vvv];
+                    }
+                    //$dt = $this->{$sub_model}->get_form_data2(false, "$post_name" . "[$i]");
+                    $dt[$pk_column] = $pk_value;
+                    $this->{$sub_model}->insert($dt, true);
+                }
+
+
+            }
+            return true;
+        }
+
+        return false;
+
+    }
+
+
     public function with_simple_relation_foreign($with_table, $prefix , $foreing_key1, $foreign_key2 , $fields, $join = 'inner'){
 
 

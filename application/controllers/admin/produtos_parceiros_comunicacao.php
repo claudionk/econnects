@@ -54,6 +54,7 @@ class Produtos_Parceiros_Comunicacao extends Admin_Controller
         $data['comunicacoes_templates'] = $this->comunicacao_template->get_all();
         $data['comunicacoes_disparos'] = array(
             array('id' => 0, 'descricao' => 'IMEDIATO'),
+            array('id' => -1, 'descricao' => 'AUTOMÁTICO'),
             array('id' => 1, 'descricao' => '1 DIA'),
             array('id' => 2, 'descricao' => '2 DIAS'),
             array('id' => 3, 'descricao' => '3 DIAS'),

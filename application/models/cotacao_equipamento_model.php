@@ -391,10 +391,11 @@ Class Cotacao_Equipamento_Model extends MY_Model
             $desconto_condicional_valor = explode(';', $carrossel['desconto_condicional_valor']);
             $valores_totais = explode(';', $carrossel['valor_total']);
 
+
             $data_cotacao['produto_parceiro_plano_id'] = $planos[0];
             $data_cotacao['cotacao_id'] = $cotacao_id;
-            $data_cotacao['repasse_comissao'] = app_unformat_percent($comissao_repasse[0]);
-            $data_cotacao['comissao_corretor'] = $configuracao['comissao'] - app_unformat_percent($comissao_repasse[0]);
+            $data_cotacao['repasse_comissao'] = ((isset($comissao_repasse[0])) && ($comissao_repasse[0]))  ? app_unformat_percent($comissao_repasse[0]) : 0;
+            $data_cotacao['comissao_corretor'] = $configuracao['comissao'] - ((isset($comissao_repasse[0])) && ($comissao_repasse[0]))  ? app_unformat_percent($comissao_repasse[0]) : 0;
             $data_cotacao['desconto_condicional'] = app_unformat_percent($desconto_condicional[0]);
             $data_cotacao['desconto_condicional_valor'] = app_unformat_percent($desconto_condicional_valor[0]);
             $data_cotacao['premio_liquido'] = app_unformat_currency($valores[0]);

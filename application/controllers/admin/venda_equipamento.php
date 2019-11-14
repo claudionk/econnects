@@ -270,6 +270,7 @@ class Venda_Equipamento extends Admin_Controller{
         $api_key = app_get_token();
 
         $Url = $this->config->item('base_url') ."api/campos?produto_parceiro_id={$data['produto_parceiro_id']}&slug={$data['slug']}";
+
         $myCurl = curl_init();
         curl_setopt( $myCurl, CURLOPT_URL, $Url );
         curl_setopt( $myCurl, CURLOPT_FRESH_CONNECT, 1 );
@@ -280,9 +281,11 @@ class Venda_Equipamento extends Admin_Controller{
         curl_setopt( $myCurl, CURLOPT_TIMEOUT, 15 );
         curl_setopt( $myCurl, CURLOPT_CONNECTTIMEOUT, 15 );
         $Response = curl_exec( $myCurl );
+
         curl_close( $myCurl );
 
         $Response = json_decode( $Response, true );
+
         $Response = $Response[0];
         //echo "<pre>API KEY: $api_key " . print_r( $Response, true ) . "</pre>";
         $data["campos"] = ( isset( $Response["campos"] ) ? $Response["campos"] : array() );
@@ -309,6 +312,7 @@ class Venda_Equipamento extends Admin_Controller{
             }
         }
 
+//echo '<pre>'; print_r($data);
 
         $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/formulario", $data );
 
@@ -647,6 +651,7 @@ class Venda_Equipamento extends Admin_Controller{
         $this->load->model('cliente_model', 'cliente');
         $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
         $this->load->model('contato_tipo_model', 'contato_tipo');
+        $this->load->model('comunicacao_track_model', 'comunicacao_track');
 
         //Carrega JS
         $this->template->js(app_assets_url('modulos/venda/equipamento/js/base.js', 'admin'));
@@ -654,6 +659,13 @@ class Venda_Equipamento extends Admin_Controller{
         $this->template->js(app_assets_url('modulos/venda/equipamento/js/calculo.js', 'admin'));
         $this->template->css(app_assets_url('modulos/venda/equipamento/css/carrossel.css', 'admin'));
         $this->template->css(app_assets_url('modulos/venda/equipamento/css/base.css', 'admin'));
+
+
+
+        if($cotacao_id > 0){
+            $this->comunicacao_track->insert_or_update($cotacao_id);
+        }
+
 
         //Dados para template
         $data = array();

@@ -17,12 +17,14 @@ class Comunicacao
     private $chave;
     private $mensagem;
     private $mensagem_parametros;
+    private $cotacao_id;
 
     public function __construct()
     {
         $this->_ci = &get_instance();
 
         $this->_ci->load->model("comunicacao_model", "comunicacao_model");
+        $this->_ci->load->model("comunicacao_agendamento_model", "comunicacao_agendamento_model");
         $this->_ci->load->model("comunicacao_template_model", "comunicacao_template");
         $this->_ci->load->model("comunicacao_tipo_model", "comunicacao_tipo");
         $this->_ci->load->model("comunicacao_evento_model", "comunicacao_evento");
@@ -31,6 +33,7 @@ class Comunicacao
         $this->_ci->load->model("comunicacao_log_model", "comunicacao_log");
 
         $this->setDataEnviar(date('Y-m-d H:i:s'));
+        $this->SetCotacaoId(0);
     }
 
     /**
@@ -521,10 +524,24 @@ class Comunicacao
                     'campo'                           => $this->getCampo(),
                     'chave'                           => $this->getChave(),
                     'mensagem_anexo'                  => $anexos,
+                    'cotacao_id'                      => $this->getCotacaoId(),
                 );
 
                 if ($dt = $this->_ci->comunicacao_model->insert($dados, true)) {
                     return true;
+                }
+
+                if((isset($parceiro_comunicacao['disparo'])) && ($parceiro_comunicacao['disparo'] == -1)){
+                    if ($dt = $this->_ci->comunicacao_agendamento_model->insert($dados, true))
+                    {
+                        return true;
+                    }
+
+                }else{
+                    if($dt = $this->_ci->comunicacao_model->insert($dados, true))
+                    {
+                    return true;
+                    }
                 }
             }
         }
@@ -545,6 +562,7 @@ class Comunicacao
             'destinatario_endereco' => $this->getDestinatario(),
             'destinatario_nome'     => $this->getNomeDestinatario(),
             'parceiro_nome'         => $this->getNomeParceiro(),
+            'url'                   => $this->getUrl(),
         );
 
         $params = array_merge($parametros, $this->getMensagemParametros());
@@ -585,6 +603,14 @@ class Comunicacao
     }
 
     /**
+     * @return mixed
+     */
+    public function getUrl()
+    {
+        return $this->url;
+    }
+
+    /**
      * @param mixed $nome_destinatario
      */
     public function setNomeDestinatario($nome_destinatario)
@@ -599,6 +625,12 @@ class Comunicacao
     {
         $this->nome_parceiro = $nome_parceiro;
     }
+
+    public function setUrl($url)
+    {
+        $this->url = $url;
+    }
+
 
     /**
      * @return bool|string
@@ -657,6 +689,15 @@ class Comunicacao
     }
 
     /**
+     * @return mixed
+     */
+    public function getCotacaoId()
+    {
+        return $this->cotacao_id;
+    }
+
+
+    /**
      * @param mixed $chave
      */
     public function setChave($chave)
@@ -699,5 +740,14 @@ class Comunicacao
     {
         $this->mensagem_parametros = $mensagem_parametros;
     }
+
+  /**
+     * @param mixed $cotacao_id
+     */
+  public function SetCotacaoId($cotacao_id)
+  {
+    $this->cotacao_id = $cotacao_id;
+  }
+
 
 }
