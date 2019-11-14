@@ -725,7 +725,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
   function getValorTotal($cotacao_id){
     $result = $this->filterByCotacao($cotacao_id)
       ->get_all();
-
+      
     $valor = 0;
     foreach ($result as $item) {
       $valor += $item['premio_liquido_total'];

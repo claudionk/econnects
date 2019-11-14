@@ -2,7 +2,6 @@
 if($_POST){
     $row = $_POST;
 }
-
 ?>
 
 <?php if ($layout != "front") { ?>

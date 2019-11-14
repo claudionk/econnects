@@ -2597,6 +2597,45 @@ Class Pedido_Model extends MY_Model
             if( isset( $dados["num_parcela"] ) ) {
                 unset( $dados["num_parcela"] );
             }
+            if( isset( $dados["url_aguardando_pagamento"] ) ) {
+                unset( $dados["url_aguardando_pagamento"] );
+            }
+            if( isset( $dados["url_pagamento_confirmado"] ) ) {
+                unset( $dados["url_pagamento_confirmado"] );
+            }
+            if( isset( $dados["bandeira_cartao"] ) ) {
+                unset( $dados["bandeira_cartao"] );
+            }
+            if( isset( $dados["numero"] ) ) {
+                unset( $dados["numero"] );
+            }
+            if( isset( $dados["nome_cartao"] ) ) {
+                unset( $dados["nome_cartao"] );
+            }
+            if( isset( $dados["validade"] ) ) {
+                unset( $dados["validade"] );
+            }
+            if( isset( $dados["codigo"] ) ) {
+                unset( $dados["codigo"] );
+            }
+            if( isset( $dados["bandeira_debito"] ) ) {
+                unset( $dados["bandeira_debito"] );
+            }
+            if( isset( $dados["bandeira_cartao_debito"] ) ) {
+                unset( $dados["bandeira_cartao_debito"] );
+            }
+            if( isset( $dados["numero_debito"] ) ) {
+                unset( $dados["numero_debito"] );
+            }
+             if( isset( $dados["nome_cartao_debito"] ) ) {
+                unset( $dados["nome_cartao_debito"] );
+            }
+             if( isset( $dados["validade_debito"] ) ) {
+                unset( $dados["validade_debito"] );
+            }
+             if( isset( $dados["codigo_debito"] ) ) {
+                unset( $dados["codigo_debito"] );
+            }
 
             $dados_boleto = $dados;
 

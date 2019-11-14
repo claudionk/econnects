@@ -661,6 +661,10 @@ $(function(){
 
     }
 
+    $('.this-plan-btn').on('click',function() {
+        $('#validateSubmitForm').submit();
+    });
+
     $('.btn_dados_segurado').on('click',function() {
         $('#validateSubmitForm').submit();
     });
@@ -735,4 +739,24 @@ $(function(){
         $('#produto_parceiro_plano_id').val(0);
 
     }
+
+    $('#modalCoberturas').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget) // Button that triggered the modal
+        var title = button.data('title');
+        var price = button.data('price');
+        var cents = button.data('cents');
+
+        var recipient = button.data('coberturas');
+        var coberturas = recipient.split(',');
+        var li = '';
+        $.each(coberturas, function(key, value) {
+            li += '<li> <i class="fa fa-chevron-circle-right success" aria-hidden="true"></i> '+value+' </li>';
+        });
+
+        var modal = $(this);
+        modal.find('.modal-title').html(title);
+        modal.find('.modal-price').html(price);
+        modal.find('.modal-cents').html(','+cents);
+        modal.find('.details-plan').html(li);
+    });
 });

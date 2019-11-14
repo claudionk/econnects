@@ -93,7 +93,7 @@ class Fatura_Model extends MY_Model
         $dados_parcela                     = array();
         $dados_parcela['data_pagamento']   = date('Y-m-d H:i:s');
         $dados_parcela['fatura_status_id'] = 2;
-        $this->fatura_parcela->update($fatura_parcela_id, $dados_parcela, TRUE);
+        $this->fatura_parcela->update($fatura_parcela_id, $dados_parcela, true);
     }
 
     public function insFaturaParcelas($pedido_id, $cotacao_id, $fatura_status_id, $valor_total, $num_parcela, $valor_parcela, $produto_parceiro_id)
@@ -271,6 +271,7 @@ class Fatura_Model extends MY_Model
         );
         return $data;
     }
+
     public function get_by_id($id)
     {
         return $this->get($id);

@@ -9,6 +9,8 @@ class Admin_Controller extends MY_Controller
     protected $_theme_logo = '';
     protected $_theme_nome = 'Connects Insurance';
     protected $layout      = "base";
+    protected $whatsapp    = '';
+    protected $whatsapp_msg    = '';
 
     protected $controller_name;
     protected $controller_uri;
@@ -109,9 +111,6 @@ class Admin_Controller extends MY_Controller
             if (isset($userdata['termo_aceite']) && $userdata['termo_aceite'] == 0) {
                 $this->template->js(app_assets_url('core/js/termo.js', 'admin'));
             }
-            if (isset($userdata['termo_aceite']) && $userdata['termo_aceite'] == 0) {
-                $this->template->js(app_assets_url('core/js/termo.js', 'admin'));
-            }
 
             if (($urls_pode_acessar) && (!empty($urls_pode_acessar)) && (is_array($urls_pode_acessar)) && ($this->noLogin === false)) {
                 $pode_acessar = false;
@@ -135,18 +134,6 @@ class Admin_Controller extends MY_Controller
                 $this->template->js(app_assets_url('core/js/termo.js', 'admin'));
             }
         }
-
-        //Verifica permissão
-
-        /*
-    if(!$this->auth->checar_permissoes_pagina_atual() && !$this->noLogin)
-    {
-
-    $this->session->set_flashdata('fail_msg', 'Você não têm permissão para acessar esta página.');
-
-    redirect("admin/home");
-
-    }*/
     }
 
     public function _setTheme($parceiro_id)
@@ -157,15 +144,19 @@ class Admin_Controller extends MY_Controller
         $this->_theme      = (!empty($parceiro['theme'])) ? $parceiro['theme'] : 'theme-1';
         $this->_theme_logo = (!empty($parceiro['logo'])) ? app_assets_url("upload/parceiros/{$parceiro['logo']}", 'admin') : app_assets_url('template/img/logo-connects.png', 'admin');
         $this->_theme_nome = (!empty($parceiro['apelido'])) ? $parceiro['apelido'] : $this->_theme_nome;
+        $this->whatsapp    = (!empty($parceiro['whatsapp_num'])) ? $parceiro['whatsapp_num'] : '';
+        $this->whatsapp_msg= (!empty($parceiro['whatsapp_msg'])) ? $parceiro['whatsapp_msg'] : '';
         $this->template->set('theme', $this->_theme);
         $this->template->set('theme_logo', $this->_theme_logo);
         $this->template->set('title', $this->_theme_nome);
+        $this->template->set('whatsapp', $this->whatsapp);
+        $this->template->set('whatsapp_msg', $this->whatsapp_msg);
+
     }
 
-    public function venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id = 0, $conclui_em_tempo_real = true)
+    public function venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id = 0, $conclui_em_tempo_real = true, $getUrl = '')
     {
-        error_log("Controller\n", 3, "/var/log/httpd/myapp.log");
-
+        //error_log("Controller\n", 3, "/var/log/httpd/myapp.log");
         $pedido_id = (int) $pedido_id;
 
         $this->load->model('apolice_model', 'apolice');
@@ -182,11 +173,16 @@ class Admin_Controller extends MY_Controller
 
         //Carrega templates
         $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
-        $this->template->js(app_assets_url('modulos/venda/pagamento/js/pagamento.js', 'admin'));
+
+        if($this->layout == 'front'){
+            $this->template->js(app_assets_url('modulos/venda/equipamento/front/js/pagamento.js', 'admin'));
+        }else{
+            $this->template->js(app_assets_url('modulos/venda/pagamento/js/pagamento.js', 'admin'));
+        }
 
         //Retorna cotação
         $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
-        error_log("Produto: " . print_r($cotacao['produto_slug'], true) . "\n", 3, "/var/log/httpd/myapp.log");
+        //error_log("Produto: " . print_r($cotacao['produto_slug'], true) . "\n", 3, "/var/log/httpd/myapp.log");
         switch ($cotacao['produto_slug']) {
             case "seguro_viagem":
                 $valor_total = $this->cotacao_seguro_viagem->getValorTotal($cotacao_id);
@@ -201,8 +197,8 @@ class Admin_Controller extends MY_Controller
                 $valor_total = $this->cotacao_generico->getValorTotal($cotacao_id);
                 break;
 
-        }
-        error_log("Valor Total: " . print_r($valor_total, true) . "\n", 3, "/var/log/httpd/myapp.log");
+        } 
+        //error_log("Valor Total: " . print_r($valor_total, true) . "\n", 3, "/var/log/httpd/myapp.log");
 
         //formas de pagamento
         $forma_pagamento = array();
@@ -211,7 +207,7 @@ class Admin_Controller extends MY_Controller
 
         //Para cada tipo de pagamento
         foreach ($tipo_pagamento as $index => $tipo) {
-            
+
             $forma = $this->produto_pagamento->with_forma_pagamento()
                 ->filter_by_produto_parceiro($produto_parceiro_id)
                 ->filter_by_forma_pagamento_tipo($tipo['forma_pagamento_tipo_id'])
@@ -416,6 +412,7 @@ class Admin_Controller extends MY_Controller
                     break;
             }
             $this->cotacao->setValidate($validacao);
+
             if ($this->cotacao->validate_form('pagamento')) {
 
                 if ($pedido_id == 0) {
@@ -435,21 +432,35 @@ class Admin_Controller extends MY_Controller
                     case self::FORMA_PAGAMENTO_CARTAO_CREDITO:
                     case self::FORMA_PAGAMENTO_CARTAO_DEBITO:
                     case self::FORMA_PAGAMENTO_BOLETO:
-                        $this->session->set_flashdata('succ_msg', 'Aguardando confirmação do pagamento'); //Mensagem de sucesso
-                        redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/{$pedido_id}");
+
+                        if($getUrl == ''){
+                            $this->session->set_flashdata('succ_msg', 'Aguardando confirmação do pagamento'); //Mensagem de sucesso
+                            redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/{$pedido_id}");
+
+                        }else{
+
+                            $this->session->set_flashdata('succ_msg', 'Pedido incluido com sucesso!'); //Mensagem de sucesso
+                            redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
+                        }
+
                         break;
                     default:
                         $this->session->set_flashdata('succ_msg', 'Pedido incluido com sucesso!'); //Mensagem de sucesso
-                        redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}");
+                        redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
                         break;
                 }
 
             }
-            error_log("POST: " . print_r($data, true) . "\n", 3, "/var/log/httpd/myapp.log");
+            //error_log("POST: " . print_r($data, true) . "\n", 3, "/var/log/httpd/myapp.log");
         }
 
         $data['step'] = ($conclui_em_tempo_real) ? 3 : 2;
-        $this->template->load("admin/layouts/{$this->layout}", "admin/venda/pagamento", $data);
+        $view = "admin/venda/pagamento";
+        if($this->layout == 'front'){
+            $view = "admin/venda/equipamento/front/steps/step-three-pagamento";
+        }
+
+        $this->template->load("admin/layouts/{$this->layout}", $view, $data);
     }
 
     public function venda_aguardando_pagamento($produto_parceiro_id, $pedido_id = 0)

@@ -2,7 +2,6 @@
 if($_POST){
     $row = $_POST;
 }
-
 ?>
 <div class="row" id="pagamento-credito">
     <?php if(isset($forma['pagamento'])) : ?>
@@ -31,7 +30,6 @@ if($_POST){
                 <select class="form-control" name="bandeira_cartao" id="bandeira_cartao">
                     <option name="" value="">Selecione</option>
                     <?php
-
                     foreach($forma['bandeiras'] as $linha) { ?>
                         <option name="" value="<?php echo $linha['slug'] ?>"
                             <?php if(isset($row['bandeira_cartao'])){if($row['bandeira_cartao'] == $linha['slug']) {echo " selected ";};}; ?> >

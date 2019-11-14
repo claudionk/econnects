@@ -30,7 +30,6 @@
                 <select class="form-control" name="bandeira_cartao_debito" id="bandeira_cartao_debito">
                     <option name="" value="">Selecione</option>
                     <?php
-
                     foreach($forma['bandeiras'] as $linha) { ?>
                         <option name="" value="<?php echo $linha['slug'] ?>"
                             <?php if(isset($row['bandeira_cartao_debito'])){if($row['bandeira_cartao_debito'] == $linha['slug']) {echo " selected ";};}; ?> >

@@ -11,6 +11,10 @@ class Venda_Equipamento extends Admin_Controller{
     const TIPO_CALCULO_BRUTO = 2;
 
     protected $layout = "base";
+    protected $color  = 'default';
+    protected $token;
+    protected $getUrl = '';
+    public $name;
 
     public function __construct()
     {
@@ -30,12 +34,31 @@ class Venda_Equipamento extends Admin_Controller{
         $layout = $this->session->userdata("layout");
         $this->layout = isset($layout) && !empty($layout) ? $layout : 'base';
 
+        if(! empty($this->input->get("token"))){
+            $this->token = $this->input->get("token");
+            $this->getUrl = '?token='.$this->token;
+        }
+        if(! empty($this->input->get("layout"))){
+            $this->layout = $this->input->get("layout");
+            $this->getUrl .= '?layout='.$this->layout;
+        }
+        if(! empty($this->input->get("color"))){
+            $this->color  = $this->input->get("color");
+            $this->getUrl .= '&color='.$this->color;
+        }
+
         $this->template->js(app_assets_url("template/js/libs/cycle2/cycle2.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/cycle2/jquery.cycle2.carousel.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/toastr/toastr.js", "admin"));
 
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/toastr/toastr.css", "admin"));
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/wizard/wizard.css", "admin"));
+
+        if(! empty($this->input->get("color"))){
+            $this->template->css(app_assets_url('modulos/venda/equipamento/css/'.$this->input->get("color").'.css', 'admin'));
+        }
+
+        //echo '<pre>', print_r($this->session); exit;
     }
 
     /**
@@ -64,9 +87,81 @@ class Venda_Equipamento extends Admin_Controller{
             $cotacao_equipamento = $cotacao_equipamento[0];
         }
 
-
         redirect("admin/venda_equipamento/equipamento/{$cotacao_equipamento['produto_parceiro_id']}/{$cotacao_equipamento['step']}/$cotacao_id");
+    }
 
+    public function step_contratar($produto_parceiro_id, $cotacao_id = 0, $status = '', $conclui_em_tempo_real = true){
+        $this->load->model("cotacao_equipamento_model", "cotacao_equipamento");
+
+        //Verifica se possui desconto (vai para passo específico)
+        if($this->cotacao_equipamento->verifica_possui_desconto($cotacao_id) && $status != "desconto_aprovado") {
+            //Verifica se desconto foi aprovado
+            if($this->cotacao_equipamento->verifica_desconto_aprovado($cotacao_id)) {
+                //Carrega função para visualizar desconto
+                $this->equipamento_verificar_desconto($produto_parceiro_id, $cotacao_id);
+            } else {
+                //Avisa o usuário que desconto ainda não foi aprovado, portanto não consegue finalizar
+                $this->session->set_flashdata('fail_msg', 'O desconto ainda não foi aprovado.');
+                redirect("{$this->controller_uri}/index");
+            }
+        } else {
+            //Carrega função para finalizar
+            $this->equipamento_finalizar( $produto_parceiro_id, $cotacao_id, $status );
+        }
+    }
+
+    public function step_login($data)
+    {
+        $this->load->model('cliente_model', 'cliente');
+
+        $this->template->js(app_assets_url("modulos/venda/equipamento/js/login.js", "admin"));
+        $this->template->js(app_assets_url("core/js/SenhaForte.js", "admin"));
+        $this->template->js(app_assets_url("template/js/libs/popper.min.js", "admin"));
+
+        if($_POST){
+            $this->cliente->atualizar($this->input->post('cliente_id'), $_POST);
+            $this->session->set_userdata('logado', true);
+
+            header("Refresh: 0;");
+        }
+
+
+        $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/{$this->layout}/login", $data);
+    }
+
+    public function step_pagto($produto_parceiro_id, $cotacao_id = 0, $pedido_id = 0, $conclui_em_tempo_real = true, $data)
+    {
+        if(empty($this->session->userdata('logado')) && $this->template->get('layout') == 'front'){
+            $this->step_login($data);
+
+        }else{
+            $this->load->model("pedido_model", "pedido_model");
+
+            /**
+            * Verifica se pedido já foi feito (se sim encaminha para página de pagamento)
+            */
+            $pedido = $this->pedido_model
+            ->with_foreign()
+            ->get_by(array(
+                'pedido.cotacao_id' => $cotacao_id
+            ));
+
+            $status = array('pagamento_negado', 'cancelado', 'cancelado_stornado', 'aprovacao_cancelamento', 'cancelamento_aprovado');
+
+            //error_log( "Pedido: " . print_r( $pedido, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+            if($pedido && !in_array($pedido['pedido_status_slug'], $status)) {
+
+                if($this->layout == 'front'){
+                    redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/6/{$pedido['pedido_id']}?token={$this->token}&layout={$this->layout}&color={$this->color}");
+                    exit;
+                }
+
+                redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/5/{$pedido['pedido_id']}");
+
+            } else {
+                $this->venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real, $this->getUrl);
+            }
+        }
     }
 
     public function step_contratar($produto_parceiro_id, $cotacao_id = 0, $status = '', $conclui_em_tempo_real = true){
@@ -119,7 +214,7 @@ class Venda_Equipamento extends Admin_Controller{
     * @param int $pedido_id
     */
     public function equipamento($produto_parceiro_id, $step = 1, $cotacao_id = 0, $pedido_id = 0, $status = '') {
-        error_log( "Controller Equipamento\n", 3, "/var/log/httpd/myapp.log" );
+        //error_log( "Controller Equipamento\n", 3, "/var/log/httpd/myapp.log" );
         
         $this->load->library('form_validation');
         $this->load->model('produto_parceiro_configuracao_model', 'prod_parc_config');
@@ -131,8 +226,10 @@ class Venda_Equipamento extends Admin_Controller{
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $conclui_em_tempo_real = $this->prod_parc_config->item_config($produto_parceiro_id, 'conclui_em_tempo_real');
 
-        // echo $step;
-        // die();
+        if(isset($cotacao['nome'])){
+            $name = explode(' ',$cotacao['nome']);
+            $this->name = trim($name[0]);
+        }
 
         if( $step == 1 ) {
 
@@ -146,23 +243,27 @@ class Venda_Equipamento extends Admin_Controller{
             $this->equipamento_carrossel($produto_parceiro_id, $cotacao_id);
 
         } elseif( $step == 3 ) {
-
             if ($conclui_em_tempo_real) {
                 $this->step_contratar( $produto_parceiro_id, $cotacao_id, $status, $conclui_em_tempo_real );
             } else {
-                $this->step_pagto($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real);
+                $this->step_pagto($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real, $cotacao);
             }
         
         } elseif ($step == 4) {
-
             if ($conclui_em_tempo_real) {
-                $this->step_pagto($produto_parceiro_id, $cotacao_id, $pedido_id);
+                $this->step_pagto($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real, null);
             } else {
                 $this->step_contratar( $produto_parceiro_id, $cotacao_id, $status );
             }
 
         } elseif ($step == 5){
-            $this->venda_aguardando_pagamento($produto_parceiro_id, $cotacao_id);
+
+            if($this->layout == 'front'){
+                $this->equipamento_certificado($produto_parceiro_id, $cotacao_id);
+            }else{
+                $this->venda_aguardando_pagamento($produto_parceiro_id, $cotacao_id);
+            }
+
         } elseif ($step == 6) {
             $this->equipamento_certificado($produto_parceiro_id, $cotacao_id);
         } elseif ($step == 7) {
@@ -220,7 +321,8 @@ class Venda_Equipamento extends Admin_Controller{
     * @param $produto_parceiro_id
     * @param int $cotacao_id
     */
-    public function equipamento_formulario($produto_parceiro_id, $cotacao_id = 0) {
+    public function equipamento_formulario($produto_parceiro_id, $cotacao_id = 0)
+    {
         //Carrega models necessários
         $this->load->model("produto_parceiro_campo_model", "campo");
         $this->load->model("cotacao_model", "cotacao");
@@ -268,6 +370,7 @@ class Venda_Equipamento extends Admin_Controller{
         }
 
         $api_key = app_get_token();
+        $this->token = $api_key;
 
         $Url = $this->config->item('base_url') ."api/campos?produto_parceiro_id={$data['produto_parceiro_id']}&slug={$data['slug']}";
 
@@ -297,7 +400,6 @@ class Venda_Equipamento extends Admin_Controller{
 
         if($_POST)
         {
-
             $validacao = $this->campo->setValidacoesCampos($produto_parceiro_id, "cotacao");
 
             $this->cotacao->setValidate($validacao);
@@ -308,14 +410,17 @@ class Venda_Equipamento extends Admin_Controller{
                 $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $_POST);
                 $cotacao_id = $this->input->post("cotacao_id");
                 $cotacao_id = $this->cotacao_equipamento->insert_update($produto_parceiro_id, $cotacao_id);
-                redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2/{$cotacao_id}");
+
+                redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2/{$cotacao_id}{$this->getUrl}");
             }
         }
 
-//echo '<pre>'; print_r($data);
+        $view = "admin/venda/equipamento/formulario";
+        if($this->layout == 'front'){
+            $view = "admin/venda/equipamento/front/steps/step-one-formulario";
+        }
 
-        $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/formulario", $data );
-
+        $this->template->load("admin/layouts/{$this->layout}", $view, $data );
     }
 
     /**
@@ -903,20 +1008,36 @@ class Venda_Equipamento extends Admin_Controller{
             $data['planos'][] = $plano;
         }
 
+        $merge_coberturas = array();
+        foreach($data['planos'] as $plano){
+            foreach($plano['cobertura'] as $cobertura){
+                $merge_coberturas[$cobertura['descricao']] = $cobertura['cobertura_id'];
+            }
+        }
+        $data['merge_coberturas'] = $merge_coberturas;
+
         $data['list'] = array();
 
         if($_POST)
         {
-
             $post_plano = $this->input->post('plano');
+
             if(empty($post_plano)){
-                $this->session->set_flashdata('fail_msg', 'O Carrinho esta vazio, adicione um plano');
+                $this->session->set_flashdata('fail_msg', 'O Carrinho esta vazio, escolha um plano');
                 if ($cotacao_id > 0) {
-                    redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2/{$cotacao_id}");
+                    redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2/{$cotacao_id}{$this->getUrl}");
                 } else {
-                    redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2");
+                    redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2{$this->getUrl}");
                 }
             }else{
+                // Valida tempo máximo de uso do equipamento
+                if ($cotacao_id > 0) {
+                    $valida_prazo_maximo = $this->cotacao_equipamento->verifica_tempo_limite_de_uso($cotacao_id);
+                    if (!empty($valida_prazo_maximo)) {
+                        $this->session->set_flashdata('fail_msg', $valida_prazo_maximo);
+                        redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2/{$cotacao_id}{$this->getUrl}");
+                    }
+                }
 
                 // Valida tempo máximo de uso do equipamento
                 if ($cotacao_id > 0) {
@@ -948,7 +1069,7 @@ class Venda_Equipamento extends Admin_Controller{
                         $comunicacao->disparaEvento("cotacao_salva", $cotacao['produto_parceiro_id']);
 
                         if($data['configuracao']['salvar_cotacao_formulario'] == 1){
-                            redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/8/{$cotacao_id}");
+                            redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/8/{$cotacao_id}{$this->getUrl}");
                         }else{
                             $cotacao = $this->cotacao->get($cotacao_id);
                             $this->session->set_flashdata('succ_msg', 'Cotação salva com sucesso, código: '. $cotacao['codigo']); //Mensagem de sucesso
@@ -975,23 +1096,21 @@ class Venda_Equipamento extends Admin_Controller{
                                 $this->limpa_cotacao($produto_parceiro_id);
                                 redirect("$this->controller_uri/index");
                             }
-                            redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/3/{$cotacao_id}");
+                            redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/3/{$cotacao_id}{$this->getUrl}");
                         } else {
-                            redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/3");
+                            redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/3{$this->getUrl}");
                         }
                     }
 
                 }
-
             }
-
         }
 
-        $view = "admin/venda/equipamento/{$this->layout}/carrossel";
-        if(!view_exists($view))
-            $view = "admin/venda/equipamento/carrossel";
-    
-        $this->template->load("admin/layouts/{$this->layout}", $view, $data );
+        $view = "admin/venda/equipamento/carrossel";
+        if($this->layout == 'front')
+            $view = "admin/venda/equipamento/front/steps/step-two-carrossel";
+
+        $this->template->load("admin/layouts/{$this->layout}", $view, $data);
     }
 
     private function insertPedidoCarrinho($cotacao_id)
@@ -1149,6 +1268,7 @@ class Venda_Equipamento extends Admin_Controller{
             $cotacao['produto_parceiro_id'] = $produto_parceiro_id;
             $cotacao['cnpj_cpf'] = (app_verifica_cpf_cnpj($cotacao_salva['cnpj_cpf']) == 'CPF') ? app_cpf_to_mask($cotacao_salva['cnpj_cpf']) : app_cnpj_to_mask($cotacao_salva['cnpj_cpf']);
             $cotacao['rg'] = $cotacao_salva['rg'];
+            $cotacao['cliente_id'] = $cotacao_salva['cliente_id'];
             $cotacao['nome'] = $cotacao_salva['nome'];
             $cotacao['nome_mae'] = $cotacao_salva['nome_mae'];
             $cotacao['email'] = $cotacao_salva['email'];
@@ -1391,11 +1511,11 @@ class Venda_Equipamento extends Admin_Controller{
     * @param $produto_parceiro_id
     * @param int $pedido_id
     */
-    public function equipamento_certificado($produto_parceiro_id, $pedido_id = 0){
-
+    public function equipamento_certificado($produto_parceiro_id, $pedido_id = 0)
+    {
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('apolice_model', 'apolice');
-
+        
         $apolice = $this->apolice->getApolicePedido($pedido_id);
         $pedido = $this->pedido->get($pedido_id);
 
@@ -1409,8 +1529,13 @@ class Venda_Equipamento extends Admin_Controller{
 
         $this->limpa_cotacao($produto_parceiro_id);
 
-        $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/certificado", $data );
+        $view = "admin/venda/equipamento/certificado";
+        if($this->layout == 'front'){
+            $view = "admin/venda/equipamento/front/steps/step-six-certificado";
+            $this->template->js(app_assets_url("modulos/venda/equipamento/js/baixe-app.js", "admin"));
+        }
 
+        $this->template->load("admin/layouts/{$this->layout}", $view, $data );
     }
 
 }

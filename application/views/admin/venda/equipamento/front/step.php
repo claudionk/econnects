@@ -1,42 +1,106 @@
 <div id="sidebar-wrapper">
+    <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">&times;</a>
     <ul class="sidebar-nav">
-        <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">
-            <i class="glyphicon glyphicon-remove"></i>
-        </a>
-        <li class="sidebar-brand"></li>
         <li>
-            <a href="#">CONTRATE</a>
+            <a href="#" class="active background-primary">
+                <i class="fa fa-smile-o" aria-hidden="true"></i> CONTRATE
+            </a>
+        </li>
+
+        <li>
+            <span class="item"> SEGUROS </span>
         </li>
         <li>
-            <a href="#about">SEGURO</a>
+            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> COMPRAR </a>
         </li>
         <li>
-            <a href="#contact">SERVIÇOS</a>
+            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> COTAÇÕES SALVAS </a>
+        </li>
+
+        <li>
+            <span class="item"> SERVIÇOS </span>
+        </li>
+        <li>
+            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> COMPRAR </a>
+        </li>
+
+        <li>
+            <a href="#" class="active">
+                <i class="fa fa-briefcase" aria-hidden="true"></i> APOLICES
+            </a>
+        </li>
+
+        <li>
+            <a href="#" class="active">
+                <i class="fa fa-comments" aria-hidden="true"></i> ATENDIMENTO
+            </a>
         </li>
     </ul>
 </div>
 
 <div class="">
-    <div class="header-logo-menu">
-        <img src="<?php echo app_assets_url("upload/parceiros/494efe1480bdf61ba9015c2f8e0af7b5.png", 'admin'); ?>" alt="" title="" />
+    <?php
+    //var_dump($this->session->userdata('logado'));
+    ?>
 
-        <button aria-controls="bs-navbar" aria-expanded="false" class="navbar-toggle collapsed" data-target="#bs-navbar" data-toggle="collapse" type="button" id="menu-toggle">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-        </button>
+    <div class="header-logo-menu">
+        <div class="row">
+            <div class="col-md-3 col-sm-3 col-xs-3">
+                <img src="<?php echo $this->template->get('theme_logo'); ?>" alt="" title="" style="width: 90px;" />
+            </div>
+
+            <div class="col-md-9 col-sm-9 col-xs-9">
+
+                <ul class="nav nav-pills pull-right">
+                    <?php if( !empty($this->session->userdata('logado'))){ ?>
+                    <li role="presentation">
+                        <a href="javascript:void(0)" title="<?php echo $this->name; ?>" class="username">
+                            <?php echo $this->name; ?>
+                        </a>
+                    </li>
+                    <li role="presentation">
+                        <a href="" title="">
+                            <i class="fa fa-bell" aria-hidden="true"></i>
+                        </a>
+                    </li>
+                    <?php } ?>
+                    <li>
+                        <button aria-controls="bs-navbar" aria-expanded="false" class="navbar-toggle collapsed" data-target="#bs-navbar" data-toggle="collapse" type="button" id="menu-toggle">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
     </div>
 
-    <ul class="list-inline">
-        <li><img src="<?php $img = ($step >= 1) ? '2' : '1'; echo app_assets_url("core/images/icones/dados{$img}.png", 'admin');?>"></li>
-        <li><img src="<?php $img = ($step >= 2) ? '2' : '1'; echo app_assets_url("core/images/icones/service{$img}.png", 'admin');?>"></li>
-        <li><img src="<?php $img = ($step >= 3) ? '2' : '1'; echo app_assets_url("core/images/icones/doc{$img}.png", 'admin');?>"></li>
-        <li><img src="<?php $img = ($step >= 4) ? '2' : '1'; echo app_assets_url("core/images/icones/money{$img}.png", 'admin');?>"></li>
-        <li><img src="<?php $img = ($step >= 5) ? '2' : '1'; echo app_assets_url("core/images/icones/done{$img}.png", 'admin');?>"></li>
-    </ul>
-
+    <?php
+    $step = $this->uri->segment(5);
+    if(empty($step)){
+        $step = 1;
+    }
+    ?>
     <h2 class="text-light text-center title-h2"><?php echo $title; ?></h2>
+</div>
+<!-- Column -->
+<div class="col-md-12">
+<?php
+    if ($step == 1){
+     $this->load->view('admin/venda/step', array('step' => 1 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+    } elseif ($step == 2) {
+        $this->load->view('admin/venda/step', array('step' => 2 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+    }elseif ($step == 3) {
+        $this->load->view('admin/venda/step', array('step' => 3 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+    }elseif ($step == 4) {
+        $this->load->view('admin/venda/step', array('step' => 4 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+    }elseif ($step == 5) {
+        $this->load->view('admin/venda/step', array('step' => 5 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+    }
+?>
 </div>
 <script>
     $("#menu-close").click(function(e) {
@@ -48,39 +112,3 @@
         $("#sidebar-wrapper").toggleClass("active");
     });
 </script>
-<!--
-
-<div id="wizard" class="form-wizard form-wizard-horizontal">
-    <div class="form-wizard-nav">
-        <div class="progress">
-            <div class="progress-bar progress-bar-primary" style="width: <?php echo ($step-1)*20 + 10 ?>%;"></div>
-        </div>
-        <ul class="nav nav-justified">
-
-            <?php $max = 5; ?>
-
-            <li class="<?php echo ($step == 1) ? 'active' : ''; if($step > 1) echo " done"; ?>">
-                <a href="#"><span class="step">1<span class="de_max">/ <?php echo $max ?></span></span> <span class="title">Dados iniciais</span></a>
-            </li>
-
-            <li class="<?php echo ($step == 2) ? 'active' : ''; if($step > 2) echo " done"; ?>">
-                <a href="#"><span class="step">2<span class="de_max">/ <?php echo $max ?></span></span> <span class="title">Cotação</span></a>
-            </li>
-
-            <li class="<?php echo ($step == 3) ? 'active' : ''; if($step > 3) echo " done"; ?>">
-                <a href="#"><span class="step">3<span class="de_max">/ <?php echo $max ?></span></span> <span class="title">Contratação</span></a>
-            </li>
-            <li class="<?php echo ($step == 4) ? 'active' : ''; if($step > 4) echo " done"; ?>">
-                <a href="#"><span class="step">4<span class="de_max">/ <?php echo $max ?></span></span> <span class="title">Pagamento</span></a>
-            </li>
-            <li class="<?php echo ($step == 5) ? 'active' : ''; if($step > 5) echo " done"; ?>">
-                <a href="#"><span class="step">5<span class="de_max">/ <?php echo $max ?></span></span> <span class="title">Certificado / Bilhete</span></a>
-            </li>
-
-        </ul>
-    </div>
-    <br>
-</div>
--->
-
-

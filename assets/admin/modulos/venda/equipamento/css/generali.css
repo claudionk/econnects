@@ -1,0 +1,27 @@
+.color-primary{
+    color: #c51f1b !important;
+}
+.color-secondary{
+    color: #3E3E3F !important;
+}
+.color-tertiary{
+    color: #68B2C6 !important;
+}
+.background-primary{
+    background-color: #c51f1b !important;
+}
+.background-secondary{
+    background-color: #3E3E3F !important;
+}
+.background-tertiary{
+    background-color: #68B2C6 !important;
+}
+.border-primary{
+    border-color: #c51f1b !important;
+}
+.border-secondary{
+    border-color: #3E3E3F !important;
+}
+.border-tertiary{
+    border-color: #68B2C6 !important;
+}

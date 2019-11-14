@@ -222,6 +222,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($valor_fixo, $row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_sub_categoria_id, $equipamento_de_para, $servico_produto_id, $data_inicio_vigencia, $data_fim_vigencia, $comissao);
 
 
+
         $valores_cobertura_adicional_total = $valores_cobertura_adicional = array();
 
         if($coberturas_adicionais){
@@ -438,7 +439,11 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             $pedido = $this->db->query( "SELECT * FROM pedido WHERE cotacao_id=$cotacao_id AND deletado=0" )->result_array();
             if( $pedido ) {
                 ob_clean();
-                die( json_encode( array( "status" => false, "message" => "Não foi possível efetuar o calculo. Motivo: já existe um pedido para essa cotação." ) ) );
+                return array( 
+                    "status" => false, 
+                    "message" => "Não foi possível efetuar o calculo. Motivo: já existe um pedido para essa cotação.",
+                    "pedido_id" => $pedido[0]['pedido_id']
+                );
             } else {
                 if (!empty($produto_parceiro_plano_id)){
 

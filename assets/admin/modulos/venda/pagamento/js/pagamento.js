@@ -39,7 +39,7 @@ $(document).ready(function() {
         },
 
         // if true, will log helpful messages for setting up Card
-        debug: true, // optional - default false
+        debug: false, // optional - default false
 
         cardFromType : function (e) {
             console.log('formatCardNumber');
@@ -81,7 +81,7 @@ $(document).ready(function() {
         },
 
         // if true, will log helpful messages for setting up Card
-        debug: true // optional - default false
+        debug: false // optional - default false
     });
 
 
