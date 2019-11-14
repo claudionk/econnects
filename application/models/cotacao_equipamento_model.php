@@ -47,14 +47,14 @@ Class Cotacao_Equipamento_Model extends MY_Model
       'label' => 'Equipamento Categoria ID',
       'rules' => 'required',
       'groups' => 'default',
-      'foreign' => 'equipamento_categoria',
+      // 'foreign' => 'equipamento_categoria',
     ),
     array(
       'field' => 'equipamento_marca_id',
       'label' => 'Equipamento Marca ID',
       'rules' => 'required',
       'groups' => 'default',
-      'foreign' => 'equipamento_marca',
+      // 'foreign' => 'equipamento_marca',
     ),
     array(
       'field' => 'step',
@@ -309,7 +309,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
      * @param int $cotacao_id
      *
      */
-    public function insert_update($produto_parceiro_id, $cotacao_id = 0, $step = 1){
+    public function insert_update($produto_parceiro_id, $cotacao_id = 0, $step = 1, $coberturas_adicionais = null){
 
         $this->load->model('cliente_model', 'cliente');
         $this->load->model('cliente_codigo_model', 'cliente_codigo');
@@ -326,6 +326,10 @@ Class Cotacao_Equipamento_Model extends MY_Model
             $cotacao_salva = $cotacao_salva[0];
         }else{
             $cotacao_salva = array();
+        }
+
+        if(!$cotacao){
+            $cotacao = $cotacao_salva;
         }
 
         $produto_parceiro =  $this->current_model->get_by_id($produto_parceiro_id);
@@ -361,11 +365,13 @@ Class Cotacao_Equipamento_Model extends MY_Model
             $dt_cotacao['usuario_cotacao_id'] = issetor($cotacao["usuario_cotacao_id"], $this->session->userdata('usuario_id'));
             $dt_cotacao['parceiro_id'] = ( isset( $cotacao["parceiro_id"]) ? $cotacao["parceiro_id"] : $this->session->userdata("parceiro_id") );
             $dt_cotacao['usuario_venda_id'] = 0;
-            $dt_cotacao['cotacao_status_id'] = 1;
+            $dt_cotacao['cotacao_status_id'] = !empty($cotacao_salva["cotacao_status_id"]) ? $cotacao_salva["cotacao_status_id"] : 1;
             $dt_cotacao['alteracao_usuario_id'] = 1;
-            $dt_cotacao["data_inicio_vigencia"] = null;
             if( isset( $cotacao["data_inicio_vigencia"] ) ) {
-                $dt_cotacao["data_inicio_vigencia"] = $cotacao["data_inicio_vigencia"];
+                $dt_cotacao["data_inicio_vigencia"] = app_dateonly_mask_to_mysql($cotacao["data_inicio_vigencia"]);
+            }
+            if( isset( $cotacao["data_fim_vigencia"] ) ) {
+                $dt_cotacao["data_fim_vigencia"] = app_dateonly_mask_to_mysql($cotacao["data_fim_vigencia"]);
             }
 
             $this->cotacao->update($cotacao_id,  $dt_cotacao, TRUE);
@@ -579,6 +585,14 @@ Class Cotacao_Equipamento_Model extends MY_Model
             $data_cotacao['aux_10'] = $cotacao['aux_10'];
         }
 
+        if( isset( $cotacao["data_inicio_vigencia"] ) ) {
+            $data_cotacao["data_inicio_vigencia"] = app_dateonly_mask_to_mysql($cotacao["data_inicio_vigencia"]);
+        }
+
+        if( isset( $cotacao["data_fim_vigencia"] ) ) {
+            $data_cotacao["data_fim_vigencia"] = app_dateonly_mask_to_mysql($cotacao["data_fim_vigencia"]);
+        }
+
         if(isset($cotacao['valor_desconto'])){
             if( strpos( $cotacao['valor_desconto'], "," ) !== false ) {
                 $data_cotacao['valor_desconto'] = app_unformat_currency($cotacao['valor_desconto']);
@@ -604,12 +618,12 @@ Class Cotacao_Equipamento_Model extends MY_Model
             $dt_cotacao['produto_parceiro_id'] = $produto_parceiro_id;
             $dt_cotacao["usuario_cotacao_id"] = issetor($cotacao["usuario_cotacao_id"], $this->session->userdata('usuario_id'));
 
-            $dt_cotacao["data_inicio_vigencia"] = null;
-            $data_cotacao["data_inicio_vigencia"] = null;
+            if( isset( $data_cotacao["data_inicio_vigencia"] ) ) {
+                $dt_cotacao["data_inicio_vigencia"] = $data_cotacao["data_inicio_vigencia"];
+            }
 
-            if( isset( $cotacao["data_inicio_vigencia"] ) ) {
-                $data_cotacao["data_inicio_vigencia"] = $cotacao["data_inicio_vigencia"];
-                $dt_cotacao["data_inicio_vigencia"] = $cotacao["data_inicio_vigencia"];
+            if( isset( $data_cotacao["data_fim_vigencia"] ) ) {
+                $dt_cotacao["data_fim_vigencia"] = $data_cotacao["data_fim_vigencia"];
             }
 
             $cotacao_id = $this->cotacao->insert($dt_cotacao, TRUE);
@@ -617,8 +631,17 @@ Class Cotacao_Equipamento_Model extends MY_Model
             $cotacao_equipamento_id = $this->insert($data_cotacao, TRUE);
         }
 
-        $cobertura_adicional = (!empty($carrossel['cobertura_adicional'])) ? explode(';', $carrossel['cobertura_adicional']) : array();
-        $cobertura_adicional_valor = (!empty($carrossel['cobertura_adicional_valor'])) ? explode(';', $carrossel['cobertura_adicional_valor']) : array();
+        if ( !empty($coberturas_adicionais) )
+        {
+            foreach ($coberturas_adicionais as $key => $value) {
+                $valsCobAdd = explode(';', $value);
+                $cobertura_adicional[] = $valsCobAdd[0];
+                $cobertura_adicional_valor[] = $valsCobAdd[1];
+            }
+        } else {
+          $cobertura_adicional = (!empty($carrossel['cobertura_adicional'])) ? explode(';', $carrossel['cobertura_adicional']) : array();
+          $cobertura_adicional_valor = (!empty($carrossel['cobertura_adicional_valor'])) ? explode(';', $carrossel['cobertura_adicional_valor']) : array();
+        }
 
         if($cobertura_adicional){
             $this->cotacao_equipamento_cobertura->delete_by('cotacao_equipamento_id', $cotacao_equipamento_id);

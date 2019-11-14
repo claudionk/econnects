@@ -32,27 +32,14 @@ class Pedido extends Admin_Controller
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Pedidos");
         $this->template->set_breadcrumb("Pedidos", base_url("$this->controller_uri/index"));
+        $data = array();
 
         //Inicializa tabela
         $config['base_url'] = base_url("$this->controller_uri/index");
         $config['uri_segment'] = 4;
-        $config['total_rows'] =  $this->current_model
-            ->with_pedido_status()
-            ->with_cotacao_cliente_contato()
-            ->with_fatura()
-            ->filterPesquisa()
-            ->filterNotCarrinho()
-            ->group_by("pedido.pedido_id")
-            ->get_total();
-
-
-        // exit($this->current_model->db->last_query());
         $config['per_page'] = 10;
-
-        $this->pagination->initialize($config);
-
+        
         //Carrega dados para a página
-        $data = array();
         $data['rows'] = $this->current_model
             ->with_pedido_status()
             ->with_fatura()
@@ -63,6 +50,11 @@ class Pedido extends Admin_Controller
             ->order_by('pedido.criacao', 'DESC')
             ->group_by("pedido.pedido_id")
             ->get_all();
+
+        $config['total_rows'] =  count($data['rows']);
+
+        $this->pagination->initialize($config);
+
 
         $data['pedido_status_list'] = $this->pedido_status
             ->get_all();
@@ -268,7 +260,7 @@ class Pedido extends Admin_Controller
                     'pedido_cartao_id' => $cartao['pedido_cartao_id']
                 ));
         }
-        
+
         $data['produto_parceiro_configuracao'] = $this->produto_parceiro_configuracao->get_by(array(
             'produto_parceiro_id' => $data['produto']['produto_parceiro_id']
         ));
@@ -306,7 +298,6 @@ class Pedido extends Admin_Controller
                 ->with_cotacao_equipamento_equipamento()
                 ->filterByID($data['pedido']['cotacao_id'])
                 ->get_all();
-
 
             foreach ($data['itens'] as $index => $item) {
                 $data['itens'][$index]['cobertura_adicionais'] = array();

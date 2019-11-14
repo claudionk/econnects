@@ -36,7 +36,7 @@
                    value="<?php if (isset($row[$primary_key])) echo $row[$primary_key]; ?>"/>
             <input type="hidden" id="url_calculo" name="url_calculo"
                    value="<?php echo base_url("{$current_controller_uri}/calculo"); ?>"/>
-            <input type="hidden" id="produto_parceiro_plano_id" name="produto_parceiro_plano_id" value="0"/>
+            <input type="hidden" id="produto_parceiro_plano_id" name="produto_parceiro_plano_id" value="<?php if ( !empty($carrinho[0]['plano_id']) ) { echo $carrinho[0]['plano_id']; } else { echo '0'; } ?>"/>
             <input type="hidden" id="parceiro_id" name="parceiro_id" value="<?php echo $parceiro_id; ?>"/>
             <input type="hidden" id="cotacao_id" name="cotacao_id"
                    value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
@@ -511,7 +511,7 @@
                                                                                    value="<?php if (isset($carrossel['repasse_comissao'])) echo $carrossel['repasse_comissao']; ?>">
                                                                         </td>
                                                                     </tr>
-                                                                    <tr  class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>"">
+                                                                    <tr  class="<?php if($div%2==0) {echo 'odd';} $div++;  ?>">
                                                                     <td><span class="comissao_corretor"
                                                                               id="comissao_corretor_two_<?php echo $plano['produto_parceiro_plano_id']; ?>">---</span>
                                                                     </td>

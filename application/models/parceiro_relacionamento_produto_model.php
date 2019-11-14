@@ -36,6 +36,12 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
             'groups' => 'default'
         ),
         array(
+            'field' => 'parceiro_tipo_id',
+            'label' => 'Tipo de Parceiro',
+            'rules' => 'required',
+            'groups' => 'default'
+        ),
+        array(
             'field' => 'pai_id',
             'label' => 'Hierarquia',
             'rules' => '',
@@ -53,6 +59,12 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
             'rules' => 'required|callback_check_repasse_maximo',
             'groups' => 'default'
         ),
+        array( 
+            'field' => 'comissao_tipo', 
+            'label' => 'Tipo de Comissão', 
+            'rules' => 'required', 
+            'groups' => 'default' 
+        ), 
         array(
             'field' => 'comissao',
             'label' => 'Comissão',
@@ -88,7 +100,13 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
             'label' => 'Desconto Habilitado',
             'rules' => 'callback_check_desconto_habilitado',
             'groups' => 'default'
-        )
+        ),
+        array(
+            'field' => 'cod_parceiro',
+            'label' => 'Código do Parceiro',
+            'rules' => '',
+            'groups' => 'default'
+        ),
     );
 
     //Get dados
@@ -96,17 +114,20 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
     {
         //Dados
         $data =  array(
-            'produto_parceiro_id' => app_clear_number($this->input->post('produto_parceiro_id')),
-            'parceiro_id' => app_clear_number($this->input->post('parceiro_id')),
-            'pai_id' =>  (!empty($this->input->post('pai_id'))) ? app_clear_number($this->input->post('pai_id')) : 0,
-            'repasse_comissao' => $this->input->post('repasse_comissao'),
-            'repasse_maximo' => app_unformat_currency($this->input->post('repasse_maximo')),
-            'comissao' => app_unformat_currency($this->input->post('comissao')),
-            'comissao_indicacao' => app_unformat_currency($this->input->post('comissao_indicacao')),
-            'desconto_data_ini' => app_dateonly_mask_to_mysql($this->input->post('desconto_data_ini')),
-            'desconto_data_fim' => app_dateonly_mask_to_mysql($this->input->post('desconto_data_fim')),
-            'desconto_valor' => app_unformat_currency($this->input->post('desconto_valor')),
-            'desconto_habilitado' => $this->input->post('desconto_habilitado'),
+            'produto_parceiro_id'   => app_clear_number($this->input->post('produto_parceiro_id')),
+            'parceiro_id'           => app_clear_number($this->input->post('parceiro_id')),
+            'pai_id'                =>  (!empty($this->input->post('pai_id'))) ? app_clear_number($this->input->post('pai_id')) : 0,
+            'repasse_comissao'      => $this->input->post('repasse_comissao'),
+            'repasse_maximo'        => app_unformat_currency($this->input->post('repasse_maximo')),
+            'comissao_tipo'         => $this->input->post('comissao_tipo'), 
+            'comissao'              => $this->input->post('comissao_tipo') == 1 ? 0 : app_unformat_currency($this->input->post('comissao')), 
+            'comissao_indicacao'    => app_unformat_currency($this->input->post('comissao_indicacao')),
+            'desconto_data_ini'     => app_dateonly_mask_to_mysql($this->input->post('desconto_data_ini')),
+            'desconto_data_fim'     => app_dateonly_mask_to_mysql($this->input->post('desconto_data_fim')),
+            'desconto_valor'        => app_unformat_currency($this->input->post('desconto_valor')),
+            'desconto_habilitado'   => $this->input->post('desconto_habilitado'),
+            'parceiro_tipo_id'      => isempty($this->input->post('parceiro_tipo_id'), null),
+            'cod_parceiro'          => isempty($this->input->post('cod_parceiro'), null),
         );
         return $data;
     }
@@ -121,10 +142,23 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
     }
 
     public function with_parceiro(){
-        return $this->with_simple_relation_foreign('parceiro', 'parceiro_', 'parceiro_id', 'parceiro_id', array('nome','cnpj','codigo_susep'), 'inner');
+        return $this->with_simple_relation_foreign('parceiro', 'parceiro_', 'parceiro_id', 'parceiro_id', array('nome','cnpj','codigo_susep','codigo_corretor'), 'inner');
     }
 
-    public function get_comissao($produto_parceiro_id, $parceiro_id){
+    public function with_parceiro_tipo(){
+        $this->_database->select("parceiro_tipo.nome as parceiro_tipo, parceiro_tipo.codigo_interno, parceiro_tipo.parceiro_tipo_id as parceiro_tipo_id_parceiro");
+        $this->_database->join("parceiro_tipo", "IFNULL({$this->_table}.parceiro_tipo_id,parceiro.parceiro_tipo_id) = parceiro_tipo.parceiro_tipo_id", "left", FALSE);
+        return $this;
+    }
+
+    public function with_parceiro_endereco(){
+        $this->_database->select("parceiro.cep, parceiro.endereco, parceiro.numero, parceiro.bairro, parceiro.complemento, localidade_estado.sigla as uf, localidade_cidade.nome as cidade");
+        $this->_database->join("localidade_cidade", "localidade_cidade.localidade_cidade_id = parceiro.localidade_cidade_id", "left");
+        $this->_database->join("localidade_estado", "localidade_estado.localidade_estado_id = parceiro.localidade_estado_id", "left");
+        return $this;
+    }
+
+    public function get_comissao($produto_parceiro_id, $parceiro_id, $comissao = 0){
 
         $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
         $this->_database->where('parceiro_id', $parceiro_id);
@@ -132,11 +166,36 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
         $rows = $this->get_all();
 
         if($rows){
-            return $rows[0];
+            $rows = $rows[0];
+            $rows['comissao'] = $this->define_comissao_rep($produto_parceiro_id, $rows['comissao'], $rows['comissao_tipo'], $comissao);
+            return $rows;
         }else{
             return array();
         }
 
+    }
+
+    /**
+     * Retorna a comissão do corretor configurada
+     * @param int produto_parceiro_id
+     * @return float
+     */
+    public function get_comissao_corretor($produto_parceiro_id){
+
+        $this->_database->join("produto_parceiro", "{$this->_table}.produto_parceiro_id = produto_parceiro.produto_parceiro_id", "join");
+        $this->_database->join("parceiro", "{$this->_table}.parceiro_id = parceiro.parceiro_id", "join");
+        $this->_database->join("parceiro_tipo", "IFNULL({$this->_table}.parceiro_tipo_id,parceiro.parceiro_tipo_id) = parceiro_tipo.parceiro_tipo_id", "join", FALSE);
+        $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
+        $this->_database->where("parceiro_tipo.codigo_interno", "corretora");
+        $rows = $this->get_all();
+
+        $comissao_corretor = 0;
+        if($rows){
+            $rows = $rows[0];
+            $comissao_corretor = $rows['comissao'];
+        }
+
+        return $comissao_corretor;
     }
 
     public function get_desconto($produto_parceiro_id, $parceiro_id){
@@ -172,7 +231,7 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
 
     }
 
-    public function get_comissao_markup($produto_parceiro_id, $parceiro_id){
+    public function get_comissao_markup($produto_parceiro_id, $parceiro_id, $comissao_cotacao = 0){
 
         $this->_database->where("produto_parceiro_id", $produto_parceiro_id);
         $this->_database->where("parceiro_id", $parceiro_id);
@@ -180,12 +239,12 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
 
         if($rows){
             $row = $rows[0];
-            $soma = $row["comissao"];
+            $soma = $this->define_comissao_rep($produto_parceiro_id, $row['comissao'], $row['comissao_tipo'], $comissao_cotacao);
             while( intval( $row["pai_id"] ) != 0 ) {
                 $linha = $this->get( $row["pai_id"] );
                 if( $linha ) {
                     $row = $linha;
-                    $soma += $linha["comissao"];
+                    $soma += $this->define_comissao_rep($produto_parceiro_id, $row['comissao'], $row['comissao_tipo'], $comissao_cotacao);
                 } else {
                     $row["pai_id"] = 0;
                 }
@@ -198,10 +257,22 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
 
     }
 
+    public function define_comissao_rep($produto_parceiro_id, $comissao, $comissao_tipo = 0, $comissao_cot = 0)
+    {
+        // Se a comissão for variável
+        if ($comissao_tipo != 0) {
+            // se precisar retirar a comissão do corretor
+            $comissao = $comissao_cot - (($comissao_tipo == 1) ? $this->get_comissao_corretor($produto_parceiro_id) : 0);
+        }
+
+        return $comissao;
+    }
+
     public function get_todas_comissoes($produto_parceiro_id, $parceiro_relacionamento_produto_id = 0, $parceiro_id = 0){
         $this->soma = 0;
         $this->somatoria = [];
         $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
+        $this->_database->where("comissao_tipo", 0);
 
         $rows = $this->get_all(0, 0, true, 'ASC');
 
@@ -223,7 +294,10 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
 
                 } else {
 
-                    $result = $this->filter_by_pai($row["parceiro_relacionamento_produto_id"])->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
+                    $result = $this
+                        ->filter_by_pai($row["parceiro_relacionamento_produto_id"])
+                        ->filter_by_produto_parceiro($produto_parceiro_id)
+                        ->get_all();
 
                     if ( !empty($result) ) {
                         $oArray[$parceiro_id_pai][$row['parceiro_id']] = [
@@ -323,6 +397,11 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
 
     function filter_by_pai($pai_id){
         $this->_database->where('pai_id', $pai_id);
+        return $this;
+    }
+
+    function filter_by_comissao_tipo($comissao_tipo){
+        $this->_database->where('comissao_tipo', $comissao_tipo);
         return $this;
     }
 

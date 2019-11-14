@@ -9,8 +9,6 @@
 class Parceiros extends Admin_Controller
 {
 
-
-
     public function __construct()
     {
         parent::__construct();
@@ -56,10 +54,6 @@ class Parceiros extends Admin_Controller
             ->with_parceiro_tipo()
             ->filterFromInput()
             ->limit($config['per_page'], $offset)->get_all();
-
-
-      //  print_r($data['rows']);exit;
-
 
         $data['primary_key'] = $this->current_model->primary_key();
         $data["pagination_links"] = $this->pagination->create_links();
@@ -109,8 +103,6 @@ class Parceiros extends Admin_Controller
             )
         );
 
-
-
         //Caso post
         if($_POST)
         {
@@ -119,7 +111,6 @@ class Parceiros extends Admin_Controller
             {
                 $this->session->set_flashdata('fail_msg', 'Imagem não compatível.');
             }
-
 
             if($this->current_model->validate_form('add'))
             {
@@ -147,14 +138,13 @@ class Parceiros extends Admin_Controller
         $data['status'] = $this->parceiro_status->get_all();
         $data['estados'] = $this->estado->get_all();
         $data['matriz'] = $this->current_model->filter_matriz(0)->get_all();
-
         $data['cidades'] = array();
-
         $data['tipos_parceiros'] = $this->parceiro_tipo->get_all();
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
+
     public function edit($id) //Função que edita registro
     {
         //Adicionar Bibliotecas
@@ -175,9 +165,7 @@ class Parceiros extends Admin_Controller
         $data['primary_key'] = $this->current_model->primary_key();
         $data['new_record'] = '0';
         $data['form_action'] =  base_url("$this->controller_uri/edit/{$id}");
-
         $data['base_image_url'] = $this->getBaseUrlImage(); //Resgata url base das imagens deste model
-
 
         //Verifica se registro existe
         if(!$data['row'])
@@ -208,10 +196,10 @@ class Parceiros extends Admin_Controller
                 'filebrowserFlashUploadUrl' => base_url('assets/common/ckfinder/core/connector/php/connector.php?command=QuickUpload&type=Flash')
             )
         );
+
         //Caso post
         if($_POST)
         {
-
 
             if($this->current_model->validate_form('edit')) //Valida form
             {
@@ -235,29 +223,23 @@ class Parceiros extends Admin_Controller
         $data['estados'] = $this->estado->get_all();
 
         if( $data['row']['localidade_estado_id']){
-
             $data['cidades'] = $this->cidade->getCidadesPorEstado($data['row']['localidade_estado_id']);
-
         }else {
-
             $data['cidades'] = array();
         }
 
-
         $data['matriz'] = $this->current_model->filter_matriz($id)->get_all();
-
         $data['tipos_parceiros'] = $this->parceiro_tipo->get_all();
-
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
+
     public  function delete($id)
     {
         //Deleta registro
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
         $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
-
 
         $this->produto_parceiro->delete_by(array('parceiro_id' => $id));
         $this->parceiro_relacionamento_produto->delete_by(array('parceiro_id' => $id));
@@ -321,4 +303,3 @@ class Parceiros extends Admin_Controller
     }
 
 }
-

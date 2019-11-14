@@ -106,6 +106,18 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             'rules'  => '',
             'groups' => 'default',
         ),
+        array(
+            'field'  => 'idade_minima',
+            'label'  => 'Idade Mínima',
+            'rules'  => '',
+            'groups' => 'default',
+        ),
+        array(
+            'field'  => 'idade_maxima',
+            'label'  => 'Idade Máxima',
+            'rules'  => '',
+            'groups' => 'default',
+        ),
     );
 
     /**
@@ -139,6 +151,20 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         $this->_database->join("produto_parceiro_plano_origem", "produto_parceiro_plano_origem.produto_parceiro_plano_id = {$this->_table}.{$this->primary_key}");
         $this->_database->where("produto_parceiro_plano_origem.localidade_id = {$localidade_id}");
         $this->_database->where("produto_parceiro_plano_origem.deletado = 0");
+        return $this;
+    }
+
+    public function with_precificacao_tipo()
+    {
+        $this->_database->select("precificacao_tipo.nome as precificacao_tipo");
+        $this->_database->join("precificacao_tipo", "precificacao_tipo.precificacao_tipo_id = {$this->_table}.precificacao_tipo_id");
+        return $this;
+    }
+
+    public function with_moeda()
+    {
+        $this->_database->select("moeda.nome as moeda");
+        $this->_database->join("moeda", "moeda.moeda_id = {$this->_table}.moeda_id");
         return $this;
     }
 
@@ -255,6 +281,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
 
         $apolice_vigencia_regra = false;
         $data_adesao = date("Y-m-d");
+        $date_fim_vig = null;
 
         if (empty($data_base)) {
             $data_base = date("Y-m-d");
@@ -274,9 +301,6 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                             }
                             break;
                         case "E": //Especifica (Somente via API)
-                            if ($cotacao_salva["nota_fiscal_data"] != "") {
-                                $data_base = $data_adesao = $cotacao_salva["nota_fiscal_data"];
-                            }
 
                             if ($cotacao_salva["data_inicio_vigencia"] != "" && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00") {
                                 $data_base = $data_adesao = $cotacao_salva["data_inicio_vigencia"];
@@ -284,6 +308,15 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                             } else {
                                 $apolice_vigencia_regra = true;
                             }
+
+                            if ($cotacao_salva["nota_fiscal_data"] != "") {
+                                $data_base = $data_adesao = $cotacao_salva["nota_fiscal_data"];
+                            }
+
+                            if ($cotacao_salva["data_fim_vigencia"] != "" && $cotacao_salva["data_fim_vigencia"] != "0000-00-00") {
+                                $date_fim_vig = $cotacao_salva["data_fim_vigencia"];
+                            }
+
                             break;
                     }
 
@@ -350,6 +383,12 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             $date_fim    = date('Y-m-d', mktime(0, 0, 0, $data_base2[1], $data_base2[2] + $produto_parceiro_plano['limite_vigencia'], $data_base2[0]));
         }
 
+        // caso tenha uma data fim específica
+        if ( !empty($date_fim_vig) )
+        {
+            $date_fim = $date_fim_vig;
+        }
+
         return array(
             'inicio_vigencia' => $date_inicio,
             'fim_vigencia'    => $date_fim,
@@ -358,17 +397,16 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         );
     }
 
-
-    public function getInicioFimVigenciaCapa($produto_parceiro_plano_id, $data_base)
+    public function getDatasCapa($produto_parceiro_plano_id, $data_base, $data_vencimento, $is_controle_endosso_pelo_cliente = false)
     {
 
-        $date_inicio = $data_fim = $data_base;
+        $date_inicio = $data_base;
 
         $config = $this->with_produto_parceiro_configuracao($produto_parceiro_plano_id)->get_all();
         if ($config) {
             $config = $config[0];
 
-            if ($config['pagamento_tipo'] == 'RECORRENTE') {
+            if ($config['pagamento_tipo'] == 'RECORRENTE' || $is_controle_endosso_pelo_cliente) {
 
                 $data_base = explode('-', $data_base);
                 $d1 = new DateTime($data_base[2]."-".$data_base[1]."-".$data_base[0]);
@@ -376,42 +414,70 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                 $fim = 1;
                 $date_fim = $d2 = $d1;
 
-                switch ($config["pagamento_periodicidade_unidade"]) {
+                $data_vencimento = explode('-', $data_vencimento);
+                $dvcto = new DateTime($data_vencimento[2]."-".$data_vencimento[1]."-".$data_vencimento[0]);
+
+                if ($is_controle_endosso_pelo_cliente)
+                {
+                    $config["pagamento_periodicidade_unidade"] = 'MES';
+                }
+
+                switch ($config["pagamento_periodicidade_unidade"])
+                {
                     case "DIA": //
-                        $d2->add(new DateInterval("P{$fim}D"));
+                        if ($is_controle_endosso_pelo_cliente == 1)
+                        {
+                            $d2->add(new DateInterval("P{$fim}D"));
+                        }
+
+                        $dvcto->add(new DateInterval("P1D"));
 
                         break;
                     case "MES":
 
-                        // Adiciona os meses no INICIO da vigência
-                        $m = $d1->format('m');
+                        if ($is_controle_endosso_pelo_cliente == 1) 
+                        {
+                            // Adiciona os meses no INICIO da vigência
+                            $m = $d1->format('m');
 
-                        // Adiciona os meses na FIM da vigência
-                        $d2->add(new DateInterval("P{$fim}M"));
+                            // Adiciona os meses na FIM da vigência
+                            $d2->add(new DateInterval("P{$fim}M"));
 
-                        // valida FEVEREIRO, onde o PHP add os meses com visão de dias
-                        if ($d2->format('m') - $m != $fim) {
-                            // volta para o último dia do mês
-                            $rem = $d2->format('d');
-                            $d2 = $d2->sub(new DateInterval("P{$rem}D"));
-                        } else {
-                            // retira um dia (-1 dia)
-                            $date_fim = $d2->sub(new DateInterval("P1D"));
+                            // valida FEVEREIRO, onde o PHP add os meses com visão de dias
+                            if ($d2->format('m') - $m != $fim) {
+                                // volta para o último dia do mês
+                                $rem = $d2->format('d');
+                                $d2 = $d2->sub(new DateInterval("P{$rem}D"));
+                            } else {
+                                // retira um dia (-1 dia)
+                                $date_fim = $d2->sub(new DateInterval("P1D"));
+                            }
                         }
+
+                        // Adiciona os meses no vencimento
+                        $dvcto->add(new DateInterval("P1M"));
 
                         break;
                     case "ANO":
-                        $d2->add(new DateInterval("P{$fim}Y"));
+                        if ($is_controle_endosso_pelo_cliente == 1) 
+                        {
+                            $d2->add(new DateInterval("P{$fim}Y"));
+                        }
+
+                        $dvcto->add(new DateInterval("P1Y"));
+
                         break;
                 }
 
                 $date_fim = $date_fim->format('Y-m-d');
+                $data_vencimento = $dvcto->format('Y-m-d');
             }
         }
 
         return array(
             'inicio_vigencia' => $date_inicio,
             'fim_vigencia'    => $date_fim,
+            'data_vencimento' => $data_vencimento,
             'dias'            => app_date_get_diff_mysql($date_inicio, $date_fim, 'D'),
         );
     }
@@ -442,6 +508,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                 }
 
                 $d = app_date_get_diff($data, date('Y-m-d'), $base);
+
                 if ($d > $result['limite_tempo']) {
                     return "O plano {$result['nome']} requer que o Equipamento tenha um prazo máximo de uso de {$result['limite_tempo']} {$desc}";
                 }

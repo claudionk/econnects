@@ -9,8 +9,6 @@
 class Capitalizacao_Serie extends Admin_Controller
 {
 
-
-
     public function __construct()
     {
         parent::__construct();
@@ -22,15 +20,10 @@ class Capitalizacao_Serie extends Admin_Controller
         //Carrega modelos
         $this->load->model('capitalizacao_serie_model', 'current_model');
         $this->load->model('capitalizacao_model', 'capitalizacao');
-
-
     }
-
-
 
     public function index($capitalizacao_id , $offset = 0)
     {
-
 
         $this->auth->check_permission('view', 'capitalizacao_serie', 'admin/capitalizacao/');
 
@@ -42,7 +35,6 @@ class Capitalizacao_Serie extends Admin_Controller
         $this->template->set('page_subtitle', "Campos");
         $this->template->set_breadcrumb("Campos", base_url("$this->controller_uri/index/{$capitalizacao_id}"));
 
-
         $capitalizacao = $this->capitalizacao->get($capitalizacao_id);
 
         //Verifica se registro existe
@@ -53,13 +45,10 @@ class Capitalizacao_Serie extends Admin_Controller
             redirect("admin/capitalizacao/index");
         }
 
-
-
-
         //Inicializa tabela
         $config['base_url'] = base_url("$this->controller_uri/index/{$capitalizacao_id}");
         $config['uri_segment'] = 5;
-        $config['total_rows'] =  $this->current_model->filter_by_capitalizacao($capitalizacao_id)->get_total();
+        $config['total_rows'] =  $this->current_model->filter_by_capitalizacao($capitalizacao_id)->filter_by_ativo(1)->get_total();
         $config['per_page'] = 20;
 
         $this->pagination->initialize($config);
@@ -69,12 +58,11 @@ class Capitalizacao_Serie extends Admin_Controller
 
         $data['rows'] = $this->current_model->limit($config['per_page'], $offset)
             ->filter_by_capitalizacao($capitalizacao_id)
+            ->filter_by_ativo(1)
             ->get_all();
 
         $data['capitalizacao_id'] = $capitalizacao_id;
         $data['capitalizacao'] = $capitalizacao_id;
-
-
         $data['primary_key'] = $this->current_model->primary_key();
         $data["pagination_links"] = $this->pagination->create_links();
 
@@ -87,12 +75,10 @@ class Capitalizacao_Serie extends Admin_Controller
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
 
-
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Capitalização / Série");
         $this->template->set_breadcrumb("Capitalização / Série", base_url("$this->controller_uri/index"));
-
 
         $capitalizacao = $this->capitalizacao->get($capitalizacao_id);
 
@@ -103,7 +89,6 @@ class Capitalizacao_Serie extends Admin_Controller
             $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
             redirect("admin/capitalizacao/index");
         }
-
 
         //Caso post
         if($_POST)
@@ -122,21 +107,33 @@ class Capitalizacao_Serie extends Admin_Controller
                     $len = strlen($this->input->post('numero_inicio'));
                     $inicio = (int)$this->input->post('numero_inicio');
                     $quantidade = (int)$this->input->post('quantidade');
+                    $responsavel_num_sorte = 0;
 
-                    for ($i = $inicio; $i < ($inicio + $quantidade); $i++) {
-                        $data = array();
-                        $data['capitalizacao_serie_id'] = $insert_id;
-                        $data['contemplado'] = 0;
-                        $data['numero'] = str_pad($i, $len, "0", STR_PAD_LEFT);//(int)$i; //str_pad($i, $len, "0", STR_PAD_LEFT);
-                        $data['utilizado'] = 0;
-                        $data['ativo'] = 1;
-                        $this->titulo->insert($data, FALSE);
-
+                    $capitalizacao = $this->capitalizacao->get($this->input->post('capitalizacao_id'));
+                    if ($capitalizacao)
+                    {
+                        /*
+                        0 - Integração
+                        1 - Parceiro
+                        2 - Manual
+                        */
+                        $responsavel_num_sorte = $capitalizacao['responsavel_num_sorte'];
                     }
 
+                    // Manual
+                    if ($responsavel_num_sorte == 2)
+                    {
+                        for ($i = $inicio; $i < ($inicio + $quantidade); $i++) {
+                            $data = array();
+                            $data['capitalizacao_serie_id'] = $insert_id;
+                            $data['contemplado'] = 0;
+                            $data['numero'] = str_pad($i, $len, "0", STR_PAD_LEFT);//(int)$i; //str_pad($i, $len, "0", STR_PAD_LEFT);
+                            $data['utilizado'] = 0;
+                            $data['ativo'] = 1;
+                            $this->titulo->insert($data, FALSE);
 
-                    //
-
+                        }
+                    }
 
                     //Caso inserido com sucesso
                     $this->session->set_flashdata('succ_msg', 'Os dados foram salvos corretamente.'); //Mensagem de sucesso
@@ -151,16 +148,11 @@ class Capitalizacao_Serie extends Admin_Controller
             }
         }
 
-
-
         $data = array();
         $data['primary_key'] = $this->current_model->primary_key();
         $data['new_record'] = '1';
-
         $data['capitalizacao_id'] = $capitalizacao_id;
         $data['capitalizacao'] = $capitalizacao;
-
-
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
@@ -176,7 +168,6 @@ class Capitalizacao_Serie extends Admin_Controller
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Editar Série");
         $this->template->set_breadcrumb('Editar', base_url("$this->controller_uri/index"));
-
 
         //Carrega dados para a página
         $data = array();
@@ -194,9 +185,7 @@ class Capitalizacao_Serie extends Admin_Controller
             redirect("$this->controller_uri/index");
         }
 
-
         $capitalizacao =  $this->capitalizacao->get($data['row']['capitalizacao_id']);
-
 
         //Caso post
         if($_POST)
@@ -214,15 +203,13 @@ class Capitalizacao_Serie extends Admin_Controller
             }
         }
 
-
-
         $data['capitalizacao_id'] = $capitalizacao['capitalizacao_id'];
         $data['capitalizacao'] = $capitalizacao;
-
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
+
     public  function delete($id)
     {
         $row = $this->current_model->get($id);
@@ -237,6 +224,5 @@ class Capitalizacao_Serie extends Admin_Controller
 
         redirect("{$this->controller_uri}/index/{$row['capitalizacao_id']}");
     }
-
 
 }

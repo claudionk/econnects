@@ -43,7 +43,7 @@ $(document).ready(function(){
     });
 
     //verifica se é uma edição ou POST
-    if($(".js-equipamento_id-ajax").data('selected') != ''){
+    if($(".js-equipamento_id-ajax").data('selected') && $(".js-equipamento_id-ajax").data('selected') != ''){
         $.ajax({
             url: base_url + "/admin/equipamento/service/" + $(".js-equipamento_id-ajax").data('selected'),
             type: "GET",

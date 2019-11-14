@@ -40,6 +40,7 @@ class Apolice extends CI_Controller {
         }
 
         $this->usuario_id = $webservice["usuario_id"];
+        $this->parceiro_id = $webservice["parceiro_id"];
         return $webservice;
     }
 
@@ -149,8 +150,8 @@ class Apolice extends CI_Controller {
         if($apolice_id || $num_apolice || $documento || $pedido_id ) {
             $pedidos = $this->pedido
             ->with_pedido_status()
+            // ->with_apolice()
             ->with_cotacao_cliente_contato()
-            ->with_apolice()
             ->with_produto_parceiro()
             // ->with_fatura()
             ->filterNotCarrinho()
@@ -181,7 +182,9 @@ class Apolice extends CI_Controller {
                 $apolice_id = $PUT["apolice_id"];
                 $num_apolice = $PUT["num_apolice"];
 
-                $this->update( $apolice_id, $num_apolice );
+                // atualiza o numero do bilhete
+                $ret = $this->apolice->updateBilhete( $apolice_id, $num_apolice );
+                die( json_encode( $ret, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
             } else {
                 die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
             }
@@ -189,18 +192,26 @@ class Apolice extends CI_Controller {
 
     }
 
-    private function update( $apolice_id, $num_apolice ) {
-        $this->db->query("UPDATE apolice SET num_apolice='$num_apolice' WHERE apolice_id=$apolice_id" );
-        $result = $this->db->query("SELECT * FROM apolice WHERE apolice_id=$apolice_id" )->result_array();
-        die( json_encode( array( "status" => (bool)sizeof($result), "apolice" => $result ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
-    }
-
-    public function validarDadosEntrada()
+    public function getDados ()
     {
         if( $_SERVER["REQUEST_METHOD"] === "POST" ) {
             $POST = json_decode( file_get_contents( "php://input" ), true );
+
+            if (empty($POST)) {
+                die(json_encode(array("status" => false, "message" => "Dados não recebidos")));
+            }
         } else {
             die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
+        }
+
+        return $POST;
+    }
+
+    public function validarDadosEntrada($POST = [])
+    {
+
+        if (empty($POST)) {
+            $POST = $this->getDados();
         }
 
         $apolice_id = null;
@@ -218,7 +229,6 @@ class Apolice extends CI_Controller {
         if(!$pedido) {
             die( json_encode( array( "status" => false, "message" => "Apólice não encontrada" ) ) );
         }
-        
 
         return [ 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
     }
@@ -248,7 +258,6 @@ class Apolice extends CI_Controller {
 
         $validacao = $this->validarDadosEntrada();
 
-
         $pedido_id = $validacao['pedido_id'];
         $define_date = !empty($validacao['dados']["define_date"]) ? $validacao['dados']["define_date"] : date("Y-m-d H:i:s") ;
 
@@ -256,6 +265,282 @@ class Apolice extends CI_Controller {
         $produto_parceiro_cancelamento = $this->pedido->cancelamento_calculo( $pedido_id , $define_date );
 
         die( json_encode( $produto_parceiro_cancelamento ) );
+    }
+
+    public function getDocumentos()
+    {
+        $this->checkKey();
+
+        if( empty( $_GET["plano_slug"] ) ) {
+            die( json_encode( array( "status" => false, "message" => "O Atributo plano_slug é obrigatório" ) ) );
+        }
+
+        $this->load->model( "produto_parceiro_plano_model", "produto_parceiro_plano" );
+        $this->load->model( "produto_parceiro_plano_tipo_documento_model", "produto_parceiro_plano_tipo_documento" );
+
+        $planos = $this->produto_parceiro_plano
+            ->wtih_plano_habilitado($this->parceiro_id)
+            ->filter_by_slug($_GET["plano_slug"])
+            ->get_all_select();
+        if( empty( $planos ) ) {
+            die( json_encode( array( "status" => false, "message" => "Nenhum plano encontrado com o slug informado" ) ) );
+        }
+
+        $produto_parceiro_plano_id = $planos[0]['produto_parceiro_plano_id'];
+
+        $docs = $this->produto_parceiro_plano_tipo_documento
+            ->filter_by_plano_slug($_GET["plano_slug"])
+            ->with_tipo_documento()
+            ->get_all_select();
+        if( empty( $docs ) ) {
+            die( json_encode( array( "status" => false, "message" => "Nenhum documento encontrado" ) ) );
+        }
+
+        die( json_encode( array( "status" => true, "message" => "OK" , "documents" => $docs) ) );
+    }
+
+    public function sendDocumentos()
+    {
+        $this->checkKey();
+
+        $payload = json_decode( file_get_contents( "php://input" ), false );
+
+        if( empty( $payload->{"apolice_id"} ) ) {
+            die( json_encode( array( "status" => false, "message" => "O atributo 'apolice_id' é um campo obrigatório" ) ) );
+        } else {
+            $apolice_id = $payload->{"apolice_id"};
+        }
+
+        if( empty( $payload->{"itens"} ) ) {
+            die( json_encode( array( "status" => false, "message" => "O atributo 'itens' é um campo obrigatório" ) ) );
+        }
+
+        // Models
+        $this->load->model( "apolice_model", "apolice" );
+        $this->load->model( "apolice_documento_model", "docs" );
+        $this->load->model( "produto_parceiro_plano_tipo_documento_model", "prod_parc_plano_doc" );
+
+        $apolice = $this->apolice->get($apolice_id);
+        if( empty( $apolice ) ) {
+            die( json_encode( array( "status" => false, "message" => "Apólice não encontrada (#$apolice_id)" ) ) );
+        }
+
+        $produto_parceiro_plano_id = $apolice['produto_parceiro_plano_id'];
+
+        $itens = [];
+        $cont=0;
+
+        foreach ($payload->{"itens"} as $item) {
+
+            if( empty( $item->{"tipo_documento_id"} ) ) {
+                die( json_encode( array( "status" => false, "message" => "O atributo 'tipo_documento_id' é um campo obrigatório" ) ) );
+            }
+
+            if( empty( $item->{"extension"} ) ) {
+                die( json_encode( array( "status" => false, "message" => "O atributo 'extension' é um campo obrigatório" ) ) );
+            }
+
+            if( empty( $item->{"file"} ) ) {
+                die( json_encode( array( "status" => false, "message" => "O atributo 'file' é um campo obrigatório (base64)" ) ) );
+            }
+
+            $produto_parceiro_plano_tipo_documento = $this->prod_parc_plano_doc->filter_by_plano_id($produto_parceiro_plano_id)->filter_by_tipo_doc_id($item->{"tipo_documento_id"})->get_all();
+            if( empty( $produto_parceiro_plano_tipo_documento ) ) {
+                die( json_encode( array( "status" => false, "message" => "Tipo de Documento não habilitado para este Plano" ) ) );
+            }
+
+            $produto_parceiro_plano_tipo_documento_id = $produto_parceiro_plano_tipo_documento[0]['produto_parceiro_plano_tipo_documento_id'];
+
+            $itens[$cont] = (array) $item;
+            $itens[$cont]['produto_parceiro_plano_id'] = $produto_parceiro_plano_id;
+            $itens[$cont]['produto_parceiro_plano_tipo_documento_id'] = $produto_parceiro_plano_tipo_documento_id;
+
+            $cont++;
+        }
+
+        // inativa todos os documentos inseridos
+        $this->docs->disableDoc($apolice_id);
+
+        $cont = 0;
+        foreach ($itens as $item) {
+
+            #$tipo_arquivo = pathinfo($arquivo, PATHINFO_EXTENSION);
+            $produto_parceiro_plano_tipo_documento_id = $item["produto_parceiro_plano_tipo_documento_id"];
+            $name = "{$apolice_id}_{$produto_parceiro_plano_tipo_documento_id}_". date('Ymd_His') ."_". rand(0,100) .".". $item["extension"];
+
+            $apolice_documento_id = $this->docs->uploadFile($name, $apolice_id, $produto_parceiro_plano_tipo_documento_id, $item["file"]);
+            $itens[$cont]['apolice_documento_id'] = $apolice_documento_id;
+            unset($itens[$cont]['file']);
+        }
+
+        die( json_encode( array( "status" => true, "message" => "OK" , "documents" => $itens) ) );
+    }
+
+    /**
+     * Função criada para clientes que controlam o faturamento manualmente por fora do sistema
+     *
+     * @param integer apolice_id
+     * @param integer parcela
+     * @param integer total_parcelas
+     * @param double valor
+     * @return json
+     *
+     * @author Davi Souto
+     * @since  08/04/2019 
+     */
+    public function parcela() {
+        $this->checkKey();
+
+        // validação de dados
+        $POST = $this->getDados();
+
+        if( empty( $POST["apolices"] ) ) {
+            die( json_encode( array( "status" => false, "message" => "Campo apolices é obrigatório" ) ) );
+        }
+
+        $this->load->model("apolice_endosso_model", "apolice_endosso");
+        $this->load->model('apolice_movimentacao_tipo_model', 'tipo');
+        $this->load->model('pedido_model', 'pedido');
+        $this->load->model('fatura_model', 'fatura');
+
+        $apolices = [];
+        $result = [];
+        $errosResult = [];
+
+        // Realiza as validações antes de executar
+        foreach ($POST["apolices"] as $key => $value) {
+
+            $erros = [];
+
+            // Validar apolice_id
+            $validacao = $this->validarDadosEntrada($value);
+
+            $apolice_id = $validacao['dados']['apolice_id'];
+            $pedido_id  = $validacao['pedido_id'];
+
+            if ( $this->apolice->getApoliceStatus($apolice_id, 'cancelada') ) {
+                $errosResult[] = $this->parcelaReturn($apolice_id,"A apólice já está cancelada" );
+                continue;
+            }
+
+            // TODO: validar se o valor da parcela está correto para não aceitar qualquer valor
+
+            // Validar outros parâmetros
+            (array_key_exists('parcela', $validacao['dados'])) ? $parcela = $validacao['dados']['parcela'] : $erros[] = $this->parcelaReturn($apolice_id,"Campo parcela é obrigatório");
+            (array_key_exists('total_parcelas', $validacao['dados'])) ? $total_parcelas = $validacao['dados']['total_parcelas'] : $erros[] = $this->parcelaReturn($apolice_id,"Campo total_parcelas é obrigatório");
+            (array_key_exists('valor', $validacao['dados'])) ? $valor = trim(str_replace(",", ".", $validacao['dados']['valor'])) : $erros[] = $this->parcelaReturn($apolice_id,"Campo valor é obrigatório");
+            (array_key_exists('valor_pago', $validacao['dados'])) ? $valor_pago = trim(str_replace(",", ".", $validacao['dados']['valor_pago'])) : $erros[] = $this->parcelaReturn($apolice_id,"Campo valor_pago é obrigatório");
+            (array_key_exists('data_vencimento', $validacao['dados'])) ? $data_vencimento = trim($validacao['dados']['data_vencimento']) : $erros[] = $this->parcelaReturn($apolice_id,"Campo data_vencimento é obrigatório");
+            (array_key_exists('data_pagamento', $validacao['dados'])) ? $data_pagamento = trim($validacao['dados']['data_pagamento']) : $erros[] = $this->parcelaReturn($apolice_id,"Campo data_pagamento é obrigatório");
+
+            if ( !empty($erros) ){
+                $errosResult[] = $erros;
+                continue;
+            }
+
+            // Validar campos de data
+            if (!app_validate_data_americana($data_vencimento)) $erros[] = $this->parcelaReturn($apolice_id,"Campo data_vencimento deve ser uma data válida (YYYY-MM-DD)");
+            if (!app_validate_data_americana($data_pagamento)) $erros[] = $this->parcelaReturn($apolice_id,"Campo data_pagamento deve ser uma data válida (YYYY-MM-DD)");
+
+            // Validar campos numéricos
+            if (! is_numeric($valor)) $erros[] = $this->parcelaReturn($apolice_id,"Campo valor deve ser um campo númerico");
+            if (! is_numeric($total_parcelas)) $erros[] = $this->parcelaReturn($apolice_id,"Campo total_parcelas deve ser um campo númerico");
+            if ( empty($valor) ) $erros[] = $this->parcelaReturn($apolice_id,"Campo valor deve ser maior que zero");
+            if ( empty($valor_pago) ) $erros[] = $this->parcelaReturn($apolice_id,"Campo valor_pago deve ser maior que zero");
+
+            // Carregar pedido
+            $pedido = $this->pedido->getPedidosByID($pedido_id);
+            $pedido = $pedido[0];
+
+            // Validar total de parcelas
+            if ((int) $pedido['num_parcela'] != $total_parcelas)
+                $erros[] = $this->parcelaReturn($apolice_id,"O total de parcelas informado é inválido" );
+
+            $produto_parceiro_pagamento_id = $pedido['produto_parceiro_pagamento_id'];
+            $cotacao_id = $pedido['cotacao_id'];
+            $produto_parceiro_id = $pedido['produto_parceiro_id'];
+
+            // Selecionar parcela atual
+            $ultima_parcela = $this->apolice_endosso->lastSequencial($apolice_id);
+            $parcela_atual = (int) $ultima_parcela['parcela'] + 1;
+
+            // Validar parcela
+            if ($parcela <= 0) $erros[] = $this->parcelaReturn($apolice_id,"Parcela " . $parcela . " não é uma parcela válida");
+            if ($parcela > $total_parcelas) $erros[] = $this->parcelaReturn($apolice_id,"Parcela atual é maior que o total de parcelas");
+            if ($parcela > $parcela_atual) $erros[] = $this->parcelaReturn($apolice_id,"Parcela " . $parcela_atual . " ainda não foi efetuada");
+            if ($parcela < $parcela_atual) $erros[] = $this->parcelaReturn($apolice_id,"Parcela " . $parcela . " já foi efetuada");
+
+            $apolices[] = [
+                'apolice_id'                    => $apolice_id,
+                'pedido_id'                     => $pedido_id,
+                'cotacao_id'                    => $cotacao_id,
+                'parcela'                       => $parcela,
+                'total_parcelas'                => $total_parcelas,
+                'valor'                         => $valor,
+                'valor_pago'                    => $valor_pago,
+                'produto_parceiro_id'           => $produto_parceiro_id,
+                'produto_parceiro_pagamento_id' => $produto_parceiro_pagamento_id,
+                'data_vencimento'               => $data_vencimento,
+                'data_pagamento'                => $data_pagamento,
+            ];
+
+            if ( !empty($erros) ){
+                $errosResult[] = $erros;
+                continue;
+            }
+
+        }
+
+        if ( !empty($errosResult) )
+        {
+            die( json_encode([
+                "status" => false,
+                "apolices" => $errosResult,
+            ]) );
+        }
+
+        // executa após nenhuma inconsistência
+        foreach ($apolices as $ap) {
+
+            $apolice_id                     = $ap['apolice_id'];
+            $pedido_id                      = $ap['pedido_id'];
+            $cotacao_id                     = $ap['cotacao_id'];
+            $produto_parceiro_id            = $ap['produto_parceiro_id'];
+            $produto_parceiro_pagamento_id  = $ap['produto_parceiro_pagamento_id'];
+            $parcela                        = $ap['parcela'];
+            $valor                          = $ap['valor'];
+            $data_vencimento                = $ap['data_vencimento'];
+            $data_pagamento                 = $ap['data_pagamento'];
+
+            // Carregar tipo
+            $tipo = $this->tipo->filter_by_slug('A')->get_all();
+            $tipo = $tipo[0];
+
+            $this->apolice_endosso->insEndosso($tipo["slug"], $tipo["apolice_movimentacao_tipo_id"], $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela, $valor);
+
+            $fatura = $this->fatura->filterByPedido($pedido_id)->get_all();
+            if ( !empty($fatura) )
+            {
+                $fatura = $fatura[0];
+                $this->fatura->insFaturaParcelamentoDet($fatura['fatura_id'], $cotacao_id, $produto_parceiro_id, $parcela, $valor, $data_vencimento, $data_pagamento);
+            }
+
+            $result[] = [
+                'status' => true,
+                'apolice_id' => $apolice_id,
+            ];
+
+        }
+
+        die(json_encode(array("status" => true, "message" => "Inserido com sucesso", "apolices" => $result)));
+    }
+
+    private function parcelaReturn ($apolice_id, $msg) {
+        return array(
+            "status" => false,
+            "message" => $msg,
+            "apolice_id" => $apolice_id
+        );
     }
 
 }

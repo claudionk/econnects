@@ -271,7 +271,7 @@ class MY_Model extends CI_Model
      * Fetch all the records in the table. Can be used as a generic call
      * to $this->_database->get() with scoped methods.
      */
-    public function get_all($limit = 0, $offset = 0)
+    public function get_all($limit = 0, $offset = 0, $viewAll = true)
     {
         $this->trigger('before_get');
 
@@ -281,7 +281,9 @@ class MY_Model extends CI_Model
             $this->_database->where("{$this->_table}.{$this->soft_delete_key}", (bool)$this->_temporary_only_deleted);
         }
 
-        $this->_database->select($this->_table . '.*');
+        if ($viewAll) {
+            $this->_database->select($this->_table . '.*');
+        }
 
         if ($this->_mongodb)
         {
@@ -771,13 +773,13 @@ class MY_Model extends CI_Model
     }
 
 
-    function get_total()
+    function get_total($field = NULL)
     {
         if ($this->soft_delete && $this->_temporary_with_deleted !== TRUE)
         {
             $this->_database->where("{$this->_table}.{$this->soft_delete_key}", (bool)$this->_temporary_only_deleted);
         }
-        $result =  $this->_database->count_all_results($this->_table);
+        $result =  $this->_database->count_all_results($this->_table, $field);
 
 
         return $result;

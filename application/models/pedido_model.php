@@ -185,10 +185,13 @@ Class Pedido_Model extends MY_Model
                             $this->_database->where('cliente.data_nascimento', app_dateonly_mask_to_mysql($value));
                             break;
                         case "pedido_status_id":
-                            $this->_database->where('pedido.pedido_status_id', ($value));
+                            $this->_database->where('pedido.pedido_status_id', $value);
                             break;
                         case "fatura_status_id":
-                            $this->_database->where('fatura.fatura_status_id', ($value));
+                            $this->_database->where('fatura.fatura_status_id', $value);
+                            break;
+                        case "num_apolice":
+                            $this->_database->where("pedido.pedido_id IN(SELECT pedido_id FROM apolice WHERE num_apolice = '{$value}')");
                             break;
 
                         case "inadimplencia":
@@ -315,31 +318,25 @@ Class Pedido_Model extends MY_Model
                 pedido.valor_parcela,
                 cotacao.produto_parceiro_id, 
                 produto.slug,
+                parceiro.slug as slug_parceiro,
                 produto_parceiro.parceiro_id,
                 produto_parceiro_apolice.template as template_apolice,
                 CASE produto.slug 
-                WHEN 'equipamento' THEN
-                cotacao_equipamento.iof
-                WHEN 'generico' THEN
-                cotacao_generico.iof
-                ELSE
-                cotacao_seguro_viagem.iof
-                END 
-                AS iof,
+                    WHEN 'equipamento' THEN cotacao_equipamento.iof
+                    WHEN 'generico' THEN cotacao_generico.iof
+                    ELSE cotacao_seguro_viagem.iof
+                END AS iof,
                 CASE produto.slug 
-                WHEN 'equipamento' THEN
-                cotacao_equipamento.premio_liquido_total
-                WHEN 'generico' THEN
-                cotacao_generico.premio_liquido_total
-                ELSE
-                cotacao_seguro_viagem.premio_liquido_total
-                END 
-                AS premio_liquido_total
+                    WHEN 'equipamento' THEN cotacao_equipamento.premio_liquido_total
+                    WHEN 'generico' THEN cotacao_generico.premio_liquido_total
+                    ELSE cotacao_seguro_viagem.premio_liquido_total
+                END AS premio_liquido_total
             FROM pedido
-            INNER JOIN cotacao ON ( cotacao.cotacao_id = pedido.cotacao_id )
-            INNER JOIN  produto_parceiro ON ( cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id)
-            INNER JOIN produto ON (produto.produto_id = produto_parceiro.produto_id)
-            LEFT JOIN produto_parceiro_apolice ON ( produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id)
+            INNER JOIN cotacao ON cotacao.cotacao_id = pedido.cotacao_id
+            INNER JOIN produto_parceiro ON cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id
+            INNER JOIN parceiro ON cotacao.parceiro_id = parceiro.parceiro_id
+            INNER JOIN produto ON produto.produto_id = produto_parceiro.produto_id
+            LEFT JOIN produto_parceiro_apolice ON ( produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id) AND produto_parceiro_apolice.deletado = 0
             LEFT JOIN cotacao_seguro_viagem ON ( cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id)
             LEFT JOIN cotacao_equipamento ON ( cotacao_equipamento.cotacao_id = cotacao.cotacao_id)
             LEFT JOIN cotacao_generico ON ( cotacao_generico.cotacao_id = cotacao.cotacao_id)
@@ -459,15 +456,18 @@ Class Pedido_Model extends MY_Model
 
     public function with_cotacao_cliente_contato(){
         $this->_database->select("cliente.cliente_id as cod_cliente", false);
-        $this->_database->select("cliente.razao_nome, cotacao_equipamento.equipamento_nome, equipamento_marca.nome as marca, equipamento_categoria.nome as categoria");
+        $this->_database->select("cliente.razao_nome, apolice_equipamento.equipamento_nome, em.nome as marca, ec.nome as categoria");
+        /*
         $this->_database->select("(SELECT contato FROM cliente_contato INNER JOIN contato on contato.contato_id = cliente_contato.contato_id WHERE cliente_contato.deletado = 0 AND contato.deletado = 0 AND contato.contato_tipo_id = 1 AND cliente_contato.cliente_id = cliente.cliente_id LIMIT 1) AS email");
         $this->_database->select("(SELECT contato FROM cliente_contato INNER JOIN contato on contato.contato_id = cliente_contato.contato_id WHERE cliente_contato.deletado = 0 AND contato.deletado = 0 AND contato.contato_tipo_id = 2 AND cliente_contato.cliente_id = cliente.cliente_id LIMIT 1)  AS celular");
         $this->_database->select("(SELECT contato FROM cliente_contato INNER JOIN contato on contato.contato_id = cliente_contato.contato_id WHERE cliente_contato.deletado = 0 AND contato.deletado = 0 AND contato.contato_tipo_id = 3 AND cliente_contato.cliente_id = cliente.cliente_id LIMIT 1) AS telefone");
+        */
+        $this->_database->join('apolice', 'apolice.pedido_id = pedido.pedido_id AND apolice.deletado = 0', 'inner');
         $this->_database->join('cotacao', 'cotacao.cotacao_id = pedido.cotacao_id', 'inner');
         $this->_database->join('cliente', 'cliente.cliente_id = cotacao.cliente_id', 'inner');
-        $this->_database->join("cotacao_equipamento", "cotacao_equipamento.cotacao_id = cotacao.cotacao_id", 'left');
-        $this->_database->join("equipamento_marca", "equipamento_marca.equipamento_marca_id = cotacao_equipamento.equipamento_marca_id", 'left');
-        $this->_database->join("equipamento_categoria", "equipamento_categoria.equipamento_categoria_id = cotacao_equipamento.equipamento_categoria_id", 'left');
+        $this->_database->join("apolice_equipamento", "apolice_equipamento.apolice_id = apolice.apolice_id", 'left');
+        $this->_database->join("vw_Equipamentos_Marcas em", "em.equipamento_marca_id = apolice_equipamento.equipamento_marca_id", 'left');
+        $this->_database->join("vw_Equipamentos_Linhas ec", "ec.equipamento_categoria_id = apolice_equipamento.equipamento_categoria_id", 'left');
 
         return $this;
     }
@@ -587,7 +587,20 @@ Class Pedido_Model extends MY_Model
 
     function criticas_cancelamento($pedido_id, $executar = false, $dados_bancarios = [], $define_date = false ){
         if( ! $define_date ){
-            $define_date = date("Y-m-d H:i:s") ;
+            $define_date = date("Y-m-d H:i:s");
+        } else 
+        {
+
+            if (!app_validate_data_americana($define_date))
+            {
+                $result['status'] = false;
+                $result['mensagem'] = "A data de cancelamento não é válida [{$define_date}]";
+                return $result;
+            }
+
+            $d1 = new DateTime($define_date);
+            $define_date = $d1->format('Y-m-d H:i:s');
+
         }
 
         $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
@@ -666,8 +679,19 @@ Class Pedido_Model extends MY_Model
         $inicio_vigencia = explode('-', $apolice['data_ini_vigencia']);
         $inicio_vigencia = mktime(0, 0, 0, $inicio_vigencia[1], $inicio_vigencia[2], $inicio_vigencia[0]);
 
-        list( $current_year , $current_month , $current_day , $current_hour , $current_minute, $current_second ) = preg_split("/[- :]/",$define_date);
-        $hoje = mktime($current_hour , $current_minute , $current_second, $current_month, $current_day ,  $current_year );
+        $adesao = explode('-', $apolice['data_adesao']);
+        $adesao = mktime(0, 0, 0, $adesao[1], $adesao[2], $adesao[0]);
+
+        list( $current_year, $current_month, $current_day, $current_hour, $current_minute, $current_second ) = preg_split("/[- :]/", $define_date);
+        $hoje = mktime( $current_hour, $current_minute, $current_second, $current_month, $current_day, $current_year );
+
+        // valida a data de cancelamento
+        if ( $hoje < $adesao )
+        {
+            $result['mensagem'] = "A data de Cancelamento não pode ser inferior à data de Adesão";
+            $result['redirect'] = "admin/pedido/view/{$pedido_id}";
+            return $result;
+        }
 
         if ( $hoje >= $inicio_vigencia && $hoje <= $fim_vigencia ) {
             //Já comeceu a vigencia
@@ -811,10 +835,10 @@ Class Pedido_Model extends MY_Model
             $define_date = date("Y-m-d H:i:s");
         }
 
+        $criticas = $this->criticas_cancelamento($pedido_id, true, $dados_bancarios, $define_date);
+
         $d1 = new DateTime($define_date);
         $define_date = $d1->format('Y-m-d H:i:s');
-
-        $criticas = $this->criticas_cancelamento($pedido_id, true, $dados_bancarios, $define_date);
 
         if (!empty($criticas['result'])) {
             // efetuar o cancelamento
@@ -824,21 +848,22 @@ Class Pedido_Model extends MY_Model
         return $criticas;
     }
 
-    function cancelamento_calculo($pedido_id, $define_date = false ){
-        if( ! $define_date ){
-            $define_date = date("Y-m-d H:i:s") ;
-        }
-
-        $d1 = new DateTime($define_date);
-        $define_date = $d1->format('Y-m-d H:i:s');
-
+    function cancelamento_calculo($pedido_id, $define_date = false )
+    {
         $result = [
             'mensagem' => '',
             'status' => false,
             'valor_estorno_total' => 0, 
         ];
 
+        if( ! $define_date ){
+            $define_date = date("Y-m-d H:i:s");
+        }
+
         $criticas = $this->criticas_cancelamento($pedido_id,false,[], $define_date);
+
+        $d1 = new DateTime($define_date);
+        $define_date = $d1->format('Y-m-d H:i:s');
 
         if (!empty($criticas['result'])) {
             // efetuar o cancelamento
@@ -853,8 +878,9 @@ Class Pedido_Model extends MY_Model
     function calcula_estorno_cancelamento($pedido_id, $vigente = FALSE, $define_date = false ){
 
         if( ! $define_date ){
-            $define_date = date("Y-m-d H:i:s") ;
+            $define_date = date("Y-m-d H:i:s");
         }
+
         $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
         $this->load->model("apolice_model", "apolice");
         $this->load->model("fatura_model", "fatura");
@@ -869,7 +895,6 @@ Class Pedido_Model extends MY_Model
 
         //pega as configurações de cancelamento do pedido
         $produto_parceiro = $this->getPedidoProdutoParceiro($pedido_id);
-
         $produto_parceiro = $produto_parceiro[0];
         $produto_parceiro_cancelamento = $this->cancelamento->filter_by_produto_parceiro($produto_parceiro['produto_parceiro_id'])->get_all();
         $produto_parceiro_cancelamento = $produto_parceiro_cancelamento[0];
@@ -881,76 +906,77 @@ Class Pedido_Model extends MY_Model
 
         $valor_estorno_total = $valor_estorno_total_liquido = 0;
         $retorno = [];
+        $devolucao_integral = true;
         $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro["produto_parceiro_id"] );
 
-        if($vigente == FALSE){
-            foreach ($apolices as $apolice) {
-                $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento["seg_antes_calculo"], $produto_parceiro_cancelamento["seg_antes_valor"], $apolice["valor_premio_total"]);
-                $valor_estorno_liq = app_calculo_valor($produto_parceiro_cancelamento["seg_antes_calculo"], $produto_parceiro_cancelamento["seg_antes_valor"], $apolice["valor_premio_net"]);
+        //FAZ CALCULO DO VALOR PARCIAL
+        $dias_utilizados = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
 
-                $dados_apolice = array();
-                $dados_apolice['data_cancelamento'] = $data_cancelamento;
-                $dados_apolice['valor_estorno'] = $valor_estorno;
-                $valor_estorno_total += $valor_estorno;
-                $valor_estorno_total_liquido += $valor_estorno_liq;
+        // caso não tenha iniciado a vigência, deve realizar o calculo com 100% nao usada da vigência
+        if ($dias_utilizados < 0)
+        {
+            $dias_utilizados = 0;
+            $dia_inicio = $apolice["data_ini_vigencia"];
+        } else {
+            $dia_inicio = $data_cancelamento;
+        }
 
-                if( $produto ) {
-                    $produto_slug = $produto["produto_slug"];
-                    $retorno[] = [
-                        'slug' => $produto_slug,
-                        'dados_apolice' => $dados_apolice,
-                        'apolices' => $apolice,
-                    ];
-                }
+        $dias_restantes = app_date_get_diff_dias(app_dateonly_mysql_to_mask($dia_inicio), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]), "D");
+        $dias_aderido = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_adesao"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
+        $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]),  "D");
+
+        if ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_aderido <= $produto_parceiro_cancelamento['seg_depois_dias_carencia'] )
+        {
+            $porcento_nao_utilizado = 100;
+            $dias_restantes = $dias_total;
+        } 
+        else
+        {
+            $devolucao_integral = false;
+            $porcento_nao_utilizado = (($dias_restantes / $dias_total) * 100);
+        }
+
+        // devolução integral
+        if ($devolucao_integral) {
+            $valor_premio = $apolice['valor_premio_total'];
+        } else {
+            $valor_premio = $apolice['valor_premio_net'];
+        }
+
+        $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
+        $valor_premio_liq = $valor_premio;
+
+        if($vigente == FALSE)
+        {
+            $calc_antes_depois = $produto_parceiro_cancelamento["seg_antes_calculo"];
+            $valor_antes_depois = $produto_parceiro_cancelamento["seg_antes_valor"];
+        }
+        else
+        {
+            $calc_antes_depois = $produto_parceiro_cancelamento["seg_depois_calculo"];
+            $valor_antes_depois = $produto_parceiro_cancelamento["seg_depois_valor"];
+        }
+
+        foreach ($apolices as $apolice) {
+
+            $valor_estorno = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio);
+            $valor_estorno_liq = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio_liq);
+
+            $dados_apolice = array();
+            $dados_apolice['data_cancelamento'] = $data_cancelamento;
+            $dados_apolice['valor_estorno'] = $valor_estorno;
+            $valor_estorno_total += $valor_estorno;
+            $valor_estorno_total_liquido += $valor_estorno_liq;
+
+            if( $produto ) {
+                $produto_slug = $produto["produto_slug"];
+                $retorno[] = [
+                    'slug' => $produto_slug,
+                    'dados_apolice' => $dados_apolice,
+                    'apolices' => $apolice,
+                ];
             }
 
-        }else{
-            //FAZ CALCULO DO VALOR PARCIAL
-            $dias_restantes = app_date_get_diff_dias(app_dateonly_mysql_to_mask($data_cancelamento), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]), "D");
-            $dias_utilizados = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
-            $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]),  "D");
-
-            $porcento_nao_utilizado = 0;
-            if ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_utilizados <= $produto_parceiro_cancelamento['seg_depois_dias_carencia']) {
-                $porcento_nao_utilizado = 100;
-                $dias_restantes = $dias_total;
-            }
-
-            if ($porcento_nao_utilizado == 0) {
-                $porcento_nao_utilizado = (($dias_restantes / $dias_total) * 100);
-            }
-
-            foreach ($apolices as $apolice) {
-
-                // devolução integral
-                if ($porcento_nao_utilizado == 100) {
-                    $valor_premio = $apolice['valor_premio_total'];
-                    $valor_premio_liq = $apolice['valor_premio_net'];
-                } else {
-                    $valor_premio = $apolice['valor_premio_net'];
-                    $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
-                    $valor_premio_liq = $valor_premio;
-                }
-
-                $valor_estorno = app_calculo_valor($produto_parceiro_cancelamento['seg_depois_calculo'], $produto_parceiro_cancelamento['seg_depois_valor'], $valor_premio);
-                $valor_estorno_liq = app_calculo_valor($produto_parceiro_cancelamento['seg_depois_calculo'], $produto_parceiro_cancelamento['seg_depois_valor'], $valor_premio_liq);
-
-                $dados_apolice = array();
-                $dados_apolice['data_cancelamento'] = $data_cancelamento;
-                $dados_apolice['valor_estorno'] = $valor_estorno;
-                $valor_estorno_total += $valor_estorno;
-                $valor_estorno_total_liquido += $valor_estorno_liq;
-
-                if( $produto ) {
-                    $produto_slug = $produto["produto_slug"];
-                    $retorno[] = [
-                        'slug' => $produto_slug,
-                        'dados_apolice' => $dados_apolice,
-                        'apolices' => $apolice,
-                    ];
-                }
-
-            }
         }
 
         return [
@@ -958,7 +984,9 @@ Class Pedido_Model extends MY_Model
             'mensagem' => (!empty($retorno)) ? 'Cálculo realizado com sucesso' : 'Não foi possível realizar o cálculo para Cancelamento',
             'valor_estorno_total' => $valor_estorno_total, 
             'valor_estorno_total_liquido' => $valor_estorno_total_liquido, 
-            'dias_utilizados' => (isset($dias_utilizados)) ? $dias_utilizados : '',
+            'dias_utilizados' => issetor($dias_utilizados,  0),
+            'dias_aderido' => issetor($dias_aderido, 0),
+            'devolucao_integral' => $devolucao_integral,
             'dados' => $retorno,
         ];
     }
@@ -999,7 +1027,7 @@ Class Pedido_Model extends MY_Model
                 if($ins_movimentacao) {
                     $pedido = $this->get($pedido_id);
 
-                    $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido);
+                    $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido, null, $calculo['devolucao_integral']);
                 }
 
             }
@@ -1397,7 +1425,7 @@ Class Pedido_Model extends MY_Model
         , DATE_FORMAT({$this->_table}.status_data, '%d/%m/%Y') AS data_emissao
         , DATE_FORMAT(ae.data_ini_vigencia, '%d/%m/%Y') AS ini_vigencia
         , DATE_FORMAT(ae.data_fim_vigencia, '%d/%m/%Y') AS fim_vigencia
-        , CONCAT(p.codigo_sucursal, '71', pp.cod_tpa, LPAD(substr(a.num_apolice, 8, LENGTH(a.num_apolice) ),8,'0')) AS num_apolice
+        , CONCAT(a.cod_sucursal, a.cod_ramo, pp.cod_tpa, LPAD(substr(a.num_apolice, 8, LENGTH(a.num_apolice) ),8,'0')) AS num_apolice
         , cli.razao_nome AS segurado_nome
         , cli.cnpj_cpf AS documento
         , ec.nome as equipamento
@@ -1407,7 +1435,7 @@ Class Pedido_Model extends MY_Model
         , pp.nome as nome_produto_parceiro
         , ae.nota_fiscal_valor as importancia_segurada
         , fp.nome AS forma_pagto
-        , IF(a.apolice_status_id = 2, CONCAT(p.codigo_sucursal, '71', LPAD(1,7,'0')), '0') AS num_endosso
+        , IF(a.apolice_status_id = 2, CONCAT(a.cod_sucursal, a.cod_ramo, LPAD(1,7,'0')), '0') AS num_endosso
         , DATE_FORMAT({$this->_table}.status_data, '%b/%y') AS vigencia_parcela
         , '1|1' as parcela
         , 'PAGO' as status_parcela
@@ -1442,21 +1470,21 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
         $this->_database->join("apolice a", "a.pedido_id = {$this->_table}.pedido_id", "inner");
         $this->_database->join("apolice_movimentacao am", "a.apolice_id = am.apolice_id AND am.apolice_movimentacao_tipo_id = 1", "inner"); // para identificar a data de emissão
-        $this->_database->join("apolice_cobertura ac", "ac.pedido_id = a.apolice_id", "inner");
+        $this->_database->join("apolice_cobertura ac", "ac.apolice_id = a.apolice_id", "inner");
         $this->_database->join("cobertura_plano cp", "ac.cobertura_plano_id = cp.cobertura_plano_id", "inner");
         $this->_database->join("cobertura cb", "cb.cobertura_id = cp.cobertura_id", "inner");
 
         $this->_database->join("cotacao c", "c.cotacao_id = {$this->_table}.cotacao_id", "inner");
         $this->_database->join("cotacao_status cs", "cs.cotacao_status_id = c.cotacao_status_id", "inner");
-        $this->_database->join("cotacao_equipamento ce", "ce.cotacao_id = {$this->_table}.cotacao_id and ce.deletado = 0", "inner");
+        $this->_database->join("cotacao_equipamento ce", "ce.cotacao_id = {$this->_table}.cotacao_id and ce.deletado = 0", "left");
         $this->_database->join("produto_parceiro pp", "pp.produto_parceiro_id = c.produto_parceiro_id", "inner");
         $this->_database->join("parceiro p", "p.parceiro_id = pp.parceiro_id", "inner");
         $this->_database->join("parceiro parc", "parc.parceiro_id = a.parceiro_id", "inner");
         $this->_database->join("produto pr", "pr.produto_id = pp.produto_id", "inner");
         $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "inner");
         $this->_database->join("cliente cli", "cli.cliente_id = c.cliente_id", "inner");
-        $this->_database->join("equipamento_categoria ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "inner");
-        $this->_database->join("equipamento_marca em", "em.equipamento_marca_id = ae.equipamento_marca_id", "inner");
+        $this->_database->join("vw_Equipamentos_Linhas ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "left");
+        $this->_database->join("vw_Equipamentos_Marcas em", "em.equipamento_marca_id = ae.equipamento_marca_id", "left");
         $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = ce.produto_parceiro_plano_id", "inner");
 
         $this->_database->join("produto_parceiro_pagamento pppag", "pppag.produto_parceiro_pagamento_id = pedido.produto_parceiro_pagamento_id", "inner");
@@ -1467,13 +1495,16 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("
         (
             SELECT 
-                  CTA_Ag_Retorno
-                , CTA_Retorno_ok
-                , CTA_Retorno_erro
-                , num_apolice
-                , apolice_movimentacao_tipo_id
-            FROM cta_movimentacao
-            WHERE CTA_Retorno_ok IS NOT NULL
+                  cta_m.CTA_Ag_Retorno
+                , cta_m.CTA_Retorno_ok
+                , cta_m.CTA_Retorno_erro
+                , cta_m.num_apolice
+                , cta_m.apolice_movimentacao_tipo_id
+                , SUM(iF(cta_m.apolice_movimentacao_tipo_id=1,1,-1) * ae.valor) AS valor
+            FROM cta_movimentacao cta_m
+            JOIN apolice_endosso ae ON ae.apolice_endosso_id = cta_m.apolice_endosso_id
+            WHERE cta_m.CTA_Retorno_ok IS NOT NULL
+            GROUP BY cta_m.CTA_Ag_Retorno, cta_m.CTA_Retorno_ok, cta_m.CTA_Retorno_erro, cta_m.num_apolice, cta_m.apolice_movimentacao_tipo_id
         ) as cta", "cta.num_apolice = a.num_apolice", "join", FALSE);
 
         $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
@@ -1526,7 +1557,7 @@ Class Pedido_Model extends MY_Model
         , DATE_FORMAT({$this->_table}.status_data, '%d/%m/%Y') AS data_emissao
         , DATE_FORMAT(ae.data_ini_vigencia, '%d/%m/%Y') AS ini_vigencia
         , DATE_FORMAT(ae.data_fim_vigencia, '%d/%m/%Y') AS fim_vigencia
-        , CONCAT(p.codigo_sucursal, '71', pp.cod_tpa, LPAD(substr(a.num_apolice, 8, LENGTH(a.num_apolice) ),8,'0')) AS num_apolice
+        , CONCAT(a.cod_sucursal, a.cod_ramo, pp.cod_tpa, LPAD(substr(a.num_apolice, 8, LENGTH(a.num_apolice) ),8,'0')) AS num_apolice
         , cli.razao_nome AS segurado_nome
         , cli.cnpj_cpf AS documento
         , ec.nome as equipamento
@@ -1535,7 +1566,7 @@ Class Pedido_Model extends MY_Model
         , ae.imei
         , pp.nome as nome_produto_parceiro
         , ae.nota_fiscal_valor as importancia_segurada
-        , IF(a.apolice_status_id = 2, CONCAT(p.codigo_sucursal, '71', LPAD(1,7,'0')), '0') AS num_endosso
+        , IF(a.apolice_status_id = 2, CONCAT(a.cod_sucursal, a.cod_ramo, LPAD(1,7,'0')), '0') AS num_endosso
         , DATE_FORMAT({$this->_table}.status_data, '%b/%y') AS vigencia_parcela
         , '1|1' as parcela
         , 'PAGO' as status_parcela
@@ -1599,7 +1630,7 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("apolice_movimentacao am", "a.apolice_id = am.apolice_id AND am.apolice_movimentacao_tipo_id = 1", "inner"); // para identificar a data de emissão
 
         /* */
-        $this->_database->join("apolice_cobertura ac", "ac.pedido_id = a.apolice_id", "inner");
+        $this->_database->join("apolice_cobertura ac", "ac.apolice_id = a.apolice_id", "inner");
         $this->_database->join("cobertura_plano cp", "ac.cobertura_plano_id = cp.cobertura_plano_id", "inner");
         $this->_database->join("cobertura cb", "cb.cobertura_id = cp.cobertura_id", "inner");
         /* */
@@ -1613,8 +1644,8 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("produto pr", "pr.produto_id = pp.produto_id", "inner");
         $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "inner");
         $this->_database->join("cliente cli", "cli.cliente_id = c.cliente_id", "inner");
-        $this->_database->join("equipamento_categoria ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "inner");
-        $this->_database->join("equipamento_marca em", "em.equipamento_marca_id = ae.equipamento_marca_id", "inner");
+        $this->_database->join("vw_Equipamentos_Linhas ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "inner");
+        $this->_database->join("vw_Equipamentos_Marcas em", "em.equipamento_marca_id = ae.equipamento_marca_id", "inner");
         $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = ce.produto_parceiro_plano_id", "inner");
         $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
         $this->_database->join("usuario u", "u.usuario_id = c.usuario_cotacao_id", "left");
@@ -1651,6 +1682,276 @@ Class Pedido_Model extends MY_Model
     * Extrai relatório de Mapa de Repasse Sintetico
     */
     public function extrairRelatorioMapaRepasseSintetico($data_inicio = null, $data_fim = null, $_parceiro_id, $slug)
+    {
+        $where = $this->restrictProdutosPorParceiro($_parceiro_id);
+
+        if (!empty($where)) $where = " AND {$where}";
+
+        // colaborador só visualiza os próprios pedidos
+        if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
+            $where .= " AND c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}";
+        }
+
+        if(isset($data_inicio) && !empty($data_inicio))
+            $where .= " AND am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'";
+        if(isset($data_fim) && !empty($data_fim))
+            $where .= " AND am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
+
+        $query = $this->_database->query("
+        SELECT 
+            planos,
+            cod_tpa, 
+            SUM(IF(apolice_status_id = 1, IF(PB IS NOT NULL, 1, 0), 0)) AS V_quantidade,
+            SUM(IF(apolice_status_id = 1, IFNULL(IOF,0), 0)) AS V_IOF, 
+            SUM(IF(apolice_status_id = 1, IFNULL(PL,0), 0)) AS V_PL, 
+            SUM(IF(apolice_status_id = 1, IFNULL(PB,0), 0)) AS V_PB, 
+            SUM(IF(apolice_status_id = 1, IFNULL(pro_labore,0), 0)) AS V_pro_labore, 
+            SUM(IF(apolice_status_id = 1, IFNULL(valor_comissao,0), 0)) AS V_valor_comissao, 
+            SUM(IF(apolice_status_id = 2, IF(PB IS NOT NULL, 1, 0), 0)) AS C_quantidade,
+            SUM(IF(apolice_status_id = 2, IFNULL(IOF,0), 0)) AS C_IOF, 
+            SUM(IF(apolice_status_id = 2, IFNULL(PL,0), 0)) AS C_PL, 
+            SUM(IF(apolice_status_id = 2, IFNULL(PB,0), 0)) AS C_PB, 
+            SUM(IF(apolice_status_id = 2, IFNULL(pro_labore,0), 0)) AS C_pro_labore, 
+            SUM(IF(apolice_status_id = 2, IFNULL(valor_comissao,0), 0)) AS C_valor_comissao
+        FROM (
+            SELECT 
+                ppp.nome as planos,
+                pp.cod_tpa,
+                a.pedido_id,
+                a.num_apolice,
+                x.apolice_movimentacao_tipo_id as apolice_status_id
+                , x.premio_liquido_total AS PB
+                , x.valor_iof AS IOF
+                , x.premio_liquido AS PL
+                , SUM(IF(x.cd_tipo_comissao = 'P', x.valor_comissao, 0)) AS pro_labore
+                , SUM(IF(x.cd_tipo_comissao = 'C', x.valor_comissao, 0)) AS valor_comissao
+
+            FROM apolice a
+            INNER JOIN `produto_parceiro_plano` ppp ON `ppp`.`produto_parceiro_plano_id` = a.`produto_parceiro_plano_id`
+            INNER JOIN `produto_parceiro` pp ON `pp`.`produto_parceiro_id` = `ppp`.`produto_parceiro_id`
+            JOIN (
+                SELECT apolice_id, apolice_movimentacao_tipo_id, cd_tipo_comissao, sum(premio_liquido) * IF(premio_liquido >= 0, 1, -1) premio_liquido, sum(valor_iof) * IF(premio_liquido >= 0, 1, -1) valor_iof, sum(premio_liquido_total) * IF(premio_liquido >= 0, 1, -1) premio_liquido_total, sum(valor_comissao) * IF(premio_liquido >= 0, 1, -1) valor_comissao
+                FROM (
+                    SELECT apolice_id, cobertura_plano_id, apolice_movimentacao_tipo_id, cd_tipo_comissao cd_tipo_comissao, premio_liquido, valor_iof, premio_liquido+valor_iof as premio_liquido_total, sum(valor_comissao) valor_comissao
+                    FROM (
+
+                        SELECT 
+                        TRUNCATE(apolice_cobertura.valor * apolice_cobertura.iof / 100,2) a,
+                        apolice.apolice_id,
+                        apolice_cobertura.cobertura_plano_id,
+                        am.apolice_movimentacao_tipo_id,
+                        apolice_cobertura.valor as premio_liquido,
+                        #(ROUND(IF(apolice_cobertura.iof > 0, IF(ROUND(apolice_cobertura.valor * apolice_cobertura.iof / 100,2) = 0, 0.01 * IF(apolice_cobertura.valor >= 0, 1, - 1) , apolice_cobertura.valor * apolice_cobertura.iof / 100), 0), 2)) AS valor_iof,
+                        #(ROUND(apolice_cobertura.valor + IF(apolice_cobertura.iof > 0, IF(ROUND(apolice_cobertura.valor * apolice_cobertura.iof / 100,2) = 0, 0.01 * IF(apolice_cobertura.valor >= 0, 1, - 1) , apolice_cobertura.valor * apolice_cobertura.iof / 100), 0), 2)) as premio_liquido_total,
+
+                        #se o IOF é menor que 0.01, joga o valor na maior
+                        TRUNCATE(ROUND(
+                            IF(
+                                TRUNCATE(IF(apolice_endosso.valor = 0, 0, IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, IF(rp.regra_preco_id IS NOT NULL, apolice_cobertura.valor * IFNULL(pprp.parametros,0) / 100, 0) )),2)
+
+                                #add a diferenca do IOF total à cobertura de +valor
+                                + IF( menor_iof.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, menor_iof.valor-menor_iof.valor_t, 0) = 0,
+                                
+                                    IF( menor_iof.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, IF( TRUNCATE(menor_iof.valor, 2) = 0, 0.01 * IF(apolice_cobertura.valor >= 0, 1, - 1), menor_iof.valor), 0)
+                                ,
+                                    TRUNCATE(IF(apolice_endosso.valor = 0, 0, IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, IF(rp.regra_preco_id IS NOT NULL, apolice_cobertura.valor * IFNULL(pprp.parametros,0) / 100, 0) )),2)
+                                    
+
+                                    #add a diferenca do IOF total à cobertura de +valor
+                                    + IF( menor_iof.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, menor_iof.valor-menor_iof.valor_t, 0)
+                            )
+                        , 2), 2) AS valor_iof
+
+                        , ROUND(comissao_gerada.comissao, 4) as pc_comissao
+                        , IF(parceiro.parceiro_tipo_id = 2, 'C', 'P') AS cd_tipo_comissao
+
+                        #se a comissao é menor que 0.01, joga o valor na maior
+                        , (ROUND(
+                            IF(
+                                menor.apolice_id IS NULL, 
+                                    IF(ROUND(comissao_gerada.comissao / 100 * apolice_cobertura.valor,2) = 0, 0.01 * IF(apolice_cobertura.valor >= 0, 1, - 1) , comissao_gerada.comissao / 100 * apolice_cobertura.valor), 
+
+                                    IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, IF( ROUND(menor.valor, 2) = 0, 0.01 * IF(apolice_cobertura.valor >= 0, 1, - 1) , menor.valor), 0)
+                            ),2) 
+                        ) AS valor_comissao
+
+                        FROM pedido
+                        INNER JOIN apolice on apolice.pedido_id = pedido.pedido_id
+                        INNER JOIN cotacao c on pedido.cotacao_id = c.cotacao_id
+                        INNER JOIN `cotacao_status` cs ON `cs`.`cotacao_status_id` = `c`.`cotacao_status_id`
+                        INNER JOIN produto_parceiro_plano on apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id
+                        INNER JOIN produto_parceiro pp on produto_parceiro_plano.produto_parceiro_id = pp.produto_parceiro_id
+                        INNER JOIN apolice_cobertura on apolice.apolice_id = apolice_cobertura.apolice_id
+                        INNER JOIN cobertura_plano on apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id AND pp.parceiro_id = cobertura_plano.parceiro_id
+                        LEFT JOIN comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.comissao > 0 AND comissao_gerada.deletado = 0
+                        INNER JOIN parceiro on comissao_gerada.parceiro_id=parceiro.parceiro_id
+                        INNER JOIN `parceiro` parc ON `parc`.`parceiro_id` = apolice.`parceiro_id`
+                        INNER JOIN apolice_movimentacao am on apolice.apolice_id = am.apolice_id AND IF(apolice_cobertura.valor >= 0, 1, 2) = am.apolice_movimentacao_tipo_id
+                        INNER JOIN apolice_endosso ON apolice.apolice_id = apolice_endosso.apolice_id AND apolice_endosso.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
+
+                        LEFT JOIN produto_parceiro_regra_preco pprp ON produto_parceiro_plano.produto_parceiro_id = pprp.produto_parceiro_id AND pprp.deletado = 0
+                        LEFT JOIN regra_preco rp on pprp.regra_preco_id = rp.regra_preco_id AND rp.slug = 'iof' 
+
+                        #caso comissao seja menor que 0.01, soma as comissoes e identifica a de maior valor
+                        LEFT JOIN (
+                            SELECT apolice_id, apolice_movimentacao_tipo_id, max(apolice_cobertura_id) as apolice_cobertura_id, valor
+                            FROM (
+                                SELECT apolice.apolice_id, am.apolice_movimentacao_tipo_id, ac.apolice_cobertura_id apolice_cobertura_id, IF( ROUND(x.valor, 2) = 0, 0.01 * IF(ac.valor >= 0, 1, - 1) , x.valor) as valor
+                                FROM apolice_cobertura ac
+                                INNER JOIN apolice_movimentacao am on ac.apolice_id = am.apolice_id
+                                INNER JOIN (
+                                    SELECT apolice.apolice_id, am.apolice_movimentacao_tipo_id, sum(apolice_cobertura.valor * (comissao_gerada.comissao / 100)) as valor, max(apolice_cobertura.valor) c, min(apolice_cobertura.valor) d
+                                    FROM pedido 
+                                    INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id
+                                    INNER JOIN apolice_cobertura ON apolice.apolice_id = apolice_cobertura.apolice_id
+                                    INNER JOIN comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.comissao > 0
+                                    INNER JOIN `parceiro` parc ON `parc`.`parceiro_id` = apolice.`parceiro_id`
+                                    INNER JOIN cotacao c on pedido.cotacao_id = c.cotacao_id
+                                    INNER JOIN `cotacao_status` cs ON `cs`.`cotacao_status_id` = `c`.`cotacao_status_id`
+                                    INNER JOIN produto_parceiro_plano on apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id
+                                    INNER JOIN produto_parceiro pp on produto_parceiro_plano.produto_parceiro_id = pp.produto_parceiro_id
+                                    INNER JOIN apolice_movimentacao am on apolice.apolice_id = am.apolice_id AND IF(apolice_cobertura.valor >= 0, 1, 2) = am.apolice_movimentacao_tipo_id
+                                    WHERE 1
+                                    AND pedido.deletado = 0
+                                    AND apolice.deletado = 0
+                                    AND apolice_cobertura.deletado = 0
+                                    AND comissao_gerada.deletado = 0
+                                    #AND apolice.num_apolice = '784000100101034'
+                                    AND `cs`.`slug` = 'finalizada'
+                                    AND `parc`.`slug` IN('". $slug ."')
+                                    {$where}
+
+                                    GROUP BY apolice.apolice_id, am.apolice_movimentacao_tipo_id
+                                    HAVING round(sum(apolice_cobertura.valor * (comissao_gerada.comissao / 100) * IF(apolice_cobertura.valor >= 0, 1, - 1) ) / count(1) ,2) <= 0.01
+                                ) x ON ac.apolice_id = x.apolice_id AND x.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id AND ac.valor = IF(ac.valor >= 0, x.c, x.d)
+                                INNER JOIN apolice ON apolice.apolice_id = ac.apolice_id
+                            ) z  GROUP BY apolice_id, apolice_movimentacao_tipo_id, valor
+                        ) AS menor ON apolice.apolice_id = menor.apolice_id AND am.apolice_movimentacao_tipo_id = menor.apolice_movimentacao_tipo_id
+                        
+                        #caso o IOF seja menor que 0.01, soma as comissoes e identifica a de maior valor
+                        LEFT JOIN (
+                            select apolice_id, apolice_movimentacao_tipo_id, max(apolice_cobertura_id) as apolice_cobertura_id, valor, valor_t
+                            from (
+                                select apolice.apolice_id, am.apolice_movimentacao_tipo_id, ac.apolice_cobertura_id apolice_cobertura_id
+                                #, IF( ROUND(x.valor, 2) = 0, 0.01 * IF(am.apolice_movimentacao_tipo_id = 1, 1, -1), x.valor) as valor
+                                #, IF( ROUND(x.valor_t, 2) = 0, 0.01 * IF(am.apolice_movimentacao_tipo_id = 1, 1, -1), x.valor_t) as valor_t
+                                
+                                , IF( ROUND(IF(x.regra_preco_id IS NOT NULL, x.valor_por_cob, x.valor), 2) = 0, 0.01 * IF(am.apolice_movimentacao_tipo_id = 1, 1, -1), IF(x.regra_preco_id IS NOT NULL, x.valor_por_cob, x.valor)) as valor
+                                , IF( ROUND(x.valor_t, 2) = 0, 0.01 * IF(am.apolice_movimentacao_tipo_id = 1, 1, -1), x.valor_t) as valor_t
+
+                                from apolice_cobertura ac
+                                INNER JOIN apolice_movimentacao am on ac.apolice_id = am.apolice_id
+                                join (
+                                    select apolice.apolice_id, am.apolice_movimentacao_tipo_id, rp.regra_preco_id
+                                        , round(sum(IF(apolice_endosso.valor = 0, 0, IF(rp.regra_preco_id IS NOT NULL,  
+                                    
+                                            apolice_cobertura.valor * IFNULL(pprp.parametros,0) / 100
+                                            ,
+                                            IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0)
+                                            )
+                                        )), 2) as valor
+                                        , round(sum(TRUNCATE(IF(apolice_endosso.valor = 0, 0, IF(rp.regra_preco_id IS NOT NULL,  
+                                            
+                                            apolice_cobertura.valor * IFNULL(pprp.parametros,0) / 100
+                                            ,
+                                            IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0)
+                                            ))
+                                        ,2)), 2) as valor_t
+                                        , round(
+                                            IF(rp.regra_preco_id IS NOT NULL, 
+                                                IF(apolice_endosso.valor = 0, 0, IFNULL(IFNULL(apolice_equipamento.pro_labore, apolice_generico.pro_labore),0) * IF(apolice_cobertura.valor >= 0, 1, -1))
+                                                , 
+                                                sum(TRUNCATE(
+                                                    IF(apolice_endosso.valor = 0,
+                                                    0
+                                                    , 
+                                                    IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0)
+                                                ),2))
+                                            ), 2) as valor_por_cob
+                                        , max(IF(cobertura_plano.cobertura_plano_id IS NOT NULL, apolice_cobertura.valor, 0)) c 
+                                        , min(IF(cobertura_plano.cobertura_plano_id IS NOT NULL, apolice_cobertura.valor, 0)) d
+                                
+                                    FROM pedido
+                                    INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id
+                                    INNER JOIN apolice_cobertura ON apolice.apolice_id = apolice_cobertura.apolice_id
+                                    INNER JOIN produto_parceiro_plano ppp ON apolice.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
+                                    INNER JOIN produto_parceiro pp ON ppp.produto_parceiro_id = pp.produto_parceiro_id
+                                    INNER JOIN `parceiro` parc ON `parc`.`parceiro_id` = apolice.`parceiro_id`
+                                    INNER JOIN cotacao c on pedido.cotacao_id = c.cotacao_id
+                                    INNER JOIN `cotacao_status` cs ON `cs`.`cotacao_status_id` = `c`.`cotacao_status_id`
+                                    INNER JOIN apolice_movimentacao am on apolice.apolice_id = am.apolice_id AND IF(apolice_cobertura.valor >= 0, 1, 2) = am.apolice_movimentacao_tipo_id
+                                    INNER JOIN apolice_endosso ON apolice_endosso.apolice_id = apolice.apolice_id AND apolice_endosso.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
+
+                                    LEFT JOIN produto_parceiro_regra_preco pprp ON ppp.produto_parceiro_id = pprp.produto_parceiro_id AND pprp.deletado = 0
+                                    LEFT JOIN regra_preco rp on pprp.regra_preco_id = rp.regra_preco_id AND rp.slug = 'iof' 
+                                    LEFT JOIN apolice_generico ON apolice_generico.apolice_id = apolice.apolice_id
+                                    LEFT JOIN apolice_equipamento ON apolice_equipamento.apolice_id = apolice.apolice_id
+                                
+                                    #APENAS COBERTURAS (SEM ASSISTENCIAS)
+                                    LEFT JOIN cobertura_plano ON apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id AND pp.parceiro_id = cobertura_plano.parceiro_id
+
+                                    WHERE 1
+                                        AND pedido.deletado = 0
+                                        AND apolice.deletado = 0
+                                        AND apolice_cobertura.deletado = 0
+                                        #AND apolice.num_apolice = '784000100101034'
+                                        AND `cs`.`slug` = 'finalizada'
+                                        AND `parc`.`slug` IN('". $slug ."')
+                                        {$where}
+
+                                    GROUP BY apolice.apolice_id, am.apolice_movimentacao_tipo_id, rp.regra_preco_id
+
+                                ) x ON ac.apolice_id = x.apolice_id AND x.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id AND ac.valor = IF(ac.valor >= 0, x.c, x.d)
+                                INNER JOIN apolice ON apolice.apolice_id = ac.apolice_id
+                            ) z  group by apolice_id, apolice_movimentacao_tipo_id, valor
+                        ) AS menor_iof ON apolice.apolice_id = menor_iof.apolice_id AND am.apolice_movimentacao_tipo_id = menor_iof.apolice_movimentacao_tipo_id
+                        
+                        INNER JOIN cta_movimentacao cta ON cta.cta_movimentacao_id = (
+                            SELECT MAX(cta_m.cta_movimentacao_id)
+                            FROM cta_movimentacao cta_m
+                            WHERE cta_m.apolice_id = apolice.apolice_id AND cta_m.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
+                            AND cta_m.CTA_Retorno_ok IS NOT NULL
+                            GROUP BY cta_m.apolice_movimentacao_tipo_id
+                        )
+
+                        WHERE 
+                        pedido.deletado = 0
+                        AND apolice.deletado = 0
+                        AND apolice_cobertura.deletado = 0
+                        AND cobertura_plano.deletado = 0
+                        #AND apolice.num_apolice = '784000100101034'
+                        AND `cs`.`slug` = 'finalizada'
+                        AND `parc`.`slug` IN('". $slug ."')
+                        {$where}
+
+                    ) as y
+                    GROUP BY apolice_id, cobertura_plano_id, apolice_movimentacao_tipo_id, cd_tipo_comissao, premio_liquido, valor_iof#, premio_liquido_total
+                ) x
+                GROUP BY apolice_id, apolice_movimentacao_tipo_id, cd_tipo_comissao
+            ) x ON a.apolice_id = x.apolice_id
+            GROUP BY ppp.nome,
+                pp.cod_tpa,
+                a.pedido_id,
+                a.num_apolice,
+                x.apolice_movimentacao_tipo_id
+                , x.premio_liquido_total
+                , x.valor_iof
+                , x.premio_liquido
+        ) AS x
+        GROUP BY planos;");
+
+        $resp = [];
+
+        if($query->num_rows() > 0)
+        {
+            $resp = $query->result_array();
+        }
+        //print_r($this->db->last_query());
+        //die;
+        return $resp;
+    }
+
+    public function __extrairRelatorioMapaRepasseSintetico($data_inicio = null, $data_fim = null, $_parceiro_id, $slug)
     {
         $where = $this->restrictProdutosPorParceiro($_parceiro_id);
 
@@ -1729,13 +2030,16 @@ Class Pedido_Model extends MY_Model
 
             INNER JOIN (
                 SELECT 
-                      CTA_Ag_Retorno
-                    , CTA_Retorno_ok
-                    , CTA_Retorno_erro
-                    , num_apolice
-                    , apolice_movimentacao_tipo_id
-                FROM cta_movimentacao
-                WHERE CTA_Retorno_ok IS NOT NULL
+                  cta_m.CTA_Ag_Retorno
+                , cta_m.CTA_Retorno_ok
+                , cta_m.CTA_Retorno_erro
+                , cta_m.num_apolice
+                , cta_m.apolice_movimentacao_tipo_id
+                , SUM(iF(cta_m.apolice_movimentacao_tipo_id=1,1,-1) * ae.valor) AS valor
+            FROM cta_movimentacao cta_m
+            JOIN apolice_endosso ae ON ae.apolice_endosso_id = cta_m.apolice_endosso_id
+            WHERE cta_m.CTA_Retorno_ok IS NOT NULL
+            GROUP BY cta_m.CTA_Ag_Retorno, cta_m.CTA_Retorno_ok, cta_m.CTA_Retorno_erro, cta_m.num_apolice, cta_m.apolice_movimentacao_tipo_id
             ) as cta ON cta.num_apolice = a.num_apolice AND am.apolice_movimentacao_tipo_id = cta.apolice_movimentacao_tipo_id
 
         WHERE `parc`.`slug` IN('".$slug."')
@@ -1897,8 +2201,8 @@ Class Pedido_Model extends MY_Model
             INNER JOIN `produto` pr ON `pr`.`produto_id` = `pp`.`produto_id`
             INNER JOIN `apolice_equipamento` ae ON `ae`.`apolice_id` = `a`.`apolice_id` and ae.deletado = 0
             INNER JOIN `cliente` cli ON cli.cliente_id = c.cliente_id
-            LEFT JOIN `equipamento_categoria` ec ON `ec`.`equipamento_categoria_id` = `ae`.`equipamento_categoria_id`
-            LEFT JOIN `equipamento_marca` em ON `em`.`equipamento_marca_id` = `ae`.`equipamento_marca_id`
+            LEFT JOIN `vw_Equipamentos_Linhas` ec ON `ec`.`equipamento_categoria_id` = `ae`.`equipamento_categoria_id`
+            LEFT JOIN `vw_Equipamentos_Marcas` em ON `em`.`equipamento_marca_id` = `ae`.`equipamento_marca_id`
             INNER JOIN `produto_parceiro_plano` ppp ON `ppp`.`produto_parceiro_plano_id` = `ce`.`produto_parceiro_plano_id`
             LEFT JOIN `localidade_estado` le ON `le`.`localidade_estado_id` = `p`.`localidade_estado_id`
             LEFT JOIN `usuario` u ON `u`.`usuario_id` = `c`.`usuario_cotacao_id`
@@ -1964,22 +2268,23 @@ Class Pedido_Model extends MY_Model
         $this->load->model("cotacao_equipamento_model", "cotacao_equipamento");
         $this->load->model("cotacao_model", "cotacao");
         $this->load->model("produto_parceiro_pagamento_model", "produto_pagamento");
-
+        $this->load->model('apolice_model', 'apolice');
         $this->load->model("forma_pagamento_model", "forma_pagamento");
 
         //se é debito ou credito
-        if($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_CREDITO ) {
+        if (empty($dados['num_parcela'])) {
+            $dados['num_parcela'] = 1;
+        }
+
+        if ( !empty($dados["bandeira"]) )
+        {
             $item = $this->produto_pagamento->get_by_id($dados["bandeira"]);
-        }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_DEBITO ) {
-            $item = $this->produto_pagamento->get_by_id($dados["bandeira"]);
-        }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_FATURADO ) {
-            $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_FATURADO)->limit(1)->get_all();
-            $item = $item[0];
-        }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_TERCEIROS ) {
-            $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_TERCEIROS)->limit(1)->get_all();
-            $item = $item[0];
-        }elseif ($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_BOLETO ) {
-            $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_BOLETO)->limit(1)->get_all();
+        } else {
+            $item = $this->produto_pagamento
+                ->with_forma_pagamento()
+                ->filter_by_produto_parceiro($dados['produto_parceiro_id'])
+                ->filter_by_forma_pagamento_tipo($dados["forma_pagamento_tipo_id"])
+                ->limit(1)->get_all();
             $item = $item[0];
         }
 
@@ -2011,7 +2316,7 @@ Class Pedido_Model extends MY_Model
         $parcelamento = array();
         if( isset( $item['parcelamento_maximo'] ) ) {
 
-            if( $item['parcelamento_maximo'] < intval( $dados["num_parcela"] )) {
+            if( $item['parcelamento_maximo'] < intval( $dados["num_parcela"] ) && intval($dados["num_parcela"]) > 1) {
                 die( 
                     json_encode( 
                         array( 
@@ -2060,7 +2365,6 @@ Class Pedido_Model extends MY_Model
                 ) 
             );
         }
-        //die( json_encode( $dados, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );    
 
         $dados_pedido = array();
         $dados_pedido["cotacao_id"] = $dados["cotacao_id"];
@@ -2068,19 +2372,25 @@ Class Pedido_Model extends MY_Model
         $dados_pedido["pedido_status_id"] = 1;
         $dados_pedido["codigo"] = $this->pedido_codigo->get_codigo_pedido_formatado("BE");
         $dados_pedido["status_data"] = date("Y-m-d H:i:s");
+        $dados_pedido["alteracao_usuario_id"] = $this->session->userdata("usuario_id");
         $dados_pedido["valor_total"] = $valor_total;
         $dados_pedido["num_parcela"] = $dados["parcelamento{$dados_bandeira}"];
-        $dados_pedido["valor_parcela"] = $parcelamento[$dados["parcelamento{$dados_bandeira}"]];
-        $dados_pedido["alteracao_usuario_id"] = $this->session->userdata("usuario_id");
-
-        //die( json_encode( $dados_pedido, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+        $is_controle_endosso = $this->apolice->isControleEndossoPeloClienteByProdutoParceiroId($dados["produto_parceiro_id"]);
+        if ( $is_controle_endosso == 1 ) {
+            $dados_pedido["valor_parcela"] =  $valor_total;
+        } else {
+            $dados_pedido["valor_parcela"] =  $parcelamento[$dados["parcelamento{$dados_bandeira}"]];            
+        }
 
         $pedido_id = $this->insert( $dados_pedido, true );
         $this->pedido_transacao->insStatus( $pedido_id, "criado" );
 
         unset( $dados["parcelamento{$dados_bandeira}"] );
-        $dados_bandeira = $dados["bandeira"];
-        unset( $dados["bandeira"] );
+        if ( isset($dados["bandeira"]) )
+        {
+            $dados_bandeira = $dados["bandeira"];
+            unset( $dados["bandeira"] );
+        }
 
         $this->fatura->insFaturaParcelas( $pedido_id, $dados["cotacao_id"], 1, $valor_total, $dados_pedido["num_parcela"], $dados_pedido["valor_parcela"], $dados["produto_parceiro_id"] );
         $faturas = $this->fatura->filterByPedido($pedido_id)->get_all();
@@ -2119,10 +2429,6 @@ Class Pedido_Model extends MY_Model
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('produto_parceiro_pagamento_model', 'produto_pagamento');
         $this->load->model('forma_pagamento_model', 'forma_pagamento');
-
-        $this->load->model('produto_parceiro_capitalizacao_model', 'parceiro_capitalizacao');
-        $this->load->model('capitalizacao_model', 'capitalizacao');
-        $this->load->model('capitalizacao_serie_titulo_model', 'titulo');
 
         //  $item = $this->produto_pagamento->get_by_id($dados['bandeira']);
         if($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_CARTAO_CREDITO) {
@@ -2205,10 +2511,12 @@ Class Pedido_Model extends MY_Model
 
         $item = $this->produto_pagamento->get_by_id($dados['bandeira']);
         if( $item ) {
-            $forma_pagamento = $this->forma_pagamento->get_by_id($dados['forma_pagamento_id']);
+            $_forma_pagamento_id = issetor($item['forma_pagamento_id'], 0);
         } else {
-            $forma_pagamento = $this->forma_pagamento->get_by_id($item['forma_pagamento_id']);
+            $_forma_pagamento_id = issetor($dados['forma_pagamento_id'], 0);
         }
+
+        $forma_pagamento = $this->forma_pagamento->get_by_id($_forma_pagamento_id);
 
         if($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_CARTAO_CREDITO){
 
@@ -2304,3 +2612,4 @@ Class Pedido_Model extends MY_Model
         return in_array( $usuario_acl_tipo_id , array( 2 , 11 ) ) ;
     }
 }
+

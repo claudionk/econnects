@@ -113,83 +113,36 @@ class Info extends CI_Controller {
 
         $CPF = preg_replace( "/[^0-9]/", "", $GET["doc"] );
         $this->produto_parceiro_id = preg_replace( "/[^0-9]/", "", $GET["produto_parceiro_id"] );
-
-        $this->setToken();
-        if( !$this->token ) {
-            die( json_encode( array( "status" => false, "message" => "Serviço de informação não configurado" ) ) );
-        }
-        $Token = $this->token;
-        $Url = self::API_ENDPOINT . "ConsultaPessoa/$CPF/$Token";
-
         $pessoa = $this->base_pessoa->getByDoc( $CPF, $this->produto_parceiro_id, "ifaro_pf" );
-        if( isset( $pessoa["ultima_atualizacao"] ) ) {
-            $ultima_atualizacao = date_create($pessoa["ultima_atualizacao"]);
-            $proxima_atualizacao = date_add( $ultima_atualizacao, date_interval_create_from_date_string( "3 months" ) );
-            if( strtotime( date( "Y-m-d H:i:s" ) ) < strtotime( $proxima_atualizacao->format( "Y-m-d H:i:s" ) ) ) {
-                die( json_encode( $pessoa, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
-            }
-        }
-
-        $Antes = new DateTime();
-
-        $myCurl = curl_init();
-        curl_setopt( $myCurl, CURLOPT_URL, $Url );
-        curl_setopt( $myCurl, CURLOPT_FRESH_CONNECT, 1 );
-        curl_setopt( $myCurl, CURLOPT_POST, 0 );
-        curl_setopt( $myCurl, CURLOPT_VERBOSE, 0);
-        curl_setopt( $myCurl, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt( $myCurl, CURLOPT_TIMEOUT, 15 );
-        curl_setopt( $myCurl, CURLOPT_CONNECTTIMEOUT, 15 );
-        $Response = curl_exec( $myCurl );
-        curl_close( $myCurl );
-
-        $Depois = new DateTime();
-        $response = json_decode( $Response, true );
-
-        $data_log["produto_parceiro_servico_log_id"] = 0;
-        $data_log["produto_parceiro_servico_id"] = $this->produto_parceiro_servico_id;
-        $data_log["url"] = $Url;
-        $data_log["idConsulta"] = $response["idConsulta"];
-        $data_log["consulta"] = "ConsultaPessoa";
-        $data_log["retorno"] = $Response;
-        $data_log["time_envio"] = $Antes->format( "H:i:s" );
-        $data_log["time_retorno"] = $Depois->format( "H:i:s" );
-        $data_log["parametros"] = $Url;
-        $data_log["data_log"] = $Antes->format( "Y-m-d H:i:s" );
-        $data_log["ip"] = ( isset( $_SERVER[ "REMOTE_ADDR" ] ) ? $_SERVER[ "REMOTE_ADDR" ] : "" );
-        $this->produto_parceiro_servico_log->insLog( $this->produto_parceiro_servico_id, $data_log );
 
         $this->load->model("produto_parceiro_campo_model", "produto_parceiro_campo");
         $campos = $this->produto_parceiro_campo->with_campo()->with_campo_tipo()->filter_by_produto_parceiro( $this->produto_parceiro_id )->filter_by_campo_tipo_slug( "dados_segurado" )->order_by( "ordem", "ASC" )->get_all();
 
         $erros = array();
-
         $validacao = array();
-        foreach( $campos as $campo ) {
+        foreach ( $campos as $campo ) {
             $validacao[] = array(
                 "field" => $campo["campo_nome_banco"],
                 "label" => $campo["campo_nome"],
                 "rules" => $campo["validacoes"],
                 "groups" => "cotacao",
-                "value" => isset($response[$campo["campo_nome_banco"]]) ? $response[$campo["campo_nome_banco"]] : ""
+                "value" => isset($pessoa[$campo["campo_nome_banco"]]) ? $pessoa[$campo["campo_nome_banco"]] : ""
             );
         }
 
         $validacao_ok = true;
-        foreach( $validacao as $check ) {
+        foreach ( $validacao as $check ) {
             if( strpos( $check["rules"], "enriquecimento" ) !== false && $check["value"] == "" ) {
                 $validacao_ok = false;
                 $erros[] = $check;
             }
         }
 
-        if( !$validacao_ok ) {
+        if ( !$validacao_ok ) {
             die( json_encode( array( "status" => false, "message" => "Erro de validação", "erros" => $erros ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
         }
 
-        if( isset( $response["TipoRetorno"] ) && intval( $response["TipoRetorno"] ) == 0 ) {
-            $this->updateBase( $pessoa["base_pessoa_id"], $response );
-            $pessoa = $this->base_pessoa->getByDoc( $CPF, $this->produto_parceiro_id, "ifaro_pf" );
+        if ( !empty( $pessoa ) ) {
             die( json_encode( $pessoa, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
         } else {
             die( json_encode( array( "status" => false, "message" => "Não foi possível concluir a consulta" ) ) );
@@ -309,68 +262,6 @@ class Info extends CI_Controller {
 
     public function getToken() {
         return $this->token;
-    }
-
-    private function updateBase( $base_pessoa_id, $ifaro ) {
-
-        $this->load->model('base_pessoa_model', 'base_pessoa');
-        $this->load->model('base_pessoa_contato_model', 'base_pessoa_contato');
-        $this->load->model('base_pessoa_empresa_model', 'base_pessoa_empresa');
-        $this->load->model('base_pessoa_endereco_model', 'base_pessoa_endereco');
-
-        $result = array();
-
-        $DataNascimento = date_create_from_format( "d/m/Y", $ifaro["DataNascimento"] );
-        $result["DADOS_CADASTRAIS"] = array( "CPF" => $ifaro["CPF"],
-                "NOME" => $ifaro["Nome"],
-                "NOME_ULTIMO" => trim( strrchr( $ifaro["Nome"], " " ) ),
-                "SEXO" => $ifaro["Sexo"],
-                "NOME_MAE" => $ifaro["Mae"],
-                "DATANASC" => date_format( $DataNascimento, "Y-m-d" ),
-                "IDADE" => $ifaro["Idade"],
-                "SIGNO" => $ifaro["Signo"],
-                "RG" => $ifaro["RG"],
-                "SITUACAO_RECEITA" => "REGULAR" );
-
-        $iTelefones = $ifaro["Telefones"];
-        foreach( $iTelefones as $row ) {
-            $Telefones[] = array("TELEFONE" => "(" . trim( $row["DD"] ) . ") " . $row["Numero"], 
-                   "RANKING" => ( $row["Tipo"] == "TELEFONE MÓVEL" ? 90 : $row["Ranking"] ) );
-        }
-        $result["TELEFONES"] = $Telefones;
-
-        $iEmails = $ifaro["Emails"];
-        foreach( $iEmails as $row ) {
-            $Emails[] = array( "EMAIL" => trim( $row["EmailEndereco"] ), "RANKING" => $row["Ranking"] );
-        }
-        $result["EMAILS"] = $Emails;
-
-        $iEnderecos = $ifaro["Enderecos"];
-        foreach( $iEnderecos as $row ) {
-            $Enderecos[] = array("LOGRADOURO" => trim( $row["Logadouro"] ), 
-               "NUMERO" => trim( $row["Numero"] ), 
-               "COMPLEMENTO" => trim( $row["Complemento"] ), 
-               "BAIRRO" => trim( $row["Bairro"] ), 
-               "CIDADE" => trim( $row["Cidade"] ), 
-               "UF" => trim( $row["UF"] ), 
-               "CEP" => trim( $row["CEP"] ), 
-               "RANKING" => $row["Ranking"] );
-        }
-        $result["ENDERECOS"] = $Enderecos;
-
-        if( $result && isset( $result["DADOS_CADASTRAIS"] ) ) {
-            if( $base_pessoa_id > 0 ) {
-                $this->base_pessoa_contato->delete_by( array( "base_pessoa_id" => $base_pessoa_id ) );
-                $this->base_pessoa_empresa->delete_by( array( "base_pessoa_id" => $base_pessoa_id ) );
-                $this->base_pessoa_endereco->delete_by( array( "base_pessoa_id" => $base_pessoa_id ) );
-                $this->base_pessoa->update_base_pessoa( $base_pessoa_id, $result );
-            } else {
-                $this->base_pessoa->update_base_pessoa( $base_pessoa_id, $result );
-            }
-            return $result;
-        } else {
-            return array();
-        }
     }
 
     public function dns() {

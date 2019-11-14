@@ -28,6 +28,7 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
     {
 
         $this->load->model("produto_model", "produto");
+        $this->load->model('canal_model', 'canal');
 
         $this->template->js(app_assets_url('modulos/produtos_parceiros_configuracao/base.js', 'admin'));
 
@@ -39,7 +40,6 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Produtos / Parceiros / Configurações");
         $this->template->set_breadcrumb('Produtos / Parceiros / Configurações', base_url("$this->controller_uri/index"));
-
 
         //Carrega dados para a página
         $data = array();
@@ -54,9 +54,7 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
         $data['primary_key'] = $this->current_model->primary_key();
         $data['form_action'] =  base_url("$this->controller_uri/edit/{$produto_parceiro_id}");
 
-
         $produto_parceiro =  $this->produto_parceiro->get($produto_parceiro_id);
-
 
         if(!$produto_parceiro){
             //Mensagem de erro caso registro não exista
@@ -66,7 +64,9 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
 
         }
 
-        $data['calculo_tipo'] = $this->calculo_tipo->get_all();
+        $data['calculo_tipo']        = $this->calculo_tipo->get_all();
+        $data['canais_emissao']      = $this->canal->with_produto_parceiro($produto_parceiro_id, 0)->get_all();
+        $data['canais_cancelamento'] = $this->canal->with_produto_parceiro($produto_parceiro_id, 1)->get_all();
 
         //Verifica se registro existe
         if(!$data['row'])
@@ -83,6 +83,7 @@ class Produtos_Parceiros_Configuracao extends Admin_Controller
             $data['row']['pagmaneto_cobranca'] = 'DATA_COMPRA';
             $data['row']['quantidade_cobertura'] = 10;
             $data['row']['ir_cotacao_salva'] = 0;
+            $data['row']['endosso_controle_cliente'] = 0;
             $data['new_record'] = '1';
         }else{
             $data['new_record'] = '0';

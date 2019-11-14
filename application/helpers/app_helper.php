@@ -311,10 +311,10 @@ function app_date_get_diff_mysql($d1, $d2, $type=''){
 
 }
 
-function app_date_get_diff($d1, $d2, $type=''){
+function app_date_get_diff_master($d1, $d2){
+    $dats = ['years' => 0, 'months' => 0, 'days' => 0, 'd' => 0, 'dd' => 0, 'hours' => 0, 'minutes' => 0, 'seconds' => 0 ];
 
     if(!empty($d1) && !empty($d2)) {
-
         $date1 = explode('-', $d1);
         $date2 = explode('-', $d2);
 
@@ -331,41 +331,93 @@ function app_date_get_diff($d1, $d2, $type=''){
             date_create($d1)
         );
 
-        $years = $dif->format('%y');
-        $months = $dif->format('%m');
-        $days = $dif->format('%a');
-        $dd = $days - ((365*$years) + $QtdeBissexto);
-        $hours = $dif->format('%h');
-        $minutes = $dif->format('%i');
-        $seconds = $dif->format('%s');
+        $dats = [
+            'years' => $dif->format('%y'),
+            'months' => $dif->format('%m'),
+            'days' => $dif->format('%a'),
+            'd' => $dif->format('%d'),
+            'hours' => $dif->format('%h'),
+            'minutes' => $dif->format('%i'),
+            'seconds' => $dif->format('%s'),
+        ];
 
-        $type = strtoupper($type);
-        switch ($type)
-        {
-            case 'Y':
-                $X = $years;
-                break;
-            case 'M':
-                $X = (12 * $years) + $months + ($dd > 0 ? 1 : 0);
-                break;
-            case 'D':
-                $X = $days;
-                break;
-            case 'H':
-                $X = $hours;
-                break;
-            case 'I':
-                $X = $minutes;
-                break;
-            default:
-                $X = $seconds;
-        }
+        $dats['dd'] = $dats['days'] - ((365*$dats['years']) + $QtdeBissexto);
 
-        return $X;
-    }else{
-        return 0;
+    }
+    return $dats;
+}
+
+function app_date_get_diff_vigencia($d1, $d2, $type=''){
+    $dats = app_date_get_diff_master($d1, $d2);
+
+    $years   = $dats['years'];
+    $months  = $dats['months'];
+    $days    = $dats['days'];
+    $d       = $dats['d'];
+    $hours   = $dats['hours'];
+    $minutes = $dats['minutes'];
+    $seconds = $dats['seconds'];
+
+    $type = strtoupper($type);
+    switch ($type)
+    {
+        case 'Y':
+            $X = $years;
+            break;
+        case 'M':
+            $X = (12 * $years) + $months + ($d > 0 ? 1 : 0);
+            break;
+        case 'D':
+            $X = $days;
+            break;
+        case 'H':
+            $X = $hours;
+            break;
+        case 'I':
+            $X = $minutes;
+            break;
+        default:
+            $X = $seconds;
     }
 
+    return $X;
+}
+
+function app_date_get_diff($d1, $d2, $type=''){
+
+    $dats = app_date_get_diff_master($d1, $d2);
+
+    $years   = $dats['years'];
+    $months  = $dats['months'];
+    $days    = $dats['days'];
+    $dd      = $dats['dd'];
+    $hours   = $dats['hours'];
+    $minutes = $dats['minutes'];
+    $seconds = $dats['seconds'];
+
+    $type = strtoupper($type);
+    switch ($type)
+    {
+        case 'Y':
+            $X = $years;
+            break;
+        case 'M':
+            $X = (12 * $years) + $months + ($dd > 0 ? 1 : 0);
+            break;
+        case 'D':
+            $X = $days;
+            break;
+        case 'H':
+            $X = $hours;
+            break;
+        case 'I':
+            $X = $minutes;
+            break;
+        default:
+            $X = $seconds;
+    }
+
+    return $X;
 
 }
 
@@ -397,6 +449,11 @@ function app_cnpj_to_mask($cpf)
 {
     $string = substr($cpf, 0, 2).'.'.substr($cpf, 2,3).'.'.substr($cpf, 5,3).'/'.substr($cpf, 8, 4).'-'.substr($cpf, 12,2);
     return $string;
+}
+
+function app_valida_email($str)
+{
+    return ( ! preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $str)) ? FALSE : TRUE;
 }
 
 function app_verifica_cpf_cnpj ($cpf_cnpj) {
@@ -1097,17 +1154,49 @@ function issetor(&$var, $default = ' ') {
     }
 }
 
+/** 
+ * Se for setado uma variável ele a retorna, caso contrário retorna vazio 
+ * @param $var 
+ * @param bool $default 
+ * @return string 
+ */ 
+function emptyor(&$var, $default = ' ') { 
+ 
+    if(!empty($var)) 
+    { 
+        return $var; 
+    } 
+    else 
+    { 
+        return $default; 
+    } 
+} 
+
 /**
  * @description Se for uma variavel vazia ele retorna com o default
  * @param $var
  * @return string
  */
-
 if ( ! function_exists('isempty')) {
     function isempty(&$var, $default = ' ')
     {
         return (strlen($var) > 0) ? $var : $default; // $default : $var;
     }
+}
+
+/**
+ * Se a variável for verdadeira, retorna o texto SIM. Caso contrário, retorna o texto NÃO
+ * @param $var
+ * @return string
+ */
+function yes_no(&$var) {
+
+    if(!empty($var))
+    {
+        return 'SIM';
+    }
+
+    return 'NÃO';
 }
 
 /**
@@ -1173,6 +1262,17 @@ function app_calculo_valor($tipo, $quantidade, $valor){
  */
 function app_calculo_porcentagem ( $porcentagem, $total ) {
     return ( $porcentagem / 100 ) * $total;
+}
+/**
+ * Truncar Valor com Precisão definida
+ * @param $number float
+ * @param $precision int
+ * @return float
+ */
+function truncate($number, $precision = 0) {
+   // warning: precision is limited by the size of the int type
+   $shift = pow(10, $precision);
+   return intval($number * $shift)/$shift;
 }
 
 /**
@@ -1467,6 +1567,35 @@ function app_validate_mobile_phone($phone) {
     }
 }
 
+function app_validate_cep($cep){
+
+    if (empty($cep))
+        return false;
+
+    if(strlen($cep) != 8)
+        return false;
+
+    $cep = app_retorna_numeros($cep);
+
+    if(strlen($cep) != 8)
+        return false;
+
+    if($cep == '00000000')
+        return false;
+
+    return true;
+}
+
+function app_validate_celular( $number ){
+    if (empty($number))
+        return '';
+
+    $number = preg_replace( "/[^0-9]/", "", $number );
+    $number = "(" . substr( $number, 0, 2 ) . ") " . substr( $number, 2, -4) . " - " . substr( $number, -4 );
+    $number = preg_match( "#^\(\d{2}\) 9?[6789]\d{3}-\d{4}$#", $number );
+    return !$number;
+}
+
 /**
  * Verifica se uma view existe
  * @param $view
@@ -1649,7 +1778,7 @@ if ( ! function_exists('app_get_token'))
 
 
         $retorno = soap_curl([
-            'url' => $CI->config->item("URL_sisconnects") ."api/acesso?email={$email}&senha={$senha}&url={$url}",
+            'url' => $CI->config->item('base_url') ."api/acesso?email={$email}&senha={$senha}&url={$url}",
             'method' => 'GET',
             'fields' => '',
             'header' => array(
@@ -1693,4 +1822,24 @@ if ( ! function_exists('app_search'))
 
         return -1;
     }
+}
+
+if ( ! function_exists('trataRetorno'))
+{
+    function trataRetorno($txt) {
+        $txt = mb_strtoupper(trim($txt), 'UTF-8');
+        $txt = app_remove_especial_caracteres($txt);
+        $txt = preg_replace("/[^ |A-Z|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
+        $txt = preg_replace("/\s{2,3000}/", " ", $txt);
+        $txt = preg_replace("/[\\|\/]/", "-", $txt);
+        return $txt;
+    }
+}
+
+function print_pre($arr, $die = true)
+{
+    echo "<pre>";
+    print_r($arr);
+
+    if ($die) die();
 }

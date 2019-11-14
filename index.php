@@ -27,18 +27,17 @@ $host_servers['homologacao'] = array(
  * NOTE: If you change these, also change the error_reporting() code below
  *
  */
-// if(in_array($_SERVER['HTTP_HOST'], $host_servers['production']  )){
+if(in_array($_SERVER['HTTP_HOST'], $host_servers['production']  )){
 
-//     define('ENVIRONMENT', 'production');
-// }elseif(in_array($_SERVER['HTTP_HOST'], $host_servers['homologacao']  )){
+    define('ENVIRONMENT', 'production');
+}elseif(in_array($_SERVER['HTTP_HOST'], $host_servers['homologacao']  )){
 
-//     define('ENVIRONMENT', 'homologacao');
-// }else {
+    define('ENVIRONMENT', 'homologacao');
+}else {
 
-//     define('ENVIRONMENT', 'development');
-// }
+    define('ENVIRONMENT', 'development');
+}
 
-define('ENVIRONMENT', 'development');
 date_default_timezone_set('America/Sao_Paulo');
 
 /*
