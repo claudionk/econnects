@@ -66,6 +66,22 @@ if($_POST)
                                                 <!-- Column -->
                                                 <div class="col-md-6">
 
+                                                    <?php $field_name = 'cobranca';?>
+                                                    <div class="form-group">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Cobrança *</label>
+                                                        <div class="col-md-8">
+                                                            <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
+                                                                <option name="" value="">Selecione</option>
+                                                                <option name="" value="VALOR"
+                                                                    <?php if(isset($row)){if($row[$field_name] == 'VALOR') {echo " selected ";};}; ?> >Valor
+                                                                </option>
+                                                                <option name="" value="PORCENTAGEM"
+                                                                    <?php if(isset($row)){if($row[$field_name] == 'PORCENTAGEM') {echo " selected ";};}; ?> >Porcentagem
+                                                                </option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
                                                     <?php $field_name = 'tipo';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Tipo *</label>
@@ -102,6 +118,9 @@ if($_POST)
                                                                 </option>
                                                                 <option name="" value="IDADE"
                                                                     <?php if(isset($row)){if($row[$field_name] == 'IDADE') {echo " selected ";};}; ?> >Idade
+                                                                </option>
+                                                                <option name="" value="COMISSAO"
+                                                                    <?php if(isset($row)){if($row[$field_name] == 'COMISSAO') {echo " selected ";};}; ?> >Comissão
                                                                 </option>
                                                             </select>
                                                         </div>
@@ -140,6 +159,12 @@ if($_POST)
                                                     </div>
                                                     <?php echo app_get_form_error($field_name); ?>
                                                   </div>
+
+                                                    <?php $field_name = 'equipamento_de_para'; ?>
+                                                    <div class="form-group">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Equipamento DE x PARA</label>
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                    </div>
                                                 <?php } ?>
 
                                                 <input type="hidden" name="precificacao_tipo_id" id="precificacao_tipo_id" value="<?= $precificacao_tipo_id ?>">

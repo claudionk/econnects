@@ -111,9 +111,6 @@ class Admin_Controller extends MY_Controller
             if (isset($userdata['termo_aceite']) && $userdata['termo_aceite'] == 0) {
                 $this->template->js(app_assets_url('core/js/termo.js', 'admin'));
             }
-            if (isset($userdata['termo_aceite']) && $userdata['termo_aceite'] == 0) {
-                $this->template->js(app_assets_url('core/js/termo.js', 'admin'));
-            }
 
             if (($urls_pode_acessar) && (!empty($urls_pode_acessar)) && (is_array($urls_pode_acessar)) && ($this->noLogin === false)) {
                 $pode_acessar = false;
@@ -175,14 +172,13 @@ class Admin_Controller extends MY_Controller
         $this->load->model('pedido_model', 'pedido');
 
         //Carrega templates
+        $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
+
         if($this->layout == 'front'){
-            $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
             $this->template->js(app_assets_url('modulos/venda/equipamento/front/js/pagamento.js', 'admin'));
         }else{
-            $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
             $this->template->js(app_assets_url('modulos/venda/pagamento/js/pagamento.js', 'admin'));
         }
-        
 
         //Retorna cotação
         $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
@@ -417,8 +413,8 @@ class Admin_Controller extends MY_Controller
             }
             $this->cotacao->setValidate($validacao);
 
-
             if ($this->cotacao->validate_form('pagamento')) {
+
                 if ($pedido_id == 0) {
                     $pedido_id = $this->pedido->insertPedido($_POST);
                 } else {
@@ -469,7 +465,6 @@ class Admin_Controller extends MY_Controller
 
     public function venda_aguardando_pagamento($produto_parceiro_id, $pedido_id = 0)
     {
-
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('cotacao_model', 'cotacao');
 

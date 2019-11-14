@@ -440,6 +440,10 @@ class CI_Output {
 		{
 			$CI->_output($output);
 		}
+		else if (method_exists($this, '_output'))
+		{
+			$this->_output($output);
+		}
 		else
 		{
 			echo $output;  // Send it to the browser!
@@ -447,6 +451,16 @@ class CI_Output {
 
 		log_message('debug', "Final output sent to browser");
 		log_message('debug', "Total execution time: ".$elapsed);
+	}
+
+	function _output($output)
+	{
+		if (is_array($output))
+		{
+			echo json_encode($output);
+		} else {
+			echo $output;
+		}
 	}
 
 	// --------------------------------------------------------------------

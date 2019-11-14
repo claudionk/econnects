@@ -18,6 +18,7 @@ class Emissao extends CI_Controller {
     public $produto_parceiro_plano_id;
     public $cotacao_id;
     public $equipamento_nome;
+    public $categoria;
     public $ean;
 
     public $campos_estrutura;
@@ -27,6 +28,10 @@ class Emissao extends CI_Controller {
 
     public $meio_pagto_slug;
     public $campos_meios_pagto;
+    public $numero_sorte;
+    public $comissao_premio;
+    public $coberturas_opcionais;
+    public $parcelas;
 
     public function __construct() {
         parent::__construct();
@@ -59,6 +64,8 @@ class Emissao extends CI_Controller {
         // Aqui guardo em sessão para fazer acompanhamento
         $this->session->set_userdata("tokenAPI", $this->api_key);
         $this->session->set_userdata("tokenAPIvalid",$webservice["validade"]);
+
+        $this->load->model( "apolice_model", "apolice" );
     }
 
     public function index() {
@@ -90,15 +97,19 @@ class Emissao extends CI_Controller {
             die(json_encode(array("status"=>false,"message"=>"Parametros não informados"),JSON_UNESCAPED_UNICODE));
         }
 
+        $this->equipamento_nome     = '';
+        $this->categoria            = '';
+        $this->ean                  = '';
+        $this->num_apolice          = (!isset($POST['num_apolice'])) ? false : $POST['num_apolice'];
+        $this->valor_premio_bruto   = (!isset($POST['valor_premio_bruto'])) ? 0 : $POST['valor_premio_bruto'];
+        $this->comissao_premio      = (empty($POST['comissao'])) ? 0 : $POST['comissao'];
+        $this->coberturas_opcionais = (!isset($POST['coberturas_opcionais'])) ? '' : $POST['coberturas_opcionais'];
+        $this->meio_pagto_slug      = (!isset($POST['meiopagamento']['meio_pagto_slug'])) ? '' : $POST['meiopagamento']['meio_pagto_slug'];
+        $this->campos_meios_pagto   = (!isset($POST['meiopagamento']['campos'])) ? [] : $POST['meiopagamento']['campos'];
+        $this->parcelas             = (!isset($POST['meiopagamento']['parcelas'])) ? null : $POST['meiopagamento']['parcelas'];
+        $this->numero_sorte         = (!isset($POST['numero_sorte'])) ? null : $POST['numero_sorte'];
 
-        $this->equipamento_nome = '';
-        $this->ean = '';
-        $this->num_apolice = (!isset($POST['num_apolice'])) ? false : $POST['num_apolice'];
-        $this->valor_premio_bruto = (!isset($POST['valor_premio_bruto'])) ? 0 : $POST['valor_premio_bruto'];
-        $this->meio_pagto_slug = (!isset($POST['meiopagamento']['meio_pagto_slug'])) ? '' : $POST['meiopagamento']['meio_pagto_slug'];
-        $this->campos_meios_pagto = (!isset($POST['meiopagamento']['campos'])) ? [] : $POST['meiopagamento']['campos'];
-
-        $this->etapas('cotacao',$POST);
+        $this->etapas('cotacao', $POST);
     }
 
     public function etapas($etapa = null, $parametros = []){
@@ -140,9 +151,18 @@ class Emissao extends CI_Controller {
 
                 // Campos da cotação
                 $arrOptions = [
-                    "produto_parceiro_id" => $this->produto_parceiro_id,
-                    "produto_parceiro_plano_id" => $this->produto_parceiro_plano_id
+                    "produto_parceiro_id"       => $this->produto_parceiro_id,
+                    "produto_parceiro_plano_id" => $this->produto_parceiro_plano_id,
+                    "comissao_premio"           => $this->comissao_premio,
+                    "coberturas_opcionais"      => $this->coberturas_opcionais,
                 ];
+
+                // número da sorte
+                if ( $this->numero_sorte )
+                {
+                    $arrOptions['numero_sorte'] =  $this->numero_sorte;
+                }
+
                 if(count($parametros['campos'][0]) > 0)
                 {
                     foreach ($parametros['campos'][0] as $key => $vl) {
@@ -151,7 +171,7 @@ class Emissao extends CI_Controller {
                     $this->campos_estrutura = $arrOptions;
                 }
 
-                $this->load->model( "apolice_model", "apolice" );
+                // Validação do número da apólice
                 if( !empty($parametros['num_apolice']) && $this->apolice->search_apolice_produto_parceiro_plano_id( $parametros['num_apolice'] , $this->produto_parceiro_plano_id ) ){
                     die(json_encode(array("status"=>false,"message"=>"Já existe um certificado com o número {$parametros['num_apolice']} em nossa base"),JSON_UNESCAPED_UNICODE));
                 }
@@ -181,7 +201,7 @@ class Emissao extends CI_Controller {
                     if ($validaModelo) break;
 
                     foreach ($ret->campos as $campo) {
-                        if ( in_array($campo->nome_banco, ['ean', 'equipamento_id', 'equipamento_nome', 'equipamento_marca_id', 'equipamento_categoria_id']) ) {
+                        if ( in_array($campo->nome_banco, ['ean', 'equipamento_id', 'equipamento_nome', 'equipamento_marca_id', 'equipamento_sub_categoria_id', 'equipamento_categoria_id']) ) {
                             $pos = strpos($campo->validacoes, "required");
                             if ( !($pos === false) ) {
                                 $validaModelo = true;
@@ -193,27 +213,29 @@ class Emissao extends CI_Controller {
 
                 if ($validaModelo) {
                     // Caso não tenha sido informado os ID dos equipamentos
-                    if ( empty($this->campos_estrutura["equipamento_id"]) || empty($this->campos_estrutura["equipamento_marca_id"]) || empty($this->campos_estrutura["equipamento_categoria_id"]) || empty($this->campos_estrutura["ean"]) ) {
+                    if ( empty($this->campos_estrutura["equipamento_id"]) || empty($this->campos_estrutura["equipamento_marca_id"]) || empty($this->campos_estrutura["equipamento_sub_categoria_id"]) || empty($this->campos_estrutura["equipamento_categoria_id"]) || empty($this->campos_estrutura["ean"]) ) {
 
                         //Caso tenha sido passado o EAN, faz a busca do equipamento consumindo o WS com base no EAN
                         if( ! empty($parametros['ean']) ){
-                            $url = base_url() /*$this->config->item("URL_sisconnects")*/ . "api/equipamento?ean=". $parametros['ean'] . "&ret=yes" ;
+                            $url = base_url() . "api/equipamento?ean=". $parametros['ean'] . "&ret=yes" ;
                             $r = $obj->execute($url);
 
                             // Ajuste ALR
                             if(!empty($r)) {
                                 $retorno = json_decode($r,true);
-                                $arrOptions["ean"] = $retorno["ean"];  
-                                $arrOptions["equipamento_id"] = $retorno["equipamento_id"];
-                                $arrOptions["equipamento_nome"] = $parametros['modelo'];
-                                $arrOptions["equipamento_marca_id"] = $retorno["equipamento_marca_id"];
-                                $arrOptions["equipamento_categoria_id"] = $retorno["equipamento_sub_categoria_id"];
-                                $validaModelo = false ;
+                                $arrOptions["ean"]                          = $retorno["ean"];  
+                                $arrOptions["equipamento_id"]               = $retorno["equipamento_id"];
+                                $arrOptions["equipamento_nome"]             = isempty($parametros['modelo'], $retorno['nome']);
+                                $arrOptions["equipamento_marca_id"]         = $retorno["equipamento_marca_id"];
+                                $arrOptions["equipamento_sub_categoria_id"] = $retorno["equipamento_sub_categoria_id"];
+                                $arrOptions["equipamento_categoria_id"]     = $retorno["equipamento_categoria_id"];
+                                $validaModelo                               = false ;
 
-                                $this->equipamento_nome = $arrOptions["equipamento_nome"];
-                                $this->campos_estrutura["equipamento_id"] = $retorno["equipamento_id"];
-                                $this->campos_estrutura["equipamento_marca_id"] = $retorno["equipamento_marca_id"];
-                                $this->campos_estrutura["equipamento_categoria_id"] = $retorno["equipamento_categoria_id"];
+                                $this->equipamento_nome                                 = $arrOptions["equipamento_nome"];
+                                $this->campos_estrutura["equipamento_id"]               = $retorno["equipamento_id"];
+                                $this->campos_estrutura["equipamento_marca_id"]         = $retorno["equipamento_marca_id"];
+                                $this->campos_estrutura["equipamento_sub_categoria_id"] = $retorno["equipamento_sub_categoria_id"];
+                                $this->campos_estrutura["equipamento_categoria_id"]     = $retorno["equipamento_categoria_id"];
                             }
                         }
                         else{
@@ -224,14 +246,18 @@ class Emissao extends CI_Controller {
                     } else {
                         $validaModelo = false;
                     }
-                    if ($validaModelo) {
-                        if(empty($parametros['marca'])){
+
+                    if ($validaModelo)
+                    {
+                        if(empty($parametros['marca']))
+                        {
                             if (!empty($msgBuscaEqip))
                                 die(json_encode(array("status"=>false,"message"=>$msgBuscaEqip .". Informe o atributo `marca` para realizar a pesquisa alternativa."),JSON_UNESCAPED_UNICODE));
                             else
                                 die(json_encode(array("status"=>false,"message"=>"Atributo 'marca' não informado"),JSON_UNESCAPED_UNICODE));
                         }
-                        if(empty($parametros['modelo'])){
+                        if(empty($parametros['modelo']))
+                        {
                             if (!empty($msgBuscaEqip))
                                 die(json_encode(array("status"=>false,"message"=>$msgBuscaEqip .". Informe o atributo `modelo` para realizar a pesquisa alternativa."),JSON_UNESCAPED_UNICODE));
                             else
@@ -240,8 +266,9 @@ class Emissao extends CI_Controller {
 
                         // pesquisa por marca e modelo
                         $fields = [
-                            "modelo" => $parametros['modelo'],
-                            "marca" => $parametros['marca'],
+                            "modelo"     => $parametros['modelo'],
+                            "marca"      => $parametros['marca'],
+                            "categoria"  => isempty($parametros['categoria'], null),
                             "quantidade" => 1,
                         ];
 
@@ -252,9 +279,9 @@ class Emissao extends CI_Controller {
                             die(json_encode(array("status"=>false,"message"=>"Não foi possível realizar a consulta do equipamento por Marca/Modelo"),JSON_UNESCAPED_UNICODE));
                         }
                         else{
-                            $retorno = convert_objeto_to_array($r);
-                            if( empty($retorno->{"status"}) ) {
-                                $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
+                            $retorno = json_decode($r,true);
+                            if( empty($retorno["status"]) ) {
+                                $msg = ( !empty($retorno["mensagem"]) ) ? $retorno["mensagem"] : $r;
                                 die(json_encode(array("status"=>false,"message"=>$msg),JSON_UNESCAPED_UNICODE));
                             }
                             else{
@@ -262,11 +289,13 @@ class Emissao extends CI_Controller {
                                 $arrOptions["equipamento_id"] = $retorno["dados"][0]["equipamento_id"];
                                 $arrOptions["equipamento_nome"] = $parametros['modelo'];
                                 $arrOptions["equipamento_marca_id"] = $retorno["dados"][0]["equipamento_marca_id"];
-                                $arrOptions["equipamento_categoria_id"] = $retorno["dados"][0]["equipamento_sub_categoria_id"];
+                                $arrOptions["equipamento_sub_categoria_id"] = $retorno["dados"][0]["equipamento_sub_categoria_id"];
+                                $arrOptions["equipamento_categoria_id"] = $retorno["dados"][0]["equipamento_categoria_id"];
 
                                 $this->equipamento_nome = $arrOptions["equipamento_nome"] ;
                                 $this->campos_estrutura["equipamento_id"] = $retorno["dados"][0]["equipamento_id"] ;
                                 $this->campos_estrutura["equipamento_marca_id"] = $retorno["dados"][0]["equipamento_marca_id"] ;
+                                $this->campos_estrutura["equipamento_sub_categoria_id"] = $retorno["dados"][0]["equipamento_sub_categoria_id"] ;
                                 $this->campos_estrutura["equipamento_categoria_id"] = $retorno["dados"][0]["equipamento_categoria_id"] ;
                             }
                         }
@@ -306,9 +335,8 @@ class Emissao extends CI_Controller {
 
             case 'calculocotacao':
 
-
                 // Validar o valor passado se diferente alertar e abortar
-                $url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/cotacao/calculo?cotacao_id=".$this->cotacao_id;
+                $url = base_url() ."api/cotacao/calculo?cotacao_id=".$this->cotacao_id;
 
                 $obj = new Api();
                 $r = $obj->execute($url, 'GET');
@@ -320,7 +348,7 @@ class Emissao extends CI_Controller {
                     {
                         // Validação valores  
                         if(!empty($this->valor_premio_bruto) && $this->valor_premio_bruto != $retorno->{"premio_liquido_total"}){
-                            die(json_encode(array("status"=>false,"message"=>"O valor do prêmio {$this->valor_premio_bruto} informado diferente do valor cálculado ".$retorno->{"premio_liquido_total"}),JSON_UNESCAPED_UNICODE));
+                            die(json_encode(array("status"=>false,"message"=>"O valor do prêmio {$this->valor_premio_bruto} informado diferente do valor calculado ".$retorno->{"premio_liquido_total"}, "cotacao_id" => $this->cotacao_id),JSON_UNESCAPED_UNICODE));
                         }
 
                         $retorno->{"cotacao_id"} = $this->cotacao_id;
@@ -329,7 +357,7 @@ class Emissao extends CI_Controller {
                     else
                     {
                         $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
-                        die(json_encode(array("status"=>false,"message"=>"O cálculo da cotação não realizado"),JSON_UNESCAPED_UNICODE));
+                        die(json_encode(array("status"=>false, "message"=>$msg, "cotacao_id" => $this->cotacao_id),JSON_UNESCAPED_UNICODE));
                     }
                 }
                 else
@@ -376,7 +404,7 @@ class Emissao extends CI_Controller {
                 if($parametros->{"status"})
                 {
 
-                    $url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/pagamento/forma_pagamento_cotacao?cotacao_id={$this->cotacao_id}";
+                    $url = base_url() ."api/pagamento/forma_pagamento_cotacao?cotacao_id={$this->cotacao_id}";
                     $obj = new Api();
                     $r = $obj->execute($url, 'GET');
                     if(!empty($r))
@@ -421,12 +449,16 @@ class Emissao extends CI_Controller {
                 if($parametros["status"])
                 {
                     $arrOptions = [
-                        "cotacao_id" => $parametros["cotacao_id"], 
-                        "produto_parceiro_id" => $parametros["produto_parceiro_id"], 
-                        "forma_pagamento_id" => $parametros["forma_pagamento_id"], 
+                        "cotacao_id"                    => $parametros["cotacao_id"], 
+                        "produto_parceiro_id"           => $parametros["produto_parceiro_id"], 
+                        "forma_pagamento_id"            => $parametros["forma_pagamento_id"], 
                         "produto_parceiro_pagamento_id" => $parametros["produto_parceiro_pagamento_id"], 
-                        "campos" => $parametros["campos"]  
+                        "campos"                        => $parametros["campos"]  
                     ]; 
+
+                    if ( !empty($this->parcelas) ) {
+                        $arrOptions["parcelas"] = $this->parcelas;
+                    }
 
                     $url = base_url() ."api/pagamento/pagar";
                     $obj = new Api();
@@ -466,20 +498,17 @@ class Emissao extends CI_Controller {
                   	// Verificando se veio apólice 
                     if(!empty($this->num_apolice))
                     {
-                        $this->db->query("UPDATE apolice SET num_apolice='".$this->num_apolice."' WHERE pedido_id='".$parametros->dados->pedido_id."'" );  
+                        $upApolice = $this->apolice->updateBilhete($parametros->dados->apolice_id, $this->num_apolice);
+                        if ( empty($upApolice['status']) )
+                        {
+                            die(json_encode(array("status"=>false, "message"=>$upApolice["message"], "pedido_id"=>$parametros->dados->pedido_id),JSON_UNESCAPED_UNICODE));
+                        }
                     }
 
-                    $url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/apolice?pedido_id={$parametros->dados->pedido_id}" ;
+                    $url = base_url() ."api/apolice?pedido_id={$parametros->dados->pedido_id}" ;
                     $obj = new Api();
                     $r = $obj->execute($url, 'GET');
 
-                    //$arrOptions = [
-                    //    "pedido_id" => $parametros->dados->pedido_id ,
-                    //      "num_apolice" => $this->num_apolice
-                    //]; 
-                    //$url = base_url() /*$this->config->item("URL_sisconnects")*/ ."api/apolice";
-                    //$obj = new Api();
-                    //$r = $obj->execute($url, 'POST', json_encode($arrOptions));*/
                     if(!empty($r))
                     {
                         $retorno = convert_objeto_to_array($r);
@@ -513,9 +542,4 @@ class Emissao extends CI_Controller {
     }
 
 }
-?>
-
-
-
-
 

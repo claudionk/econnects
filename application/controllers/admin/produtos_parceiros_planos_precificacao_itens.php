@@ -86,7 +86,7 @@ class Produtos_Parceiros_Planos_Precificacao_Itens extends Admin_Controller
             $data['descSelect'] = 'categorias';
         } elseif ($parceiro_plano["precificacao_tipo_id"] == $this->config->item("PRECO_POR_EQUIPAMENTO")) {
             $data['descTipo'] = 'Equipamento';
-            $data['descSelect'] = 'equipamento_id';
+            $data['descSelect'] = 'equipamento_sub_categoria_id';
         }
 
         $data['produto_parceiro_plano_id'] = $produto_parceiro_plano_id;
@@ -139,7 +139,7 @@ class Produtos_Parceiros_Planos_Precificacao_Itens extends Admin_Controller
             $data['descSelect'] = 'categorias';
         } elseif ($parceiro_plano["precificacao_tipo_id"] == $this->config->item("PRECO_POR_EQUIPAMENTO")) {
             $data['descTipo'] = 'Equipamento';
-            $data['descSelect'] = 'equipamento_id';
+            $data['descSelect'] = 'equipamento_sub_categoria_id';
         }
 
         //Caso não exista registros

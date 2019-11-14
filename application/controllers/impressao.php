@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+    <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Impressao extends Site_Controller
 {
@@ -22,6 +22,25 @@ class Impressao extends Site_Controller
         $data_template = array();
 
         $apolice_id = $this->encrypt->decode(base64_decode($this->input->get("apolice_id")));
+        $apolice = $this->apolice->getApolice($apolice_id);
+
+        if(count($apolice) == 0)
+        {
+            $this->session->set_flashdata('fail_msg', 'Apólice não esta liberado'); //Mensagem de sucesso
+            exit("Código inválido. Informe nossa equipe.");
+        }
+
+        $result = $this->apolice->certificado($apolice_id, 'pdf');
+        if($result !== FALSE){
+            exit($result);
+        }
+    }
+
+
+    public function certificado_api($apolice_id)
+    {
+        $this->load->model('apolice_model', 'apolice');
+
         $apolice = $this->apolice->getApolice($apolice_id);
 
         if(count($apolice) == 0)

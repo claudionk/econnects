@@ -890,6 +890,7 @@ class Venda extends Admin_Controller {
     $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
     $this->load->model('cotacao_seguro_viagem_cobertura_model', 'cotacao_seguro_viagem_cobertura');
     $this->load->model('contato_tipo_model', 'contato_tipo');
+    $this->load->model('comunicacao_track_model', 'comunicacao_track');
 
     //Carrega JS
     $this->template->js(app_assets_url('modulos/venda/seguro_viagem/js/base.js', 'admin'));
@@ -897,6 +898,12 @@ class Venda extends Admin_Controller {
     $this->template->js(app_assets_url('modulos/venda/seguro_viagem/js/calculo.js', 'admin'));
     $this->template->css(app_assets_url('modulos/venda/seguro_viagem/css/carrossel.css', 'admin'));
     $this->template->css(app_assets_url('modulos/venda/seguro_viagem/css/base.css', 'admin'));
+
+    if($cotacao_id > 0){
+       $this->comunicacao_track->insert_or_update($cotacao_id);
+    }
+
+
 
     //Dados para template
     $data = array();
@@ -1335,8 +1342,6 @@ class Venda extends Admin_Controller {
 
   private function updatePedidoCarrinho($pedido_id, $cotacao_id){
 
-
-
     $this->load->model('pedido_model', 'pedido');
     $this->load->model('pedido_codigo_model', 'pedido_codigo');
     $this->load->model('pedido_cartao_model', 'pedido_cartao');
@@ -1344,17 +1349,7 @@ class Venda extends Admin_Controller {
     $this->load->model('cotacao_seguro_viagem_model', 'seguro_viagem');
     $this->load->model('cotacao_model', 'cotacao');
 
-    $this->load->model('produto_parceiro_capitalizacao_model', 'parceiro_capitalizacao');
-    $this->load->model('capitalizacao_model', 'capitalizacao');
-    $this->load->model('capitalizacao_serie_titulo_model', 'titulo');
-
-
-
-
     $valor_total = $this->seguro_viagem->getValorTotal($cotacao_id);
-
-
-
 
     $dados_pedido = array();
     $dados_pedido['produto_parceiro_pagamento_id'] = 0;
@@ -1473,17 +1468,16 @@ class Venda extends Admin_Controller {
       $configuracao = array();
     }
 
-
     $markup = 0;
     if($row['parceiro_id'] != $parceiro_id){
 
-
       $rel = $this->relacionamento->get_comissao($produto_parceiro_id, $parceiro_id);
-
-      $configuracao['repasse_comissao'] =  $rel['repasse_comissao'];
-      $configuracao['repasse_maximo'] = $rel['repasse_maximo'];
-      $configuracao['comissao'] = $rel['comissao'];
-
+      if ( !empty($rel) )
+      {
+        $configuracao['repasse_comissao'] =  $rel['repasse_comissao'];
+        $configuracao['repasse_maximo'] = $rel['repasse_maximo'];
+        $configuracao['comissao'] = $rel['comissao'];
+      }
 
       //buscar o markup
       $markup = $this->relacionamento->get_comissao_markup($produto_parceiro_id, $parceiro_id);
@@ -2876,6 +2870,71 @@ Array
     }else{
       $this->form_validation->set_message('validate_contato', 'O Campo tipo de contato é obrigátório');
     }
+
+  }
+
+
+  public function cotacao_salva(){
+
+
+      $this->load->model('produto_parceiro_configuracao_model', 'configuracao');
+      $this->load->model('cotacao_model', 'cotacao');
+
+      $cpf = $this->input->post('cpf');
+      $produto_parceiro_id = $this->input->post('produto_parceiro_id');
+
+
+      $configuracao = $this->configuracao->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
+
+
+      if(count($configuracao) > 0){
+          $configuracao = $configuracao[0];
+      }
+
+
+
+      $result  = array(
+          'sucess' => FALSE,
+      );
+
+      if((isset($configuracao['ir_cotacao_salva'])) && ($configuracao['ir_cotacao_salva'] == 1)){
+
+
+
+          $filter = array (
+                        'cliente.cnpj_cpf' => app_retorna_numeros($cpf),
+                        'produto_parceiro.produto_parceiro_id' => $produto_parceiro_id,
+                        'cotacao.cotacao_status_id' => 1,
+
+                    );
+
+          $cotacao = $this->cotacao
+                          ->with_clientes_contatos()
+                          ->with_status()
+                          ->with_produto_parceiro()
+                          ->order_by('cotacao.cotacao_id', 'DESC')
+                          ->limit(1)
+                          ->get_many_by($filter);
+
+          //exit($this->cotacao->_database->last_query());
+          if($cotacao){
+              $cotacao = $cotacao[0];
+              $result  = array(
+                  'sucess' => TRUE,
+                  'produto_slug' => $cotacao['produto_slug'],
+                  'cotacao_id' => $cotacao['cotacao_id'],
+              );
+          }
+
+      }
+
+
+      $this->output
+          ->set_content_type('application/json')
+          ->set_output(json_encode($result));
+
+
+
 
   }
 

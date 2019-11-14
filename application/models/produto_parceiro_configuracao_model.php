@@ -133,6 +133,11 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
             'rules' => 'required',
             'groups' => 'geral'
         ),array(
+            'field' => 'ir_cotacao_salva',
+            'label' => 'Ir Para cotação salva após CPF',
+            'rules' => 'required',
+            'groups' => 'geral'
+        ),array(
             'field' => 'conclui_em_tempo_real',
             'label' => 'Conclui a venda em Tempo Real',
             'rules' => 'required',
@@ -159,7 +164,9 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
                 'salvar_cotacao_formulario' => $this->input->post('salvar_cotacao_formulario'),
                 'quantidade_cobertura' => $this->input->post('quantidade_cobertura'),
                 'quantidade_cobertura_front' => $this->input->post('quantidade_cobertura_front'),
+                'ir_cotacao_salva' => $this->input->post('ir_cotacao_salva'),
                 'conclui_em_tempo_real' => $this->input->post('conclui_em_tempo_real'),
+                'endosso_controle_cliente' => $this->input->post('endosso_controle_cliente'),
             );
         }elseif ($tipo == 'comissao'){
             $data = array(
@@ -233,6 +240,38 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
         $id = $this->input->post('produto_parceiro_configuracao_id');
         $data = $this->get_form_data($tipo);
         $this->update($id, $data, TRUE);
+
+        if ($tipo=='geral')
+        {
+            $this->load->model('produto_parceiro_canal_model', 'produto_parceiro_canal');
+            $this->produto_parceiro_canal->remove_produto_parceiro($this->input->post('produto_parceiro_id'));
+
+            // Emissão
+            if ( $this->input->post('canal_emissao') )
+            {
+                foreach ($this->input->post('canal_emissao') as $key => $value) {
+                    $dt = [
+                        'produto_parceiro_id' => $this->input->post('produto_parceiro_id'),
+                        'canal_id'            => $value,
+                        'tipo'                => 0, // emissão
+                    ];
+                    $this->produto_parceiro_canal->insert($dt, TRUE);
+                }
+            }
+
+            // Cancelamento
+            if ( $this->input->post('canal_cancelamento') )
+            {
+                foreach ($this->input->post('canal_cancelamento') as $key => $value) {
+                    $dt = [
+                        'produto_parceiro_id' => $this->input->post('produto_parceiro_id'),
+                        'canal_id'            => $value,
+                        'tipo'                => 1, // emissão
+                    ];
+                    $this->produto_parceiro_canal->insert($dt, TRUE);
+                }
+            }
+        }
     }
 
     function filter_by_produto_parceiro($produto_parceiro_id){

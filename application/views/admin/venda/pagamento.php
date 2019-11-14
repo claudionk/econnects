@@ -4,27 +4,33 @@ if($_POST){
 }
 ?>
 
-<div class="section-header">
-    <ol class="breadcrumb">
-        <li class="active"><?php echo app_recurso_nome(); ?></li>
-    </ol>
-</div>
-
-<div class="card">
-    <div class="card-body">
-        <a href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/3/{$cotacao_id}")?>" class="btn  btn-app btn-primary">
-            <i class="fa fa-arrow-left"></i> Voltar
-        </a>
-        <?php if($produto_parceiro_configuracao['venda_carrinho_compras']) :?>
-            <a class="btn  btn-app btn-primary" href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/7/{$cotacao_id}/$pedido_id")?>">
-                <i class="fa fa-cart-plus"></i> Adicionar no carrinho
-            </a>
-        <?php endif; ?>
-        <a class="btn pull-right btn-app btn-primary btn-proximo" onclick="$('#validateSubmitForm').submit();">
-            <i class="fa fa-arrow-right"></i> Próximo
-        </a>
+<?php if ($layout != "front") { ?>
+    <div class="section-header">
+        <ol class="breadcrumb">
+            <li class="active"><?php echo app_recurso_nome(); ?></li>
+        </ol>
     </div>
-</div>
+
+
+    <div class="card">
+        <div class="card-body">
+
+            <a href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/{$step}/{$cotacao_id}")?>" class="btn  btn-app btn-primary">
+                <i class="fa fa-arrow-left"></i> Voltar
+            </a>
+
+            <?php if($produto_parceiro_configuracao['venda_carrinho_compras']) :?>
+                <a class="btn  btn-app btn-primary" href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/7/{$cotacao_id}/$pedido_id")?>">
+                    <i class="fa fa-cart-plus"></i> Adicionar no carrinho
+                </a>
+
+            <?php endif; ?>
+            <a class="btn pull-right btn-app btn-primary btn-proximo" onclick="$('#validateSubmitForm').submit();">
+                <i class="fa fa-arrow-right"></i> Próximo
+            </a>
+        </div>
+    </div>
+<?php } ?>
 
 <div class="card">
 
@@ -56,11 +62,17 @@ if($_POST){
                         <small class="text-primary">Pague utilizando a melhor forma de pagamento</small>
                     </h2>
 
-                    <?php if ($context != "pagamento") { ?>
-                        <?php $this->load->view("admin/venda/step", array('step' => 4, 'produto_parceiro_id' => $produto_parceiro_id )); ?>
-                    <?php } ?>
+                    <?php
+                    if((isset($layout)) && ($layout == 'front') && ($context != "pagamento")) {
+                        $this->load->view('admin/venda/equipamento/front/step', array('step' => 4, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'] ));
+                    }else{
+                        if ($context != "pagamento") {
+                         $this->load->view("admin/venda/step", array('step' => 4, 'produto_parceiro_id' => $produto_parceiro_id ));
+                        }
+                    }
 
-                    <?php $this->load->view('admin/venda/partials/enviar_token_acesso'); ?>
+                    $this->load->view('admin/venda/partials/enviar_token_acesso');
+                    ?>
 
                     <div class="panel-group" id="accordion1">
                     <?php $in = " in"; ?>
@@ -99,10 +111,11 @@ if($_POST){
     </div>
 </div>
 
+
 <div class="card">
     <div class="card-body">
         <?php if ($context != "pagamento") { ?>
-            <a href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/3/{$cotacao_id}")?>" class="btn  btn-app btn-primary">
+            <a href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/{$step}/{$cotacao_id}")?>" class="btn  btn-app btn-primary">
                 <i class="fa fa-arrow-left"></i> Voltar
             </a>
         <?php } ?>

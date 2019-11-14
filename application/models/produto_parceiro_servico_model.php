@@ -25,7 +25,7 @@ Class Produto_Parceiro_Servico_Model extends MY_Model
       'label' => 'Campo',
       'rules' => 'required',
       'groups' => 'default'
-    )
+    ),
   );
 
   function get_by_id($id)
@@ -34,7 +34,7 @@ Class Produto_Parceiro_Servico_Model extends MY_Model
   }
 
   function with_servico(){
-    $this->with_simple_relation('servico', 'servico_', 'servico_id', array('nome', 'descricao', 'usuario', 'senha', 'parametros', 'token', 'token_validade'));
+    $this->with_simple_relation('servico', 'servico_', 'servico_id', array('nome', 'descricao', 'url', 'usuario', 'senha', 'parametros', 'token', 'token_validade'));
     return $this;
   }
 

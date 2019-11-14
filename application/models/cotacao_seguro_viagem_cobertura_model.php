@@ -40,4 +40,13 @@ Class Cotacao_Seguro_Viagem_Cobertura_Model extends MY_Model
     {
         return $this->get_by($this->primary_key, $id);
     }
+
+    function with_cotacao($cotacao_id)
+    {
+        $this->_database->select('cotacao_seguro_viagem.*');
+        $this->_database->join('cotacao_seguro_viagem', 'cotacao_seguro_viagem.cotacao_seguro_viagem_id = cotacao_seguro_viagem_cobertura.cotacao_seguro_viagem_id');
+        $this->_database->where("cotacao_seguro_viagem.deletado", 0);
+        $this->_database->where("cotacao_seguro_viagem.cotacao_id", $cotacao_id);
+        return $this;
+    }
 }

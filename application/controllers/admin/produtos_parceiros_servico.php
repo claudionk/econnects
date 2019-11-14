@@ -40,18 +40,14 @@ class Produtos_Parceiros_Servico extends Admin_Controller
             redirect("admin/parceiros/index");
         }
 
-
         $rows = $this->current_model
             ->with_foreign()
             ->get_many_by(array(
             'produto_parceiro_servico.produto_parceiro_id' => $produto_parceiro_id
         ));
 
-
         $data = array();
-        $data['servicos'] = $this->servico->with_foreign()->get_all();
-
-//        /print_r($rows);exit;
+        $data['servicos'] = $this->servico->with_foreign()->with_prod_parc_serv($produto_parceiro_id)->get_all();
 
         $data['rows'] = $rows;
         $data['produto_parceiro_id'] = $produto_parceiro_id;
@@ -67,6 +63,7 @@ class Produtos_Parceiros_Servico extends Admin_Controller
                     $dados_produtos = array();
                     $dados_produtos['produto_parceiro_id'] = $produto_parceiro_id;
                     $dados_produtos['servico_id'] = $item;
+                    $dados_produtos['param'] = $this->input->post('param_'. $item ); #21291171
                     $this->current_model->insert($dados_produtos, TRUE);
                     //Mensagem de sucesso
                 }

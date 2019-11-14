@@ -414,6 +414,7 @@ class Venda_Seguro_Saude extends Admin_Controller {
     $this->load->model('cliente_model', 'cliente');
     $this->load->model('cotacao_model', 'cotacao');
     $this->load->model('localidade_estado_model', 'localidade_estado');
+    $this->load->model('capitalizacao_model', 'capitalizacao');
 
     //Carrega JS para template
     $this->template->css(app_assets_url('modulos/venda/seguro_saude/css/select2.css', 'admin'));
@@ -472,12 +473,14 @@ class Venda_Seguro_Saude extends Admin_Controller {
       redirect("{$this->controller_uri}/index");
     }
 
-
-
-
+    // valida Capitalização
+    $capitalizacao = $this->capitalizacao->validaNumeroSorte($cotacao_id);
+    if ( empty($capitalizacao['status']) ) {
+        $this->session->set_flashdata('fail_msg', $capitalizacao["message"]);
+        redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/3/{$cotacao_id}");
+    }
 
     $data = array();
-
     $data['cotacao_id'] = $cotacao_id;
     $data['campos'] = $this->campo->with_campo()
       ->with_campo_tipo()
@@ -610,6 +613,7 @@ class Venda_Seguro_Saude extends Admin_Controller {
     $this->load->model('cliente_model', 'cliente');
     $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
     $this->load->model('contato_tipo_model', 'contato_tipo');
+    $this->load->model('comunicacao_track_model', 'comunicacao_track');
 
     //Carrega JS
     $this->template->js(app_assets_url('modulos/venda/seguro_saude/js/base.js', 'admin'));
@@ -617,6 +621,10 @@ class Venda_Seguro_Saude extends Admin_Controller {
     $this->template->js(app_assets_url('modulos/venda/seguro_saude/js/calculo.js', 'admin'));
     $this->template->css(app_assets_url('modulos/venda/seguro_saude/css/carrossel.css', 'admin'));
     $this->template->css(app_assets_url('modulos/venda/seguro_saude/css/base.css', 'admin'));
+
+      if($cotacao_id > 0){
+          $this->comunicacao_track->insert_or_update($cotacao_id);
+      }
 
     //Dados para template
     $data = array();
@@ -1019,8 +1027,6 @@ class Venda_Seguro_Saude extends Admin_Controller {
 
   private function updatePedidoCarrinho($pedido_id, $cotacao_id){
 
-
-
     $this->load->model('pedido_model', 'pedido');
     $this->load->model('pedido_codigo_model', 'pedido_codigo');
     $this->load->model('pedido_cartao_model', 'pedido_cartao');
@@ -1028,17 +1034,7 @@ class Venda_Seguro_Saude extends Admin_Controller {
     $this->load->model('cotacao_generico_model', 'cotacao_generico');
     $this->load->model('cotacao_model', 'cotacao');
 
-    $this->load->model('produto_parceiro_capitalizacao_model', 'parceiro_capitalizacao');
-    $this->load->model('capitalizacao_model', 'capitalizacao');
-    $this->load->model('capitalizacao_serie_titulo_model', 'titulo');
-
-
-
-
     $valor_total = $this->cotacao_generico->getValorTotal($cotacao_id);
-
-
-
 
     $dados_pedido = array();
     $dados_pedido['produto_parceiro_pagamento_id'] = 0;
@@ -1051,11 +1047,8 @@ class Venda_Seguro_Saude extends Admin_Controller {
     $this->pedido_transacao->insStatus($pedido_id, 'alteracao');
     $this->pedido_transacao->insStatus($pedido_id, 'carrinho');
 
-
     //altera o status da cotação
     $this->cotacao->update($cotacao_id, array('cotacao_status_id' => 2), TRUE);
-
-
 
     return $pedido_id;
 

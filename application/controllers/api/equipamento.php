@@ -35,6 +35,8 @@ class Equipamento extends CI_Controller {
         
         $this->usuario_id = $webservice["usuario_id"];
         $this->load->database('default');
+
+        $this->load->model("equipamento_model", "equipamento");
     }
 
     public function index() {
@@ -50,16 +52,18 @@ class Equipamento extends CI_Controller {
 
         $ean = $GET["ean"];
 
-        $Equipamento = $this->db->query( "SELECT * FROM equipamento WHERE ean='$ean'" )->result_array();
+        $Equipamento = $this->equipamento->filterByEAN($ean)->get_all();
         if( sizeof( $Equipamento ) ) {
+            $Equipamento = $Equipamento[0];
+
             die( json_encode( array( 
                 "status" => true, 
-                "equipamento_id" => $Equipamento[0]["equipamento_id"],
-                "ean" => $Equipamento[0]["ean"],
-                "nome" => $Equipamento[0]["nome"],
-                "equipamento_marca_id" => $Equipamento[0]["equipamento_marca_id"],
-                "equipamento_categoria_id" => $Equipamento[0]["equipamento_categoria_id"],
-                "equipamento_sub_categoria_id" => $Equipamento[0]["equipamento_sub_categoria_id"]
+                "equipamento_id" => $Equipamento["equipamento_id"],
+                "ean" => $Equipamento["ean"],
+                "nome" => $Equipamento["nome"],
+                "equipamento_marca_id" => $Equipamento["equipamento_marca_id"],
+                "equipamento_categoria_id" => $Equipamento["equipamento_categoria_id"],
+                "equipamento_sub_categoria_id" => $Equipamento["equipamento_sub_categoria_id"]
             ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
         } else {          	
         	if( !isset( $GET["ret"] ) ) { /*rcarpi - gambiarra para nao gerar erro no header ao consumit o metodo*/
@@ -75,7 +79,23 @@ class Equipamento extends CI_Controller {
             die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
         }
 
-        $Categorias = $this->db->query( "SELECT * FROM equipamento_categoria WHERE deletado=0 AND equipamento_categoria_nivel=1 ORDER BY nome" )->result_array();
+        $this->load->model("equipamento_categoria_model", "equipamento_categoria");
+        $Categorias = $this->equipamento_categoria->filter_by_nviel(1)->order_by('nome')->get_all();
+        die( json_encode( $Categorias, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+    }
+
+    public function equipamentos() {
+        if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
+            $GET = $_GET;
+        } else {
+            die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
+        }
+
+        $categoria_pai_id   = isempty($GET["equipamento_categoria_id"], 0);
+        $marca_id           = isempty($GET["equipamento_marca_id"], 0);
+
+        $this->load->model("equipamento_categoria_model", "equipamento_categoria");
+        $Categorias = $this->equipamento_categoria->with_sub_categoria($categoria_pai_id, $marca_id)->order_by('nome')->get_all();
         die( json_encode( $Categorias, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
@@ -86,8 +106,31 @@ class Equipamento extends CI_Controller {
             die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
         }
 
-        $Marcas = $this->db->query( "SELECT * FROM equipamento_marca WHERE deletado=0 ORDER BY nome" )->result_array();
+        $this->load->model("equipamento_marca_model", "equipamento_marca");
+        $Marcas         = $this->equipamento_marca;
+        $categoria_id   = isempty($GET["equipamento_categoria_id"], 0);
+
+        if (!empty($categoria_id))
+        {
+            $Marcas = $Marcas->get_by_categoria($categoria_id);
+        }
+
+        $Marcas = $Marcas->get_all();
         die( json_encode( $Marcas, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+    }
+
+    public function modeloMarca() {
+        if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
+            $GET = $_GET;
+        } else {
+            die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
+        }
+
+        $categoria_id = isempty($GET["equipamento_categoria_id"], null);
+        $marca_id     = isempty($GET["equipamento_marca_id"], null);
+        $result = $this->equipamento->get_equipamentos($categoria_id, $marca_id);
+
+        die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
     public function modelo() {
@@ -97,8 +140,6 @@ class Equipamento extends CI_Controller {
         }
 
         $payload = json_decode( file_get_contents( "php://input" ) );
-        // print_r($payload);
-        // die();
 
         if (empty($payload)) {
             ob_clean();
@@ -110,12 +151,11 @@ class Equipamento extends CI_Controller {
             die( json_encode( array( "status" => false, "message" => "O campo Modelo é obrigatório" ) ) );
         }
 
-        $this->load->model("equipamento_model", "equipamento");
-
         //Faz o MATCH para consulta do Equipamento
         $indiceMax = 20;
         $modelo = $payload->modelo;
         $marca = !empty($payload->marca) ? $payload->marca : null;
+        $categoria = !empty($payload->categoria) ? $payload->categoria : null;
 
         if (!empty($payload->marca)) {
             $marca = $payload->marca;
@@ -127,7 +167,7 @@ class Equipamento extends CI_Controller {
         }
 
         $qtdeRegistros = ( isset($payload->quantidade) && (int)$payload->quantidade > 0) ? $payload->quantidade : 10;
-        $result = $this->equipamento->match($modelo, $marca, $qtdeRegistros);
+        $result = $this->equipamento->match($modelo, $marca, $qtdeRegistros, $categoria);
 
         //se encontrou algum parecido
         if (empty($result)) {
