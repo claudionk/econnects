@@ -83,7 +83,6 @@ class Fatura_Model extends MY_Model
 
     public function pagamentoCompletoEfetuado($fatura_parcela_id)
     {
-
         $this->load->model('fatura_parcela_model', 'fatura_parcela');
 
         $fatura_parcela = $this->fatura_parcela->get($fatura_parcela_id);
@@ -95,18 +94,17 @@ class Fatura_Model extends MY_Model
         $dados_parcela['data_pagamento']   = date('Y-m-d H:i:s');
         $dados_parcela['fatura_status_id'] = 2;
         $this->fatura_parcela->update($fatura_parcela_id, $dados_parcela, true);
-
     }
 
     public function insFaturaParcelas($pedido_id, $cotacao_id, $fatura_status_id, $valor_total, $num_parcela, $valor_parcela, $produto_parceiro_id)
     {
 
-        $dados_faturamento = array();
-        $dados_faturamento['fatura_status_id'] = $fatura_status_id;
-        $dados_faturamento['pedido_id'] = $pedido_id;
-        $dados_faturamento['valor_total'] = $valor_total;
-        $dados_faturamento['num_parcela'] = $num_parcela;
-        $dados_faturamento['valor_parcela'] = $valor_parcela;
+        $dados_faturamento                       = array();
+        $dados_faturamento['fatura_status_id']   = $fatura_status_id;
+        $dados_faturamento['pedido_id']          = $pedido_id;
+        $dados_faturamento['valor_total']        = $valor_total;
+        $dados_faturamento['num_parcela']        = $num_parcela;
+        $dados_faturamento['valor_parcela']      = $valor_parcela;
         $dados_faturamento['data_processamento'] = date('Y-m-d H:i:s');
 
         $fatura_id = $this->insert($dados_faturamento, TRUE);
@@ -132,9 +130,9 @@ class Fatura_Model extends MY_Model
             ->filter_by_produto_parceiro($produto_parceiro_id)
             ->get_all();
 
-        if($configuracao){
+        if ($configuracao) {
             $configuracao = $configuracao[0];
-            if($configuracao['pagamento_tipo'] == 'RECORRENTE'){
+            if ($configuracao['pagamento_tipo'] == 'RECORRENTE') {
 
                 if($cotacao['produto_slug'] == 'seguro_viagem'){
                     $vigencia = array(
@@ -208,18 +206,17 @@ class Fatura_Model extends MY_Model
                         break;
                 }
             }
-
         }
 
         if ($insereItem)
         {
-            $dados_parcelamento = array();
-            $dados_parcelamento['fatura_status_id'] = 1;
-            $dados_parcelamento['fatura_id'] = $fatura_id;
-            $dados_parcelamento['num_parcela'] = $num_parcela;
-            $dados_parcelamento['valor'] = emptyor($valor, $cotacao['premio_liquido_total']);
-            $dados_parcelamento['data_vencimento'] = $dt_vencimento;
-            $dados_parcelamento['data_pagamento'] = $dt_pagamento;
+            $dados_parcelamento                       = array();
+            $dados_parcelamento['fatura_status_id']   = 1;
+            $dados_parcelamento['fatura_id']          = $fatura_id;
+            $dados_parcelamento['num_parcela']        = $num_parcela;
+            $dados_parcelamento['valor']              = emptyor($valor, $cotacao['premio_liquido_total']);
+            $dados_parcelamento['data_vencimento']    = $dt_vencimento;
+            $dados_parcelamento['data_pagamento']     = $dt_pagamento;
             $dados_parcelamento['data_processamento'] = date('Y-m-d H:i:s');
             $this->fatura_parcela->insert($dados_parcelamento, TRUE);
         }
@@ -279,6 +276,7 @@ class Fatura_Model extends MY_Model
         );
         return $data;
     }
+
     public function get_by_id($id)
     {
         return $this->get($id);

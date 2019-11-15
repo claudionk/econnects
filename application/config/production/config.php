@@ -381,6 +381,7 @@ $config["Pagmax360_Environment"] = "360";
 $config["Pagmax360_merchantId"] = "2235";
 $config["Pagmax360_merchantKey"] = "380245d6b5b467da7cf446a952d14b9cba741da01e1c61cc7e495d9cf88697aa";
 
+$config["URL_APLICATIVO"] = "https://play.google.com/store/apps/details?id=com.econnects.app.bidu";
 $config["URL_sisconnects"] = "https://www.sisconnects.com.br/";
 $config["URL_SGS"] = "https://www.sissolucoes.com.br/";
 

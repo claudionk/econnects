@@ -10,7 +10,25 @@
     <input type="hidden" name="bandeira_debito" value="<?php echo $forma['pagamento'][0]['produto_parceiro_pagamento_id']; ?>">
     <?php endif; ?>
     <div class="col-md-6">
-
+        <div class="col-xs-12 select-forma-pagamento">
+            <div class="row">
+                <div class="form-group">
+                    <label for="forma_pagamento" class="control-label"> Bandeira </label>
+                    <div class="label">
+                        <select class="form-control select" id="bandeira_cartao_debito" name="bandeira_cartao_debito">
+                            <option value=""></option>
+                            <?php foreach($forma['bandeiras'] as $linha) { ?>
+                                <option name="" value="<?php echo $linha['slug'] ?>"
+                                    <?php if(isset($row['bandeira_cartao_debito'])){if($row['bandeira_cartao_debito'] == $linha['slug']) {echo " selected ";};}; ?> >
+                                    <?php echo $linha['nome'] ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                        <?php echo app_get_form_error('bandeira_cartao_debito'); ?>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="form-group<?php echo (app_is_form_error('numero_debito')) ? ' has-error' : ''; ?><?php echo (app_is_form_error('numero_debito')) ? ' has-error' : ''; ?>">
 
             <div class="col-md-6">
@@ -34,7 +52,7 @@
             </div>
             <div class="col-xs-5">
                 <label for="codigo_debito" class="control-label"> CVV </label>
-                <input class="form-control" id="codigo_debito" name="codigo_debito" type="text" value="<?php echo isset($row['codigo_debito']) ? $row['codigo_debito'] : set_value('codigo_debito'); ?>" />
+                <input class="form-control" id="codigo_debito" name="codigo_debito" type="text"  maxlength='3' value="<?php echo isset($row['codigo_debito']) ? $row['codigo_debito'] : set_value('codigo_debito'); ?>" />
                 <?php echo app_get_form_error('codigo_debito'); ?>
             </div>
             <div class="col-xs-1">
@@ -46,23 +64,7 @@
         </div>
     </div>
 
-    <div class="col-xs-12 select-forma-pagamento">
-        <div class="form-group">
-            <label for="forma_pagamento" class="control-label"> Bandeira </label>
-            <div class="label">
-                <select class="form-control select" id="bandeira_cartao_debito" name="bandeira_cartao_debito">
-                    <option value=""></option>
-                    <?php foreach($forma['bandeiras'] as $linha) { ?>
-                        <option name="" value="<?php echo $linha['slug'] ?>"
-                            <?php if(isset($row['bandeira_cartao_debito'])){if($row['bandeira_cartao_debito'] == $linha['slug']) {echo " selected ";};}; ?> >
-                            <?php echo $linha['nome'] ?>
-                        </option>
-                    <?php } ?>
-                </select>
-                <?php echo app_get_form_error('bandeira_cartao_debito'); ?>
-            </div>
-        </div>
-    </div>
+    
 
     <div class="col-xs-12">
         <div class="form-group">

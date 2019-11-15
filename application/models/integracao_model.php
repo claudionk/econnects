@@ -502,7 +502,7 @@ Class Integracao_Model extends MY_Model
         $config['username'] = $integracao['usuario'];
         $config['password'] = $integracao['senha'];
         $config['port'] = $integracao['porta'];
-        $config['debug']	= TRUE;
+        $config['debug']    = TRUE;
 
         $this->ftp->connect($config);
         $list = $this->ftp->list_files("{$integracao['diretorio']}");
@@ -798,15 +798,11 @@ Class Integracao_Model extends MY_Model
         $trailler = array();
         $num_registro = 0;
 
-
-
         if($integracao['tipo_layout'] == 'LAYOUT') {
             while (!feof($fh)) #INICIO DO WHILE NO ARQUIVO
             {
 
-
                 $linhas = str_replace("'", " ", fgets($fh, 4096));
-
 
                 //header
                 if (substr($linhas, ($layout_header[0]['inicio']) - 1, $layout_header[0]['tamanho']) == $layout_header[0]['valor_padrao']) {
@@ -840,10 +836,10 @@ Class Integracao_Model extends MY_Model
                 }
 
             }
+
         }else if($integracao['tipo_layout'] == 'CSV'){
             $ignore = TRUE;
             while (($data = fgetcsv($fh, 4096, $integracao['layout_separador'])) !== FALSE) {
-
 
                 if($ignore){
                     $ignore = FALSE;
@@ -851,7 +847,6 @@ Class Integracao_Model extends MY_Model
                 }
 
                 $sub_detail = array();
-
                 $c = 0;
                 $num = count($data);
                 foreach ($layout_detail as $idxd => $item_d) {
@@ -862,18 +857,14 @@ Class Integracao_Model extends MY_Model
                     );
                     $c++;
                 }
-
                 $detail[] = $sub_detail;
                 $num_registro++;
-
             }
         }
-
 
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
         $integracao['script_sql'] = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
         $sql = $integracao['script_sql']; 
-
 
         $id_log = 0;
         $num_linha = 0;
@@ -907,9 +898,6 @@ Class Integracao_Model extends MY_Model
                 }
             }
 
-
-
-
             if (!empty($ids)) {
 
                 if (count($ids) > 1) {
@@ -924,19 +912,15 @@ Class Integracao_Model extends MY_Model
 
                 $data_row['id_log'] = $id_log;
 
-
                 $_tipo_file = $this->detectFileRetorno(basename($file), $ids);
 
                 $data_row['tipo_arquivo'] = (!empty($_tipo_file)) ? $_tipo_file['tipo'] : '';
-
 
             }
 
             $data[] = $data_row;
             $num_linha++;
         }
-
-
 
         $num_linha = 1;
         foreach ($data as $index => $datum) {
@@ -1310,4 +1294,3 @@ Class Integracao_Model extends MY_Model
     }
 
 }
-

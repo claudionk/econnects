@@ -972,8 +972,8 @@ class Apolice_Model extends MY_Model
             } elseif ($pedido["slug"] == "generico" || $pedido["slug"] == "seguro_saude") {
                 $this->_database->select("apolice_generico.*, IFNULL(apolice_generico.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte ", FALSE)
                     ->join("apolice_generico", "apolice.apolice_id = apolice_generico.apolice_id", 'inner');
-                }
-                
+            }
+
             $this->_database->where("apolice.pedido_id", $pedido_id);
             return $this->get_all();
         } else {

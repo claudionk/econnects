@@ -40,7 +40,7 @@ class Venda_Equipamento extends Admin_Controller{
         }
         if(! empty($this->input->get("layout"))){
             $this->layout = $this->input->get("layout");
-            $this->getUrl .= '&layout='.$this->layout;
+            $this->getUrl .= '?layout='.$this->layout;
         }
         if(! empty($this->input->get("color"))){
             $this->color  = $this->input->get("color");
@@ -115,6 +115,8 @@ class Venda_Equipamento extends Admin_Controller{
         $this->load->model('cliente_model', 'cliente');
 
         $this->template->js(app_assets_url("modulos/venda/equipamento/js/login.js", "admin"));
+        $this->template->js(app_assets_url("core/js/SenhaForte.js", "admin"));
+        $this->template->js(app_assets_url("template/js/libs/popper.min.js", "admin"));
 
         if($_POST){
             $this->cliente->atualizar($this->input->post('cliente_id'), $_POST);
@@ -162,6 +164,48 @@ class Venda_Equipamento extends Admin_Controller{
         }
     }
 
+    public function step_contratar($produto_parceiro_id, $cotacao_id = 0, $status = '', $conclui_em_tempo_real = true){
+        $this->load->model("cotacao_equipamento_model", "cotacao_equipamento");
+
+        //Verifica se possui desconto (vai para passo específico)
+        if($this->cotacao_equipamento->verifica_possui_desconto($cotacao_id) && $status != "desconto_aprovado") {
+            //Verifica se desconto foi aprovado
+            if($this->cotacao_equipamento->verifica_desconto_aprovado($cotacao_id)) {
+                //Carrega função para visualizar desconto
+                $this->equipamento_verificar_desconto($produto_parceiro_id, $cotacao_id);
+            } else {
+                //Avisa o usuário que desconto ainda não foi aprovado, portanto não consegue finalizar
+                $this->session->set_flashdata('fail_msg', 'O desconto ainda não foi aprovado.');
+                redirect("{$this->controller_uri}/index");
+            }
+        } else {
+            //Carrega função para finalizar
+            $this->equipamento_finalizar( $produto_parceiro_id, $cotacao_id, $status );
+        }
+    }
+
+    public function step_pagto($produto_parceiro_id, $cotacao_id = 0, $pedido_id = 0, $conclui_em_tempo_real = true){
+        $this->load->model("pedido_model", "pedido_model");
+
+        /**
+        * Verifica se pedido já foi feito (se sim encaminha para página de pagamento)
+        */
+        $pedido = $this->pedido_model
+        ->with_foreign()
+        ->get_by(array(
+            'pedido.cotacao_id' => $cotacao_id
+        ));
+
+        $status = array('pagamento_negado', 'cancelado', 'cancelado_stornado', 'aprovacao_cancelamento', 'cancelamento_aprovado');
+        //error_log( "Pedido: " . print_r( $pedido, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
+        if($pedido && !in_array($pedido['pedido_status_slug'], $status) && $this->layout == 'front') {
+            //$this->venda_aguardando_pagamento($produto_parceiro_id, $cotacao_id);
+            redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/5/{$pedido['pedido_id']}");
+        } else {
+            $this->venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real);
+        }
+    }
+
     /**
     * Seguro Equipamento
     * @param $produto_parceiro_id
@@ -187,16 +231,14 @@ class Venda_Equipamento extends Admin_Controller{
             $this->name = trim($name[0]);
         }
 
-        // echo $step;
-        // die();
-        // echo ($this->name); exit;
-        // echo '<pre>', print_r($this->template->get('theme_logo')); exit;
-
         if( $step == 1 ) {
 
             $this->equipamento_formulario( $produto_parceiro_id, $cotacao_id );
 
         } elseif( $step == 2 ) {
+
+        //     echo $step;
+        // die();
 
             $this->equipamento_carrossel($produto_parceiro_id, $cotacao_id);
 
@@ -206,7 +248,7 @@ class Venda_Equipamento extends Admin_Controller{
             } else {
                 $this->step_pagto($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real, $cotacao);
             }
-
+        
         } elseif ($step == 4) {
             if ($conclui_em_tempo_real) {
                 $this->step_pagto($produto_parceiro_id, $cotacao_id, $pedido_id, $conclui_em_tempo_real, null);
@@ -994,6 +1036,15 @@ class Venda_Equipamento extends Admin_Controller{
                     if (!empty($valida_prazo_maximo)) {
                         $this->session->set_flashdata('fail_msg', $valida_prazo_maximo);
                         redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2/{$cotacao_id}{$this->getUrl}");
+                    }
+                }
+
+                // Valida tempo máximo de uso do equipamento
+                if ($cotacao_id > 0) {
+                    $valida_prazo_maximo = $this->cotacao_equipamento->verifica_tempo_limite_de_uso($cotacao_id);
+                    if (!empty($valida_prazo_maximo)) {
+                        $this->session->set_flashdata('fail_msg', $valida_prazo_maximo);
+                        redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2/{$cotacao_id}");
                     }
                 }
 

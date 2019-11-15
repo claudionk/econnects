@@ -538,7 +538,6 @@ class Comunicacao
                     {
                         return true;
                     }
-
                 }
             }
         }
@@ -555,12 +554,12 @@ class Comunicacao
     {
         $this->_ci->load->library("Parser");
 
-    $parametros = array(
-      'destinatario_endereco' => $this->getDestinatario(),
-      'destinatario_nome' => $this->getNomeDestinatario(),
-      'parceiro_nome' => $this->getNomeParceiro(),
-      'url' => $this->getUrl(),
-    );
+        $parametros = array(
+            'destinatario_endereco' => $this->getDestinatario(),
+            'destinatario_nome'     => $this->getNomeDestinatario(),
+            'parceiro_nome'         => $this->getNomeParceiro(),
+            'url'                   => $this->getUrl(),
+        );
 
         $params = array_merge($parametros, $this->getMensagemParametros());
 
@@ -607,9 +606,7 @@ class Comunicacao
         return $this->url;
     }
 
-
-
-  /**
+    /**
      * @param mixed $nome_destinatario
      */
     public function setNomeDestinatario($nome_destinatario)
@@ -630,8 +627,7 @@ class Comunicacao
         $this->url = $url;
     }
 
-
-  /**
+    /**
      * @return bool|string
      */
     public function getDataEnviar()

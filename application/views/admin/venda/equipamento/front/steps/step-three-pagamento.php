@@ -30,7 +30,7 @@ if($_POST){
             <?php $this->load->view('admin/venda/partials/enviar_token_acesso'); ?>
 
             <div class="col-md-12 col-sm-12 col-xs-12 icon-login">
-                <i class="fa fa-lock color-primary border-primary" aria-hidden="true"></i>
+                <i class="fa fa-lock text-primary-dark border-primary" aria-hidden="true"></i>
             </div>
 
             <div class="col-xs-12 select-forma-pagamento">
@@ -55,9 +55,9 @@ if($_POST){
                 ?>
             </div>
 
-            <div class="col-xs-12 btns" id="btnSubmit" style="display:none;">
+            <div class="col-xs-12 btns" id="btnSubmit" style="display: none;">
                 <a class="btn btn-app btn-primary btn-proximo background-primary border-primary" 
-                    onclick="$('#validateSubmitForm').submit();">
+                    onclick="$('#validateSubmitForm').submit();" id="btn-proximo">
                 Próximo <i class="fa fa-angle-right" aria-hidden="true"></i>
                 </a>
             </div>

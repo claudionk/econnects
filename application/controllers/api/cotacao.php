@@ -453,6 +453,7 @@ class Cotacao extends CI_Controller {
                 $result['pedido_id'] = $pedido_id;
             }
 
+            $result["validacao"] = $validacao;
         }
 
         return $result;
@@ -475,6 +476,12 @@ class Cotacao extends CI_Controller {
 
         ob_clean();
         die( json_encode( ['status' => true, 'itens' => $cotacao], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+    }
+
+    function celular( $number ){
+        $number = preg_replace( "/[^0-9]/", "", $number );
+        $number = "(" . substr( $number, 0, 2 ) . ") " . substr( $number, 2, -4) . " - " . substr( $number, -4 );
+        return $number;
     }
 
 }

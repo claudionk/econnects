@@ -1,7 +1,5 @@
 <div id="sidebar-wrapper">
-    <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">
-        X
-    </a>
+    <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">&times;</a>
     <ul class="sidebar-nav">
         <li>
             <a href="#" class="active background-primary">
@@ -86,35 +84,23 @@
         $step = 1;
     }
     ?>
-    <ul class="nav nav-pills nav-steps">
-        <li class="item">
-            <a href="" title="" class="step-radius <?php if($step >= 1){ echo 'active background-primary'; } ?>"> 
-                <i class="step-icons data <?php if($step >= 1){ echo 'active'; } ?>"></i> 
-            </a>
-        </li>
-        <li class="item">
-            <a href="" title="" class="step-radius <?php if($step >= 2){ echo 'active background-primary'; } ?>"> 
-                <i class="step-icons plano <?php if($step >= 2){ echo 'active'; } ?>"></i> 
-            </a>
-        </li>
-        <li class="item">
-            <a href="" title="" class="step-radius <?php if($step >= 3){ echo 'active background-primary'; } ?>"> 
-                <i class="step-icons pagamento <?php if($step >= 3){ echo 'active'; } ?>"></i> 
-            </a>
-        </li>
-        <li class="item">
-            <a href="" title="" class="step-radius <?php if($step >= 4){ echo 'active background-primary'; } ?>">
-                <i class="step-icons lista <?php if($step >= 4){ echo 'active'; } ?>"></i> 
-            </a>
-        </li>
-        <li class="item">
-            <a href="" title="" class="step-radius <?php if($step >= 5){ echo 'active background-primary'; } ?>"> 
-                <i class="step-icons feito <?php if($step >= 5){ echo 'active'; } ?>"></i> 
-            </a>
-        </li>
-    </ul>
-
     <h2 class="text-light text-center title-h2"><?php echo $title; ?></h2>
+</div>
+<!-- Column -->
+<div class="col-md-12">
+<?php
+    if ($step == 1){
+     $this->load->view('admin/venda/step', array('step' => 1 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+    } elseif ($step == 2) {
+        $this->load->view('admin/venda/step', array('step' => 2 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+    }elseif ($step == 3) {
+        $this->load->view('admin/venda/step', array('step' => 3 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+    }elseif ($step == 4) {
+        $this->load->view('admin/venda/step', array('step' => 4 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+    }elseif ($step == 5) {
+        $this->load->view('admin/venda/step', array('step' => 5 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+    }
+?>
 </div>
 <script>
     $("#menu-close").click(function(e) {

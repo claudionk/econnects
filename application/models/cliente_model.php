@@ -763,10 +763,6 @@ class Cliente_Model extends MY_Model
             $this->update($cliente_id, $data_cliente, true);
         }
 
-        if(!isset($data['nome'])){return;}
-        if(!isset($data['email'])){return;}
-        if(!isset($data['telefone'])){return;}
-
         if (($data['nome']) || ($data['email']) || ($data['telefone'])) {
             //$this->cliente_contato->delete_by(array('cliente_id' => $cliente_id));
 
