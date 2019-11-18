@@ -498,6 +498,29 @@ if($_POST)
                                                                             </div><!--end .card  -->
                                                                         </div><!--end .col -->
                                                                     </div><!--end .row -->
+                                                                    <div class="row">
+                                                                        <div class="col-sm-4">
+                                                                            <div class="card card-tiles <?php if (isset($row[$field_name]) && $row[$field_name] == 'theme-6') echo 'card-outlined style-default-dark'; ?>">
+                                                                                <div class="row">
+                                                                                    <div class="col-xs-8">
+                                                                                        <div class="card-body height-1" style="background-color:#ff9800"></div>
+                                                                                    </div>
+                                                                                    <div class="col-xs-4">
+                                                                                        <div class="card-body height-1" style="background-color:#666666"></div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="card-body small-padding text-center">
+                                                                                    <div class="radio radio-styled">
+                                                                                        <label class="radio-inline">
+                                                                                            <input type="radio" name="<?php echo $field_name; ?>" class="required styled"
+                                                                                                   value="theme-6" <?php if (isset($row[$field_name]) && $row[$field_name] == 'theme-6') echo 'checked="checked"'; ?> />
+                                                                                            Tema 6
+                                                                                        </label>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div><!--end .card -->
+                                                                        </div><!--end .col -->
+                                                                    </div><!--end .row -->
                                                                 </div>
                                                             </div>
                                                         </div>
