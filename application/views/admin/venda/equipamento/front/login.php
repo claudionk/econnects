@@ -20,11 +20,11 @@
     <div class="col-md-6 ">
         <div class="form-group">
             <label class="control-label" for="cnpj_cpf">CPF</label>
-            <input class="form-control inputmask-cpf" type="text" value="<?php echo isset($cnpj_cpf)? $cnpj_cpf : ''; ?>" <?php if (!empty($cnpj_cpf)) { ?> disabled="disabled"<?php } ?> />
+            <input class="form-control inputmask-cpf" name="cnpj_cpf" id="cnpj_cpf" type="text" value="<?php echo isset($cnpj_cpf)? $cnpj_cpf : ''; ?>" <?php if (!empty($cnpj_cpf)) { ?> disabled="disabled"<?php } ?> />
         </div>
     </div>
     <div class="col-md-6 ">
-        <div class="form-group" style="margin-bottom: 0px;margin-top: 10px;>
+        <div class="form-group" style="margin-bottom: 0px;margin-top: 10px;">
             <label class="control-label" for="password"> Senha </label>
             <input class="form-control" type="password" name="password" id="password" required="required" onkeyup="validarSenhaForca()" />
         </div>

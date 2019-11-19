@@ -91,6 +91,7 @@ $(function(){
     $('.select2-list').select2({
         allowClear: true
     });
+
     /**
      * Faturas @todo trocar de lugar
      */
@@ -140,8 +141,9 @@ $(function(){
         templateResult: formatRepoCategoriasEquipamento, // omitted for brevity, see the source of this page*/
         templateSelection: formatRepoSelectionEquipamento, // omitted for brevity, see the source of this page*/
         language: "pt-BR"
+    }).on('change', function (e) {
+        backZoom();
     });
-
 
     //verifica se é uma edição ou POST
     if($(".js-categorias-ajax").data('selected') != ''){
@@ -179,6 +181,8 @@ $(function(){
         templateResult: formatRepoCategoriasEquipamento, // omitted for brevity, see the source of this page*/
         templateSelection: formatRepoSelectionEquipamento, // omitted for brevity, see the source of this page*/
         language: "pt-BR"
+    }).on('change', function (e) {
+        backZoom();
     });
 
     //verifica se é uma edição ou POST
@@ -218,6 +222,8 @@ $(function(){
         templateResult: formatRepoCategoriasEquipamento, // omitted for brevity, see the source of this page*/
         templateSelection: formatRepoSelectionEquipamento, // omitted for brevity, see the source of this page*/
         language: "pt-BR"
+    }).on('change', function (e) {
+        backZoom();
     });
 
     //verifica se é uma edição ou POST
@@ -261,6 +267,8 @@ $(function(){
         templateResult: formatRepoCategoriasEquipamento, // omitted for brevity, see the source of this page*/
         templateSelection: formatRepoSelectionEquip, // omitted for brevity, see the source of this page*/
         language: "pt-BR"
+    }).on('change', function (e) {
+        backZoom();
     });
 
     //verifica se é uma edição ou POST
@@ -646,4 +654,11 @@ function formatRepoEquipamento (repo) {
 
     return markup;
 }
-
+function backZoom()
+{
+    if ($.browser.mozilla){
+        $('body').css('MozTransform','scale(100)');
+    } else {
+        $('body').css('zoom', ' 100%');
+    }
+}
