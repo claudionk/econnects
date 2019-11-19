@@ -6,7 +6,7 @@
                 <i class="fa fa-info-circle"></i>
             </a>
         </div>
-        <div class="txt">
+        <div class="xs-6 txt">
             <span> Condições gerais </span>
         </div>
     </div>

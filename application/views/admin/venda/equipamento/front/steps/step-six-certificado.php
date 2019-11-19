@@ -34,11 +34,11 @@ if($_POST)
                 </h1>
 
                 <a href="" title="">
-                    <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/app-store.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;" />
+                    <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/app-store.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;" class="img-responsive" />
                 </a>
 
                 <a href="" title="">
-                    <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/google-play.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;" />
+                    <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/google-play.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;" class="img-responsive" />
                 </a>
             </div>
         </div>
