@@ -141,8 +141,6 @@ $(function(){
         templateResult: formatRepoCategoriasEquipamento, // omitted for brevity, see the source of this page*/
         templateSelection: formatRepoSelectionEquipamento, // omitted for brevity, see the source of this page*/
         language: "pt-BR"
-    }).on('change', function (e) {
-        backZoom();
     });
 
     //verifica se é uma edição ou POST
@@ -181,8 +179,6 @@ $(function(){
         templateResult: formatRepoCategoriasEquipamento, // omitted for brevity, see the source of this page*/
         templateSelection: formatRepoSelectionEquipamento, // omitted for brevity, see the source of this page*/
         language: "pt-BR"
-    }).on('change', function (e) {
-        backZoom();
     });
 
     //verifica se é uma edição ou POST
@@ -222,8 +218,6 @@ $(function(){
         templateResult: formatRepoCategoriasEquipamento, // omitted for brevity, see the source of this page*/
         templateSelection: formatRepoSelectionEquipamento, // omitted for brevity, see the source of this page*/
         language: "pt-BR"
-    }).on('change', function (e) {
-        backZoom();
     });
 
     //verifica se é uma edição ou POST
@@ -267,8 +261,6 @@ $(function(){
         templateResult: formatRepoCategoriasEquipamento, // omitted for brevity, see the source of this page*/
         templateSelection: formatRepoSelectionEquip, // omitted for brevity, see the source of this page*/
         language: "pt-BR"
-    }).on('change', function (e) {
-        backZoom();
     });
 
     //verifica se é uma edição ou POST
@@ -653,12 +645,4 @@ function formatRepoEquipamento (repo) {
         "</div></div>";
 
     return markup;
-}
-function backZoom()
-{
-    if ($.browser.mozilla){
-        $('body').css('MozTransform','scale(100)');
-    } else {
-        $('body').css('zoom', ' 100%');
-    }
 }
