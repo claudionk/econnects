@@ -125,8 +125,6 @@ class Venda extends Admin_Controller {
 
   }
 
-
-
   /**
      * Index
      */
@@ -151,7 +149,7 @@ class Venda extends Admin_Controller {
     $data['primary_key'] = $this->current_model->primary_key();
 
     $produtos = $this->current_model->getProdutosByParceiro($parceiro_id);
-    $data["rows"] = $produtos;
+    $data["rows"] = (!empty($produtos)) ? $produtos : [];
 
     //busca pedidos para o carrinho
     $data["carrinho"] = $this->pedido->getPedidoCarrinho($this->session->userdata('usuario_id'));
