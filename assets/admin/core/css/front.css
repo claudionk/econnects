@@ -1,4 +1,4 @@
-body{background-color: #eeeeee; color:#8c8c8c;}
+body{background-color: #eeeeee; color:#8c8c8c;font-size: 16px;}
 .main{ justify-content: flex-start; }
 .main .col *{ color: #5a5a5a; }
 .main .col p{ margin:0px ; }
@@ -6,7 +6,7 @@ body{background-color: #eeeeee; color:#8c8c8c;}
 .list-inline { padding-left: 0; margin-left: -5px; list-style: none; }
 .list-inline > li { display: inline-block; }
 .list-inline > li img{ width: 58px; }
-input{ background-color: #ffffff !important; text-align: center; }
+input{ background-color: #ffffff !important; text-align: center; font-size: inherit;}
 section{ background-color: #eeeeee; padding-top: 0px!important; }
 .collection { border: none  }
 .collection .collection-item{ background-color: transparent; border: none; text-align: left }
