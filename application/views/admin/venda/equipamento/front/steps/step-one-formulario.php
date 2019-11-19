@@ -73,18 +73,6 @@
 .inputmask-valor{
     text-align: center !important;
 }
-.btn.disabled, .btn[disabled], fieldset[disabled] .btn {
-    width: 70%;
-    /*background: #c41f1b;*/
-    padding: 7px 10px;
-    border-radius: 5px;
-    text-transform: uppercase;
-    font-size: 1.8rem;
-    font-weight: 100;
-    margin-bottom: 4rem;
-    opacity: 1;
-    color: #ffffff;
-}
 </style>
 <script>
 var arrayDivs = [];

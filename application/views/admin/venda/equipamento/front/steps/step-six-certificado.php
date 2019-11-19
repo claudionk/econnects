@@ -12,7 +12,7 @@ if($_POST)
     </h1>
 
     <a href="" title="">
-        <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/app-store.jpg", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;" />
+        <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/app-store.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;" />
     </a>
 
     <a href="" title="">
@@ -34,7 +34,7 @@ if($_POST)
                 </h1>
 
                 <a href="" title="">
-                    <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/app-store.jpg", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;" />
+                    <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/app-store.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;" />
                 </a>
 
                 <a href="" title="">
