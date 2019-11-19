@@ -189,14 +189,15 @@ class Venda_Equipamento extends Admin_Controller{
             $this->name = trim($name[0]);
         }
 
+        if(isset($cotacao['cnpj_cpf'])){
+            $cotacao['cnpj_cpf'] = app_clear_number($cotacao['cnpj_cpf']);
+        }
+
         if( $step == 1 ) {
 
             $this->equipamento_formulario( $produto_parceiro_id, $cotacao_id );
 
         } elseif( $step == 2 ) {
-
-        //     echo $step;
-        // die();
 
             $this->equipamento_carrossel($produto_parceiro_id, $cotacao_id);
 
@@ -994,15 +995,6 @@ class Venda_Equipamento extends Admin_Controller{
                     if (!empty($valida_prazo_maximo)) {
                         $this->session->set_flashdata('fail_msg', $valida_prazo_maximo);
                         redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2/{$cotacao_id}{$this->getUrl}");
-                    }
-                }
-
-                // Valida tempo máximo de uso do equipamento
-                if ($cotacao_id > 0) {
-                    $valida_prazo_maximo = $this->cotacao_equipamento->verifica_tempo_limite_de_uso($cotacao_id);
-                    if (!empty($valida_prazo_maximo)) {
-                        $this->session->set_flashdata('fail_msg', $valida_prazo_maximo);
-                        redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2/{$cotacao_id}");
                     }
                 }
 

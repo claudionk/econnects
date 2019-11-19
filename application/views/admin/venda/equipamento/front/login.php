@@ -20,7 +20,7 @@
     <div class="col-md-6 ">
         <div class="form-group">
             <label class="control-label" for="cnpj_cpf">CPF</label>
-            <input class="form-control inputmask-cpf" type="text" value="<?php echo isset($cnpj_cpf)? $cnpj_cpf : ''; ?>" disabled="disabled" />
+            <input class="form-control inputmask-cpf" type="text" value="<?php echo isset($cnpj_cpf)? $cnpj_cpf : ''; ?>" <?php if (!empty($cnpj_cpf)) { ?> disabled="disabled"<?php } ?> />
         </div>
     </div>
     <div class="col-md-6 ">

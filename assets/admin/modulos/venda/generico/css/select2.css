@@ -295,5 +295,5 @@ h1[id] { padding-top: 20px; margin-top: 0; }
 .s2-docs-panels dt + dd { border-top: none; }
 
 .select2{
-    margin-top: 10px !important;
+    margin-top: 10px;
 }

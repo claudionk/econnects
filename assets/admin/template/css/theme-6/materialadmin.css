@@ -550,8 +550,8 @@
 // Small device range, from phones to tablets.
 
 @media (min-width: @screen-sm-min) {
-	.make-ratio(sm, 2, 1);
-	.make-ratio(sm, 3, 1);
+  .make-ratio(sm, 2, 1);
+  .make-ratio(sm, 3, 1);
 }
 
 
@@ -560,8 +560,8 @@
 // For the desktop device range.
 
 @media (min-width: @screen-md-min) {
-	.make-ratio(md, 2, 1);
-	.make-ratio(md, 3, 1);
+  .make-ratio(md, 2, 1);
+  .make-ratio(md, 3, 1);
 }
 
 
@@ -570,8 +570,8 @@
 // For the large desktop device range.
 
 @media (min-width: @screen-lg-min) {
-	.make-ratio(lg, 2, 1);
-	.make-ratio(lg, 3, 1);
+  .make-ratio(lg, 2, 1);
+  .make-ratio(lg, 3, 1);
 }
 */
 html,
@@ -1101,28 +1101,28 @@ a.text-default-dark:hover {
   color: #0a0c0e;
 }
 .text-primary-bright {
-  color: #fcd3dd;
+  color: #fcefd3;
 }
 a.text-primary-bright:hover {
-  color: #f8a4b8;
+  color: #f8d1a4;
 }
 .text-primary-light {
-  color: #f68fa7;
+  color: #ffdfb1;
 }
 a.text-primary-light:hover {
-  color: #f36082;
+  color: #f3bc60;
 }
 .text-primary {
   color: #5d6068;
 }
 a.text-primary:hover {
-  color: #b8002c;
+  color: #b87400;
 }
 .text-primary-dark {
-  color: #9f0030;
+  color: #9f6400;
 }
 a.text-primary-dark:hover {
-  color: #6c0020;
+  color: #6c3a00;
 }
 .text-accent-bright {
   color: #f0f4c3;
@@ -3501,10 +3501,10 @@ fieldset[disabled] .btn-primary-bright.active {
   color: #fcd3dd;
 }
 .btn-primary-light {
-  color: #f68fa7;
+  color: #ffdfb1;
   color: #ffffff;
-  background-color: #f68fa7;
-  border-color: #f68fa7;
+  background-color: #ffdfb1;
+  border-color: #ffdfb1;
 }
 .btn-primary-light:hover,
 .btn-primary-light:focus,
@@ -3512,7 +3512,7 @@ fieldset[disabled] .btn-primary-bright.active {
 .btn-primary-light:active,
 .btn-primary-light.active,
 .open > .dropdown-toggle.btn-primary-light {
-  color: #f68fa7;
+  color: #ffdfb1;
   background-color: #f36082;
   border-color: #f2567a;
 }
@@ -3539,12 +3539,12 @@ fieldset[disabled] .btn-primary-light:active,
 .btn-primary-light.disabled.active,
 .btn-primary-light[disabled].active,
 fieldset[disabled] .btn-primary-light.active {
-  background-color: #f68fa7;
-  border-color: #f68fa7;
+  background-color: #ffdfb1;
+  border-color: #ffdfb1;
 }
 .btn-primary-light .badge {
-  color: #f68fa7;
-  background-color: #f68fa7;
+  color: #ffdfb1;
+  background-color: #ffdfb1;
 }
 .btn-primary-light:hover,
 .btn-primary-light:focus,
@@ -3561,11 +3561,11 @@ fieldset[disabled] .btn-primary-light.active {
 }
 .btn-primary-light.btn-flat,
 .btn-primary-light.btn-icon-toggle {
-  color: #f68fa7;
+  color: #ffdfb1;
 }
 .open .dropdown-toggle.btn-primary-light.btn-flat,
 .open .dropdown-toggle.btn-primary-light.btn-icon-toggle {
-  color: #f68fa7;
+  color: #ffdfb1;
 }
 .btn-primary-dark {
   color: #9f0030;
@@ -4347,13 +4347,13 @@ fieldset[disabled] .btn-icon-toggle {
 .radio-styled:not(ie8).checkbox-primary-light input:checked ~ span:before,
 .checkbox-styled:not(ie8).radio-primary-light input:checked ~ span:before,
 .radio-styled:not(ie8).radio-primary-light input:checked ~ span:before {
-  border-color: #f68fa7;
+  border-color: #ffdfb1;
 }
 .checkbox-styled:not(ie8).checkbox-primary-light input ~ span:after,
 .radio-styled:not(ie8).checkbox-primary-light input ~ span:after,
 .checkbox-styled:not(ie8).radio-primary-light input ~ span:after,
 .radio-styled:not(ie8).radio-primary-light input ~ span:after {
-  background-color: #f68fa7;
+  background-color: #ffdfb1;
 }
 .checkbox-styled:not(ie8).checkbox-primary input:checked ~ span:before,
 .radio-styled:not(ie8).checkbox-primary input:checked ~ span:before,
@@ -4945,8 +4945,8 @@ li.dropdown-progress .progress {
 .nav-tabs.tabs-primary-light > li.active > a,
 .nav-tabs.tabs-primary-light > li.active > a:hover,
 .nav-tabs.tabs-primary-light > li.active > a:focus {
-  border-color: #f68fa7;
-  color: #f68fa7;
+  border-color: #ffdfb1;
+  color: #ffdfb1;
 }
 .nav-tabs.tabs-primary-bright > li.active > a,
 .nav-tabs.tabs-primary-bright > li.active > a:hover,
@@ -5506,8 +5506,8 @@ section .style-primary-light,
 section.style-primary-light,
 .offcanvas-pane.style-primary-light,
 .card.style-primary-light {
-  background-color: #f68fa7;
-  border-color: #f68fa7;
+  background-color: #ffdfb1;
+  border-color: #ffdfb1;
   color: #ffffff;
 }
 section .style-primary-light .btn-icon-toggle:hover,
@@ -5531,8 +5531,8 @@ section.style-primary-light .btn-flat:hover,
   color: #ffffff;
 }
 .badge.style-primary-light {
-  background-color: #f68fa7;
-  border-color: #f68fa7;
+  background-color: #ffdfb1;
+  border-color: #ffdfb1;
   color: #ffffff;
 }
 section .style-primary-dark,
@@ -6125,7 +6125,7 @@ sub.badge {
   color: #ffffff;
 }
 .badge.style-primary-light {
-  background-color: #f68fa7;
+  background-color: #ffdfb1;
   color: #ffffff;
 }
 .badge.style-primary-dark {
@@ -6213,7 +6213,7 @@ sub.badge {
   background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
 }
 .progress-bar-primary {
-  background-color: #f68fa7;
+  background-color: #ffdfb1;
 }
 .progress-striped .progress-bar-primary {
   background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
@@ -6964,7 +6964,7 @@ sub.badge {
   border-color: transparent transparent transparent #5d6068;
 }
 .timeline-entry .card.style-primary-light:after {
-  border-color: transparent transparent transparent #f68fa7;
+  border-color: transparent transparent transparent #ffdfb1;
 }
 .timeline-entry .card.style-primary-dark:after {
   border-color: transparent transparent transparent #9f0030;
@@ -7356,10 +7356,10 @@ sub.badge {
   border-color: #5d6068;
 }
 .knob-primary-light {
-  color: #f68fa7;
+  color: #ffdfb1;
 }
 .knob-primary-light-track {
-  border-color: #f68fa7;
+  border-color: #ffdfb1;
 }
 .knob-primary-bright {
   color: #fcd3dd;
