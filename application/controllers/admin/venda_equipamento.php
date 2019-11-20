@@ -40,7 +40,7 @@ class Venda_Equipamento extends Admin_Controller{
         }
         if(! empty($this->input->get("layout"))){
             $this->layout = $this->input->get("layout");
-            $this->getUrl .= '?layout='.$this->layout;
+            $this->getUrl .= '&layout='.$this->layout;
         }
         if(! empty($this->input->get("color"))){
             $this->color  = $this->input->get("color");
@@ -118,13 +118,44 @@ class Venda_Equipamento extends Admin_Controller{
         $this->template->js(app_assets_url("core/js/SenhaForte.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/popper.min.js", "admin"));
 
-        if($_POST){
-            $this->cliente->atualizar($this->input->post('cliente_id'), $_POST);
-            $this->session->set_userdata('logado', true);
+        if ($_POST)
+        {
+            $documento  = $_POST['cnpj_cpf'];
+            $senha      = $_POST['password'];
+            $confSenha  = $_POST['password_confirm'];
+            $sucesso    = true;
 
-            header("Refresh: 0;");
+            if ( empty($documento) )
+            {
+                $this->session->set_flashdata('fail_msg', 'Informe o Documento (CPF / CNPJ).');
+                $sucesso = false;
+            }
+
+            if ( !app_validate_cpf_cnpj($documento) )
+            {
+                $this->session->set_flashdata('fail_msg', 'O documento informado é inválido.');
+                $sucesso = false;
+            }
+
+            if ( empty($senha) )
+            {
+                $this->session->set_flashdata('fail_msg', 'A senha é obrigatória.');
+                $sucesso = false;
+            }
+
+            if ( $senha != $confSenha )
+            {
+                $this->session->set_flashdata('fail_msg', 'A senha não confere');
+                $sucesso = false;
+            }
+
+            if ( $sucesso )
+            {
+                $this->cliente->atualizar($this->input->post('cliente_id'), $_POST);
+                $this->session->set_userdata('logado', true);
+                header("Refresh: 0;");
+            }
         }
-
 
         $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/{$this->layout}/login", $data);
     }
@@ -1468,6 +1499,7 @@ class Venda_Equipamento extends Admin_Controller{
         
         $apolice = $this->apolice->getApolicePedido($pedido_id);
         $pedido = $this->pedido->get($pedido_id);
+        $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
 
         $data = array();
         $data['primary_key'] = $this->current_model->primary_key();
@@ -1476,6 +1508,7 @@ class Venda_Equipamento extends Admin_Controller{
         $data['cotacao_id'] = $pedido['cotacao_id'];
         $data['apolice'] = $apolice;
         $data['pedido'] = $pedido;
+        $data['equipamento_marca_id'] = emptyor($cotacao['equipamento_marca_id'], null);
 
         $this->limpa_cotacao($produto_parceiro_id);
 

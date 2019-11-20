@@ -11,13 +11,17 @@ if($_POST)
         <span class="subtitle">e tenha tudo na palma da mão!</span>
     </h1>
 
-    <a href="" title="">
-        <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/app-store.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;" />
-    </a>
+    <?php if (emptyor($equipamento_marca_id, 30029) == 30029) { # APPLE ?>
+        <a href="" title="">
+            <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/app-store.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;margin: 0 auto;" class="img-responsive" />
+        </a>
+    <?php }
 
-    <a href="" title="">
-        <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/google-play.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;" />
-    </a>
+    if (emptyor($equipamento_marca_id, 30015) == 30015) { # SAMSUNG ?>
+        <a href="" title="">
+            <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/google-play.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;margin: 0 auto;" class="img-responsive" />
+        </a>
+    <?php } ?>
 </div>
 
 <!-- modal more info -->
@@ -33,13 +37,17 @@ if($_POST)
                     <span class="subtitle">e tenha tudo na palma da mão!</span>
                 </h1>
 
-                <a href="" title="">
-                    <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/app-store.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;" class="img-responsive" />
-                </a>
+                <?php if (emptyor($equipamento_marca_id, 30029) == 30029) { # APPLE ?>
+                    <a href="" title="">
+                        <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/app-store.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;margin: 0 auto;" class="img-responsive" />
+                    </a>
+                <?php }
 
-                <a href="" title="">
-                    <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/google-play.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;" class="img-responsive" />
-                </a>
+                if (emptyor($equipamento_marca_id, 30015) == 30015) { # SAMSUNG ?>
+                    <a href="" title="">
+                        <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/google-play.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;margin: 0 auto;" class="img-responsive" />
+                    </a>
+                <?php } ?>
             </div>
         </div>
     </div>

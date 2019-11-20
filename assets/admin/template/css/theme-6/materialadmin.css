@@ -4630,6 +4630,7 @@ body [class*=" md-"],
   border-color: rgba(255, 255, 255, 0.9);
   -webkit-box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.33);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.33);
+  z-index: 1000;
 }
 .dropdown-menu > li > a {
   padding: 5px 20px;
