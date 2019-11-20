@@ -121,7 +121,7 @@ function mostraInput()
         //arrayDivs[linha].css('display', 'block')
         if ($('#'+id_div).hasClass('inputmask-valor'))
         {
-            $('#'+id_div).val(0);
+            $('#'+id_div).val('0,00');
         }
 
         $('#'+id_div).parent('div').css('display', 'block');
