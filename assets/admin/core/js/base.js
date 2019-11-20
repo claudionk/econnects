@@ -75,16 +75,19 @@ $(function(){
     $(".inputmask-telefone").inputmask("mask", {"mask": "(99) 9999-9999"});
     $(".inputmask-moeda").inputmask('999,99', { numericInput: true, rightAlignNumerics: false, greedy: true});
     $(".inputmask-moeda2").inputmask('999.999.999,99', { numericInput: true, rightAlignNumerics: false, greedy: true});
-    $(".inputmask-valor").inputmask( 'currency',{"autoUnmask": true,
-        radixPoint:",",
-        groupSeparator: ".",
-        allowMinus: false,
-        prefix: 'R$ ',            
-        digits: 2,
-        digitsOptional: false,
-        rightAlign: true,
-        unmaskAsNumber: true
-    });
+    $(".inputmask-valor")
+        .maskMoney({symbol:'R$ ', thousands:'.', decimal:',', symbolStay: true});
+    //     .inputmask( 'currency',{
+    //         "autoUnmask": true,
+    //         radixPoint:",",
+    //         groupSeparator: ".",
+    //         allowMinus: false,
+    //         prefix: 'R$ ',            
+    //         digits: 2,
+    //         digitsOptional: false,
+    //         rightAlign: true,
+    //         unmaskAsNumber: true
+    // });
     $(".inputmask-numero").inputmask('', {numericInput: true, rightAlignNumerics: false});
     $(".inputmask-cep").inputmask("mask", {"mask": "99999-999"});
     $(".time-mask").inputmask('h:s', {placeholder: 'hh:mm'});
