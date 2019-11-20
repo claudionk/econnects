@@ -526,6 +526,12 @@ function app_get_value($field, $default = ''){
 }
 
 function app_validate_cpf_cnpj ($cpf_cnpj) {
+
+    if ( empty($cpf_cnpj) )
+        return false;
+
+    $cpf_cnpj = preg_replace('/[^0-9]/', '', $cpf_cnpj);
+
     // Verifica CPF
     if ( strlen($cpf_cnpj ) === 11 ) {
         return app_validate_cpf($cpf_cnpj);

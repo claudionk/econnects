@@ -1,6 +1,10 @@
 
 <?php $this->load->view('admin/venda/equipamento/front/step', array('step' => 3, 'produto_parceiro_id' =>  issetor($produto_parceiro_id), 'title' => 'LOGIN')); ?>
 
+<div class="row">
+    <div class="col-md-12"><?php $this->load->view('admin/partials/messages'); ?></div>
+</div>
+
 <div class="col-md-12 col-sm-12 col-xs-12 icon-login">
     <i class="fa fa-lock text-primary-dark border-primary" aria-hidden="true"></i>
 </div>
@@ -20,7 +24,7 @@
     <div class="col-md-6 ">
         <div class="form-group">
             <label class="control-label" for="cnpj_cpf">CPF</label>
-            <input class="form-control inputmask-cpf" name="cnpj_cpf" id="cnpj_cpf" type="text" value="<?php echo isset($cnpj_cpf)? $cnpj_cpf : ''; ?>" <?php if (!empty($cnpj_cpf)) { ?> disabled="disabled"<?php } ?> />
+            <input class="form-control inputmask-cpf" autocomplete="off" name="cnpj_cpf" id="cnpj_cpf" type="text" value="<?php echo isset($cnpj_cpf)? $cnpj_cpf : ''; ?>" <?php if (!empty($cnpj_cpf)) { ?> disabled="disabled"<?php } ?> />
         </div>
     </div>
     <div class="col-md-6 ">

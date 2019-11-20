@@ -65,13 +65,14 @@ $(function(){
     });
 
     $(".inputmask-date").inputmask({"mask": "99/99/9999"});
-    $(".inputmask-cpf").inputmask({
-        mask: ['999.999.999-99'],
-        keepStatic: true
-    });
+    // $(".inputmask-cpf").inputmask({
+    //     mask: ['999.999.999-99'],
+    //     keepStatic: true
+    // });
+    $(".inputmask-cpf").inputmask({"mask": '999.999.999-99'});
     $(".inputmask-cnpj").inputmask({"mask": "99.999.999/9999-99"});
- 	$(".inputmask-celular").inputmask("mask", {"mask": "(99)9999-99999"});
-    $(".inputmask-telefone").inputmask("mask", {"mask": "(99)9999-9999"});
+ 	$(".inputmask-celular").inputmask("mask", {"mask": "(99) 99999-9999"});
+    $(".inputmask-telefone").inputmask("mask", {"mask": "(99) 9999-9999"});
     $(".inputmask-moeda").inputmask('999,99', { numericInput: true, rightAlignNumerics: false, greedy: true});
     $(".inputmask-moeda2").inputmask('999.999.999,99', { numericInput: true, rightAlignNumerics: false, greedy: true});
     $(".inputmask-valor").inputmask( 'currency',{"autoUnmask": true,

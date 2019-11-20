@@ -124,7 +124,7 @@ function mostraInput(){
         }            
             //arrayDivs[linha].css('display', 'block')
             $('#'+id_div).parent('div').css('display', 'block');
-            $('#'+id_div).focus();
+            $('#'+id_div).focus().select();
 };
 /*
 $(document).ready(function(){
