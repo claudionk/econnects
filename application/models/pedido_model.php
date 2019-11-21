@@ -456,7 +456,7 @@ Class Pedido_Model extends MY_Model
 
     public function with_cotacao_cliente_contato(){
         $this->_database->select("cliente.cliente_id as cod_cliente", false);
-        $this->_database->select("cliente.razao_nome, apolice_equipamento.equipamento_nome, em.nome as marca, ec.nome as categoria");
+        $this->_database->select("cliente.razao_nome, apolice_equipamento.equipamento_nome, em.nomeMarca as marca, ec.nomeLinha as categoria");
         /*
         $this->_database->select("(SELECT contato FROM cliente_contato INNER JOIN contato on contato.contato_id = cliente_contato.contato_id WHERE cliente_contato.deletado = 0 AND contato.deletado = 0 AND contato.contato_tipo_id = 1 AND cliente_contato.cliente_id = cliente.cliente_id LIMIT 1) AS email");
         $this->_database->select("(SELECT contato FROM cliente_contato INNER JOIN contato on contato.contato_id = cliente_contato.contato_id WHERE cliente_contato.deletado = 0 AND contato.deletado = 0 AND contato.contato_tipo_id = 2 AND cliente_contato.cliente_id = cliente.cliente_id LIMIT 1)  AS celular");
