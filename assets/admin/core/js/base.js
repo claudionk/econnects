@@ -65,25 +65,29 @@ $(function(){
     });
 
     $(".inputmask-date").inputmask({"mask": "99/99/9999"});
-    $(".inputmask-cpf").inputmask({
-        mask: ['999.999.999-99'],
-        keepStatic: true
-    });
+    // $(".inputmask-cpf").inputmask({
+    //     mask: ['999.999.999-99'],
+    //     keepStatic: true
+    // });
+    $(".inputmask-cpf").inputmask({"mask": '999.999.999-99'});
     $(".inputmask-cnpj").inputmask({"mask": "99.999.999/9999-99"});
- 	$(".inputmask-celular").inputmask("mask", {"mask": "(99)9999-99999"});
-    $(".inputmask-telefone").inputmask("mask", {"mask": "(99)9999-9999"});
+ 	$(".inputmask-celular").inputmask("mask", {"mask": "(99) 99999-9999"});
+    $(".inputmask-telefone").inputmask("mask", {"mask": "(99) 9999-9999"});
     $(".inputmask-moeda").inputmask('999,99', { numericInput: true, rightAlignNumerics: false, greedy: true});
     $(".inputmask-moeda2").inputmask('999.999.999,99', { numericInput: true, rightAlignNumerics: false, greedy: true});
-    $(".inputmask-valor").inputmask( 'currency',{"autoUnmask": true,
-        radixPoint:",",
-        groupSeparator: ".",
-        allowMinus: false,
-        prefix: 'R$ ',            
-        digits: 2,
-        digitsOptional: false,
-        rightAlign: true,
-        unmaskAsNumber: true
-    });
+    $(".inputmask-valor")
+        .maskMoney({symbol:'R$ ', thousands:'.', decimal:',', symbolStay: true});
+    //     .inputmask( 'currency',{
+    //         "autoUnmask": true,
+    //         radixPoint:",",
+    //         groupSeparator: ".",
+    //         allowMinus: false,
+    //         prefix: 'R$ ',            
+    //         digits: 2,
+    //         digitsOptional: false,
+    //         rightAlign: true,
+    //         unmaskAsNumber: true
+    // });
     $(".inputmask-numero").inputmask('', {numericInput: true, rightAlignNumerics: false});
     $(".inputmask-cep").inputmask("mask", {"mask": "99999-999"});
     $(".time-mask").inputmask('h:s', {placeholder: 'hh:mm'});
@@ -91,6 +95,7 @@ $(function(){
     $('.select2-list').select2({
         allowClear: true
     });
+
     /**
      * Faturas @todo trocar de lugar
      */
@@ -141,7 +146,6 @@ $(function(){
         templateSelection: formatRepoSelectionEquipamento, // omitted for brevity, see the source of this page*/
         language: "pt-BR"
     });
-
 
     //verifica se é uma edição ou POST
     if($(".js-categorias-ajax").data('selected') != ''){
@@ -646,4 +650,3 @@ function formatRepoEquipamento (repo) {
 
     return markup;
 }
-

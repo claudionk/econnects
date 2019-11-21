@@ -73,18 +73,6 @@
 .inputmask-valor{
     text-align: center !important;
 }
-.btn.disabled, .btn[disabled], fieldset[disabled] .btn {
-    width: 70%;
-    /*background: #c41f1b;*/
-    padding: 7px 10px;
-    border-radius: 5px;
-    text-transform: uppercase;
-    font-size: 1.8rem;
-    font-weight: 100;
-    margin-bottom: 4rem;
-    opacity: 1;
-    color: #ffffff;
-}
 </style>
 <script>
 var arrayDivs = [];
@@ -92,10 +80,7 @@ var arrayDivs = [];
 $(document).ready(function(){
     // hidden all input  
     $(".form-group").each(function(key, values){
-        
-        console.log(values);
         var divs = $(this);
-        
         if(typeof divs.find('.form-control').attr('id') != 'undefined'){
             var id = divs.find('.form-control').attr('id');
 
@@ -113,117 +98,33 @@ $(document).ready(function(){
         });
 });
 
-function mostraInput(){
-
-        for (i = 0; i < arrayDivs.length; i++) { 
-            
-            if(arrayDivs[i][2] == 1){
-
+function mostraInput()
+{
+        for (i = 0; i < arrayDivs.length; i++)
+        {
+            if(arrayDivs[i][2] == 1)
+            {
                 id_div= arrayDivs[i+1][1]; //define id do input a ser exibido
                 arrayDivs[i][2] = 0;
                 arrayDivs[i+1][2] = 1;//define div atual
                 linha = i+2; //encontra posiçao do vetor em que deverá desaparecer a div_float
                 break;
-
             }
 
-            if ((arrayDivs.length-1) == linha){
-
+            if ((arrayDivs.length-1) == linha)
+            {
                 $('#btn-proximo').attr('disabled', false);
                 document.getElementById("div_float").style.display = "none";
             }
-           
-        }            
-            //arrayDivs[linha].css('display', 'block')
-            $('#'+id_div).parent('div').css('display', 'block');
-            $('#'+id_div).focus();
-};
-/*
-$(document).ready(function(){
-    // hidden all input
-    var arrayDivs = [];
-
-    $(".form-group").each(function(key, values){
-        var divs = $(this)
-        arrayDivs.push(divs)
-
-        console.log(values)
-
-        divs.css('display', 'none');
-        
-        $('.btn-proximo').attr('disabled', true)
-
-        if(key == 0){
-            divs.css('display', 'block');
         }
-    });
-    if($('#cnpj_cpf').length){
-        $('#cnpj_cpf').focusout(function(){
-            if($(this).val() != ''){
-                arrayDivs[1].css('display', 'block')
-                $('#nome').focus()
-            }else{
-                $(this).focus()
-            }
-        });
-    }
-    if($('#nome').length){
-        $('#nome').focusout(function(){
-            if($(this).val() != ''){
-                arrayDivs[2].css('display', 'block')
-                $('#email').focus()
-            }else{
-                $(this).focus()
-            }
-        });
-    }
-    if($('#email').length){
-        $('#email').focusout(function(){
-            if($(this).val() != ''){
-                arrayDivs[3].css('display', 'block')
-                $('#telefone').focus()
-            }else{
-                $(this).focus()
-            }
-        });
-    }
-    if($('#telefone').length){
-        $('#telefone').focusout(function(){
-            if($(this).val() != ''){
-                arrayDivs[4].css('display', 'block')
-                $('#data_nascimento').focus()
-            }else{
-                $(this).focus()
-            }
-        });
-    }
-    if($('#data_nascimento').length){
-        $('#data_nascimento').focusout(function(){
-            if($(this).val() != ''){
-                arrayDivs[5].css('display', 'block')
-                $('#rg_data_expedicao').focus()
-            }
-        });
-    }
-    if($('#rg_data_expedicao').length){
-        $('#rg_data_expedicao').focusout(function(){
-            if($(this).val() != ''){
-                arrayDivs[6].css('display', 'block')
-                arrayDivs[7].css('display', 'block')
-                $('#ean').focus()
-            }
-        });
-    }
-    if($('#ean').length){
-        $('#ean').focusout(function(){
-            arrayDivs[8].css('display', 'block')
-            arrayDivs[9].css('display', 'block')
-            arrayDivs[10].css('display', 'block')
-            arrayDivs[11].css('display', 'block')
-            arrayDivs[12].css('display', 'block')
-            $('.btn-proximo').attr('disabled', false)
-        });
-    }
-});
-*/
+
+        //arrayDivs[linha].css('display', 'block')
+        if ($('#'+id_div).hasClass('inputmask-valor'))
+        {
+            $('#'+id_div).val('0,00');
+        }
+
+        $('#'+id_div).parent('div').css('display', 'block');
+        $('#'+id_div).focus().select();
+};
 </script>
