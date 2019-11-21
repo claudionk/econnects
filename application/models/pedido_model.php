@@ -227,7 +227,7 @@ Class Pedido_Model extends MY_Model
                             $this->_database->where('apolice.num_apolice', $value);
                             break;
                         case "documento":
-                            $this->_database->like('cliente.cnpj_cpf', $value);
+                            $this->_database->where('cliente.cnpj_cpf', $value);
                             break;
                         case "pedido_id":
                             $this->_database->where('pedido.pedido_id', $value);
