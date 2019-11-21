@@ -466,12 +466,13 @@ Class Pedido_Model extends MY_Model
         $this->_database->join('cotacao', 'cotacao.cotacao_id = pedido.cotacao_id', 'inner');
         $this->_database->join('cliente', 'cliente.cliente_id = cotacao.cliente_id', 'inner');
         $this->_database->join("apolice_equipamento", "apolice_equipamento.apolice_id = apolice.apolice_id", 'left');
-        $this->_database->join("vw_Equipamentos_Marcas em", "em.equipamento_marca_id = apolice_equipamento.equipamento_marca_id", 'left');
-        $this->_database->join("vw_Equipamentos_Linhas ec", "ec.equipamento_categoria_id = apolice_equipamento.equipamento_categoria_id", 'left');
+        // $this->_database->join("vw_Equipamentos_Marcas em", "em.equipamento_marca_id = apolice_equipamento.equipamento_marca_id", 'left');
+        // $this->_database->join("vw_Equipamentos_Linhas ec", "ec.equipamento_categoria_id = apolice_equipamento.equipamento_categoria_id", 'left');
+        $this->_database->join("business_engine.Equipamentos_Marcas em", "em.idEquipamentos_Marcas = apolice_equipamento.equipamento_marca_id", 'left');
+        $this->_database->join("business_engine.Equipamentos_Linhas ec", "ec.idEquipamentos_Linhas = apolice_equipamento.equipamento_categoria_id", 'left');
 
         return $this;
     }
-
 
     public function with_produto_parceiro(){
         $this->_database->select("produto.produto_id, produto.nome as produto");
