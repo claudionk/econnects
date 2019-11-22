@@ -1425,7 +1425,8 @@ if ( ! function_exists('app_integracao_valida_regras'))
             // }
 
             if (empty($dados['endereco_logradouro']) || strlen($dados['endereco_logradouro']) <= 3) {
-                $errors[] = ['id' => 25, 'msg' => "Logradouro inválido.", 'slug' => "logradouro"];
+                // E-mail de: Marcos Chelotti <Marcos_Chelotti@generali.com.br> - 22 de nov. de 2019 08:37
+                $dados['endereco_logradouro'] = "RUA ". $dados['endereco_logradouro'];
             }
 
             if (empty($dados['endereco_cep']) || $dados['endereco_cep'] == "99999999") {
