@@ -317,6 +317,8 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         if ( !empty($equipamento_de_para) ) {
                             $valor = $this->filter_by_equipamento_de_para($equipamento_de_para);
                         } else {
+                            // tratamento para identificar o equipamento
+                            $equipamento_sub_categoria_id = emptyor($equipamento_sub_categoria_id, $equipamento_categora_id);
                             $valor = $this->filter_by_equipamento($equipamento_sub_categoria_id);
                         }
 
