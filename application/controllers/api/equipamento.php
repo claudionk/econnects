@@ -159,6 +159,8 @@ class Equipamento extends CI_Controller {
             die( json_encode( array( "status" => false, "message" => "O campo Modelo é obrigatório" ) ) );
         }
 
+        $resulDefault = array( "status" => false, "message" => "Não foram localizados equipamentos com o modelo informado ({$modelo})" );
+
         //Faz o MATCH para consulta do Equipamento
         $indiceMax = 20;
         $modelo = $payload->modelo;
@@ -183,8 +185,12 @@ class Equipamento extends CI_Controller {
             {
                 $payload->marca = null; // remove a marca
                 return $this->modelo($payload); //processa sem a marca
+            } 
+
+            if ( $returnDie ) {
+                die( json_encode( $resulDefault ) );
             } else {
-                die( json_encode( array( "status" => false, "message" => "Não foram localizados equipamentos com o modelo informado ({$modelo})" ) ) );
+                return $resulDefault;
             }
         }
 
@@ -200,7 +206,7 @@ class Equipamento extends CI_Controller {
                     "equipamento_marca_id" => $EANenriquecido->equipamento_marca_id,
                     "equipamento_categoria_id" => $EANenriquecido->equipamento_categoria_id,
                     "equipamento_sub_categoria_id" => $EANenriquecido->equipamento_sub_categoria_id,
-                    "ratio" => $EANenriquecido->indice / $indiceMax
+                    "indice" => $EANenriquecido->indice / $indiceMax
                 ];
             }
 
@@ -212,8 +218,11 @@ class Equipamento extends CI_Controller {
                 $payload->marca = null; // remove a marca
                 return $this->modelo($payload); //processa sem a marca
             } else {
-                die( json_encode( array( "status" => false, "message" => "Não foram localizados equipamentos com o modelo informado ({$modelo})" ) ) )
-                ;
+                if ( $returnDie ) {
+                    die( json_encode( $resulDefault ) );
+                } else {
+                    return $resulDefault;
+                }
             }
         }
 
@@ -223,14 +232,23 @@ class Equipamento extends CI_Controller {
             $payload->marca = null; // remove a marca
             $ret = $this->modelo($payload); //processa sem a marca
 
-            // junta as 2 pesquisas
-            $retorno = array_merge($ret['dados'], $retorno);
+            if ( !empty($ret['dados']) )
+            {
+                if ( !empty($retorno) )
+                {
+                    // junta as 2 pesquisas
+                    $retorno = array_merge($ret['dados'], $retorno);
 
-            // prioriza a pesquisa mais real
-            usort($retorno, function ($item1, $item2) {
-                if ($item1['ratio'] == $item2['ratio']) return 0;
-                return $item1['ratio'] > $item2['ratio'] ? -1 : 1;
-            });
+                    // prioriza a pesquisa mais real
+                    usort($retorno, function ($item1, $item2) {
+                        if ($item1['indice'] == $item2['indice']) return 0;
+                        return $item1['indice'] > $item2['indice'] ? -1 : 1;
+                    });
+
+                } else {
+                    $retorno = $ret['dados'];
+                }
+            }
         }
 
         $retorno = array( "status" => true, "modelo_informado" => $modelo, "dados" => $retorno);
