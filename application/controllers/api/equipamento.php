@@ -159,13 +159,12 @@ class Equipamento extends CI_Controller {
             die( json_encode( array( "status" => false, "message" => "O campo Modelo é obrigatório" ) ) );
         }
 
-        $resulDefault = array( "status" => false, "message" => "Não foram localizados equipamentos com o modelo informado ({$modelo})" );
-
         //Faz o MATCH para consulta do Equipamento
         $indiceMax = 20;
         $modelo = $payload->modelo;
         $marca = !empty($payload->marca) ? $payload->marca : null;
         $categoria = !empty($payload->categoria) ? $payload->categoria : null;
+        $resulDefault = array( "status" => false, "message" => "Não foram localizados equipamentos com o modelo informado ({$modelo})" );
 
         if (!empty($payload->marca)) {
             $marca = $payload->marca;
@@ -180,11 +179,13 @@ class Equipamento extends CI_Controller {
         $result = $this->equipamento->match($modelo, $marca, $qtdeRegistros, $categoria);
 
         //se encontrou algum parecido
-        if (empty($result)) {
+        if (empty($result))
+        {
             if (!empty($marca))
             {
                 $payload->marca = null; // remove a marca
-                return $this->modelo($payload); //processa sem a marca
+                $result = $this->modelo($payload); //processa sem a marca
+                die( json_encode( $result ) );
             } 
 
             if ( $returnDie ) {
@@ -195,8 +196,8 @@ class Equipamento extends CI_Controller {
         }
 
         $retorno = [];
-        foreach ($result as $EANenriquecido) {
-
+        foreach ($result as $EANenriquecido)
+        {
             //se o indice e maior do que o minimo estipulado de 30%
             if($EANenriquecido->indice / $indiceMax > 0.3) {
                 $retorno[] = [
@@ -209,14 +210,15 @@ class Equipamento extends CI_Controller {
                     "indice" => $EANenriquecido->indice / $indiceMax
                 ];
             }
-
         }
 
-        if (empty($retorno)){
+        if (empty($retorno))
+        {
             if (!empty($marca))
             {
                 $payload->marca = null; // remove a marca
-                return $this->modelo($payload); //processa sem a marca
+                $retorno = $this->modelo($payload); //processa sem a marca
+                die( json_encode( $retorno ) );
             } else {
                 if ( $returnDie ) {
                     die( json_encode( $resulDefault ) );
