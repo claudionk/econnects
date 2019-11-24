@@ -133,13 +133,21 @@ class Equipamento extends CI_Controller {
         die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
-    public function modelo() {
-        if( $_SERVER["REQUEST_METHOD"] !== "POST" ) {
-            ob_clean();
-            die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
-        }
+    public function modelo($payload = null)
+    {
+        $returnDie = false;
 
-        $payload = json_decode( file_get_contents( "php://input" ) );
+        // caso tenha informado os dados na entrada
+        if ( empty($payload) )
+        {
+            if( $_SERVER["REQUEST_METHOD"] !== "POST" ) {
+                ob_clean();
+                die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
+            }
+
+            $payload = json_decode( file_get_contents( "php://input" ) );
+            $returnDie = true;
+        }
 
         if (empty($payload)) {
             ob_clean();
@@ -171,7 +179,13 @@ class Equipamento extends CI_Controller {
 
         //se encontrou algum parecido
         if (empty($result)) {
-            die( json_encode( array( "status" => false, "message" => "Não foram localizados equipamentos com o modelo informado ({$modelo})" ) ) );
+            if (!empty($marca))
+            {
+                $payload->marca = null; // remove a marca
+                return $this->modelo($payload); //processa sem a marca
+            } else {
+                die( json_encode( array( "status" => false, "message" => "Não foram localizados equipamentos com o modelo informado ({$modelo})" ) ) );
+            }
         }
 
         $retorno = [];
@@ -185,17 +199,48 @@ class Equipamento extends CI_Controller {
                     "nome" => $EANenriquecido->nome,
                     "equipamento_marca_id" => $EANenriquecido->equipamento_marca_id,
                     "equipamento_categoria_id" => $EANenriquecido->equipamento_categoria_id,
-                    "equipamento_sub_categoria_id" => $EANenriquecido->equipamento_sub_categoria_id
+                    "equipamento_sub_categoria_id" => $EANenriquecido->equipamento_sub_categoria_id,
+                    "ratio" => $EANenriquecido->indice / $indiceMax
                 ];
             }
 
         }
 
         if (empty($retorno)){
-            die( json_encode( array( "status" => false, "message" => "Não foram localizados equipamentos com o modelo informado ({$modelo})" ) ) );
+            if (!empty($marca))
+            {
+                $payload->marca = null; // remove a marca
+                return $this->modelo($payload); //processa sem a marca
+            } else {
+                die( json_encode( array( "status" => false, "message" => "Não foram localizados equipamentos com o modelo informado ({$modelo})" ) ) )
+                ;
+            }
         }
 
-        die( json_encode( array( "status" => true, "modelo_informado" => $modelo, "dados" => $retorno) , JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+        // mesmo encontrando faz pesquisa sem marca para enriquecer o resultado
+        if (!empty($marca))
+        {
+            $payload->marca = null; // remove a marca
+            $ret = $this->modelo($payload); //processa sem a marca
+
+            // junta as 2 pesquisas
+            $retorno = array_merge($ret['dados'], $retorno);
+
+            // prioriza a pesquisa mais real
+            usort($retorno, function ($item1, $item2) {
+                if ($item1['ratio'] == $item2['ratio']) return 0;
+                return $item1['ratio'] > $item2['ratio'] ? -1 : 1;
+            });
+        }
+
+        $retorno = array( "status" => true, "modelo_informado" => $modelo, "dados" => $retorno);
+
+        if ( $returnDie )
+        {
+            die( json_encode( $retorno , JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+        } else {
+            return $retorno;
+        }
 
     }
 
