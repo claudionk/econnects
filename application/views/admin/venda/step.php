@@ -1,11 +1,23 @@
-<div id="wizard" class="form-wizard form-wizard-horizontal">
+<?php $max = 5; ?>
+
+<div id="wizard" class="form-wizard form-wizard-horizontal visible-xs">
+    <div class="form-wizard-nav">
+        <div class="progress">
+            <div class="progress-bar progress-bar-primary" style="width: <?php echo ($step-1)*20 + 10 ?>%;"></div>
+        </div>
+        <div class="nav nav-justified">
+            <span class="step">ETAPA <?php echo $step ?> / <?php echo $max ?></span>
+        </div>
+    </div><!--end .form-wizard-nav -->
+    <br>
+</div><!--end #rootwizard -->
+
+<div id="wizard" class="form-wizard form-wizard-horizontal hidden-xs">
     <div class="form-wizard-nav">
         <div class="progress">
             <div class="progress-bar progress-bar-primary" style="width: <?php echo ($step-1)*20 + 10 ?>%;"></div>
         </div>
         <ul class="nav nav-justified">
-
-            <?php $max = 5; ?>
 
             <li class="<?php echo ($step == 1) ? 'active' : ''; if($step > 1) echo " done"; ?>">
                 <a href="#"><span class="step">1<span class="de_max">/ <?php echo $max ?></span></span> <span class="title"><?php echo ($layout <> 'front') ? app_produto_traducao('Dados iniciais', $produto_parceiro_id) : ""; ?></span></a>

@@ -38,6 +38,7 @@
     </ul>
 </div>
 
+
 <div class="">
     <?php
     //var_dump($this->session->userdata('logado'));
@@ -84,24 +85,15 @@
         $step = 1;
     }
     ?>
+
+    <!-- Column -->
+    <div class="col-md-12">
+    <?php $this->load->view('admin/venda/step', array('step' => $step,'produto_parceiro_id' =>  issetor($produto_parceiro_id))); ?>
+    </div>
+
     <h2 class="text-light text-center title-h2"><?php echo $title; ?></h2>
 </div>
-<!-- Column -->
-<div class="col-md-12">
-<?php
-    if ($step == 1){
-     $this->load->view('admin/venda/step', array('step' => 1 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
-    } elseif ($step == 2) {
-        $this->load->view('admin/venda/step', array('step' => 2 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
-    }elseif ($step == 3) {
-        $this->load->view('admin/venda/step', array('step' => 3 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
-    }elseif ($step == 4) {
-        $this->load->view('admin/venda/step', array('step' => 4 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
-    }elseif ($step == 5) {
-        $this->load->view('admin/venda/step', array('step' => 5 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
-    }
-?>
-</div>
+
 <script>
     $("#menu-close").click(function(e) {
         e.preventDefault();

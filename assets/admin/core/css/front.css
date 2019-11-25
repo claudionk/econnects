@@ -11,7 +11,7 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
 .collection { border: none  }
 .collection .collection-item{ background-color: transparent; border: none; text-align: left }
 .header-logo-menu{
-    margin: 1rem 0 3rem 0;
+    margin: 1rem 0 0 0;
     color: #434141;
 }
 .header-logo-menu .username{
@@ -594,9 +594,10 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
 
  /* PAGAMENTO
  */
+/*
  .forma-pagamento{
      display:none;
- }
+}*/
 .form-pagamento .form-group .form-control ~ label:after, .form-group .form-control ~ .form-control-line:after{
     background: transparent;
 }
