@@ -587,8 +587,12 @@
   height: 10px;
 }
 @media (max-width: 768px) {
-  .form-wizard.form-wizard-horizontal .form-wizard-nav .progress {
+  /*.form-wizard.form-wizard-horizontal .form-wizard-nav .progress {
     display: none;
+  }*/
+  .title-h2 {
+    margin-top: 0px;
+    margin-bottom: 30px;
   }
 }
 .form-wizard.form-wizard-horizontal .nav {
@@ -625,11 +629,11 @@
 .form-wizard.form-wizard-horizontal .nav .step {
   display: inline-block;
   line-height: 28px;
-  width: 36px;
+  /*width: 36px;
   height: 36px;
   border-radius: 999px;
   border: 4px solid #e6e5e5;
-  background: #ffffff;
+  background: #ffffff;*/
 }
 .form-wizard.form-wizard-horizontal .nav .title {
   position: absolute;

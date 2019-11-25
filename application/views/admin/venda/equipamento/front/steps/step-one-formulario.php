@@ -95,11 +95,64 @@ $(document).ready(function(){
             }
 
         }
-        });
+    });
+
+    $('.inputmask-celular').keyup(function(e){
+        var v = $(this).val();
+        v = v.replace(/[\(\)_-\s]/g, '');
+        if (v.length == 11) 
+            mostraInput();
+    });
+
+    $('.js-equipamento_marca_id-ajax, .js-equipamento_id-ajax').on('select2:select', function (e) {
+        if ($(this).attr('id') == 'equipamento_marca_id' && $(".js-equipamento_id-ajax").val() != '')
+        {
+            $(".js-equipamento_id-ajax").select2("trigger", "select", {
+                data: {id:0, nome:''}
+            });
+        }
+
+        mostraInput($(this).attr('id'));
+
+    });
 });
 
-function mostraInput()
+function mostraInput(id)
 {
+    console.log(id);
+    console.log(arrayDivs);
+
+    // debugger;
+
+    // se informou um id especifico
+    if (typeof id != 'undefined')
+    {
+        var hideNext = false;
+        var findI = -1;
+
+        // procura o id informado
+        for (i = 0; i < arrayDivs.length; i++)
+        {
+            // caso seja o id informado
+            if (id == arrayDivs[i][1])
+            {
+                // irá exibir o campo posterior
+                findI = i+1;
+            } 
+
+            if (findI == i)
+            {
+                arrayDivs[i][2] = 1;
+                id_div = arrayDivs[i][1];
+                hideNext = true;
+                linha = i; //encontra posiçao do vetor em que deverá desaparecer a div_float
+            } else {
+                arrayDivs[i][2] = 0;
+            }
+        }
+
+    } else {
+
         for (i = 0; i < arrayDivs.length; i++)
         {
             if(arrayDivs[i][2] == 1)
@@ -107,24 +160,25 @@ function mostraInput()
                 id_div= arrayDivs[i+1][1]; //define id do input a ser exibido
                 arrayDivs[i][2] = 0;
                 arrayDivs[i+1][2] = 1;//define div atual
-                linha = i+2; //encontra posiçao do vetor em que deverá desaparecer a div_float
+                linha = i+1; //encontra posiçao do vetor em que deverá desaparecer a div_float
                 break;
             }
-
-            if ((arrayDivs.length-1) == linha)
-            {
-                $('#btn-proximo').attr('disabled', false);
-                document.getElementById("div_float").style.display = "none";
-            }
         }
+    }
 
-        //arrayDivs[linha].css('display', 'block')
-        if ($('#'+id_div).hasClass('inputmask-valor'))
-        {
-            $('#'+id_div).val('0,00');
-        }
+    if ((arrayDivs.length-1) == linha)
+    {
+        $('#btn-proximo').attr('disabled', false);
+        document.getElementById("div_float").style.display = "none";
+    }
 
-        $('#'+id_div).parent('div').css('display', 'block');
-        $('#'+id_div).focus().select();
+    //arrayDivs[linha].css('display', 'block')
+    if ($('#'+id_div).hasClass('inputmask-valor'))
+    {
+        $('#'+id_div).val('0,00');
+    }
+
+    $('#'+id_div).parent('div').css('display', 'block');
+    $('#'+id_div).focus().select();
 };
 </script>
