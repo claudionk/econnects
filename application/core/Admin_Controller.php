@@ -259,6 +259,19 @@ class Admin_Controller extends MY_Controller
         $data['produto_parceiro_id']      = $produto_parceiro_id;
         $data['exibe_url_acesso_externo'] = $exibe_url_acesso_externo;
 
+        // Caso seja recorrente não existe necessidade da escolha da forma de pagamento, será credito
+        if ($data['produto_parceiro_configuracao']['pagamento_tipo'] == 'RECORRENTE')
+        {
+            foreach ($forma_pagamento as $index => $forma)
+            {
+                if ($forma['tipo']['slug'] == 'cartao_credito')
+                {
+                    $data['forma_pagamento'] = [ $data['forma_pagamento'][$index] ];
+                    break;
+                }
+            }
+        }
+
         if ($exibe_url_acesso_externo) {
             $data['url_acesso_externo'] = $this->auth->generate_page_token(
                 ''

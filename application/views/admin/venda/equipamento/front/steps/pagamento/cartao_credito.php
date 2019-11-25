@@ -5,7 +5,7 @@ if($_POST){
 ?>
 
 <?php //* ?>
-<div class="row forma-pagamento" id="pagamento-credito">
+<div class="row forma-pagamento <?php echo ( $produto_parceiro_configuracao['pagamento_tipo'] != 'RECORRENTE' ) ? "hide" : "" ?>" id="pagamento-credito">
     <?php if(isset($forma['pagamento'])) : ?>
     <input type="hidden" name="bandeira" value="<?php echo $forma['pagamento'][0]['produto_parceiro_pagamento_id']; ?>">
     <?php endif; ?>

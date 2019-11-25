@@ -587,9 +587,10 @@
   height: 10px;
 }
 @media (max-width: 768px) {
-  /*.form-wizard.form-wizard-horizontal .form-wizard-nav .progress {
-    display: none;
-  }*/
+  .form-wizard.form-wizard-horizontal .form-wizard-nav .progress {
+    /*display: none;*/
+    top: 30px;
+  }
   .title-h2 {
     margin-top: 0px;
     margin-bottom: 30px;

@@ -33,6 +33,14 @@ if($_POST){
                 <i class="fa fa-lock text-primary-dark border-primary" aria-hidden="true"></i>
             </div>
 
+            <?php if ($produto_parceiro_configuracao['pagamento_tipo'] == 'RECORRENTE') {
+
+                foreach ($forma_pagamento as $index => $forma){ ?>
+                    <input type="hidden" id="formaPagamento" name="forma_pagamento_tipo_id" value="<?php echo $forma['tipo']['forma_pagamento_tipo_id']; ?>" >
+                <?php }
+
+            } else { ?>
+
             <div class="col-xs-12 select-forma-pagamento">
                 <div class="form-group">
                     <label for="forma_pagamento" class="control-label"> Forma de pagamento </label>
@@ -47,6 +55,8 @@ if($_POST){
                 </div>
             </div>
 
+            <?php } ?>
+
             <div class="col-xs-12">
                 <?php
                 foreach ($forma_pagamento as $index => $forma):
@@ -55,7 +65,7 @@ if($_POST){
                 ?>
             </div>
 
-            <div class="col-xs-12 btns" id="btnSubmit" style="display: none;">
+            <div class="col-xs-12 btns" id="btnSubmit" <?php if ($produto_parceiro_configuracao['pagamento_tipo'] != 'RECORRENTE') { ?>style="display: none;"<?php } ?>>
                 <a class="btn btn-app btn-primary btn-proximo background-primary border-primary" 
                     onclick="$('#validateSubmitForm').submit();" id="btn-proximo">
                 Próximo <i class="fa fa-angle-right" aria-hidden="true"></i>
