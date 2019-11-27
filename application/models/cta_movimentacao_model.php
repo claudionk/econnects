@@ -145,17 +145,17 @@ Class Cta_Movimentacao_Model extends MY_Model
                 , concat(a.num_apolice, '|', ae.sequencial) as chave_emi
                 , am.apolice_movimentacao_tipo_id
                 , a.num_apolice
-               , a.pedido_id
-               , a.apolice_id
-               , p.cotacao_id
-               , ae.apolice_endosso_id
+                , a.pedido_id
+                , a.apolice_id
+                , p.cotacao_id
+                , ae.apolice_endosso_id
             FROM 
                 apolice a 
-                JOIN pedido p on a.pedido_id = p.pedido_id
-                JOIN cotacao c on p.cotacao_id = c.cotacao_id
-                JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
-                JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
-                JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
+                INNER JOIN pedido p on a.pedido_id = p.pedido_id
+                INNER JOIN cotacao c on p.cotacao_id = c.cotacao_id
+                INNER JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
+                INNER JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
+                INNER JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
                 , integracao i        
                 , integracao_log il 
                 , integracao_log_detalhe ild
@@ -190,17 +190,17 @@ Class Cta_Movimentacao_Model extends MY_Model
                 , concat(a.num_apolice, '|', ae.sequencial) as chave_emi
                 , am.apolice_movimentacao_tipo_id
                 , a.num_apolice
-               , a.pedido_id
-               , a.apolice_id
-               , p.cotacao_id
-               , ae.apolice_endosso_id
+                , a.pedido_id
+                , a.apolice_id
+                , p.cotacao_id
+                , ae.apolice_endosso_id
             FROM 
                 apolice a 
-                JOIN pedido p on a.pedido_id = p.pedido_id
-                JOIN cotacao c on p.cotacao_id = c.cotacao_id
-                JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
-                JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
-                JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
+                INNER JOIN pedido p on a.pedido_id = p.pedido_id
+                INNER JOIN cotacao c on p.cotacao_id = c.cotacao_id
+                INNER JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
+                INNER JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
+                INNER JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
                 , integracao i        
                 , integracao_log il 
                 , integracao_log_detalhe ild
@@ -230,27 +230,28 @@ Class Cta_Movimentacao_Model extends MY_Model
         $q = $this->structure();
 
         $sql = $q['begin'] . " 
-            SELECT distinct
+            SELECT DISTINCT
                 c.cliente_id
                 , concat(a.num_apolice, '|', ae.sequencial) as chave_emi
                 , am.apolice_movimentacao_tipo_id
                 , a.num_apolice
-               , a.pedido_id
-               , a.apolice_id
-               , p.cotacao_id
-               , ae.apolice_endosso_id
+                , a.pedido_id
+                , a.apolice_id
+                , p.cotacao_id
+                , ae.apolice_endosso_id
             FROM 
                 apolice a 
-                JOIN pedido p on a.pedido_id = p.pedido_id
-                JOIN cotacao c on p.cotacao_id = c.cotacao_id
-                JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
-                JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
-                JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
+                INNER JOIN pedido p on a.pedido_id = p.pedido_id
+                INNER JOIN cotacao c on p.cotacao_id = c.cotacao_id
+                INNER JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
+                INNER JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
+                INNER JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
+                LEFT JOIN cta_movimentacao cta on ae.apolice_id = cta.apolice_id and ae.apolice_movimentacao_tipo_id = cta.apolice_movimentacao_tipo_id and ae.apolice_endosso_id = cta.apolice_endosso_id
             WHERE 
                 a.deletado = 0 
                 AND p.deletado = 0 
                 AND c.deletado = 0
-                and date_add( now(), interval {$this->time} minute ) < am.criacao
+                AND cta.apolice_id IS NULL
         ". $q['end'];
 
         if ( $this->_database->query( $sql ) ){
