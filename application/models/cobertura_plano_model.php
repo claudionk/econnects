@@ -247,21 +247,19 @@ Class Cobertura_Plano_Model extends MY_Model {
         apolice_cobertura.valor AS premio_liquido,
         IFNULL( IFNULL(apolice_equipamento.nota_fiscal_valor, apolice_generico.nota_fiscal_valor), cobertura_plano.preco) AS importancia_segurada
 
-       , TRUNCATE(ROUND(
-            IF(
+       , IF(
+            TRUNCATE(IF(apolice_endosso.valor = 0, 0, IF(rp.regra_preco_id IS NOT NULL, apolice_cobertura.valor * IFNULL(pprp.parametros,0) / 100, IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0) )),2)
+
+            #add a diferenca do IOF total à cobertura de +valor
+            + IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, menor.valor-menor.valor_t, 0) = 0,
+            
+                TRUNCATE(IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, IF( TRUNCATE(menor.valor, 2) = 0, 0.01, menor.valor), 0), 2)
+            ,
                 TRUNCATE(IF(apolice_endosso.valor = 0, 0, IF(rp.regra_preco_id IS NOT NULL, apolice_cobertura.valor * IFNULL(pprp.parametros,0) / 100, IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0) )),2)
 
                 #add a diferenca do IOF total à cobertura de +valor
-                + IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, menor.valor-menor.valor_t, 0) = 0,
-                
-                    IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, IF( TRUNCATE(menor.valor, 2) = 0, 0.01, menor.valor), 0)
-                ,
-                    TRUNCATE(IF(apolice_endosso.valor = 0, 0, IF(rp.regra_preco_id IS NOT NULL, apolice_cobertura.valor * IFNULL(pprp.parametros,0) / 100, IF(apolice_cobertura.iof > 0, apolice_cobertura.valor * apolice_cobertura.iof / 100, 0) )),2)
-
-                    #add a diferenca do IOF total à cobertura de +valor
-                    + IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, menor.valor-menor.valor_t, 0)
-            )
-        , 2), 2) AS valor_iof
+                + IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, menor.valor-menor.valor_t, 0)
+        ) AS valor_iof
 
         FROM pedido
         INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id
@@ -333,6 +331,8 @@ Class Cobertura_Plano_Model extends MY_Model {
                         AND pedido.deletado = 0
                         AND apolice.deletado = 0
                         AND apolice_cobertura.deletado = 0
+                        AND apolice_cobertura.valor > 0
+
                     GROUP BY apolice.apolice_id
                 ) x ON x.apolice_id = ac.apolice_id AND x.c = ac.valor
                 INNER JOIN apolice ON apolice.apolice_id = ac.apolice_id

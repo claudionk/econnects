@@ -1298,8 +1298,7 @@ class Apolice_Model extends MY_Model
         if($dados['slug_parceiro'] == 'tem')
         {
             $viewseguro = 'dados_seguro_tem';
-
-        } elseif($dados['slug_parceiro'] == 'lojasamericanas')
+        } else
         {
             $viewseguro = 'dados_seguro_cobertura';
         }
@@ -1318,13 +1317,6 @@ class Apolice_Model extends MY_Model
         error_log(print_r($data_template['seguro'], true) . "\n", 3, "/var/log/httpd/myapp.log");
         $data_template['premio']    = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/premio", array('premio_liquido' => $apolice['valor_premio_net'], 'premio_total' => $apolice['valor_premio_total']), true);
         $data_template['pagamento'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/pagamento", array('pagamento' => $pagamento), true);
-
-        /*
-        echo '<pre>';
-        print_r($data_template);
-        die;
-        */
-        
 
         $template = $this->parser->parse_string($template, $data_template, true);
         if (($export == 'pdf') || ($export == 'pdf_file')) {
