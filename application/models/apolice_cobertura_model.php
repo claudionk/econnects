@@ -55,10 +55,15 @@ Class Apolice_Cobertura_Model extends MY_Model
         $apolice                    = $this->apolice->getApolicePedido($pedido_id);
         $produto_parceiro_plano_id  = (!empty($apolice)) ? $apolice[0]['produto_parceiro_plano_id'] : null;
         $dados_bilhete              = $this->apolice->defineDadosBilhete($produto_parceiro_plano_id);
+        $percentual                 = false;
+        $total                      = 0;
+        $maior_valor                = 0;
+        $maior_pos                  = 0;
 
-        foreach ($coberturas as $cobertura) {
+        foreach ($coberturas as $i => $v) {
 
-            $percentagem = $valor_cobertura = $valor_config = 0;
+            $cobertura      = $v;
+            $percentagem    = $valor_cobertura = $valor_config = 0;
             switch ($cobertura["mostrar"]) {
                 case 'importancia_segurada':
                 case 'descricao':
@@ -72,12 +77,27 @@ Class Apolice_Cobertura_Model extends MY_Model
                 //     break;
             }
 
+            $valor_cobertura = round($valor_cobertura*-1,2);
+
+            // se será totalizado para descontar o percentual
+            if ($cobertura["mostrar"] != 'preco')
+            {
+                // encontra a cobertura de maior valor
+                if ( $valor_cobertura < $maior_valor )
+                {
+                    $maior_valor = $valor_cobertura;
+                    $percentual = $i;
+                }
+
+                $total += $valor_cobertura;
+            }
+
             $dados = [
                 'cotacao_id'         => $cobertura["cotacao_id"],
                 'pedido_id'          => $cobertura["pedido_id"],
                 'apolice_id'         => $cobertura["apolice_id"],
                 'cobertura_plano_id' => $cobertura["cobertura_plano_id"],
-                'valor'              => round($valor_cobertura*-1,2),
+                'valor'              => $valor_cobertura,
                 'iof'                => isempty($cobertura["iof"], 0),
                 'mostrar'            => $cobertura["mostrar"],
                 'valor_config'       => $valor_config,
@@ -88,7 +108,18 @@ Class Apolice_Cobertura_Model extends MY_Model
                 'criacao'            => date("Y-m-d H:i:s"),
             ];
 
-            $this->insert($dados, TRUE);
+            $idInsert = $this->insert($dados, TRUE);
+
+            $coberturas[$i]["valor_cobertura"] = $valor_cobertura;
+            $cob[$i]['cotacao_cobertura_id'] = $idInsert;
+        }
+
+        // Calcula a diferença se o cálculo for percentual
+        if ($maior_valor && $total != ($valor_base * -1) ) // a base é positiva e o saldo será negativo em um cancelamento
+        {
+            $coberturas[$percentual]["valor_cobertura"] = round($coberturas[$percentual]["valor_cobertura"] - ($total - ($valor_base * -1)), 2); 
+            $dd['valor'] = $coberturas[$percentual]["valor_cobertura"];
+            $this->update($cob[$percentual]['cotacao_cobertura_id'], $dd);
         }
 
         return true;

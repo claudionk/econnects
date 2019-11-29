@@ -523,9 +523,17 @@ Class Pedido_Model extends MY_Model
         return $this->get_by($this->primary_key, $id);
     }
 
-    function isPermiteCancelar($pedido_id){
+    function isPermiteCancelar($pedido_id, $define_date = null){
 
         $this->load->model("apolice_model", "apolice");
+
+        if( ! $define_date ){
+            $define_date = date("Y-m-d");
+        } else 
+        {
+            $d1 = new DateTime($define_date);
+            $define_date = $d1->format('Y-m-d');
+        }
 
         $result = FALSE;
         $pedido = $this->get($pedido_id);
@@ -537,7 +545,11 @@ Class Pedido_Model extends MY_Model
                     foreach ($apolices as $apolice) {
                         $fim_vigencia = explode('-', $apolice['data_fim_vigencia']);
                         $fim_vigencia = mktime(0, 0, 0, $fim_vigencia[1], $fim_vigencia[2], $fim_vigencia[0]);
-                        if (mktime(0, 0, 0, date('m'), date('d'), date('Y')) < $fim_vigencia) {
+
+                        $data_cancelamento = explode('-', $define_date);
+                        $data_cancelamento = mktime(0, 0, 0, $data_cancelamento[1], $data_cancelamento[2], $data_cancelamento[0]);
+
+                        if ($data_cancelamento < $fim_vigencia) {
                             $result = TRUE;
                         }
                     }
@@ -624,7 +636,7 @@ Class Pedido_Model extends MY_Model
         }
 
         //varifica se é permitido cancelar
-        if(!$this->isPermiteCancelar($pedido_id)){
+        if(!$this->isPermiteCancelar($pedido_id, $define_date)){
             $result["mensagem"] = "Não foi possível efetuar o cancelamento desse Pedido/Apólice. Motivo: fora de vigência";
             $result["redirect"] = "admin/pedido/view/{$pedido_id}";
             return $result;
