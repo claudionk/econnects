@@ -329,7 +329,8 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
 .details-plan-more{
     color: #888;
     text-align: left;
-    cursor: pointer;
+    text-transform: none;;
+    text-decoration: none;
 }
 .card-body.coberturas{
     display: none;
