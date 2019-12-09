@@ -756,11 +756,11 @@ $(function(){
     });
 
     $('.details-plan-more').on('click',function(){
-        var el = $('.details-plan-more-'+ $(this).data('id') );
+        var el = $('.details-hide-plan');
         if ( el.hasClass('hidden') )
-            $('.details-plan-more-'+ $(this).data('id') ).removeClass('hidden');
+            el.removeClass('hidden');
         else
-            $('.details-plan-more-'+ $(this).data('id') ).addClass('hidden');
+            el.addClass('hidden');
     });
 
 });
