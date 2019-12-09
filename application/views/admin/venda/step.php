@@ -1,4 +1,4 @@
-<?php $max = 5; ?>
+<?php $max = ($layout <> 'front') ? 5 : 3; ?>
 
 <div id="wizard" class="form-wizard form-wizard-horizontal visible-xs">
     <div class="form-wizard-nav">

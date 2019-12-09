@@ -452,7 +452,7 @@ class Cotacao extends CI_Controller {
                 $result['pedido_id'] = $pedido_id;
             }
 
-            $result["validacao"] = $validacao;
+            $result["validacao"] = $result['validacao'];
         }
 
         return $result;
