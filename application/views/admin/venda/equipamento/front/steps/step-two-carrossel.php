@@ -90,18 +90,12 @@
 
                                                 if ($hide_cobs)
                                                 {
-                                                    echo "</ul></li>";
+                                                    echo "</ul><li><a href='javascript:' class='details-plan-more'>+ coberturas</a></li>";
+                                                    echo "</li>";
                                                 }
                                                 ?>
                                             </ul>
-                                            <?php
-                                            if ($hide_cobs)
-                                            {
-                                                echo "<div class='details-plan-more'>+ coberturas</div>";
-                                            }
-
-                                            if (count($coberturas) > 3){
-                                            ?>
+                                            <?php if (count($coberturas) > 3) { ?>
                                                 <a href="#" class="more-plan color-primary price-moeda-<?php echo $plano['produto_parceiro_plano_id']; ?>" data-toggle="modal" data-target="#modalCoberturas"
                                                    data-title="<?php echo $plano['nome']; ?>"
                                                    data-price="00"
