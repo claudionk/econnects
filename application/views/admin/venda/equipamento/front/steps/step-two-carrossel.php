@@ -77,7 +77,7 @@
                                                     if ($qtde_cob_view >= $configuracao['quantidade_cobertura'] && !$hide_cobs)
                                                     {
                                                         $hide_cobs = true;
-                                                        echo "<li><ul class='list details-hide-plan hidden details-plan-more-". $plano['produto_parceiro_plano_id'] ."'>";
+                                                        echo "<li><ul class='list details-hide-plan hidden'>";
                                                     }
                                                     $class = 'fa fa-times-circle error';
                                                     if(in_array($merge, $array_cobertura)){
@@ -97,7 +97,7 @@
                                             <?php
                                             if ($hide_cobs)
                                             {
-                                                echo "<div class='details-plan-more' data-id='". $plano['produto_parceiro_plano_id'] ."'>+ coberturas</div>";
+                                                echo "<div class='details-plan-more'>+ coberturas</div>";
                                             }
 
                                             if (count($coberturas) > 3){
