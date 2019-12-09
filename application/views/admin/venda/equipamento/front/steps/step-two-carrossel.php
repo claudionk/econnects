@@ -112,7 +112,7 @@
                                             ?>
                                             <div class="this-plan">
                                                 <a class="btn btn-primary add-car this-plan-btn background-primary border-primary" data-plano="<?php echo $plano['produto_parceiro_plano_id']; ?>" href="javascript: void(0);">
-                                                    QUERO ESTE <i class="fa fa-angle-right" aria-hidden="true"></i>
+                                                    QUERO ESTE
                                                 </a>
                                             </div>
                                         </div>

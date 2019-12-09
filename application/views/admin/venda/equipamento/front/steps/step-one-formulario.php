@@ -42,7 +42,7 @@
     <?php } ?>
 
     <a class="btn btn-app btn-primary btn-proximo background-primary border-primary" onclick="$('#validateSubmitForm').submit();" id='btn-proximo'>
-        Próximo <i class="fa fa-angle-right" aria-hidden="true"></i>
+        Próximo
     </a>
 </div>
 

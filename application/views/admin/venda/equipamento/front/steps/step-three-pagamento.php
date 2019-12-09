@@ -68,7 +68,7 @@ if($_POST){
             <div class="col-xs-12 btns" id="btnSubmit" <?php if ($produto_parceiro_configuracao['pagamento_tipo'] != 'RECORRENTE') { ?>style="display: none;"<?php } ?>>
                 <a class="btn btn-app btn-primary btn-proximo background-primary border-primary" 
                     onclick="$('#validateSubmitForm').submit();" id="btn-proximo">
-                Próximo <i class="fa fa-angle-right" aria-hidden="true"></i>
+                Próximo
                 </a>
             </div>
         </div>
