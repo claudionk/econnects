@@ -116,17 +116,15 @@ $(document).ready(function(){
     });
 
     $(".mask-custom").keyup(function(e){
-        if ($(this).val().length == $(this).attr('length')) 
+        var v = $(this).val();
+        v = v.replace(/[\(\)_-\s]/g, '');
+        if (v.length == $(this).attr('length')) 
             mostraInput();
     });
 });
 
 function mostraInput(id)
 {
-    console.log(id);
-    console.log(arrayDivs);
-
-    // debugger;
 
     // se informou um id especifico
     if (typeof id != 'undefined')
