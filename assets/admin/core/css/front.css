@@ -691,6 +691,9 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
 .forma-pagamento .terms-checkbox{
     padding:10px;
 }
+.carousel-control{
+    display: none;
+}
 
  /* BAIXE APP
  */
