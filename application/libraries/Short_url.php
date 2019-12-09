@@ -59,7 +59,7 @@ class Short_url
         return $url;
     }
 
-    public static function shorterGoogle($url)
+    public static function shorterGoogle_old($url)
     {
         $httpHeader = array(
             "accept: application/json",

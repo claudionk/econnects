@@ -438,9 +438,11 @@ class Admin_Controller extends MY_Controller
                 //Se for faturamento, muda status para aguardando faturamento
                 if ($pedido_id && ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO || $tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_TERCEIROS)) {
                     $status = $this->pedido->mudaStatus($pedido_id, ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO) ? "aguardando_faturamento" : "pagamento_confirmado");
-
-                    $this->apolice->insertApolice($pedido_id);
                 }
+                
+                // Gera a apólice
+                $this->apolice->insertApolice($pedido_id);
+
                 switch ($this->input->post('forma_pagamento_tipo_id')) {
                     case self::FORMA_PAGAMENTO_CARTAO_CREDITO:
                     case self::FORMA_PAGAMENTO_CARTAO_DEBITO:

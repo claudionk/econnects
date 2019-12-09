@@ -196,7 +196,6 @@ $(function(){
         return false;
     });
 
-
     $('.plano_prev').on('click', function(e)
     {
         e.preventDefault();
@@ -243,7 +242,6 @@ $(function(){
         return false;
     });
 
-
     var qnt_cobertura = parseInt($('#quantidade_cobertura').val());
     var t_cobertura = parseInt($('#total_cobertura').val());
 
@@ -285,7 +283,6 @@ $(function(){
     }
 
     $('.coberturas_ver_tudo').on('click', function(e){
-
 
         var altura_cobertura = $('#quantidade_cobertura').val();
         var altura_cobertura = ((28*altura_cobertura)+41) + 'px';
@@ -333,7 +330,6 @@ $(function(){
     });
 
     function applyClickCobertura(){
-
 
         $('.btn_add_cobertura').on('click', function(e){
 
@@ -428,7 +424,6 @@ $(function(){
             }
         });
     }
-
 
     $('.add-car').on('click',function()
     {
@@ -759,4 +754,13 @@ $(function(){
         modal.find('.modal-cents').html(','+cents);
         modal.find('.details-plan').html(li);
     });
+
+    $('.details-plan-more').on('click',function(){
+        var el = $('.details-plan-more-'+ $(this).data('id') );
+        if ( el.hasClass('hidden') )
+            $('.details-plan-more-'+ $(this).data('id') ).removeClass('hidden');
+        else
+            $('.details-plan-more-'+ $(this).data('id') ).addClass('hidden');
+    });
+
 });

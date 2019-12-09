@@ -1,6 +1,6 @@
-<?php $this->load->view('admin/venda/equipamento/front/step'); ?>
-
 <?php
+$this->load->view('admin/venda/equipamento/front/step', array('step' => 3));
+
 if($_POST)
     $row = $_POST;
 ?>
@@ -18,8 +18,8 @@ if($_POST)
     <?php }
 
     if (emptyor($equipamento_marca_id, 30015) == 30015) { # SAMSUNG ?>
-        <a href="" title="">
-            <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/google-play.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;margin: 0 auto;" class="img-responsive" />
+        <a href="<?php echo $this->config->item('URL_APLICATIVO') ?>" title="">
+            <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/google-play.png", 'admin'); ?>" alt="Play Store" title="Play Store" style="width: 210px;margin: 0 auto;" class="img-responsive" />
         </a>
     <?php } ?>
 </div>
@@ -44,8 +44,8 @@ if($_POST)
                 <?php }
 
                 if (emptyor($equipamento_marca_id, 30015) == 30015) { # SAMSUNG ?>
-                    <a href="" title="">
-                        <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/google-play.png", 'admin'); ?>" alt="App Store" title="App Store" style="width: 210px;margin: 0 auto;" class="img-responsive" />
+                    <a href="<?php echo $this->config->item('URL_APLICATIVO') ?>" title="">
+                        <img src="<?php echo app_assets_url("modulos/venda/equipamento/images/google-play.png", 'admin'); ?>" alt="Play Store" title="Play Store" style="width: 210px;margin: 0 auto;" class="img-responsive" />
                     </a>
                 <?php } ?>
             </div>

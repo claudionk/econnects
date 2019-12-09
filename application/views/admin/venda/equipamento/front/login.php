@@ -1,5 +1,5 @@
 
-<?php $this->load->view('admin/venda/equipamento/front/step', array('step' => 3, 'produto_parceiro_id' =>  issetor($produto_parceiro_id), 'title' => 'LOGIN')); ?>
+<?php $this->load->view('admin/venda/equipamento/front/step', array('step' => 2, 'produto_parceiro_id' =>  issetor($produto_parceiro_id), 'title' => 'LOGIN')); ?>
 
 <div class="row">
     <div class="col-md-12"><?php $this->load->view('admin/partials/messages'); ?></div>

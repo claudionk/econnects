@@ -1,9 +1,10 @@
-<?php $max = 5; ?>
+<?php $max = ($layout <> 'front') ? 5 : 3; ?>
 
 <div id="wizard" class="form-wizard form-wizard-horizontal visible-xs">
     <div class="form-wizard-nav">
         <div class="progress">
-            <div class="progress-bar progress-bar-primary" style="width: <?php echo ($step-1)*20 + 10 ?>%;"></div>
+            <!--div class="progress-bar progress-bar-primary" style="width: <?php echo ($step-1)*20 + 10 ?>%;"></div-->
+            <div class="progress-bar progress-bar-primary" style="width: <?php echo ($step/$max)*100 ?>%;"></div>
         </div>
         <div class="nav nav-justified">
             <span class="step">ETAPA <?php echo $step ?> / <?php echo $max ?></span>

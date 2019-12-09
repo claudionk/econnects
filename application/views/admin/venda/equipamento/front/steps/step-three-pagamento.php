@@ -24,7 +24,7 @@ if($_POST){
         <div class="col-md-12">
 
             <?php
-            $this->load->view('admin/venda/equipamento/front/step', array('step' => 4, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'], 'title' => 'PAGAMENTO' ));
+            $this->load->view('admin/venda/equipamento/front/step', array('step' => 3, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'], 'title' => 'PAGAMENTO' ));
             ?>
 
             <?php $this->load->view('admin/venda/partials/enviar_token_acesso'); ?>

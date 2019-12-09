@@ -18,7 +18,7 @@
             <input type="hidden" id="parceiro_id" name="parceiro_id" value="<?php echo $parceiro_id; ?>"/>
             <input type="hidden" id="cotacao_id" name="cotacao_id" value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
             <input type="hidden" id="salvar_cotacao" name="salvar_cotacao" />
-            <?php $configuracao['quantidade_cobertura'] = ((isset($configuracao['quantidade_cobertura_front'])) && ($configuracao['quantidade_cobertura_front'] < count($coberturas) )) ? $configuracao['quantidade_cobertura_front']  : count($coberturas); ?>
+            <?php $configuracao['quantidade_cobertura'] = ((!empty($configuracao['quantidade_cobertura_front'])) && ($configuracao['quantidade_cobertura_front'] < count($coberturas) )) ? $configuracao['quantidade_cobertura_front'] : count($coberturas); ?>
             <input type="hidden" id="quantidade_cobertura" name="quantidade_cobertura" value="<?php  echo (isset($configuracao['quantidade_cobertura_front'])) ? $configuracao['quantidade_cobertura_front'] : 10;  ?>"/>
             <input type="hidden" id="total_cobertura" name="total_cobertura" value="<?php  echo count($coberturas);  ?>"/>
 
@@ -62,7 +62,7 @@
                                                 <span></span>
                                             </div>
 
-                                            <ul class="list details-plan limit-details-plan">
+                                            <ul class="list details-plan">
                                                 <?php
                                                 $array_cobertura = array();
                                                 foreach ($plano['cobertura'] as $cobertura){
@@ -70,17 +70,36 @@
                                                 }
 
                                                 $array_modal = array();
-                                                foreach($merge_coberturas as $key => $merge){
+                                                $qtde_cob_view = 0;
+                                                $hide_cobs = false;
+                                                foreach($merge_coberturas as $key => $merge)
+                                                {
+                                                    if ($qtde_cob_view >= $configuracao['quantidade_cobertura'] && !$hide_cobs)
+                                                    {
+                                                        $hide_cobs = true;
+                                                        echo "<li><ul class='list details-hide-plan hidden details-plan-more-". $plano['produto_parceiro_plano_id'] ."'>";
+                                                    }
                                                     $class = 'fa fa-times-circle error';
                                                     if(in_array($merge, $array_cobertura)){
                                                         $array_modal[] = $key;
                                                         $class = 'fa fa-chevron-circle-right success';
                                                     }
                                                     echo '<li><i class="'.$class.'" aria-hidden="true"></i> '.$key.'</li>';
+                                                    $qtde_cob_view++;
+                                                }
+
+                                                if ($hide_cobs)
+                                                {
+                                                    echo "</ul></li>";
                                                 }
                                                 ?>
                                             </ul>
                                             <?php
+                                            if ($hide_cobs)
+                                            {
+                                                echo "<div class='details-plan-more' data-id='". $plano['produto_parceiro_plano_id'] ."'>+ coberturas</div>";
+                                            }
+
                                             if (count($coberturas) > 3){
                                             ?>
                                                 <a href="#" class="more-plan color-primary price-moeda-<?php echo $plano['produto_parceiro_plano_id']; ?>" data-toggle="modal" data-target="#modalCoberturas"
@@ -155,9 +174,9 @@
                                                             <?php endif;?>
                                                         </div>
                                                     </li>
-                                                    <?php $i++; endforeach; ?>
+                                                    <?php $i++; endforeach;
 
-                                                <?php if(count($coberturas) > 0) : ?>
+                                                if(count($coberturas) > 0) : ?>
                                                     <!--<li class="row cobertura">
                                                         <button type="button" class="btn btn-block ink-reaction btn-primary-dark coberturas_ver_tudo_front">Ver coberturas</button>
                                                     </li>-->
@@ -549,11 +568,11 @@
         <div class="modal-content">
             <div class="modal-body">
                 <h2 class="title modal-title">BÁSICO</h2>
-                <div class="price-block">
+                <!--div class="price-block">
                     <small class="cifrao moeda">R$</small>
                     <span class="price modal-price"> 00 </span>
                     <small class="cifrao modal-cents">,00</small>
-                </div>
+                </div-->
                 <ul class="list details-plan"></ul>
             </div>
         </div>
