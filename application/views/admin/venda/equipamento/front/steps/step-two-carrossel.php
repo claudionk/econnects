@@ -49,7 +49,7 @@
                         ?>
 
                             <div class="item <?php if($key == 0){ echo 'active'; } ?>">
-                                <div class="col-xs-8 col-xs-offset-2 block-plans">
+                                <div class="col-xs-10 col-xs-offset-1 block-plans">
                                     <div class="card card-type-pricing text-center">
                                         <div class="card-body">
                                             <h2 class="text-light plano_nome_one_<?php echo $plano['produto_parceiro_plano_id']; ?> name-plan"><?php echo $plano['nome'] ?></h2>
