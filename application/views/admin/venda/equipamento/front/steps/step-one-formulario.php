@@ -113,7 +113,11 @@ $(document).ready(function(){
         }
 
         mostraInput($(this).attr('id'));
+    });
 
+    $(".mask-custom").keyup(function(e){
+        if ($(this).val().length == $(this).attr('length')) 
+            mostraInput();
     });
 });
 

@@ -755,12 +755,9 @@ class Venda_Equipamento extends Admin_Controller{
         $this->template->css(app_assets_url('modulos/venda/equipamento/css/carrossel.css', 'admin'));
         $this->template->css(app_assets_url('modulos/venda/equipamento/css/base.css', 'admin'));
 
-
-
         if($cotacao_id > 0){
             $this->comunicacao_track->insert_or_update($cotacao_id);
         }
-
 
         //Dados para template
         $data = array();

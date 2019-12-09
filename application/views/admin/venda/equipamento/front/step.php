@@ -80,9 +80,12 @@
     </div>
 
     <?php
-    $step = $this->uri->segment(5);
-    if(empty($step)){
-        $step = 1;
+    if ($layout <> 'front' || empty($step) )
+    {
+        $step = $this->uri->segment(5);
+        if(empty($step)){
+            $step = 1;
+        }
     }
     ?>
 

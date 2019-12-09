@@ -12,9 +12,14 @@ foreach ($campos as $campo) {
   } else {
     $data_campo["class"] = $campo["classes"];
   }
+
+  if( strpos( $campo["opcoes"], "mask-custom" ) !== false ) {
+    $data_campo["class"] .= "mask-custom " . $campo["opcoes"];
+  }
+
   $data_campo["opcoes"] = $campo["opcoes"];
   $this->load->view( "admin/campos_sistema/". $campo["slug"], $data_campo );
-  
+
   /*
   $data_campo = array();
   $data_campo["row"] = $row;

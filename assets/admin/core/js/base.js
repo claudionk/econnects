@@ -64,6 +64,19 @@ $(function(){
 
     });
 
+    $(".mask-custom").each(function(){
+        // debugger;
+        var v = $(this).attr('class').split(' ');
+        for (var i = 0; i < v.length; i++) {
+            if ( c = v[i].indexOf('mask-custom=') >= 0 )
+            {
+                c = v[i].replace('mask-custom=', '');
+                $(this).attr('length', c.length).inputmask({"mask": c});
+                break;
+            } 
+        }
+    })
+
     $(".inputmask-date").inputmask({"mask": "99/99/9999"});
     // $(".inputmask-cpf").inputmask({
     //     mask: ['999.999.999-99'],
