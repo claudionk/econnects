@@ -315,7 +315,7 @@ Class Apolice_Endosso_Model extends MY_Model
             if ( $tipo == 'C' ) {
                 $result = $this->lastParcela($apolice_id, $dados_end['parcela']);
 
-                $dados_end['data_inicio_vigencia']  = $result['data_inicio_vigencia'];
+                $dados_end['data_inicio_vigencia']  = $apolice['data_cancelamento'];
                 $dados_end['data_fim_vigencia']     = $result['data_fim_vigencia'];
                 $dados_end['valor']                 = $result['valor'];
                 $dados_end['id_transacao_canc']     = $result['id_transacao'];
