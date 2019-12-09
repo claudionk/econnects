@@ -39,6 +39,7 @@ class Venda_Generico extends Admin_Controller
 
         $this->template->js(app_assets_url("template/js/libs/cycle2/cycle2.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/cycle2/jquery.cycle2.carousel.js", "admin"));
+        $this->template->js(app_assets_url("template/js/libs/bootstrap-swiper/jquery.touchSwipe.min.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/toastr/toastr.js", "admin"));
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/toastr/toastr.css", "admin"));
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/wizard/wizard.css", "admin"));
