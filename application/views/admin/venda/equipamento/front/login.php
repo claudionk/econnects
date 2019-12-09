@@ -49,7 +49,7 @@
     <div class="col-md-6 ">
         <div class="form-group btns">
             <button type="button" class="btn btn-app btn-primary btn-proximo border-primary background-primary" id="btnFormLogin">
-                Próximo <i class="fa fa-angle-right" aria-hidden="true"></i>
+                Próximo
             </button>
         </div>
     </div>
