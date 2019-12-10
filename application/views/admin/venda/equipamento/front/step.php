@@ -1,4 +1,4 @@
-<div id="sidebar-wrapper">
+<!--div id="sidebar-wrapper">
     <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">&times;</a>
     <ul class="sidebar-nav">
         <li>
@@ -77,7 +77,9 @@
 
             </div>
         </div>
-    </div>
+    </div-->
+
+    <?php $this->load->view('admin/venda/equipamento/front/head', array('logado' => true, 'current_uri' => 'admin/venda', 'viewTitle' => false)); ?>
 
     <?php
     if ($layout <> 'front' || empty($step) )
@@ -95,15 +97,4 @@
     </div>
 
     <h2 class="text-light text-center title-h2"><?php echo $title; ?></h2>
-</div>
 
-<script>
-    $("#menu-close").click(function(e) {
-        e.preventDefault();
-        $("#sidebar-wrapper").toggleClass("active");
-    });
-    $("#menu-toggle").click(function(e) {
-        e.preventDefault();
-        $("#sidebar-wrapper").toggleClass("active");
-    });
-</script>

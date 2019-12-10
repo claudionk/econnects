@@ -67,8 +67,10 @@
         </div>
     </div>
 
-     <h2 class="text-light text-center title-h2"><?php echo $title; ?></h2>
-    <?php } else { ?>
+        <?php if ( !isset($viewTitle) || !empty($viewTitle) ) { ?>
+            <h2 class="text-light text-center title-h2">xxx<?php echo $title; ?></h2>
+        <?php }
+    } else { ?>
 
         <div class="header-logo-menu">
             <div class="row">
