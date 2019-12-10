@@ -1,0 +1,44 @@
+.fixed-top {
+    position: fixed;
+    width: 100%;
+    z-index: 1;
+    top: 0;
+    left: 0;
+}
+.text-sub-fixed {
+    margin-top: 110px;
+}
+.btns-buyaccount .btn{
+    width: 49%;
+    margin-top: 80px;
+}
+.btn-whats{
+    bottom: 55px;
+    position: absolute;
+}
+.btn-prod{
+    width: 100%;
+    border: 1px solid #ccc;
+    text-align: center;
+    margin-bottom: 10px;
+    height: 75px;
+    padding-top: 20px;
+    text-transform: uppercase;
+    cursor: pointer;
+    background-color: #fff;
+}
+.span-prod {
+    text-transform: uppercase;
+    font-weight: bold;
+}
+.a-prod{
+    display: inline-block;
+}
+.btn-facebook{
+    background-color: #2553b4;
+    color: #fff;
+}
+.btn-google{
+    background-color: #fff;
+    color: #333;
+}
