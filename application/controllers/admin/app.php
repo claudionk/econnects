@@ -93,4 +93,13 @@ class App extends Admin_Controller{
         $this->template->load("admin/layouts/{$this->layout}", $view, $data );
     }
 
+    public function home() {
+        $view = "admin/venda/equipamento/front/app/home";
+        $data['logado'] = true;
+        $data['current_uri'] = $this->controller_uri;
+
+
+        $this->template->load("admin/layouts/{$this->layout}", $view, $data );
+    }
+
 }

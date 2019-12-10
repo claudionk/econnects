@@ -1,7 +1,7 @@
 
 <?php $this->load->view('admin/venda/equipamento/front/head', array('step' => 2, 'produto_parceiro_id' =>  issetor($produto_parceiro_id), 'title' => '')); ?>
 
-<form method="post" id="formLogin" class="form-login">
+<form method="post" id="formLogin" class="form-login" action="<?php echo base_url("$current_uri/home")?>">
     <input type="hidden" id="cliente_id"  name="cliente_id" value="<?php echo isset($cliente_id)? $cliente_id : ''; ?>" />
 
     <h2 class="text-light text-center text title-h2 text-uppercase">Entrar com seu Celular</h2>
@@ -12,7 +12,7 @@
     </div>
     <div class="col-md-6 ">
         <div class="form-group btns">
-            <button type="button" class="btn btn-app btn-primary btn-proximo border-primary background-primary">
+            <button type="submit" class="btn btn-app btn-primary btn-proximo border-primary background-primary">
                 Entrar
             </button>
         </div>
@@ -41,8 +41,8 @@
     <h2 class="text-light text-center text title-h2 text-uppercase">Ainda não sou cadastrado</h2>
     <div class="col-md-6 ">
         <div class="form-group">
-            <label class="control-label" for="password_confirm"> Nome </label>
-            <input class="form-control" type="password" name="password_confirm" id="password_confirm" required="required" />
+            <label class="control-label" for="nome"> Nome </label>
+            <input class="form-control" type="text" name="nome" id="nome" />
         </div>
     </div>
     <div class="col-md-6 ">
@@ -53,14 +53,14 @@
     </div>
     <div class="col-md-6 ">
         <div class="form-group">
-            <label class="control-label" for="password_confirm"> Celular </label>
-            <input class="form-control" type="password" name="password_confirm" id="password_confirm" required="required" />
+            <label class="control-label" for="celular"> Celular </label>
+            <input class="form-control inputmask-celular" type="text" name="celular" id="celular" />
         </div>
     </div>
     <div class="col-md-6 ">
         <div class="form-group" style="margin-bottom: 0px;margin-top: 10px;">
             <label class="control-label" for="password"> Senha </label>
-            <input class="form-control" type="password" name="password" id="password" required="required" onkeyup="validarSenhaForca()" />
+            <input class="form-control" type="password" name="password" id="password" onkeyup="validarSenhaForca()" />
         </div>
         <div class="form-group row" style="margin-bottom: 0px; height: 20px;">
             <div class="col-sm-5" style=" margin-top: 10px;">
@@ -71,7 +71,7 @@
     <div class="col-md-6 ">
         <div class="form-group">
             <label class="control-label" for="password_confirm"> Confirme sua senha </label>
-            <input class="form-control" type="password" name="password_confirm" id="password_confirm" required="required" />
+            <input class="form-control" type="password" name="password_confirm" id="password_confirm" />
         </div>
     </div>
 

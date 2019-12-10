@@ -42,3 +42,9 @@
     background-color: #fff;
     color: #333;
 }
+#sidebar-wrapper.active {
+    width: 100%;
+}
+.sidebar-nav {
+    width: 100%;
+}
