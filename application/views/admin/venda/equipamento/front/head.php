@@ -2,38 +2,28 @@
     <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">&times;</a>
     <ul class="sidebar-nav">
         <li>
-            <a href="#" class="active background-primary">
-                <i class="fa fa-smile-o" aria-hidden="true"></i> CONTRATE
-            </a>
-        </li>
-
-        <li>
-            <span class="item"> SEGUROS </span>
+            <a href="#" class="link"> COMPRAR </a>
         </li>
         <li>
-            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> COMPRAR </a>
+            <a href=".nav-apolices" class="link" data-toggle="collapse" aria-expanded="true" > APOLICES <i class="fa fa-angle-up pull-right" aria-hidden="true"></i> </a>
+        </li>
+        <li class="nav-apolices collapse in" aria-expanded="true">
+            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> LISTAR </a>
+        </li>
+        <li class="nav-apolices collapse in" aria-expanded="true">
+            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> CADASTRAR </a>
         </li>
         <li>
-            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> COTAÇÕES SALVAS </a>
+            <a href=".nav-wallet" class="link" data-toggle="collapse" aria-expanded="false" > WALLET <i class="fa fa-angle-up pull-right" aria-hidden="true"></i> </a>
         </li>
-
-        <li>
-            <span class="item"> SERVIÇOS </span>
+        <li class="nav-wallet collapse">
+            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> FORMA DE PAGAMENTO </a>
+        </li>
+        <li class="nav-wallet collapse">
+            <a href="#" class="link"><i class="fa fa-angle-right" aria-hidden="true"></i> PROMOÇÃO </a>
         </li>
         <li>
-            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> COMPRAR </a>
-        </li>
-
-        <li>
-            <a href="#" class="active">
-                <i class="fa fa-briefcase" aria-hidden="true"></i> APOLICES
-            </a>
-        </li>
-
-        <li>
-            <a href="#" class="active">
-                <i class="fa fa-comments" aria-hidden="true"></i> ATENDIMENTO
-            </a>
+            <a href="#" class="link"> MINHA CONTA </a>
         </li>
     </ul>
 </div>
@@ -51,10 +41,10 @@
             <div class="col-md-9 col-sm-9 col-xs-9">
 
                 <ul class="nav nav-pills pull-right">
-                    <?php if( !empty($this->session->userdata('logado'))){ ?>
+                    <?php //if( !empty($this->session->userdata('logado'))){ ?>
                     <li role="presentation">
                         <a href="javascript:void(0)" title="<?php echo $this->name; ?>" class="username">
-                            <?php echo $this->name; ?>
+                            Meu Nome
                         </a>
                     </li>
                     <li role="presentation">
@@ -62,7 +52,7 @@
                             <i class="fa fa-bell" aria-hidden="true"></i>
                         </a>
                     </li>
-                    <?php } ?>
+                    <?php //} ?>
                     <li>
                         <button aria-controls="bs-navbar" aria-expanded="false" class="navbar-toggle collapsed" data-target="#bs-navbar" data-toggle="collapse" type="button" id="menu-toggle">
                             <span class="sr-only">Toggle navigation</span>
