@@ -308,21 +308,46 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                         break;
                     case $this->config->item("PRECO_POR_EQUIPAMENTO");
-                        $valor = $this
-                            ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
-                            ->filter_by_faixa( $valor_nota )
-                            ->filter_by_tipo_equipamento("EQUIPAMENTO");
 
-                        // Caso tenha um DE x PARA
-                        if ( !empty($equipamento_de_para) ) {
-                            $valor = $this->filter_by_equipamento_de_para($equipamento_de_para);
-                        } else {
-                            // tratamento para identificar o equipamento
-                            $equipamento_sub_categoria_id = emptyor($equipamento_sub_categoria_id, $equipamento_categora_id);
-                            $valor = $this->filter_by_equipamento($equipamento_sub_categoria_id);
+                        $try = true;
+
+                        while ($try)
+                        {
+                            $try = false;
+
+                            $query = $this
+                                ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
+                                ->filter_by_faixa( $valor_nota )
+                                ->filter_by_tipo_equipamento("EQUIPAMENTO");
+
+                            // Caso tenha um DE x PARA
+                            if ( !empty($equipamento_de_para) ) {
+
+                                $valor = $query
+                                    ->filter_by_equipamento_de_para($equipamento_de_para)
+                                    ->get_all();
+
+                            } else {
+
+                                // tratamento para identificar o equipamento
+                                $equipamento_sub_categoria_id = emptyor($equipamento_sub_categoria_id, $equipamento_categora_id);
+                                $valor = $query
+                                    ->filter_by_equipamento($equipamento_sub_categoria_id)
+                                    ->get_all();
+
+                                // nao encontrou resultado
+                                // a categoria é diferente da sub
+                                // existe categoria válida
+                                if ( empty($valor) && $equipamento_sub_categoria_id <> $equipamento_categora_id && !empty($equipamento_categora_id) )
+                                {
+                                    $equipamento_sub_categoria_id = $equipamento_categora_id;
+                                    $try = true;
+                                }
+
+                            }
+
                         }
 
-                        $valor = $this->get_all();
                         $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia);
 
                         if($calculo) {
