@@ -2,7 +2,7 @@
     <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">&times;</a>
     <ul class="sidebar-nav">
         <li>
-            <a href="#" class="link"> COMPRAR </a>
+            <a href="<?php echo base_url("$current_uri/comprar")?>" class="link"> COMPRAR </a>
         </li>
         <li>
             <a href=".nav-apolices" class="link" data-toggle="collapse" aria-expanded="true" > APOLICES <i class="fa fa-angle-up pull-right" aria-hidden="true"></i> </a>
