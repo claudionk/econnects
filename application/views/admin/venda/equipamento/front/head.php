@@ -37,7 +37,7 @@
 
     <div class="header-logo-menu">
         <div class="row">
-            <div class="col-md-<?php echo ($onlyLogo) ? '12':'3' ?> col-sm-<?php echo ($onlyLogo) ? '12':'3' ?> col-xs-<?php echo ($onlyLogo) ? '12':'3' ?>">
+            <div class="col-md-<?php echo ($onlyLogo) ? '12':'3' ?> col-sm-<?php echo ($onlyLogo) ? '12':'3' ?> col-xs-<?php echo ($onlyLogo) ? '12':'3' ?> <?php echo ($onlyLogo) ? 'text-center':'' ?>">
                 <img src="<?php echo $this->template->get('theme_logo'); ?>" alt="" title="" style="width: 90px;" />
             </div>
 
