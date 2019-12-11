@@ -68,6 +68,7 @@ class App extends Admin_Controller{
 
     public function index() {
         $view = "admin/venda/equipamento/front/app/compra";
+        $data['logo'] = true;
         $data['logado'] = false;
         $data['current_uri'] = $this->controller_uri;
 
@@ -77,6 +78,7 @@ class App extends Admin_Controller{
 
     public function comprar() {
         $view = "admin/venda/equipamento/front/app/comprar";
+        $data['logo'] = true;
         $data['logado'] = false;
         $data['current_uri'] = $this->controller_uri;
 
@@ -94,6 +96,7 @@ class App extends Admin_Controller{
 
     public function login() {
         $view = "admin/venda/equipamento/front/app/login";
+        $data['logo'] = true;
         $data['logado'] = false;
         $data['current_uri'] = $this->controller_uri;
 
@@ -103,6 +106,7 @@ class App extends Admin_Controller{
 
     public function home() {
         $view = "admin/venda/equipamento/front/app/home";
+        $data['logo'] = true;
         $data['logado'] = true;
         $data['current_uri'] = $this->controller_uri;
 

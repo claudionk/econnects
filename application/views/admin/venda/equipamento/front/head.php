@@ -30,18 +30,21 @@
 
 
 <div class="">
-    <?php if ($logado){ ?>
+    <?php 
+    if (!empty($logo) || !empty($logado)) {
+        $onlyLogo = !empty($logo) && empty($logado);
+    ?>
 
     <div class="header-logo-menu">
         <div class="row">
-            <div class="col-md-3 col-sm-3 col-xs-3">
+            <div class="col-md-<?php echo ($onlyLogo) ? '12':'3' ?> col-sm-<?php echo ($onlyLogo) ? '12':'3' ?> col-xs-<?php echo ($onlyLogo) ? '12':'3' ?>">
                 <img src="<?php echo $this->template->get('theme_logo'); ?>" alt="" title="" style="width: 90px;" />
             </div>
 
+            <?php if( $logado ){ ?>
             <div class="col-md-9 col-sm-9 col-xs-9">
 
                 <ul class="nav nav-pills pull-right">
-                    <?php //if( !empty($this->session->userdata('logado'))){ ?>
                     <li role="presentation">
                         <a href="javascript:void(0)" title="<?php echo $this->name; ?>" class="username">
                             Meu Nome
@@ -52,7 +55,6 @@
                             <i class="fa fa-bell" aria-hidden="true"></i>
                         </a>
                     </li>
-                    <?php //} ?>
                     <li>
                         <button aria-controls="bs-navbar" aria-expanded="false" class="navbar-toggle collapsed" data-target="#bs-navbar" data-toggle="collapse" type="button" id="menu-toggle">
                             <span class="sr-only">Toggle navigation</span>
@@ -62,8 +64,9 @@
                         </button>
                     </li>
                 </ul>
-
             </div>
+            <?php } ?>
+
         </div>
     </div>
 

@@ -10,7 +10,7 @@
     <div class="col-md-6">
         <div class="form-group">
             <label class="control-label" for="seguradora" >Seguradora</label>
-            <select class="form-control" name="seguradora" id="seguradora">
+            <select class="form-control select2" name="seguradora" id="seguradora">
                 <option value="M">Seguradora 1</option>
                 <option value="N">Seguradora 2</option>
                 <option value="P">Seguradora 3</option>
@@ -23,7 +23,7 @@
     <div class="col-md-6">
         <div class="form-group">
             <label class="control-label" for="produto" >Produto</label>
-            <select class="form-control" name="produto" id="produto">
+            <select class="form-control select2" name="produto" id="produto">
                 <option value="M">Produto 1</option>
                 <option value="N">Produto 2</option>
                 <option value="P">Produto 3</option>
