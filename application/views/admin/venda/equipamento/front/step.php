@@ -79,7 +79,7 @@
         </div>
     </div-->
 
-    <?php $this->load->view('admin/venda/equipamento/front/head', array('logado' => true, 'current_uri' => 'admin/venda', 'viewTitle' => false)); ?>
+    <?php $this->load->view('admin/venda/equipamento/front/head', array('logo' => true, 'logado' => true, 'current_uri' => 'admin/app', 'viewTitle' => false)); ?>
 
     <?php
     if ($layout <> 'front' || empty($step) )

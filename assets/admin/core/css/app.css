@@ -48,3 +48,8 @@
 .sidebar-nav {
     width: 100%;
 }
+.select2 {
+    background-color: #fff;
+    -webkit-box-shadow: inherit;
+    box-shadow: inherit;
+}
