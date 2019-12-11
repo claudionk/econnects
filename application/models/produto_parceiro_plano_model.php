@@ -280,15 +280,56 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         }
 
         $apolice_vigencia_regra = false;
-        $data_adesao = date("Y-m-d");
+        $data_adesao = null;
         $date_fim_vig = null;
 
-        // identificar a data base para inicio da vigencia
+        /*
+        Definição da Data Base
+        INI VIG - NF - RESULT
+        TRUE    -  TRUE     - INI
+        TRUE    -  FALSE    - INI
+        FALSE   -  TRUE     - NF
+        FALSE   -  FALSE    - HJ
 
+        Definição da Data de Adesão *** enviou data de adesão - manter sempre ela ***
+        INI VIG - NF - RESULT
+        TRUE    -  TRUE     - NF
+        TRUE    -  FALSE    - INI
+        FALSE   -  TRUE     - NF
+        FALSE   -  FALSE    - HJ 
+        */
+
+        // se nao fo informada a data base. Se foi, tem que ser o q informou
         if (empty($data_base))
         {
             if (!empty($cotacao_salva))
             {
+                // trecho para manter o que foi enviado
+
+                if ($cotacao_salva["data_inicio_vigencia"] != "" && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00")
+                {
+                    $data_base = $data_adesao = $cotacao_salva["data_inicio_vigencia"];
+                    $apolice_vigencia_regra = false;
+                } else {
+                    $apolice_vigencia_regra = true;
+                }
+
+                if ($cotacao_salva["nota_fiscal_data"] != "" && $cotacao_salva["nota_fiscal_data"] != "0000-00-00")
+                {
+                    $data_adesao = $cotacao_salva["nota_fiscal_data"];
+
+                    // se nao definiu com o inicio da vignecia, que é prioridade
+                    if (empty($data_base))
+                    {
+                        $data_base = $cotacao_salva["nota_fiscal_data"];
+                    }
+                }
+
+                if ($cotacao_salva["data_fim_vigencia"] != "" && $cotacao_salva["data_fim_vigencia"] != "0000-00-00")
+                {
+                    $date_fim_vig = $cotacao_salva["data_fim_vigencia"];
+                }
+
                 if ($config)
                 {
                     switch ($config["apolice_vigencia"])
@@ -307,35 +348,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                             break;
 
                         case "E": //Especifica (Somente via API)
-
-                            if ($cotacao_salva["data_inicio_vigencia"] != "" && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00")
-                            {
-                                $data_base = $data_adesao = $cotacao_salva["data_inicio_vigencia"];
-                                $apolice_vigencia_regra = false;
-                            } else {
-                                $apolice_vigencia_regra = true;
-                            }
-
-                            if ($cotacao_salva["nota_fiscal_data"] != "")
-                            {
-                                $data_adesao = $cotacao_salva["nota_fiscal_data"];
-
-                                // se nao definiu com o inicio da vignecia, que é prioridade
-                                if (empty($data_base))
-                                {
-                                    $data_base = $cotacao_salva["nota_fiscal_data"];
-                                }
-                            }
-
-                            if ($cotacao_salva["data_fim_vigencia"] != "" && $cotacao_salva["data_fim_vigencia"] != "0000-00-00")
-                            {
-                                $date_fim_vig = $cotacao_salva["data_fim_vigencia"];
-                            }
-
-                            if (!empty($cotacao_salva["data_adesao"]) && $cotacao_salva["data_adesao"] != "0000-00-00") {
-                                $data_base = $data_adesao = $cotacao_salva["data_adesao"];
-                            }
-
+                            // já tratando antes de validar a configuração
                             break;
                     }
 
@@ -360,6 +373,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                         }
                     }
                 }
+
             }
 
             // se depois de todas as validações, ainda não conseguiu definir a data base
@@ -367,8 +381,16 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             {
                 $data_base = date("Y-m-d");
             }
+
         }
 
+        // se depois de todas as validações, ainda não conseguiu definir a data de adesão
+        if ( empty($data_adesao) )
+        {
+            $data_adesao = $data_base;
+        }
+
+        // a adesão deve ser sempre o que foi enviado
         if (!empty($cotacao_salva))
         {
             if (!empty($cotacao_salva["data_adesao"]) && $cotacao_salva["data_adesao"] != "0000-00-00") {
