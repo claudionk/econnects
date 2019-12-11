@@ -2,7 +2,7 @@
     <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">&times;</a>
     <ul class="sidebar-nav">
         <li>
-            <a href="<?php echo base_url("$current_uri/comprar")?>" class="link"> COMPRAR </a>
+            <a href="<?php echo base_url("admin/app/comprar")?>" class="link"> COMPRAR </a>
         </li>
         <li>
             <a href=".nav-apolices" class="link" data-toggle="collapse" aria-expanded="true" > APOLICES <i class="fa fa-angle-up pull-right" aria-hidden="true"></i> </a>
@@ -11,7 +11,7 @@
             <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> LISTAR </a>
         </li>
         <li class="nav-apolices collapse in" aria-expanded="true">
-            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> CADASTRAR </a>
+            <a href="<?php echo base_url("admin/app/cadastrar")?>" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> CADASTRAR </a>
         </li>
         <li>
             <a href=".nav-wallet" class="link" data-toggle="collapse" aria-expanded="false" > WALLET <i class="fa fa-angle-up pull-right" aria-hidden="true"></i> </a>
@@ -68,7 +68,7 @@
     </div>
 
         <?php if ( !isset($viewTitle) || !empty($viewTitle) ) { ?>
-            <h2 class="text-light text-center title-h2">xxx<?php echo $title; ?></h2>
+            <h2 class="text-light text-center title-h2"><?php echo $title; ?></h2>
         <?php }
     } else { ?>
 
