@@ -11,9 +11,10 @@
 .btns-buyaccount .btn{
     width: 49%;
     margin-top: 80px;
+    margin-bottom: auto;
 }
 .btn-whats{
-    bottom: 55px;
+    bottom: 65px;
     position: absolute;
 }
 .btn-prod{
