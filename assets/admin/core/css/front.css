@@ -272,6 +272,7 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
     font-weight: 100;
     margin-top:4rem;
     margin-bottom:4rem;
+    box-shadow: 0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23);
 }
 .btns .btn-proximo .fa-angle-right{
     margin-left: 10px;
