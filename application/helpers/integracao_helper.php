@@ -858,7 +858,9 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $geraDados['equipamento_nome']          = $dados['registro']['equipamento_nome'];
             $geraDados['nota_fiscal_valor_desc']    = $dados['registro']['nota_fiscal_valor_desc'];
             $geraDados['nota_fiscal_data']          = $dados['registro']['nota_fiscal_data'];
-            $geraDados['premio_liquido']            = $dados['registro']['premio_bruto'];
+            $geraDados['valor_custo']               = $dados['registro']['valor_custo'];
+            $geraDados['premio_liquido']            = $dados['registro']['premio_liquido'];
+            $geraDados['valor_iof']                 = $dados['registro']['valor_iof'];
             $geraDados['premio_bruto']              = $dados['registro']['premio_bruto'];
             $geraDados['vigencia']                  = $dados['registro']['vigencia'];
             $geraDados['cod_vendedor']              = $dados['registro']['cod_vendedor'];
