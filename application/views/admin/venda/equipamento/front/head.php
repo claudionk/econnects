@@ -8,7 +8,7 @@
             <a href=".nav-apolices" class="link" data-toggle="collapse" aria-expanded="true" > APOLICES <i class="fa fa-angle-up pull-right" aria-hidden="true"></i> </a>
         </li>
         <li class="nav-apolices collapse in" aria-expanded="true">
-            <a href="#" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> LISTAR </a>
+            <a href="<?php echo base_url("admin/app/apolices")?>" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> LISTAR </a>
         </li>
         <li class="nav-apolices collapse in" aria-expanded="true">
             <a href="<?php echo base_url("admin/app/cadastrar")?>" class="link"> <i class="fa fa-angle-right" aria-hidden="true"></i> CADASTRAR </a>
