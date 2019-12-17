@@ -77,11 +77,9 @@
 
     <div class="col-md-6 ">
         <div class="form-group btns">
-            <button type="button" class="btn btn-app btn-primary btn-proximo border-primary background-primary">
+            <button type="button" class="btn btn-app btn-primary btn-proximo border-primary background-primary" style="margin-bottom: 0px">
                 Cadastrar
             </button>
         </div>
     </div>
 </form>
-
-<?php $this->load->view('admin/venda/equipamento/front/footer'); ?>
