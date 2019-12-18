@@ -280,48 +280,89 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         }
 
         $apolice_vigencia_regra = false;
-        $data_adesao = date("Y-m-d");
+        $data_adesao = null;
         $date_fim_vig = null;
 
-        if (empty($data_base)) {
-            $data_base = date("Y-m-d");
+        /*
+        Definição da Data Base
+        INI VIG - NF - RESULT
+        TRUE    -  TRUE     - INI
+        TRUE    -  FALSE    - INI
+        FALSE   -  TRUE     - NF
+        FALSE   -  FALSE    - HJ
 
-            if (!empty($cotacao_salva)) {
+        Definição da Data de Adesão *** enviou data de adesão - manter sempre ela ***
+        INI VIG - NF - RESULT
+        TRUE    -  TRUE     - NF
+        TRUE    -  FALSE    - INI
+        FALSE   -  TRUE     - NF
+        FALSE   -  FALSE    - HJ 
+        */
 
-                if ($config) {
-                    switch ($config["apolice_vigencia"]) {
+        // se nao fo informada a data base. Se foi, tem que ser o q informou
+        if (empty($data_base))
+        {
+            if (!empty($cotacao_salva))
+            {
+                // trecho para manter o que foi enviado
+
+                if ($cotacao_salva["data_inicio_vigencia"] != "" && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00")
+                {
+                    $data_base = $data_adesao = $cotacao_salva["data_inicio_vigencia"];
+                    $apolice_vigencia_regra = false;
+                } else {
+                    $apolice_vigencia_regra = true;
+                }
+
+                if ($cotacao_salva["nota_fiscal_data"] != "" && $cotacao_salva["nota_fiscal_data"] != "0000-00-00")
+                {
+                    $data_adesao = $cotacao_salva["nota_fiscal_data"];
+
+                    // se nao definiu com o inicio da vignecia, que é prioridade
+                    if (empty($data_base))
+                    {
+                        $data_base = $cotacao_salva["nota_fiscal_data"];
+                    }
+                }
+
+                if ($cotacao_salva["data_fim_vigencia"] != "" && $cotacao_salva["data_fim_vigencia"] != "0000-00-00")
+                {
+                    $date_fim_vig = $cotacao_salva["data_fim_vigencia"];
+                }
+
+                if ($config)
+                {
+                    switch ($config["apolice_vigencia"])
+                    {
                         case "S": //Data de Criação
                             $data_base = $data_adesao = date("Y-m-d");
                             $apolice_vigencia_regra = true;
                             break;
+
                         case "N": //Data da Nota Fiscal
                             $apolice_vigencia_regra = true;
+
                             if ($cotacao_salva["nota_fiscal_data"] != "") {
                                 $data_base = $data_adesao = $cotacao_salva["nota_fiscal_data"];
                             }
                             break;
+
                         case "E": //Especifica (Somente via API)
-
-                            if ($cotacao_salva["data_inicio_vigencia"] != "" && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00") {
-                                $data_base = $data_adesao = $cotacao_salva["data_inicio_vigencia"];
-                                $apolice_vigencia_regra = false;
-                            } else {
-                                $apolice_vigencia_regra = true;
-                            }
-
-                            if ($cotacao_salva["nota_fiscal_data"] != "") {
-                                $data_base = $data_adesao = $cotacao_salva["nota_fiscal_data"];
-                            }
-
-                            if ($cotacao_salva["data_fim_vigencia"] != "" && $cotacao_salva["data_fim_vigencia"] != "0000-00-00") {
-                                $date_fim_vig = $cotacao_salva["data_fim_vigencia"];
-                            }
-
+                            // já tratando antes de validar a configuração
                             break;
                     }
 
-                    if ($apolice_vigencia_regra) {
-                        switch ($config["apolice_vigencia_regra"]) {
+                    // se depois de todas as validações, ainda não conseguiu definir a data base
+                    // seta neste ponto para nao dar problema na regra de vigência
+                    if ( empty($data_base) )
+                    {
+                        $data_base = date("Y-m-d");
+                    }
+
+                    if ($apolice_vigencia_regra)
+                    {
+                        switch ($config["apolice_vigencia_regra"])
+                        {
                             case 'M':
                                 $d1 = new DateTime($data_base);
                                 $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
@@ -333,10 +374,27 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                     }
                 }
 
-                if (!empty($cotacao_salva["data_adesao"]) && $cotacao_salva["data_adesao"] != "0000-00-00") {
-                    $data_adesao = $cotacao_salva["data_adesao"];
-                }
+            }
 
+            // se depois de todas as validações, ainda não conseguiu definir a data base
+            if ( empty($data_base) )
+            {
+                $data_base = date("Y-m-d");
+            }
+
+        }
+
+        // se depois de todas as validações, ainda não conseguiu definir a data de adesão
+        if ( empty($data_adesao) )
+        {
+            $data_adesao = $data_base;
+        }
+
+        // a adesão deve ser sempre o que foi enviado
+        if (!empty($cotacao_salva))
+        {
+            if (!empty($cotacao_salva["data_adesao"]) && $cotacao_salva["data_adesao"] != "0000-00-00") {
+                $data_adesao = $cotacao_salva["data_adesao"];
             }
         }
 
