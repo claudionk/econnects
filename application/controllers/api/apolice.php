@@ -44,6 +44,11 @@ class Apolice extends CI_Controller {
         return $webservice;
     }
 
+    public function consultaCancelados(){
+        $this->checkKey();
+        
+    }
+
     public function consultaBase() {
         die( json_encode( $this->retornaApolices($_POST), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
