@@ -306,7 +306,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             {
                 // trecho para manter o que foi enviado
 
-                if ($cotacao_salva["data_inicio_vigencia"] != "" && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00")
+                if ( !empty($cotacao_salva["data_inicio_vigencia"]) && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00")
                 {
                     $data_base = $data_adesao = $cotacao_salva["data_inicio_vigencia"];
                     $apolice_vigencia_regra = false;
@@ -314,7 +314,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                     $apolice_vigencia_regra = true;
                 }
 
-                if ($cotacao_salva["nota_fiscal_data"] != "" && $cotacao_salva["nota_fiscal_data"] != "0000-00-00")
+                if ( !empty($cotacao_salva["nota_fiscal_data"]) && $cotacao_salva["nota_fiscal_data"] != "0000-00-00")
                 {
                     $data_adesao = $cotacao_salva["nota_fiscal_data"];
 
@@ -325,7 +325,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                     }
                 }
 
-                if ($cotacao_salva["data_fim_vigencia"] != "" && $cotacao_salva["data_fim_vigencia"] != "0000-00-00")
+                if ( !empty($cotacao_salva["data_fim_vigencia"]) && $cotacao_salva["data_fim_vigencia"] != "0000-00-00")
                 {
                     $date_fim_vig = $cotacao_salva["data_fim_vigencia"];
                 }
