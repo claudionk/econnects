@@ -147,7 +147,7 @@ class Apolice_Model extends MY_Model
                 $evento                         = array();
                 $evento['mensagem']             = array();
                 $evento['mensagem']['apolices'] = "";
-                $evento['mensagem']['nome']     = "";
+                $evento['mensagem']['nome']     = ""; 
 
                 if ($produto['slug'] == 'seguro_viagem') {
                     foreach ($cotacao_salvas as $cotacao_salva) {
@@ -960,6 +960,7 @@ class Apolice_Model extends MY_Model
             ->join("parceiro parceiro_seg", "parceiro_seg.parceiro_id = produto_parceiro.parceiro_id", 'inner')
             ->join("parceiro", "parceiro.parceiro_id = apolice.parceiro_id", 'inner')
             ->join("capitalizacao_serie_titulo", "apolice.pedido_id = capitalizacao_serie_titulo.pedido_id and capitalizacao_serie_titulo.deletado = 0", 'left');
+
 
         if ($pedido) {
             $pedido = $pedido[0];
@@ -1878,6 +1879,21 @@ class Apolice_Model extends MY_Model
         }
 
         return [ 'status' => true, 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
+    }
+
+    public function setApoliceStatusBySlug_DAO($slug)
+    {
+        $aApoliceStatusSlug = array("ativa", "cancelada");   
+        if(!is_string($slug)){
+            throw new Exception('O slug do status da apolice deve ser uma variável do tipo "String"');
+        } else{
+            if(!in_array($slug, $aApoliceStatusSlug)){
+                throw new Exception('Slug "'.$slug.'" inválido para status da apolice (Opções Permitidas: ['.implode($aApoliceStatusSlug).']")');
+            }else{                                
+                $this->db->where("apolice_status.slug = '".$slug."'");                        
+            }        
+        }
+
     }
 
 }
