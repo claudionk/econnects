@@ -67,7 +67,7 @@ class Apolice extends CI_Controller {
                 if (!preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $inputData["data_inicio"])) {
                     throw new Exception('O campo "data_inicio" deve conter o formato "yyyy-mm-dd"');
                 }        
-            }
+            } 
     
             if(empty($inputData["data_fim"])){            
                 throw new Exception('O campo "data_fim" é obrigatório');

@@ -211,7 +211,7 @@ Class Pedido_Model extends MY_Model
         return $this;
     }
 
-    public function filterAPI($param = array())   
+    public function filterAPI($param = array())    
     {
         if($param) {
             foreach ($param as $key => $value)

@@ -147,7 +147,7 @@ class Apolice_Model extends MY_Model
                 $evento                         = array();
                 $evento['mensagem']             = array();
                 $evento['mensagem']['apolices'] = "";
-                $evento['mensagem']['nome']     = "";
+                $evento['mensagem']['nome']     = ""; 
 
                 if ($produto['slug'] == 'seguro_viagem') {
                     foreach ($cotacao_salvas as $cotacao_salva) {
