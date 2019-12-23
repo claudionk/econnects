@@ -1495,6 +1495,12 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $fields['ean']                          = isempty($dados['ean'], null);
                 $fields['emailAPI']                     = app_get_userdata("email");
 
+                // Retirar os acentos
+                if ( !empty($fields) )
+                {
+                    $fields = app_utf8_converter($fields);
+                }
+
                 // Cotação
                 $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields), $acesso);
                 if (empty($cotacao['status'])) {
