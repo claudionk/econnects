@@ -211,7 +211,7 @@ Class Produto_Parceiro_Model extends MY_Model
         $this->_database->where('ppc.deletado', 0);
         $this->_database->where('ppc.venda_habilitada_admin', 1);
         $this->_database->where('prp.parceiro_id', $parceiro_id);
-        return $this->get_all(0,0,true,false);
+        return $this->get_all(0,0,false,false);
     }
 
     public function getProdutosByParceiro($parceiro_id, $produto_id = null, $onlyEnable = true)

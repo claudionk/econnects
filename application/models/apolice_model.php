@@ -961,6 +961,7 @@ class Apolice_Model extends MY_Model
             ->join("parceiro", "parceiro.parceiro_id = apolice.parceiro_id", 'inner')
             ->join("capitalizacao_serie_titulo", "apolice.pedido_id = capitalizacao_serie_titulo.pedido_id and capitalizacao_serie_titulo.deletado = 0", 'left');
 
+
         if ($pedido) {
             $pedido = $pedido[0];
             if ($pedido['slug'] == 'seguro_viagem') {
@@ -1686,6 +1687,19 @@ class Apolice_Model extends MY_Model
         $this->_database->where("{$this->_table}.apolice_id", $apolice_id);
         $this->_database->where("ast.slug", $slug_status);
         return !empty($this->get_all());
+    }
+
+    public function setApoliceStatusBySlug_DAO($slug){
+        $aApoliceStatusSlug = array("ativa", "cancelada");   
+        if(!is_string($slug)){
+            throw new Exception('O slug do status da apolice deve ser uma variável do tipo "String"');
+        } else{
+            if(!in_array($slug, $aApoliceStatusSlug)){
+                throw new Exception('Slug "'.$slug.'" inválido para status da apolice (Opções Permitidas: ['.implode($aApoliceStatusSlug).']")');
+            }else{                                
+                $this->db->where("apolice_status.slug = '".$slug."'");                        
+            }        
+        }            
     }
 
 }
