@@ -8,7 +8,6 @@ class Short_url
     //Const KEY_GOOGLE = 'AIzaSyAs0yKw8RGL8QutAZ5nlzAwWIrd5kRfofM';
     Const KEY_GOOGLE = 'AIzaSyA-EDFSRLZ_i9upq_ANhHG0UD1EJ_mBHt8';
 
-
     public static function shorter($url)
     {
         $httpHeader = array(
@@ -125,12 +124,10 @@ class Short_url
             CURLOPT_HTTPHEADER => $httpHeader
         ));
 
-
         $response = curl_exec($curl);
         $httpCode = curl_getinfo($curl , CURLINFO_HTTP_CODE);
         $error = curl_error($curl);
         curl_close($curl);
-
 
 
         if ($error) {

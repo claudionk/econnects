@@ -472,6 +472,72 @@ if ( ! function_exists('app_integracao_file_name_sulacap')) {
     }
 
 }
+if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
+
+    function app_integracao_csv_retorno_novomundo($formato, $dados = array())
+    {
+    $CI=& get_instance();
+    $CI->load->model('integracao_model');
+
+    $os     =$dados['registro']['num_voucher'];
+    $status_troca   =$dados['registro']['status_troca'];
+
+    switch($status_troca)
+    {
+        case "UTILIZADO":
+        case "CANCELADO":
+            $CI->integracao_model->update_status_novomundo($os, $status_troca);
+        break;
+        default:
+        break;
+    }
+    }
+
+}
+if ( ! function_exists('app_integracao_file_name_novomundo')) {
+
+    function app_integracao_file_name_novomundo($formato, $dados = array())
+    {
+        $data = date('Ymd');
+    $ext=isset($dados['item']['tipo_layout'])?strtolower($dados['item']['tipo_layout']):"csv";
+        $file = "{$formato}{$data}.{$ext}";
+        return $file;
+    }
+
+}
+if ( ! function_exists('app_integracao_zip_extract_novomundo')) {
+
+    function app_integracao_zip_extract_novomundo($formato, $dados = array())
+    {
+    $diretorio  = $dados['registro']['file'];
+    $arquivo    = $dados['registro']['fileget'];
+    $diretorio  = str_replace($arquivo, "", $diretorio);
+    $novo_diretorio = str_replace(".zip", "", $arquivo);
+
+    if(!file_exists($diretorio . '/' . $novo_diretorio))
+    {
+        mkdir($diretorio . '/' . $novo_diretorio, 0777, true);
+        }
+
+    rename($diretorio . '/' . $arquivo, $diretorio . '/' . $novo_diretorio . '/' . $arquivo );
+    
+    $zip = new ZipArchive;
+    $res = $zip->open($diretorio . '/' . $novo_diretorio . '/' . $arquivo);
+    if ($res === TRUE) 
+    {
+        $zip->extractTo($diretorio . '/' . $novo_diretorio);
+        $zip->close();
+    } 
+    else 
+    {
+        echo "Erro na extracao de arquivo:$arquivo";
+            return false;
+    }
+
+        return true;
+    }
+
+}
 if ( ! function_exists('app_integracao_format_file_name_ret_sis')) {
 
     function app_integracao_format_file_name_ret_sis($formato, $dados = array())
@@ -977,12 +1043,6 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         return $response;
     }
 }
-
-
-
-
-
-
 if ( ! function_exists('app_get_api'))
 {
     function app_get_api($service, $method = 'GET', $fields = [], $acesso = null)
@@ -1031,8 +1091,6 @@ if ( ! function_exists('app_get_api'))
         return $ret;
     }
 }
-
-
 if ( ! function_exists('app_integracao_rastrecall_valida_regras'))
 {
     function app_integracao_rastrecall_valida_regras($dados, $camposCotacao){
@@ -1245,8 +1303,6 @@ if ( ! function_exists('app_integracao_rastrecall_valida_regras'))
         return $response;
     }
 }
-
-
 if ( ! function_exists('app_integracao_valida_regras'))
 {
     function app_integracao_valida_regras($dados, $camposCotacao, $enriqueceCPF = true, $acesso = null){

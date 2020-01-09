@@ -23,6 +23,8 @@ Class Integracao_Model extends MY_Model
     protected $fields_uppercase = array('nome', 'descricao');
 
     private $data_template_script = array();
+    private $tipo_layout="";
+    private $layout_separador=";";
 
 
     //Dados
@@ -275,6 +277,7 @@ Class Integracao_Model extends MY_Model
     }
 
     public function run_r($integracao_id){
+	echo "run_r($integracao_id)\n";
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
         $this->load->model('integracao_log_detalhe_campo_model', 'integracao_log_detalhe_campo');
@@ -287,7 +290,18 @@ Class Integracao_Model extends MY_Model
         $this->_database->where("integracao.deletado", 0);
         $this->_database->where("integracao.habilitado", 1);
         $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
-        $result = $this->get_all();
+
+	try
+	{
+        	$result = $this->get_all();
+	}
+	catch (Exception $e) 
+	{
+		echo "e=" . $e;
+	}
+
+	//echo "this=" . 		print_r($this, true);
+	//echo "result=" . 	print_r($result, true);
 
 
         if($result){
@@ -307,16 +321,23 @@ Class Integracao_Model extends MY_Model
                 ->get_all();
 
             $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
-            $result_file = $this->getFile($result, $file);
-            // $result_file["file"] = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/14/R/C01.LASA.PARCEMS-RT-0145-20181214.TXT";
+
+	    //echo "file1=" . 	print_r($file, true);
+
+            if(empty($file))
+	    {
+            	$file = $this->getFileName($result, $layout_filename);
+	    }
+
+	    //echo "file2=" . 	print_r($file, true);
+
+	    $result_file = $this->getFile($result, $file);
 
             $result_process = [];
-            if(!empty($result_file['file'])){
+            if(!empty($result_file['file']) && $result['tipo_layout']!='ZIP')
+	    {
                 $result_process = $this->processFileIntegracao($result, $result_file['file']);
             }
-
-            // echo " FIM - R";
-            // exit();
 
             $dados_integracao = array();
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
@@ -357,9 +378,6 @@ Class Integracao_Model extends MY_Model
             }
 
             $result_file = $this->createFileIntegracao($result);
-
-            // echo "FIM - S";
-            // exit();
 
             $filename = $result_file['file'];
             $integracao_log_status_id = 5; // Falha
@@ -425,6 +443,7 @@ Class Integracao_Model extends MY_Model
     }
 
     private function getFile($integracao = array(), $file){
+	//echo "getFile::" . print_r($file, true);
         try{
 
             switch ($integracao['integracao_comunicacao_id']){
@@ -447,6 +466,8 @@ Class Integracao_Model extends MY_Model
             }
 
         }catch (Exception $e) {
+		
+	  	echo "getFile::Exception " . print_r($e, true) . "\n";
 
         }
     }
@@ -508,6 +529,10 @@ Class Integracao_Model extends MY_Model
             'file' => '',
             'fileget' => '',
         );
+
+	//echo "getFileFTP::" . print_r($list, true) . "\n";
+
+
         $file_processar = '';
         if($list) {
             foreach ($list as $index => $item) {
@@ -526,11 +551,14 @@ Class Integracao_Model extends MY_Model
             }
         }
 
+	//echo "getFileFTP::file_processar::" . print_r($file_processar, true) . "\n";
+
         if(!empty($file_processar)){
             $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
             if(!file_exists($diretorio)){
                 mkdir($diretorio, 0777, true);
             }
+	//echo "getFileFTP::diretorio::" . print_r($diretorio, true) . "\n";
 
             $fileget = basename($file_processar);
             if($this->ftp->download($file_processar, "{$diretorio}/{$fileget}", 'binary')){
@@ -542,6 +570,7 @@ Class Integracao_Model extends MY_Model
 
         }
         $this->ftp->close();
+	//echo "getFileFTP::result::" . print_r($result, true) . "\n";
         return $result;
     }
 
@@ -643,6 +672,8 @@ Class Integracao_Model extends MY_Model
 
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
         $this->data_template_script['parceiro_id'] = $integracao['parceiro_id'];
+	$this->tipo_layout=$integracao['tipo_layout'];
+	$this->layout_separador=$integracao['layout_separador'];
 
         $integracao['script_sql'] = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
         $registros = $this->_database->query($integracao['script_sql'])->result_array();
@@ -693,6 +724,10 @@ Class Integracao_Model extends MY_Model
             unset($layout[$idxF]);
         }
 
+        if ( empty($filename) ) {
+            return $arRet;
+        }
+
         // Trata o header
         $idxH = app_search( $layout, 'H', 'tipo' );
         if ( $idxH >= 0 ) {
@@ -705,16 +740,15 @@ Class Integracao_Model extends MY_Model
             unset($layout[$idxH]);
         }
 
-        if ( empty($filename) ) {
-            return $arRet;
-        }
 
         $arRet['file'] = "{$diretorio}/{$filename}";
         $arRet['dados'] = $registros;
 
         //gera todas as linhas
+	$i=0;
         foreach ($layout as $lay) {
-            if ($lay['multiplo'] == 0) {
+		$i++;
+            if ($lay['multiplo'] == 0 || count($layout)==$i) {
                 $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
                 $layout_m = [];
                 $line = $this->processLine($lay['multiplo'], $lay['dados'], !empty($registros) ? $registros[0] : [], null);
@@ -724,12 +758,15 @@ Class Integracao_Model extends MY_Model
             }
         }
 
-        // echo "<pre>";print_r($linhas);echo "</pre>";
         // Trata o header
         if ( $idxH >= 0 ) {
-            $rmQtdeLine++;
             $header = $this->getLinha($lH['dados'], !empty($registros) ? $registros[0] : [], $integracao_log);
             $linhas = array_merge([$header], $linhas);
+        }
+
+        $idxT = app_search( $layout, 'T', 'tipo' );
+        if ( $idxT >= 0 ) {
+            $rmQtdeLine++;
         }
 
         // Nao envia vazio && (nao gerou linhas ou as linhas geradas não são de detalhes)
@@ -788,7 +825,8 @@ Class Integracao_Model extends MY_Model
         $trailler = array();
         $num_registro = 0;
 
-        if($integracao['tipo_layout'] == 'LAYOUT') {
+        if($integracao['tipo_layout'] == 'LAYOUT') 
+        {
             while (!feof($fh)) #INICIO DO WHILE NO ARQUIVO
             {
                 $linhas = str_replace("'"," ",fgets($fh, 4096));
@@ -826,10 +864,13 @@ Class Integracao_Model extends MY_Model
 
             }
 
-        } else if($integracao['tipo_layout'] == 'CSV') {
+        } 
+        else if($integracao['tipo_layout'] == 'CSV') 
+        {
             $ignore = TRUE;
-            while (($data = fgetcsv($fh, 4096, $integracao['layout_separador'])) !== FALSE) {
-                if($ignore){
+            while (($data = fgetcsv($fh, 4096, $integracao['layout_separador'])) !== FALSE)
+            {
+                if ($ignore) {
                     $ignore = FALSE;
                     continue;
                 }
@@ -965,9 +1006,6 @@ Class Integracao_Model extends MY_Model
                 }
             }
 
-            // echo "<pre>";print_r($datum);echo "</pre>";
-            // exit();
-
             $ultimo_id = null;
             if (!empty($sql)){
                 $this->_database->query($sql, $datum);
@@ -1027,6 +1065,9 @@ Class Integracao_Model extends MY_Model
                         $campo = $log[$item['nome_banco']];
                     }
                 }
+                elseif (!empty($item['valor_padrao'])){
+                        $campo = $item['valor_padrao'];
+		}
 
             }elseif (!empty($item['function'])){
 
@@ -1071,11 +1112,32 @@ Class Integracao_Model extends MY_Model
                 }
             }
 
-            if (!is_null($campo)){
-                $pre_result .= mb_str_pad(trataRetorno($campo), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
+            if (!is_null($campo))
+	    {
+		if($this->tipo_layout=="CSV")
+		{
+                	$pre_result = trataRetorno($campo);
+		}
+		else
+		{
+                	$pre_result .= mb_str_pad(trataRetorno($campo), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
+		}
             }
 
-            $result .= mb_substr($pre_result,0,$item['tamanho']);
+	    $sep=$this->layout_separador;
+
+	    if($this->tipo_layout=="CSV")
+	    {
+		if($ind==count($layout)-1)
+		{
+			$sep="";
+		}
+             	$result .= $pre_result . $sep;
+	    }
+	    else
+	    {
+             	$result .= mb_substr($pre_result,0,$item['tamanho']);
+	    }
         }
 
         // Valida a chave da criação do log
@@ -1282,6 +1344,58 @@ Class Integracao_Model extends MY_Model
         $query = $this->_database->query($sql);
 
         return ($query->row()) ? $query->result()[0]->num_apolice : FALSE; 
+    }
+
+    private function getFileName($integracao = array(), $layout = array())
+    {
+	switch($integracao['tipo_layout'])
+	{
+		case 'ZIP':
+		case 'zip':
+			$formato	=$layout[0]['formato'];
+			$function	=$layout[0]['function'];
+			if(function_exists($function))
+			{
+			    $ret = call_user_func($function, $formato, array('item' => $integracao, 'registro' => '', 'log' => '', 'global' => $this->data_template_script));
+			}
+			return $ret;
+		break;
+		default:
+			return ''; // para novos desenvolvimentos
+		break;
+	}
+    }
+
+    function update_status_novomundo($id_exp, $status)
+    {
+	    $this->load->library("SoapCurl");
+	    $SoapCurl = new SoapCurl();
+	    $retorno = false;
+
+	    try
+	    {
+		    switch($status)
+		    {
+			    case "CANCELADO":
+				    $retorno = $SoapCurl->getAPI("atendimento/EncerrarExpediente", "PUT", json_encode( [ "idMotivoEncerramento" => 6, "idExpediente" => $id_exp ] ), 900);
+		    		    //echo "($id_exp, $status)::" .  print_r($retorno, true) . "\n" ;
+				    return $retorno;
+			    break;
+			    case "UTILIZADO":
+				    $retorno = $SoapCurl->getAPI("atendimento/ConverteExpediente", "PUT", json_encode( [ "idMotivoConversao" => 4, "idExpediente" => $id_exp ] ), 900);
+		    		    //echo "($id_exp, $status)::" .  print_r($retorno, true) . "\n" ;
+				    return $retorno;
+			    break;
+			    default:
+				    return $retorno;
+			    break;
+		    }
+	    }
+	    catch (Exception $e) 
+	    {
+		    echo "e=" . $e->getMessage();
+		    return $retorno;
+	    }
     }
 
 }
