@@ -1155,14 +1155,14 @@ if ( ! function_exists('app_integracao_rastrecall_valida_regras'))
         if (empty($dados['endereco_cep']))
             $dados['endereco_cep'] = '06454000';
 
-        if (empty($dados['sexo']))
-            $dados['sexo'] = 'M';
+        // if (empty($dados['sexo']))
+        //     $dados['sexo'] = 'M';
 
-        if (empty($dados['data_nascimento'])) {
-            $dados['data_nascimento'] = '2000-01-01';
-        } elseif (!app_validate_data_americana($dados['data_nascimento'])) {
-            $dados['data_nascimento'] = '2000-01-01';
-        }
+        // if (empty($dados['data_nascimento'])) {
+        //     $dados['data_nascimento'] = '2000-01-01';
+        // } elseif (!app_validate_data_americana($dados['data_nascimento'])) {
+        //     $dados['data_nascimento'] = '2000-01-01';
+        // }
 
         // IDADE - Pessoa física maior de 18 anos
         // E-mail Patini - 28 de nov de 2018 17:19
@@ -1389,14 +1389,14 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 if (empty($dados['endereco_cep']) || $dados['endereco_cep'] == "99999999")
                     $dados['endereco_cep'] = '06454000';
 
-                if (empty($dados['sexo']))
-                    $dados['sexo'] = 'M';
+                // if (empty($dados['sexo']))
+                //     $dados['sexo'] = 'M';
 
-                if (empty($dados['data_nascimento'])) {
-                    $dados['data_nascimento'] = '2000-01-01';
-                } elseif (!app_validate_data_americana($dados['data_nascimento'])) {
-                    $dados['data_nascimento'] = '2000-01-01';
-                }
+                // if (empty($dados['data_nascimento'])) {
+                //     $dados['data_nascimento'] = '2000-01-01';
+                // } elseif (!app_validate_data_americana($dados['data_nascimento'])) {
+                //     $dados['data_nascimento'] = '2000-01-01';
+                // }
 
             } // if ($enriqueceCPF)
 
@@ -1404,9 +1404,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $errors[] = ['id' => 20, 'msg' => "Nome inválido/Não informado", 'slug' => "nome"];
             }
 
-            if (empty($dados['sexo'])) {
-                $errors[] = ['id' => 57, 'msg' => "Sexo inválido/não informado", 'slug' => "sexo"];
-            }
+            // if (empty($dados['sexo'])) {
+            //     $errors[] = ['id' => 57, 'msg' => "Sexo inválido/não informado", 'slug' => "sexo"];
+            // }
 
             if (empty($dados['endereco_estado'])) {
                 $errors[] = ['id' => 21, 'msg' => "UF inválido.", 'slug' => "uf"];
@@ -1940,8 +1940,6 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
     {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
 
-        $dados['registro']['sexo'] = 'M';
-        $dados['registro']['data_nascimento'] = '1981-12-02';
         $reg = $dados['registro'];
         // echo "<pre>";print_r($reg);echo "</pre>";die();
 
