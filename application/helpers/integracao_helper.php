@@ -1150,14 +1150,14 @@ if ( ! function_exists('app_integracao_rastrecall_valida_regras'))
         if (empty($dados['endereco_cep']))
             $dados['endereco_cep'] = '06454000';
 
-        if (empty($dados['sexo']))
-            $dados['sexo'] = 'M';
+        // if (empty($dados['sexo']))
+        //     $dados['sexo'] = 'M';
 
-        if (empty($dados['data_nascimento'])) {
-            $dados['data_nascimento'] = '2000-01-01';
-        } elseif (!app_validate_data_americana($dados['data_nascimento'])) {
-            $dados['data_nascimento'] = '2000-01-01';
-        }
+        // if (empty($dados['data_nascimento'])) {
+        //     $dados['data_nascimento'] = '2000-01-01';
+        // } elseif (!app_validate_data_americana($dados['data_nascimento'])) {
+        //     $dados['data_nascimento'] = '2000-01-01';
+        // }
 
         // IDADE - Pessoa física maior de 18 anos
         // E-mail Patini - 28 de nov de 2018 17:19
@@ -1382,14 +1382,14 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 if (empty($dados['endereco_cep']) || $dados['endereco_cep'] == "99999999")
                     $dados['endereco_cep'] = '06454000';
 
-                if (empty($dados['sexo']))
-                    $dados['sexo'] = 'M';
+                // if (empty($dados['sexo']))
+                //     $dados['sexo'] = 'M';
 
-                if (empty($dados['data_nascimento'])) {
-                    $dados['data_nascimento'] = '2000-01-01';
-                } elseif (!app_validate_data_americana($dados['data_nascimento'])) {
-                    $dados['data_nascimento'] = '2000-01-01';
-                }
+                // if (empty($dados['data_nascimento'])) {
+                //     $dados['data_nascimento'] = '2000-01-01';
+                // } elseif (!app_validate_data_americana($dados['data_nascimento'])) {
+                //     $dados['data_nascimento'] = '2000-01-01';
+                // }
 
             } // if ($enriqueceCPF)
 
@@ -1397,9 +1397,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $errors[] = ['id' => 20, 'msg' => "Nome inválido/Não informado", 'slug' => "nome"];
             }
 
-            if (empty($dados['sexo'])) {
-                $errors[] = ['id' => 57, 'msg' => "Sexo inválido/não informado", 'slug' => "sexo"];
-            }
+            // if (empty($dados['sexo'])) {
+            //     $errors[] = ['id' => 57, 'msg' => "Sexo inválido/não informado", 'slug' => "sexo"];
+            // }
 
             if (empty($dados['endereco_estado'])) {
                 $errors[] = ['id' => 21, 'msg' => "UF inválido.", 'slug' => "uf"];
@@ -1929,8 +1929,6 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
     {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
 
-        $dados['registro']['sexo'] = 'M';
-        $dados['registro']['data_nascimento'] = '1981-12-02';
         $reg = $dados['registro'];
         // echo "<pre>";print_r($reg);echo "</pre>";die();
 
@@ -2462,75 +2460,5 @@ if ( ! function_exists('app_integracao_quero_quero')) {
                 $response->msg = $validaRegra->errors;
             }
         }
-
-        return $response;
-    }
-}
-if ( ! function_exists('app_integracao_cap_data_sorteio')) {
-    function app_integracao_cap_data_sorteio($formato, $dados = array())
-    {
-        $data           = null;
-        $pedido_id      = issetor($dados["registro"]["pedido_id"], 0);
-        $data_sorteio   = issetor($dados["registro"]["data_sorteio"], null);
-        $formato        = emptyor($formato, 'dmY');
-
-        $CI =& get_instance();
-        $CI->load->model("Capitalizacao_Sorteio_Model", "capitalizacao_sorteio");
-
-        return $CI->capitalizacao_sorteio->defineDataSorteio($pedido_id, $formato, $data_sorteio);
-    }
-}
-if ( ! function_exists('app_integracao_cap_remessa')) {
-    function app_integracao_cap_remessa($formato, $dados = array())
-    {
-        $CI =& get_instance();
-        $CI->load->model('capitalizacao_model');
-
-        if((isset($dados['registro']['dados'][0]['num_remessa'])) && (isset($dados['registro']['dados'][0]['capitalizacao_id'])) ){
-            $num_remessa = $dados['registro']['dados'][0]['num_remessa'] += 1;
-            $data_cap    = array('num_remessa' => $num_remessa);
-            $CI->capitalizacao_model->update($dados['registro']['dados'][0]['capitalizacao_id'], $data_cap, TRUE);
-
-            return true;
-        }else{
-            return false;
-        }
-    }
-}
-if ( ! function_exists('app_integracao_quero_quero_define_operacao')) {
-    function app_integracao_quero_quero_define_operacao($produto_seg)
-    {
-        $result = (object) ['status' => false, 'msg' => []];
-
-        if (empty($produto_seg)) {
-            $result->msg = ['id' => -1, 'msg' => "Código do Produto Seguradora Não informado", 'slug' => "cod_prod_seg"];
-            return $result;
-        }
-
-        $result->parceiro_id = 80;
-        $result->email = "queroquero@sisconnects.com.br";
-        $result->produto_parceiro_id = 90;
-
-        if ($produto_seg == '3621') {
-            $result->produto_parceiro_plano_id = 114;
-        } elseif ($produto_seg == '3622') {
-            $result->produto_parceiro_plano_id = 115;
-        } else {
-            $result->msg = ['id' => 39, 'msg' => "Produto ({$result->produto}) não configurado", 'slug' => "produto"];
-            return $result;
-        }
-
-        // Dados para definição do parceiro, produto e plano
-        $acesso = app_integracao_generali_dados([
-            "email" => $result->email,
-            "parceiro_id" => $result->parceiro_id,
-            "produto_parceiro_id" => $result->produto_parceiro_id,
-            "produto_parceiro_plano_id" => $result->produto_parceiro_plano_id,
-        ]);
-
-        $result->apikey = $acesso->apikey;
-        $result->parceiro = $acesso->parceiro;
-        $result->status = true;
-        return $result;
     }
 }
