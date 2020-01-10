@@ -1837,7 +1837,7 @@ if ( ! function_exists('trataRetorno'))
         $txt = app_remove_especial_caracteres($txt);
         $txt = preg_replace("/[^ |A-Z|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
         $txt = preg_replace("/\s{2,3000}/", " ", $txt);
-        $txt = preg_replace("/[\\|\/]/", "-", $txt);
+        // $txt = preg_replace("/[\\|\/]/", "-", $txt);
         return $txt;
     }
 }
