@@ -81,7 +81,6 @@ class Short_url
             CURLOPT_HTTPHEADER => $httpHeader
         ));
 
-
         $response = curl_exec($curl);
         $httpCode = curl_getinfo($curl , CURLINFO_HTTP_CODE);
         $error = curl_error($curl);

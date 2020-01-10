@@ -472,6 +472,72 @@ if ( ! function_exists('app_integracao_file_name_sulacap')) {
     }
 
 }
+if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
+
+    function app_integracao_csv_retorno_novomundo($formato, $dados = array())
+    {
+    $CI=& get_instance();
+    $CI->load->model('integracao_model');
+
+    $os     =$dados['registro']['num_voucher'];
+    $status_troca   =$dados['registro']['status_troca'];
+
+    switch($status_troca)
+    {
+        case "UTILIZADO":
+        case "CANCELADO":
+            $CI->integracao_model->update_status_novomundo($os, $status_troca);
+        break;
+        default:
+        break;
+    }
+    }
+
+}
+if ( ! function_exists('app_integracao_file_name_novomundo')) {
+
+    function app_integracao_file_name_novomundo($formato, $dados = array())
+    {
+        $data = date('Ymd');
+    $ext=isset($dados['item']['tipo_layout'])?strtolower($dados['item']['tipo_layout']):"csv";
+        $file = "{$formato}{$data}.{$ext}";
+        return $file;
+    }
+
+}
+if ( ! function_exists('app_integracao_zip_extract_novomundo')) {
+
+    function app_integracao_zip_extract_novomundo($formato, $dados = array())
+    {
+    $diretorio  = $dados['registro']['file'];
+    $arquivo    = $dados['registro']['fileget'];
+    $diretorio  = str_replace($arquivo, "", $diretorio);
+    $novo_diretorio = str_replace(".zip", "", $arquivo);
+
+    if(!file_exists($diretorio . '/' . $novo_diretorio))
+    {
+        mkdir($diretorio . '/' . $novo_diretorio, 0777, true);
+        }
+
+    rename($diretorio . '/' . $arquivo, $diretorio . '/' . $novo_diretorio . '/' . $arquivo );
+    
+    $zip = new ZipArchive;
+    $res = $zip->open($diretorio . '/' . $novo_diretorio . '/' . $arquivo);
+    if ($res === TRUE) 
+    {
+        $zip->extractTo($diretorio . '/' . $novo_diretorio);
+        $zip->close();
+    } 
+    else 
+    {
+        echo "Erro na extracao de arquivo:$arquivo";
+            return false;
+    }
+
+        return true;
+    }
+
+}
 if ( ! function_exists('app_integracao_format_file_name_ret_sis')) {
 
     function app_integracao_format_file_name_ret_sis($formato, $dados = array())
@@ -755,8 +821,6 @@ if ( ! function_exists('app_integracao_rastrecall_sms')) {
             return $response;
         }
 
-
-
         // Campos para cotação
         $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id, 'GET', [], $acesso);
         if (empty($camposCotacao['status'])){
@@ -983,7 +1047,6 @@ if ( ! function_exists('app_get_api'))
 {
     function app_get_api($service, $method = 'GET', $fields = [], $acesso = null)
     {
-
         $CI =& get_instance();
         $apikey = empty($acesso) ? $CI->session->userdata("apikey") : $acesso->apikey;
         $url = $CI->config->item("URL_sisconnects") ."admin/api/{$service}";
@@ -1051,7 +1114,7 @@ if ( ! function_exists('app_integracao_rastrecall_valida_regras'))
 
         // Enriquecimento do CPF
         $cpf = substr($dados['cnpj_cpf'], -11);
-        $enriquecido = app_get_api("enriqueceCPF/$cpf/". $dados['produto_parceiro_id'], 'GET', [], false, $acesso);
+        $enriquecido = app_get_api("enriqueceCPF/$cpf/". $dados['produto_parceiro_id'], 'GET', [], $acesso);
 
         if (!empty($enriquecido['status'])){
             $enriquecido = $enriquecido['response'];
@@ -1213,9 +1276,7 @@ if ( ! function_exists('app_integracao_rastrecall_valida_regras'))
             $fields['emailAPI'] = app_get_userdata("email");
 
             // Cotação
-            $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields),false, $acesso);
-
-
+            $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields), $acesso);
 
             if (empty($cotacao['status'])) {
                 $response->errors = ['id' => -1, 'msg' => $cotacao['response'], 'slug' => "insere_cotacao"];
@@ -2460,5 +2521,75 @@ if ( ! function_exists('app_integracao_quero_quero')) {
                 $response->msg = $validaRegra->errors;
             }
         }
+
+        return $response;
+    }
+}
+if ( ! function_exists('app_integracao_cap_data_sorteio')) {
+    function app_integracao_cap_data_sorteio($formato, $dados = array())
+    {
+        $data           = null;
+        $pedido_id      = issetor($dados["registro"]["pedido_id"], 0);
+        $data_sorteio   = issetor($dados["registro"]["data_sorteio"], null);
+        $formato        = emptyor($formato, 'dmY');
+
+        $CI =& get_instance();
+        $CI->load->model("Capitalizacao_Sorteio_Model", "capitalizacao_sorteio");
+
+        return $CI->capitalizacao_sorteio->defineDataSorteio($pedido_id, $formato, $data_sorteio);
+    }
+}
+if ( ! function_exists('app_integracao_cap_remessa')) {
+    function app_integracao_cap_remessa($formato, $dados = array())
+    {
+        $CI =& get_instance();
+        $CI->load->model('capitalizacao_model');
+
+        if((isset($dados['registro']['dados'][0]['num_remessa'])) && (isset($dados['registro']['dados'][0]['capitalizacao_id'])) ){
+            $num_remessa = $dados['registro']['dados'][0]['num_remessa'] += 1;
+            $data_cap    = array('num_remessa' => $num_remessa);
+            $CI->capitalizacao_model->update($dados['registro']['dados'][0]['capitalizacao_id'], $data_cap, TRUE);
+
+            return true;
+        }else{
+            return false;
+        }
+    }
+}
+if ( ! function_exists('app_integracao_quero_quero_define_operacao')) {
+    function app_integracao_quero_quero_define_operacao($produto_seg)
+    {
+        $result = (object) ['status' => false, 'msg' => []];
+
+        if (empty($produto_seg)) {
+            $result->msg = ['id' => -1, 'msg' => "Código do Produto Seguradora Não informado", 'slug' => "cod_prod_seg"];
+            return $result;
+        }
+
+        $result->parceiro_id = 80;
+        $result->email = "queroquero@sisconnects.com.br";
+        $result->produto_parceiro_id = 90;
+
+        if ($produto_seg == '3621') {
+            $result->produto_parceiro_plano_id = 114;
+        } elseif ($produto_seg == '3622') {
+            $result->produto_parceiro_plano_id = 115;
+        } else {
+            $result->msg = ['id' => 39, 'msg' => "Produto ({$result->produto}) não configurado", 'slug' => "produto"];
+            return $result;
+        }
+
+        // Dados para definição do parceiro, produto e plano
+        $acesso = app_integracao_generali_dados([
+            "email" => $result->email,
+            "parceiro_id" => $result->parceiro_id,
+            "produto_parceiro_id" => $result->produto_parceiro_id,
+            "produto_parceiro_plano_id" => $result->produto_parceiro_plano_id,
+        ]);
+
+        $result->apikey = $acesso->apikey;
+        $result->parceiro = $acesso->parceiro;
+        $result->status = true;
+        return $result;
     }
 }
