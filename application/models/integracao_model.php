@@ -277,12 +277,11 @@ Class Integracao_Model extends MY_Model
     }
 
     public function run_r($integracao_id){
-	echo "run_r($integracao_id)\n";
+        echo "run_r($integracao_id)\n";
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
         $this->load->model('integracao_log_detalhe_campo_model', 'integracao_log_detalhe_campo');
         $this->load->model('integracao_layout_model', 'integracao_layout');
-
 
         $this->_database->select('integracao.*');
         $this->_database->where("integracao.integracao_id", $integracao_id);
@@ -291,18 +290,14 @@ Class Integracao_Model extends MY_Model
         $this->_database->where("integracao.habilitado", 1);
         $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
 
-	try
-	{
-        	$result = $this->get_all();
-	}
-	catch (Exception $e) 
-	{
-		echo "e=" . $e;
-	}
-
-	//echo "this=" . 		print_r($this, true);
-	//echo "result=" . 	print_r($result, true);
-
+    	try
+    	{
+            	$result = $this->get_all();
+    	}
+    	catch (Exception $e) 
+    	{
+    		echo "e=" . $e;
+    	}
 
         if($result){
             $result = $result[0];
@@ -354,7 +349,7 @@ Class Integracao_Model extends MY_Model
     }
 
     public function run_s($integracao_id){
-
+        echo "run_s($integracao_id)\n";
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
 
@@ -443,7 +438,6 @@ Class Integracao_Model extends MY_Model
     }
 
     private function getFile($integracao = array(), $file){
-	//echo "getFile::" . print_r($file, true);
         try{
 
             switch ($integracao['integracao_comunicacao_id']){
@@ -530,9 +524,6 @@ Class Integracao_Model extends MY_Model
             'fileget' => '',
         );
 
-	//echo "getFileFTP::" . print_r($list, true) . "\n";
-
-
         $file_processar = '';
         if($list) {
             foreach ($list as $index => $item) {
@@ -551,14 +542,11 @@ Class Integracao_Model extends MY_Model
             }
         }
 
-	//echo "getFileFTP::file_processar::" . print_r($file_processar, true) . "\n";
-
         if(!empty($file_processar)){
             $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
             if(!file_exists($diretorio)){
                 mkdir($diretorio, 0777, true);
             }
-	//echo "getFileFTP::diretorio::" . print_r($diretorio, true) . "\n";
 
             $fileget = basename($file_processar);
             if($this->ftp->download($file_processar, "{$diretorio}/{$fileget}", 'binary')){
@@ -570,7 +558,6 @@ Class Integracao_Model extends MY_Model
 
         }
         $this->ftp->close();
-	//echo "getFileFTP::result::" . print_r($result, true) . "\n";
         return $result;
     }
 
@@ -672,11 +659,13 @@ Class Integracao_Model extends MY_Model
 
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
         $this->data_template_script['parceiro_id'] = $integracao['parceiro_id'];
-	$this->tipo_layout=$integracao['tipo_layout'];
-	$this->layout_separador=$integracao['layout_separador'];
+    	$this->tipo_layout=$integracao['tipo_layout'];
+    	$this->layout_separador=$integracao['layout_separador'];
 
         $integracao['script_sql'] = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
-        $registros = $this->_database->query($integracao['script_sql'])->result_array();
+        $query = $this->_database->query($integracao['script_sql']);
+        $registros = $query->result_array();
+        $query->next_result();
 
         $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], count($registros));
         $arRet = ['file' => '', 'integracao_log_id' => $integracao_log['integracao_log_id'], 'qtde_reg' => count($registros)];
@@ -745,7 +734,7 @@ Class Integracao_Model extends MY_Model
         $arRet['dados'] = $registros;
 
         //gera todas as linhas
-	$i=0;
+        $i=0;
         foreach ($layout as $lay) {
 		$i++;
             if ($lay['multiplo'] == 0 || count($layout)==$i) {
@@ -892,7 +881,7 @@ Class Integracao_Model extends MY_Model
 
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
         $integracao['script_sql'] = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
-        $sql = $integracao['script_sql']; 
+        $sql = $integracao['script_sql'];
 
         $data = array();
         $id_log = 0;
