@@ -576,7 +576,7 @@ Class Integracao_Model extends MY_Model
     private function processLine($multiplo, $layout, $registro, $integracao_log, $integracao_log_detalhe_id = null, $integracao = null) {
         $this->data_template_script['totalRegistros']++;
         if (!empty($multiplo)) $this->data_template_script['totalItens']++;
-        
+
         $line = $this->getLinha($layout, $registro, $integracao_log, $integracao_log_detalhe_id, $integracao);
         if (empty($line)){
             $this->data_template_script['totalRegistros']--;
@@ -737,12 +737,25 @@ Class Integracao_Model extends MY_Model
         //gera todas as linhas
         $i=0;
         foreach ($layout as $lay) {
-		$i++;
-            if ($lay['multiplo'] == 0 || count($layout)==$i) {
+            $i++;
+            $unicoRegistro = false;
+
+            if ( count($layout) == $i )
+            {
+                $unicoRegistro = true;
+                $layout_m[] = $lay;
+            }
+
+            if ($lay['multiplo'] == 0 || $unicoRegistro) {
                 $linhas = $this->processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao);
                 $layout_m = [];
-                $line = $this->processLine($lay['multiplo'], $lay['dados'], !empty($registros) ? $registros[0] : [], null);
-                if (!empty($line)) $linhas[] = $line;
+
+                if ( !$unicoRegistro )
+                {
+                    $line = $this->processLine($lay['multiplo'], $lay['dados'], !empty($registros) ? $registros[0] : [] );
+                    if (!empty($line)) $linhas[] = $line;
+                }
+
             } else {
                 $layout_m[] = $lay;
             }
@@ -1057,7 +1070,7 @@ Class Integracao_Model extends MY_Model
                 }
                 elseif (!empty($item['valor_padrao'])){
                         $campo = $item['valor_padrao'];
-		}
+                }
 
             }elseif (!empty($item['function'])){
 
@@ -1103,31 +1116,30 @@ Class Integracao_Model extends MY_Model
             }
 
             if (!is_null($campo))
-	    {
-		if($this->tipo_layout=="CSV")
-		{
-                	$pre_result = trataRetorno($campo);
-		}
-		else
-		{
-                	$pre_result .= mb_str_pad(trataRetorno($campo), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
-		}
+            {
+        		if($this->tipo_layout=="CSV")
+        		{
+                    $pre_result = trataRetorno($campo);
+        		}
+        		else
+        		{
+                    $pre_result .= mb_str_pad(trataRetorno($campo), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
+        		}
             }
 
-	    $sep=$this->layout_separador;
-
-	    if($this->tipo_layout=="CSV")
-	    {
-		if($ind==count($layout)-1)
-		{
-			$sep="";
-		}
-             	$result .= $pre_result . $sep;
-	    }
-	    else
-	    {
-             	$result .= mb_substr($pre_result,0,$item['tamanho']);
-	    }
+    	    $sep=$this->layout_separador;
+    	    if($this->tipo_layout=="CSV")
+    	    {
+        		if($ind==count($layout)-1)
+        		{
+        			$sep="";
+        		}
+                $result .= $pre_result . $sep;
+    	    }
+    	    else
+    	    {
+                $result .= mb_substr($pre_result,0,$item['tamanho']);
+    	    }
         }
 
         // Valida a chave da criação do log
