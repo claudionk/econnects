@@ -2015,8 +2015,8 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
             $geraDados['cpf_vendedor']              = $reg['cpf_vendedor'];
             $geraDados['nome_vendedor']             = $reg['nome_vendedor'];
             $geraDados['nome']                      = $reg['nome'];
-            $geraDados['sexo']                      = $reg['sexo'];
-            $geraDados['data_nascimento']           = $reg['data_nascimento'];
+            $geraDados['sexo']                      = null;
+            $geraDados['data_nascimento']           = null;
             $geraDados['ddd_residencial']           = $reg['ddd_residencial'];
             $geraDados['telefone']                  = $reg['telefone'];
             $geraDados['ddd_comercial']             = $reg['ddd_comercial'];
