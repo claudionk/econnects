@@ -709,8 +709,16 @@ Class Integracao_Model extends MY_Model
 
         // Trata o nome do arquivo
         $idxF = app_search( $layout, 'F', 'tipo' );
-        if ( $idxF >= 0 ) {
-            $filename = $this->getLinha($layout[$idxF]['dados'], $registros, $integracao_log);
+        if ( $idxF >= 0 )
+        {
+            // valida se o texto será upper, low ou automatico
+            $str_upper = null;
+            if ( !empty($layout[$idxF]['dados']) && isset($layout[$idxF]['dados'][0]['str_upper']) )
+            {
+                $str_upper = $layout[$idxF]['dados'][0]['str_upper'];
+            }
+
+            $filename = $this->getLinha($layout[$idxF]['dados'], $registros, $integracao_log, null, null, $str_upper);
             $filename = $filename[0];
             unset($layout[$idxF]);
         }
@@ -740,7 +748,7 @@ Class Integracao_Model extends MY_Model
             $i++;
             $unicoRegistro = false;
 
-            if ( count($layout) == $i )
+            if ( count($layout) == $i && empty($layout_m) )
             {
                 $unicoRegistro = true;
                 $layout_m[] = $lay;
@@ -752,7 +760,7 @@ Class Integracao_Model extends MY_Model
 
                 if ( !$unicoRegistro )
                 {
-                    $line = $this->processLine($lay['multiplo'], $lay['dados'], !empty($registros) ? $registros[0] : [] );
+                    $line = $this->processLine($lay['multiplo'], $lay['dados'], !empty($registros) ? $registros[0] : [], null );
                     if (!empty($line)) $linhas[] = $line;
                 }
 
@@ -1043,7 +1051,7 @@ Class Integracao_Model extends MY_Model
         return $integracao_log;
     }
 
-    private function getLinha($layout, $registro = array(), $log = array(), $integracao_log_detalhe_id = null, $integracao = null){
+    private function getLinha($layout, $registro = array(), $log = array(), $integracao_log_detalhe_id = null, $integracao = null, $upCase = 1){
 
         $result = "";
         $arResult = [];
@@ -1119,11 +1127,11 @@ Class Integracao_Model extends MY_Model
             {
         		if($this->tipo_layout=="CSV")
         		{
-                    $pre_result = trataRetorno($campo);
+                    $pre_result = trataRetorno($campo, $upCase);
         		}
         		else
         		{
-                    $pre_result .= mb_str_pad(trataRetorno($campo), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
+                    $pre_result .= mb_str_pad(trataRetorno($campo, $upCase), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
         		}
             }
 

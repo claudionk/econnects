@@ -499,7 +499,7 @@ if ( ! function_exists('app_integracao_file_name_novomundo')) {
     function app_integracao_file_name_novomundo($formato, $dados = array())
     {
         $data = date('Ymd');
-    $ext=isset($dados['item']['tipo_layout'])?strtolower($dados['item']['tipo_layout']):"csv";
+        $ext=isset($dados['item']['tipo_layout'])?strtolower($dados['item']['tipo_layout']):"csv";
         $file = "{$formato}{$data}.{$ext}";
         return $file;
     }
