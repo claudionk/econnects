@@ -1832,10 +1832,19 @@ if ( ! function_exists('app_search'))
 
 if ( ! function_exists('trataRetorno'))
 {
-    function trataRetorno($txt) {
-        $txt = mb_strtoupper(trim($txt), 'UTF-8');
+    function trataRetorno($txt, $up = 1) {
+
+        if ($up === 1)
+        {
+            $txt = mb_strtoupper(trim($txt), 'UTF-8');
+        } elseif ($up === 0) {
+            $txt = mb_strtolower(trim($txt), 'UTF-8');
+        } else {
+            $txt = mb_convert_encoding(trim($txt), "UTF-8", "auto");
+        }
+
         $txt = app_remove_especial_caracteres($txt);
-        $txt = preg_replace("/[^ |A-Z|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
+        $txt = preg_replace("/[^ |A-Z|a-z|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
         $txt = preg_replace("/\s{2,3000}/", " ", $txt);
         // $txt = preg_replace("/[\\|\/]/", "-", $txt);
         return $txt;
