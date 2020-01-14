@@ -318,12 +318,11 @@ Class Integracao_Model extends MY_Model
             $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
 
             if(empty($file))
-    	    {
-                	$file = $this->getFileName($result, $layout_filename);
-    	    }
+            {
+                $file = $this->getFileName($result, $layout_filename);
+            }
 
-	       $result_file = $this->getFile($result, $file);
-
+            $result_file = $this->getFile($result, $file);
 
             $result_process = [];
             if(!empty($result_file['file']) && $result['tipo_layout']!='ZIP')
@@ -1062,12 +1061,14 @@ Class Integracao_Model extends MY_Model
         foreach ($layout as $ind => $item) {
 
             $campo = null;
+            $trim = true;
             $pre_result = '';
             $qnt_valor_padrao = $item['tamanho'];
 
             if(strlen($item['valor_padrao']) > 0 && $item['qnt_valor_padrao'] > 0){
                 $campo = '';
                 $qnt_valor_padrao = $item['qnt_valor_padrao'];
+                $trim = false;
 
                 if (!empty($item['nome_banco'])){
                     if(isset($registro[$item['nome_banco']])){
@@ -1077,7 +1078,7 @@ Class Integracao_Model extends MY_Model
                     }
                 }
                 elseif (!empty($item['valor_padrao'])){
-                        $campo = $item['valor_padrao'];
+                    $campo = $item['valor_padrao'];
                 }
 
             }elseif (!empty($item['function'])){
@@ -1127,11 +1128,11 @@ Class Integracao_Model extends MY_Model
             {
         		if($this->tipo_layout=="CSV")
         		{
-                    $pre_result = trataRetorno($campo, $upCase);
+                    $pre_result = trataRetorno($campo, $upCase, $trim);
         		}
         		else
         		{
-                    $pre_result .= mb_str_pad(trataRetorno($campo, $upCase), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
+                    $pre_result .= mb_str_pad(trataRetorno($campo, $upCase, $trim), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
         		}
             }
 
