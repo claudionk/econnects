@@ -4,6 +4,7 @@
     z-index: 1;
     top: 0;
     left: 0;
+    padding: 0 12px;
 }
 .text-sub-fixed {
     margin-top: 110px;
@@ -54,11 +55,28 @@
     -webkit-box-shadow: inherit;
     box-shadow: inherit;
 }
-.maisprodutos-wrapper {
+.maisprodutos {
+    overflow-y: hidden;
+    max-height: 0; /* approximate max height */
+    background: #fff;
+    position: fixed;
+    bottom: 67px;
+    left: 0;
+    width: 100%;
+    height: 91%; /*tamanho da tela*/
+    z-index: 1;
+    
     transition: all 0.5s ease-in 0s;
     -webkit-transition: all 0.5s ease-in 0s;
     -moz-transition: all 0.5s ease-in 0s;
     -ms-transition: all 0.5s ease-in 0s;
-    -o-transition: all 0.5s ease-in 0s;
+    -o-transition: all 0.5s ease-in 0s;  
 }
-
+.maisprodutos.closed {
+    max-height: 100%;
+    transition: all 0.5s ease-out 0s;
+    -webkit-transition: all 0.5s ease-out 0s;
+    -moz-transition: all 0.5s ease-out 0s;
+    -ms-transition: all 0.5s ease-out 0s;
+    -o-transition: all 0.5s ease-out 0s;
+}
