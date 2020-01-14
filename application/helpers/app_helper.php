@@ -1832,20 +1832,35 @@ if ( ! function_exists('app_search'))
 
 if ( ! function_exists('trataRetorno'))
 {
-    function trataRetorno($txt, $up = 1) {
+    function trataRetorno($txt, $up = 1, $trim = true) {
+
+        $replaceEspaco = true;
+        if ( !empty($txt) && !empty($trim) )
+        {
+            $txt = trim($txt);
+        }
+
+        // caso não tenha que dar o trim
+        if ( empty($trim) )
+        {
+            $replaceEspaco = false;
+        }
 
         if ($up === 1)
         {
-            $txt = mb_strtoupper(trim($txt), 'UTF-8');
+            $txt = mb_strtoupper($txt, 'UTF-8');
         } elseif ($up === 0) {
-            $txt = mb_strtolower(trim($txt), 'UTF-8');
+            $txt = mb_strtolower($txt, 'UTF-8');
         } else {
-            $txt = mb_convert_encoding(trim($txt), "UTF-8", "auto");
+            $txt = mb_convert_encoding($txt, "UTF-8", "auto");
         }
 
         $txt = app_remove_especial_caracteres($txt);
         $txt = preg_replace("/[^ |A-Z|a-z|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
-        $txt = preg_replace("/\s{2,3000}/", " ", $txt);
+        if ($replaceEspaco)
+        {
+            $txt = preg_replace("/\s{2,3000}/", " ", $txt);
+        }
         // $txt = preg_replace("/[\\|\/]/", "-", $txt);
         return $txt;
     }
