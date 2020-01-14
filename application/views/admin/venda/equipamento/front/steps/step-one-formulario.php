@@ -29,21 +29,25 @@
     </div>
 </div>
 
-<div class="btns">
-    <!-- // Widget END -->
-    <?php if ($layout == "base") { ?>
-        <a href="<?php echo base_url("{$current_controller_uri}/index")?>" class="btn  btn-app btn-primary">
-            <i class="fa fa-arrow-left"></i> Voltar
-        </a>
+<div class="row">
+    <div class="col-md-6">
+        <div class="btns">
+            <!-- // Widget END -->
+            <?php if ($layout == "base") { ?>
+                <a href="<?php echo base_url("{$current_controller_uri}/index")?>" class="btn  btn-app btn-primary">
+                    <i class="fa fa-arrow-left"></i> Voltar
+                </a>
 
-        <a href="<?php echo base_url("admin/clientes/view/")?>" class="btn  btn-app btn-primary btn-detalhes disabled ls-modal">
-            <i class="fa fa-chain"></i> Detalhes do Cliente
-        </a>
-    <?php } ?>
+                <a href="<?php echo base_url("admin/clientes/view/")?>" class="btn  btn-app btn-primary btn-detalhes disabled ls-modal">
+                    <i class="fa fa-chain"></i> Detalhes do Cliente
+                </a>
+            <?php } ?>
 
-    <a class="btn btn-app btn-primary btn-proximo background-primary border-primary" onclick="$('#validateSubmitForm').submit();" id='btn-proximo'>
-        Próximo
-    </a>
+            <a class="btn btn-app btn-primary btn-proximo background-primary border-primary" onclick="$('#validateSubmitForm').submit();" id='btn-proximo'>
+                Próximo
+            </a>
+        </div>
+    </div>
 </div>
 
 <div id="detalhe-cliente" class="modal fade">

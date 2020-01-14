@@ -264,7 +264,7 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
     text-align: center;
 }
 .btns .btn-proximo{
-    width: 98%;
+    width: 100%;
     padding: 7px 10px;
     border-radius: 5px;
     text-transform: uppercase;
@@ -272,6 +272,7 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
     font-weight: 100;
     margin-top:4rem;
     margin-bottom:4rem;
+    box-shadow: 0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23);
 }
 .btns .btn-proximo .fa-angle-right{
     margin-left: 10px;
@@ -447,7 +448,7 @@ section{ background-color: #eeeeee; padding-top: 0px!important; }
 }
 
 .btn.disabled, .btn[disabled], fieldset[disabled] .btn {
-    width: 70%;
+    width: 100%;
     /*background: #c41f1b;*/
     padding: 7px 10px;
     border-radius: 5px;
