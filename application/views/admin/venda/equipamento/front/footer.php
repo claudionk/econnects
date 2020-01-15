@@ -24,4 +24,9 @@
         e.preventDefault();
         $(".maisprodutos").toggleClass("closed");
     });
+
+    $("#menu-close-compras").click(function(e) {
+        e.preventDefault();
+        $(".maisprodutos").toggleClass("closed");
+    });
 </script>

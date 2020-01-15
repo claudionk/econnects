@@ -6,7 +6,9 @@
 
 
 <div style="margin-left: 3%; margin-right: 3%;">
-    <a id="menu-close" href="#" class="btn btn-default btn-lg pull-right toggle">&times;</a>
+    <div style="display: inline-block;width: 100%;">
+        <a id="menu-close-compras" href="#" class="btn btn-default btn-lg pull-right toggle" style="color: #888">&times;</a>
+    </div>
 <div class="row">
     <div class="col-xs-6">
             <a href="<?php echo base_url("$current_uri/index")?>">

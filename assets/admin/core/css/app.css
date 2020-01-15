@@ -60,10 +60,10 @@
     max-height: 0; /* approximate max height */
     background: #fff;
     position: fixed;
-    bottom: 67px;
+    bottom: 0;
     left: 0;
     width: 100%;
-    height: 91%; /*tamanho da tela*/
+    height: 100%; /*tamanho da tela*/
     z-index: 1;
     
     transition: all 0.5s ease-in 0s;
