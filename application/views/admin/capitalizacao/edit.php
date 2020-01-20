@@ -195,7 +195,7 @@ if($_POST)
                                                     <?php $field_name = 'valor_custo_titulo';?>
                                                     <div class="form-group valor_custo_titulo <?php if (isset($row['tipo_custo']) && $row['tipo_custo'] == '1') echo 'hide'; ?>">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Custo do título *</label>
-                                                        <div class="col-md-8"><input class="form-control inputmask-numero" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div> <!-- //Alterado para Quero Quero -->
+                                                        <div class="col-md-8"><input class="form-control" ui-number-mask="10" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div> <!-- //Alterado para Quero Quero -->                                                               
                                                     </div>
 
                                                     <?php $field_name = 'valor_minimo_participacao';?>
