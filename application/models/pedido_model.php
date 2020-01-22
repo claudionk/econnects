@@ -1511,7 +1511,7 @@ Class Pedido_Model extends MY_Model
         , 'PAGO' as status_parcela
         , pedido.criacao as data_processamento_cli_sis
         , DATE_FORMAT(ae.data_cancelamento, '%d/%m/%Y') AS data_cancelamento
-        , ae.valor_premio_total as valor_parcela_total
+        , ae.valor_premio_total as valor_parcela
         , ae.valor_premio_total as PremioBruto 
         , ae.valor_premio_net AS PremioLiquido
         , cb.nome as cobertura
