@@ -1310,6 +1310,7 @@ Class Pedido_Model extends MY_Model
         $this->_database->select("IF(pr.slug = 'generico', cg.nota_fiscal_valor, IF(pr.slug = 'seguro_viagem', csv.nota_fiscal_valor, ce.nota_fiscal_valor)) as nota_fiscal_valor", FALSE);
 
         $this->_database->select("IF(pr.slug = 'generico', cg.premio_liquido, IF(pr.slug = 'seguro_viagem', csv.premio_liquido, ce.premio_liquido)) * (IF(pr.slug = 'generico', cg.iof, IF(pr.slug = 'seguro_viagem', csv.iof, ce.iof))/100) as IOF", FALSE);
+        $this->_database->select("IF(pr.slug = 'generico', ag.data_adesao, IF(pr.slug = 'seguro_viagem', asv.data_adesao, ae.data_adesao)) as status_data", FALSE);
 
         $this->_database->select("(SELECT cmg.valor
         FROM comissao_gerada cmg 
@@ -1352,6 +1353,10 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
         $this->_database->join("usuario u", "u.usuario_id = c.usuario_cotacao_id", "left");
         $this->_database->join("comissao_gerada cmg", "cmg.pedido_id = {$this->_table}.pedido_id AND cmg.parceiro_id = p.parceiro_id", "left");
+
+        $this->_database->join("apolice_seguro_viagem asv", "asv.apolice_id = a.apolice_id and asv.deletado = 0", "left");
+        $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "left");
+        $this->_database->join("apolice_generico ag", "ag.apolice_id = a.apolice_id and ag.deletado = 0", "left");
 
         // colaborador só visualiza os próprios pedidos
         if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
@@ -2686,4 +2691,5 @@ Class Pedido_Model extends MY_Model
         return in_array( $usuario_acl_tipo_id , array( 2 , 11 ) ) ;
     }
 }
+
 
