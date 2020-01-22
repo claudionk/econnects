@@ -1438,25 +1438,71 @@ Class Pedido_Model extends MY_Model
         $where = $this->restrictProdutosPorParceiro($_parceiro_id);
 
         if (!empty($where)) $this->_database->where($where, NULL, FALSE);
-
-        $this->_database->distinct();
-        $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.cnpj, p.nome_fantasia,
-        pp.nome as nome_produto_parceiro, pr.nome as nome_produto, ppp.nome as plano_nome, {$this->_table}.valor_parcela, {$this->_table}.codigo, a.num_apolice, le.sigla as UF, u.nome as vendedor ");
-        $this->_database->select("IF(pp.cod_tpa = '007', '', '') AS plano
+        
+        $this->_database->select("RELAT.*, EQUIP_MARCAS.nome AS marca, EQUIP_LINHAS.nome AS equipamento FROM ( SELECT DISTINCT 
+		  c.cotacao_status_id AS cotacao_status_id
+		, c.parceiro_id AS parceiro_id
+		, c.cotacao_upgrade_id AS cotacao_upgrade_id
+		, c.codigo AS codigo_cotacao
+		, c.cotacao_tipo AS cotacao_tipo
+		, c.motivo AS motivo
+		, c.motivo_ativo AS motivo_ativo
+		, c.motivo_obs AS motivo_obs
+		, c.usuario_cotacao_id AS usuario_cotacao_id
+		, c.usuario_venda_id AS usuario_venda_id
+		, c.cliente_id AS cliente_id
+		, c.deletado AS deletado_cotacao
+		, c.criacao AS criacao_cotacao
+		, c.alteracao_usuario_id AS alteracao_usuario_id_cotacao
+		, c.alteracao AS alteracao_cotacao
+		, c.data_inicio_vigencia AS data_inicio_vigencia
+		, c.data_fim_vigencia AS data_fim_vigencia
+		, pedido.pedido_id AS pedido_id
+		, pedido.cotacao_id AS cotacao_id
+		, pedido.pedido_status_id AS pedido_status_id
+		, pedido.produto_parceiro_pagamento_id AS produto_parceiro_pagamento_id
+		, pedido.valor_estorno AS valor_estorno
+		, pedido.id_usuario_cancelamento AS id_usuario_cancelamento
+		, pedido.codigo AS codigo
+		, pedido.status_data AS status_data
+		, pedido.valor_total AS valor_total
+		, pedido.num_parcela AS num_parcela
+		, pedido.lock AS `lock`
+		, pedido.nao_possui_conta_bancaria AS nao_possui_conta_bancaria
+		, pedido.conta_terceiro AS conta_terceiro
+		, pedido.tipo_conta AS tipo_conta
+		, pedido.favo_tipo AS favo_tipo
+		, pedido.favo_nome AS favo_nome
+		, pedido.favo_doc AS favo_doc
+		, pedido.favo_bco_nome AS favo_bco_nome
+		, pedido.favo_bco_num AS favo_bco_num
+		, pedido.favo_bco_cc AS favo_bco_cc
+		, pedido.favo_bco_cc_dg AS favo_bco_cc_dg
+		, pedido.favo_bco_ag AS favo_bco_ag
+		, pedido.deletado AS deletado
+		, pedido.criacao AS criacao
+		, pedido.alteracao_usuario_id AS alteracao_usuario_id
+		, pedido.alteracao AS alteracao
+        , ps.nome as status
+        , p.cnpj
+        , p.nome_fantasia
+        , pp.nome as nome_produto_parceiro
+        , pr.nome as nome_produto
+        , ppp.nome as plano_nome
+        , a.num_apolice
+        , le.sigla as UF
+        , u.nome as vendedor 
+        , IF(pp.cod_tpa = '007', '', '') AS plano
         , pp.produto_parceiro_id
         , parc.nome as representante
-        , {$this->_table}.pedido_id
         , DATE_FORMAT({$this->_table}.status_data, '%d/%m/%Y') AS data_emissao
         , DATE_FORMAT(ae.data_ini_vigencia, '%d/%m/%Y') AS ini_vigencia
         , DATE_FORMAT(ae.data_fim_vigencia, '%d/%m/%Y') AS fim_vigencia
-        , CONCAT(a.cod_sucursal, a.cod_ramo, pp.cod_tpa, LPAD(substr(a.num_apolice, 8, LENGTH(a.num_apolice) ),8,'0')) AS num_apolice
+        , a.num_apolice_cliente AS num_apolice_cliente,
         , cli.razao_nome AS segurado_nome
         , cli.cnpj_cpf AS documento
-        , ec.nome as equipamento
-        , em.nome as marca
         , ae.equipamento_nome as modelo
         , ae.imei
-        , pp.nome as nome_produto_parceiro
         , ae.nota_fiscal_valor as importancia_segurada
         , fp.nome AS forma_pagto
         , IF(a.apolice_status_id = 2, CONCAT(a.cod_sucursal, a.cod_ramo, LPAD(1,7,'0')), '0') AS num_endosso
@@ -1465,7 +1511,6 @@ Class Pedido_Model extends MY_Model
         , 'PAGO' as status_parcela
         , pedido.criacao as data_processamento_cli_sis
         , DATE_FORMAT(ae.data_cancelamento, '%d/%m/%Y') AS data_cancelamento
-
         , ae.valor_premio_total as valor_parcela
         , ae.valor_premio_total as PremioBruto 
         , ae.valor_premio_net AS PremioLiquido
@@ -1473,6 +1518,8 @@ Class Pedido_Model extends MY_Model
         , IF(ast.nome = 'ATIVA','VENDA',IF(ast.nome = 'CANCELADA','CANCELAMENTO','')) as venda_cancelamento, 
         , FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2) AS PB
         , ac.valor AS PL
+        , `ae`.`equipamento_marca_id`
+        , `ae`.`equipamento_categoria_id`
         , (
         SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2) as valor_comissao
         FROM comissao_gerada cmg
@@ -1487,7 +1534,6 @@ Class Pedido_Model extends MY_Model
         WHERE cmg.pedido_id = {$this->_table}.pedido_id AND parc_com.parceiro_tipo_id = 2
         LIMIT 1
         ) AS valor_comissao
-
         ", FALSE);
 
         $this->_database->from($this->_table);
@@ -1507,14 +1553,13 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("produto pr", "pr.produto_id = pp.produto_id", "inner");
         $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "inner");
         $this->_database->join("cliente cli", "cli.cliente_id = c.cliente_id", "inner");
-        $this->_database->join("vw_Equipamentos_Linhas ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "left");
-        $this->_database->join("vw_Equipamentos_Marcas em", "em.equipamento_marca_id = ae.equipamento_marca_id", "left");
+        //$this->_database->join("vw_Equipamentos_Linhas ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "left");
+        //$this->_database->join("vw_Equipamentos_Marcas em", "em.equipamento_marca_id = ae.equipamento_marca_id", "left");
         $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = ce.produto_parceiro_plano_id", "inner");
 
         $this->_database->join("produto_parceiro_pagamento pppag", "pppag.produto_parceiro_pagamento_id = pedido.produto_parceiro_pagamento_id", "inner");
         $this->_database->join("forma_pagamento fp", "fp.forma_pagamento_id = pppag.forma_pagamento_id", "inner");
         $this->_database->join("apolice_status ast", "ast.apolice_status_id = a.apolice_status_id", "inner");
-
 
         $this->_database->join("
         (
@@ -1523,13 +1568,15 @@ Class Pedido_Model extends MY_Model
                 , cta_m.CTA_Retorno_ok
                 , cta_m.CTA_Retorno_erro
                 , cta_m.num_apolice
+                , cta_m.apolice_id
                 , cta_m.apolice_movimentacao_tipo_id
                 , SUM(iF(cta_m.apolice_movimentacao_tipo_id=1,1,-1) * ae.valor) AS valor
             FROM cta_movimentacao cta_m
             JOIN apolice_endosso ae ON ae.apolice_endosso_id = cta_m.apolice_endosso_id
             WHERE cta_m.CTA_Retorno_ok IS NOT NULL
+              AND cta_m.apolice_movimentacao_tipo_id = 1
             GROUP BY cta_m.CTA_Ag_Retorno, cta_m.CTA_Retorno_ok, cta_m.CTA_Retorno_erro, cta_m.num_apolice, cta_m.apolice_movimentacao_tipo_id
-        ) as cta", "cta.num_apolice = a.num_apolice", "join", FALSE);
+        ) as cta", "cta.apolice_id = a.apolice_id", "join", FALSE);
 
         $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
         $this->_database->join("usuario u", "u.usuario_id = c.usuario_cotacao_id", "left");
@@ -1547,10 +1594,15 @@ Class Pedido_Model extends MY_Model
         $this->_database->where("parc.slug IN('".$slug."')");
         $this->_database->where("cs.slug = 'finalizada'");
         $this->_database->where("{$this->_table}.deletado = 0");
-        $this->_database->where("a.deletado = 0");
+        //$this->_database->where("a.deletado = 0");
+        $this->_database->where( "a.deletado = 0 
+        ) AS RELAT 
+        LEFT JOIN (SELECT DISTINCT equipamento_marca_id, nome FROM vw_Equipamentos_Marcas) AS EQUIP_MARCAS ON RELAT.equipamento_marca_id = EQUIP_MARCAS.equipamento_marca_id
+        LEFT JOIN (SELECT DISTINCT equipamento_categoria_id, nome FROM vw_Equipamentos_Linhas) AS EQUIP_LINHAS ON RELAT.equipamento_categoria_id = EQUIP_LINHAS.equipamento_categoria_id
+        ");
         $query = $this->_database->get();
 
-        // print_r($this->db->last_query()); die;
+        //print_r($this->db->last_query()); exit;
 
         $resp = [];
 
