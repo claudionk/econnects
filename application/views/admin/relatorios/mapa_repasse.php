@@ -1,5 +1,10 @@
 <script type="text/javascript">
 function validaRepresentante() {
+    if (document.frmOpcao.data_inicio.value == '' || 
+        document.frmOpcao.data_fim.value == ''){
+        alert('Informe a Data');
+        return false;
+    }
     if (document.frmOpcao.representante.value == ''){
         alert('Informe o representante');
         return false;
