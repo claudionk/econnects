@@ -64,17 +64,17 @@ $(document).on('click', 'input[type=radio]', function() {
         <div class="row">
             <p>Selecione uma data inicial e final para resgatar os registros.</p>
         </div>
-        
+
         <div class="row">
             <div class="col-md-12 form-group">
                 <?php $field_name = "layout"; $field_label = "Visualização: " ?>
                 <label class="control-label" for="<?php echo $field_name;?>"><?php echo $field_label ?></label>
                 <div class="form-check checkbox-inline">
-                  <input type="radio" class="form-check-input" id="<?php echo $field_name ?>0" name="<?= $field_name ?>" value="mapa_analitico" <? if ($layout == "mapa_analitico") {echo "checked='checked'";} ?> >
+                  <input type="radio" class="form-check-input" id="<?php echo $field_name ?>0" name="<?= $field_name ?>" value="mapa_analitico" <?php if ($layout == "mapa_analitico") {echo "checked='checked'";} ?> >
                   <label class="form-check-label" for="<?php echo $field_name ?>0">Analítico</label>
                 </div>
                 <div class="form-check checkbox-inline">
-                  <input type="radio" class="form-check-input" id="<?php echo $field_name ?>1" name="<?php echo $field_name ?>" value="mapa_sintetico" <? if ($layout == "mapa_sintetico") {echo "checked='checked'";} ?> >
+                  <input type="radio" class="form-check-input" id="<?php echo $field_name ?>1" name="<?php echo $field_name ?>" value="mapa_sintetico" <?php if ($layout == "mapa_sintetico") {echo "checked='checked'";} ?> >
                   <label class="form-check-label" for="<?php echo $field_name ?>1">Sintético</label>
                 </div>
             </div>
@@ -96,7 +96,7 @@ $(document).on('click', 'input[type=radio]', function() {
             <div class="col-md-6 col-sm-4">
                 <input id="getslug" name="slug" type="hidden" value='' />
                 <input id="getSelecionado" name="nomerepresentante" type="hidden" value='' />
-                <button disabled type="submit" id="btnFiltro" class="btn btn-primary"><i class="fa fa-search"> </i>  Filtrar dados</button>
+                <button type="submit" id="btnFiltro" class="btn btn-primary"><i class="fa fa-search"> </i>  Filtrar dados</button>
                 <button type="submit" name="btnExcel" value="S" class="btn btn-primary btnExportExcel"><i class="fa fa-cloud-download"> </i>  Exportar Excel</button>
             </div>
 

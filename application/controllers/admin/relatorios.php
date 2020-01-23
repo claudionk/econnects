@@ -117,7 +117,7 @@ class Relatorios extends Admin_Controller
                         $row['NRO_PARCELA'],
                     ];
                 }
-                $this->exportExcel($data['columns'], $rows);
+                $this->exportExcel($data['columns'], $rows, 'CSV');
             }
 
             //Dados via GET
@@ -385,7 +385,7 @@ class Relatorios extends Admin_Controller
         $data['action'] = $this->uri->segment(3);
         $data['src'] = $this->controller_uri;
         $data['title'] = 'Relatório de Mapa de Repasse';
-        $data['layout'] = 'mapa_analitico';
+        $data['layout'] = 'mapa_sintetico';
         $data['columns'] = [
             'Plano',
             'Representante',
@@ -836,7 +836,7 @@ class Relatorios extends Admin_Controller
         return $ret;
     }
 
-    public function exportExcel($columns, $rows = []) {
+    public function exportExcel($columns, $rows = [], $formato = 'XLS') {
         $this->load->library('Excel');
         $objPHPExcel = new PHPExcel();
 
@@ -883,7 +883,11 @@ class Relatorios extends Admin_Controller
 
         // Redirect output to a client’s web browser (Excel5)
         header('Content-Type: application/vnd.ms-excel');
-        header('Content-Disposition: attachment;filename="relatorio.xls"');
+        if($formato == 'CSV'){
+            header('Content-Disposition: attachment;filename="relatorio.csv"');
+        }else{
+            header('Content-Disposition: attachment;filename="relatorio.xls"');
+        }
         header('Cache-Control: max-age=0');
         // If you're serving to IE 9, then the following may be needed
         header('Cache-Control: max-age=1');
@@ -892,7 +896,11 @@ class Relatorios extends Admin_Controller
         header ('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT'); // always modified
         header ('Cache-Control: cache, must-revalidate'); // HTTP/1.1
         header ('Pragma: public'); // HTTP/1.0
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        if($formato == 'CSV'){
+            $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'CSV');
+        }else{
+            $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        }
         $objWriter->save('php://output');
         exit;
     }
@@ -1006,7 +1014,8 @@ class Relatorios extends Admin_Controller
 
         // Redirect output to a client’s web browser (Excel5)
         header('Content-Type: application/vnd.ms-excel');
-        header('Content-Disposition: attachment;filename="relatorio.xls"');
+        //header('Content-Disposition: attachment;filename="relatorio.xls"'); <<<***Exporta para CSV por causa do volume de dados***>>>
+        header('Content-Disposition: attachment;filename="relatorio.csv"');
         header('Cache-Control: max-age=0');
         // If you're serving to IE 9, then the following may be needed
         header('Cache-Control: max-age=1');
@@ -1015,7 +1024,8 @@ class Relatorios extends Admin_Controller
         header ('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT'); // always modified
         header ('Cache-Control: cache, must-revalidate'); // HTTP/1.1
         header ('Pragma: public'); // HTTP/1.0
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        //$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5'); <<<***Exporta para CSV por causa do volume de dados***>>>
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'CSV');
         $objWriter->save('php://output');
         exit;
     }
