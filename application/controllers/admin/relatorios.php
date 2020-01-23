@@ -1011,7 +1011,8 @@ class Relatorios extends Admin_Controller
             $linha .= $row['PL'].';';
             $linha .= $row['pro_labore'].';';
             $linha .= $row['valor_comissao'].';';
-            fwrite($fp, $linha."\n");            
+            fwrite($fp, $linha."\n");  
+            $linha = '';          
         }
         fclose($fp);
         header('Content-Description: File Transfer');
