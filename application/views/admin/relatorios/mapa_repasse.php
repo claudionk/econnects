@@ -70,11 +70,11 @@ $(document).on('click', 'input[type=radio]', function() {
                 <?php $field_name = "layout"; $field_label = "Visualização: " ?>
                 <label class="control-label" for="<?php echo $field_name;?>"><?php echo $field_label ?></label>
                 <div class="form-check checkbox-inline">
-                  <input type="radio" class="form-check-input" id="<?php echo $field_name ?>0" name="<?= $field_name ?>" value="mapa_analitico" <? if ($layout == "mapa_analitico") {echo "checked='checked'";} ?> >
+                  <input type="radio" class="form-check-input" id="<?php echo $field_name ?>0" name="<?= $field_name ?>" value="mapa_analitico" <?php if ($layout == "mapa_analitico") {echo "checked='checked'";} ?> >
                   <label class="form-check-label" for="<?php echo $field_name ?>0">Analítico</label>
                 </div>
                 <div class="form-check checkbox-inline">
-                  <input type="radio" class="form-check-input" id="<?php echo $field_name ?>1" name="<?php echo $field_name ?>" value="mapa_sintetico" <? if ($layout == "mapa_sintetico") {echo "checked='checked'";} ?> >
+                  <input type="radio" class="form-check-input" id="<?php echo $field_name ?>1" name="<?php echo $field_name ?>" value="mapa_sintetico" <?php if ($layout == "mapa_sintetico") {echo "checked='checked'";} ?> >
                   <label class="form-check-label" for="<?php echo $field_name ?>1">Sintético</label>
                 </div>
             </div>
