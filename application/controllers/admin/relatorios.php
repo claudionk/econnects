@@ -842,7 +842,7 @@ class Relatorios extends Admin_Controller
         header('Content-Type: text/html; charset=utf-8');
         header("Pragma: no-cache");
         header("Cache: no-cahce");
-        $filename = "/var/www/webroot/ROOT/econnects/assets/uploads/arquivos/relatorio_exp_".date("Y-m-d_H-i-s",time()).".csv";
+        $filename = app_assets_dir('arquivos', 'uploads') . "relatorio_exp_".date("Y-m-d_H-i-s",time()).".csv";
         $fp = fopen($filename, "a+");
         $linha = '';
         $linhaheader = $nomeArq;
@@ -946,7 +946,7 @@ class Relatorios extends Admin_Controller
         header('Content-Type: text/html; charset=utf-8');
         header("Pragma: no-cache");
         header("Cache: no-cahce");
-        $filename = "/var/www/webroot/ROOT/econnects/assets/uploads/arquivos/rel_mapa_repasse".date("Y-m-d_H-i-s",time()).".csv";
+        $filename = app_assets_dir('arquivos', 'uploads') . "rel_mapa_repasse".date("Y-m-d_H-i-s",time()).".csv";
         $fp = fopen($filename, "a+");
         $linha = '';
         $linhaheader = 'Relatório de Mapa de Repasse';
