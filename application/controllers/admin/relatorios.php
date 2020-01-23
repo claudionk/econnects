@@ -117,7 +117,8 @@ class Relatorios extends Admin_Controller
                         $row['NRO_PARCELA'],
                     ];
                 }
-                $this->exportExcel($data['columns'], $rows, 'CSV');
+                //$this->exportExcel($data['columns'], $rows, 'CSV');
+                $this->exportCSV($data['columns'], $rows, 'Relatório de Processamento de Vendas');
             }
 
             //Dados via GET
@@ -364,7 +365,7 @@ class Relatorios extends Admin_Controller
             $data['result'] = $result['data'];
 
             if (!empty($_POST['btnExcel'])) {
-                $this->exportExcelMapaRepasse($data['columns'], $data['result']);
+                $this->exportExcelMapaRepasse($data['columns'], $data['result']);               
             }
 
             //Dados via GET
@@ -440,7 +441,8 @@ class Relatorios extends Admin_Controller
 
                 if($_POST['layout'] == "mapa_analitico")
                 {
-                    $this->exportExcelMapaRepasse($data['columns'], $data['result']);
+                    //$this->exportExcelMapaRepasse($data['columns'], $data['result']);
+                    $this->exportCSVMapaRepasse($data['columns'], $data['result']); 
                 } else if($_POST['layout'] == "mapa_sintetico") {
                     $this->exportExcelMapaRepasseSintetico($data['columns'], $data['result']);
                 }                
@@ -836,6 +838,41 @@ class Relatorios extends Admin_Controller
         return $ret;
     }
 
+    public function exportCSV($columns, $rows = [], $nomeArq) {
+        header('Content-Type: text/html; charset=utf-8');
+        header("Pragma: no-cache");
+        header("Cache: no-cahce");
+        $filename = app_assets_dir('arquivos', 'uploads') . "relatorio_exp_".date("Y-m-d_H-i-s",time()).".csv";
+        $fp = fopen($filename, "a+");
+        $linha = '';
+        $linhaheader = $nomeArq;
+        fwrite($fp, $linhaheader."\n");
+        $linhaheader = '';
+        // Cria as colunas
+        foreach ($columns as $column) {
+            $linhaheader .= $column . ";";
+        }
+        fwrite($fp, $linhaheader."\n");
+        // Cria as Linhas
+        foreach ($rows as $row) {
+            $contC = 0;
+            foreach ($columns as $column) {
+                $linha .= $row[$contC] . ";";
+                $contC++;
+            }            
+            fwrite($fp, $linha."\n"); 
+            $linha = '';           
+        }
+        fclose($fp);
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/force-download');
+        header('Content-Length: ' . filesize($filename));
+        header('Content-Disposition: attachment; filename=' . basename($filename));
+        readfile($filename);
+        unlink($filename);
+        exit();
+    }    
+
     public function exportExcel($columns, $rows = [], $formato = 'XLS') {
         $this->load->library('Excel');
         $objPHPExcel = new PHPExcel();
@@ -903,6 +940,87 @@ class Relatorios extends Admin_Controller
         }
         $objWriter->save('php://output');
         exit;
+    }
+
+    public function exportCSVMapaRepasse($columns, $rows = []) {
+        header('Content-Type: text/html; charset=utf-8');
+        header("Pragma: no-cache");
+        header("Cache: no-cahce");
+        $filename = app_assets_dir('arquivos', 'uploads') . "rel_mapa_repasse".date("Y-m-d_H-i-s",time()).".csv";
+        $fp = fopen($filename, "a+");
+        $linha = '';
+        $linhaheader = 'Relatório de Mapa de Repasse';
+        fwrite($fp, $linhaheader."\n");
+        $linhaheader  = '';
+        $linhaheader .= 'Plano'.";";
+        $linhaheader .= 'Representante'.";";
+        $linhaheader .= 'Cobertura'.";";
+        $linhaheader .= 'Tipo Movimento (Emissão ou Cancelamento'.";";
+        $linhaheader .= 'Data do Movimento'.";";
+        $linhaheader .= 'Inicio Vigencia'.";";
+        $linhaheader .= 'Fim Vigencia'.";";
+        $linhaheader .= 'Num Bilhete'.";";
+        $linhaheader .= 'Nome'.";";
+        $linhaheader .= 'CPF'.";";
+        $linhaheader .= 'Equipamento'.";";
+        $linhaheader .= 'Marca'.";";
+        $linhaheader .= 'Modelo'.";";
+        $linhaheader .= 'IMEI'.";";
+        $linhaheader .= 'Produto'.";";
+        $linhaheader .= 'Importancia Segurada'.";";
+        $linhaheader .= 'Forma Pagto'.";";
+        $linhaheader .= 'Num Endosso'.";";
+        $linhaheader .= 'Mês Parcela'.";";
+        $linhaheader .= 'Parcela'.";";
+        $linhaheader .= 'Status Parcela'.";";
+        $linhaheader .= 'Data processamento Cliente/SIS'.";";
+        $linhaheader .= 'Data Cancelamento'.";";
+        $linhaheader .= 'Valor Parcela'.";";
+        $linhaheader .= 'Premio Bruto'.";";
+        $linhaheader .= 'Premio Liquido'.";";
+        $linhaheader .= 'Comissao Representante'.";";
+        $linhaheader .= 'Comissao Corretagem'.";";
+        fwrite($fp, $linhaheader."\n");
+        //Gera as linhas dos registros
+        foreach ($rows as $row) {
+            $linha .= $row['plano_nome'].';';
+            $linha .= $row['representante'].';';
+            $linha .= $row['cobertura'].';';
+            $linha .= $row['venda_cancelamento'].';';
+            $linha .= $row['data_emissao'].';';
+            $linha .= $row['ini_vigencia'].';';
+            $linha .= $row['fim_vigencia'].';';
+            $linha .= $row['num_apolice'].';';
+            $linha .= $row['segurado_nome'].';';
+            $linha .= $row['documento'].';';
+            $linha .= $row['equipamento'].';';
+            $linha .= $row['marca'].';';
+            $linha .= $row['modelo'].';';
+            $linha .= $row['imei'].';';
+            $linha .= $row['nome_produto_parceiro'].';';
+            $linha .= $row['importancia_segurada'].';';
+            $linha .= $row['forma_pagto'].';';
+            $linha .= $row['num_endosso'].';';
+            $linha .= $row['vigencia_parcela'].';';
+            $linha .= $row['parcela'].';';
+            $linha .= $row['status_parcela'].';';
+            $linha .= $row['data_processamento_cli_sis'].';';
+            $linha .= $row['data_cancelamento'].';';
+            $linha .= $row['valor_parcela'].';';
+            $linha .= $row['PB'].';';
+            $linha .= $row['PL'].';';
+            $linha .= $row['pro_labore'].';';
+            $linha .= $row['valor_comissao'].';';
+            fwrite($fp, $linha."\n");            
+        }
+        fclose($fp);
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/force-download');
+        header('Content-Length: ' . filesize($filename));
+        header('Content-Disposition: attachment; filename=' . basename($filename));
+        readfile($filename);
+        unlink($filename);
+        exit();
     }
 
     public function exportExcelMapaRepasse($columns, $rows = []) {
