@@ -1,3 +1,12 @@
+<script type="text/javascript">
+    function validaFiltroData() {
+        if (document.frmOpcao.data_inicio.value == '' || 
+            document.frmOpcao.data_fim.value == ''){
+            alert('Informe a Data');
+            return false;
+        }
+    }
+</script>
 
 <div class="section-header">
     <ol class="breadcrumb">
@@ -24,7 +33,7 @@
             <p>Selecione uma data inicial e final para resgatar os registros.</p>
         </div>
 
-        <form action="" method="POST">
+        <form name="frmOpcao" action="" method="POST" onSubmit="return validaFiltroData()">
          <div class="row">
             
             <?php $field_name = "data_inicio"; $field_label = "Data inicial: " ?>
