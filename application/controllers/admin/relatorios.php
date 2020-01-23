@@ -855,13 +855,13 @@ class Relatorios extends Admin_Controller
         fwrite($fp, $linhaheader."\n");
         // Cria as Linhas
         foreach ($rows as $row) {
-            $contR++;
             $contC = 0;
             foreach ($columns as $column) {
                 $linha .= $row[$contC] . ";";
                 $contC++;
             }            
-            fwrite($fp, $linha."\n");            
+            fwrite($fp, $linha."\n"); 
+            $linha = '';           
         }
         fclose($fp);
         header('Content-Description: File Transfer');
