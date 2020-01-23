@@ -1,3 +1,12 @@
+<script type="text/javascript">
+    function validaFiltroData() {
+        if (document.frmOpcao.data_inicio.value == '' || 
+            document.frmOpcao.data_fim.value == ''){
+            alert('Informe a Data');
+            return false;
+        }
+    }
+</script>
 
 <div class="section-header">
     <ol class="breadcrumb">
@@ -24,7 +33,7 @@
             <p>Selecione uma data inicial e final para resgatar os registros.</p>
         </div>
 
-        <form action="" method="POST">
+        <form name="frmOpcao" action="" method="POST" onSubmit="return validaFiltroData()">
          <div class="row">
             
             <?php $field_name = "data_inicio"; $field_label = "Data inicial: " ?>
@@ -40,7 +49,7 @@
             </div>
 
             <div class="col-md-6 col-sm-4">
-                <button type="submit" id="btnFiltro" class="btn btn-primary"><i class="fa fa-search"> </i>  Filtrar dados</button>
+                <button <?php if($layout == 'processamento_venda') {echo "disabled='disabled'";}?> type="submit" id="btnFiltro" class="btn btn-primary"><i class="fa fa-search"> </i>  Filtrar dados</button>
                 <button type="submit" name="btnExcel" value="S" class="btn btn-primary btnExportExcel"><i class="fa fa-cloud-download"> </i>  Exportar Excel</button>
             </div>
 

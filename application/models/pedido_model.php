@@ -1417,10 +1417,15 @@ Class Pedido_Model extends MY_Model
 
         $this->_database->where("il.integracao_id = 15");
         $this->_database->where("il.deletado = 0");
+        //Inclusão de filtro no relatório
+        if(isset($data_inicio) && !empty($data_inicio))
+            $this->_database->where("il.processamento_inicio >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
+        if(isset($data_fim) && !empty($data_fim))
+            $this->_database->where("il.processamento_inicio <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
 
         $query = $this->_database->get();
         $resp = [];
-
+        //print_r($this->db->last_query()); exit;
         if($query->num_rows() > 0)
         {
             $resp = $query->result_array();
