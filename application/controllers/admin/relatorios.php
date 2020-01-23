@@ -385,7 +385,7 @@ class Relatorios extends Admin_Controller
         $data['action'] = $this->uri->segment(3);
         $data['src'] = $this->controller_uri;
         $data['title'] = 'Relatório de Mapa de Repasse';
-        $data['layout'] = 'mapa_analitico';
+        $data['layout'] = 'mapa_sintetico';
         $data['columns'] = [
             'Plano',
             'Representante',
