@@ -12,6 +12,17 @@ function validaRepresentante() {
         return true;
     }
 }
+
+$(document).on('click', 'input[type=radio]', function() {
+    var id = $(this).attr('id');
+    if (id == 'layout1'){ // Habilita o botão apenas quando for relatório sintético
+       $('#btnFiltro').removeAttr('disabled');
+    } else {
+       $('#btnFiltro').attr('disabled','disabled');
+    }     
+})
+
+
 </script>
 <div class="section-header">
     <ol class="breadcrumb">
@@ -53,7 +64,6 @@ function validaRepresentante() {
         <div class="row">
             <p>Selecione uma data inicial e final para resgatar os registros.</p>
         </div>
-
         
         <div class="row">
             <div class="col-md-12 form-group">
@@ -86,7 +96,7 @@ function validaRepresentante() {
             <div class="col-md-6 col-sm-4">
                 <input id="getslug" name="slug" type="hidden" value='' />
                 <input id="getSelecionado" name="nomerepresentante" type="hidden" value='' />
-                <button type="submit" id="btnFiltro" class="btn btn-primary"><i class="fa fa-search"> </i>  Filtrar dados</button>
+                <button disabled type="submit" id="btnFiltro" class="btn btn-primary"><i class="fa fa-search"> </i>  Filtrar dados</button>
                 <button type="submit" name="btnExcel" value="S" class="btn btn-primary btnExportExcel"><i class="fa fa-cloud-download"> </i>  Exportar Excel</button>
             </div>
 
