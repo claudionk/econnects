@@ -253,29 +253,16 @@ class Venda_Generico extends Admin_Controller
         //Carrega dados
         $campos_session = $this->session->userdata("cotacao_{$produto_parceiro_id}");
 
-        //Campos para formulário
-        $data['campos'] = $this->campo->with_campo()
-            ->with_campo_tipo()
-            ->filter_by_produto_parceiro($produto_parceiro_id)
-            ->filter_by_campo_tipo_slug('cotacao')
-            ->order_by("ordem", "asc")
-            ->get_all();
-
         if(isset($campos_session) && is_array($campos_session)){
             $data['row'] = $campos_session;
         }else{
             $data['row'] = array();
         }
 
-        $obj = new Api();
-        $url = base_url() ."api/campos?produto_parceiro_id={$data['produto_parceiro_id']}&slug={$data['slug']}";
-        $r = $obj->execute($url);
-
-        if ( !empty($r) ) {
-            $Response = json_decode($r,true);
-            $Response = $Response[0];
-            $data["campos"] = ( isset( $Response["campos"] ) ? $Response["campos"] : array() );
-        }
+        //Campos para formulário
+        $Campos = $this->campo->getCamposProduto($data['produto_parceiro_id'], $data['slug']);
+        $this->token = $Campos['token'];
+        $data["campos"] = $Campos['campos'];
 
         $data['cotacao_id'] = $cotacao_id;
         $data['list'] = array();
@@ -287,7 +274,6 @@ class Venda_Generico extends Admin_Controller
 
         if($_POST)
         {
-
             $validacao = $this->campo->setValidacoesCampos($produto_parceiro_id, "cotacao");
             $this->cotacao->setValidate($validacao);
 

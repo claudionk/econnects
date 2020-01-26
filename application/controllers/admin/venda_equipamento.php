@@ -346,45 +346,16 @@ class Venda_Equipamento extends Admin_Controller{
         //Carrega dados
         $campos_session = $this->session->userdata("cotacao_{$produto_parceiro_id}");
 
-        //Campos para formulário
-        $data["campos"] = $this->campo->with_campo()
-        ->with_campo_tipo()
-        ->filter_by_produto_parceiro($produto_parceiro_id)
-        ->filter_by_campo_tipo_slug("cotacao")
-        ->order_by("ordem", "asc")
-        ->get_all();
-
         if(isset($campos_session) && is_array($campos_session)){
             $data["row"] = $campos_session;
         }else{
             $data["row"] = array();
         }
 
-        $api_key = app_get_token();
-        $this->token = $api_key;
-
-        $Url = $this->config->item('base_url') ."api/campos?produto_parceiro_id={$data['produto_parceiro_id']}&slug={$data['slug']}";
-
-        $myCurl = curl_init();
-        curl_setopt( $myCurl, CURLOPT_URL, $Url );
-        curl_setopt( $myCurl, CURLOPT_FRESH_CONNECT, 1 );
-        curl_setopt( $myCurl, CURLOPT_POST, 0 );
-        curl_setopt( $myCurl, CURLOPT_VERBOSE, 0);
-        curl_setopt( $myCurl, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt( $myCurl, CURLOPT_HTTPHEADER, array( "Content-Type: application/json", "apikey: $api_key" ) );
-        curl_setopt( $myCurl, CURLOPT_TIMEOUT, 15 );
-        curl_setopt( $myCurl, CURLOPT_CONNECTTIMEOUT, 15 );
-        $Response = curl_exec( $myCurl );
-
-        curl_close( $myCurl );
-
-        $Response = json_decode( $Response, true );
-
-        $Response = $Response[0];
-        //echo "<pre>API KEY: $api_key " . print_r( $Response, true ) . "</pre>";
-        $data["campos"] = ( isset( $Response["campos"] ) ? $Response["campos"] : array() );
-
-
+        //Campos para formulário
+        $Campos = $this->campo->getCamposProduto($data['produto_parceiro_id'], $data['slug']);
+        $this->token = $Campos['token'];
+        $data["campos"] = $Campos['campos'];
         $data["cotacao_id"] = $cotacao_id;
         $data["list"] = array();
         $data["list"]["rg_uf"] = $this->localidade_estado->order_by("nome")->get_all();
