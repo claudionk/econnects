@@ -619,6 +619,13 @@ if ( ! function_exists('app_integracao_generali_dados')) {
                 "produto_parceiro_id" => 57,
                 "produto_parceiro_plano_id" => 49,
             ];
+        } elseif ( $operacao == 'bidu') {
+            $dados = (object)[
+                "email" => "bidu@bidu.com.br",
+                "parceiro_id" => 118,
+                "produto_parceiro_id" => 58,
+                "produto_parceiro_plano_id" => 0,
+            ];
         }
 
         $CI =& get_instance();
@@ -1047,6 +1054,8 @@ if ( ! function_exists('app_get_api'))
         $apikey = empty($acesso) ? $CI->session->userdata("apikey") : $acesso->apikey;
         $url = $CI->config->item("URL_sisconnects") ."admin/api/{$service}";
         $header = ["Content-Type: application/json", "APIKEY: {$apikey}"];
+
+        print_pre($url);
 
         $CI->load->model('integracao_log_detalhe_api_model', 'integracao_log_detalhe_api');
         $insertArray = [
@@ -2600,71 +2609,31 @@ if ( ! function_exists('app_integracao_mailing')) {
     {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
 
-        print_pre($registro);
+        $reg = $dados['registro'];
+        // echo "<pre>";print_r($dados['registro']);echo "</pre>";die();
+
+        // print_pre($reg);
 
         $CI =& get_instance();
         $CI->session->sess_destroy();
         $CI->session->set_userdata("operacao", "bidu");
 
         $cpf = $dados['registro']['cpf'];
-        $ean = $dados['registro']['ean'];
-        $num_apolice = $dados['registro']['num_apolice'];
-
-        echo "****************** CPF: $cpf - {$dados['registro']['tipo_transacao']}<br>";
-
-        // Emissão
-        if ( in_array($dados['registro']['tipo_transacao'], ['NS','XP']) )
-        {
-            $dados['registro']['acao']        = '1';
-            $dados['registro']['data_adesao'] = $dados['registro']['data_adesao_cancel'];
-
-            // Trata o nome da marca retornada pela LASA
-            $searchWord = 'CORRIGIR';
-            if(preg_match("/{$searchWord}/i", $dados['registro']['marca'])) {
-                $dados['registro']['marca'] = '';
-            }
-
-        // Cancelamento
-        } else if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX','XD']) )
-        {
-            $dados['registro']['acao']              = '9';
-        } else {
-
-            // XI = Cancelamento por Inadimplência
-            switch ($dados['registro']['tipo_transacao']) {
-                case 'XI':
-                    $integracao_log_detalhe_erro_id = 13;
-                    break;
-                default:
-                    $integracao_log_detalhe_erro_id = 14;
-                    break;
-            }
-            $response->msg[] = ['id' => $integracao_log_detalhe_erro_id, 'msg' => "Registro recebido como {$dados['registro']['tipo_transacao']}", 'slug' => "ignorado"];
-            return $response;
-
-        }
 
         $acesso = app_integracao_generali_dados();
         $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
-        $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
-        $eanErro = true;
-        $eanErroMsg = "";
-
-        // validações iniciais
-        $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, true, $acesso);
-        if ( $valid->status !== true ) {
-            $response = $valid;
-            return $response;
-        }
+        // $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
 
         // Campos para cotação
-        $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id, 'GET', [], $acesso);
-        if (empty($camposCotacao['status'])){
-            $response->msg[] = ['id' => -1, 'msg' => $camposCotacao['response'], 'slug' => "cotacao_campos"];
+        $campos = app_get_api("cliente/". $acesso->produto_parceiro_id, 'POST', json_encode($reg), $acesso);
+        print_pre($campos);
+
+        if (empty($campos['status'])){
+            $response->msg[] = ['id' => -1, 'msg' => $campos['response'], 'slug' => "cotacao_campos"];
             return $response;
         }
 
-        $camposCotacao = $camposCotacao['response'];
+        $campos = $campos['response'];
 
         // Validar Regras
         $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, true, $acesso);

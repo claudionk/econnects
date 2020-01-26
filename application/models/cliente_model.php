@@ -388,8 +388,6 @@ class Cliente_Model extends MY_Model
 
     public function cliente_insert_update($data)
     {
-
-        //print_r($data);exit;
         $this->load->model('cliente_contato_model', 'cliente_contato');
         $this->load->model('cliente_codigo_model', 'cliente_codigo');
         $this->load->model('localidade_cidade_model', 'localidade_cidade');
@@ -408,14 +406,14 @@ class Cliente_Model extends MY_Model
             $data_cliente                               = array();
             $data_cliente['tipo_cliente']               = (app_verifica_cpf_cnpj(app_retorna_numeros($data['DADOS_CADASTRAIS']['CPF'])) == 'CNPJ') ? 'CO' : 'CF';
             $data_cliente['cnpj_cpf']                   = app_retorna_numeros($data['DADOS_CADASTRAIS']['CPF']);
-            $data_cliente['codigo']                     = $this->cliente_codigo->get_codigo_cliente_formatado($data_cliente['tipo_cliente']);
+            $data_cliente['codigo']                     = emptyor( $data['codigo'], $this->cliente_codigo->get_codigo_cliente_formatado($data_cliente['tipo_cliente']) );
             $data_cliente['colaborador_id']             = 1;
             $data_cliente['colaborador_comercial_id']   = 1;
             $data_cliente['titular']                    = 1;
             $data_cliente['razao_nome']                 = $data['DADOS_CADASTRAIS']['NOME'];
             $data_cliente['sexo']                       = $data['DADOS_CADASTRAIS']['SEXO'];
             $data_cliente['data_nascimento']            = app_dateonly_mask_to_mysql($data['DADOS_CADASTRAIS']['DATANASC']);
-            $data_cliente['cliente_evolucao_status_id'] = 6; //Salva como prospect
+            $data_cliente['cliente_evolucao_status_id'] = emptyor( $data['DADOS_CADASTRAIS']['STATUS'], 6); //Salva como prospect
             $data_cliente['grupo_empresarial_id']       = 0;
 
             if (isset($data['ENDERECOS'])) {
@@ -626,7 +624,6 @@ class Cliente_Model extends MY_Model
      * @return mixed retorna os dados do Cliente
      *
      */
-
     public function cotacao_insert_update($data = array())
     {
 

@@ -39,10 +39,12 @@ Class Cliente_Evolucao_Status_Model extends MY_Model
         );
         return $data;
     }
+
     function get_by_id($id)
     {
         return $this->get_by($this->primary_key, $id);
     }
+
     public function getDescricao($id)
     {
         $this->db->select($this->_table. '.descricao');
@@ -62,4 +64,13 @@ Class Cliente_Evolucao_Status_Model extends MY_Model
             return;
         }
     }
+
+    //Retorna por CPF/CNPJ
+    public function filter_by_descricao($descricao)
+    {
+        $this->_database->where($this->_table . '.descricao', $descricao);
+        $this->_database->where($this->_table . '.deletado', 0);
+        return $this;
+    }
+
 }
