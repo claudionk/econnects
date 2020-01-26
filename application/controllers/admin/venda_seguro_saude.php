@@ -209,6 +209,7 @@ class Venda_Seguro_Saude extends Admin_Controller {
     $data = array();
     $data['primary_key'] = $this->current_model->primary_key();
     $data['produto_parceiro_id'] = $produto_parceiro_id;
+    $data["slug"] = "cotacao";
 
     //Verifica cotação
     if($cotacao_id > 0)
@@ -225,20 +226,16 @@ class Venda_Seguro_Saude extends Admin_Controller {
     //Carrega dados
     $campos_session = $this->session->userdata("cotacao_{$produto_parceiro_id}");
 
-    //Campos para formulário
-    $data['campos'] = $this->campo->with_campo()
-      ->with_campo_tipo()
-      ->filter_by_produto_parceiro($produto_parceiro_id)
-      ->filter_by_campo_tipo_slug('cotacao')
-      ->order_by("ordem", "asc")
-      ->get_all();
-
     if(isset($campos_session) && is_array($campos_session)){
       $data['row'] = $campos_session;
     }else{
       $data['row'] = array();
     }
 
+    //Campos para formulário
+    $Campos = $this->campo->getCamposProduto($data['produto_parceiro_id'], $data['slug']);
+    $this->token = $Campos['token'];
+    $data["campos"] = $Campos['campos'];
     $data['cotacao_id'] = $cotacao_id;
     $data['list'] = array();
     $data['list']['rg_uf'] = $this->localidade_estado->order_by('nome')->get_all();

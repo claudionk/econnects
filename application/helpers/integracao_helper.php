@@ -896,11 +896,7 @@ if ( ! function_exists('app_integracao_rastrecall_sms')) {
         return $response;
     }
 }
-
-
-
 if ( ! function_exists('app_integracao_enriquecimento')) {
-
     function app_integracao_enriquecimento($formato, $dados = array())
     {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
@@ -2597,5 +2593,114 @@ if ( ! function_exists('app_integracao_quero_quero_define_operacao')) {
         $result->parceiro = $acesso->parceiro;
         $result->status = true;
         return $result;
+    }
+}
+if ( ! function_exists('app_integracao_mailing')) {
+    function app_integracao_mailing($formato, $dados = array())
+    {
+        $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
+
+        print_pre($registro);
+
+        $CI =& get_instance();
+        $CI->session->sess_destroy();
+        $CI->session->set_userdata("operacao", "bidu");
+
+        $cpf = $dados['registro']['cpf'];
+        $ean = $dados['registro']['ean'];
+        $num_apolice = $dados['registro']['num_apolice'];
+
+        echo "****************** CPF: $cpf - {$dados['registro']['tipo_transacao']}<br>";
+
+        // Emissão
+        if ( in_array($dados['registro']['tipo_transacao'], ['NS','XP']) )
+        {
+            $dados['registro']['acao']        = '1';
+            $dados['registro']['data_adesao'] = $dados['registro']['data_adesao_cancel'];
+
+            // Trata o nome da marca retornada pela LASA
+            $searchWord = 'CORRIGIR';
+            if(preg_match("/{$searchWord}/i", $dados['registro']['marca'])) {
+                $dados['registro']['marca'] = '';
+            }
+
+        // Cancelamento
+        } else if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX','XD']) )
+        {
+            $dados['registro']['acao']              = '9';
+        } else {
+
+            // XI = Cancelamento por Inadimplência
+            switch ($dados['registro']['tipo_transacao']) {
+                case 'XI':
+                    $integracao_log_detalhe_erro_id = 13;
+                    break;
+                default:
+                    $integracao_log_detalhe_erro_id = 14;
+                    break;
+            }
+            $response->msg[] = ['id' => $integracao_log_detalhe_erro_id, 'msg' => "Registro recebido como {$dados['registro']['tipo_transacao']}", 'slug' => "ignorado"];
+            return $response;
+
+        }
+
+        $acesso = app_integracao_generali_dados();
+        $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
+        $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
+        $eanErro = true;
+        $eanErroMsg = "";
+
+        // validações iniciais
+        $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, true, $acesso);
+        if ( $valid->status !== true ) {
+            $response = $valid;
+            return $response;
+        }
+
+        // Campos para cotação
+        $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id, 'GET', [], $acesso);
+        if (empty($camposCotacao['status'])){
+            $response->msg[] = ['id' => -1, 'msg' => $camposCotacao['response'], 'slug' => "cotacao_campos"];
+            return $response;
+        }
+
+        $camposCotacao = $camposCotacao['response'];
+
+        // Validar Regras
+        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, true, $acesso);
+        // echo "<pre>";print_r($validaRegra);echo "</pre>";
+
+        if (!empty($validaRegra->status)) {
+            $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
+            $dados['registro']['fields'] = $validaRegra->fields;
+            $emissao = app_integracao_emissao($formato, $dados, $acesso);
+
+            if (empty($emissao->status)) {
+
+                if ( !empty($emissao->msg) ) {
+
+                    if ( !is_array($emissao->msg) ) {
+                        $response->msg[] = $emissao->msg;
+                    } else {
+                        $response->msg = $emissao->msg;
+                    }
+
+                } else {
+                    $response->msg = $emissao->errors;
+                }
+
+            } else {
+                $response->status = true;
+            }
+
+        } else {
+            if (!empty($response->msg)) {
+                $response->msg = array_merge($validaRegra->errors, $response->msg);
+            } else {
+                $response->msg = $validaRegra->errors;
+            }
+        }
+
+        return $response;
     }
 }
