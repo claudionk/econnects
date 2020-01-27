@@ -1649,7 +1649,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
                 if ( $acesso->parceiro == 'novomundo' ) {
                     $qtde++;
 
-                    if ($qtde >= 4)
+                    if ($qtde >= 5)
                     {
                         $premioValid = false;
                     } else 
@@ -1659,6 +1659,8 @@ if ( ! function_exists('app_integracao_calcula_premio'))
                             $novo_liquido = $premio_bruto / ( 1 + round($valor_iof / $premio_liquido, 4));
                         elseif ($qtde == 2)
                             $novo_liquido = $premio_bruto / ( 1 + truncate($valor_iof / $premio_liquido, 4));
+                        elseif ($qtde == 3)
+                            $novo_liquido = $premio_bruto / 1.0738;
                         else
                             $novo_liquido = $premio_liquido;
                         echo "<pre>";
