@@ -73,4 +73,12 @@ Class Cliente_Evolucao_Status_Model extends MY_Model
         return $this;
     }
 
+    //Retorna por CPF/CNPJ
+    public function filter_by_uso_interno($uso_interno)
+    {
+        $this->_database->where($this->_table . '.uso_interno', $uso_interno);
+        $this->_database->where($this->_table . '.deletado', 0);
+        return $this;
+    }
+
 }

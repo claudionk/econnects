@@ -367,7 +367,7 @@ class Apolice_Model extends MY_Model
             log_message('debug', 'UPDATE STATUS CLIENTE');
 
             $data_cliente                               = array();
-            $data_cliente['cliente_evolucao_status_id'] = 4;
+            $data_cliente['cliente_evolucao_status_id'] = 4; // Salva como CLIENTE
             $this->cliente->update($cotacao_salva['cliente_id'], $data_cliente, true);
 
             $dados_apolice                              = array();
