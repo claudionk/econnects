@@ -158,7 +158,7 @@ Class Capitalizacao_Model extends MY_Model
             'titulo_randomico' => $this->input->post('titulo_randomico'),
             'qtde_titulos_por_compra' => $this->input->post('qtde_titulos_por_compra'),
             'valor_minimo_participacao' => app_unformat_currency($this->input->post('valor_minimo_participacao')),
-            'valor_custo_titulo' => app_unformat_currency($this->input->post('valor_custo_titulo')),
+            'valor_custo_titulo' => str_replace(",",".",str_replace( "_", "", $this->input->post('valor_custo_titulo'))), // Voltei para o original | Alterado para Quero Quero
             'valor_sorteio' => app_unformat_currency($this->input->post('valor_sorteio')),
             'num_remessa' => $this->input->post('num_remessa'),
             'ativo' => $this->input->post('ativo'),
