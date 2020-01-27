@@ -318,25 +318,28 @@ if ( ! function_exists('app_integracao_format_decimal_pad')) {
         $valor[1] = ((!isset($valor[1])) || (empty(isset($valor[1]))) ) ? '00' : $valor[1];
         $valor[0] = preg_replace("/[^0-9]/", "", $valor[0]);
         return str_pad($valor[0], ($dados['item']['tamanho']-($a[2] + strlen($a[3]) )), $dados['item']['valor_padrao'], STR_PAD_LEFT) .$a[3]. str_pad($valor[1], $a[2], '0', STR_PAD_RIGHT);
-
     }
-
 }
 if ( ! function_exists('app_integracao_format_decimal_r')) {
 
     function app_integracao_format_decimal_r($formato, $dados = array())
     {
-
         $f = explode("|", $formato);
         $defaultValue = str_pad(0,  100, '0', STR_PAD_LEFT);
         $valor = (!empty($dados['valor'])) ? (int)$dados['valor'] : $defaultValue;
 
-        $a = (int)left($valor, strlen($valor)-$f[0]);
+        $a = $val = left($valor, strlen($valor)-$f[0]);
+        $a = (int)$a;
         $b = $f[1];
         $c = right($valor, $f[0]);
-        return $a.$b.$c;
-    }
+        $result = $a.$b.$c;
 
+        // verifica se possuia o sinal de negativo e depois perdeu para que volte a ser negativo
+        if ( !(strpos($val, "-") === FALSE) && $a >= 0)
+            $result *= -1;
+
+        return $result;
+    }
 }
 if ( ! function_exists('app_integracao_format_date_r')) {
 
@@ -1646,7 +1649,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
                 if ( $acesso->parceiro == 'novomundo' ) {
                     $qtde++;
 
-                    if ($qtde >= 4)
+                    if ($qtde >= 5)
                     {
                         $premioValid = false;
                     } else 
@@ -1656,6 +1659,8 @@ if ( ! function_exists('app_integracao_calcula_premio'))
                             $novo_liquido = $premio_bruto / ( 1 + round($valor_iof / $premio_liquido, 4));
                         elseif ($qtde == 2)
                             $novo_liquido = $premio_bruto / ( 1 + truncate($valor_iof / $premio_liquido, 4));
+                        elseif ($qtde == 3)
+                            $novo_liquido = $premio_bruto / 1.0738;
                         else
                             $novo_liquido = $premio_liquido;
                         echo "<pre>";
