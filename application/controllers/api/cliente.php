@@ -37,7 +37,9 @@ class Cliente extends CI_Controller {
         }
         $this->usuario_id = $webservice["usuario_id"];
         $this->parceiro_id = $webservice["parceiro_id"];
+
         $this->load->database('default');
+        $this->load->model( "cliente_model", "cliente" );
     }
 
     public function index() {
@@ -63,6 +65,7 @@ class Cliente extends CI_Controller {
     private function post( $POST )
     {
         $this->load->model('cliente_evolucao_status_model', 'cliente_evolucao_status');
+        $this->load->model('cliente_contato_model', 'cliente_contato');
 
         if( !isset( $POST["produto_parceiro_id"] ) ) {
             ob_clean();
@@ -75,11 +78,15 @@ class Cliente extends CI_Controller {
         }
 
         // padrao esperado
-        $data['DADOS_CADASTRAIS']['CPF'] = emptyor($POST['documento'], '');
+        $data["produto_parceiro_id"] = $POST["produto_parceiro_id"];
+        $data["parceiro_id"] = $this->parceiro_id;
+
+        $data['DADOS_CADASTRAIS']['CPF'] = $POST['documento'];
+        $data['DADOS_CADASTRAIS']['CODIGO'] = emptyor($POST['codigo'], NULL);
         $data['DADOS_CADASTRAIS']['NOME'] = emptyor($POST['nome'], '');
         $data['DADOS_CADASTRAIS']['SEXO'] = emptyor($POST['sexo'], '');
         $data['DADOS_CADASTRAIS']['DATANASC'] = emptyor($POST['data_nascimento'], NULL);
-        
+
         if ( !empty($POST['cliente_evolucao_status_id']) )
         {
             $data['DADOS_CADASTRAIS']['STATUS'] = $POST['cliente_evolucao_status_id'];
@@ -107,11 +114,18 @@ class Cliente extends CI_Controller {
                 ];
             }
         }
-
         if ( !empty($POST['telefone']) )
         {
+            // valida o melhor horario
+            $melhor_horario = 'Q';
+            if ( !empty($POST['melhor_horario']) )
+            {
+                $melhor_horario = $this->cliente_contato->melhorHorario( $POST['melhor_horario'], 'nome', 'slug' );
+            }
+
             $data['TELEFONES'][] = [
                 'RANKING' => 1,
+                'MELHOR_HORARIO' => $melhor_horario,
                 'TELEFONE' => $POST['telefone'],
             ];
         }
@@ -131,7 +145,7 @@ class Cliente extends CI_Controller {
             $data['EMAILS'][]['EMAIL'] = $POST['email'];
         }
 
-        $result = $this->cliente->cliente_insert_update($data);
+        $result = $this->cliente->cliente_insert_update($data, $data["produto_parceiro_id"]);
         if ( empty($result) ) {
             ob_clean();
             die( json_encode( array( "status" => false, "message" => "O cliente não pode ser cadastrado" ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );

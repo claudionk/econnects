@@ -1055,8 +1055,6 @@ if ( ! function_exists('app_get_api'))
         $url = $CI->config->item("URL_sisconnects") ."admin/api/{$service}";
         $header = ["Content-Type: application/json", "APIKEY: {$apikey}"];
 
-        print_pre($url);
-
         $CI->load->model('integracao_log_detalhe_api_model', 'integracao_log_detalhe_api');
         $insertArray = [
             'service' => $service, 
@@ -2609,67 +2607,22 @@ if ( ! function_exists('app_integracao_mailing')) {
     {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
 
-        $reg = $dados['registro'];
-        // echo "<pre>";print_r($dados['registro']);echo "</pre>";die();
-
-        // print_pre($reg);
-
         $CI =& get_instance();
         $CI->session->sess_destroy();
         $CI->session->set_userdata("operacao", "bidu");
 
-        $cpf = $dados['registro']['cpf'];
-
         $acesso = app_integracao_generali_dados();
         $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
-        // $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
+        $dados['registro']['documento'] = app_retorna_numeros(emptyor( $dados['registro']['cpf'] , $dados['registro']['cnpj'] ));
 
         // Campos para cotação
-        $campos = app_get_api("cliente/". $acesso->produto_parceiro_id, 'POST', json_encode($reg), $acesso);
-        print_pre($campos);
-
+        $campos = app_get_api("cliente", 'POST', json_encode($dados['registro']), $acesso);
         if (empty($campos['status'])){
-            $response->msg[] = ['id' => -1, 'msg' => $campos['response'], 'slug' => "cotacao_campos"];
+            $response->msg[] = ['id' => -1, 'msg' => $campos['response'], 'slug' => "cliente"];
             return $response;
         }
 
-        $campos = $campos['response'];
-
-        // Validar Regras
-        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, true, $acesso);
-        // echo "<pre>";print_r($validaRegra);echo "</pre>";
-
-        if (!empty($validaRegra->status)) {
-            $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
-            $dados['registro']['fields'] = $validaRegra->fields;
-            $emissao = app_integracao_emissao($formato, $dados, $acesso);
-
-            if (empty($emissao->status)) {
-
-                if ( !empty($emissao->msg) ) {
-
-                    if ( !is_array($emissao->msg) ) {
-                        $response->msg[] = $emissao->msg;
-                    } else {
-                        $response->msg = $emissao->msg;
-                    }
-
-                } else {
-                    $response->msg = $emissao->errors;
-                }
-
-            } else {
-                $response->status = true;
-            }
-
-        } else {
-            if (!empty($response->msg)) {
-                $response->msg = array_merge($validaRegra->errors, $response->msg);
-            } else {
-                $response->msg = $validaRegra->errors;
-            }
-        }
-
+        $response->status = true;
         return $response;
     }
 }
