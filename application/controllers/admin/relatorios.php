@@ -191,7 +191,8 @@ class Relatorios extends Admin_Controller
                         $row['num_apolice'], 
                     ];
                 }
-                $this->exportExcel($data['columns'], $rows);
+                //$this->exportExcel($data['columns'], $rows);
+                $this->exportCSV($data['columns'], $rows, 'Relatório 01 de Vendas');                
             }
 
             //Dados via GET
@@ -248,7 +249,8 @@ class Relatorios extends Admin_Controller
                         $row['vendedor'], 
                     ];
                 }
-                $this->exportExcel($data['columns'], $rows);
+                //$this->exportExcel($data['columns'], $rows);
+                $this->exportCSV($data['columns'], $rows, 'Relatório 04 de Vendas');
             }
 
             //Dados via GET
@@ -305,7 +307,8 @@ class Relatorios extends Admin_Controller
                         app_format_currency($row['comissao_parceiro'], true), 
                     ];
                 }
-                $this->exportExcel($data['columns'], $rows);
+                //$this->exportExcel($data['columns'], $rows);
+                $this->exportCSV($data['columns'], $rows, 'Relatório 05 de Vendas');
             }
 
             //Dados via GET

@@ -1373,7 +1373,7 @@ Class Pedido_Model extends MY_Model
         $this->_database->where("a.deletado = 0");
         $query = $this->_database->get();
         $resp = [];
-
+        //print_r($this->db->last_query()); exit;
         if($query->num_rows() > 0)
         {
             $resp = $query->result_array();
