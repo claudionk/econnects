@@ -99,7 +99,7 @@ console.log('calculo:', data);
             console.log('result', result);
 
             //Se sucesso
-            if(result.sucess == true)
+            if(result.status == true)
             {
                 //Seta diferença dos dias
                 $('.comissao_corretor').html(numeroParaMoeda(result.comissao, 2, ',', ''));
