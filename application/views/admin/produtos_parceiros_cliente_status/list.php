@@ -52,7 +52,6 @@
                                         <div class="card-body tab-content style-default-bright">
                                             <div class="tab-content">
 
-
                                         <!-- Tab content -->
                                         <div id="tabCampo" class="tab-pane active widget-body-regular">
                                             <div class="row innerTB">
@@ -63,7 +62,6 @@
                                                     </a>
                                                 </div>
                                             </div>
-
 
                                             <!-- Table -->
                                             <table class="table table-hover">
@@ -84,7 +82,7 @@
                                                 <?php foreach($rows as $row) :?>
                                                 <tr>
 
-                                                    <td><?php echo $row['capitalizacao_nome'];?></td>
+                                                    <td><?php echo $row['descricao'];?></td>
                                                     <td class="center">
                                                         <a href="<?php echo base_url("{$current_controller_uri}/edit/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Editar </a>
                                                         <a href="<?php echo base_url("$current_controller_uri/delete/{$row[$primary_key]}")?>" class="btn btn-sm btn-danger deleteRowButton"> <i class="fa fa-eraser"></i> Excluir </a>

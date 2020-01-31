@@ -97,7 +97,7 @@ if($_POST)
                                                 <!-- Column -->
                                                 <div class="col-md-6">
                                                     <a  href="" class="btn  btn-app btn-primary" data-toggle="modal" data-target="#add_cliente_status">
-                                                        <i class="fa  fa-plus"></i> Adicionar
+                                                        <i class="fa  fa-plus"></i> Novo
                                                     </a>
                                                 </div>
                                                 <!-- // Column END -->
@@ -120,6 +120,76 @@ if($_POST)
                                         </div>
 
                                     </div>
+
+                                    <!-- Modal -->
+                                    <div id="add_cliente_status" class="modal fade" role="dialog">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                    <h4 class="modal-title">Adcionar Status</h4>
+                                                </div>
+                                                <div class="modal-body cliente_status_modal">
+
+                                                 <!-- Modal Form -->
+                                                            
+                                                    <input type="hidden" name="<?php echo $primary_key ?>" value="<?php if (isset($row[$primary_key])) echo $row[$primary_key]; ?>"/>
+                                                    <input type="hidden" name="new_record" value="<?php echo $new_record; ?>"/>
+                                                    <!-- Widget -->
+                                                    <div class="card">
+
+                                                        <!-- Widget heading -->
+                                                        <div class="card-body">
+                                                            <h4 class="text-primary"><?php echo $page_subtitle;?></h4>
+                                                        </div>
+                                                        <!-- // Widget heading END -->
+
+                                                        <div class="card-body">
+                                                            <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <?php $this->load->view('admin/partials/validation_errors');?>
+                                                                    <?php $this->load->view('admin/partials/messages'); ?>
+                                                                </div>
+                                                            </div>
+                                                            <!-- Row -->
+                                                            <div class="row innerLR">
+
+                                                                <!-- Column -->
+                                                                <div class="col-md-6">
+                                                                    <?php $field_name = 'descricao';?>
+                                                                    <div class="form-group">
+                                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Descrição *</label>
+                                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                                    </div>
+                                                                 
+                                                                </div>
+                                                                <!-- // Column END -->
+                                                            </div>
+                                                            <!-- // Row END -->
+                                                            
+                                                        </div>
+                                                    </div>
+                                                    <!-- // Widget END -->
+                                                    <div class="card">
+
+                                                        <!-- Widget heading -->
+                                                        <div class="card-body">
+                                                            <button type="button" class="btn  btn-app btn-primary" data-dismiss="modal">
+                                                                <i class="fa fa-arrow-left"></i> Voltar
+                                                            </button>
+                                                            <a class="btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
+                                                                <i class="fa fa-edit"></i> Salvar
+                                                            </a>
+                                                        </div>
+
+                                                    </div>
+                                                                    
+                                                <!-- // Modal Form END -->
+                                                </div>
+                                                
+                                            </div>   
+                                        </div>
+                                    </div>
                                 </form>
                                 <!-- // Form END -->
 
@@ -141,72 +211,3 @@ if($_POST)
     </div>
 </div>
 
-<!-- Modal -->
-<div id="add_cliente_status" class="modal fade" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title">Adcionar Status</h4>
-            </div>
-            <div class="modal-body cliente_status_modal">
-
-                     <!-- Form -->
-                                <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off">
-                                    <input type="hidden" name="<?php echo $primary_key ?>" value="<?php if (isset($row[$primary_key])) echo $row[$primary_key]; ?>"/>
-                                    <input type="hidden" name="new_record" value="<?php echo $new_record; ?>"/>
-                                    <!-- Widget -->
-                                    <div class="card">
-
-                                        <!-- Widget heading -->
-                                        <div class="card-body">
-                                            <h4 class="text-primary"><?php echo $page_subtitle;?></h4>
-                                        </div>
-                                        <!-- // Widget heading END -->
-
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <?php $this->load->view('admin/partials/validation_errors');?>
-                                                    <?php $this->load->view('admin/partials/messages'); ?>
-                                                </div>
-                                            </div>
-                                            <!-- Row -->
-                                            <div class="row innerLR">
-
-                                                <!-- Column -->
-                                                <div class="col-md-6">
-                                                    <?php $field_name = 'descricao';?>
-                                                    <div class="form-group">
-                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Descrição *</label>
-                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
-                                                    </div>
-                                                 
-                                                </div>
-                                                <!-- // Column END -->
-                                            </div>
-                                            <!-- // Row END -->
-                                            
-                                        </div>
-                                    </div>
-                                    <!-- // Widget END -->
-                                    <div class="card">
-
-                                        <!-- Widget heading -->
-                                        <div class="card-body">
-                                            <button type="button" class="btn  btn-app btn-primary" data-dismiss="modal">
-                                                <i class="fa fa-arrow-left"></i> Voltar
-                                            </button>
-                                            <a class="btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
-                                                <i class="fa fa-edit"></i> Salvar
-                                            </a>
-                                        </div>
-
-                                    </div>
-                                </form>
-                                <!-- // Form END -->
-            </div>
-            
-        </div>   
-    </div>
-</div>

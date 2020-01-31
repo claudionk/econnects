@@ -9,8 +9,6 @@
 class Produtos_Parceiros_Cliente_Status extends Admin_Controller
 {
 
-
-
     public function __construct()
     {
         parent::__construct();
@@ -100,6 +98,17 @@ class Produtos_Parceiros_Cliente_Status extends Admin_Controller
         //Caso post
         if($_POST)
         {
+            //Se criar novo status, insere e guarda id
+            if( !empty($_POST['descricao']) )
+            {
+
+                if($this->cliente_evolucao_status->validate_form()) //Valida form
+                {
+                    $cliente_evolucao_status_id = $this->cliente_evolucao_status->insert_form();
+                    $_POST['cliente_evolucao_status_id'] = $cliente_evolucao_status_id;
+                }
+            }
+
             //Valida formulário
             if($this->current_model->validate_form())
             {
@@ -159,13 +168,12 @@ class Produtos_Parceiros_Cliente_Status extends Admin_Controller
             redirect("$this->controller_uri/index");
         }
 
-
         $produto_parceiro =  $this->produto_parceiro->get($data['row']['produto_parceiro_id']);
-
 
         //Caso post
         if($_POST)
         {
+
             if($this->current_model->validate_form()) //Valida form
             {
                 //Realiza update
@@ -179,16 +187,14 @@ class Produtos_Parceiros_Cliente_Status extends Admin_Controller
             }
         }
 
-
-
         $data['produto_parceiro_id'] = $produto_parceiro['produto_parceiro_id'];
         $data['produto_parceiro'] = $produto_parceiro;
         $data['evolucao_status'] = $this->cliente_evolucao_status->filter_by_uso_interno(0)->get_all();;
 
-
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
+
     public  function delete($id)
     {
         $row = $this->current_model->get($id);
