@@ -94,6 +94,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $sucess = TRUE;
         $messagem = '';
         $desconto_upgrade = 0;
+        $data_base                      = issetor($params['data_base'], null);
         $produto_parceiro_id            = issetor($params['produto_parceiro_id'], 0);
         $parceiro_id                    = issetor($params['parceiro_id'], 0);
         $equipamento_id                 = issetor($params['equipamento_id'], 0);
@@ -102,7 +103,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $equipamento_categoria_id       = issetor($params['equipamento_categoria_id'], 0);
         $equipamento_de_para            = issetor($params['equipamento_de_para'], '');
         $quantidade                     = issetor($params['quantidade'], 0);
-        $valor_fixo                    = issetor($params['valor_fixo'], NULL);
+        $valor_fixo                     = issetor($params['valor_fixo'], NULL);
         $coberturas_adicionais          = issetor($params['coberturas'], array());
         $repasse_comissao               = app_unformat_percent($params['repasse_comissao']);
         $desconto_condicional           = app_unformat_percent($params['desconto_condicional']);
@@ -219,14 +220,14 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $repasse_comissao = str_pad(number_format((double)$repasse_comissao, 2, '.', ''), 5, "0", STR_PAD_LEFT);
         $comissao_corretor = (isempty($configuracao['comissao_corretor'], 0) - $repasse_comissao);
 
-        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($valor_fixo, $row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_sub_categoria_id, $equipamento_de_para, $servico_produto_id, $data_inicio_vigencia, $data_fim_vigencia, $comissao);
+        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($cotacao_id, $valor_fixo, $row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_sub_categoria_id, $equipamento_de_para, $servico_produto_id, $data_inicio_vigencia, $data_fim_vigencia, $comissao);
 
         $valores_cobertura_adicional_total = $valores_cobertura_adicional = array();
 
         if($coberturas_adicionais){
             foreach ($coberturas_adicionais as $coberturas_adicional) {
                 $cobertura = explode(';', $coberturas_adicional);
-                $vigencia = $this->plano->getInicioFimVigencia($cobertura[0], null, $cotacao);
+                $vigencia = $this->plano->getInicioFimVigencia($cobertura[0], $data_base, $cotacao);
 
                 $valor = $this->getValorCoberturaAdicional($cobertura[0], $cobertura[1], $vigencia['dias']);
                 $valores_cobertura_adicional_total[$cobertura[0]] = (isset($valores_cobertura_adicional_total[$cobertura[0]])) ? ($valores_cobertura_adicional_total[$cobertura[0]] + $valor) : $valor;

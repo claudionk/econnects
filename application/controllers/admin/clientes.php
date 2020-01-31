@@ -22,9 +22,6 @@ class Clientes extends Admin_Controller
     
     public function index($offset = 0)
     {
-
-
-
         //Carrega informações da página
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', 'Clientes');

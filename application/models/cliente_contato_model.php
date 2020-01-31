@@ -148,7 +148,7 @@ Class Cliente_Contato_Model extends MY_Model
         $data_contato['contato_tipo_id'] = $data['contato_tipo_id'];
         $data_contato['nome'] = $data['nome'];
         $data_contato['contato'] = ($data['contato_tipo_id'] != 1) ? app_retorna_numeros($data['contato']) : mb_strtolower($data['contato'], 'UTF-8');
-
+        $data_contato['melhor_horario'] = isset( $data['melhor_horario']) ? $data['melhor_horario'] : 'Q';
 
         $contato_id = $this->contato->insert($data_contato, TRUE);
 
@@ -161,10 +161,8 @@ Class Cliente_Contato_Model extends MY_Model
         $data_cliente_contato['decisor'] = (int)$data['decisor'];
 
         return $this->insert($data_cliente_contato, TRUE);
-
-
-
     }
+
     function insert_not_exist_contato($data){
 
         $this->load->model('contato_model', 'contato');
@@ -198,9 +196,6 @@ Class Cliente_Contato_Model extends MY_Model
         }else{
             return FALSE;
         }
-
-
-
     }
 
     function update_contato($data){
@@ -212,7 +207,6 @@ Class Cliente_Contato_Model extends MY_Model
         $data_contato['nome'] = $data['nome'];
         $data_contato['contato'] = ($data['contato_tipo_id'] != 1) ? app_retorna_numeros($data['contato']) : $data['contato'];
 
-
         $this->contato->update( $data['contato_id'], $data_contato, TRUE);
 
         $data_cliente_contato = array();
@@ -222,9 +216,36 @@ Class Cliente_Contato_Model extends MY_Model
         $data_cliente_contato['decisor'] = (int)$data['decisor'];
 
         return $this->update($data['cliente_contato_id'], $data_cliente_contato, TRUE);
-
-
-
     }
 
+    public function melhorHorario( $search = null, $typeSearch = 'slug', $return = null )
+    {
+        $oRet = array(
+            ['slug' => 'M', 'nome' => 'MANHÃ'],
+            ['slug' => 'T', 'nome' => 'TARDE'],
+            ['slug' => 'N', 'nome' => 'NOITE'],
+            ['slug' => 'C', 'nome' => 'COMERCIAL'],
+            ['slug' => 'Q', 'nome' => 'QUALQUER HORARIO'],
+        );
+
+        if (!empty($search)) {
+            $results = $this->search($oRet, $typeSearch, $search);
+            if (!empty($results)) {
+                if ( !empty($return) ) {
+                    $oRet = $results[$return];
+                } else {
+                    $oRet = $results;
+                }
+            } else {
+                if (!empty($results)) {
+                    $oRet = $oRet[ count($oRet)-1 ][$return];
+                } else {
+                    $oRet = $oRet[ count($oRet)-1 ]['slug'];
+                }
+            }
+
+        }
+
+        return $oRet;
+    }
 }

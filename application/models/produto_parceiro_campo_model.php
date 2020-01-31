@@ -371,12 +371,6 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                 return $result;
             }
 
-            if ($tipo_slug == 'dados_segurado')
-            {
-                print_r($erros);
-                die();
-            }
-
             foreach( $campos as $campo ) {
                 $rule_check = "OK";
                 if( strpos( $campo["validacoes"], "required" ) !== false && ( is_null( $values[$campo["campo_nome_banco_equipamento"]] ) || trim($values[$campo["campo_nome_banco_equipamento"]]) == ''  ) ) {

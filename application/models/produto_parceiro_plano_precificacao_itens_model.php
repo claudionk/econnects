@@ -196,12 +196,13 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param int $num_passageiro
     * @return array
     */
-    public function getValoresPlano( $valor_fixo = NULL, $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_sub_categoria_id = NULL, $equipamento_de_para = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
+    public function getValoresPlano( $cotacao_id = 0, $valor_fixo = NULL, $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_sub_categoria_id = NULL, $equipamento_de_para = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
         $this->load->model('moeda_cambio_model', 'moeda_cambio');
         $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
+        $this->load->model('cotacao_saude_faixa_etaria_model', 'faixa_etaria');
 
         $moeda_padrao = $this->moeda->filter_by_moeda_padrao()->get_all();
         $moeda_padrao = $moeda_padrao[0];
@@ -253,10 +254,23 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                             $calculo = $calculo['valor'] * $quantidade;
 
-                        } elseif( $produto_slug == 'generico' || $produto_slug == 'seguro_saude' ) {
+                        } elseif( $produto_slug == 'generico' ) {
 
                             $vigencia = $this->plano->getInicioFimVigencia($produto_parceiro_plano_id);
-                            $calculo = $this->getValorTabelaFixaGenerico($produto_parceiro_plano_id, $vigencia['dias'], $valor_nota, $data_nascimento, $comissao )*$quantidade;
+                            $calculo = $this->getValorTabelaFixaGenerico($produto_parceiro_plano_id, $vigencia['dias'], $valor_nota, $data_nascimento, $comissao ) * $quantidade;
+
+                        } elseif( $produto_slug == 'seguro_saude' ) {
+
+                            // consulta as faixa etarias informadas
+                            $faixas = $this->faixa_etaria->filter_by_cotacao($cotacao_id)
+                                ->get_all();
+
+                            // trata variável para concatenar
+                            $calculo = !empty($faixas) ? 0 : NULL; 
+                            foreach ($faixas as $fx)
+                            {
+                                $calculo += $this->getValorTabelaFixaGenerico($produto_parceiro_plano_id, $fx['inicio'], $valor_nota, $data_nascimento, $comissao ) * $fx['quantidade'];
+                            }
 
                         }
 
@@ -386,7 +400,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
     }
 
-    private function getValorTabelaFixaGenerico($produto_parceiro_plano_id, $qntDias, $valor_nota = null, $data_nascimento = null, $comissao = null){
+    private function getValorTabelaFixaGenerico($produto_parceiro_plano_id, $qnt, $valor_nota = null, $data_nascimento = null, $comissao = null){
 
         $valor = $this->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
             ->filter_by_tipo('RANGE')
@@ -395,21 +409,22 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         foreach ($valor as $vl) {
             switch ($vl['unidade_tempo']) {
                 case 'DIA':
-                    $base = $qntDias;
+                    $base = $qnt;
                     break;
                 case 'MES':
-                    $base = floor($qntDias/30);
+                    $base = floor($qnt/30);
                     break;
                 case 'ANO':
-                    $base = floor($qntDias/365);
+                    $base = floor($qnt/365);
                     break;
                 case 'VALOR':
                     $base = $valor_nota;
                     break;
                 case 'IDADE':
-                    $dn = new DateTime($data_nascimento);
-                    $d = $dn->diff(new DateTime());
-                    $base = $d->y;
+                    // $dn = new DateTime($data_nascimento);
+                    // $d = $dn->diff(new DateTime());
+                    // $base = $d->y;
+                    $base = $qnt;
                     break;
                 case 'COMISSAO':
                     $base = $comissao;
