@@ -44,7 +44,6 @@ class Venda_Seguro_Saude extends Admin_Controller
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/wizard/wizard.css", "admin"));
     }
 
-
     /**
      * Página Inicial
      */
@@ -220,6 +219,7 @@ class Venda_Seguro_Saude extends Admin_Controller
         $this->load->model('produto_parceiro_campo_model', 'campo');
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('localidade_estado_model', 'localidade_estado');
+        $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'plano_preco');
 
         //Adiciona bibliotecas necessárias
         $this->template->css(app_assets_url('modulos/venda/seguro_saude/css/select2.css', 'admin'));
@@ -260,6 +260,7 @@ class Venda_Seguro_Saude extends Admin_Controller
         $data['cotacao_id'] = $cotacao_id;
         $data['list'] = array();
         $data['list']['rg_uf'] = $this->localidade_estado->order_by('nome')->get_all();
+        $data['list']['faixa_etaria'] = $this->plano_preco->get_all_faixa_etaria_by_produto($produto_parceiro_id)->get_all(0, 0, false);
 
         //Campos para formulário - Dependentes
         $Campos = $this->campo->getCamposProduto($data['produto_parceiro_id'], 'dados_dependente');
