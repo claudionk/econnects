@@ -27,7 +27,6 @@ class Venda_Generico extends Admin_Controller
         $this->template->set_breadcrumb('Venda', base_url("$this->controller_uri/index"));
 
         //Carrega modelos necessários
-
         $this->load->model('produto_parceiro_model', 'current_model');
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('cotacao_generico_model', 'cotacao_generico');
@@ -40,6 +39,7 @@ class Venda_Generico extends Admin_Controller
         $this->template->js(app_assets_url("template/js/libs/cycle2/cycle2.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/cycle2/jquery.cycle2.carousel.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/toastr/toastr.js", "admin"));
+
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/toastr/toastr.css", "admin"));
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/wizard/wizard.css", "admin"));
     }
@@ -127,7 +127,6 @@ class Venda_Generico extends Admin_Controller
             else
             {
                 //Carrega função para finalizar
-               // $this->set_carrossel_session($cotacao_id, $produto_parceiro_id);
                 $this->generico_finalizar($produto_parceiro_id, $cotacao_id, $status);
             }
 
@@ -167,10 +166,7 @@ class Venda_Generico extends Admin_Controller
             $this->generico_salvar_cotacao($produto_parceiro_id, $cotacao_id, $pedido_id);
         }
 
-
     }
-
-
 
     /**
      * Página que verifica desconto
@@ -210,7 +206,6 @@ class Venda_Generico extends Admin_Controller
 
         }
 
-
         //Carrega template
         $this->template->load("admin/layouts/{$this->layout}", "$this->controller_uri/generico/verificar_desconto", $data );
     }
@@ -229,7 +224,6 @@ class Venda_Generico extends Admin_Controller
         $this->load->model('localidade_estado_model', 'estado');
         $this->load->model('faixa_salarial_model', 'faixa_salarial');
         $this->load->model("servico_produto_model", "servico_produto");
-        $this->load->library('api');
 
         //Dados para template
         $data = array();
