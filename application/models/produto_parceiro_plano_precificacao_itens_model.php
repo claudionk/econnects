@@ -170,7 +170,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         return $this;
     }
 
-
     function filter_by_intevalo_menor($qnt, $unidade_tempo = 'DIA'){
 
         $this->_database->where("{$this->_table}.final <", $qnt);
@@ -502,4 +501,16 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         return null;
 
     }
+
+    public function get_all_faixa_etaria_by_produto($produto_parceiro_id){
+        $this->_database->distinct();
+        $this->_database->select("{$this->_table}.inicial, {$this->_table}.final");
+        $this->_database->join("produto_parceiro_plano", "produto_parceiro_plano.produto_parceiro_plano_id = {$this->_table}.produto_parceiro_plano_id");
+        $this->_database->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id");
+        $this->_database->where("produto_parceiro.produto_parceiro_id", $produto_parceiro_id);
+        $this->_database->where("produto_parceiro_plano.deletado", 0);
+        $this->_database->where("{$this->_table}.unidade_tempo", 'IDADE');
+        return $this;
+    }
+
 }
