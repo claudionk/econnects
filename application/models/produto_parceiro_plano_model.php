@@ -107,6 +107,12 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             'groups' => 'default',
         ),
         array(
+            'field'  => 'qtd_min_vida',
+            'label'  => 'Mínimo de Vidas',
+            'rules'  => '',
+            'groups' => 'default',
+        ),
+        array(
             'field'  => 'idade_minima',
             'label'  => 'Idade Mínima',
             'rules'  => '',
