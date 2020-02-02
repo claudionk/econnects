@@ -923,6 +923,19 @@ class Venda_Seguro_Saude extends Admin_Controller
 
         if($_POST)
         {
+            //Carrega models necessários
+            $this->load->model('cotacao_saude_faixa_etaria_model', 'faixa_etaria');
+            $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
+
+            //Valida quantidade mínima de vidas (beneficiários)
+            $qtde_beneficiarios = $this->faixa_etaria->get_qtde_beneficiarios($cotacao_id);
+            $qtde_min_vida = $this->produto_parceiro_plano->get_qtd_min_vida($produto_parceiro_id, $_POST['produto_parceiro_plano_id']);
+
+            if ($qtde_beneficiarios < $qtde_min_vida && $qtde_beneficiarios > 0){
+                $this->session->set_flashdata('fail_msg', "São necessários no mínimo {$qtde_min_vida} Beneficiários para contratar este Plano. A quantidade de Beneficiários informada foi  {$qtde_beneficiarios}.");
+                redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/2/{$cotacao_id}");
+            }
+
             $post_plano = $this->input->post('plano');
             if(empty($post_plano)){
                 $this->session->set_flashdata('fail_msg', 'O Carrinho esta vazio, adicione um plano');

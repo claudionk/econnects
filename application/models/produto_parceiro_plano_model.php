@@ -234,6 +234,24 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         return $this;
     }
 
+    public function get_qtd_min_vida($produto_parceiro_id, $produto_parceiro_plano_id)
+    {
+        if (!is_null($produto_parceiro_id)) {
+            $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
+        }
+        if (!is_null($produto_parceiro_plano_id)) {
+            $this->_database->where("{$this->_table}.produto_parceiro_plano_id", $produto_parceiro_plano_id);
+        }
+        $this->_database->where("{$this->_table}.qtd_min_vida >", 0);
+        $result = $this->get_all();
+
+        if ( !empty($result) )
+        {
+            return $result[0]['qtd_min_vida'];
+        }
+        return 1;
+    }
+
     public function coreSelectPlanosProdutoParceiro($produto_parceiro_id, $produto_parceiro_plano_id = null)
     {
         $this->_database->select("{$this->_table}.produto_parceiro_plano_id");
