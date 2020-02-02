@@ -288,6 +288,50 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
     /**
      * @param $produto_parceiro_id
      * @param $slug
+     * @param $plano
+     * @param $adicionais
+     * @param $texto_view
+     * @return array
+     */
+    public function setValidacoesCamposAdicionais($produto_parceiro_id, $slug, $planos, $adicionais = array(), $texto_view = '' ){
+        $campos = $this->with_campo()
+            ->with_campo_tipo()
+            ->filter_by_produto_parceiro($produto_parceiro_id)
+            ->filter_by_campo_tipo_slug($slug)
+            ->filter_by_validacoes()
+            ->order_by("ordem", "asc")
+            ->get_all();
+
+        $validacoes = array();
+        $planos = explode(';', $planos);
+
+        if(($campos) && ($planos)){
+            foreach ($planos as $index => $plano) {
+                for ($cont = 2; $cont <= $adicionais[$index]; $cont++ ) {
+                    foreach ($campos as $campo) {
+                        $validacao = $campo['validacoes'];
+                        if(strpos($campo['validacoes'], 'matches') !== FALSE){
+                            $validacao = str_replace('matches[password]', '', $validacao);
+                            $validacao = str_replace('||', '|', $validacao);
+                        }
+
+                        $validacoes[] = array(
+                            'field' => "plano_{$plano}_{$cont}_{$campo['campo_nome_banco']}",
+                            'label' => "{$planos_nome[$index]} - {$texto_view} {$cont} - {$campo['campo_nome']}",
+                            'rules' => $validacao,
+                            'groups' => "dados_segurado",
+                        );
+                    }
+                }
+            }
+        }
+        return $validacoes;
+
+    }
+
+    /**
+     * @param $produto_parceiro_id
+     * @param $slug
      * @return array
      */
     public function setValidacoesCampos($produto_parceiro_id, $slug){

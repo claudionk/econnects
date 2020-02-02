@@ -209,7 +209,7 @@ class Venda_Seguro_Saude extends Admin_Controller
     }
 
     /**
-     * Formulário seguro Equipamento
+     * Formulário seguro Saude
      * @param $produto_parceiro_id
      * @param int $cotacao_id
      */
@@ -262,15 +262,10 @@ class Venda_Seguro_Saude extends Admin_Controller
         $data['list']['rg_uf'] = $this->localidade_estado->order_by('nome')->get_all();
         $data['list']['faixa_etaria'] = $this->plano_preco->get_all_faixa_etaria_by_produto($produto_parceiro_id)->get_all(0, 0, false);
 
-        //Campos para formulário - Dependentes
-        $Campos = $this->campo->getCamposProduto($data['produto_parceiro_id'], 'dados_dependente');
-        $data["campos_dependente"] = $Campos['campos'];
-
         if($_POST)
         {
 
             $validacao = $this->campo->setValidacoesCampos($produto_parceiro_id, 'cotacao');
-
             $this->cotacao->setValidate($validacao);
 
             //Verifica válido form
@@ -338,8 +333,6 @@ class Venda_Seguro_Saude extends Admin_Controller
         * Busca Planos e coberturas
         */
         if($_POST) {
-            //print_r($_POST);exit;
-            //$validacao = $this->setValidacoesCampos( $produto_parceiro_id, "salvar_cotacao" );
 
             $validacao[] = array(
                 'field' => "cliente_terceiro[0]",
@@ -418,11 +411,12 @@ class Venda_Seguro_Saude extends Admin_Controller
 
     }
 
-    public function seguro_saude_finalizar( $produto_parceiro_id, $cotacao_id = 0, $status = "" ) {
-
+    public function seguro_saude_finalizar( $produto_parceiro_id, $cotacao_id = 0, $status = "" )
+    {
         //Carrega models necessários
         $this->load->model('produto_parceiro_campo_model', 'campo');
         $this->load->model('cotacao_generico_model', 'cotacao_generico');
+        $this->load->model('cotacao_cobertura_model', 'cotacao_cobertura');
         $this->load->model('cliente_model', 'cliente');
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('localidade_estado_model', 'localidade_estado');
@@ -437,10 +431,7 @@ class Venda_Seguro_Saude extends Admin_Controller
         $carrossel = $this->session->userdata("carrossel_{$produto_parceiro_id}");
 
         $valido = isset($cotacao) && is_array($cotacao) && count($cotacao) > 0 && isset($carrossel) && is_array($carrossel) && count($carrossel) > 0;
-
-
         $cotacao_id = ((int)$this->input->post('cotacao_id') > 0) ? (int)$this->input->post('cotacao_id') : $cotacao_id;
-
 
         if($cotacao_id > 0)
         {
@@ -500,6 +491,14 @@ class Venda_Seguro_Saude extends Admin_Controller
             ->order_by("ordem", "asc")
             ->get_all();
 
+        // Campos para formulário - Dependentes
+        $data["campos_dependente"] = $this->campo->with_campo()
+            ->with_campo_tipo()
+            ->filter_by_produto_parceiro($produto_parceiro_id)
+            ->filter_by_campo_tipo_slug('dados_dependente')
+            ->order_by("ordem", "asc")
+            ->get_all();
+
         $data['cotacao'] = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $data['carrossel'] = $this->session->userdata("carrossel_{$produto_parceiro_id}");
 
@@ -507,18 +506,17 @@ class Venda_Seguro_Saude extends Admin_Controller
             $this->set_cotacao_session($cotacao_id, $produto_parceiro_id);
         }
         $dados_segurado =  $this->session->userdata("dados_segurado_{$produto_parceiro_id}");
-        //print_r($dados_segurado);exit;
         $data['row'] = (isset($dados_segurado) && is_array($dados_segurado) && count($dados_segurado) > 0) ? $dados_segurado : array();
-
         $data['list'] = array();
         $data['list']['rg_uf'] = $this->localidade_estado->order_by('nome')->get_all();
-
 
         if($_POST)
         {
             $planos = explode(';', $data['carrossel']['plano']);
             $planos_nome = explode(';', $data['carrossel']['plano_nome']);
+            $plano_dependente = explode(';', $carrossel['num_dependente']);
             $validacao = $this->campo->setValidacoesCamposPlano($produto_parceiro_id, 'dados_segurado', $data['carrossel']['plano']);
+            $validacao = $this->campo->setValidacoesCamposAdicionais($produto_parceiro_id, 'dados_dependente', $data['carrossel']['plano'], $plano_dependente, 'Dependente' );
 
             $this->cotacao->setValidate($validacao);
             if ($this->cotacao->validate_form('dados_segurado'))
@@ -536,9 +534,11 @@ class Venda_Seguro_Saude extends Admin_Controller
                     $dados_cotacao = array();
                     $dados_cotacao['step'] = 4;
 
-                    $this->campo->setDadosCampos($produto_parceiro_id, 'equipamento', 'dados_segurado', $plano,  $dados_cotacao);
+                    $this->campo->setDadosCampos($produto_parceiro_id, 'generico', 'dados_segurado', $plano,  $dados_cotacao);
 
                     $this->cotacao_generico->update($cotacao_salva['cotacao_generico_id'], $dados_cotacao, TRUE);
+
+                    $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $cotacao_salva['produto_parceiro_plano_id'], $cotacao_salva["nota_fiscal_valor"], $cotacao_salva['premio_liquido']);
 
                     if($this->input->post("plano_{$plano}_password")){
                         $dados_cotacao['password'] = $this->input->post("plano_{$plano}_password");
@@ -599,6 +599,7 @@ class Venda_Seguro_Saude extends Admin_Controller
         $this->load->model('cobertura_model', 'cobertura');
         $this->load->model('cotacao_generico_cobertura_model', 'cotacao_generico_cobertura');
         $this->load->model('cotacao_model', 'cotacao');
+        $this->load->model('cotacao_cobertura_model', 'cotacao_cobertura');
         $this->load->model('produto_parceiro_desconto_model', 'desconto');
         $this->load->model('produto_parceiro_configuracao_model', 'configuracao');
         $this->load->model('produto_parceiro_regra_preco_model', 'regra_preco');
@@ -673,8 +674,6 @@ class Venda_Seguro_Saude extends Admin_Controller
             default:
             $data['label_valor_bruto'] = 'PRÊMIO BRUTO';
             break;
-
-
         }
 
         $cotacao_atual = $this->cotacao->get($cotacao_id);
@@ -703,7 +702,6 @@ class Venda_Seguro_Saude extends Admin_Controller
 
                 $cotacao_salva = $cotacao_salva[0];
 
-                //$data['equipamento_nome'] = $cotacao_salva['equipamento_nome'];
                 $data['cotacao_codigo'] = $cotacao_salva['codigo'];
                 $data['carrossel']['repasse_comissao'] = $cotacao_salva['repasse_comissao'];
                 $data['carrossel']['desconto_condicional'] = $cotacao_salva['desconto_condicional'];
@@ -742,6 +740,7 @@ class Venda_Seguro_Saude extends Admin_Controller
 
                         $cotacao_adicional = $this->cotacao_generico_cobertura->get_many_by(array(
                             'cotacao_generico_id' => $cotacao_salva['cotacao_generico_id'],
+                            'deletado' => 0,
                         ));
 
                         foreach ($cotacao_adicional as $ca) {
@@ -752,210 +751,225 @@ class Venda_Seguro_Saude extends Admin_Controller
 
                         $data['carrinho'][] = array(
                             'item' => 1,
-                            'plano_id' => $plano_salvo['produto_parceiro_plano_id'],
                             'quantidade' => $cotacao_salva['quantidade'],
+                            'plano_id' => $plano_salvo['produto_parceiro_plano_id'],
                             'plano' => $plano_salvo['nome'],
                             'valor' => app_format_currency($cotacao_salva['premio_liquido_total'], FALSE, 2)
                         );
                     }
                 }
 
-            $data['carrinho_hidden']['plano'] = implode(';', $data['carrinho_hidden']['plano']);
-            $data['carrinho_hidden']['plano_nome'] = implode(';', $data['carrinho_hidden']['plano_nome']);
-            $data['carrinho_hidden']['quantidade'] = implode(';', $data['carrinho_hidden']['quantidade']);
-            $data['carrinho_hidden']['valor'] = implode(';', $data['carrinho_hidden']['valor']);
-            $data['carrinho_hidden']['comissao_repasse'] = implode(';', $data['carrinho_hidden']['comissao_repasse']);
-            $data['carrinho_hidden']['desconto_condicional'] = implode(';', $data['carrinho_hidden']['desconto_condicional']);
-            $data['carrinho_hidden']['desconto_condicional_valor'] = implode(';', $data['carrinho_hidden']['desconto_condicional_valor']);
-            $data['carrinho_hidden']['valor_total'] = implode(';', $data['carrinho_hidden']['valor_total']);
-            $data['carrinho_hidden']['num_passageiro'] = implode(';', $data['carrinho_hidden']['num_passageiro']);
+                $data['carrinho_hidden']['plano'] = implode(';', $data['carrinho_hidden']['plano']);
+                $data['carrinho_hidden']['quantidade'] = implode(';', $data['carrinho_hidden']['quantidade']);
+                $data['carrinho_hidden']['plano_nome'] = implode(';', $data['carrinho_hidden']['plano_nome']);
+                $data['carrinho_hidden']['valor'] = implode(';', $data['carrinho_hidden']['valor']);
+                $data['carrinho_hidden']['comissao_repasse'] = implode(';', $data['carrinho_hidden']['comissao_repasse']);
+                $data['carrinho_hidden']['desconto_condicional'] = implode(';', $data['carrinho_hidden']['desconto_condicional']);
+                $data['carrinho_hidden']['desconto_condicional_valor'] = implode(';', $data['carrinho_hidden']['desconto_condicional_valor']);
+                $data['carrinho_hidden']['valor_total'] = implode(';', $data['carrinho_hidden']['valor_total']);
+                $data['carrinho_hidden']['num_passageiro'] = implode(';', $data['carrinho_hidden']['num_passageiro']);
 
-            $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
-        }
-        else
-        {
+                $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
+            } else {
 
-            $cotacao_salva = $this->cotacao->get($cotacao_id);
-            $data['cotacao_codigo'] = $cotacao_salva['codigo'];
+                $cotacao_salva = $this->cotacao->get($cotacao_id);
+                $data['cotacao_codigo'] = $cotacao_salva['codigo'];
+
+                $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
+
+                $data['carrinho'] = array();
+            }
+        } else {
             $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
             $data['carrinho'] = array();
         }
-    }
-    else
-    {
-        $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
-        $data['carrinho'] = array();
-    }
 
-    $data['regra_preco'] = $this->regra_preco->with_regra_preco()
-        ->filter_by_produto_parceiro($produto_parceiro_id)
-        ->get_all();
+        $data['regra_preco'] = $this->regra_preco->with_regra_preco()
+            ->filter_by_produto_parceiro($produto_parceiro_id)
+            ->get_all();
 
-    /**
-    * Busca Planos e coberturas
-    */
-    $data['coberturas'] = $this->cobertura->getCoberturasProdutoParceiroPlano($produto_parceiro_id);
 
-    if(isset($cotacao_antiga) && $cotacao_antiga)
-    {
-        $cotacao_antiga = $this->cotacao->with_cotacao_generico()->get($cotacao_antiga['cotacao_id']);
+        /**
+         * Busca Planos e coberturas
+         */
+        $data['coberturas'] = $this->cobertura->getCoberturasProdutoParceiroPlano($produto_parceiro_id);
 
-        if($data['row']['venda_agrupada']) {
-            $arrPlanos = $this->plano
+        if(isset($cotacao_antiga) && $cotacao_antiga)
+        {
+            $cotacao_antiga = $this->cotacao->with_cotacao_generico()->get($cotacao_antiga['cotacao_id']);
+
+            if($data['row']['venda_agrupada']) {
+                $arrPlanos = $this->plano
+                    ->distinct()
+                    ->order_by('produto_parceiro_plano.ordem', 'asc')
+                    ->with_produto_parceiro()
+                    ->with_produto()
+                    ->where("produto_parceiro_plano.produto_parceiro_plano_id", "!=", $cotacao_antiga['produto_parceiro_plano_id']);
+
+                if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
+                    $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
+                }
+
+                $arrPlanos = $arrPlanos
+                    ->get_many_by(array(
+                        'produto_parceiro.venda_agrupada' => 1,
+                    ));
+            }
+            else
+            {
+                $arrPlanos = $this->plano
+                ->order_by('produto_parceiro_plano.ordem', 'asc')
                 ->distinct()
-                ->with_produto_parceiro()
-                ->with_produto()
                 ->where("produto_parceiro_plano.produto_parceiro_plano_id", "!=", $cotacao_antiga['produto_parceiro_plano_id']);
 
-            if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
-                $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
-            }
+                if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
+                    $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
+                }
 
-            $arrPlanos = $arrPlanos
+                $arrPlanos = $arrPlanos
                 ->get_many_by(array(
-                    'produto_parceiro.venda_agrupada' => 1,
+                    'produto_parceiro_id' => $produto_parceiro_id
                 ));
+            }
         }
         else
         {
-            $arrPlanos = $this->plano
+            if($data['row']['venda_agrupada'])
+            {
+                $arrPlanos = $this->plano
                 ->distinct()
-                ->where("produto_parceiro_plano.produto_parceiro_plano_id", "!=", $cotacao_antiga['produto_parceiro_plano_id']);
-
-            if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
-                $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
-            }
-
-            $arrPlanos = $arrPlanos
-            ->get_many_by(array(
-                'produto_parceiro_id' => $produto_parceiro_id
-            ));
-        }
-    }
-    else
-    {
-        if($data['row']['venda_agrupada'])
-        {
-            $arrPlanos = $this->plano
-                ->distinct()
+                ->order_by('produto_parceiro_plano.ordem', 'asc')
                 ->with_produto_parceiro()
                 ->with_produto();
 
-            if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
-                $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
+                if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
+                    $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
+                }
+
+                $arrPlanos = $arrPlanos
+                ->get_many_by(array(
+                    'produto_parceiro.venda_agrupada' => 1,
+                    'produto_parceiro.deletado' => 0
+                ));
+
+            }else{
+                $arrPlanos = $this->plano
+                    ->order_by('produto_parceiro_plano.ordem', 'asc')
+                    ->distinct();
+
+                if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
+                    $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
+                }
+
+                $arrPlanos = $arrPlanos
+                ->get_many_by(array(
+                    'produto_parceiro_id' => $produto_parceiro_id
+                ));
             }
-
-            $arrPlanos = $arrPlanos
-            ->get_many_by(array(
-                'produto_parceiro.venda_agrupada' => 1,
-                'produto_parceiro.deletado' => 0
-            ));
-
-        }else{
-            $arrPlanos = $this->plano
-            ->distinct();
-
-            if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
-                $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
-            }
-
-            $arrPlanos = $arrPlanos
-            ->get_many_by(array(
-                'produto_parceiro_id' => $produto_parceiro_id
-            ));
-
         }
-    }
 
-    $fail_msg = '';
+        $fail_msg = '';
 
-    if(!$arrPlanos)
-    {
-        $this->session->set_flashdata('fail_msg', 'Não existem planos para este Equipamento.');
+        if(!$arrPlanos)
+        {
+            $this->session->set_flashdata('fail_msg', 'Não existem planos Configurados.');
 
-        redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/1");
-    }
-
-    $data['planos'] = array();
-    foreach ($arrPlanos as $plano)
-    {
-        $arrCoberturas = $this->plano_cobertura->filter_by_produto_parceiro_plano($plano['produto_parceiro_plano_id'])->get_all();
-        foreach ($arrCoberturas as $idx => $cob) {
-            $arrCoberturas[$idx]['preco'] = app_format_currency($arrCoberturas[$idx]['preco'], true, 3);
-            $arrCoberturas[$idx]['porcentagem'] = app_format_currency($arrCoberturas[$idx]['porcentagem'], false, 5) . ' %';
+            redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/1");
         }
-        $plano['cobertura'] = $arrCoberturas;
-        $data['planos'][] = $plano;
-    }
 
-    $data['list'] = array();
-
-    if($_POST)
-    {
-        $post_plano = $this->input->post('plano');
-        if(empty($post_plano)){
-            $this->session->set_flashdata('fail_msg', 'O Carrinho esta vazio, adicione um plano');
-            if ($cotacao_id > 0) {
-                redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/2/{$cotacao_id}");
-            } else {
-                redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/2");
+        $data['planos'] = array();
+        foreach ($arrPlanos as $plano)
+        {
+            $arrCoberturas = $this->plano_cobertura->filter_by_produto_parceiro_plano($plano['produto_parceiro_plano_id'])->get_all();
+            foreach ($arrCoberturas as $idx => $cob) {
+                $arrCoberturas[$idx]['preco'] = app_format_currency($arrCoberturas[$idx]['preco'], true, 3);
+                $arrCoberturas[$idx]['porcentagem'] = app_format_currency($arrCoberturas[$idx]['porcentagem'], false, 5) . ' %';
             }
-        }else{
+            $plano['cobertura'] = $arrCoberturas;
+            $data['planos'][] = $plano;
+        }
 
-            if ($this->cotacao->validate_form('carrossel'))
-            {
-                $this->session->set_userdata("carrossel_{$produto_parceiro_id}", $_POST);
-                $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $cotacao);
+        $data['list'] = array();
 
-                if($this->input->post('salvar_cotacao') == 1){
+        if($_POST)
+        {
+            $post_plano = $this->input->post('plano');
+            if(empty($post_plano)){
+                $this->session->set_flashdata('fail_msg', 'O Carrinho esta vazio, adicione um plano');
+                if ($cotacao_id > 0) {
+                    redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/2/{$cotacao_id}");
+                } else {
+                    redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/2");
+                }
+            }else{
 
-                    $this->cotacao_generico->insert_update($produto_parceiro_id, $cotacao_id, 2);
+                if ($this->cotacao->validate_form('carrossel'))
+                {
+                    $this->session->set_userdata("carrossel_{$produto_parceiro_id}", $_POST);
+                    $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $cotacao);
 
-                    //Merge dos dados para comunicação evento
-                    $dados_comunicacao = array_merge($_POST, $cotacao);
+                    if($this->input->post('salvar_cotacao') == 1){
 
-                    //Carrega biblioteca e dispara evento para salvar cotação
-                    $this->load->library("Comunicacao");
-                    $comunicacao = new Comunicacao();
-                    $comunicacao->setDestinatario($cotacao['email']);
-                    $comunicacao->setNomeDestinatario($cotacao['nome']);
-                    $comunicacao->setMensagemParametros($dados_comunicacao);
-                    $comunicacao->disparaEvento("cotacao_salva", $cotacao['produto_parceiro_id']);
+                        $this->cotacao_generico->insert_update($produto_parceiro_id, $cotacao_id, 2);
 
-                    if($data['configuracao']['salvar_cotacao_formulario'] == 1){
-                        redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/8/{$cotacao_id}");
-                    }else{
-                        $cotacao = $this->cotacao->get($cotacao_id);
-                        $this->session->set_flashdata('succ_msg', 'Cotação salva com sucesso, código: '. $cotacao['codigo']); //Mensagem de sucesso
-                        $this->limpa_cotacao($produto_parceiro_id);
-                        redirect("{$this->controller_uri}/index");
+                        //Merge dos dados para comunicação evento
+                        $dados_comunicacao = array_merge($_POST, $cotacao);
 
-                    }
-                }else{
-                    if ($cotacao_id > 0) {
-                        if ($this->cotacao_generico->verifica_possui_desconto($cotacao_id)) {
-                            $this->cotacao_generico->insert_update($produto_parceiro_id, $cotacao_id, 2);
-                            $update_cotacao = array();
-                            $update_cotacao['cotacao_status_id'] = 4;
-                            $this->cotacao->update($cotacao_id, $update_cotacao, TRUE);
-                            $this->session->set_flashdata('succ_msg', 'Você optou pelo desconto condicional, esse desconto precisa de autorização, salvamos sua cotação com o código: ' . $cotacao_salva[0]['codigo'] . ' Aguarde a aprovação'); //Mensagem de sucesso
+                        //Carrega biblioteca e dispara evento para salvar cotação
+                        $this->load->library("Comunicacao");
+                        $comunicacao = new Comunicacao();
+                        $comunicacao->setDestinatario($cotacao['email']);
+                        $comunicacao->setNomeDestinatario($cotacao['nome']);
+                        $comunicacao->setMensagemParametros($dados_comunicacao);
+                        $comunicacao->disparaEvento("cotacao_salva", $cotacao['produto_parceiro_id']);
+
+                        if($data['configuracao']['salvar_cotacao_formulario'] == 1){
+                            redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/8/{$cotacao_id}");
+                        }else{
+                            $cotacao = $this->cotacao->get($cotacao_id);
+                            $this->session->set_flashdata('succ_msg', 'Cotação salva com sucesso, código: '. $cotacao['codigo']); //Mensagem de sucesso
                             $this->limpa_cotacao($produto_parceiro_id);
                             redirect("{$this->controller_uri}/index");
+
                         }
-                        redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/3/{$cotacao_id}");
-                    } else {
-                        redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/3");
+                    }else{
+                        if ($cotacao_id > 0)
+                        {
+                            $this->cotacao_generico->insert_update($produto_parceiro_id, $cotacao_id, 2);
+                            $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
+
+                            $cotacao["nota_fiscal_valor"] = app_unformat_currency($cotacao["nota_fiscal_valor"]);
+                            $_POST['valor'] = app_unformat_currency($_POST['valor']);
+                            $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $_POST['produto_parceiro_plano_id'], $cotacao["nota_fiscal_valor"], $_POST['valor']);
+
+                            if ($this->cotacao_generico->verifica_possui_desconto($cotacao_id)) {
+                                $this->cotacao_generico->insert_update($produto_parceiro_id, $cotacao_id, 2);
+                                $update_cotacao = array();
+                                $update_cotacao['cotacao_status_id'] = 4;
+                                $this->cotacao->update($cotacao_id, $update_cotacao, TRUE);
+                                $this->session->set_flashdata('succ_msg', 'Você optou pelo desconto condicional, esse desconto precisa de autorização, salvamos sua cotação com o código: ' . $cotacao_salva[0]['codigo'] . ' Aguarde a aprovação'); //Mensagem de sucesso
+                                $this->limpa_cotacao($produto_parceiro_id);
+                                redirect("{$this->controller_uri}/index");
+                            }
+
+                            redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/3/{$cotacao_id}");
+                        } else {
+                            redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/3");
+                        }
                     }
+
                 }
+
             }
+
         }
 
-    }
+        $view = "admin/venda/seguro_saude/{$this->layout}/carrossel";
+        if(!view_exists($view))
+            $view = "admin/venda/seguro_saude/carrossel";
 
-    $view = "admin/venda/seguro_saude/{$this->layout}/carrossel";
-    if(!view_exists($view))
-        $view = "admin/venda/seguro_saude/carrossel";
         $this->template->load("admin/layouts/{$this->layout}", $view, $data );
+
     }
 
     private function insertPedidoCarrinho($cotacao_id)
@@ -1068,9 +1082,7 @@ class Venda_Seguro_Saude extends Admin_Controller
                 $data_contato['contato_tipo_id'] = $contato_tipo_id;
                 $data_contato['cliente_terceiro'] = $cliente_terceiro;
                 $data_contato['melhor_horario'] = $melhor_horario;
-                //                $data_contato['data_nascimento'] = app_dateonly_mask_to_mysql($cotacao['data_nascimento']);
                 $this->cliente_contato->insert_not_exist_contato($data_contato);
-                //  print_r($data_contato);
             }
         }
 
@@ -1100,15 +1112,14 @@ class Venda_Seguro_Saude extends Admin_Controller
         $this->load->model('cotacao_generico_model', 'cotacao_generico_model');
 
         $cotacao_salva = $this->cotacao
-        ->with_cotacao_generico()
-        ->filterByID($cotacao_id)->get_all();
+            ->with_cotacao_generico()
+            ->filterByID($cotacao_id)->get_all();
 
         if($cotacao_salva)
         {
             $cotacao_salva = $cotacao_salva[0];
 
             $cotacao = array();
-            //$cotacao['equipamento_nome'] = $cotacao_salva['equipamento_nome'];
             $cotacao['produto_parceiro_id'] = $produto_parceiro_id;
             $cotacao['cnpj_cpf'] = (app_verifica_cpf_cnpj($cotacao_salva['cnpj_cpf']) == 'CPF') ? app_cpf_to_mask($cotacao_salva['cnpj_cpf']) : app_cnpj_to_mask($cotacao_salva['cnpj_cpf']);
             $cotacao['rg'] = $cotacao_salva['rg'];
@@ -1117,13 +1128,8 @@ class Venda_Seguro_Saude extends Admin_Controller
             $cotacao['email'] = $cotacao_salva['email'];
             $cotacao['telefone'] = $cotacao_salva['telefone'];
             $cotacao['data_nascimento'] = app_date_mysql_to_mask($cotacao_salva['data_nascimento'], 'd/m/Y');
-
-            //$cotacao['nota_fiscal_data'] = app_date_mysql_to_mask($cotacao_salva['nota_fiscal_data'], 'd/m/Y');
-            //$cotacao['nota_fiscal_valor'] = app_format_currency($cotacao_salva['nota_fiscal_valor']);
-            //$cotacao['nota_fiscal_numero'] = $cotacao_salva['nota_fiscal_numero'];
             $cotacao['endereco_cep'] = $cotacao_salva['endereco_cep'];
             $cotacao['endereco_logradouro'] = $cotacao_salva['endereco_logradouro'];
-
             $cotacao['endereco_numero'] = $cotacao_salva['endereco_numero'];
             $cotacao['endereco_complemento'] = $cotacao_salva['endereco_complemento'];
             $cotacao['endereco_bairro'] = $cotacao_salva['endereco_bairro'];
@@ -1135,13 +1141,8 @@ class Venda_Seguro_Saude extends Admin_Controller
             $cotacao['premio_liquido'] = app_format_currency($cotacao_salva['premio_liquido']);
             $cotacao['iof'] = app_format_currency($cotacao_salva['iof']);
             $cotacao['premio_liquido_total'] = app_format_currency($cotacao_salva['premio_liquido_total']);
-
             $cotacao['faixa_salarial_id'] = $cotacao_salva['faixa_salarial_id'];
             $cotacao['quantidade'] = $cotacao_salva['quantidade'];
-            //$cotacao['equipamento_marca_id'] = $cotacao_salva['equipamento_marca_id'];
-            //$cotacao['equipamento_categoria_id'] = $cotacao_salva['equipamento_categoria_id'];
-            //$cotacao['equipamento_id'] = $cotacao_salva['equipamento_nome'];
-            //$cotacao['equipamento_id'] = $cotacao_salva['equipamento_nome'];
             $cotacao['sexo'] = $cotacao_salva['sexo'];
             $cotacao['estado_civil'] = $cotacao_salva['estado_civil'];
             $cotacao['rg_orgao_expedidor'] = $cotacao_salva['rg_orgao_expedidor'];
@@ -1157,6 +1158,8 @@ class Venda_Seguro_Saude extends Admin_Controller
             $cotacao['aux_08'] = $cotacao_salva['aux_08'];
             $cotacao['aux_09'] = $cotacao_salva['aux_09'];
             $cotacao['aux_10'] = $cotacao_salva['aux_10'];
+            $cotacao['data_inicio_vigencia'] = app_date_mysql_to_mask(issetor($cotacao_salva['data_inicio_vigencia'], null));
+            $cotacao['data_fim_vigencia'] = app_date_mysql_to_mask(issetor($cotacao_salva['data_fim_vigencia'], null));
 
             $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $cotacao);
         }
@@ -1170,6 +1173,7 @@ class Venda_Seguro_Saude extends Admin_Controller
 
         foreach ($pedidos as $index => $pedido)
         {
+            //verifica se exite cartão não processado
             try {
                 $cartao = $this->pedido_cartao->get_cartao_debito_pendente($pedido['pedido_id']);
 
@@ -1247,7 +1251,7 @@ class Venda_Seguro_Saude extends Admin_Controller
                 {
 
                     $this->fatura->pagamentoCompletoEfetuado($pedido['pedido_id']);
-                    $this->apolice->insertSeguroEquipamento($pedido['pedido_id']);
+                    $this->apolice->insertSeguroGenerico($pedido['pedido_id']);
                     $this->pedido_transacao->insStatus($pedido['pedido_id'], 'pagamento_confirmado', "Transação Efetuada com Sucesso [{$response->TID}]");
 
                     //Retorna pedido e cotação
@@ -1371,49 +1375,8 @@ class Venda_Seguro_Saude extends Admin_Controller
         $data['pedido'] = $pedido;
 
         $this->limpa_cotacao($produto_parceiro_id);
-
         $this->template->load("admin/layouts/{$this->layout}", "admin/venda/seguro_saude/certificado", $data );
 
-    }
-
-    public function setValidacoesCampos($produto_parceiro_id, $slug)
-    {
-        $this->load->model( "produto_parceiro_campo_model", "produto_parceiro_campo" );
-        $campos = $this->produto_parceiro_campo->with_campo()
-            ->with_campo_tipo()
-            ->filter_by_produto_parceiro( $produto_parceiro_id )
-            ->filter_by_campo_tipo_slug( $slug )
-            ->order_by( "ordem", "asc" )
-            ->get_all();
-
-        $validacoes = array();
-
-        //print_r($campos);exit;
-        if($campos){
-            foreach ($campos as $index => $campo) {
-
-                $validacao = $campo['validacoes'];
-                if(strpos($campo['validacoes'], 'matches') !== FALSE){
-                    $validacao = str_replace('matches[password]', '', $validacao);
-                    $validacao = str_replace('||', '|', $validacao);
-                }
-                $validacoes[] = array(
-                    'field' => "{$campo['campo_nome_banco']}",
-                    'label' => "{$campo['campo_nome']}",
-                    'rules' => $validacao,
-                    'groups' => $slug
-                );
-                if(($campo['campo_slug'] == 'password') && (strpos($campo['validacoes'], 'matches')!== FALSE)){
-                    $validacoes[] = array(
-                        'field' => "{$campo['campo_nome_banco']}_confirm",
-                        'label' => "{$campo['campo_nome']}",
-                        'rules' => "trim|required|check_password_confirm[{$campo['campo_nome_banco']}]",
-                        'groups' => $slug
-                    );
-                }
-            }
-        }
-        return $validacoes;
     }
 
 }
