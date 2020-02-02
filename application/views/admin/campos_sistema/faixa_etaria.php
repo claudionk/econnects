@@ -4,7 +4,7 @@ if($_POST)
 //print_r($list);
 ?>
 
-<div style="display: inline-block;">
+<div class="col-md-12 form-group<?php echo (app_is_form_error($field_name)) ? ' has-error' : ''; ?>">
     <div class="form-group">
         <label class=" control-label inli" for="<?php echo $field_name;?>"><?php echo $field_label ?></label>
     </div>
