@@ -273,6 +273,7 @@ Class Cotacao_Generico_Model extends MY_Model
         $this->load->model('cotacao_generico_cobertura_model', 'cotacao_generico_cobertura');
         $this->load->model('produto_parceiro_regra_preco_model', 'produto_parceiro_regra_preco');
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
+        $this->load->model('cotacao_saude_faixa_etaria_model', 'faixa_etaria');
 
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $carrossel = $this->session->userdata("carrossel_{$produto_parceiro_id}");
@@ -377,9 +378,11 @@ Class Cotacao_Generico_Model extends MY_Model
         }
 
         $data_cotacao = array_merge( $cotacao, $data_cotacao );
+        $faixa_etaria = emptyor($data_cotacao["qtd"], []);
         unset( $data_cotacao["parceiro_id"] );
         unset( $data_cotacao["usuario_cotacao_id"] );
         unset( $data_cotacao["url_busca_cliente"] );
+        unset( $data_cotacao["qtd"] );
 
         if(isset($cotacao['produto_parceiro_plano_id'])){
             $data_cotacao['produto_parceiro_plano_id'] = $cotacao['produto_parceiro_plano_id'];
@@ -544,6 +547,27 @@ Class Cotacao_Generico_Model extends MY_Model
             $cotacao_id = $this->cotacao->insert($dt_cotacao, TRUE);
             $data_cotacao['cotacao_id'] = $cotacao_id;
             $cotacao_generico_id = $this->insert($data_cotacao, TRUE);
+        }
+
+        if ( !empty($faixa_etaria) )
+        {
+            $rows = [];
+            foreach ($faixa_etaria as $key => $value)
+            {
+                if ( !empty($value) )
+                {
+                    $rows[] = [
+                        'inicio' => $key,
+                        'quantidade' => $value,
+                    ];
+                }
+            }
+
+            if ( !empty($rows) )
+            {
+                $this->faixa_etaria->atualiza_faixa_etaria($rows, $cotacao_id);
+            }
+
         }
 
         if ( !empty($coberturas_adicionais) )

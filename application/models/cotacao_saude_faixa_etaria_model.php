@@ -50,7 +50,6 @@ class Cotacao_Saude_Faixa_Etaria_Model extends MY_Model
             $data = array();
             $data['cotacao_id'] = $cotacao_id;
             $data['inicio'] = $faixa['inicio'];
-            $data['fim'] = $faixa['fim'];
             $data['quantidade'] = $faixa['quantidade'];
 
             if($this->validate($data))
