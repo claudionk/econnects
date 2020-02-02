@@ -317,7 +317,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
 
                         $validacoes[] = array(
                             'field' => "plano_{$plano}_{$cont}_{$campo['campo_nome_banco']}",
-                            'label' => "{$planos_nome[$index]} - {$texto_view} {$cont} - {$campo['campo_nome']}",
+                            'label' => "{$texto_view} {$cont} - {$campo['campo_nome']}",
                             'rules' => $validacao,
                             'groups' => "dados_segurado",
                         );

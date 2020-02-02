@@ -421,6 +421,7 @@ class Venda_Seguro_Saude extends Admin_Controller
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('localidade_estado_model', 'localidade_estado');
         $this->load->model('capitalizacao_model', 'capitalizacao');
+        $this->load->model('cotacao_saude_faixa_etaria_model', 'faixa_etaria');
 
         //Carrega JS para template
         $this->template->css(app_assets_url('modulos/venda/seguro_saude/css/select2.css', 'admin'));
@@ -501,6 +502,7 @@ class Venda_Seguro_Saude extends Admin_Controller
 
         $data['cotacao'] = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $data['carrossel'] = $this->session->userdata("carrossel_{$produto_parceiro_id}");
+        $data['carrossel']['num_dependente'] = $this->faixa_etaria->get_qtde_beneficiarios($cotacao_id);
 
         if(isset($cotacao_salva['cotacao_upgrade_id']) && (int)$cotacao_salva['cotacao_upgrade_id'] > 0){
             $this->set_cotacao_session($cotacao_id, $produto_parceiro_id);
@@ -514,9 +516,10 @@ class Venda_Seguro_Saude extends Admin_Controller
         {
             $planos = explode(';', $data['carrossel']['plano']);
             $planos_nome = explode(';', $data['carrossel']['plano_nome']);
-            $plano_dependente = explode(';', $carrossel['num_dependente']);
+            $plano_dependente = explode(';', $data['carrossel']['num_dependente']);
             $validacao = $this->campo->setValidacoesCamposPlano($produto_parceiro_id, 'dados_segurado', $data['carrossel']['plano']);
-            $validacao = $this->campo->setValidacoesCamposAdicionais($produto_parceiro_id, 'dados_dependente', $data['carrossel']['plano'], $plano_dependente, 'Dependente' );
+            $validacao_dep = $this->campo->setValidacoesCamposAdicionais($produto_parceiro_id, 'dados_dependente', $data['carrossel']['plano'], $plano_dependente, 'Beneficiário' );
+            $validacao = array_merge($validacao, $validacao_dep);
 
             $this->cotacao->setValidate($validacao);
             if ($this->cotacao->validate_form('dados_segurado'))

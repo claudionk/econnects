@@ -128,12 +128,12 @@
                             for ($dependente = 2; $dependente <= $plano_dependente[$index]; $dependente++ ) : ?>
                                 <div class="card panel expanded">
                                     <div class="card-head style-primary" data-toggle="collapse" data-parent="#accordion6" data-target="#accordion6-<?php echo $dependente?>" <?php echo $expanded; ?>>
-                                        <header><?php echo app_produto_traducao('Dados do Dependente '. $dependente, $carrossel['produto_parceiro_id']); ?></header>
+                                        <header><?php echo app_produto_traducao('Dados do Beneficiário '. $dependente, $carrossel['produto_parceiro_id']); ?></header>
                                         <div class="tools">
                                             <a class="btn btn-icon-toggle"><i class="fa fa-angle-down"></i></a>
                                         </div>
                                     </div>
-                                    <div id="accordion6-<?php echo $passageiro?>" class="collapse<?php echo $collapse; ?>" <?php echo $expanded; ?>>
+                                    <div id="accordion6-<?php echo $dependente?>" class="collapse<?php echo $collapse; ?>" <?php echo $expanded; ?>>
                                         <div class="panel-body">
                                             <?php foreach ($campos_dependente as $campo):
 
@@ -156,8 +156,8 @@
 
                                             $data_campo = array();
                                             $data_campo['row'] = $data_row;
-                                            $data_campo['passageiro'] = $passageiro;
-                                            $data_campo['field_name'] = "plano_{$plano}_{$passageiro}_{$campo['campo_nome_banco']}";
+                                            $data_campo['dependente'] = $dependente;
+                                            $data_campo['field_name'] = "plano_{$plano}_{$dependente}_{$campo['campo_nome_banco']}";
                                             $data_campo['field_label'] = $campo['campo_nome'];
                                             $data_campo['list'] = isset($list) ? $list : array();
 

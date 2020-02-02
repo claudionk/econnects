@@ -63,4 +63,17 @@ class Cotacao_Saude_Faixa_Etaria_Model extends MY_Model
         return true;
     }
 
+    /**
+     * Exibe a quantidade total de Beneficiarios
+     * @param $cotacao_id
+     * @return int
+     */
+    public function get_qtde_beneficiarios($cotacao_id)
+    {
+        $this->_database->select(" IFNULL(SUM(cotacao_saude_faixa_etaria.quantidade),0) as num_dependente", FALSE);
+        $this->_database->where("{$this->_table}.cotacao_id", $cotacao_id);
+        $result = $this->get_all(0, 0, false);
+        return (!empty($result)) ? $result[0]['num_dependente'] : 0;
+    }
+
 }
