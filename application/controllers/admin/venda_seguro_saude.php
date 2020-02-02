@@ -507,7 +507,18 @@ class Venda_Seguro_Saude extends Admin_Controller
         if(isset($cotacao_salva['cotacao_upgrade_id']) && (int)$cotacao_salva['cotacao_upgrade_id'] > 0){
             $this->set_cotacao_session($cotacao_id, $produto_parceiro_id);
         }
-        $dados_segurado =  $this->session->userdata("dados_segurado_{$produto_parceiro_id}");
+
+        // Se tem alguma beneficiário
+        if( !empty($data['carrossel']['num_dependente']) && $data['carrossel']['num_dependente'] > 1)
+        {
+            for ($cont = 2; $cont <= $data['carrossel']['num_dependente']; $cont++ )
+            {
+                $dados_dependente = $this->get_dados_cotacao_generico($cotacao_id, $produto_parceiro_id, $cont-1, "plano_{$cotacao_salva['produto_parceiro_plano_id']}_{$cont}_");
+                $data['row_dependente'][$cont] = (isset($dados_dependente) && is_array($dados_dependente) && count($dados_dependente) > 0) ? $dados_dependente : array();
+            }
+        }
+
+        $dados_segurado = $this->session->userdata("dados_segurado_{$produto_parceiro_id}");
         $data['row'] = (isset($dados_segurado) && is_array($dados_segurado) && count($dados_segurado) > 0) ? $dados_segurado : array();
         $data['list'] = array();
         $data['list']['rg_uf'] = $this->localidade_estado->order_by('nome')->get_all();
@@ -527,7 +538,6 @@ class Venda_Seguro_Saude extends Admin_Controller
 
                 foreach ($planos as $index => $plano)
                 {
-
                     //busca cotação do cotacao_seguro_viagem
                     $cotacao_salva = $this->cotacao->with_cotacao_generico()
                         ->filterByID($cotacao_id)
@@ -923,19 +933,6 @@ class Venda_Seguro_Saude extends Admin_Controller
 
         if($_POST)
         {
-            //Carrega models necessários
-            $this->load->model('cotacao_saude_faixa_etaria_model', 'faixa_etaria');
-            $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
-
-            //Valida quantidade mínima de vidas (beneficiários)
-            $qtde_beneficiarios = $this->faixa_etaria->get_qtde_beneficiarios($cotacao_id);
-            $qtde_min_vida = $this->produto_parceiro_plano->get_qtd_min_vida($produto_parceiro_id, $_POST['produto_parceiro_plano_id']);
-
-            if ($qtde_beneficiarios < $qtde_min_vida && $qtde_beneficiarios > 0){
-                $this->session->set_flashdata('fail_msg', "São necessários no mínimo {$qtde_min_vida} Beneficiários para contratar este Plano. A quantidade de Beneficiários informada foi  {$qtde_beneficiarios}.");
-                redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/2/{$cotacao_id}");
-            }
-
             $post_plano = $this->input->post('plano');
             if(empty($post_plano)){
                 $this->session->set_flashdata('fail_msg', 'O Carrinho esta vazio, adicione um plano');
@@ -948,6 +945,18 @@ class Venda_Seguro_Saude extends Admin_Controller
 
                 if ($this->cotacao->validate_form('carrossel'))
                 {
+                    //Carrega models necessários
+                    $this->load->model('cotacao_saude_faixa_etaria_model', 'faixa_etaria');
+        
+                    //Valida quantidade mínima de vidas (beneficiários)
+                    $qtde_beneficiarios = $this->faixa_etaria->get_qtde_beneficiarios($cotacao_id);
+                    $qtde_min_vida = $this->plano->get_qtd_min_vida($produto_parceiro_id, $_POST['produto_parceiro_plano_id']);
+        
+                    if ($qtde_beneficiarios < $qtde_min_vida && $qtde_beneficiarios > 0){
+                        $this->session->set_flashdata('fail_msg', "São necessários no mínimo {$qtde_min_vida} Beneficiários para contratar este Plano. A quantidade de Beneficiários informada foi  {$qtde_beneficiarios}.");
+                        redirect("{$this->controller_uri}/seguro_saude/{$produto_parceiro_id}/2/{$cotacao_id}");
+                    }
+
                     $this->session->set_userdata("carrossel_{$produto_parceiro_id}", $_POST);
                     $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $cotacao);
 
@@ -1142,6 +1151,7 @@ class Venda_Seguro_Saude extends Admin_Controller
         $this->session->unset_userdata("cotacao_{$produto_parceiro_id}");
         $this->session->unset_userdata("carrossel_{$produto_parceiro_id}");
         $this->session->unset_userdata("dados_segurado_{$produto_parceiro_id}");
+        $this->session->unset_userdata("dados_dependente_{$produto_parceiro_id}");
     }
 
     /**
@@ -1149,63 +1159,76 @@ class Venda_Seguro_Saude extends Admin_Controller
      * @param $cotacao_id
      * @param $produto_parceiro_id
      */
-    private function set_cotacao_session($cotacao_id, $produto_parceiro_id, $status = '')
+    private function set_cotacao_session($cotacao_id, $produto_parceiro_id, $status = '', $index = 0)
     {
-        $this->load->model("Produto_Parceiro_Plano_Model","produto_parceiro_plano" );
-        $this->load->model('cotacao_generico_model', 'cotacao_generico_model');
+        $cotacao_salva = $this->get_dados_cotacao_generico($cotacao_id, $produto_parceiro_id, $index);
+        if($cotacao_salva)
+        {
+            $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $cotacao_salva);
+        }
+    }
 
+    /**
+     * Recupera os dados dos itens da cotação
+     * @param $cotacao_id
+     * @param $produto_parceiro_id
+     */
+    private function get_dados_cotacao_generico($cotacao_id, $produto_parceiro_id, $index = 0, $name_aux = '')
+    {
+        $this->load->model('cotacao_model', 'cotacao');
         $cotacao_salva = $this->cotacao
             ->with_cotacao_generico()
             ->filterByID($cotacao_id)->get_all();
 
+        $cotacao = array();
+
         if($cotacao_salva)
         {
-            $cotacao_salva = $cotacao_salva[0];
+            $cotacao_salva = $cotacao_salva[$index];
 
-            $cotacao = array();
-            $cotacao['produto_parceiro_id'] = $produto_parceiro_id;
-            $cotacao['cnpj_cpf'] = (app_verifica_cpf_cnpj($cotacao_salva['cnpj_cpf']) == 'CPF') ? app_cpf_to_mask($cotacao_salva['cnpj_cpf']) : app_cnpj_to_mask($cotacao_salva['cnpj_cpf']);
-            $cotacao['rg'] = $cotacao_salva['rg'];
-            $cotacao['nome'] = $cotacao_salva['nome'];
-            $cotacao['nome_mae'] = $cotacao_salva['nome_mae'];
-            $cotacao['email'] = $cotacao_salva['email'];
-            $cotacao['telefone'] = $cotacao_salva['telefone'];
-            $cotacao['data_nascimento'] = app_date_mysql_to_mask($cotacao_salva['data_nascimento'], 'd/m/Y');
-            $cotacao['endereco_cep'] = $cotacao_salva['endereco_cep'];
-            $cotacao['endereco_logradouro'] = $cotacao_salva['endereco_logradouro'];
-            $cotacao['endereco_numero'] = $cotacao_salva['endereco_numero'];
-            $cotacao['endereco_complemento'] = $cotacao_salva['endereco_complemento'];
-            $cotacao['endereco_bairro'] = $cotacao_salva['endereco_bairro'];
-            $cotacao['endereco_cidade'] = $cotacao_salva['endereco_cidade'];
-            $cotacao['endereco_estado'] = $cotacao_salva['endereco_estado'];
-            $cotacao['repasse_comissao'] = app_format_currency($cotacao_salva['repasse_comissao']);
-            $cotacao['desconto_condicional'] = app_format_currency($cotacao_salva['desconto_condicional']);
-            $cotacao['desconto_condicional_valor'] = app_format_currency($cotacao_salva['desconto_condicional_valor']);
-            $cotacao['premio_liquido'] = app_format_currency($cotacao_salva['premio_liquido']);
-            $cotacao['iof'] = app_format_currency($cotacao_salva['iof']);
-            $cotacao['premio_liquido_total'] = app_format_currency($cotacao_salva['premio_liquido_total']);
-            $cotacao['faixa_salarial_id'] = $cotacao_salva['faixa_salarial_id'];
-            $cotacao['quantidade'] = $cotacao_salva['quantidade'];
-            $cotacao['sexo'] = $cotacao_salva['sexo'];
-            $cotacao['estado_civil'] = $cotacao_salva['estado_civil'];
-            $cotacao['rg_orgao_expedidor'] = $cotacao_salva['rg_orgao_expedidor'];
-            $cotacao['rg_uf'] = $cotacao_salva['rg_uf'];
-            $cotacao['rg_data_expedicao'] = app_date_mysql_to_mask($cotacao_salva['rg_data_expedicao']);
-            $cotacao['aux_01'] = $cotacao_salva['aux_01'];
-            $cotacao['aux_02'] = $cotacao_salva['aux_02'];
-            $cotacao['aux_03'] = $cotacao_salva['aux_03'];
-            $cotacao['aux_04'] = $cotacao_salva['aux_04'];
-            $cotacao['aux_05'] = $cotacao_salva['aux_05'];
-            $cotacao['aux_06'] = $cotacao_salva['aux_06'];
-            $cotacao['aux_07'] = $cotacao_salva['aux_07'];
-            $cotacao['aux_08'] = $cotacao_salva['aux_08'];
-            $cotacao['aux_09'] = $cotacao_salva['aux_09'];
-            $cotacao['aux_10'] = $cotacao_salva['aux_10'];
-            $cotacao['data_inicio_vigencia'] = app_date_mysql_to_mask(issetor($cotacao_salva['data_inicio_vigencia'], null));
-            $cotacao['data_fim_vigencia'] = app_date_mysql_to_mask(issetor($cotacao_salva['data_fim_vigencia'], null));
-
-            $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $cotacao);
+            $cotacao["{$name_aux}produto_parceiro_id"] = $produto_parceiro_id;
+            $cotacao["{$name_aux}cnpj_cpf"] = (app_verifica_cpf_cnpj($cotacao_salva['cnpj_cpf']) == 'CPF') ? app_cpf_to_mask($cotacao_salva['cnpj_cpf']) : app_cnpj_to_mask($cotacao_salva['cnpj_cpf']);
+            $cotacao["{$name_aux}rg"] = $cotacao_salva['rg'];
+            $cotacao["{$name_aux}nome"] = $cotacao_salva['nome'];
+            $cotacao["{$name_aux}nome_mae"] = $cotacao_salva['nome_mae'];
+            $cotacao["{$name_aux}email"] = $cotacao_salva['email'];
+            $cotacao["{$name_aux}telefone"] = $cotacao_salva['telefone'];
+            $cotacao["{$name_aux}data_nascimento"] = app_date_mysql_to_mask($cotacao_salva['data_nascimento'], 'd/m/Y');
+            $cotacao["{$name_aux}endereco_cep"] = $cotacao_salva['endereco_cep'];
+            $cotacao["{$name_aux}endereco_logradouro"] = $cotacao_salva['endereco_logradouro'];
+            $cotacao["{$name_aux}endereco_numero"] = $cotacao_salva['endereco_numero'];
+            $cotacao["{$name_aux}endereco_complemento"] = $cotacao_salva['endereco_complemento'];
+            $cotacao["{$name_aux}endereco_bairro"] = $cotacao_salva['endereco_bairro'];
+            $cotacao["{$name_aux}endereco_cidade"] = $cotacao_salva['endereco_cidade'];
+            $cotacao["{$name_aux}endereco_estado"] = $cotacao_salva['endereco_estado'];
+            $cotacao["{$name_aux}repasse_comissao"] = app_format_currency($cotacao_salva['repasse_comissao']);
+            $cotacao["{$name_aux}desconto_condicional"] = app_format_currency($cotacao_salva['desconto_condicional']);
+            $cotacao["{$name_aux}desconto_condicional_valor"] = app_format_currency($cotacao_salva['desconto_condicional_valor']);
+            $cotacao["{$name_aux}premio_liquido"] = app_format_currency($cotacao_salva['premio_liquido']);
+            $cotacao["{$name_aux}iof"] = app_format_currency($cotacao_salva['iof']);
+            $cotacao["{$name_aux}premio_liquido_total"] = app_format_currency($cotacao_salva['premio_liquido_total']);
+            $cotacao["{$name_aux}faixa_salarial_id"] = $cotacao_salva['faixa_salarial_id'];
+            $cotacao["{$name_aux}quantidade"] = $cotacao_salva['quantidade'];
+            $cotacao["{$name_aux}sexo"] = $cotacao_salva['sexo'];
+            $cotacao["{$name_aux}estado_civil"] = $cotacao_salva['estado_civil'];
+            $cotacao["{$name_aux}rg_orgao_expedidor"] = $cotacao_salva['rg_orgao_expedidor'];
+            $cotacao["{$name_aux}rg_uf"] = $cotacao_salva['rg_uf'];
+            $cotacao["{$name_aux}rg_data_expedicao"] = app_date_mysql_to_mask($cotacao_salva['rg_data_expedicao']);
+            $cotacao["{$name_aux}aux_01"] = $cotacao_salva['aux_01'];
+            $cotacao["{$name_aux}aux_02"] = $cotacao_salva['aux_02'];
+            $cotacao["{$name_aux}aux_03"] = $cotacao_salva['aux_03'];
+            $cotacao["{$name_aux}aux_04"] = $cotacao_salva['aux_04'];
+            $cotacao["{$name_aux}aux_05"] = $cotacao_salva['aux_05'];
+            $cotacao["{$name_aux}aux_06"] = $cotacao_salva['aux_06'];
+            $cotacao["{$name_aux}aux_07"] = $cotacao_salva['aux_07'];
+            $cotacao["{$name_aux}aux_08"] = $cotacao_salva['aux_08'];
+            $cotacao["{$name_aux}aux_09"] = $cotacao_salva['aux_09'];
+            $cotacao["{$name_aux}aux_10"] = $cotacao_salva['aux_10'];
+            $cotacao["{$name_aux}data_inicio_vigencia"] = app_date_mysql_to_mask(issetor($cotacao_salva['data_inicio_vigencia'], null));
+            $cotacao["{$name_aux}data_fim_vigencia"] = app_date_mysql_to_mask(issetor($cotacao_salva['data_fim_vigencia'], null));
         }
+
+        return $cotacao;
     }
 
     public function consulta_pagmax($pedido_id = 0)

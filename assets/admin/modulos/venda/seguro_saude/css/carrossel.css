@@ -961,6 +961,10 @@ ul.wysihtml5-commands-disabled .dropdown-menu {
     border: 1px solid #444444;
 }
 
+.td-add-car.disabled {
+    background: none repeat scroll 0 0 #cacaca !important;
+    border: 1px solid #cacaca;
+}
 
 .td-add-car a {
     color: #FFFFFF;
