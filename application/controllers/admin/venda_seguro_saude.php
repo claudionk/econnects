@@ -537,9 +537,36 @@ class Venda_Seguro_Saude extends Admin_Controller
                     $dados_cotacao = array();
                     $dados_cotacao['step'] = 4;
 
-                    $this->campo->setDadosCampos($produto_parceiro_id, 'generico', 'dados_segurado', $plano,  $dados_cotacao);
-
+                    $this->campo->setDadosCampos($produto_parceiro_id, 'generico', 'dados_segurado', $plano, $dados_cotacao);
                     $this->cotacao_generico->update($cotacao_salva['cotacao_generico_id'], $dados_cotacao, TRUE);
+
+                    // Se tem alguma beneficiário
+                    if( !empty($plano_dependente[0]) && $plano_dependente[0] > 1)
+                    {
+                        $dadosTitular = $this->cotacao_generico->filterByCotacao($cotacao_id)->filterByTipoSegurado('T')->get_all();
+                        $dadosTitular = emptyor($dadosTitular[0], []);
+
+                        $this->cotacao_generico->remove_beneficiarios($cotacao_id);
+
+                        // Remove campos que não precisam enviar para os demais
+                        unset($dadosTitular['cotacao_generico_id']);
+                        unset($dadosTitular['criacao']);
+                        unset($dadosTitular['alteracao']);
+                        unset($dadosTitular['alteracao_usuario_id']);
+                        unset($dadosTitular['deletado']);
+
+                        // echo "DADOS TITULAR<br>";
+                        // print_pre($dadosTitular, false);
+
+                        for ($cont = 2; $cont <= $plano_dependente[0]; $cont++ )
+                        {
+                            $dadosTitular['tipo_segurado'] = 'D';
+                            $this->campo->setDadosCampos($produto_parceiro_id, 'generico', 'dados_dependente', $plano, $dadosTitular, $cont);
+                            $this->cotacao_generico->insert($dadosTitular, TRUE);
+                            // echo "DADOS<br>";
+                            // print_pre($dadosTitular, true);
+                        }
+                    }
 
                     $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $cotacao_salva['produto_parceiro_plano_id'], $cotacao_salva["nota_fiscal_valor"], $cotacao_salva['premio_liquido']);
 

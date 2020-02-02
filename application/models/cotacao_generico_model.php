@@ -336,7 +336,6 @@ Class Cotacao_Generico_Model extends MY_Model
         if(isset($carrossel['plano'])) {
 
             $planos = explode(';', $carrossel['plano']);
-
             $valores = explode(';', $carrossel['valor']);
             $comissao_repasse = explode(';', $carrossel['comissao_repasse']);
             $desconto_condicional = explode(';', $carrossel['desconto_condicional']);
@@ -619,6 +618,17 @@ Class Cotacao_Generico_Model extends MY_Model
     }
 
     /**
+     * Filtro Pelo Tipo de Segurado
+     * @param $cotacao_id
+     * @return $this
+     */
+    function filterByTipoSegurado($tipo_segurado = 'T'){
+        $this->_database->where("cotacao_generico.tipo_segurado", $tipo_segurado);
+        $this->_database->where("cotacao_generico.deletado", 0);
+        return $this;
+    }
+
+    /**
      * Busca o Valor Total da compra
      * @param $cotacao_id
      * @return int
@@ -632,6 +642,23 @@ Class Cotacao_Generico_Model extends MY_Model
             $valor += $item['premio_liquido_total'];
         }
         return $valor;
+    }
+
+    /**
+     * Remove os beneficiários da Cotação deixando apenas o Titular
+     * @param $cotacao_id
+     * @return int
+     */
+    public function remove_beneficiarios($cotacao_id)
+    {
+        $cotacoes = $this->filterByCotacao($cotacao_id)->get_all();
+        foreach ($cotacoes as $cot)
+        {
+            if ( $cot['tipo_segurado'] != 'T')
+            {
+                $this->delete($cot['cotacao_generico_id']);
+            }
+        }
     }
 
 }

@@ -160,6 +160,9 @@
                                             $data_campo['field_name'] = "plano_{$plano}_{$dependente}_{$campo['campo_nome_banco']}";
                                             $data_campo['field_label'] = $campo['campo_nome'];
                                             $data_campo['list'] = isset($list) ? $list : array();
+                                            $data_campo['tamanho'] = $campo['tamanho'] == 0 ? 6 : $campo['tamanho'];
+                                            $data_campo['class'] = $campo['campo_classes'];
+                                            $data_campo['opcoes'] = $campo['campo_opcoes'];
 
                                             $this->load->view('admin/campos_sistema/'. $campo['campo_slug'], $data_campo);
 
