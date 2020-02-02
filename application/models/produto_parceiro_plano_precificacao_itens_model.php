@@ -502,11 +502,12 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
     }
 
-    public function get_all_faixa_etaria_by_produto($produto_parceiro_id){
+    public function get_all_faixa_etaria_by_produto($produto_parceiro_id, $cotacao_id = 0){
         $this->_database->distinct();
-        $this->_database->select("{$this->_table}.inicial, {$this->_table}.final");
+        $this->_database->select("{$this->_table}.inicial, {$this->_table}.final, ifnull(cotacao_saude_faixa_etaria.quantidade,0) as qtd");
         $this->_database->join("produto_parceiro_plano", "produto_parceiro_plano.produto_parceiro_plano_id = {$this->_table}.produto_parceiro_plano_id");
         $this->_database->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id");
+        $this->_database->join("cotacao_saude_faixa_etaria", "cotacao_saude_faixa_etaria.cotacao_id = {$cotacao_id} and  cotacao_saude_faixa_etaria.inicio = {$this->_table}.inicial and cotacao_saude_faixa_etaria.deletado = 0", "left");
         $this->_database->where("produto_parceiro.produto_parceiro_id", $produto_parceiro_id);
         $this->_database->where("produto_parceiro_plano.deletado", 0);
         $this->_database->where("{$this->_table}.unidade_tempo", 'IDADE');

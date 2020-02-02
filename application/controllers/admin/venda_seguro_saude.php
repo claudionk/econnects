@@ -260,7 +260,7 @@ class Venda_Seguro_Saude extends Admin_Controller
         $data['cotacao_id'] = $cotacao_id;
         $data['list'] = array();
         $data['list']['rg_uf'] = $this->localidade_estado->order_by('nome')->get_all();
-        $data['list']['faixa_etaria'] = $this->plano_preco->get_all_faixa_etaria_by_produto($produto_parceiro_id)->get_all(0, 0, false);
+        $data['list']['faixa_etaria'] = $this->plano_preco->get_all_faixa_etaria_by_produto($produto_parceiro_id, $cotacao_id)->get_all(0, 0, false);
 
         if($_POST)
         {
