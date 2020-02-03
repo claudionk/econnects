@@ -546,7 +546,7 @@ class Venda_Seguro_Saude extends Admin_Controller
                     $this->campo->setDadosCampos($produto_parceiro_id, 'generico', 'dados_segurado', $plano, $dados_cotacao);
                     $this->cotacao_generico->update($cotacao_salva['cotacao_generico_id'], $dados_cotacao, TRUE);
 
-                    // Se tem alguma beneficiário
+                    // Se tem algum beneficiário
                     if( !empty($plano_dependente[0]) && $plano_dependente[0] > 1)
                     {
                         $dadosTitular = $this->cotacao_generico->filterByCotacao($cotacao_id)->filterByTipoSegurado('T')->get_all();
@@ -1251,6 +1251,7 @@ class Venda_Seguro_Saude extends Admin_Controller
             $cotacao["{$name_aux}aux_08"] = $cotacao_salva['aux_08'];
             $cotacao["{$name_aux}aux_09"] = $cotacao_salva['aux_09'];
             $cotacao["{$name_aux}aux_10"] = $cotacao_salva['aux_10'];
+            $cotacao["{$name_aux}mei"] = $cotacao_salva['mei'];
             $cotacao["{$name_aux}data_inicio_vigencia"] = app_date_mysql_to_mask(issetor($cotacao_salva['data_inicio_vigencia'], null));
             $cotacao["{$name_aux}data_fim_vigencia"] = app_date_mysql_to_mask(issetor($cotacao_salva['data_fim_vigencia'], null));
         }

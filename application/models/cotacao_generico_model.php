@@ -246,6 +246,12 @@ Class Cotacao_Generico_Model extends MY_Model
             'rules' => '',
             'groups' => 'default'
         ),
+        array(
+            'field' => 'mei',
+            'label' => 'Empresa é MEI',
+            'rules' => '',
+            'groups' => 'default'
+        ),
     );
 
 
@@ -509,6 +515,10 @@ Class Cotacao_Generico_Model extends MY_Model
 
         if(isset($cotacao['aux_10'])){
             $data_cotacao['aux_10'] = $cotacao['aux_10'];
+        }
+
+        if(isset($cotacao['mei'])){
+            $data_cotacao['mei'] = $cotacao['mei'];
         }
 
         if( isset( $cotacao["data_inicio_vigencia"] ) ) {
