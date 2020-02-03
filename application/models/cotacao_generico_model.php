@@ -554,10 +554,12 @@ Class Cotacao_Generico_Model extends MY_Model
             $rows = [];
             foreach ($faixa_etaria as $key => $value)
             {
+                $dadosKey = explode("_", $key);
                 if ( !empty($value) )
                 {
                     $rows[] = [
-                        'inicio' => $key,
+                        'inicio' => $dadosKey[0],
+                        'fim' => $dadosKey[1],
                         'quantidade' => $value,
                     ];
                 }

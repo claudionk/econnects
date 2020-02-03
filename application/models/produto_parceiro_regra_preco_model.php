@@ -105,10 +105,11 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $quantidade                     = issetor($params['quantidade'], 0);
         $valor_fixo                     = issetor($params['valor_fixo'], NULL);
         $coberturas_adicionais          = issetor($params['coberturas'], array());
-        $repasse_comissao               = app_unformat_percent($params['repasse_comissao']);
-        $desconto_condicional           = app_unformat_percent($params['desconto_condicional']);
+        $repasse_comissao               = app_unformat_percent(issetor($params['repasse_comissao'],0));
+        $desconto_condicional           = app_unformat_percent(issetor($params['desconto_condicional'],0));
         $desconto                       = $this->desconto->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
         $cotacao_id                     = issetor($params['cotacao_id'], 0);
+        $cotacao_aux_id                 = issetor($params['cotacao_aux_id'], 0);
 
         if($cotacao_id) {
             $cotacao = $this->cotacao->get($cotacao_id);
@@ -220,7 +221,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $repasse_comissao = str_pad(number_format((double)$repasse_comissao, 2, '.', ''), 5, "0", STR_PAD_LEFT);
         $comissao_corretor = (isempty($configuracao['comissao_corretor'], 0) - $repasse_comissao);
 
-        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($cotacao_id, $valor_fixo, $row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_sub_categoria_id, $equipamento_de_para, $servico_produto_id, $data_inicio_vigencia, $data_fim_vigencia, $comissao);
+        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($cotacao_id, $cotacao_aux_id, $valor_fixo, $row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_sub_categoria_id, $equipamento_de_para, $servico_produto_id, $data_inicio_vigencia, $data_fim_vigencia, $comissao);
 
         $valores_cobertura_adicional_total = $valores_cobertura_adicional = array();
 
@@ -412,12 +413,28 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         //Salva cotação
         if($cotacao_id) {
 
-            if($row['produto_slug'] == 'seguro_viagem'){
+            if($row['produto_slug'] == 'seguro_viagem')
+            {
                 $cotacao_salva = $this->cotacao->with_cotacao_seguro_viagem();
-            }elseif($row['produto_slug'] == 'equipamento') {
+                if ( !empty($cotacao_aux_id) )
+                {
+                    $cotacao_salva = $cotacao_salva->filter_by_cotacao_seguro_viagem_id($cotacao_aux_id);
+                }
+
+            }elseif($row['produto_slug'] == 'equipamento')
+            {
                 $cotacao_salva = $this->cotacao->with_cotacao_equipamento();
-            }elseif( $row["produto_slug"] == "generico" || $row["produto_slug"] == "seguro_saude" ) {
+                if ( !empty($cotacao_aux_id) )
+                {
+                    $cotacao_salva = $cotacao_salva->filter_by_cotacao_equipamento_id($cotacao_aux_id);
+                }
+            }elseif( $row["produto_slug"] == "generico" || $row["produto_slug"] == "seguro_saude" )
+            {
                 $cotacao_salva = $this->cotacao->with_cotacao_generico();
+                if ( !empty($cotacao_aux_id) )
+                {
+                    $cotacao_salva = $cotacao_salva->filter_by_cotacao_generico_id($cotacao_aux_id);
+                }
             }
 
             $cotacao_salva = $cotacao_salva
@@ -460,7 +477,11 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                     $cotacaoUpdate->update($cotacao_item_id, $cotacao_eqp, TRUE);
                 }
 
-                $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $produto_parceiro_plano_id, $cotacao["nota_fiscal_valor"], $cotacao_eqp['premio_liquido']);
+                // Só gera os dados de cobertura quando calcular todo o plano
+                if ( empty($cotacao_aux_id) )
+                {
+                    $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $produto_parceiro_plano_id, $cotacao["nota_fiscal_valor"], $cotacao_eqp['premio_liquido']);
+                }
             }
 
             $result["importancia_segurada"] = $cotacao["nota_fiscal_valor"];

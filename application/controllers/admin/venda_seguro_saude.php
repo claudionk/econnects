@@ -55,8 +55,6 @@ class Venda_Seguro_Saude extends Admin_Controller
 
     public function continuar( $cotacao_id ){
 
-        $this->load->model('cotacao_generico_model', 'cotacao_generico');
-
         //Carrega dados para a página
         $cotacao_generico = $this->cotacao->with_cotacao_generico()->filterByID($cotacao_id)->get_all();
 
@@ -71,7 +69,6 @@ class Venda_Seguro_Saude extends Admin_Controller
             $cotacao_generico = $cotacao_generico[0];
         }
 
-
         redirect("admin/venda_seguro_saude/seguro_saude/{$cotacao_generico['produto_parceiro_id']}/{$cotacao_generico['step']}/$cotacao_id");
 
     }
@@ -83,7 +80,8 @@ class Venda_Seguro_Saude extends Admin_Controller
      * @param int $cotacao_id
      * @param int $pedido_id
      */
-    public function seguro_saude($produto_parceiro_id, $step = 1, $cotacao_id = 0, $pedido_id = 0, $status = '') {
+    public function seguro_saude($produto_parceiro_id, $step = 1, $cotacao_id = 0, $pedido_id = 0, $status = '')
+    {
         //Carrega models
         $this->load->model("cotacao_generico", "cotacao_generico");
         $this->load->model("pedido_model", "pedido_model");
@@ -149,8 +147,7 @@ class Venda_Seguro_Saude extends Admin_Controller
             }
             else
             {
-
-                $this->set_carrossel_session($cotacao_id, $produto_parceiro_id);
+                // $this->set_carrossel_session($cotacao_id, $produto_parceiro_id);
                 $this->venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id);
             }
 
@@ -415,7 +412,6 @@ class Venda_Seguro_Saude extends Admin_Controller
     {
         //Carrega models necessários
         $this->load->model('produto_parceiro_campo_model', 'campo');
-        $this->load->model('cotacao_generico_model', 'cotacao_generico');
         $this->load->model('cotacao_cobertura_model', 'cotacao_cobertura');
         $this->load->model('cliente_model', 'cliente');
         $this->load->model('cotacao_model', 'cotacao');
@@ -556,6 +552,17 @@ class Venda_Seguro_Saude extends Admin_Controller
                         $dadosTitular = $this->cotacao_generico->filterByCotacao($cotacao_id)->filterByTipoSegurado('T')->get_all();
                         $dadosTitular = emptyor($dadosTitular[0], []);
 
+                        $params['data_base'] = date('Y-m-d');
+                        $params['produto_parceiro_id'] = $produto_parceiro_id;
+                        $params['parceiro_id'] = $this->session->userdata('parceiro_id');
+                        $params['quantidade'] = 1; // QUANTIDADE
+                        $params['cotacao_id'] = $cotacao_id;
+                        $params['cotacao_aux_id'] = $dadosTitular['cotacao_generico_id'];
+
+                        // altera os dados dos valores
+                        $this->alterValoresItem($params);
+
+                        // remove os beneficiarios para inserir novamente
                         $this->cotacao_generico->remove_beneficiarios($cotacao_id);
 
                         // Remove campos que não precisam enviar para os demais
@@ -571,10 +578,19 @@ class Venda_Seguro_Saude extends Admin_Controller
                         for ($cont = 2; $cont <= $plano_dependente[0]; $cont++ )
                         {
                             $dadosTitular['tipo_segurado'] = 'D';
+                            $dadosTitular['iof'] = 0;
+                            $dadosTitular['premio_liquido'] = 0;
+                            $dadosTitular['premio_liquido_total'] = 0;
+
                             $this->campo->setDadosCampos($produto_parceiro_id, 'generico', 'dados_dependente', $plano, $dadosTitular, $cont);
-                            $this->cotacao_generico->insert($dadosTitular, TRUE);
+                            $cotacao_generico_id = $this->cotacao_generico->insert($dadosTitular, TRUE);
                             // echo "DADOS<br>";
-                            // print_pre($dadosTitular, true);
+                            // print_pre($dadosTitular, false);
+
+                            // altera os dados dos valores
+                            $params['cotacao_aux_id'] = $cotacao_generico_id;
+                            print_pre($cotacao_generico_id, false);
+                            $this->alterValoresItem($params);
                         }
                     }
 
@@ -595,6 +611,19 @@ class Venda_Seguro_Saude extends Admin_Controller
 
         $this->template->load("admin/layouts/{$this->layout}", "admin/venda/seguro_saude/dados_segurado", $data );
 
+    }
+
+    /**
+     * Atualiza os valores do premio de um item especifico
+     * @param $cotacao_generico_id
+     * @param $in
+     * @param $data
+     * @param string $export
+     */
+    public function alterValoresItem($in)
+    {
+        $this->load->model('produto_parceiro_regra_preco_model', 'regra_preco');
+        $result = $this->regra_preco->calculo_plano($in);
     }
 
     public function seguro_saude_add_carrinho($produto_parceiro_id, $cotacao_id, $pedido_id = 0)
@@ -1031,7 +1060,6 @@ class Venda_Seguro_Saude extends Admin_Controller
         $this->load->model('pedido_codigo_model', 'pedido_codigo');
         $this->load->model('pedido_cartao_model', 'pedido_cartao');
         $this->load->model('pedido_transacao_model', 'pedido_transacao');
-        $this->load->model('cotacao_generico_model', 'cotacao_generico');
         $this->load->model('cotacao_model', 'cotacao');
 
         $cotacao = $this->cotacao->get($cotacao_id);
@@ -1064,7 +1092,6 @@ class Venda_Seguro_Saude extends Admin_Controller
         $this->load->model('pedido_codigo_model', 'pedido_codigo');
         $this->load->model('pedido_cartao_model', 'pedido_cartao');
         $this->load->model('pedido_transacao_model', 'pedido_transacao');
-        $this->load->model('cotacao_generico_model', 'cotacao_generico');
         $this->load->model('cotacao_model', 'cotacao');
 
         $valor_total = $this->cotacao_generico->getValorTotal($cotacao_id);
@@ -1182,7 +1209,7 @@ class Venda_Seguro_Saude extends Admin_Controller
 
         $cotacao = array();
 
-        if($cotacao_salva)
+        if( !empty($cotacao_salva[$index]) )
         {
             $cotacao_salva = $cotacao_salva[$index];
 

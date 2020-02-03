@@ -35,6 +35,29 @@ class Cotacao_Saude_Faixa_Etaria_Model extends MY_Model
         return $this;
     }
 
+    function filter_by_cotacao_auxiliar($slug, $cotacao_aux_id){
+        
+        $campo_id = "";
+        if($slug == 'seguro_viagem')
+        {
+            $this->_database->join("cotacao_seguro_viagem aux", "aux.cotacao_id = {$this->_table}.cotacao_id AND aux.deletado = 0");
+            $campo_id = "cotacao_seguro_viagem_id";
+        }elseif($slug == 'equipamento')
+        {
+            $this->_database->join("cotacao_equipamento aux", "aux.cotacao_id = {$this->_table}.cotacao_id AND aux.deletado = 0");
+            $campo_id = "cotacao_equipamento_id";
+        }elseif( $slug == "generico" || $slug == "seguro_saude" )
+        {
+            $this->_database->join("cotacao_generico aux", "aux.cotacao_id = {$this->_table}.cotacao_id AND aux.deletado = 0");
+            $campo_id = "cotacao_generico_id";
+        }
+
+        $this->_database->select(" TIMESTAMPDIFF(YEAR, aux.data_nascimento, NOW()) idade ");
+        $this->_database->where("aux.{$campo_id}", $cotacao_aux_id);
+        $this->_database->where(" TIMESTAMPDIFF(YEAR, aux.data_nascimento, NOW()) BETWEEN `cotacao_saude_faixa_etaria`.inicio AND `cotacao_saude_faixa_etaria`.fim ", "", FALSE);
+        return $this;
+    }
+
     /**
      * Truncate nos dados com validação
      * @param $data
@@ -50,6 +73,7 @@ class Cotacao_Saude_Faixa_Etaria_Model extends MY_Model
             $data = array();
             $data['cotacao_id'] = $cotacao_id;
             $data['inicio'] = $faixa['inicio'];
+            $data['fim'] = $faixa['fim'];
             $data['quantidade'] = $faixa['quantidade'];
 
             if($this->validate($data))
