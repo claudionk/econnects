@@ -246,6 +246,12 @@ Class Cotacao_Generico_Model extends MY_Model
             'rules' => '',
             'groups' => 'default'
         ),
+        array(
+            'field' => 'mei',
+            'label' => 'Empresa é MEI',
+            'rules' => '',
+            'groups' => 'default'
+        ),
     );
 
 
@@ -273,6 +279,7 @@ Class Cotacao_Generico_Model extends MY_Model
         $this->load->model('cotacao_generico_cobertura_model', 'cotacao_generico_cobertura');
         $this->load->model('produto_parceiro_regra_preco_model', 'produto_parceiro_regra_preco');
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
+        $this->load->model('cotacao_saude_faixa_etaria_model', 'faixa_etaria');
 
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $carrossel = $this->session->userdata("carrossel_{$produto_parceiro_id}");
@@ -336,7 +343,6 @@ Class Cotacao_Generico_Model extends MY_Model
         if(isset($carrossel['plano'])) {
 
             $planos = explode(';', $carrossel['plano']);
-
             $valores = explode(';', $carrossel['valor']);
             $comissao_repasse = explode(';', $carrossel['comissao_repasse']);
             $desconto_condicional = explode(';', $carrossel['desconto_condicional']);
@@ -378,9 +384,11 @@ Class Cotacao_Generico_Model extends MY_Model
         }
 
         $data_cotacao = array_merge( $cotacao, $data_cotacao );
+        $faixa_etaria = emptyor($data_cotacao["qtd"], []);
         unset( $data_cotacao["parceiro_id"] );
         unset( $data_cotacao["usuario_cotacao_id"] );
         unset( $data_cotacao["url_busca_cliente"] );
+        unset( $data_cotacao["qtd"] );
 
         if(isset($cotacao['produto_parceiro_plano_id'])){
             $data_cotacao['produto_parceiro_plano_id'] = $cotacao['produto_parceiro_plano_id'];
@@ -509,6 +517,10 @@ Class Cotacao_Generico_Model extends MY_Model
             $data_cotacao['aux_10'] = $cotacao['aux_10'];
         }
 
+        if(isset($cotacao['mei'])){
+            $data_cotacao['mei'] = $cotacao['mei'];
+        }
+
         if( isset( $cotacao["data_inicio_vigencia"] ) ) {
             $data_cotacao["data_inicio_vigencia"] = app_dateonly_mask_to_mysql($cotacao["data_inicio_vigencia"]);
         }
@@ -545,6 +557,29 @@ Class Cotacao_Generico_Model extends MY_Model
             $cotacao_id = $this->cotacao->insert($dt_cotacao, TRUE);
             $data_cotacao['cotacao_id'] = $cotacao_id;
             $cotacao_generico_id = $this->insert($data_cotacao, TRUE);
+        }
+
+        if ( !empty($faixa_etaria) )
+        {
+            $rows = [];
+            foreach ($faixa_etaria as $key => $value)
+            {
+                $dadosKey = explode("_", $key);
+                if ( !empty($value) )
+                {
+                    $rows[] = [
+                        'inicio' => $dadosKey[0],
+                        'fim' => $dadosKey[1],
+                        'quantidade' => $value,
+                    ];
+                }
+            }
+
+            if ( !empty($rows) )
+            {
+                $this->faixa_etaria->atualiza_faixa_etaria($rows, $cotacao_id);
+            }
+
         }
 
         if ( !empty($coberturas_adicionais) )
@@ -619,6 +654,17 @@ Class Cotacao_Generico_Model extends MY_Model
     }
 
     /**
+     * Filtro Pelo Tipo de Segurado
+     * @param $cotacao_id
+     * @return $this
+     */
+    function filterByTipoSegurado($tipo_segurado = 'T'){
+        $this->_database->where("cotacao_generico.tipo_segurado", $tipo_segurado);
+        $this->_database->where("cotacao_generico.deletado", 0);
+        return $this;
+    }
+
+    /**
      * Busca o Valor Total da compra
      * @param $cotacao_id
      * @return int
@@ -632,6 +678,23 @@ Class Cotacao_Generico_Model extends MY_Model
             $valor += $item['premio_liquido_total'];
         }
         return $valor;
+    }
+
+    /**
+     * Remove os beneficiários da Cotação deixando apenas o Titular
+     * @param $cotacao_id
+     * @return int
+     */
+    public function remove_beneficiarios($cotacao_id)
+    {
+        $cotacoes = $this->filterByCotacao($cotacao_id)->get_all();
+        foreach ($cotacoes as $cot)
+        {
+            if ( $cot['tipo_segurado'] != 'T')
+            {
+                $this->delete($cot['cotacao_generico_id']);
+            }
+        }
     }
 
 }

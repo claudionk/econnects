@@ -193,10 +193,11 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
      * @param $slug
      * @param $plano
      * @param $dados
+     * @param $cont
      * @return mixed
      */
-    public function setDadosCampos($produto_parceiro_id, $produto, $slug, $plano, &$dados){
-
+    public function setDadosCampos($produto_parceiro_id, $produto, $slug, $plano, &$dados, $cont = null)
+    {
         $campos = $this->with_campo()
             ->with_campo_tipo()
             ->filter_by_produto_parceiro($produto_parceiro_id)
@@ -204,12 +205,16 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
             ->order_by("ordem", "asc")
             ->get_all();
 
-        if($campos){
+        // auxiliar no nome do campo para diferenciar dependente/passageiro
+        $aux = !empty($cont) ? "_{$cont}" : "";
 
-            foreach ($campos as $index => $campo) {
-
-                if($this->input->post("plano_{$plano}_{$campo['campo_nome_banco']}")){
-                    $value = $this->input->post("plano_{$plano}_{$campo['campo_nome_banco']}");
+        if($campos)
+        {
+            foreach ($campos as $index => $campo)
+            {
+                if($this->input->post("plano_{$plano}{$aux}_{$campo['campo_nome_banco']}"))
+                {
+                    $value = $this->input->post("plano_{$plano}{$aux}_{$campo['campo_nome_banco']}");
 
                     if($campo['campo_nome_banco'] == 'nota_fiscal_valor'){
                         if( strpos( $value, "," ) !== false || strpos( $value, "_" ) !== false )
@@ -228,6 +233,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                     if(($campo['campo_function_salvar']) && (function_exists($campo['campo_function_salvar']))){
                         $value = call_user_func($campo['campo_function_salvar'], $value);
                     }
+
                     if(!empty($campo["campo_nome_banco_{$produto}"])) {
                         $dados[$campo["campo_nome_banco_{$produto}"]] = $value;
                     }
@@ -276,6 +282,50 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                             'label' => "{$campo['campo_nome']}",
                             'rules' => "trim|required|check_password_confirm[plano_{$plano}_{$campo['campo_nome_banco']}]",
                             'groups' => $slug
+                        );
+                    }
+                }
+            }
+        }
+        return $validacoes;
+
+    }
+
+    /**
+     * @param $produto_parceiro_id
+     * @param $slug
+     * @param $plano
+     * @param $adicionais
+     * @param $texto_view
+     * @return array
+     */
+    public function setValidacoesCamposAdicionais($produto_parceiro_id, $slug, $planos, $adicionais = array(), $texto_view = '' ){
+        $campos = $this->with_campo()
+            ->with_campo_tipo()
+            ->filter_by_produto_parceiro($produto_parceiro_id)
+            ->filter_by_campo_tipo_slug($slug)
+            ->filter_by_validacoes()
+            ->order_by("ordem", "asc")
+            ->get_all();
+
+        $validacoes = array();
+        $planos = explode(';', $planos);
+
+        if(($campos) && ($planos)){
+            foreach ($planos as $index => $plano) {
+                for ($cont = 2; $cont <= $adicionais[$index]; $cont++ ) {
+                    foreach ($campos as $campo) {
+                        $validacao = $campo['validacoes'];
+                        if(strpos($campo['validacoes'], 'matches') !== FALSE){
+                            $validacao = str_replace('matches[password]', '', $validacao);
+                            $validacao = str_replace('||', '|', $validacao);
+                        }
+
+                        $validacoes[] = array(
+                            'field' => "plano_{$plano}_{$cont}_{$campo['campo_nome_banco']}",
+                            'label' => "{$texto_view} {$cont} - {$campo['campo_nome']}",
+                            'rules' => $validacao,
+                            'groups' => "dados_segurado",
                         );
                     }
                 }

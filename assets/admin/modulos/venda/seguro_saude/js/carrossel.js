@@ -338,8 +338,6 @@ $(function(){
 
                 $( "#btn_recalcular").show( 600 );
 
-
-
             }else {
                 $( "#btn_recalcular").hide( 600 );
 
@@ -391,7 +389,6 @@ $(function(){
     }
     applyChangeContratar();
 
-
     function reloadChangeContratar(){
 
         $( ".contratar_plano" ).each(function( index ) {
@@ -407,8 +404,13 @@ $(function(){
         });
     }
 
-
     $('.add-car').on('click',function() {
+
+        if ($(this).data('enabled') == 0 )
+        {
+            toastr.error("Plano Indisponível", "Atenção!");
+            return false;
+        }
 
         clear_carrinho();
         var plano = $(this).data('plano');

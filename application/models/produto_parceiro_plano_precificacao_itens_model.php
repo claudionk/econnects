@@ -170,7 +170,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         return $this;
     }
 
-
     function filter_by_intevalo_menor($qnt, $unidade_tempo = 'DIA'){
 
         $this->_database->where("{$this->_table}.final <", $qnt);
@@ -196,7 +195,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param int $num_passageiro
     * @return array
     */
-    public function getValoresPlano( $cotacao_id = 0, $valor_fixo = NULL, $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_sub_categoria_id = NULL, $equipamento_de_para = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
+    public function getValoresPlano( $cotacao_id = 0, $cotacao_aux_id = NULL, $valor_fixo = NULL, $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_sub_categoria_id = NULL, $equipamento_de_para = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
@@ -262,14 +261,25 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         } elseif( $produto_slug == 'seguro_saude' ) {
 
                             // consulta as faixa etarias informadas
-                            $faixas = $this->faixa_etaria->filter_by_cotacao($cotacao_id)
-                                ->get_all();
+                            $faixas = $this->faixa_etaria->filter_by_cotacao($cotacao_id);
+                            if ( !empty($cotacao_aux_id) )
+                            {
+                                $faixas = $faixas->filter_by_cotacao_auxiliar( $produto_slug, $cotacao_aux_id );
+                            }
+                            $faixas = $faixas->get_all();
 
                             // trata variável para concatenar
                             $calculo = !empty($faixas) ? 0 : NULL; 
                             foreach ($faixas as $fx)
                             {
-                                $calculo += $this->getValorTabelaFixaGenerico($produto_parceiro_plano_id, $fx['inicio'], $valor_nota, $data_nascimento, $comissao ) * $fx['quantidade'];
+                                if ( !empty($cotacao_aux_id) )
+                                {
+                                    $qtde = 1;
+                                } else {
+                                    $qtde = $fx['quantidade'];
+                                }
+
+                                $calculo += $this->getValorTabelaFixaGenerico($produto_parceiro_plano_id, $fx['inicio'], $valor_nota, $data_nascimento, $comissao ) * $qtde;
                             }
 
                         }
@@ -502,4 +512,19 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         return null;
 
     }
+
+    public function get_all_faixa_etaria_by_produto($produto_parceiro_id, $cotacao_id = 0)
+    {
+        $cotacao_id = emptyor($cotacao_id, 0);
+        $this->_database->distinct();
+        $this->_database->select("{$this->_table}.inicial, {$this->_table}.final, ifnull(cotacao_saude_faixa_etaria.quantidade,0) as qtd", FALSE);
+        $this->_database->join("produto_parceiro_plano", "produto_parceiro_plano.produto_parceiro_plano_id = {$this->_table}.produto_parceiro_plano_id");
+        $this->_database->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id");
+        $this->_database->join("cotacao_saude_faixa_etaria", "cotacao_saude_faixa_etaria.cotacao_id = {$cotacao_id} and  cotacao_saude_faixa_etaria.inicio = {$this->_table}.inicial and cotacao_saude_faixa_etaria.deletado = 0", "left", false);
+        $this->_database->where("produto_parceiro.produto_parceiro_id", $produto_parceiro_id);
+        $this->_database->where("produto_parceiro_plano.deletado", 0);
+        $this->_database->where("{$this->_table}.unidade_tempo", 'IDADE');
+        return $this;
+    }
+
 }

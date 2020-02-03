@@ -204,6 +204,15 @@ Class Cotacao_Model extends MY_Model
         $this->_database->where("cotacao_seguro_viagem.deletado", 0);
         return $this;
     }
+
+    /**
+     * Filtra por Id da cotação de Equipamento
+     * @return $this
+     */
+    public function filter_by_cotacao_seguro_viagem_id( $cotacao_seguro_viagem_id ) {
+        $this->_database->where("cotacao_seguro_viagem.cotacao_seguro_viagem_id", $cotacao_seguro_viagem_id);
+        return $this;
+    }
   
     /**
      * Com cotação de generico
@@ -215,6 +224,15 @@ Class Cotacao_Model extends MY_Model
         $this->_database->where("cotacao_generico.deletado", 0);
         return $this;
     }
+
+    /**
+     * Filtra por Id da cotação Generico
+     * @return $this
+     */
+    public function filter_by_cotacao_generico_id( $cotacao_generico_id ) {
+        $this->_database->where("cotacao_generico.cotacao_generico_id", $cotacao_generico_id);
+        return $this;
+    }
   
     /**
      * Com cotação de Equipamento
@@ -224,6 +242,15 @@ Class Cotacao_Model extends MY_Model
         $this->_database->select('cotacao_equipamento.*');
         $this->_database->join('cotacao_equipamento', 'cotacao_equipamento.cotacao_id = cotacao.cotacao_id');
         $this->_database->where("cotacao_equipamento.deletado", 0);
+        return $this;
+    }
+
+    /**
+     * Filtra por Id da cotação de Equipamento
+     * @return $this
+     */
+    public function filter_by_cotacao_equipamento_id( $cotacao_equipamento_id ) {
+        $this->_database->where("cotacao_equipamento.cotacao_equipamento_id", $cotacao_equipamento_id);
         return $this;
     }
 

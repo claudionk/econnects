@@ -75,9 +75,7 @@
 
                                                     $dados_sessao = $this->session->userdata("cotacao_" . $carrossel['produto_parceiro_id']);
 
-                                                    ?>
-
-                                                    <?php foreach ($campos as $campo): ?>
+                                                    foreach ($campos as $campo): ?>
 
                                                         <?php
 
@@ -108,12 +106,9 @@
                                                         $data_campo['class'] = $campo['campo_classes'];
                                                         $data_campo['opcoes'] = $campo['campo_opcoes'];
 
-                                                        ?>
+                                                        $this->load->view('admin/campos_sistema/'. $campo['campo_slug'], $data_campo);
 
-                                                        <?php $this->load->view('admin/campos_sistema/'. $campo['campo_slug'], $data_campo);?>
-
-
-                                                    <?php endforeach; ?>
+                                                    endforeach; ?>
                                                 </div>
                                             </div>
                                         </div>

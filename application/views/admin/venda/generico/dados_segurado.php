@@ -96,7 +96,7 @@
                                             {
                                                 $data_row["plano_{$plano}_{$campo['campo_nome_banco']}"] = $dados_sessao[$campo['campo_nome_banco']];
                                             }
-                                            else if (isset($dados_sessao) && isset($dados_sessao[$campo['campo_nome_banco_equipamento']]))
+                                            else if (isset($dados_sessao) && isset($dados_sessao[$campo['campo_nome_banco_generico']]))
                                             {
                                                 $data_row["plano_{$plano}_{$campo['campo_nome_banco']}"] = $dados_sessao[$campo['campo_nome_banco_generico']];
                                             }

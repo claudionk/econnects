@@ -381,9 +381,8 @@ $config["Pagmax360_Environment"] = "teste";
 $config["Pagmax360_merchantId"] = "1";
 $config["Pagmax360_merchantKey"] = "25fbb99741c739dd84d7b06ec78c9bac718838630f30b112d033ce2e621b34f3";
 
-
-// $config["URL_sisconnects"] = "http://econnects-h.jelastic.saveincloud.net/";
- $config["URL_sisconnects"] = "http://localhost/econnects/";
+$config["URL_sisconnects"] = "http://econnects-h.jelastic.saveincloud.net/";
+// $config["URL_sisconnects"] = "http://192.168.25.223/econnects/";
 
 $config['PRECO_TIPO_TABELA'] = 1;
 $config['PRECO_TIPO_COBERTURA'] = 2;
@@ -392,7 +391,7 @@ $config['PRECO_TIPO_FIXO_SERVICO'] = 4;
 $config['PRECO_POR_EQUIPAMENTO'] = 5;
 $config['PRECO_POR_LINHA'] = 6;
 
-
+$config['INTEGRACAO_PAGMAX'] = 1;
 $config['FORMA_PAGAMENTO_CARTAO_CREDITO']  = 1;
 $config['FORMA_PAGAMENTO_TRANSF_BRADESCO'] = 2;
 $config['FORMA_PAGAMENTO_TRANSF_BB']       = 7;
