@@ -120,4 +120,20 @@ Class Cliente_Evolucao_Model extends MY_Model
         $this->with_simple_relation('cliente_evolucao_status', 'cliente_evolucao_status_', 'cliente_evolucao_status_id', $fields );
         return $this;
     }
+
+    public function insert_not_exist($cliente_id, $data)
+    {
+        $this->_database->select($this->_table.'.*');
+        $this->_database->from($this->_table);
+        $this->_database->where($this->_table.'.cliente_id', $cliente_id);
+        $this->_database->where($this->_table.'.cliente_evolucao_status_id', $data['cliente_evolucao_status_id']);
+        $query = $this->_database->get();
+
+        if( !empty($query->num_rows()) )
+            return $this->insert($data, TRUE);
+        }else{
+            return FALSE;
+        }
+    }
+
 }

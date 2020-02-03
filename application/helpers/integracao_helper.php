@@ -2631,3 +2631,29 @@ if ( ! function_exists('app_integracao_mailing')) {
         return $response;
     }
 }
+if ( ! function_exists('app_integracao_mailing_adesao')) {
+    function app_integracao_mailing_adesao($formato, $dados = array())
+    {
+        $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
+
+        $CI =& get_instance();
+        $CI->session->sess_destroy();
+        $CI->session->set_userdata("operacao", "bidu");
+
+        $acesso = app_integracao_generali_dados();
+        $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
+        $dados['registro']['documento'] = app_retorna_numeros(emptyor( $dados['registro']['cpf'] , $dados['registro']['cnpj'] ));
+
+        print_pre($dados['registro'], true);
+        // Campos para cotação
+        $campos = app_get_api("cliente", 'POST', json_encode($dados['registro']), $acesso);
+        print_pre($campos, false);
+        if (empty($campos['status'])){
+            $response->msg[] = ['id' => -1, 'msg' => $campos['response'], 'slug' => "cliente"];
+            return $response;
+        }
+
+        $response->status = true;
+        return $response;
+    }
+}
