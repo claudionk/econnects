@@ -1335,7 +1335,7 @@ class Apolice_Model extends MY_Model
             $this->pdf->writeHTML($template, true, false, true, false, '');
             $destino = ($export == 'pdf') ? 'D' : 'F';
             $file    = ($export == 'pdf') ? "{$apolice['num_apolice']}.pdf" : "{$destino_dir}{$apolice['num_apolice']}.pdf";
-            ob_end_clean();
+            if (ob_get_length()) ob_end_clean();
             $this->pdf->Output($file, $destino);
             $this->custom_loader->unload_library('pdf');
             if ($export == 'pdf_file') {

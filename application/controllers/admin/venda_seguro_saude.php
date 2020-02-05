@@ -589,7 +589,6 @@ class Venda_Seguro_Saude extends Admin_Controller
 
                             // altera os dados dos valores
                             $params['cotacao_aux_id'] = $cotacao_generico_id;
-                            print_pre($cotacao_generico_id, false);
                             $this->alterValoresItem($params);
                         }
                     }
@@ -615,9 +614,7 @@ class Venda_Seguro_Saude extends Admin_Controller
 
     /**
      * Atualiza os valores do premio de um item especifico
-     * @param $cotacao_generico_id
      * @param $in
-     * @param $data
      * @param string $export
      */
     public function alterValoresItem($in)
