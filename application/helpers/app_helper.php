@@ -1185,7 +1185,7 @@ function emptyor(&$var, $default = ' ') {
 if ( ! function_exists('isempty')) {
     function isempty(&$var, $default = ' ')
     {
-        return (strlen($var) > 0) ? $var : $default; // $default : $var;
+        return (!empty($var)) ? $var : $default; // $default : $var;
     }
 }
 

@@ -168,6 +168,14 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         // Comissão para realizar o calculo do premio
         $comissao = isempty($params['comissao_premio'], issetor($cotacao['comissao_premio'], 0));
 
+        // Valida comissão negativa
+        if (number_format($comissao, 2, ',', '.') < number_format(0, 2, ',', '.') )
+        {
+            $comissao = number_format($comissao, 2, ',', '.');
+            $result['mensagem'] = "A comissão não pode ser negativa [{$comissao}%]";
+            return $result;
+        }
+
         if(count($desconto) > 0){
             $desconto = $desconto[0];
         }else{

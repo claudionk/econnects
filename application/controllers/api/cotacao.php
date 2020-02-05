@@ -382,12 +382,15 @@ class Cotacao extends CI_Controller {
             if ( $produto_slug == "equipamento" ) {
                 $cotacao_aux = $this->cotacao_equipamento;
                 $cotacao_aux_id = "cotacao_equipamento_id";
+                $name_banco = "equipamento";
             } elseif ( $produto_slug == "seguro_viagem" ) {
                 $cotacao_aux = $this->cotacao_seguro_viagem;
                 $cotacao_aux_id = "cotacao_seguro_viagem_id";
+                $name_banco = "viagem";
             } else {
                 $cotacao_aux = $this->cotacao_generico;
                 $cotacao_aux_id = "cotacao_generico_id";
+                $name_banco = "generico";
             }
 
             $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $params );
@@ -415,9 +418,25 @@ class Cotacao extends CI_Controller {
 
         $cotacao_salva = $cotacao_salva[0];
 
-        $result = $this->campo->validate_campos( $produto_parceiro_id, ["cotacao", "dados_segurado"], $cotacao_salva );
+        $result = $this->campo->validate_campos( $produto_parceiro_id, ["cotacao", "dados_segurado", "dados_dependente"], $cotacao_salva );
         if ( empty($result['status']) ) {
             return $result;
+        }
+
+        // NUMERO DE DEPENDENTES DO SEGURO SAUDE
+        if ( $produto_slug == "seguro_saude" )
+        {
+            $num_dependente = $this->faixa_etaria->get_qtde_beneficiarios($cotacao_id);
+
+            if ( !empty($num_dependente) && $num_dependente > 1 && empty($params['beneficiarios']))
+            {
+                $result = array(
+                    "status" => false,
+                    "mensagem" => "Os dados dos beneficiarios não foram informados",
+                    "errors" => array(),
+                );
+                return $result;
+            }
         }
 
         // Salva o plano na cotação
@@ -433,8 +452,57 @@ class Cotacao extends CI_Controller {
         } else {
 
             $dados_cotacao["step"] = 4;
-            $this->campo->setDadosCampos( $produto_parceiro_id, "equipamento", "dados_segurado", $produto_parceiro_plano_id,  $dados_cotacao );
+            $this->campo->setDadosCampos( $produto_parceiro_id, $name_banco, "dados_segurado", $produto_parceiro_plano_id,  $dados_cotacao );
             $cotacao_aux->update( $cotacao_salva[$cotacao_aux_id], $dados_cotacao, true );
+
+            // Se tem algum beneficiário
+            if( !empty($num_dependente) && $num_dependente > 1)
+            {
+                $dadosTitular = $cotacao_aux->filterByCotacao($cotacao_id)->filterByTipoSegurado('T')->get_all();
+                $dadosTitular = emptyor($dadosTitular[0], []);
+
+                $in = [];
+                $in['data_base'] = date('Y-m-d');
+                $in['produto_parceiro_id'] = $produto_parceiro_id;
+                $in['parceiro_id'] = $this->parceiro_id;
+                $in['quantidade'] = 1; // QUANTIDADE
+                $in['cotacao_id'] = $cotacao_id;
+                $in['cotacao_aux_id'] = $dadosTitular[$cotacao_aux_id];
+
+                // altera os dados dos valores
+                $this->alterValoresItem($in);
+
+                // remove os beneficiarios para inserir novamente
+                $cotacao_aux->remove_beneficiarios($cotacao_id);
+
+                // Remove campos que não precisam enviar para os demais
+                unset($dadosTitular[$cotacao_aux_id]);
+                unset($dadosTitular['criacao']);
+                unset($dadosTitular['alteracao']);
+                unset($dadosTitular['alteracao_usuario_id']);
+                unset($dadosTitular['deletado']);
+
+                // echo "DADOS TITULAR<br>";
+                // print_pre($dadosTitular, false);
+
+                for ($cont = 2; $cont <= $num_dependente; $cont++ )
+                {
+                    $dadosTitular['tipo_segurado'] = 'D';
+                    $dadosTitular['iof'] = 0;
+                    $dadosTitular['premio_liquido'] = 0;
+                    $dadosTitular['premio_liquido_total'] = 0;
+
+                    // print_pre($this->input->post("cnpj_cpf"));
+                    $this->campo->setDadosCampos($produto_parceiro_id, $name_banco, 'dados_dependente', $produto_parceiro_plano_id, $dadosTitular, $cont, 'beneficiarios', $params['beneficiarios'][$cont-2]);
+                    $cotacao_aux_id = $cotacao_aux->insert($dadosTitular, TRUE);
+                    // echo "DADOS<br>";
+                    // print_pre($dadosTitular, false);
+
+                    // altera os dados dos valores
+                    $in['cotacao_aux_id'] = $cotacao_aux_id;
+                    $this->alterValoresItem($in);
+                }
+            }
 
             $result  = array(
                 "status" => true,
@@ -457,6 +525,17 @@ class Cotacao extends CI_Controller {
         }
 
         return $result;
+    }
+
+    /**
+     * Atualiza os valores do premio de um item especifico
+     * @param $in
+     * @param string $export
+     */
+    private function alterValoresItem($in)
+    {
+        $this->load->model('produto_parceiro_regra_preco_model', 'regra_preco');
+        $result = $this->regra_preco->calculo_plano($in);
     }
 
     public function listPendentes()

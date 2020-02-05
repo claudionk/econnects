@@ -384,11 +384,12 @@ Class Cotacao_Generico_Model extends MY_Model
         }
 
         $data_cotacao = array_merge( $cotacao, $data_cotacao );
-        $faixa_etaria = emptyor($data_cotacao["qtd"], []);
+        $faixa_etaria = emptyor($data_cotacao["faixa_etaria"], []);
         unset( $data_cotacao["parceiro_id"] );
         unset( $data_cotacao["usuario_cotacao_id"] );
         unset( $data_cotacao["url_busca_cliente"] );
-        unset( $data_cotacao["qtd"] );
+        unset( $data_cotacao["faixa_etaria"] );
+        unset( $data_cotacao["beneficiarios"] );
 
         if(isset($cotacao['produto_parceiro_plano_id'])){
             $data_cotacao['produto_parceiro_plano_id'] = $cotacao['produto_parceiro_plano_id'];
