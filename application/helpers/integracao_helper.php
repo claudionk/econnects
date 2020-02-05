@@ -2633,43 +2633,6 @@ if ( ! function_exists('app_integracao_mailing_adesao')) {
         $CI->session->set_userdata("operacao", "bidu");
 
         if (!empty($formato)) {
-            // $geraDados['sexo']                  = $reg['sexo'];
-            // $geraDados['estado_civil']          = $reg['estado_civil'];
-            // $geraDados['data_nascimento']       = $reg['data_nascimento'];
-            // $geraDados['cpf']                   = $reg['cpf'];
-            // $geraDados['tipo_operacao']         = $reg['tipo_operacao'];
-            // $geraDados['cod_loja']              = $reg['cod_loja'];
-            // $geraDados['nome_loja']             = $reg['nome_loja'];
-            // $geraDados['nome']                  = $reg['nome'];
-            // $geraDados['ddd_residencial']       = $reg['ddd_residencial'];
-            // $geraDados['telefone']              = $reg['telefone'];
-            // $geraDados['endereco']              = $reg['endereco_logradouro'];
-            // $geraDados['endereco_numero']       = $reg['endereco_numero'];
-            // $geraDados['complemento']           = $reg['endereco_complemento'];
-            // $geraDados['endereco_bairro']       = $reg['endereco_bairro'];
-            // $geraDados['endereco_cidade']       = $reg['endereco_cidade'];
-            // $geraDados['endereco_estado']       = $reg['endereco_estado'];
-            // $geraDados['endereco_cep']          = $reg['endereco_cep'];
-            // $geraDados['premio_bruto']          = $reg['premio_bruto'];
-            // $geraDados['logradouro_seguro']     = $reg['logradouro_seguro'];
-            // $geraDados['complemento_seguro']    = $reg['complemento_seguro'];
-            // $geraDados['numero_seguro']         = $reg['numero_seguro'];
-            // $geraDados['bairro_seguro']         = $reg['bairro_seguro'];
-            // $geraDados['cidade_seguro']         = $reg['cidade_seguro'];
-            // $geraDados['estado_seguro']         = $reg['estado_seguro'];
-            // $geraDados['cep_seguro']            = $reg['cep_seguro'];
-            // $geraDados['cod_vendedor']          = $reg['cod_vendedor'];
-            // $geraDados['data_adesao_cancel']    = $reg['data_adesao_cancel'];
-            // $geraDados['data_inicio_vigencia']  = $reg['data_inicio_vigencia'];
-            // $geraDados['data_fim_vigencia']     = $reg['data_fim_vigencia'];
-            // $geraDados['nome_vendedor']         = $reg['nome_vendedor'];
-            // $geraDados['email']                 = $reg['email'];
-            // $geraDados['num_apolice']           = $reg['num_apolice'];
-            // $geraDados['data_cancelamento']     = $reg['data_cancelamento'];
-            // $geraDados['num_parcela']           = $reg['num_parcela'];
-            // $geraDados['produto_seg']           = $reg['produto_seg'];
-            // $geraDados['num_sorte']             = $reg['num_sorte'];
-            // $geraDados['num_serie_cap']         = $reg['num_serie_cap'];
             $geraDados['integracao_log_detalhe_id']     = $formato;
             $geraDados['codigo']                        = $reg['codigo'];
             $geraDados['nome_titular']                  = $reg['nome_titular'];
@@ -2741,6 +2704,11 @@ if ( ! function_exists('app_integracao_mailing_adesao_emitir')) {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
 
         $CI =& get_instance();
+
+        if ( empty($dados['log']['integracao_log_id']) )
+        {
+            return $result;
+        }
         $integracao_log_id = $dados['log']['integracao_log_id'];
 
         $CI->load->model('integracao_log_detalhe_dados_model', 'log_dados');
