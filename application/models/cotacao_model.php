@@ -71,7 +71,7 @@ Class Cotacao_Model extends MY_Model
             case 'equipamento':
                 $cotacao = $this->with_produto_parceiro()->with_cotacao_equipamento()->get($cotacao_id);
                 break;
-            case 'generico':
+            default:
                 $cotacao = $this->with_produto_parceiro()->with_cotacao_generico()->get($cotacao_id);
                 break;
         }

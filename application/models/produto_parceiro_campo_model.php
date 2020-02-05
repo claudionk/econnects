@@ -196,7 +196,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
      * @param $cont
      * @return mixed
      */
-    public function setDadosCampos($produto_parceiro_id, $produto, $slug, $plano, &$dados, $cont = null)
+    public function setDadosCampos($produto_parceiro_id, $produto, $slug, $plano, &$dados, $cont = null, $field = 'default', $in = [])
     {
         $campos = $this->with_campo()
             ->with_campo_tipo()
@@ -212,10 +212,14 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         {
             foreach ($campos as $index => $campo)
             {
-                if($this->input->post("plano_{$plano}{$aux}_{$campo['campo_nome_banco']}"))
-                {
+                // $value = ($field == 'default') ? $this->input->post("plano_{$plano}{$aux}_{$campo['campo_nome_banco']}") : $this->input->post("{$campo['campo_nome_banco']}");
+                if ($field == 'default') {
                     $value = $this->input->post("plano_{$plano}{$aux}_{$campo['campo_nome_banco']}");
-
+                } else {
+                    $value = $in[$campo['campo_nome_banco']];
+                }
+                if( $value )
+                {
                     if($campo['campo_nome_banco'] == 'nota_fiscal_valor'){
                         if( strpos( $value, "," ) !== false || strpos( $value, "_" ) !== false )
                             $value = app_unformat_currency($value);
