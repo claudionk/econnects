@@ -32,4 +32,26 @@ Class Integracao_Log_Detalhe_Dados_Model extends MY_Model
     {
         return $this->get_by($this->primary_key, $id);
     }
+
+    public function getDadosByArquivo($integracao_log_id, $codigo = null, $tipo_segurado = [])
+    {
+        $this->_database->join("integracao_log_detalhe", "integracao_log_detalhe.integracao_log_detalhe_id = {$this->_table}.integracao_log_detalhe_id");
+        $this->_database->where("integracao_log_detalhe.integracao_log_id", $integracao_log_id);
+        $this->_database->where("integracao_log_detalhe.integracao_log_status_id", 4);
+        $this->_database->where("integracao_log_detalhe.deletado", 0);
+
+        if ( !empty($codigo) )
+        {
+            $this->_database->where("{$this->_table}.codigo", $codigo);
+        }
+
+        if ( !empty($tipo_segurado) )
+        {
+            $this->_database->where_in("{$this->_table}.tipo_segurado", $tipo_segurado);
+        }
+
+        $this->_database->order_by("{$this->_table}.codigo", "ASC");
+        return $this;
+    }
+
 }
