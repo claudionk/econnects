@@ -2708,11 +2708,11 @@ if ( ! function_exists('app_integracao_mailing_adesao')) {
             $geraDados['altura']                        = $reg['altura'];
             $geraDados['endereco_logradouro']           = $reg['endereco_logradouro'];
             $geraDados['endereco_numero']               = $reg['endereco_numero'];
-            $geraDados['endereco_complemento']          = $reg['endereco_complemento'];
+            $geraDados['complemento']                   = $reg['endereco_complemento'];
             $geraDados['endereco_bairro']               = $reg['endereco_bairro'];
-            $geraDados['cidade']                        = $reg['cidade'];
+            $geraDados['endereco_cidade']               = $reg['cidade'];
             $geraDados['endereco_cep']                  = $reg['endereco_cep'];
-            $geraDados['uf']                            = $reg['uf'];
+            $geraDados['endereco_estado']               = $reg['uf'];
             $geraDados['data_adesao_cancel']            = $reg['data_adesao_cancel'];
             $geraDados['declaracao_nascido_vivo']       = $reg['declaracao_nascido_vivo'];
             $geraDados['cns']                           = $reg['cns'];
@@ -2725,11 +2725,7 @@ if ( ! function_exists('app_integracao_mailing_adesao')) {
             $geraDados['cpf_vendedor']                  = $reg['cpf_vendedor'];
             $geraDados['taxa_convenio']                 = $reg['taxa_convenio'];
             $geraDados['valor_saude']                   = $reg['valor_saude'];
-            $geraDados['codigo_tabela_preco_saude']     = $reg['codigo_tabela_preco_saude'];
-            $geraDados['possui_odonto']                 = $reg['possui_odonto'];
-            $geraDados['valor_odonto']                  = $reg['valor_odonto'];
-            $geraDados['num_apolice_odonto']            = $reg['num_apolice_odonto'];
-            $geraDados['codigo_tabela_preco_odonto']    = $reg['codigo_tabela_preco_odonto'];
+            $geraDados['cod_faixa_preco']               = $reg['codigo_tabela_preco_saude'];
             $geraDados['modalidade_pagto']              = $reg['modalidade_pagto'];
             $geraDados['numero_proposta']               = $reg['numero_proposta'];
             $geraDados['codigo_plano']                  = $reg['codigo_plano'];
