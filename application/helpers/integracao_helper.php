@@ -2025,7 +2025,6 @@ if ( ! function_exists('app_integracao_generali_pagnet')) {
         $id_exp_hist_carga = $CI->db->insert_id();
 
         return $id_exp_hist_carga;
-        
     }
 }
 if ( ! function_exists('app_integracao_gera_sinistro')) {
