@@ -2024,15 +2024,6 @@ if ( ! function_exists('app_integracao_generali_pagnet')) {
             ");
         $id_exp_hist_carga = $CI->db->insert_id();
 
-        if ($d['tipo_expediente'] == 'ABE') {
-            $q = $CI->db->query("SELECT id_exp FROM sissolucoes1.sis_exp_complemento WHERE id_exp = {$d['id_exp']}");
-            if (empty($q->num_rows())) {
-                $CI->db->query("INSERT INTO sissolucoes1.sis_exp_complemento (id_exp, id_sinistro_generali, id_usuario, dt_log, vcmotivolog) VALUES ({$d['id_exp']}, '{$d['cod_sinistro']}', 10058, NOW(), '{$d['desc_expediente']}') ");
-            } else {
-                $CI->db->query("UPDATE sissolucoes1.sis_exp_complemento SET id_sinistro_generali = '{$d['cod_sinistro']}', id_usuario = 10058, dt_log = NOW(), vcmotivolog = '{$d['desc_expediente']}' WHERE id_exp = {$d['id_exp']}");
-            }
-        }
-
         return $id_exp_hist_carga;
         
     }
