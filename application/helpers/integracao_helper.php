@@ -831,10 +831,8 @@ if ( ! function_exists('app_integracao_rastrecall_sms')) {
             return $response;
         }
 
-
-
         // Campos para cotação
-        $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id, 'GET', [], false, $acesso);
+        $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id, 'GET', [], $acesso);
         if (empty($camposCotacao['status'])){
             $response->msg[] = ['id' => -1, 'msg' => $camposCotacao['response'], 'slug' => "cotacao_campos"];
             return $response;
@@ -842,12 +840,8 @@ if ( ! function_exists('app_integracao_rastrecall_sms')) {
 
         $camposCotacao = $camposCotacao['response'];
 
-
-
         // Validar Regras
         $validaRegra = app_integracao_rastrecall_valida_regras($dados, $camposCotacao);
-
-
 
         if (!empty($validaRegra->status)) {
 
@@ -1284,8 +1278,6 @@ if ( ! function_exists('app_integracao_rastrecall_valida_regras'))
             // Cotação
             $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields), $acesso);
 
-
-
             if (empty($cotacao['status'])) {
                 $response->errors = ['id' => -1, 'msg' => $cotacao['response'], 'slug' => "insere_cotacao"];
                 return $response;
@@ -1614,10 +1606,6 @@ if ( ! function_exists('app_integracao_valida_regras'))
         return $response;
     }
 }
-
-
-
-
 if ( ! function_exists('app_integracao_calcula_premio'))
 {
     function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso = null, $premio_liquido = NULL, $valor_iof = NULL, $valor_fixo = NULL, $qtde = 0){
