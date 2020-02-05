@@ -2636,9 +2636,121 @@ if ( ! function_exists('app_integracao_mailing_adesao')) {
     {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
 
+        $reg = $dados['registro'];
+
         $CI =& get_instance();
         $CI->session->sess_destroy();
         $CI->session->set_userdata("operacao", "bidu");
+
+        if (!empty($formato)) {
+            // $geraDados['sexo']                  = $reg['sexo'];
+            // $geraDados['estado_civil']          = $reg['estado_civil'];
+            // $geraDados['data_nascimento']       = $reg['data_nascimento'];
+            // $geraDados['cpf']                   = $reg['cpf'];
+            // $geraDados['tipo_operacao']         = $reg['tipo_operacao'];
+            // $geraDados['cod_loja']              = $reg['cod_loja'];
+            // $geraDados['nome_loja']             = $reg['nome_loja'];
+            // $geraDados['nome']                  = $reg['nome'];
+            // $geraDados['ddd_residencial']       = $reg['ddd_residencial'];
+            // $geraDados['telefone']              = $reg['telefone'];
+            // $geraDados['endereco']              = $reg['endereco_logradouro'];
+            // $geraDados['endereco_numero']       = $reg['endereco_numero'];
+            // $geraDados['complemento']           = $reg['endereco_complemento'];
+            // $geraDados['endereco_bairro']       = $reg['endereco_bairro'];
+            // $geraDados['endereco_cidade']       = $reg['endereco_cidade'];
+            // $geraDados['endereco_estado']       = $reg['endereco_estado'];
+            // $geraDados['endereco_cep']          = $reg['endereco_cep'];
+            // $geraDados['premio_bruto']          = $reg['premio_bruto'];
+            // $geraDados['logradouro_seguro']     = $reg['logradouro_seguro'];
+            // $geraDados['complemento_seguro']    = $reg['complemento_seguro'];
+            // $geraDados['numero_seguro']         = $reg['numero_seguro'];
+            // $geraDados['bairro_seguro']         = $reg['bairro_seguro'];
+            // $geraDados['cidade_seguro']         = $reg['cidade_seguro'];
+            // $geraDados['estado_seguro']         = $reg['estado_seguro'];
+            // $geraDados['cep_seguro']            = $reg['cep_seguro'];
+            // $geraDados['cod_vendedor']          = $reg['cod_vendedor'];
+            // $geraDados['data_adesao_cancel']    = $reg['data_adesao_cancel'];
+            // $geraDados['data_inicio_vigencia']  = $reg['data_inicio_vigencia'];
+            // $geraDados['data_fim_vigencia']     = $reg['data_fim_vigencia'];
+            // $geraDados['nome_vendedor']         = $reg['nome_vendedor'];
+            // $geraDados['email']                 = $reg['email'];
+            // $geraDados['num_apolice']           = $reg['num_apolice'];
+            // $geraDados['data_cancelamento']     = $reg['data_cancelamento'];
+            // $geraDados['num_parcela']           = $reg['num_parcela'];
+            // $geraDados['produto_seg']           = $reg['produto_seg'];
+            // $geraDados['num_sorte']             = $reg['num_sorte'];
+            // $geraDados['num_serie_cap']         = $reg['num_serie_cap'];
+            $geraDados['integracao_log_detalhe_id']     = $formato;
+            $geraDados['codigo']                        = $reg['codigo'];
+            $geraDados['nome_titular']                  = $reg['nome_titular'];
+            $geraDados['nome']                          = $reg['nome'];
+            $geraDados['tipo_segurado']                 = $reg['tipo_segurado'];
+            $geraDados['situacao_beneficiario']         = $reg['situacao_beneficiario'];
+            $geraDados['data_cancelamento']             = $reg['data_cancelamento'];
+            $geraDados['operadora']                     = $reg['operadora'];
+            $geraDados['num_apolice']                   = $reg['num_apolice'];
+            $geraDados['data_inicio_vigencia']          = $reg['data_inicio_vigencia'];
+            $geraDados['entidade']                      = $reg['entidade'];
+            $geraDados['plano_operadora']               = $reg['plano_operadora'];
+            $geraDados['acomodacao']                    = $reg['acomodacao'];
+            $geraDados['email']                         = $reg['email'];
+            $geraDados['telefone']                      = $reg['telefone'];
+            $geraDados['cpf']                           = $reg['cpf'];
+            $geraDados['rg']                            = $reg['rg'];
+            $geraDados['rg_data_expedicao']             = $reg['rg_data_expedicao'];
+            $geraDados['rg_orgao_expedidor']            = $reg['rg_orgao_expedidor'];
+            $geraDados['nome_mae']                      = $reg['nome_mae'];
+            $geraDados['data_nascimento']               = $reg['data_nascimento'];
+            $geraDados['estado_civil']                  = $reg['estado_civil'];
+            $geraDados['sexo']                          = $reg['sexo'];
+            $geraDados['parentesco']                    = $reg['parentesco'];
+            $geraDados['peso']                          = $reg['peso'];
+            $geraDados['altura']                        = $reg['altura'];
+            $geraDados['endereco_logradouro']           = $reg['endereco_logradouro'];
+            $geraDados['endereco_numero']               = $reg['endereco_numero'];
+            $geraDados['endereco_complemento']          = $reg['endereco_complemento'];
+            $geraDados['endereco_bairro']               = $reg['endereco_bairro'];
+            $geraDados['cidade']                        = $reg['cidade'];
+            $geraDados['endereco_cep']                  = $reg['endereco_cep'];
+            $geraDados['uf']                            = $reg['uf'];
+            $geraDados['data_adesao_cancel']            = $reg['data_adesao_cancel'];
+            $geraDados['declaracao_nascido_vivo']       = $reg['declaracao_nascido_vivo'];
+            $geraDados['cns']                           = $reg['cns'];
+            $geraDados['pis']                           = $reg['pis'];
+            $geraDados['operadora_anterior']            = $reg['operadora_anterior'];
+            $geraDados['plano_anterior']                = $reg['plano_anterior'];
+            $geraDados['acomodacao_anterior']           = $reg['acomodacao_anterior'];
+            $geraDados['dia_vencimento']                = $reg['dia_vencimento'];
+            $geraDados['reducao_carencia']              = $reg['reducao_carencia'];
+            $geraDados['cpf_vendedor']                  = $reg['cpf_vendedor'];
+            $geraDados['taxa_convenio']                 = $reg['taxa_convenio'];
+            $geraDados['valor_saude']                   = $reg['valor_saude'];
+            $geraDados['codigo_tabela_preco_saude']     = $reg['codigo_tabela_preco_saude'];
+            $geraDados['possui_odonto']                 = $reg['possui_odonto'];
+            $geraDados['valor_odonto']                  = $reg['valor_odonto'];
+            $geraDados['num_apolice_odonto']            = $reg['num_apolice_odonto'];
+            $geraDados['codigo_tabela_preco_odonto']    = $reg['codigo_tabela_preco_odonto'];
+            $geraDados['modalidade_pagto']              = $reg['modalidade_pagto'];
+            $geraDados['numero_proposta']               = $reg['numero_proposta'];
+            $geraDados['codigo_plano']                  = $reg['codigo_plano'];
+            $geraDados['id_plano']                      = $reg['id_plano'];
+            $geraDados['plataforma_venda']              = $reg['plataforma_venda'];
+            $geraDados['boleto_empresarial']            = $reg['boleto_empresarial'];
+            $geraDados['cnpj']                          = $reg['cnpj'];
+            $geraDados['data_vencimento']               = $reg['data_vencimento'];
+            $geraDados['status_vencimento']             = $reg['status_vencimento'];
+            $geraDados['data_pagamento']                = $reg['data_pagamento'];
+
+            print_pre($geraDados, false);
+
+            $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
+            $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
+
+            die();
+
+            // remove para realizar o cálculo do prêmio sem multiplicar por 12 meses
+            $dados['registro']['data_fim_vigencia'] = null;
+        }
 
         $acesso = app_integracao_generali_dados();
         $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
