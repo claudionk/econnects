@@ -2842,7 +2842,7 @@ if ( ! function_exists('app_integracao_mailing_adesao_emitir')) {
 
         if ( empty($dados['log']['integracao_log_id']) )
         {
-            return $result;
+            return $response;
         }
         $integracao_log_id = $dados['log']['integracao_log_id'];
 
