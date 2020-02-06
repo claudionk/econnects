@@ -25,6 +25,20 @@ Class Produto_Parceiro_Cliente_Status_Model extends MY_Model
             'label'   => 'Produto',
             'rules'   => 'required',
             'groups'  => 'default'
+        ),
+
+        array(
+            'field'   => 'cliente_evolucao_status_id',
+            'label'   => 'Satus',
+            'rules'   => 'required',
+            'groups'  => 'default'
+        ),
+
+        array(
+            'field'   => 'cliente_evolucao_status_grupo_id',
+            'label'   => 'Grupo',
+            'rules'   => 'required',
+            'groups'  => 'default'
         )
     );
 
@@ -34,6 +48,7 @@ Class Produto_Parceiro_Cliente_Status_Model extends MY_Model
         //Dados
         $data =  array(
             'cliente_evolucao_status_id' => $this->input->post('cliente_evolucao_status_id'),
+            'cliente_evolucao_status_grupo_id' => $this->input->post('cliente_evolucao_status_grupo_id'),
             'produto_parceiro_id' => $this->input->post('produto_parceiro_id')
         );
         return $data;
