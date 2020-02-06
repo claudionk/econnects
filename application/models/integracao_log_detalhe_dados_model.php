@@ -35,7 +35,9 @@ Class Integracao_Log_Detalhe_Dados_Model extends MY_Model
 
     public function getDadosByArquivo($integracao_log_id, $codigo = null, $tipo_segurado = [])
     {
+        $this->_database->select("cliente_mailing.*");
         $this->_database->join("integracao_log_detalhe", "integracao_log_detalhe.integracao_log_detalhe_id = {$this->_table}.integracao_log_detalhe_id");
+        $this->_database->join("cliente_mailing", "cliente_mailing.codigo = {$this->_table}.codigo");
         $this->_database->where("integracao_log_detalhe.integracao_log_id", $integracao_log_id);
         $this->_database->where("integracao_log_detalhe.integracao_log_status_id", 4);
         $this->_database->where("integracao_log_detalhe.deletado", 0);

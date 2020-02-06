@@ -404,13 +404,40 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                 }
             }
         }
-        $valores['quantidade'] = $quantidade;
+
+        if ( !empty($valores))
+        {
+            $valores['quantidade'] = $quantidade;
+        }
 
         return $valores;
 
     }
 
+    /**
+    * Busca o valor da tabela FIXA
+     * @param $produto_parceiro_plano_id
+     * @param $equipamento_nome
+     * @return mixed|null
+     */
     private function getValorTabelaFixaGenerico($produto_parceiro_plano_id, $qnt, $valor_nota = null, $data_nascimento = null, $comissao = null){
+
+        $tabela = $this->getTabelaFixaGenerico($produto_parceiro_plano_id, $qnt, $valor_nota, $data_nascimento, $comissao);
+        if ( !empty($tabela) )
+        {
+            return $tabela['valor'];
+        }
+
+         return null;
+    }
+
+    /**
+    * Busca a tabela FIXA
+     * @param $produto_parceiro_plano_id
+     * @param $equipamento_nome
+     * @return mixed|null
+     */
+    public function getTabelaFixaGenerico($produto_parceiro_plano_id, $qnt, $valor_nota = null, $data_nascimento = null, $comissao = null){
 
         $valor = $this->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
             ->filter_by_tipo('RANGE')
@@ -431,10 +458,15 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     $base = $valor_nota;
                     break;
                 case 'IDADE':
-                    // $dn = new DateTime($data_nascimento);
-                    // $d = $dn->diff(new DateTime());
-                    // $base = $d->y;
-                    $base = $qnt;
+                    if ( !empty($data_nascimento) && $data_nascimento != "0000-00-00" )
+                    {
+                        $dn = new DateTime($data_nascimento);
+                        $d = $dn->diff(new DateTime());
+                        $base = $d->y;
+                    } else 
+                    {
+                        $base = $qnt;
+                    }
                     break;
                 case 'COMISSAO':
                     $base = $comissao;
@@ -445,7 +477,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
             }
 
             if ($base >= $vl['inicial'] && $base <= $vl['final']) {
-                return $vl['valor'];
+                return $vl;
             }
         }
 
