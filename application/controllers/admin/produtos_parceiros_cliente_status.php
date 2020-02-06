@@ -22,6 +22,7 @@ class Produtos_Parceiros_Cliente_Status extends Admin_Controller
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
         $this->load->model('parceiro_model', 'parceiro');
         $this->load->model('cliente_evolucao_status_model', 'cliente_evolucao_status');
+        $this->load->model('cliente_evolucao_status_grupo_model', 'cliente_evolucao_status_grupo');
 
     }
 
@@ -98,16 +99,7 @@ class Produtos_Parceiros_Cliente_Status extends Admin_Controller
         //Caso post
         if($_POST)
         {
-            //Se criar novo status, insere e guarda id
-            if( !empty($_POST['descricao']) )
-            {
-
-                if($this->cliente_evolucao_status->validate_form()) //Valida form
-                {
-                    $cliente_evolucao_status_id = $this->cliente_evolucao_status->insert_form();
-                    $_POST['cliente_evolucao_status_id'] = $cliente_evolucao_status_id;
-                }
-            }
+            $this->addGrupoStatus();
 
             //Valida formulário
             if($this->current_model->validate_form())
@@ -133,6 +125,7 @@ class Produtos_Parceiros_Cliente_Status extends Admin_Controller
         $data['primary_key'] = $this->current_model->primary_key();
         $data['new_record'] = '1';
         $data['evolucao_status'] = $this->cliente_evolucao_status->filter_by_uso_interno(0)->get_all();
+        $data['evolucao_grupo'] = $this->cliente_evolucao_status_grupo->filter_by_uso_interno(0)->get_all();
         $data['produto_parceiro_id'] = $produto_parceiro_id;
         $data['produto_parceiro'] = $produto_parceiro;
 
@@ -174,8 +167,11 @@ class Produtos_Parceiros_Cliente_Status extends Admin_Controller
         if($_POST)
         {
 
+            $this->addGrupoStatus();
+
             if($this->current_model->validate_form()) //Valida form
             {
+
                 //Realiza update
                 $this->current_model->update_form();
 
@@ -189,7 +185,8 @@ class Produtos_Parceiros_Cliente_Status extends Admin_Controller
 
         $data['produto_parceiro_id'] = $produto_parceiro['produto_parceiro_id'];
         $data['produto_parceiro'] = $produto_parceiro;
-        $data['evolucao_status'] = $this->cliente_evolucao_status->filter_by_uso_interno(0)->get_all();;
+        $data['evolucao_status'] = $this->cliente_evolucao_status->filter_by_uso_interno(0)->get_all();
+        $data['evolucao_grupo'] = $this->cliente_evolucao_status_grupo->filter_by_uso_interno(0)->get_all();;
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
@@ -210,5 +207,28 @@ class Produtos_Parceiros_Cliente_Status extends Admin_Controller
         redirect("{$this->controller_uri}/index/{$row['produto_parceiro_id']}");
     }
 
+    public function addGrupoStatus()
+    {
+        //Se criar novo status, insere e guarda id
+            if( !empty($_POST['descricao']) )
+            {
 
+                if($this->cliente_evolucao_status->validate_form()) //Valida form
+                {
+                    $cliente_evolucao_status_id = $this->cliente_evolucao_status->insert_form();
+                    $_POST['cliente_evolucao_status_id'] = $cliente_evolucao_status_id;
+                }
+            }
+
+            //Se criar novo grupo, insere e guarda id
+            if( !empty($_POST['descricao_grupo']) )
+            {
+
+                if($this->cliente_evolucao_status_grupo->validate_form()) //Valida form
+                {
+                    $cliente_evolucao_status_grupo_id = $this->cliente_evolucao_status_grupo->insert_form();
+                    $_POST['cliente_evolucao_status_grupo_id'] = $cliente_evolucao_status_grupo_id;
+                }
+            }
+    }
 }
