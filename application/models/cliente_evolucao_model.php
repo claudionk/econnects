@@ -129,7 +129,7 @@ Class Cliente_Evolucao_Model extends MY_Model
         $this->_database->where($this->_table.'.cliente_evolucao_status_id', $data['cliente_evolucao_status_id']);
         $query = $this->_database->get();
 
-        if( !empty($query->num_rows()) ) {
+        if( empty($query->num_rows()) ) {
             return $this->insert($data, TRUE);
         }else{
             return FALSE;

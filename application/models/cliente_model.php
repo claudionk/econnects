@@ -556,7 +556,7 @@ class Cliente_Model extends MY_Model
         {
             $data_evolucao['cliente_id'] = $cliente_id;
             $data_evolucao['cliente_evolucao_status_id'] = $data_cliente['cliente_evolucao_status_id'];
-            $data_evolucao['colaborador_comercial_id'] = 0;
+            $data_evolucao['colaborador_comercial_id'] = 1;
             $data_evolucao['data'] = date('Y-m-d H:i:s');
             $this->cliente_evolucao->insert_not_exist($cliente_id, $data_evolucao);
         }
