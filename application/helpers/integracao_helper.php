@@ -2684,6 +2684,7 @@ if ( ! function_exists('app_integracao_mailing')) {
         $CI =& get_instance();
         $CI->session->sess_destroy();
         $CI->session->set_userdata("operacao", "bidu");
+        $CI->load->model('cliente_contato_model', 'cliente_contato');
         $acesso = app_integracao_generali_dados();
 
         $reg = $dados['registro'];
@@ -2696,6 +2697,19 @@ if ( ! function_exists('app_integracao_mailing')) {
         }
 
         if (!empty($formato)) {
+            // valida o melhor horario
+            $melhor_horario = 'Q';
+            if ( !empty($POST['melhor_horario']) )
+            {
+                $melhor_horario = $CI->cliente_contato->melhorHorario( $reg['melhor_horario'], 'nome', 'slug' );
+            }
+
+            $mei = 'N';
+            if (!empty($reg['mei']))
+            {
+                $mei = $reg['mei'] == 'SIM' ? 'S' : 'N';
+            }
+
             $geraDados['integracao_log_detalhe_id'] = $formato;
             $geraDados['codigo']                    = $reg['codigo'];
             $geraDados['data']                      = $reg['data_mailing'];
@@ -2705,7 +2719,7 @@ if ( ! function_exists('app_integracao_mailing')) {
             $geraDados['email']                     = $reg['email'];
             $geraDados['telefone']                  = $reg['telefone'];
             $geraDados['telefone_2']                = $reg['telefone_2'];
-            $geraDados['melhor_horario']            = $reg['melhor_horario'];
+            $geraDados['melhor_horario']            = $melhor_horario;
             $geraDados['data_nascimento']           = $reg['data_nascimento'];
             $geraDados['documento']                 = $reg['documento'];
             $geraDados['tipo_pessoa']               = !empty($reg['cnpj']) ? 'PJ' : 'PF';
@@ -2723,7 +2737,7 @@ if ( ! function_exists('app_integracao_mailing')) {
             $geraDados['uf']                        = $reg['uf'];
             $geraDados['tem_plano_saude']           = $reg['tem_plano_saude'];
             $geraDados['operadora_atual']           = $reg['operadora_atual'];
-            $geraDados['mei']                       = $reg['mei'];
+            $geraDados['mei']                       = $mei;
             $geraDados['razao_social']              = $reg['razao_social'];
             $geraDados['status']                    = $reg['status'];
 
@@ -2833,6 +2847,7 @@ if ( ! function_exists('app_integracao_mailing_adesao_emitir')) {
         $integracao_log_id = $dados['log']['integracao_log_id'];
 
         $CI->load->model('integracao_log_detalhe_dados_model', 'log_dados');
+        $CI->load->model('produto_parceiro_plano_precificacao_itens_model', 'preco_item');
         $emissoes = $CI->log_dados->getDadosByArquivo($integracao_log_id, null, ['T','E'])->get_all();
 
         $acesso = app_integracao_generali_dados();
@@ -2840,11 +2855,54 @@ if ( ! function_exists('app_integracao_mailing_adesao_emitir')) {
         foreach ($emissoes as $dados)
         {
 
+            if ( app_verifica_cpf_cnpj(emptyor( $dados['cpf'] , $dados['cnpj'] )) == 'CPF' )
+            {
+                $acesso->produto_slug = 'plano_de_saude_hapvida';
+                $acesso->plano_slug = 'nosso_plano_hapvida';
+                $produto_parceiro_plano_id = 46;
+            } else 
+            {
+                $acesso->produto_slug = 'plano_de_saude_hapvida_empresarial';
+                $acesso->plano_slug = 'nosso_plano_hapvida_empresarial';
+                $produto_parceiro_plano_id = 157;
+            }
+
             $dados['produto_slug'] = $acesso->produto_slug;
             $dados['plano_slug'] = $acesso->plano_slug;
-            $beneficiarios = [];
+            $beneficiarios = $faixa_etaria = [];
+
+            $tabela = $CI->preco_item->getTabelaFixaGenerico($produto_parceiro_plano_id, 1, null, $dados['data_nascimento']);
+            if ( !empty($tabela) )
+            {
+                $inicial = (int)$tabela['inicial'];
+                $final = (int)$tabela['final'];
+                $faixa_etaria["{$inicial}_a_{$final}"] = empty($faixa_etaria["{$inicial}_a_{$final}"]) ? 1 : $faixa_etaria["{$inicial}_a_{$final}"] + 1;
+            }
+
+            // Monta a faixa etaria recebida
+            // if ( !empty($dados['0_a_18_anos']) ) $faixa_etaria['0_a_18'] = $dados['0_a_18_anos'];
+            // if ( !empty($dados['19_a_23_anos']) ) $faixa_etaria['19_a_23'] = $dados['19_a_23_anos'];
+            // if ( !empty($dados['24_a_28_anos']) ) $faixa_etaria['24_a_28'] = $dados['24_a_28_anos'];
+            // if ( !empty($dados['29_a_33_anos']) ) $faixa_etaria['29_a_33'] = $dados['29_a_33_anos'];
+            // if ( !empty($dados['34_a_38_anos']) ) $faixa_etaria['34_a_38'] = $dados['34_a_38_anos'];
+            // if ( !empty($dados['39_a_43_anos']) ) $faixa_etaria['39_a_43'] = $dados['39_a_43_anos'];
+            // if ( !empty($dados['44_a_48_anos']) ) $faixa_etaria['44_a_48'] = $dados['44_a_48_anos'];
+            // if ( !empty($dados['49_a_53_anos']) ) $faixa_etaria['49_a_53'] = $dados['49_a_53_anos'];
+            // if ( !empty($dados['54_a_58_anos']) ) $faixa_etaria['54_a_58'] = $dados['54_a_58_anos'];
+            // if ( !empty($dados['59_anos_ou_mais']) ) $faixa_etaria['59_a_200'] = $dados['59_anos_ou_mais'];
+
+            // $qtde_beneficiarios = 0;
+            // foreach ($faixa_etaria as $key => $value) {
+            //     $qtde_beneficiarios += $value;
+            // }
 
             $reg = $CI->log_dados->getDadosByArquivo($integracao_log_id, $dados['codigo'], ['D'])->get_all();
+            
+            // if ( count($reg) != $qtde_beneficiarios )
+            // {
+            //     $response->msg[] = ['id' => -1, 'msg' => "A quantidade de beneficiários informada [". count($reg) ."] diverge da quantidade inicial [". $qtde_beneficiarios ."] ", 'slug' => "cliente"];
+            //     return $response;
+            // }
 
             // Caso possua beneficiarios
             if ( !empty($reg))
@@ -2863,6 +2921,14 @@ if ( ! function_exists('app_integracao_mailing_adesao_emitir')) {
                         "estado_civil" => $benef['estado_civil'],
                         "nome_mae" => $benef['nome_mae'],
                     ];
+
+                    $tabela = $CI->preco_item->getTabelaFixaGenerico($produto_parceiro_plano_id, 1, null, $benef['data_nascimento']);
+                    if ( !empty($tabela) )
+                    {
+                        $inicial = (int)$tabela['inicial'];
+                        $final = (int)$tabela['final'];
+                        $faixa_etaria["{$inicial}_a_{$final}"] = empty($faixa_etaria["{$inicial}_a_{$final}"]) ? 1 : $faixa_etaria["{$inicial}_a_{$final}"] + 1;
+                    }
                 }
             }
 
@@ -2878,10 +2944,7 @@ if ( ! function_exists('app_integracao_mailing_adesao_emitir')) {
                         "sexo" => $dados['sexo'],
                         "telefone" => $dados['telefone'],
                         "data_nascimento" => $dados['data_nascimento'],
-                        "faixa_etaria" => [
-                            "0_18" => 2,
-                            "19_23" => 1
-                        ],
+                        "faixa_etaria" => $faixa_etaria,
                         "rg" => $dados['rg'],
                         "estado_civil" => $dados['estado_civil'],
                         "nome_mae" => $dados['nome_mae'],
