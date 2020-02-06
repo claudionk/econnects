@@ -67,14 +67,22 @@ class Cliente extends CI_Controller {
         $this->load->model('cliente_evolucao_status_model', 'cliente_evolucao_status');
         $this->load->model('cliente_contato_model', 'cliente_contato');
 
-        if( !isset( $POST["produto_parceiro_id"] ) ) {
+        if( !isset( $POST["produto_parceiro_id"] ) )
+        {
             ob_clean();
             die( json_encode( array( "status" => false, "message" => "Campo produto_parceiro_id é obrigatório" ) ) );
         }
 
-        if( empty($POST["documento"]) )  {
+        if( empty($POST["documento"]) )
+        {
             ob_clean();
             die( json_encode( array( "status" => false, "message" => "Campo Documento (CPF / CNPJ) é obrigatório" ) ) );
+        }
+
+        if ( empty($POST['codigo']) )
+        {
+            ob_clean();
+            die( json_encode( array( "status" => false, "message" => "O status do Mailing é obrigatório" ) ) );
         }
 
         // padrao esperado

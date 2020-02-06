@@ -586,6 +586,27 @@ if ( ! function_exists('app_integracao_format_file_name_novo_mundo')) {
     }
 
 }
+if ( ! function_exists('app_integracao_format_file_name_bidu')) {
+
+    function app_integracao_format_file_name_bidu($formato, $dados = array())
+    {
+
+        if ( empty($dados['registro'][0]['nome_arquivo']) ) {
+            return '';
+        }
+
+        $file = $dados['registro'][0]['nome_arquivo'];
+        $pos = strpos($file, ".");
+
+        if ( !($pos === FALSE) )
+        {
+            $file = substr($file, 0, $pos) ."_". date('Ymd') . substr($file, $pos, strlen($file));
+        }
+
+        return  $file;
+    }
+
+}
 if ( ! function_exists('app_integracao_sequencia_mapfre_rf')) {
 
     function app_integracao_sequencia_mapfre_rf($formato, $dados = array())
@@ -2605,13 +2626,55 @@ if ( ! function_exists('app_integracao_mailing')) {
         $CI =& get_instance();
         $CI->session->sess_destroy();
         $CI->session->set_userdata("operacao", "bidu");
-
         $acesso = app_integracao_generali_dados();
-        $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
-        $dados['registro']['documento'] = app_retorna_numeros(emptyor( $dados['registro']['cpf'] , $dados['registro']['cnpj'] ));
+
+        $reg = $dados['registro'];
+        $reg['produto_parceiro_id'] = $acesso->produto_parceiro_id;
+        $reg['documento'] = app_retorna_numeros(emptyor( $reg['cpf'] , $reg['cnpj'] ));
+
+        if (empty($reg['documento']) || !app_validate_cpf_cnpj($reg['documento']) ){
+            $response->msg[] = ['id' => -1, 'msg' => "O ". app_verifica_cpf_cnpj($reg['documento']) ." [{$reg['documento']}] não é válido", 'slug' => "cliente"];
+            return $response;
+        }
+
+        if (!empty($formato)) {
+            $geraDados['integracao_log_detalhe_id'] = $formato;
+            $geraDados['codigo']                    = $reg['codigo'];
+            $geraDados['data']                      = $reg['data_mailing'];
+            $geraDados['nome']                      = $reg['nome'];
+            $geraDados['sexo']                      = $reg['sexo'];
+            $geraDados['profissao']                 = $reg['profissao'];
+            $geraDados['email']                     = $reg['email'];
+            $geraDados['telefone']                  = $reg['telefone'];
+            $geraDados['telefone_2']                = $reg['telefone_2'];
+            $geraDados['melhor_horario']            = $reg['melhor_horario'];
+            $geraDados['data_nascimento']           = $reg['data_nascimento'];
+            $geraDados['documento']                 = $reg['documento'];
+            $geraDados['tipo_pessoa']               = !empty($reg['cnpj']) ? 'PJ' : 'PF';
+            $geraDados['0_a_18_anos']               = $reg['0_a_18_anos'];
+            $geraDados['19_a_23_anos']              = $reg['19_a_23_anos'];
+            $geraDados['24_a_28_anos']              = $reg['24_a_28_anos'];
+            $geraDados['29_a_33_anos']              = $reg['29_a_33_anos'];
+            $geraDados['34_a_38_anos']              = $reg['34_a_38_anos'];
+            $geraDados['39_a_43_anos']              = $reg['39_a_43_anos'];
+            $geraDados['44_a_48_anos']              = $reg['44_a_48_anos'];
+            $geraDados['49_a_53_anos']              = $reg['49_a_53_anos'];
+            $geraDados['54_a_58_anos']              = $reg['54_a_58_anos'];
+            $geraDados['59_anos_ou_mais']           = $reg['59_anos_ou_mais'];
+            $geraDados['cidade']                    = $reg['cidade'];
+            $geraDados['uf']                        = $reg['uf'];
+            $geraDados['tem_plano_saude']           = $reg['tem_plano_saude'];
+            $geraDados['operadora_atual']           = $reg['operadora_atual'];
+            $geraDados['mei']                       = $reg['mei'];
+            $geraDados['razao_social']              = $reg['razao_social'];
+            $geraDados['status']                    = $reg['status'];
+
+            $CI->load->model("cliente_mailing_model", "cliente_mailing");
+            $CI->cliente_mailing->insert($geraDados, TRUE);
+        }
 
         // Campos para cotação
-        $campos = app_get_api("cliente", 'POST', json_encode($dados['registro']), $acesso);
+        $campos = app_get_api("cliente", 'POST', json_encode($reg), $acesso);
         if (empty($campos['status'])){
             $response->msg[] = ['id' => -1, 'msg' => $campos['response'], 'slug' => "cliente"];
             return $response;
