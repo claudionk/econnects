@@ -1190,6 +1190,33 @@ if ( ! function_exists('isempty')) {
 }
 
 /**
+ * @description Se for uma variavel vazia ele retorna com o default
+ * @param $var
+ * @return string
+ */
+if ( ! function_exists('isvazio')) {
+    function isvazio(&$var, $default = ' ')
+    {
+        if ( !isset($var) )
+        {
+            $var = $default;
+        } 
+        else
+        {
+            if ( empty($var) )
+            {
+                if ( strlen($var) == 0 )
+                {
+                    $var = $default;
+                }
+            }
+        }
+
+        return $var; // $default : $var;
+    }
+}
+
+/**
  * Se a variável for verdadeira, retorna o texto SIM. Caso contrário, retorna o texto NÃO
  * @param $var
  * @return string
