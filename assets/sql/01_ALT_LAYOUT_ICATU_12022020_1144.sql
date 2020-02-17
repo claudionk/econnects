@@ -1,11 +1,15 @@
-/****************************************************************************************************
+/**************************************************************************************************************
 Objetivo:   Alteração do layout da carga de Capitalização para o novo layout da Icatu. 
             Também realizado as alterações do Sorteio da Quero Quero.
 Versão:     1.0.0
 Branch:     econnects/relacionada: capitalizacao_alteracao_nomenclatura_icatu
 Data:       12/02/2020
 Autor:      Cláudio Nakayama
-****************************************************************************************************/
+
+******* A FAZER Registro Detalhe: *******
+- Campo 07 (Código do Cliente): O mesmo número de proposta só pode utilizado 2 vezes dentro do mesmo mês;
+  Resposta: Quem controla a emissão é o representante. Verificar esta regra com o Gillian
+**************************************************************************************************************/
 #### Script para formatação do novo layout da ICATU ####
 USE sisconnects;
 # Alteração: Altera o layout para ambiente de produção
@@ -26,11 +30,11 @@ UPDATE integracao_layout SET str_pad = 0 WHERE integracao_id = 196 AND tipo = 'H
 UPDATE integracao_layout SET str_pad = 0 WHERE integracao_id = 197 AND tipo = 'H' AND ordem = 1;
 
 #Alteração >> Campo 07 (Produto): Este campo deve ser preenchido com o código da negociação da Icatu;
-UPDATE `integracao_layout` SET `nome_banco`='', `valor_padrao`='8968', `qnt_valor_padrao`='4', `str_pad`='0' WHERE integracao_id = 103 AND tipo = 'H' AND ordem = 6;
-UPDATE `integracao_layout` SET `nome_banco`='', `valor_padrao`='8976', `qnt_valor_padrao`='4', `str_pad`='0' WHERE integracao_id = 120 AND tipo = 'H' AND ordem = 6;
-UPDATE `integracao_layout` SET `nome_banco`='', `valor_padrao`='9334', `qnt_valor_padrao`='4', `str_pad`='0' WHERE integracao_id = 152 AND tipo = 'H' AND ordem = 6;
-UPDATE `integracao_layout` SET `nome_banco`='', `valor_padrao`='9309', `qnt_valor_padrao`='4', `str_pad`='0' WHERE integracao_id = 196 AND tipo = 'H' AND ordem = 6;
-UPDATE `integracao_layout` SET `nome_banco`='', `valor_padrao`='9335', `qnt_valor_padrao`='4', `str_pad`='0' WHERE integracao_id = 197 AND tipo = 'H' AND ordem = 6;
+UPDATE `integracao_layout` SET `nome_banco`='', `valor_padrao`='8968                ', `qnt_valor_padrao`='20', `str_pad`='1' WHERE integracao_id = 103 AND tipo = 'H' AND ordem = 6;
+UPDATE `integracao_layout` SET `nome_banco`='', `valor_padrao`='8976                ', `qnt_valor_padrao`='20', `str_pad`='1' WHERE integracao_id = 120 AND tipo = 'H' AND ordem = 6;
+UPDATE `integracao_layout` SET `nome_banco`='', `valor_padrao`='9334                ', `qnt_valor_padrao`='20', `str_pad`='1' WHERE integracao_id = 152 AND tipo = 'H' AND ordem = 6;
+UPDATE `integracao_layout` SET `nome_banco`='', `valor_padrao`='9309                ', `qnt_valor_padrao`='20', `str_pad`='1' WHERE integracao_id = 196 AND tipo = 'H' AND ordem = 6;
+UPDATE `integracao_layout` SET `nome_banco`='', `valor_padrao`='9335                ', `qnt_valor_padrao`='20', `str_pad`='1' WHERE integracao_id = 197 AND tipo = 'H' AND ordem = 6;
 
 #Alteração >> Campo 03 (Número de Sorteio): Este campo deve possuir tamanho 6
 UPDATE `integracao_layout` SET `tamanho`='6', `inicio`='5', `fim`='10', qnt_valor_padrao = '6' WHERE integracao_id = 103 AND tipo = 'D' AND ordem = 2;
@@ -64,12 +68,12 @@ UPDATE `integracao_layout` SET                       `inicio`='68', `fim`='75' W
 UPDATE `integracao_layout` SET                       `inicio`='76', `fim`='86' WHERE integracao_id = 197 AND tipo = 'D' AND ordem = 6;
 UPDATE `integracao_layout` SET                       `inicio`='87', `fim`='96' WHERE integracao_id = 197 AND tipo = 'D' AND ordem = 7;
 
-#Alteração >> Campo 08 (Valor unitário capitalização): Este campo deve utilizar 6 casas decimais
-UPDATE `integracao_layout` SET `formato`='registro|valor_sorteio|6|',      `tamanho`='9', `fim`='95' WHERE integracao_id = 103 AND tipo = 'D' AND ordem = 7;
-UPDATE `integracao_layout` SET `formato`='registro|valor_sorteio|6|',      `tamanho`='9', `fim`='95' WHERE integracao_id = 120 AND tipo = 'D' AND ordem = 7;
-UPDATE `integracao_layout` SET `formato`='registro|valor_custo_titulo|6|', `tamanho`='9', `fim`='95' WHERE integracao_id = 152 AND tipo = 'D' AND ordem = 7;
-UPDATE `integracao_layout` SET `formato`='registro|valor_sorteio|6|',      `tamanho`='9', `fim`='95' WHERE integracao_id = 196 AND tipo = 'D' AND ordem = 7;
-UPDATE `integracao_layout` SET `formato`='registro|valor_custo_titulo|6|', `tamanho`='9', `fim`='95' WHERE integracao_id = 197 AND tipo = 'D' AND ordem = 7;
+#Alteração >> Campo 08 (Valor unitário capitalização): Este campo deve utilizar 6 casas decimais / Campo 08 (Valor unitário capitalização): O valor informado está divergente do valor máximo permitido para esta negociação
+UPDATE `integracao_layout` SET `formato`='registro|valor_custo_titulo|6|', `tamanho`='9', `fim`='95', `nome_banco`='valor_custo_titulo' WHERE integracao_id = 103 AND tipo = 'D' AND ordem = 7;
+UPDATE `integracao_layout` SET `formato`='registro|valor_custo_titulo|6|', `tamanho`='9', `fim`='95', `nome_banco`='valor_custo_titulo' WHERE integracao_id = 120 AND tipo = 'D' AND ordem = 7;
+UPDATE `integracao_layout` SET `formato`='registro|valor_custo_titulo|6|', `tamanho`='9', `fim`='95', `nome_banco`='valor_custo_titulo' WHERE integracao_id = 152 AND tipo = 'D' AND ordem = 7;
+UPDATE `integracao_layout` SET `formato`='registro|valor_custo_titulo|6|', `tamanho`='9', `fim`='95', `nome_banco`='valor_custo_titulo' WHERE integracao_id = 196 AND tipo = 'D' AND ordem = 7;
+UPDATE `integracao_layout` SET `formato`='registro|valor_custo_titulo|6|', `tamanho`='9', `fim`='95', `nome_banco`='valor_custo_titulo' WHERE integracao_id = 197 AND tipo = 'D' AND ordem = 7;
 
 #Alteração: Após a linha do Registro Trailler, deve ser incluído mais uma linha sem nenhuma informação
 SET @integracao_detalhe_id = (select integracao_detalhe_id from integracao_detalhe where integracao_id = 103 and tipo = 'T');   
@@ -101,3 +105,10 @@ INSERT INTO `integracao_log` (`integracao_log_status_id`, `integracao_id`, `sequ
 INSERT INTO `integracao_log` (`integracao_log_status_id`, `integracao_id`, `sequencia`, `processamento_inicio`, `processamento_fim`, `nome_arquivo`, `quantidade_registros`, `retorno`, `retorno_codigo`, `log_erro`, `deletado`, `criacao`, `alteracao_usuario_id`, `alteracao`) VALUES ('1', '152', '0', '2020-02-12 10:40:00', '2020-02-12 10:40:01', 'NOVA_SEQUENCIA_ICATU', '0', '', '', '', '0', '2020-02-12 10:40:00', '0', '2020-02-12 10:40:00');
 INSERT INTO `integracao_log` (`integracao_log_status_id`, `integracao_id`, `sequencia`, `processamento_inicio`, `processamento_fim`, `nome_arquivo`, `quantidade_registros`, `retorno`, `retorno_codigo`, `log_erro`, `deletado`, `criacao`, `alteracao_usuario_id`, `alteracao`) VALUES ('1', '196', '0', '2020-02-12 10:40:00', '2020-02-12 10:40:01', 'NOVA_SEQUENCIA_ICATU', '0', '', '', '', '0', '2020-02-12 10:40:00', '0', '2020-02-12 10:40:00');
 INSERT INTO `integracao_log` (`integracao_log_status_id`, `integracao_id`, `sequencia`, `processamento_inicio`, `processamento_fim`, `nome_arquivo`, `quantidade_registros`, `retorno`, `retorno_codigo`, `log_erro`, `deletado`, `criacao`, `alteracao_usuario_id`, `alteracao`) VALUES ('1', '197', '0', '2020-02-12 10:40:00', '2020-02-12 10:40:01', 'NOVA_SEQUENCIA_ICATU', '0', '', '', '', '0', '2020-02-12 10:40:00', '0', '2020-02-12 10:40:00');                      
+
+# Alteração: Campo 02 (Quantidade de Registros): Este campo deve ser preenchido com o número total de linhas de Registro Detalhe
+UPDATE `integracao_layout` SET `function`='app_integracao_generali_total_itens' WHERE tipo = 'T' AND integracao_id = 103 AND ordem = 1;
+UPDATE `integracao_layout` SET `function`='app_integracao_generali_total_itens' WHERE tipo = 'T' AND integracao_id = 120 AND ordem = 1;
+UPDATE `integracao_layout` SET `function`='app_integracao_generali_total_itens' WHERE tipo = 'T' AND integracao_id = 152 AND ordem = 1;
+UPDATE `integracao_layout` SET `function`='app_integracao_generali_total_itens' WHERE tipo = 'T' AND integracao_id = 196 AND ordem = 1;
+UPDATE `integracao_layout` SET `function`='app_integracao_generali_total_itens' WHERE tipo = 'T' AND integracao_id = 197 AND ordem = 1;
