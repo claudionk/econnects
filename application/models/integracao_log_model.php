@@ -51,11 +51,12 @@ Class Integracao_Log_Model extends MY_Model
 
     function get_next_sequencia($integracao_id)
     {
-        $this->_database->select('MAX(integracao_log.sequencia) as seq');
-        $this->_database->where("integracao_log.integracao_id", $integracao_id);
-        $result = $this->get_all();
-        $result = (int)$result[0]['seq'] + 1;
-
+        $result = $this->_database->query("select ifnull(max(integracao_log.sequencia),0) as seq
+                                             from integracao_log
+                                            where integracao_log.integracao_id = $integracao_id
+                                              and integracao_log.integracao_log_id in (select max(integracao_log_id) from integracao_log where integracao_log.integracao_id = $integracao_id and integracao_log.deletado = 0)
+                                ")->result_array();
+        $result = (int)$result[0]['seq'] + 1;        
         return $result;
     }
 
