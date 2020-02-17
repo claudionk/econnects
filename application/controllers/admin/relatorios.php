@@ -517,7 +517,6 @@ class Relatorios extends Admin_Controller
         } else {
 
             // 'Sinténtico'
-
             $resultado['data'] = $this->preparaMapaRepasse($this->pedido->extrairRelatorioMapaRepasseSintetico($data_inicio, $data_fim, $parceiro, $slug));
         }
         $resultado['status'] = true;
@@ -530,8 +529,6 @@ class Relatorios extends Admin_Controller
 
     private function preparaMapaRepasse($result)
     {
-               
-
         if (empty($result)) {
             return [];
         }
@@ -541,7 +538,6 @@ class Relatorios extends Admin_Controller
         foreach ($result as $k => $v) {
             $planos[$k] = $v['planos'];
         }
-
 
         $ret = [];
         $V_quantidade = 0;
@@ -1444,5 +1440,180 @@ class Relatorios extends Admin_Controller
 
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/toastr/toastr.css", "admin"));
         $this->template->css(app_assets_url("core/css/orb.min.css", "admin"));
+    }
+
+    private function getRelatorioVendaDireta($parceiro_id, $produto_parceiro_id, $data_inicio, $data_fim)
+    {
+        $this->load->model("pedido_model", "pedido");
+        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
+        $this->load->model('produto_parceiro_cliente_status_model', 'produto_parceiro_cliente_status');
+
+        //Dados via GET
+        $qtdeDias = app_date_get_diff_dias($data_inicio, $data_fim, 'D');
+        $resultado = [
+            'status' => false,
+            'dias' => [],
+            'grupos_totais' => [],
+        ];
+
+        $resultado['planos'] = $this->produto_parceiro_plano
+                ->wtih_plano_habilitado($parceiro_id)
+                ->order_by('nome')
+                ->get_many_by(array('produto_parceiro_id' => $produto_parceiro_id));
+
+        $resultado['grupos'] = $this->produto_parceiro_cliente_status
+                ->filter_by_produto_parceiro($produto_parceiro_id)
+                ->order_by('descricao_grupo, descricao')
+                ->get_all();
+
+        for ($i = 0; $i <= $qtdeDias; $i++)
+        {
+            $strtotime = strtotime(app_dateonly_mask_to_mysql($data_inicio). ' + '. $i .' days');
+            $dia = date('d/m/Y', $strtotime);
+            $dia_format = date('Ymd', $strtotime);
+            $resultado['dias'][] = [ 'dia'=> $dia, 'dia_format' => $dia_format ];
+
+            // inicia os contadores das vendas diarias por plano
+            foreach ($resultado['planos'] as $key => $value) {
+                $resultado['data']['vendas'][$value['produto_parceiro_plano_id']][$dia_format] = 0;
+                $resultado['planos'][$key]['qtde'] = 0;
+            }
+
+            // inicia os contadores dos grupos/status diarios
+            foreach ($resultado['grupos'] as $key => $value) {
+                $resultado['data']['mailing'][$value['produto_parceiro_cliente_status_id']][$dia_format] = 0;
+                $resultado['grupos'][$key]['qtde'] = 0;
+                $resultado['grupos_totais'][$value['cliente_evolucao_status_grupo_id']]['valor'] = 0;
+                $resultado['grupos_totais'][$value['cliente_evolucao_status_grupo_id']]['percentual'] = 0;
+            }
+        }
+
+        $resultado['mailing'] = $this->pedido->getRelatorioVendaDireta($data_inicio, $data_fim);
+        $resultado['vendas'] = $this->pedido->extrairRelatorioVendasDiario($data_inicio, $data_fim, $produto_parceiro_id);
+
+        if ( !empty($resultado['mailing']) )
+        {
+            $totalGroup = 0;
+            foreach ($resultado['mailing'] as $mailing)
+            {
+                $resultado['data']['mailing'][$mailing['produto_parceiro_cliente_status_id']][$mailing['data_format']] += $mailing['qtde'];
+                $indexGroup = app_search( $resultado['grupos'], $mailing['produto_parceiro_cliente_status_id'], 'produto_parceiro_cliente_status_id' );
+                if ($indexGroup >= 0)
+                {
+                    $resultado['grupos'][$indexGroup]['qtde'] += $mailing['qtde'];
+                    $resultado['grupos_totais'][$mailing['cliente_evolucao_status_grupo_id']]['valor'] += $mailing['qtde'];
+                }
+                $totalGroup += $mailing['qtde'];
+            }
+
+            foreach ($resultado['grupos_totais'] as $key => $value)
+            {
+                $resultado['grupos_totais'][$key]['percentual'] = $value['valor'] / $totalGroup * 100;
+            }
+        }
+
+        if ( !empty($resultado['vendas']) )
+        {
+            foreach ($resultado['vendas'] as $venda)
+            {
+                $resultado['data']['vendas'][$venda['produto_parceiro_plano_id']][$venda['data_format']] += $venda['qtde'];
+                $indexPlan = app_search( $resultado['planos'], $venda['produto_parceiro_plano_id'], 'produto_parceiro_plano_id' );
+                if ($indexPlan >= 0)
+                {
+                    $resultado['planos'][$indexPlan]['qtde'] += $venda['qtde'];
+                }
+            }
+        }
+
+        $resultado['status'] = true;
+        return $resultado;
+    }
+
+    public function vendaDireta()
+    {
+        $this->load->model('produto_parceiro_model', 'produto_parceiro');
+
+        $parceiro_id = $this->session->userdata('parceiro_id');
+
+        //Dados para template
+        $data = array();
+        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_fim'] = date("d/m/Y");
+        $data['title'] = 'Relatório 04 de Vendas';
+        $data['columns'] = [
+            'Data da Venda',
+            'Cliente',
+            'Documento',
+            'Seguro Contratado',
+            'Desc. do Produto',
+            'Importancia Segurada',
+            'Valor do Prêmio',
+            'Num. Apólice',
+            'Varejista',
+            'CNPJ Varejista',
+            'UF Varejista',
+            'Vendedor',
+        ];
+        $data['combo'] = $this->produto_parceiro->getProdutosByParceiro($parceiro_id);
+
+        if ($_POST) {
+
+            //Dados via GET
+            $data['data_inicio'] = $this->input->get_post('data_inicio');
+            $data['data_fim'] = $this->input->get_post('data_fim');
+
+            if ( empty($_POST['produto_parceiro_id']) )
+            {
+                $this->session->set_flashdata('fail_msg', 'Informe o Produto.');
+                redirect("$this->controller_uri/vendaDireta");
+            }
+
+            if ( empty($data['data_inicio']) )
+            {
+                $this->session->set_flashdata('fail_msg', 'Informe a Data Inicial.');
+                redirect("$this->controller_uri/vendaDireta");
+            }
+
+            if ( empty($data['data_fim']) )
+            {
+                $this->session->set_flashdata('fail_msg', 'Informe a Data Final.');
+                redirect("$this->controller_uri/vendaDireta");
+            }
+            
+            $produto_parceiro_id = $_POST['produto_parceiro_id'];
+            $result = $this->getRelatorioVendaDireta($parceiro_id, $produto_parceiro_id, $data['data_inicio'], $data['data_fim']);
+            // print_pre($result);
+            $data['result']['data'] = $result['data'];
+            $data['result']['dias'] = $result['dias'];
+            $data['result']['planos'] = $result['planos'];
+            $data['result']['grupos'] = $result['grupos'];
+            $data['result']['grupos_totais'] = $result['grupos_totais'];
+
+            if (!empty($_POST['btnExcel'])) {
+
+                $rows = [];
+                foreach ($data['result'] as $row) {
+                    $rows[] = [
+                        app_date_mysql_to_mask($row['status_data'], 'd/m/Y'), 
+                        $row['segurado'], 
+                        $row['documento'], 
+                        $row['plano_nome'], 
+                        $row['nome_produto_parceiro'], 
+                        app_format_currency($row['nota_fiscal_valor'], true), 
+                        app_format_currency($row['premio_liquido_total'], true), 
+                        $row['num_apolice'], 
+                        $row['nome_fantasia'], 
+                        $row['cnpj'], 
+                        $row['UF'], 
+                        $row['vendedor'], 
+                    ];
+                }
+                $this->exportExcel($data['columns'], $rows);
+            }
+
+        }
+
+        //Carrega template
+        $this->template->load("admin/layouts/base", "$this->controller_uri/vendas_direta", $data);
     }
 }
