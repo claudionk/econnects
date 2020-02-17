@@ -87,7 +87,7 @@
                     <?php foreach ($result['planos'] as $plano) { ?>
                     <tr class="tb-titulo-cinza">
                         <td><?php echo $plano['nome']; ?></td>
-                        <td class="text-center">X%</td>
+                        <td class="text-center"><?php echo $plano['percentual']; ?>%</td>
                         <td class="text-center"><?php echo $plano['qtde']; ?></td>
                         <?php foreach ($result['dias'] as $data) { ?>
                         <td class="text-center tb-conteudo">
@@ -128,7 +128,7 @@
 
                     <tr class="tb-titulo-cinza">
                         <td><?php echo $grupo['descricao']; ?></td>
-                        <td class="text-center">1%</td>
+                        <td class="text-center">Z%</td>
                         <td class="text-center"><?php echo $grupo['qtde']; ?></td>
                         <?php foreach ($result['dias'] as $data) { ?>
                         <td class="text-center tb-conteudo"><?php echo emptyor($result['data']['mailing'][$grupo['produto_parceiro_cliente_status_id']][$data['dia_format']], 0 ); ?></td>

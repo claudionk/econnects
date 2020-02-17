@@ -1477,18 +1477,19 @@ class Relatorios extends Admin_Controller
             foreach ($resultado['planos'] as $key => $value) {
                 $resultado['data']['vendas'][$value['produto_parceiro_plano_id']][$dia_format] = 0;
                 $resultado['planos'][$key]['qtde'] = 0;
+                $resultado['planos'][$key]['percentual'] = 0;
             }
 
             // inicia os contadores dos grupos/status diarios
             foreach ($resultado['grupos'] as $key => $value) {
                 $resultado['data']['mailing'][$value['produto_parceiro_cliente_status_id']][$dia_format] = 0;
+                // $resultado['data']['mailing'][$value['produto_parceiro_cliente_status_id']]['valor'] = 0;
                 $resultado['grupos'][$key]['qtde'] = 0;
-                $resultado['grupos_totais'][$value['cliente_evolucao_status_grupo_id']]['valor'] = 0;
-                $resultado['grupos_totais'][$value['cliente_evolucao_status_grupo_id']]['percentual'] = 0;
+                $resultado['grupos_totais'][$value['cliente_evolucao_status_grupo_id']] = ['valor' => 0, 'percentual' => 0];
             }
         }
 
-        $resultado['mailing'] = $this->pedido->getRelatorioVendaDireta($data_inicio, $data_fim);
+        $resultado['mailing'] = $this->pedido->getRelatorioVendaDireta($data_inicio, $data_fim, $produto_parceiro_id);
         $resultado['vendas'] = $this->pedido->extrairRelatorioVendasDiario($data_inicio, $data_fim, $produto_parceiro_id);
 
         if ( !empty($resultado['mailing']) )
@@ -1505,6 +1506,10 @@ class Relatorios extends Admin_Controller
                 }
                 $totalGroup += $mailing['qtde'];
             }
+            // foreach ($resultado['mailing'] as $mailing)
+            // {
+            //     $resultado['data']['mailing'][$mailing['produto_parceiro_cliente_status_id']]['valor'] += $mailing['qtde'];
+            // }
 
             foreach ($resultado['grupos_totais'] as $key => $value)
             {
@@ -1514,6 +1519,7 @@ class Relatorios extends Admin_Controller
 
         if ( !empty($resultado['vendas']) )
         {
+            $totalPlan = 0;
             foreach ($resultado['vendas'] as $venda)
             {
                 $resultado['data']['vendas'][$venda['produto_parceiro_plano_id']][$venda['data_format']] += $venda['qtde'];
@@ -1522,6 +1528,12 @@ class Relatorios extends Admin_Controller
                 {
                     $resultado['planos'][$indexPlan]['qtde'] += $venda['qtde'];
                 }
+                $totalPlan += $venda['qtde'];
+            }
+
+            foreach ($resultado['planos'] as $key => $value)
+            {
+                $resultado['planos'][$key]['percentual'] = $resultado['planos'][$key]['qtde'] / $totalPlan * 100;
             }
         }
 
