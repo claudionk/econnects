@@ -385,7 +385,7 @@ $config["Pagmax360_merchantKey"] = "25fbb99741c739dd84d7b06ec78c9bac718838630f30
 // $config["URL_sisconnects"] = "http://localhost/econnects/";
 $config["URL_sisconnects"] = "http://econnects-h.jelastic.saveincloud.net/";
 $config["URL_SGS"] = "https://sgs-h.jelastic.saveincloud.net/";
-
+$config["URL_portal"] = "https://portal-h.jelastic.saveincloud.net/";
 
 $config['PRECO_TIPO_TABELA'] = 1;
 $config['PRECO_TIPO_COBERTURA'] = 2;

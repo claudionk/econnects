@@ -308,7 +308,7 @@ Class Integracao_Model extends MY_Model
             $result = $result[0];
             $dados_integracao = array();
             $dados_integracao['status'] = 'L';
-            $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
@@ -331,7 +331,8 @@ Class Integracao_Model extends MY_Model
 
 	    //echo "file2=" . 	print_r($file, true);
 
-	    $result_file = $this->getFile($result, $file);
+	    // $result_file = $this->getFile($result, $file);
+        $result_file["file"] = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/125/E/NMTROCA_RET_20200131.csv";
 
             $result_process = [];
             if(!empty($result_file['file']) && $result['tipo_layout']!='ZIP')
@@ -343,7 +344,7 @@ Class Integracao_Model extends MY_Model
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
             $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');
             $dados_integracao['status'] = 'A';
-            $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             //execute after execute
             if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
@@ -1349,22 +1350,22 @@ Class Integracao_Model extends MY_Model
 
     private function getFileName($integracao = array(), $layout = array())
     {
-	switch($integracao['tipo_layout'])
-	{
-		case 'ZIP':
-		case 'zip':
-			$formato	=$layout[0]['formato'];
-			$function	=$layout[0]['function'];
-			if(function_exists($function))
-			{
-			    $ret = call_user_func($function, $formato, array('item' => $integracao, 'registro' => '', 'log' => '', 'global' => $this->data_template_script));
-			}
-			return $ret;
-		break;
-		default:
-			return ''; // para novos desenvolvimentos
-		break;
-	}
+    	switch($integracao['tipo_layout'])
+    	{
+    		case 'ZIP':
+    		case 'zip':
+    			$formato	=$layout[0]['formato'];
+    			$function	=$layout[0]['function'];
+    			if(function_exists($function))
+    			{
+    			    $ret = call_user_func($function, $formato, array('item' => $integracao, 'registro' => '', 'log' => '', 'global' => $this->data_template_script));
+    			}
+    			return $ret;
+    		break;
+    		default:
+    			return ''; // para novos desenvolvimentos
+    		break;
+    	}
     }
 
     function update_status_novomundo($id_exp, $status)
@@ -1379,12 +1380,10 @@ Class Integracao_Model extends MY_Model
 		    {
 			    case "TROCA REALIZADA":
 				    $retorno = $SoapCurl->getAPI("atendimento/EncerrarExpediente", "PUT", json_encode( [ "idMotivoEncerramento" => 6, "idExpediente" => $id_exp, "voucherUsado" => true ] ), 900);
-		    		    //echo "($id_exp, $status)::" .  print_r($retorno, true) . "\n" ;
 				    return $retorno;
 			    break;
 			    case "CANCELADA":
 				    $retorno = $SoapCurl->getAPI("atendimento/ConverteExpediente", "PUT", json_encode( [ "idMotivoConversao" => 4, "idExpediente" => $id_exp ] ), 900);
-		    		    //echo "($id_exp, $status)::" .  print_r($retorno, true) . "\n" ;
 				    return $retorno;
 			    break;
 			    default:
