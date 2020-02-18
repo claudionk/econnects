@@ -493,6 +493,7 @@ if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
     	$CI=& get_instance();
     	$CI->load->model('integracao_model');
 
+        $retorno = null;
     	$os = $dados['registro']['num_voucher'];
     	$status_troca = $dados['registro']['status_troca'];
 
@@ -500,11 +501,12 @@ if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
     	{
     		case "TROCA REALIZADA":
     		case "CANCELADA":
-    			$CI->integracao_model->update_status_novomundo($os, $status_troca);
+    			$retorno = $CI->integracao_model->update_status_novomundo($os, $status_troca);
                 break;
     		default:
     		  break;
     	}
+        return $retorno;
     }
 
 }
