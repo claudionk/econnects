@@ -331,8 +331,7 @@ Class Integracao_Model extends MY_Model
 
 	    //echo "file2=" . 	print_r($file, true);
 
-	    // $result_file = $this->getFile($result, $file);
-        $result_file["file"] = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/125/E/NMTROCA_RET_20200131.csv";
+	    $result_file = $this->getFile($result, $file);
 
             $result_process = [];
             if(!empty($result_file['file']) && $result['tipo_layout']!='ZIP')
