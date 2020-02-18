@@ -1387,12 +1387,12 @@ Class Integracao_Model extends MY_Model
 	    {
 		    switch($status)
 		    {
-			    case "CANCELADO":
-				    $retorno = $SoapCurl->getAPI("atendimento/EncerrarExpediente", "PUT", json_encode( [ "idMotivoEncerramento" => 6, "idExpediente" => $id_exp ] ), 900);
+			    case "TROCA REALIZADA":
+				    $retorno = $SoapCurl->getAPI("atendimento/EncerrarExpediente", "PUT", json_encode( [ "idMotivoEncerramento" => 6, "idExpediente" => $id_exp, "voucherUsado" => true ] ), 900);
 		    		    //echo "($id_exp, $status)::" .  print_r($retorno, true) . "\n" ;
 				    return $retorno;
 			    break;
-			    case "UTILIZADO":
+			    case "CANCELADA":
 				    $retorno = $SoapCurl->getAPI("atendimento/ConverteExpediente", "PUT", json_encode( [ "idMotivoConversao" => 4, "idExpediente" => $id_exp ] ), 900);
 		    		    //echo "($id_exp, $status)::" .  print_r($retorno, true) . "\n" ;
 				    return $retorno;
