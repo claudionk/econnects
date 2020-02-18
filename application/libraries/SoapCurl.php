@@ -94,9 +94,9 @@ class SoapCurl
     {
 
 	    if (empty($v3)) {
-            $url = $this->_ci->config->item("URL_SGS") ."v1/api/" . $endPoint;
+            $url = $this->_ci->config->item("URL_SGS") ."v1/api/". $endPoint;
 	    } else {
-            $url = $this->_ci->config->item("URL_portal") ."PSFase3/sis-api-v1/api/" . $endPoint
+            $url = $this->_ci->config->item("URL_portal") ."PSFase3/sis-api-v1/api/". $endPoint;
 	    }
 
 	    $retorno = ['status' => false, 'erro' => '', 'newTry' => false];
