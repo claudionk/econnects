@@ -303,7 +303,7 @@ Class Integracao_Model extends MY_Model
             $result = $result[0];
             $dados_integracao = array();
             $dados_integracao['status'] = 'L';
-            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
@@ -334,7 +334,7 @@ Class Integracao_Model extends MY_Model
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
             $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');
             $dados_integracao['status'] = 'A';
-            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             //execute after execute
             if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
