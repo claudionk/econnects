@@ -143,7 +143,7 @@ if($_POST)
                                                     <?php $field_name = 'valor';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Valor *</label>
-                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( $row[$field_name] , 6 , "," , "")  : set_value($field_name); ?>" /></div>
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( $row[$field_name] , 15 , "," , "")  : set_value($field_name); ?>" /></div>
                                                     </div>
 
                                                   <?php 

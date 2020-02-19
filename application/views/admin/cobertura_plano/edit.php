@@ -176,7 +176,7 @@ if($_POST)
                           <div class="form-group">
                             <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Custo</label>
                             <div class="col-md-4">
-                              <input ng-model="custo" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/>
+                              <input ng-model="custo" ui-number-mask="10" class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/> <!-- //Alterado para Quero Quero -->
                             </div>
                           </div>
 
