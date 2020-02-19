@@ -357,7 +357,8 @@ if ( ! function_exists('app_integracao_format_date_r')) {
 
 }   
 if ( ! function_exists('app_integracao_format_file_name_pagnet')) {
-
+    echo "passou";
+    exit();
     function app_integracao_format_file_name_pagnet($formato, $dados = array())
     {
         /*MCAP_II_NEW_PPPP_DDMMAA_SS.TXT*/
@@ -1999,34 +2000,7 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
         return $id_exp_hist_carga;
     }
 }
-if ( ! function_exists('app_integracao_generali_pagnet')) {
-    function app_integracao_generali_pagnet($formato, $dados = array())
-    {
-        
-        $d = $dados['registro'];
-        echo $d['tipo_expediente'];
-        
-        $integracao_log_detalhe_id = $formato;
-        $valor = str_replace(array(",", "."), array("", "."), $d['vlr_movimento']);
 
-        // Ações que zeram ou diminuem ou valor da reserva
-        // Ajuste a menor, Cancelamento, Pagamento Total e Parcial
-        if (in_array($d['cod_tipo_mov'], [2, 7, 9, 146]) ) {
-            $valor *= -1;
-        }
-
-        $CI =& get_instance();
-        $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
-            SELECT {$d['id_exp']}, NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$valor} 
-            FROM sissolucoes1.sis_exp a
-            LEFT JOIN sissolucoes1.sis_exp_hist_carga b ON a.id_exp = b.id_exp AND b.`status` = 'P'
-            WHERE a.id_exp = {$d['id_exp']} AND b.id_exp IS NULL
-            ");
-        $id_exp_hist_carga = $CI->db->insert_id();
-
-        return $id_exp_hist_carga;
-    }
-}
 if ( ! function_exists('app_integracao_gera_sinistro')) {
     function app_integracao_gera_sinistro($formato, $dados = array())
     {
