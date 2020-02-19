@@ -22,6 +22,8 @@ class SoapCurl
             $this->timeout = !empty($config['timeout']) ? $config['timeout'] : 30;
             $this->setData();
         }
+
+        $this->_ci = & get_instance();
     }
 
     public function setData()
@@ -91,16 +93,13 @@ class SoapCurl
     public function getAPI($endPoint, $method, $params = null, $timeout = null, $v3 = false)
     {
 
-	    // $url = "http://localhost/sis-api-v1/api/". $endPoint;
 	    if (empty($v3)) {
-		    $url = "https://sgs-h.jelastic.saveincloud.net/v1/api/" . $endPoint;
+            $url = $this->_ci->config->item("URL_SGS") ."v1/api/". $endPoint;
 	    } else {
-		    $url = "https://www.webprotecao.com.br/PSFase3/sis-api-v1/api/" . $endPoint;
+            $url = $this->_ci->config->item("URL_portal") ."PSFase3/sis-api-v1/api/". $endPoint;
 	    }
-	    $url = "http://local.api/api/". $endPoint;
 
 	    $retorno = ['status' => false, 'erro' => '', 'newTry' => false];
-
 	    $config = array(
 			    'urlCurl'    => $url,
 			    'methodCurl' => $method,

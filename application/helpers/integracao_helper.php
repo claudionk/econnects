@@ -476,21 +476,31 @@ if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
 
     function app_integracao_csv_retorno_novomundo($formato, $dados = array())
     {
-    $CI=& get_instance();
-    $CI->load->model('integracao_model');
+        $CI=& get_instance();
+        $CI->load->model('integracao_model');
 
-    $os     =$dados['registro']['num_voucher'];
-    $status_troca   =$dados['registro']['status_troca'];
+        $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
+        $os = $dados['registro']['id_exp'];
+        $status_troca = $dados['registro']['status_troca'];
 
-    switch($status_troca)
-    {
-        case "UTILIZADO":
-        case "CANCELADO":
-            $CI->integracao_model->update_status_novomundo($os, $status_troca);
-        break;
-        default:
-        break;
-    }
+        switch($status_troca)
+        {
+            case "TROCA REALIZADA":
+            case "CANCELADA":
+                $ret = $CI->integracao_model->update_status_novomundo($os, $status_troca);
+                if ( !empty($ret['status']) )
+                {
+                    $response->status = true;
+                } else {
+                    $msg = emptyor($ret['erro'], "Erro no processamento API");
+                    $response->msg[] = ['id' => -1, 'msg' => $ret['erro'] ." [$os - {$status_troca}]", 'slug' => "voucher_retorno"];
+                }
+                break;
+            default:
+              break;
+        }
+
+        return $response;
     }
 
 }
@@ -509,30 +519,30 @@ if ( ! function_exists('app_integracao_zip_extract_novomundo')) {
 
     function app_integracao_zip_extract_novomundo($formato, $dados = array())
     {
-    $diretorio  = $dados['registro']['file'];
-    $arquivo    = $dados['registro']['fileget'];
-    $diretorio  = str_replace($arquivo, "", $diretorio);
-    $novo_diretorio = str_replace(".zip", "", $arquivo);
+        $diretorio  = $dados['registro']['file'];
+        $arquivo    = $dados['registro']['fileget'];
+        $diretorio  = str_replace($arquivo, "", $diretorio);
+        $novo_diretorio = str_replace(".zip", "", $arquivo);
 
-    if(!file_exists($diretorio . '/' . $novo_diretorio))
-    {
-        mkdir($diretorio . '/' . $novo_diretorio, 0777, true);
+        if(!file_exists($diretorio . '/' . $novo_diretorio))
+        {
+          mkdir($diretorio . '/' . $novo_diretorio, 0777, true);
         }
 
-    rename($diretorio . '/' . $arquivo, $diretorio . '/' . $novo_diretorio . '/' . $arquivo );
-    
-    $zip = new ZipArchive;
-    $res = $zip->open($diretorio . '/' . $novo_diretorio . '/' . $arquivo);
-    if ($res === TRUE) 
-    {
-        $zip->extractTo($diretorio . '/' . $novo_diretorio);
-        $zip->close();
-    } 
-    else 
-    {
-        echo "Erro na extracao de arquivo:$arquivo";
-            return false;
-    }
+        rename($diretorio . '/' . $arquivo, $diretorio . '/' . $novo_diretorio . '/' . $arquivo );
+
+        $zip = new ZipArchive;
+        $res = $zip->open($diretorio . '/' . $novo_diretorio . '/' . $arquivo);
+        if ($res === TRUE) 
+        {
+            $zip->extractTo($diretorio . '/' . $novo_diretorio);
+            $zip->close();
+        } 
+        else 
+        {
+            echo "Erro na extracao de arquivo:$arquivo";
+                return false;
+        }
 
         return true;
     }

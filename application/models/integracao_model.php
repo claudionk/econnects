@@ -938,8 +938,13 @@ Class Integracao_Model extends MY_Model
                 if (count($ids) > 1) {
 
                     $proc = $this->detectFileRetorno(basename($file), $ids);
+                    if (!empty($proc))
+                    {
+                        $id_log = $proc['chave'];
+                    } else {
+                        $id_log = implode($ids, "|");
+                    }
 
-                    if (!empty($proc)) $id_log = $proc['chave'];
                 } else {
                   foreach ($ids as $id_)
                     $id_log = $id_;
@@ -1354,42 +1359,40 @@ Class Integracao_Model extends MY_Model
 
     private function getFileName($integracao = array(), $layout = array())
     {
-	switch($integracao['tipo_layout'])
-	{
-		case 'ZIP':
-		case 'zip':
-			$formato	=$layout[0]['formato'];
-			$function	=$layout[0]['function'];
-			if(function_exists($function))
-			{
-			    $ret = call_user_func($function, $formato, array('item' => $integracao, 'registro' => '', 'log' => '', 'global' => $this->data_template_script));
-			}
-			return $ret;
-		break;
-		default:
-			return ''; // para novos desenvolvimentos
-		break;
-	}
+    	switch($integracao['tipo_layout'])
+    	{
+    		case 'ZIP':
+    		case 'zip':
+    			$formato	=$layout[0]['formato'];
+    			$function	=$layout[0]['function'];
+    			if(function_exists($function))
+    			{
+    			    $ret = call_user_func($function, $formato, array('item' => $integracao, 'registro' => '', 'log' => '', 'global' => $this->data_template_script));
+    			}
+    			return $ret;
+    		break;
+    		default:
+    			return ''; // para novos desenvolvimentos
+    		break;
+    	}
     }
 
     function update_status_novomundo($id_exp, $status)
     {
 	    $this->load->library("SoapCurl");
 	    $SoapCurl = new SoapCurl();
-	    $retorno = false;
+	    $retorno = ['status' => false, 'erro' => "Status Nao esperado [{$status}]"];
 
 	    try
 	    {
 		    switch($status)
 		    {
-			    case "CANCELADO":
-				    $retorno = $SoapCurl->getAPI("atendimento/EncerrarExpediente", "PUT", json_encode( [ "idMotivoEncerramento" => 6, "idExpediente" => $id_exp ] ), 900);
-		    		    //echo "($id_exp, $status)::" .  print_r($retorno, true) . "\n" ;
+			    case "TROCA REALIZADA":
+				    $retorno = $SoapCurl->getAPI("atendimento/EncerrarExpediente", "PUT", json_encode( [ "idMotivoEncerramento" => 6, "idExpediente" => $id_exp, "voucherUsado" => true ] ), 900);
 				    return $retorno;
 			    break;
-			    case "UTILIZADO":
+			    case "CANCELADA":
 				    $retorno = $SoapCurl->getAPI("atendimento/ConverteExpediente", "PUT", json_encode( [ "idMotivoConversao" => 4, "idExpediente" => $id_exp ] ), 900);
-		    		    //echo "($id_exp, $status)::" .  print_r($retorno, true) . "\n" ;
 				    return $retorno;
 			    break;
 			    default:
@@ -1399,8 +1402,8 @@ Class Integracao_Model extends MY_Model
 	    }
 	    catch (Exception $e) 
 	    {
-		    echo "e=" . $e->getMessage();
-		    return $retorno;
+            $retorno['erro'] = $e->getMessage();
+            return $retorno;
 	    }
     }
 
