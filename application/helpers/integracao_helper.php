@@ -479,20 +479,28 @@ if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
     	$CI=& get_instance();
     	$CI->load->model('integracao_model');
 
-        $retorno = null;
-    	$os = $dados['registro']['num_voucher'];
+        $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
+    	$os = $dados['registro']['id_exp'];
     	$status_troca = $dados['registro']['status_troca'];
 
     	switch($status_troca)
     	{
     		case "TROCA REALIZADA":
     		case "CANCELADA":
-    			$retorno = $CI->integracao_model->update_status_novomundo($os, $status_troca);
+    			$ret = $CI->integracao_model->update_status_novomundo($os, $status_troca);
+                if ( !empty($ret['status']) )
+                {
+                    $response->status = true;
+                } else {
+                    $msg = emptyor($ret['erro'], "Erro no processamento API");
+                    $response->msg[] = ['id' => -1, 'msg' => $ret['erro'] ." [$os - {$status_troca}]", 'slug' => "voucher_retorno"];
+                }
                 break;
     		default:
     		  break;
     	}
-        return $retorno;
+
+        return $response;
     }
 
 }
