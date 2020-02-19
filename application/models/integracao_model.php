@@ -945,8 +945,13 @@ Class Integracao_Model extends MY_Model
                 if (count($ids) > 1) {
 
                     $proc = $this->detectFileRetorno(basename($file), $ids);
+                    if (!empty($proc))
+                    {
+                        $id_log = $proc['chave'];
+                    } else {
+                        $id_log = implode($ids, "|");
+                    }
 
-                    if (!empty($proc)) $id_log = $proc['chave'];
                 } else {
                   foreach ($ids as $id_)
                     $id_log = $id_;
@@ -1381,7 +1386,7 @@ Class Integracao_Model extends MY_Model
     {
 	    $this->load->library("SoapCurl");
 	    $SoapCurl = new SoapCurl();
-	    $retorno = false;
+	    $retorno = ['status' => false, 'erro' => "Status Nao esperado [{$status}]"];
 
 	    try
 	    {
@@ -1402,8 +1407,8 @@ Class Integracao_Model extends MY_Model
 	    }
 	    catch (Exception $e) 
 	    {
-		    echo "e=" . $e->getMessage();
-		    return $retorno;
+            $retorno['erro'] = $e->getMessage();
+            return $retorno;
 	    }
     }
 
