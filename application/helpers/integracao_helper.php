@@ -2026,44 +2026,6 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
         return $id_exp_hist_carga;
     }
 }
-if ( ! function_exists('app_integracao_generali_pagnet')) {
-    function app_integracao_generali_pagnet($formato, $dados = array())
-    {
-        
-        $d = $dados['registro'];
-        echo $d['tipo_expediente'];
-        
-        $integracao_log_detalhe_id = $formato;
-        $valor = str_replace(array(",", "."), array("", "."), $d['vlr_movimento']);
-
-        // Ações que zeram ou diminuem ou valor da reserva
-        // Ajuste a menor, Cancelamento, Pagamento Total e Parcial
-        if (in_array($d['cod_tipo_mov'], [2, 7, 9, 146]) ) {
-            $valor *= -1;
-        }
-
-        $CI =& get_instance();
-        $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
-            SELECT {$d['id_exp']}, NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$valor} 
-            FROM sissolucoes1.sis_exp a
-            LEFT JOIN sissolucoes1.sis_exp_hist_carga b ON a.id_exp = b.id_exp AND b.`status` = 'P'
-            WHERE a.id_exp = {$d['id_exp']} AND b.id_exp IS NULL
-            ");
-        $id_exp_hist_carga = $CI->db->insert_id();
-
-        if ($d['tipo_expediente'] == 'ABE') {
-            $q = $CI->db->query("SELECT id_exp FROM sissolucoes1.sis_exp_complemento WHERE id_exp = {$d['id_exp']}");
-            if (empty($q->num_rows())) {
-                $CI->db->query("INSERT INTO sissolucoes1.sis_exp_complemento (id_exp, id_sinistro_generali, id_usuario, dt_log, vcmotivolog) VALUES ({$d['id_exp']}, '{$d['cod_sinistro']}', 10058, NOW(), '{$d['desc_expediente']}') ");
-            } else {
-                $CI->db->query("UPDATE sissolucoes1.sis_exp_complemento SET id_sinistro_generali = '{$d['cod_sinistro']}', id_usuario = 10058, dt_log = NOW(), vcmotivolog = '{$d['desc_expediente']}' WHERE id_exp = {$d['id_exp']}");
-            }
-        }
-
-        return $id_exp_hist_carga;
-        
-    }
-}
 if ( ! function_exists('app_integracao_gera_sinistro')) {
     function app_integracao_gera_sinistro($formato, $dados = array())
     {
