@@ -357,15 +357,12 @@ if ( ! function_exists('app_integracao_format_date_r')) {
 
 }   
 if ( ! function_exists('app_integracao_format_file_name_pagnet')) {
-    echo "passou";
-    exit();
     function app_integracao_format_file_name_pagnet($formato, $dados = array())
     {
         /*MCAP_II_NEW_PPPP_DDMMAA_SS.TXT*/
         $file = "PAGNET_". date('dmy'). '.TXT';
         return  $file;
     }
-
 }       
 if ( ! function_exists('app_integracao_format_file_name_capmapfre')) {
 
