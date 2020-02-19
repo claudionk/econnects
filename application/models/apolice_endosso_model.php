@@ -138,13 +138,29 @@ Class Apolice_Endosso_Model extends MY_Model
      * @author Cristiano Arruda
      * @since  08/04/2019
      */
-    public function defineMovCob($tipo, $parcela, $devolucao_integral = true)
+    public function defineMovCob($tipo, $parcela, $tipo_pagto, $devolucao_integral = true, $vcto_inferior_cancel = false)
     {
-        if ( $parcela == 0 ) {
+        // é o registro de capa
+        if ( $parcela == 0 )
+        {
             $cd_mov_cob = 3;
-        } elseif ( $tipo == 'C') {
-            $cd_mov_cob = ($devolucao_integral) ? 3 : 2;
-        } else {
+        }
+        elseif ( $tipo == 'C')
+        {
+            // nao é parcelado
+            if ( $tipo_pagto != 2 )
+            {
+                $cd_mov_cob = 2;
+            }
+            else
+            {
+                // devolução integral ou vencimento inferior a data de cancelamento, envia com restituição
+                $cd_mov_cob = ($devolucao_integral || $vcto_inferior_cancel) ? 2 : 3;
+            }
+        }
+        // emissão
+        else
+        {
             $cd_mov_cob = 1;
         }
 
@@ -204,14 +220,17 @@ Class Apolice_Endosso_Model extends MY_Model
         return $endosso;
     }
 
-    public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null, $devolucao_integral = true){
-        try{
+    public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null, $devolucao_integral = true, $dias_utilizados = 0)
+    {
+        try
+        {
             $this->load->model('apolice_model', 'apolice');
             $this->load->model('produto_parceiro_pagamento_model', 'parceiro_pagamento');
             $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
 
             $apolice = $this->apolice->getApolice($apolice_id);
 
+            $vcto_inferior_cancel = true;
             $dados_end = array();
             $dados_end['apolice_id']                    = $apolice_id;
             $dados_end['pedido_id']                     = $pedido_id;
@@ -307,20 +326,39 @@ Class Apolice_Endosso_Model extends MY_Model
                 $dados_end['parcela'] = 1;
             }
 
-            $dados_end['cd_movimento_cobranca'] = $this->defineMovCob($tipo, $dados_end['parcela'], $devolucao_integral);
-            $dados_end['tipo']                  = $this->defineTipo($tipo, $dados_end['endosso'], $tipo_pagto);
-            $dados_end['id_transacao']          = $this->getIDTransacao($apolice_id, $dados_end['endosso'], $dados_end['parcela']);
-
-            // caso seja cancelamento, a vigência deve ser a mesma da parcela cancelada
+            // caso seja cancelamento
             if ( $tipo == 'C' ) {
                 $result = $this->lastParcela($apolice_id, $dados_end['parcela']);
 
-                $dados_end['data_inicio_vigencia']  = $apolice['data_cancelamento'];
+                // regras para definição da data de inicio de vigência
+                if ( !empty($devolucao_integral) )
+                {
+                    $dados_end['data_inicio_vigencia'] = $apolice['data_ini_vigencia'];
+                } else
+                {
+                    // antes do inicio da vigência
+                    if ( empty($dias_utilizados) )
+                    {
+                        $dados_end['data_inicio_vigencia']  = $apolice['data_cancelamento'];
+                    }
+                    else
+                    {
+                        $dados_end['data_inicio_vigencia']  = $apolice['data_cancelamento'];
+                    }
+                }
+
                 $dados_end['data_fim_vigencia']     = $result['data_fim_vigencia'];
                 $dados_end['valor']                 = $result['valor'];
                 $dados_end['id_transacao_canc']     = $result['id_transacao'];
                 $dados_end['data_vencimento']       = $result['data_vencimento'];
+
+                // verifica se o vencimento é inferior ao cancelamento
+                $vcto_inferior_cancel = (app_date_get_diff_mysql($apolice['data_cancelamento'], $dados_end['data_vencimento'], 'D') <= 0);
             }
+
+            $dados_end['cd_movimento_cobranca'] = $this->defineMovCob($tipo, $dados_end['parcela'], $tipo_pagto, $devolucao_integral, $vcto_inferior_cancel);
+            $dados_end['tipo']                  = $this->defineTipo($tipo, $dados_end['endosso'], $tipo_pagto);
+            $dados_end['id_transacao']          = $this->getIDTransacao($apolice_id, $dados_end['endosso'], $dados_end['parcela']);
 
             $this->insert($dados_end, TRUE);
 
