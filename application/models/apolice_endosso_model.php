@@ -329,6 +329,13 @@ Class Apolice_Endosso_Model extends MY_Model
             // caso seja cancelamento
             if ( $tipo == 'C' )
             {
+                // NAO FAZ O CANCELAMENTO
+                // Mensal: após X dias e após inicio da vigencia
+                if ( $tipo_pagto == 1 && empty($devolucao_integral) && !empty($dias_utilizados) )
+                {
+                    return null;
+                }
+
                 $result = $this->lastParcela($apolice_id, $dados_end['parcela']);
 
                 $dados_end['data_fim_vigencia']     = $result['data_fim_vigencia'];
@@ -339,17 +346,26 @@ Class Apolice_Endosso_Model extends MY_Model
                 // verifica se o vencimento é inferior ao cancelamento
                 $vcto_inferior_cancel = (app_date_get_diff_mysql($apolice['data_cancelamento'], $dados_end['data_vencimento'], 'D') <= 0);
 
-                // regras para definição da data de inicio de vigência
+                /***
+                 *** INICIO DE VIGÊNCIA ***
+                 ***/
+                // Não é integral
                 if ( empty($devolucao_integral) )
                 {
-                    // antes do inicio da vigência desde que nao seja mensal
+                    // NAO FAZ O CANCELAMENTO
+                    // Parcelado: Apos X dias e antes do inicio da vigência
+                    if ( $tipo_pagto == 2 && empty($dias_utilizados) && !$vcto_inferior_cancel )
+                    {
+                        return null;
+                    }
+
+                    // depois do inicio da vigência
                     if ( !empty($dias_utilizados) )
                     {
-                        if ( $tipo_pagto == 2 && )
-                        {
-                            $dados_end['data_inicio_vigencia'] = $apolice['data_cancelamento'];
-                            $dados_end['data_inicio_vigencia'] = $result['data_fim_vigencia'];;
-                        }
+                        // deverá informar data posterior a data do cancelamento, ou seja, D+1 da data de cancelamento
+                        $d1 = new DateTime( $apolice['data_cancelamento'] );
+                        $d1->add(new DateInterval('P1D'));
+                        $dados_end['data_inicio_vigencia'] = $d1->format('Y-m-d');
                     }
                 }
             }
