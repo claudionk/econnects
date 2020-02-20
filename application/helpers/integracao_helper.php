@@ -360,7 +360,7 @@ if ( ! function_exists('app_integracao_format_file_name_pagnet')) {
     function app_integracao_format_file_name_pagnet($formato, $dados = array())
     {
         /*MCAP_II_NEW_PPPP_DDMMAA_SS.TXT*/
-        $file = "PAGNET_". date('dmy'). '.TXT';
+        $file = "PAGNET_". date('dmyHis'). '.TXT';
         return  $file;
     }
 }       
@@ -1972,7 +1972,7 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
 
         // Ações que zeram ou diminuem ou valor da reserva
         // Ajuste a menor, Cancelamento, Pagamento Total e Parcial
-        if (in_array($d['cod_tipo_mov'], [2, 7, 9, 146]) ) {
+        if (in_array($d['cod_tipo_mov'], [2, 7, 9, 146,'P']) ) {
             $valor *= -1;
         }
 
