@@ -385,8 +385,8 @@ Class Apolice_Endosso_Model extends MY_Model
 
             $this->insert($dados_end, TRUE);
 
-            // gera o registro adicional na Adesão da Capa
-            if ( $tipo == 'A' && !empty($tipo_pagto) )
+            // gera o registro adicional na Adesão da Capa ou Cancelamento de Parcelado
+            if ( $tipo == 'A' || ($tipo == 'C' && $tipo_pagto == 2) )
             {
                 // Mensal - gera apenas a primeira parcela
                 if ( $tipo_pagto == 1 && $dados_end['parcela'] == 0 )
