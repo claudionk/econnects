@@ -88,8 +88,8 @@ Class Apolice_Endosso_Model extends MY_Model
         if (!empty($result)) {
             $sequencia = emptyor($result['sequencial'], 0);
 
-            // no mensal, o sequencial será no máximo 2
-            if ( $tipo_pagto != 2 || $sequencia < 2 )
+            // no parcelado, o sequencial será sempre 1 (valor inicial)
+            if ( $tipo_pagto != 2 )
             {
                 $sequencia++;
             }
@@ -155,7 +155,7 @@ Class Apolice_Endosso_Model extends MY_Model
             else
             {
                 // devolução integral ou vencimento inferior a data de cancelamento, envia com restituição
-                $cd_mov_cob = ($devolucao_integral || $vcto_inferior_cancel) ? 2 : 3;
+                $cd_mov_cob = (($devolucao_integral && $parcela==1) || $vcto_inferior_cancel) ? 2 : 3;
             }
         }
         // emissão
@@ -167,7 +167,8 @@ Class Apolice_Endosso_Model extends MY_Model
         return $cd_mov_cob;
     }
 
-    public function defineTipo($tipo, $endosso, $capa = false) {
+    public function defineTipo($tipo, $endosso, $capa = false)
+    {
         /*
         Codigo do tipo de emissão:
 
@@ -204,7 +205,8 @@ Class Apolice_Endosso_Model extends MY_Model
 
     }
 
-    public function defineEndosso($sequencial, $apolice_id) {
+    public function defineEndosso($sequencial, $apolice_id)
+    {
         $endosso = 0;
 
         if ( $sequencial > 1 ) {
