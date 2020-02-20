@@ -78,7 +78,7 @@ Class Apolice_Endosso_Model extends MY_Model
         return null;
     }
 
-    function max_seq_by_apolice_id($apolice_id, $tipo_pagto = 0) {
+    function max_seq_by_apolice_id($apolice_id, $tipo_pagto = 0, $parcela = 1) {
         $sequencia = 1;
         $endosso = 0;
 
@@ -94,7 +94,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 $sequencia++;
             }
 
-            $endosso = $this->defineEndosso($sequencia, $apolice_id);
+            $endosso = $this->defineEndosso($sequencia, $apolice_id, $tipo_pagto, $parcela);
         }
 
         return [
@@ -202,19 +202,21 @@ Class Apolice_Endosso_Model extends MY_Model
         }
 
         return $tipo;
-
     }
 
-    public function defineEndosso($sequencial, $apolice_id)
+    public function defineEndosso($sequencial, $apolice_id, $tipo_pagto = 0, $parcela = 1)
     {
         $endosso = 0;
 
-        if ( $sequencial > 1 ) {
+        if ( $sequencial > 1 || ($tipo_pagto == 2 && $parcela > 0 ) )
+        {
             $this->load->model('apolice_model', 'apolice');
             $dadosPP = $this->apolice->getProdutoParceiro($apolice_id);
-            if ( !empty($dadosPP) ) {
-                if ($dadosPP['slug'] == 'generali') {
-                    $endosso = $dadosPP['cod_sucursal'] . $dadosPP['cod_ramo']. str_pad($sequencial-1, 7, "0", STR_PAD_LEFT);
+            if ( !empty($dadosPP) )
+            {
+                if ($dadosPP['slug'] == 'generali')
+                {
+                    $endosso = $dadosPP['cod_sucursal'] . $dadosPP['cod_ramo'] . str_pad($sequencial-1, 7, "0", STR_PAD_LEFT);
                 }
             }
         }
@@ -253,10 +255,6 @@ Class Apolice_Endosso_Model extends MY_Model
             }
 
             $tipo_pagto = $this->parceiro_pagamento->isRecurrent($produto_parceiro_pagamento_id) ? 1 : $is_controle_endosso_pelo_cliente;
-
-            $seq_end                    = $this->max_seq_by_apolice_id($apolice_id, $tipo_pagto);
-            $dados_end['sequencial']    = $seq_end['sequencial'];
-            $dados_end['endosso']       = $seq_end['endosso'];
 
             // VALIDAÇÃO DE CAPA
             // caso seja recorrência terá capa
@@ -328,6 +326,10 @@ Class Apolice_Endosso_Model extends MY_Model
                 $dados_end['parcela'] = 1;
             }
 
+            $seq_end                    = $this->max_seq_by_apolice_id($apolice_id, $tipo_pagto, $dados_end['parcela']);
+            $dados_end['sequencial']    = $seq_end['sequencial'];
+            $dados_end['endosso']       = $seq_end['endosso'];
+
             // caso seja cancelamento
             if ( $tipo == 'C' )
             {
@@ -379,7 +381,7 @@ Class Apolice_Endosso_Model extends MY_Model
             $this->insert($dados_end, TRUE);
 
             // gera o registro adicional na Adesão da Capa
-            if ( $tipo == 'A' && $tipo_pagto )
+            if ( $tipo == 'A' && !empty($tipo_pagto) )
             {
                 // Mensal - gera apenas a primeira parcela
                 if ( $tipo_pagto == 1 && $dados_end['parcela'] == 0 )
@@ -401,8 +403,8 @@ Class Apolice_Endosso_Model extends MY_Model
 
     }
 
-    public function updateEndosso($apolice_id){
-
+    public function updateEndosso($apolice_id)
+    {
         $ret = $this->get_many_by([
             'apolice_id' => $apolice_id
         ]);
