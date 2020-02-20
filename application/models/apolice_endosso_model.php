@@ -208,7 +208,12 @@ Class Apolice_Endosso_Model extends MY_Model
     {
         $endosso = 0;
 
-        if ( $sequencial > 1 || ($tipo_pagto == 2 && $parcela > 0 ) )
+        // Parcelado: sempre o sequencial 1
+        // é retirado 1 do sequencial
+        if ( $tipo_pagto == 2 && $parcela > 0 )
+            $sequencial = 2;
+
+        if ( $sequencial > 1 )
         {
             $this->load->model('apolice_model', 'apolice');
             $dadosPP = $this->apolice->getProdutoParceiro($apolice_id);
