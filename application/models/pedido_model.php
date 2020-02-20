@@ -1062,7 +1062,7 @@ Class Pedido_Model extends MY_Model
                 if($ins_movimentacao) {
                     $pedido = $this->get($pedido_id);
 
-                    $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido, null, $calculo['devolucao_integral']);
+                    $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido, null, $calculo['devolucao_integral'], , $calculo['dias_utilizados']);
                 }
 
             }
