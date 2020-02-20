@@ -259,8 +259,8 @@ Class Apolice_Endosso_Model extends MY_Model
             // VALIDAÇÃO DE CAPA
             // caso seja recorrência terá capa
             // Quando o controle de endosso é manual pelo cliente também entra aqui - Davi Souto 08/04/2019
-            if ($tipo_pagto) {
-
+            if ($tipo_pagto)
+            {
                 $max_parcela = ($tipo_pagto == 1) ? 1 : $max_parcela;
                 $dados_end['parcela'] = (empty($parcela)) ? 0 : $parcela;
 
@@ -327,25 +327,9 @@ Class Apolice_Endosso_Model extends MY_Model
             }
 
             // caso seja cancelamento
-            if ( $tipo == 'C' ) {
+            if ( $tipo == 'C' )
+            {
                 $result = $this->lastParcela($apolice_id, $dados_end['parcela']);
-
-                // regras para definição da data de inicio de vigência
-                if ( !empty($devolucao_integral) )
-                {
-                    $dados_end['data_inicio_vigencia'] = $apolice['data_ini_vigencia'];
-                } else
-                {
-                    // antes do inicio da vigência
-                    if ( empty($dias_utilizados) )
-                    {
-                        $dados_end['data_inicio_vigencia']  = $apolice['data_cancelamento'];
-                    }
-                    else
-                    {
-                        $dados_end['data_inicio_vigencia']  = $apolice['data_cancelamento'];
-                    }
-                }
 
                 $dados_end['data_fim_vigencia']     = $result['data_fim_vigencia'];
                 $dados_end['valor']                 = $result['valor'];
@@ -354,6 +338,20 @@ Class Apolice_Endosso_Model extends MY_Model
 
                 // verifica se o vencimento é inferior ao cancelamento
                 $vcto_inferior_cancel = (app_date_get_diff_mysql($apolice['data_cancelamento'], $dados_end['data_vencimento'], 'D') <= 0);
+
+                // regras para definição da data de inicio de vigência
+                if ( empty($devolucao_integral) )
+                {
+                    // antes do inicio da vigência desde que nao seja mensal
+                    if ( !empty($dias_utilizados) )
+                    {
+                        if ( $tipo_pagto == 2 && )
+                        {
+                            $dados_end['data_inicio_vigencia'] = $apolice['data_cancelamento'];
+                            $dados_end['data_inicio_vigencia'] = $result['data_fim_vigencia'];;
+                        }
+                    }
+                }
             }
 
             $dados_end['cd_movimento_cobranca'] = $this->defineMovCob($tipo, $dados_end['parcela'], $tipo_pagto, $devolucao_integral, $vcto_inferior_cancel);
