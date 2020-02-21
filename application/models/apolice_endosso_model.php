@@ -78,23 +78,40 @@ Class Apolice_Endosso_Model extends MY_Model
         return null;
     }
 
-    function max_seq_by_apolice_id($apolice_id, $tipo_pagto = 0, $parcela = 1) {
+    function max_seq_by_apolice_id($apolice_id, $tipo_pagto = 0, $tipo = 'A')
+    {
         $sequencia = 1;
         $endosso = 0;
 
         $result = $this->lastSequencial($apolice_id);
 
         // tratamento para gerar o endosso e o sequencial
-        if (!empty($result)) {
+        if (!empty($result))
+        {
             $sequencia = emptyor($result['sequencial'], 0);
+            $incrementa = true;
 
-            // no parcelado, o sequencial será sempre 1 (valor inicial)
-            if ( $tipo_pagto != 2 )
+            // no parcelado
+            if ($tipo_pagto == 2)
+            {
+                // O sequencial é 1 para todas as parcelas na emissão
+                if ( $tipo == 'A' && $sequencia > 1)
+                {
+                    $incrementa = false;
+                }
+                // O sequencial é 2 para todas as parcelas no cancelamento
+                elseif ( $tipo == 'C' && $sequencia > 2)
+                {
+                    $incrementa = false;
+                }
+            }
+
+            if ( $incrementa )
             {
                 $sequencia++;
             }
 
-            $endosso = $this->defineEndosso($sequencia, $apolice_id, $tipo_pagto, $parcela);
+            $endosso = $this->defineEndosso($sequencia, $apolice_id);
         }
 
         return [
@@ -204,14 +221,9 @@ Class Apolice_Endosso_Model extends MY_Model
         return $tipo;
     }
 
-    public function defineEndosso($sequencial, $apolice_id, $tipo_pagto = 0, $parcela = 1)
+    public function defineEndosso($sequencial, $apolice_id)
     {
         $endosso = 0;
-
-        // Parcelado: sempre o sequencial 1
-        // é retirado 1 do sequencial
-        if ( $tipo_pagto == 2 && $parcela > 0 )
-            $sequencial = 2;
 
         if ( $sequencial > 1 )
         {
@@ -240,6 +252,8 @@ Class Apolice_Endosso_Model extends MY_Model
             $apolice = $this->apolice->getApolice($apolice_id);
 
             $vcto_inferior_cancel = true;
+            $executaInsert = false;
+
             $dados_end = array();
             $dados_end['apolice_id']                    = $apolice_id;
             $dados_end['pedido_id']                     = $pedido_id;
@@ -267,7 +281,7 @@ Class Apolice_Endosso_Model extends MY_Model
             if ($tipo_pagto)
             {
                 $max_parcela = ($tipo_pagto == 1) ? 1 : $max_parcela;
-                $dados_end['parcela'] = (empty($parcela)) ? 0 : $parcela;
+                $dados_end['parcela'] = (empty($parcela)) ? ($tipo == 'A' ? 0 : 1) : $parcela;
 
                 if ($dados_end['parcela'] == 0)
                 {
@@ -331,7 +345,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 $dados_end['parcela'] = 1;
             }
 
-            $seq_end                    = $this->max_seq_by_apolice_id($apolice_id, $tipo_pagto, $dados_end['parcela']);
+            $seq_end                    = $this->max_seq_by_apolice_id($apolice_id, $tipo_pagto, $tipo);
             $dados_end['sequencial']    = $seq_end['sequencial'];
             $dados_end['endosso']       = $seq_end['endosso'];
 
@@ -363,13 +377,14 @@ Class Apolice_Endosso_Model extends MY_Model
                 {
                     // NAO FAZ O CANCELAMENTO
                     // Parcelado: Apos X dias e antes do inicio da vigência
-                    if ( $tipo_pagto == 2 && empty($dias_utilizados) && !$vcto_inferior_cancel )
-                    {
-                        return null;
-                    }
+                    // if ( $tipo_pagto == 2 && empty($dias_utilizados) && !$vcto_inferior_cancel )
+                    // {
+                    //     return null;
+                    // }
 
-                    // depois do inicio da vigência
-                    if ( !empty($dias_utilizados) )
+                    // Unico: Depois da vigencia
+                    // Parcelado: Para todas as parcelas canceladas
+                    if ( ($tipo == 2 && $vcto_inferior_cancel) || !empty($dias_utilizados) )
                     {
                         // deverá informar data posterior a data do cancelamento, ou seja, D+1 da data de cancelamento
                         $d1 = new DateTime( $apolice['data_cancelamento'] );
@@ -388,21 +403,30 @@ Class Apolice_Endosso_Model extends MY_Model
             // gera o registro adicional na Adesão da Capa ou Cancelamento de Parcelado
             if ( $tipo == 'A' || ($tipo == 'C' && $tipo_pagto == 2) )
             {
+
                 // Mensal - gera apenas a primeira parcela
                 if ( $tipo_pagto == 1 && $dados_end['parcela'] == 0 )
                 {
-                    return $this->insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $dados_end['parcela']+1);
-
+                    $executaInsert = true;
+                } 
                 // Parcelado - gera todas as parcelas
-                } elseif ( $tipo_pagto == 2 && $dados_end['parcela'] < $max_parcela )
+                elseif ( $tipo_pagto == 2 && $dados_end['parcela'] < $max_parcela )
                 {
-                    return $this->insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $dados_end['parcela']+1);
+                    $executaInsert = true;
+                }
+
+                // executa a proxima ação no endosso
+                if ($executaInsert)
+                {
+                    return $this->insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $dados_end['parcela']+1, null, $devolucao_integral, $dias_utilizados);
                 }
             }
 
             return $dados_end;
 
-        }catch (Exception $e){
+        }
+        catch (Exception $e)
+        {
             throw new Exception($e->getMessage());
         }
 
