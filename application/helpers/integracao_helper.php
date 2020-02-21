@@ -1877,9 +1877,9 @@ if ( ! function_exists('app_integracao_apolice')) {
         $num_apolice = $dados['registro']['num_apolice'];
         $num_apolice_aux = $dados['registro']['cod_sucursal'] . $dados['registro']['cod_ramo'] . $dados['registro']['cod_tpa'];
 
-        if ($dados['registro']['cod_tpa'] == '025')
+        if ($dados['registro']['cod_tpa'] == '048')
         {
-            $num_apolice_aux .= substr($num_apolice, 3, 3) . str_pad(substr($num_apolice, 10, 5), 5, '0', STR_PAD_LEFT);
+            $num_apolice_aux .= str_pad(substr($num_apolice, 7, 6), 8, '0', STR_PAD_LEFT);
         } else {
             $num_apolice_aux .= str_pad(substr($num_apolice, 7, 8), 8, '0', STR_PAD_LEFT);
         }
@@ -1909,13 +1909,7 @@ if ( ! function_exists('app_integracao_id_transacao')) {
     function app_integracao_id_transacao($formato, $dados = array())
     {
         $num_apolice = app_integracao_apolice($formato, $dados).$dados['registro']['num_endosso'];
-
-        if ($dados['registro']['cod_tpa'] == '025')
-        {
-            $num_apolice .= $dados['registro']['cod_ramo_cob'];
-        } else {
-            $num_apolice .= $dados['registro']['cod_ramo'];
-        }
+        $num_apolice .= emptyor($dados['registro']['cod_ramo_cob'],$dados['registro']['cod_ramo']);
 
         return $num_apolice.$dados['registro']['num_parcela'];
     }
@@ -1926,14 +1920,7 @@ if ( ! function_exists('app_integracao_id_transacao_canc')) {
         $id_transacao = '';
         if ( in_array($dados['registro']['cod_tipo_emissao'], ['10','11']) ) {
             $id_transacao = app_integracao_apolice($formato, $dados)."0";
-
-            if ($dados['registro']['cod_tpa'] == '025')
-            {
-                $id_transacao .= $dados['registro']['cod_ramo_cob'];
-            } else {
-                $id_transacao .= $dados['registro']['cod_ramo'];
-            }
-
+            $id_transacao .= emptyor($dados['registro']['cod_ramo_cob'], $dados['registro']['cod_ramo']);
             $id_transacao .= $dados['registro']['num_parcela'];
         }
         return $id_transacao;
