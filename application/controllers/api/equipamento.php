@@ -52,7 +52,11 @@ class Equipamento extends CI_Controller {
 
         $ean = $GET["ean"];
 
-        $Equipamento = $this->equipamento->filterByEAN($ean)->get_all();
+        $Equipamento = $this->equipamento
+            ->filterByEAN($ean)
+            ->whith_linhas()
+            ->get_all();
+
         if( sizeof( $Equipamento ) ) {
             $Equipamento = $Equipamento[0];
 
@@ -61,6 +65,7 @@ class Equipamento extends CI_Controller {
                 "equipamento_id" => $Equipamento["equipamento_id"],
                 "ean" => $Equipamento["ean"],
                 "nome" => $Equipamento["nome"],
+                "categoria" => $Equipamento["categoria"],
                 "equipamento_marca_id" => $Equipamento["equipamento_marca_id"],
                 "equipamento_categoria_id" => $Equipamento["equipamento_categoria_id"],
                 "equipamento_sub_categoria_id" => $Equipamento["equipamento_sub_categoria_id"]
@@ -204,6 +209,7 @@ class Equipamento extends CI_Controller {
                     "equipamento_id" => $EANenriquecido->equipamento_id,
                     "ean" => $EANenriquecido->ean,
                     "nome" => $EANenriquecido->nome,
+                    "categoria" => $EANenriquecido->categoria,
                     "equipamento_marca_id" => $EANenriquecido->equipamento_marca_id,
                     "equipamento_categoria_id" => $EANenriquecido->equipamento_categoria_id,
                     "equipamento_sub_categoria_id" => $EANenriquecido->equipamento_sub_categoria_id,

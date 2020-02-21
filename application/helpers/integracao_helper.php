@@ -835,6 +835,12 @@ if ( ! function_exists('app_integracao_rastrecall_sms')) {
                     $dados['registro']['equipamento_categoria_id'] = $EANenriquecido->equipamento_categoria_id;
                     $dados['registro']['equipamento_sub_categoria_id'] = $EANenriquecido->equipamento_sub_categoria_id;
                     $dados['registro']['imei'] = sprintf('%.0f', str_replace(",", "", $dados['registro']['equipamento_imei']) );
+
+                    // alteracao da taxa/plano para tablet da LASA
+                    if ($acesso->parceiro == 'lasa' && preg_match("/TABLET/i", $EANenriquecido->categoria))
+                    {
+                        $dados['registro']['produto_parceiro_plano_id'] = 158;
+                    }
                 } else {
                     $inputField = [
                         'marca' => $dados['registro']['equipamento_marca'],
@@ -855,6 +861,12 @@ if ( ! function_exists('app_integracao_rastrecall_sms')) {
                         $dados['registro']['equipamento_categoria_id'] = $EANenriquecido->equipamento_categoria_id;
                         $dados['registro']['equipamento_sub_categoria_id'] = $EANenriquecido->equipamento_sub_categoria_id;
                         $dados['registro']['imei'] = sprintf('%.0f', str_replace(",", "", $dados['registro']['equipamento_imei']) );
+
+                        // alteracao da taxa/plano para tablet da LASA
+                        if ($acesso->parceiro == 'lasa' && preg_match("/TABLET/i", $EANenriquecido->categoria))
+                        {
+                            $dados['registro']['produto_parceiro_plano_id'] = 158;
+                        }
                     } else {
                         $eanErroMsg = "Equipamento não identificado - [{$dados['registro']['equipamento_nome']}]";
                     }
