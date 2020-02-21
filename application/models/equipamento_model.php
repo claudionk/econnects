@@ -85,6 +85,12 @@ Class Equipamento_Model extends MY_Model
         return $this;
     }
 
+    public function whith_linhas() {
+        $this->db->select("el.nome as categoria");
+        $this->db->join("vw_Equipamentos_Linhas el", "{$this->_table}.equipamento_sub_categoria_id = el.equipamento_categoria_id", "left");
+        return $this;
+    }
+
     public function match($equipamento, $marca = null, $limit = 10, $categoria = null)
     {
         $where='';
@@ -100,10 +106,11 @@ Class Equipamento_Model extends MY_Model
 
         $equipamento_tratado = $this->trata_string_match($equipamento);
         $equip = $this->_database->query("
-            SELECT MATCH(e.nome) against('{$equipamento_tratado}' IN BOOLEAN MODE) as indice, e.equipamento_id, e.equipamento_marca_id, e.equipamento_categoria_id, e.nome, e.ean, e.equipamento_sub_categoria_id
+            SELECT MATCH(e.nome) against('{$equipamento_tratado}' IN BOOLEAN MODE) as indice, e.equipamento_id, e.equipamento_marca_id, e.equipamento_categoria_id, eCat.nome AS categoria, e.nome, e.ean, e.equipamento_sub_categoria_id
             FROM {$this->_table} e
             INNER JOIN vw_Equipamentos_Marcas em on e.equipamento_marca_id = em.equipamento_marca_id
             INNER JOIN vw_Equipamentos_Linhas el on e.equipamento_categoria_id = el.equipamento_categoria_id
+            LEFT JOIN vw_Equipamentos_Linhas eCat on e.equipamento_sub_categoria_id = eCat.equipamento_categoria_id
             WHERE MATCH(e.nome) AGAINST('{$equipamento_tratado}' IN BOOLEAN MODE) > 0
                 {$where}
             ORDER BY 1 DESC
