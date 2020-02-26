@@ -1356,8 +1356,8 @@ if ( ! function_exists('app_integracao_valida_regras'))
             }
 
             // Enriquecimento do CPF
-            $cpf = substr($dados['cpf'], -11);
-            $dados['cnpj_cpf'] = $cpf;
+            $desc_doc = app_verifica_cpf_cnpj($dados['cpf']);
+            $dados['cnpj_cpf'] = ($desc_doc == 'CPF') ? substr($dados['cpf'], -11) : $cpf = substr($dados['cpf'], -14);
 
             if ($enriqueceCPF)
             {
@@ -1534,8 +1534,9 @@ if ( ! function_exists('app_integracao_valida_regras'))
                                     $errors[] = ['id' => 1, 'msg' => "Campo {$campo->label} é obrigatório", 'slug' => $campo->nome_banco];
                                 break;
                             case "validate_cpf":
-                                if( !empty($dados[$campo->nome_banco]) && !app_validate_cpf($dados[$campo->nome_banco]) )
-                                    $errors[] = ['id' => 2, 'msg' => "Campo {$campo->label} deve ser um CPF válido [{$dados[$campo->nome_banco]}]", 'slug' => $campo->nome_banco];
+                            case "validate_cnpj":
+                                if( !empty($dados[$campo->nome_banco]) && !app_validate_cpf_cnpj($dados[$campo->nome_banco]) )
+                                    $errors[] = ['id' => 2, 'msg' => "Campo {$campo->label} deve ser um CPF / CNPJ válido [{$dados[$campo->nome_banco]}]", 'slug' => $campo->nome_banco];
                                 break;
                             case "validate_data":
                                 if( !empty($dados[$campo->nome_banco]) && !app_validate_data_americana($dados[$campo->nome_banco]) )
@@ -2306,12 +2307,13 @@ if ( ! function_exists('app_integracao_inicio')) {
                 return $response;
             }
 
-            if (!empty($cpf)) $cpf = substr($cpf, -11);
-
-            if( !app_validate_cpf($cpf) ){
-                $response->msg[] = ['id' =>  2, 'msg' => "Campo CPF deve ser um CPF válido [{$cpf}]", 'slug' => 'cnpj_cpf'];
+            if ( !app_validate_cpf_cnpj($cpf) ) {
+                $response->msg[] = ['id' =>  2, 'msg' => "Campo CPF/CNPJ deve ser um documento válido [{$cpf}]", 'slug' => 'cnpj_cpf'];
                 return $response;
             }
+
+            $desc_doc = app_verifica_cpf_cnpj($cpf);
+            $cpf = ($desc_doc == 'CPF') ? substr($cpf, -11) : substr($cpf, -14);
 
             if ($enriqueEquipamento)
             {

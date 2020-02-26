@@ -456,7 +456,8 @@ function app_valida_email($str)
     return ( ! preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $str)) ? FALSE : TRUE;
 }
 
-function app_verifica_cpf_cnpj ($cpf_cnpj) {
+function app_verifica_cpf_cnpj($cpf_cnpj)
+{
     // Verifica CPF
     if ( strlen($cpf_cnpj ) === 11 ) {
         return 'CPF';
@@ -466,16 +467,29 @@ function app_verifica_cpf_cnpj ($cpf_cnpj) {
         return 'CNPJ';
     }
     // Não retorna nada
-    else {
+    else
+    {
+        $cpf_cnpj = "00000000000". $cpf_cnpj;
+        $cpf = substr($cpf_cnpj, -11);
+        $cnpj = substr($cpf_cnpj, -14);
+        if ( app_validate_cpf($cpf) )
+        {
+            return 'CPF';
+        }
+
+        if ( app_validate_cnpj($cnpj) )
+        {
+            return 'CNPJ';
+        }
+
         return false;
     }
 }
 
-function app_clear_number($str){
-
+function app_clear_number($str)
+{
     return preg_replace('/[^0-9]/', '', $str);
 }
-
 function app_char_alpha($index){
     //fixa o problema do indice do array comeÃ§ar em zero;
     $index = $index - 1;
@@ -495,7 +509,6 @@ function app_get_querystring_full(){
 
     return$query;
 }
-
 function app_get_value($field, $default = ''){
     $ci = & get_instance();
 
@@ -521,19 +534,19 @@ function app_get_value($field, $default = ''){
 
         return $default;
     }
-
-
 }
-
-function app_validate_cpf_cnpj ($cpf_cnpj) {
-
+function app_validate_cpf_cnpj ($cpf_cnpj)
+{
     if ( empty($cpf_cnpj) )
         return false;
 
     $cpf_cnpj = preg_replace('/[^0-9]/', '', $cpf_cnpj);
 
+    if ( empty($cpf_cnpj) )
+        return false;
+
     // Verifica CPF
-    if ( strlen($cpf_cnpj ) === 11 ) {
+    if ( strlen( $cpf_cnpj ) === 11 ) {
         return app_validate_cpf($cpf_cnpj);
     }
     // Verifica CNPJ
@@ -542,7 +555,10 @@ function app_validate_cpf_cnpj ($cpf_cnpj) {
     }
     // Não retorna nada
     else {
-        return false;
+        $cpf_cnpj = "00000000000". $cpf_cnpj;
+        $cpf = substr($cpf_cnpj, -11);
+        $cnpj = substr($cpf_cnpj, -14);
+        return ( app_validate_cpf($cpf) || app_validate_cnpj($cnpj) );
     }
 }
 
@@ -665,17 +681,12 @@ function app_validate_cnpj($cnpj)
 }
 
 function app_db_escape($string){
-
     $ci = & get_instance();
-
     return $ci->db->escape($string);
 }
 
 function app_set_value($field = '', $default = '')
 {
-
-
-
     if ( ! isset($_POST[$field]))
     {
         $value =  $default;
@@ -683,17 +694,11 @@ function app_set_value($field = '', $default = '')
 
         $value =  $_POST[$field];
     }
-
-
-
     return form_prep($value, $field);
 }
 
 function app_has_value($field = '')
 {
-
-
-
     if (isset($_POST[$field]))
     {
         return true;
