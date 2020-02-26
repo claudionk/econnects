@@ -1356,8 +1356,8 @@ if ( ! function_exists('app_integracao_valida_regras'))
             }
 
             // Enriquecimento do CPF
-            $desc_doc = app_verifica_cpf_cnpj($dados['cpf']);
-            $dados['cnpj_cpf'] = ($desc_doc == 'CPF') ? substr($dados['cpf'], -11) : $cpf = substr($dados['cpf'], -14);
+            $cpf = (app_verifica_cpf_cnpj($dados['cpf']) == 'CPF') ? substr($dados['cpf'], -11) : $cpf = substr($dados['cpf'], -14);
+            $dados['cnpj_cpf'] = $cpf;
 
             if ($enriqueceCPF)
             {
