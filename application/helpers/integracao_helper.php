@@ -515,36 +515,164 @@ if ( ! function_exists('app_integracao_file_name_novomundo')) {
     }
 
 }
+
 if ( ! function_exists('app_integracao_zip_extract_novomundo')) {
 
     function app_integracao_zip_extract_novomundo($formato, $dados = array())
     {
-    	$diretorio	= $dados['registro']['file'];
-    	$arquivo	= $dados['registro']['fileget'];
-    	$diretorio 	= str_replace($arquivo, "", $diretorio);
-    	$novo_diretorio = str_replace(".zip", "", $arquivo);
+    	$diretorio  = $dados['registro']['file'];
+        $arquivo    = $dados['registro']['fileget'];
+        $diretorio  = str_replace($arquivo, "", $diretorio);
+        $novo_diretorio = str_replace(".zip", "", $arquivo);
 
-    	if(!file_exists($diretorio . '/' . $novo_diretorio))
-    	{
-		  mkdir($diretorio . '/' . $novo_diretorio, 0777, true);
+        if(!file_exists($diretorio . $arquivo))
+        {
+            echo 'caminho nao identiicado '. $diretorio.$arquivo;
+            return false;
         }
 
-    	rename($diretorio . '/' . $arquivo, $diretorio . '/' . $novo_diretorio . '/' . $arquivo );
+        // print_pre( ['a', $diretorio . $novo_diretorio], false );
+        if(!file_exists($diretorio . $novo_diretorio))
+        {
+            mkdir($diretorio . $novo_diretorio, 0777, true);
+        }
 
-    	$zip = new ZipArchive;
-    	$res = $zip->open($diretorio . '/' . $novo_diretorio . '/' . $arquivo);
-    	if ($res === TRUE) 
-    	{
-    		$zip->extractTo($diretorio . '/' . $novo_diretorio);
-    		$zip->close();
-    	} 
-    	else 
+        // print_pre( ['b', $diretorio.$arquivo, $diretorio.$novo_diretorio .'/'. $arquivo], false );
+        rename( $diretorio.$arquivo, $diretorio.$novo_diretorio .'/'. $arquivo );
+
+        $zip = new ZipArchive;
+        $res = $zip->open($diretorio . $novo_diretorio . '/' . $arquivo);
+        if ($res === TRUE) 
+        {
+            $zip->extractTo($diretorio . $novo_diretorio);
+            $zip->close();
+
+            // Não lê o arquivo novamente para nao entrar em um loop infinito
+            $notRead[] = $arquivo;
+
+            // só remove os arquivos filhos pois o backup está no pai
+            if ( !empty($dados['registro']['fileRemove']) )
+            {
+                unlink($diretorio . $novo_diretorio . '/' . $arquivo);
+            }
+
+            $dir = new DirectoryIterator( $diretorio . $novo_diretorio );
+            foreach($dir as $file)
+            {
+                // verifica se $file é diferente de '.' ou '..'
+                if ( $file->isDot() )
+                {
+                    continue;
+                }
+
+                // recupera o nome do arquivo e seu path
+                $caminho = $file->getPathname();
+                $fileName = $file->getFilename();
+                // print_pre(['c', $fileName, $caminho], false);
+
+                if ( in_array($fileName, $notRead) )
+                {
+                    echo "<br>já li o arquivo ". $fileName;
+                    app_integracao_zip_extract_novomundo_upload($formato, $dados);
+                    continue;
+                }
+
+                // altera os dados para procurar o novo arquivo
+                $dados['registro']['file']       = $caminho;
+                $dados['registro']['fileget']    = $fileName;
+                $dados['registro']['fileRemove'] = true; // só remove os arquivos filhos pois o backup está no pai
+                // print_pre( ['d', $dados['registro']], false);
+
+                // se tiver um ZIP
+                $pos = strpos(strtoupper($fileName), ".ZIP");
+                if ($pos > 0)
+                {
+                    app_integracao_zip_extract_novomundo($formato, $dados);
+                }
+            }
+        }
+    	else
     	{
     		echo "Erro na extracao de arquivo:$arquivo";
-            	return false;
+            return false;
     	}
 
         return true;
+    }
+
+}
+if ( ! function_exists('app_integracao_docs_novo_mundo'))
+{
+    function app_integracao_docs_novo_mundo($formato)
+    {
+        return true;
+    }
+}
+if ( ! function_exists('app_integracao_zip_extract_novomundo_upload')) {
+
+    function app_integracao_zip_extract_novomundo_upload($formato, $dados = array())
+    {
+        $CI =& get_instance();
+        $CI->load->library("SoapCurl");
+        $SoapCurl = new SoapCurl();
+        $retorno = ['status' => false, 'erro' => "Falha no envio do Documento"];
+
+        print_pre( ['h', $dados['registro']], false);
+        $diretorio   = $dados['registro']['file'];
+        $arquivo     = $dados['registro']['fileget'];
+        $diretorio   = str_replace($arquivo, "", $diretorio);
+        $novo_diretorio = str_replace(".zip", "", $arquivo);
+
+        if(!file_exists($diretorio . $novo_diretorio))
+        {
+            $retorno['erro'] = "Caminho não identificado [{$diretorio}{$novo_diretorio}]";
+            return $retorno;
+        }
+
+        $dir = new DirectoryIterator( $diretorio . $novo_diretorio );
+        foreach($dir as $file)
+        {
+            // verifica se $file é diferente de '.' ou '..'
+            if ( $file->isDot() )
+            {
+                continue;
+            }
+
+            // recupera o nome do arquivo e seu path
+            $caminho = $file->getPathname();
+            $fileName = $file->getFilename();
+            $quebraArquivo = explode(".", $fileName);
+            $ext_arquivo = strtolower(end($quebraArquivo));
+            $id_documento = app_integracao_docs_novo_mundo($quebraArquivo[0]);
+
+            print_pre( [$fileName, $caminho, $ext_arquivo, $id_documento, base64_encode( file_get_contents( $caminho ) )]);
+
+            try
+            {
+                $retorno = $SoapCurl->getAPI("documentos/enviaDocumento", "POST", json_encode([
+                    "idTipoDocumento" => $id_documento,
+                    "Extensao" => $ext_arquivo,
+                    "File" => base64_encode( file_get_contents( $caminho ) ) ,
+                    "idExpediente" => $id_exp,
+                ]), 900);
+                if (empty($retorno)){
+                    $aErros[] = ['message' => 'Sem resposta do Upload'];
+                }elseif (empty($retorno['status'])) {
+                    $aErros[] = ['message' => $retorno['erro']];
+                }
+                return $retorno;
+            }
+            catch (Exception $e) 
+            {
+                $retorno['erro'] = $e->getMessage();
+                return $retorno;
+            }
+
+            
+
+        }
+
+        return $retorno;
     }
 
 }

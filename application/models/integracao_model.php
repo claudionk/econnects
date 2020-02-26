@@ -291,18 +291,14 @@ Class Integracao_Model extends MY_Model
         $this->_database->where("integracao.habilitado", 1);
         $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
 
-	try
-	{
-        	$result = $this->get_all();
-	}
-	catch (Exception $e) 
-	{
-		echo "e=" . $e;
-	}
-
-	//echo "this=" . 		print_r($this, true);
-	//echo "result=" . 	print_r($result, true);
-
+    	try
+    	{
+            $result = $this->get_all();
+    	}
+    	catch (Exception $e) 
+    	{
+    		echo "e=" . $e;
+    	}
 
         if($result){
             $result = $result[0];
@@ -322,20 +318,18 @@ Class Integracao_Model extends MY_Model
 
             $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
 
-	    //echo "file1=" . 	print_r($file, true);
-
             if(empty($file))
-	    {
-            	$file = $this->getFileName($result, $layout_filename);
-	    }
+    	    {
+                $file = $this->getFileName($result, $layout_filename);
+    	    }
 
-	    //echo "file2=" . 	print_r($file, true);
-
-	    $result_file = $this->getFile($result, $file);
+    	    $result_file = $this->getFile($result, $file);
+            // $result_file["file"] = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/124/E/NMTROCA_20200210.zip";
+            // $result_file["fileget"] = "NMTROCA_20200210.zip";
 
             $result_process = [];
             if(!empty($result_file['file']) && $result['tipo_layout']!='ZIP')
-	    {
+            {
                 $result_process = $this->processFileIntegracao($result, $result_file['file']);
             }
 
@@ -442,8 +436,8 @@ Class Integracao_Model extends MY_Model
         }
     }
 
-    private function getFile($integracao = array(), $file){
-	//echo "getFile::" . print_r($file, true);
+    private function getFile($integracao = array(), $file)
+    {
         try{
 
             switch ($integracao['integracao_comunicacao_id']){
@@ -466,9 +460,7 @@ Class Integracao_Model extends MY_Model
             }
 
         }catch (Exception $e) {
-		
-	  	echo "getFile::Exception " . print_r($e, true) . "\n";
-
+	  	    echo "getFile::Exception " . print_r($e, true) . "\n";
         }
     }
 
@@ -530,9 +522,6 @@ Class Integracao_Model extends MY_Model
             'fileget' => '',
         );
 
-	//echo "getFileFTP::" . print_r($list, true) . "\n";
-
-
         $file_processar = '';
         if($list) {
             foreach ($list as $index => $item) {
@@ -551,14 +540,11 @@ Class Integracao_Model extends MY_Model
             }
         }
 
-	//echo "getFileFTP::file_processar::" . print_r($file_processar, true) . "\n";
-
         if(!empty($file_processar)){
             $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
             if(!file_exists($diretorio)){
                 mkdir($diretorio, 0777, true);
             }
-	//echo "getFileFTP::diretorio::" . print_r($diretorio, true) . "\n";
 
             $fileget = basename($file_processar);
             if($this->ftp->download($file_processar, "{$diretorio}/{$fileget}", 'binary')){
@@ -570,7 +556,6 @@ Class Integracao_Model extends MY_Model
 
         }
         $this->ftp->close();
-	//echo "getFileFTP::result::" . print_r($result, true) . "\n";
         return $result;
     }
 
