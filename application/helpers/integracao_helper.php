@@ -1722,12 +1722,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
 
                     echo "calculado $percent % <br>";
 
-                    if (!$aceitaPorcentagem) {
-                        // Arredondamento do percentual (a.)
-                        if ($percent >= 24.9 && $percent <= 25.99999999999999) {
-                            $premioValid = true;
-                        }
-                    } else {
+                    if ( $aceitaPorcentagem ) {
                         // TRATAR DEMAIS PERCENTUAIS
 
                         // percentual liquido (remove o IOF)
