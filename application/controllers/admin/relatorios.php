@@ -1485,9 +1485,12 @@ class Relatorios extends Admin_Controller
                 $resultado['data']['mailing'][$value['produto_parceiro_cliente_status_id']][$dia_format] = 0;
                 // $resultado['data']['mailing'][$value['produto_parceiro_cliente_status_id']]['valor'] = 0;
                 $resultado['grupos'][$key]['qtde'] = 0;
-                $resultado['grupos_totais'][$value['cliente_evolucao_status_grupo_id']] = ['valor' => 0, 'percentual' => 0];
+                $resultado['grupos'][$key]['percentual'] = 0;
+                $resultado['grupos_totais'][$value['cliente_evolucao_status_grupo_id']] = ['valor' => 0, 'percentual' => 0, 'cliente_evolucao_status_grupo_id' => $value['cliente_evolucao_status_grupo_id']];
             }
         }
+
+        // print_pre($resultado['grupos_totais']);
 
         $resultado['mailing'] = $this->pedido->getRelatorioVendaDireta($data_inicio, $data_fim, $produto_parceiro_id);
         $resultado['vendas'] = $this->pedido->extrairRelatorioVendasDiario($data_inicio, $data_fim, $produto_parceiro_id);
@@ -1497,24 +1500,50 @@ class Relatorios extends Admin_Controller
             $totalGroup = 0;
             foreach ($resultado['mailing'] as $mailing)
             {
+
                 $resultado['data']['mailing'][$mailing['produto_parceiro_cliente_status_id']][$mailing['data_format']] += $mailing['qtde'];
+
                 $indexGroup = app_search( $resultado['grupos'], $mailing['produto_parceiro_cliente_status_id'], 'produto_parceiro_cliente_status_id' );
                 if ($indexGroup >= 0)
                 {
                     $resultado['grupos'][$indexGroup]['qtde'] += $mailing['qtde'];
                     $resultado['grupos_totais'][$mailing['cliente_evolucao_status_grupo_id']]['valor'] += $mailing['qtde'];
+
+                    if ( !isset($resultado['grupos_totais'][$mailing['cliente_evolucao_status_grupo_id']][$mailing['data_format']]) )
+                    {
+                        $resultado['grupos_totais'][$mailing['cliente_evolucao_status_grupo_id']][$mailing['data_format']] = 0;
+                    }
+
+                    //Total por dia
+                    $resultado['grupos_totais'][$mailing['cliente_evolucao_status_grupo_id']][$mailing['data_format']] += $mailing['qtde'];
+                    
+                    $totalGroup += $mailing['qtde'];
                 }
+
                 $totalGroup += $mailing['qtde'];
             }
+
             // foreach ($resultado['mailing'] as $mailing)
             // {
             //     $resultado['data']['mailing'][$mailing['produto_parceiro_cliente_status_id']]['valor'] += $mailing['qtde'];
             // }
-
+            
             foreach ($resultado['grupos_totais'] as $key => $value)
             {
                 $resultado['grupos_totais'][$key]['percentual'] = $value['valor'] / $totalGroup * 100;
             }
+
+            //Calcula o percentual de cada linha de um grupo
+            foreach ($resultado['grupos'] as $key => $value)
+            {
+                foreach ($resultado['grupos_totais'] as $key2 => $value)    
+                {
+                    if ($resultado['grupos'][$key]['cliente_evolucao_status_grupo_id'] == $resultado['grupos_totais'][$key2]['cliente_evolucao_status_grupo_id'])
+                    {
+                      $resultado['grupos'][$key]['percentual'] = $resultado['grupos'][$key]['qtde']/$resultado['grupos_totais'][$key2]['valor'] *100;  
+                    }       
+                }
+            }  
         }
 
         if ( !empty($resultado['vendas']) )
@@ -1522,6 +1551,12 @@ class Relatorios extends Admin_Controller
             $totalPlan = 0;
             foreach ($resultado['vendas'] as $venda)
             {
+                if ( !isset($resultado['vendas']['totais_dia'][$venda['data_format']]) )
+                {
+                    $resultado['vendas']['totais_dia'][$venda['data_format']] = 0;
+                }
+
+                $resultado['vendas']['totais_dia'][$venda['data_format']] += $venda['qtde'];
                 $resultado['data']['vendas'][$venda['produto_parceiro_plano_id']][$venda['data_format']] += $venda['qtde'];
                 $indexPlan = app_search( $resultado['planos'], $venda['produto_parceiro_plano_id'], 'produto_parceiro_plano_id' );
                 if ($indexPlan >= 0)
@@ -1530,6 +1565,8 @@ class Relatorios extends Admin_Controller
                 }
                 $totalPlan += $venda['qtde'];
             }
+
+            $resultado['vendas']['total_venda'] = $totalPlan;
 
             foreach ($resultado['planos'] as $key => $value)
             {
@@ -1600,6 +1637,7 @@ class Relatorios extends Admin_Controller
             $data['result']['planos'] = $result['planos'];
             $data['result']['grupos'] = $result['grupos'];
             $data['result']['grupos_totais'] = $result['grupos_totais'];
+            $data['result']['vendas'] = $result['vendas'];
 
             if (!empty($_POST['btnExcel'])) {
 

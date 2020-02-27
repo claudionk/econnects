@@ -76,10 +76,12 @@
                     <tr class="style-primary">
                         <td>VENDAS</td>
                         <td class="text-center">X%</td>
-                        <td class="text-center">X</td>
+                        <td class="text-center"><?php echo emptyor($result['vendas']['total_venda'],0); ?></td>
 
                         <?php foreach ($result['dias'] as $data) { ?>
-                        <td class="text-center tb-titulo-cinza">a</td>
+                        <td class="text-center tb-titulo-cinza">
+                            <?php echo emptyor($result['vendas']['totais_dia'][$data['dia_format']],0); ?>
+                        </td>
                         <?php } ?>
                     </tr>
 
@@ -119,7 +121,9 @@
                             <td class="text-center"><?php echo emptyor($result['grupos_totais'][$grupo['cliente_evolucao_status_grupo_id']]['percentual'], 0 ); ?>%</td>
                             <td class="text-center"><?php echo emptyor($result['grupos_totais'][$grupo['cliente_evolucao_status_grupo_id']]['valor'], 0 ); ?></td>
                             <?php foreach ($result['dias'] as $data) { ?>
-                            <td class="text-center tb-titulo-cinza">b</td>
+                            <td class="text-center tb-titulo-cinza">
+                                <?php echo emptyor($result['grupos_totais'][$grupo['cliente_evolucao_status_grupo_id']][$data['dia_format']], 0 ); ?>
+                            </td>
                             <?php } ?>
                         </tr>
                         <?php 
@@ -128,7 +132,7 @@
 
                     <tr class="tb-titulo-cinza">
                         <td><?php echo $grupo['descricao']; ?></td>
-                        <td class="text-center">Z%</td>
+                        <td class="text-center"><?php echo $grupo['percentual']; ?>%</td>
                         <td class="text-center"><?php echo $grupo['qtde']; ?></td>
                         <?php foreach ($result['dias'] as $data) { ?>
                         <td class="text-center tb-conteudo"><?php echo emptyor($result['data']['mailing'][$grupo['produto_parceiro_cliente_status_id']][$data['dia_format']], 0 ); ?></td>
