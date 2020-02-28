@@ -324,8 +324,6 @@ Class Integracao_Model extends MY_Model
     	    }
 
     	    $result_file = $this->getFile($result, $file);
-            // $result_file["file"] = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/124/E/NMTROCA_20200210.zip";
-            // $result_file["fileget"] = "NMTROCA_20200210.zip";
 
             $result_process = [];
             if(!empty($result_file['file']) && $result['tipo_layout']!='ZIP')

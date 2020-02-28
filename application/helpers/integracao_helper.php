@@ -547,13 +547,17 @@ if ( ! function_exists('app_integracao_zip_extract_novomundo')) {
             $zip->extractTo($diretorio . $novo_diretorio);
             $zip->close();
 
-            // Não lê o arquivo novamente para nao entrar em um loop infinito
-            $notRead[] = $arquivo;
-
             // só remove os arquivos filhos pois o backup está no pai
             if ( !empty($dados['registro']['fileRemove']) )
             {
+                // Faz o upload do arquivo
+                $ret = app_integracao_zip_extract_novomundo_upload($formato, $dados);
+
+                // remove o arquivo para não ler novamente e pq já manteve o backup o arquivo pai
                 unlink($diretorio . $novo_diretorio . '/' . $arquivo);
+
+                // Para a leitura dos arquivos
+                return;
             }
 
             $dir = new DirectoryIterator( $diretorio . $novo_diretorio );
@@ -568,14 +572,7 @@ if ( ! function_exists('app_integracao_zip_extract_novomundo')) {
                 // recupera o nome do arquivo e seu path
                 $caminho = $file->getPathname();
                 $fileName = $file->getFilename();
-                // print_pre(['c', $fileName, $caminho], false);
-
-                if ( in_array($fileName, $notRead) )
-                {
-                    echo "<br>já li o arquivo ". $fileName;
-                    app_integracao_zip_extract_novomundo_upload($formato, $dados);
-                    continue;
-                }
+                // print_pre(['c', $fileName, $caminho, $dados['registro']], false);
 
                 // altera os dados para procurar o novo arquivo
                 $dados['registro']['file']       = $caminho;
@@ -585,8 +582,9 @@ if ( ! function_exists('app_integracao_zip_extract_novomundo')) {
 
                 // se tiver um ZIP
                 $pos = strpos(strtoupper($fileName), ".ZIP");
-                if ($pos > 0)
+                if ($pos !== FALSE)
                 {
+                    // Faz a extração do arquivo ZIP
                     app_integracao_zip_extract_novomundo($formato, $dados);
                 }
             }
