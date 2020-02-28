@@ -318,11 +318,11 @@ Class Integracao_Model extends MY_Model
             $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
 
             if(empty($file))
-            {
+    	    {
                 $file = $this->getFileName($result, $layout_filename);
-            }
+    	    }
 
-            $result_file = $this->getFile($result, $file);
+    	    $result_file = $this->getFile($result, $file);
 
             $result_process = [];
             if(!empty($result_file['file']) && $result['tipo_layout']!='ZIP')
@@ -433,7 +433,8 @@ Class Integracao_Model extends MY_Model
         }
     }
 
-    private function getFile($integracao = array(), $file){
+    private function getFile($integracao = array(), $file)
+    {
         try{
 
             switch ($integracao['integracao_comunicacao_id']){
@@ -456,9 +457,7 @@ Class Integracao_Model extends MY_Model
             }
 
         }catch (Exception $e) {
-		
-	  	echo "getFile::Exception " . print_r($e, true) . "\n";
-
+	  	    echo "getFile::Exception " . print_r($e, true) . "\n";
         }
     }
 
