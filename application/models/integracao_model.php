@@ -525,6 +525,18 @@ Class Integracao_Model extends MY_Model
                 if ( strpos($item, ".") === FALSE )
                     continue;
 
+                $extensao = '';
+                if ( $integracao['tipo_layout'] != 'LAYOUT' )
+                {
+                    $extensao = explode('.', $item);
+                    $extensao = end($extensao);
+
+                    if ( strtoupper($extensao) != strtoupper($integracao['tipo_layout']) )
+                    {
+                        continue;
+                    }
+                }
+
                 $total = $this->integracao_log
                     ->filter_by_integracao($integracao['integracao_id'])
                     ->filter_by_file(basename($item))
