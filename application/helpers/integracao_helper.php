@@ -1943,6 +1943,73 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
         return $response;
     }
 }
+if ( ! function_exists('app_integracao_retorno_generali_pagnet'))
+{
+    function app_integracao_retorno_generali_pagnet($formato, $dados = array())
+    {
+        $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
+
+        if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
+            $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
+            return $response;
+        }
+
+        $chave = $dados['registro']['id_log'];
+        $file = $dados['log']['nome_arquivo'];
+        $cod_ocorrencia = $dados['registro']['ret_cod_ocorrencia'];
+        $response->coderr = $dados['registro']['ret_inconsistencia1'];
+        $ret_inconsistencia = [];
+        $ret_inconsistenciass = [
+            $dados['registro']['ret_inconsistencia1'],
+            $dados['registro']['ret_inconsistencia2'],
+            $dados['registro']['ret_inconsistencia3'],
+            $dados['registro']['ret_inconsistencia4'],
+            $dados['registro']['ret_inconsistencia5'],
+        ];
+
+        foreach ($ret_inconsistenciass as $key => $value)
+        {
+            if ( !empty($value) )
+                $ret_inconsistencia[] = $value;
+        }
+
+        if (empty($chave)) {
+            $response->msg[] = ['id' => 12, 'msg' => 'Chave não identificada', 'slug' => "erro_interno"];
+            return $response;
+        }
+
+        $CI =& get_instance();
+        $CI->load->model('integracao_model');
+        $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
+
+        // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
+        if ( in_array($cod_ocorrencia, ['005']) )
+        {
+            $CI->integracao_model->update_log_fail(NULL, $chave, FALSE, TRUE);
+
+            foreach ($ret_inconsistencia as $key => $value)
+            {
+                $id = 12; // retorno padrao
+                $descricao_erro = "Nao identificado ( {$value} )";
+
+                // identifica o ID através do DE x PARA
+                $ret = $CI->log_erro->filterByCodErroParceiro($value, 'pagnet_retorno')->get_all();
+                if ( !empty($ret) )
+                {
+                    $id = $ret[0]['integracao_log_detalhe_erro_id'];
+                    $descricao_erro = $ret[0]['nome'];
+                }
+
+                $response->msg[] = ['id' => $id, 'msg' => $descricao_erro, 'slug' => "erro_retorno"];
+            }
+        } else {
+            $response->status = true;
+            $CI->integracao_model->update_log_sucess(NULL, FALSE, $chave, 'pagnet', TRUE);
+        }
+
+        return $response;
+    }
+}
 if ( ! function_exists('app_integracao_retorno_generali_success')) {
     function app_integracao_retorno_generali_success($formato, $dados = array())
     {
