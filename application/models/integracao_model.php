@@ -988,13 +988,14 @@ Class Integracao_Model extends MY_Model
                 $msgDetCampo = [];
 
                 if (!empty($datum['id_log'])) {
-                    $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $datum['id_log'], addslashes(json_encode($datum)));
+                    $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $datum['id_log'], left(addslashes(json_encode($datum)),100) );
                 }
 
                 //execute before detail
-                if (!empty($integracao['before_detail']) ) {
-                    if ( function_exists($integracao['before_detail']) ) {
-
+                if (!empty($integracao['before_detail']) )
+                {
+                    if ( function_exists($integracao['before_detail']) )
+                    {
                         // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods 
                         // Tratando o erro 110 - Registro duplicado no arquivo de origem
                         if(!empty($datum['cod_erro']) && in_array($datum['cod_erro'], [22, 110]) && ( $datum['tipo_arquivo'] == 'CLIENTE' || $datum['tipo_arquivo'] == 'EMSCMS' || $datum['tipo_arquivo'] == 'PARCEMS' ) ) 
@@ -1008,26 +1009,24 @@ Class Integracao_Model extends MY_Model
 
                                 if ( empty($callFuncReturn->status) ){
                                     // seta para erro
-                                    $integracao_log_status_id = 5; 
-                                    $msgDetCampo = $callFuncReturn->msg; 
+                                    $integracao_log_status_id = 5;
+                                    $msgDetCampo = $callFuncReturn->msg;
                                 } elseif ( $callFuncReturn->status === 2 ) {
                                     // seta para ignorado
                                     $integracao_log_status_id = 7;
                                     $msgDetCampo = $callFuncReturn->msg;
                                 }
+                            }
 
+                            if (!empty($msgDetCampo)) {
+                                foreach ($msgDetCampo as $er) {
+                                    $ErroID = !empty($er['id']) ? $er['id'] : -1;
+                                    $ErroMSG = !empty($er['msg']) ? $er['msg'] : $er;
+                                    $ErroSLUG = !empty($er['slug']) ? $er['slug'] : "";
+                                    $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, $ErroID, $ErroMSG, $ErroSLUG);
+                                }
                             }
                         }
-
-                        if (!empty($msgDetCampo)) {
-                            foreach ($msgDetCampo as $er) {
-                                $ErroID = !empty($er['id']) ? $er['id'] : -1;
-                                $ErroMSG = !empty($er['msg']) ? $er['msg'] : $er;
-                                $ErroSLUG = !empty($er['slug']) ? $er['slug'] : "";
-                                $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, $ErroID, $ErroMSG, $ErroSLUG);
-                            }
-                        }
-
                     }
                 }
 
@@ -1227,79 +1226,149 @@ Class Integracao_Model extends MY_Model
         return $sequencia;
     }
 
-    function update_log_sucess($file, $sinistro = false){
+    function update_log_sucess($file = null, $sinistro = false, $chave = null, $slug_group = '', $pagnet = false)
+    {
+
+        $where = $whereItem = '';
+
+        // Caso tenha sido enviada uma chave específica
+        if ( !empty($chave) )
+        {
+            $whereItem .= " AND ild.chave = '{$chave}' ";
+        }
+
+        // Caso tenha sido enviada um slug específico
+        if ( !empty($slug_group) )
+        {
+            $where .= " AND i.slug_group = '{$slug_group}' ";
+        }
+
+        // Caso tenha sido enviada um slug específico
+        if ( !empty($file) )
+        {
+            $where .= " AND il.nome_arquivo LIKE '{$file}%' ";
+        }
 
         // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS QUE AINDA NAO FORAM LIBERADOS
         $sql = "
-            UPDATE integracao_log a
-            INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
-            SET b.integracao_log_status_id = 4, b.alteracao = NOW()
-            WHERE a.nome_arquivo LIKE '{$file}%'
-            AND a.integracao_log_status_id = 3 
-            AND a.deletado = 0
-            AND b.integracao_log_status_id NOT IN(4,5)
+            UPDATE integracao_log il
+            INNER JOIN integracao i ON il.integracao_id = i.integracao_id 
+            INNER JOIN integracao_log_detalhe ild ON il.integracao_log_id = ild.integracao_log_id
+            SET ild.integracao_log_status_id = 4, ild.alteracao = NOW()
+            WHERE 1 {$where} {$whereItem}
+            AND il.integracao_log_status_id = 3 
+            AND il.deletado = 0
+            AND ild.integracao_log_status_id NOT IN(4,5)
         ";
         $query = $this->_database->query($sql);
 
-        $sql = "
-            UPDATE integracao_log il
-            SET il.integracao_log_status_id = IF((SELECT 1 FROM integracao_log_detalhe ild WHERE ild.integracao_log_id = il.integracao_log_id AND ild.integracao_log_status_id = 5 LIMIT 1) = 1, 5, 4)
-            WHERE il.nome_arquivo LIKE '{$file}%'
-                AND il.integracao_log_status_id = 3 
+        // Atualiza o Status do Arquivo caso nao tenha informado uma chave específica
+        if ( empty($chave) )
+        {
+            $sql = "
+                UPDATE integracao_log il
+                INNER JOIN integracao i ON il.integracao_id = i.integracao_id 
+                SET il.integracao_log_status_id = IF((SELECT 1 FROM integracao_log_detalhe ild WHERE ild.integracao_log_id = il.integracao_log_id AND ild.integracao_log_status_id = 5 LIMIT 1) = 1, 5, 4)
+                WHERE 1 {$where}
+                    AND il.integracao_log_status_id = 3 
+                    AND il.deletado = 0
+            ";
+            $query = $this->_database->query($sql);
+        }
+
+        if ($pagnet)
+        {
+            $sql = "
+                UPDATE integracao_log il
+                INNER JOIN integracao i ON il.integracao_id = i.integracao_id 
+                INNER JOIN integracao_log_detalhe ild ON il.integracao_log_id = ild.integracao_log_id 
+                INNER JOIN sissolucoes1.sis_exp_pagnet ec ON ec.identificacao_pagamento = ild.chave
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
+                LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_exp = ehcx.id_exp AND ehcx.tipo_expediente = ehc.tipo_expediente AND ehcx.status = 'C'
+                SET ehc.data_retorno = NOW(), ehc.`status` = 'C'
+                WHERE 1 {$where} {$whereItem}
                 AND il.deletado = 0
-        ";
-        $query = $this->_database->query($sql);
+                AND ild.integracao_log_status_id = 4
+                AND ehc.`status` = 'P'
+                AND ehcx.id_exp IS NULL
+            ";
+            $query = $this->_database->query($sql);
+        }
 
         if ($sinistro) {
             $sql = "
-                UPDATE integracao_log a
-                INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
-                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(b.chave, LOCATE('|', b.chave)-1)
-                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = b.integracao_log_detalhe_id
+                UPDATE integracao_log il
+                INNER JOIN integracao i ON il.integracao_id = i.integracao_id 
+                INNER JOIN integracao_log_detalhe ild ON il.integracao_log_id = ild.integracao_log_id 
+                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(ild.chave, LOCATE('|', ild.chave)-1)
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
                 LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_exp = ehcx.id_exp AND ehcx.tipo_expediente = ehc.tipo_expediente AND ehcx.status = 'C'
                 SET ehc.data_retorno = NOW(), ehc.`status` = 'C'
-                WHERE a.nome_arquivo LIKE '{$file}%'
-                AND a.deletado = 0
-                AND b.integracao_log_status_id = 4
+                WHERE 1 {$where} {$whereItem}
+                AND il.deletado = 0
+                AND ild.integracao_log_status_id = 4
                 AND ehc.`status` = 'P'
                 AND IF(ehc.tipo_expediente = 'AJU', 1, ehcx.id_exp IS NULL)
             ";
             $query = $this->_database->query($sql);
 
             $sql = "
-                UPDATE integracao_log a
-                INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
-                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(b.chave, LOCATE('|', b.chave)-1)
-                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = b.integracao_log_detalhe_id
+                UPDATE integracao_log il
+                INNER JOIN integracao i ON il.integracao_id = i.integracao_id 
+                INNER JOIN integracao_log_detalhe ild ON il.integracao_log_id = ild.integracao_log_id 
+                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(ild.chave, LOCATE('|', ild.chave)-1)
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
                 INNER JOIN sissolucoes1.sis_exp_sinistro es ON es.id_exp = ec.id_exp
                 INNER JOIN sissolucoes1.sis_exp e ON ec.id_exp = e.id_exp
                 SET e.id_sinistro = ec.id_sinistro_generali, e.data_id_sinistro = NOW(), es.usado = 'S'
-                WHERE a.nome_arquivo LIKE '{$file}%'
-                AND a.deletado = 0
-                AND b.integracao_log_status_id = 4
+                WHERE 1 {$where} {$whereItem}
+                AND il.deletado = 0
+                AND ild.integracao_log_status_id = 4
             ";
             $query = $this->_database->query($sql);
-
         }
 
         return true;
     }
 
-    function update_log_fail($file, $chave, $sinistro = false){
+    function update_log_fail($file = null, $chave, $sinistro = false, $pagnet = false)
+    {
+        $where = '';
+        if ( !empty($file) )
+        {
+            $where .= " AND il.nome_arquivo LIKE '{$file}%' ";
+        }
+
+        if ($pagnet) {
+            $sql = "
+                UPDATE integracao_log il
+                INNER JOIN integracao_log_detalhe ild ON il.integracao_log_id = ild.integracao_log_id 
+                INNER JOIN sissolucoes1.sis_exp_pagnet ec ON ec.identificacao_pagamento = ild.chave
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
+                LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_exp = ehcx.id_exp AND ehcx.tipo_expediente = ehc.tipo_expediente AND ehcx.status = 'C'
+                SET ehc.data_retorno = NOW(), ehc.`status` = 'F'
+                WHERE 1 {$where}
+                AND il.deletado = 0
+                AND ehc.`status` = 'P'
+                AND ehcx.id_exp IS NULL
+                AND ild.chave = '{$chave}'
+            ";
+            $query = $this->_database->query($sql);
+        }
 
         if ($sinistro) {
             $sql = "
-                UPDATE integracao_log a
-                INNER JOIN integracao_log_detalhe b ON a.integracao_log_id = b.integracao_log_id 
-                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(b.chave, LOCATE('|', b.chave)-1)
-                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = b.integracao_log_detalhe_id
+                UPDATE integracao_log il
+                INNER JOIN integracao_log_detalhe ild ON il.integracao_log_id = ild.integracao_log_id 
+                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(ild.chave, LOCATE('|', ild.chave)-1)
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
                 LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_exp = ehcx.id_exp AND ehcx.tipo_expediente = ehc.tipo_expediente AND ehcx.status = 'C'
                 SET ehc.data_retorno = NOW(), ehc.`status` = 'F'
-                WHERE a.nome_arquivo LIKE '{$file}%'
-                AND a.deletado = 0
+                WHERE 1 {$where}
+                AND il.deletado = 0
                 AND ehc.`status` = 'P'
                 AND IF(ehc.tipo_expediente = 'AJU', 1, ehcx.id_exp IS NULL)
-                AND b.chave LIKE '{$chave}%'
+                AND ild.chave LIKE '{$chave}%'
             ";
             $query = $this->_database->query($sql);
         }
@@ -1309,7 +1378,7 @@ Class Integracao_Model extends MY_Model
             UPDATE integracao_log il
             INNER JOIN integracao_log_detalhe ild ON ild.integracao_log_id = il.integracao_log_id 
             SET ild.integracao_log_status_id = 5, ild.alteracao = NOW()
-            WHERE il.nome_arquivo LIKE '{$file}%'
+            WHERE 1 {$where}
             AND il.deletado = 0
             AND il.integracao_log_status_id = 3
             AND ild.integracao_log_status_id NOT IN(4,5)
@@ -1320,7 +1389,8 @@ Class Integracao_Model extends MY_Model
         return true;
     }
 
-    public function detectFileRetorno($file, $dados = []) {
+    public function detectFileRetorno($file, $dados = [])
+    {
         $file = str_replace("-RT-", "-EV-", $file);
         $result_file = explode("-", $file);
         if (count($result_file) < 3)
