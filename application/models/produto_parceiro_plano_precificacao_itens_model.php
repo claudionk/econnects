@@ -273,8 +273,10 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                         $this->load->model("produto_parceiro_plano_precificacao_model", "produto_parceiro_plano_precificacao");
                         $this->load->model("cobertura_plano_model", "plano_cobertura");
-                        
-                        $arrCoberturas = $this->plano_cobertura->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)->get_all();
+
+                        //Validação de "cob_resp", sendo [0] a corbertura é uma assistencia e [[1] é a seguradora ou responsável. 
+                        $arrCoberturas = $this->plano_cobertura->with_prod_parc($produto_parceiro_id, $produto_parceiro_plano_id)->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)->get_all();
+
                         foreach ($arrCoberturas as $idx => $cob) {
                             if( $arrCoberturas[$idx]["mostrar"] == "importancia_segurada" ) {
                                 $valor_cobertura_plano = $valor_cobertura_plano + floatval( $valor_nota ) * ( floatval( $arrCoberturas[$idx]["porcentagem"] ) / 100 );
@@ -283,7 +285,10 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                                 $valor_cobertura_plano = $valor_cobertura_plano + floatval( $arrCoberturas[$idx]["preco"] );
                             }
                             if( $arrCoberturas[$idx]["mostrar"] == "descricao") {
-                                $valor_cobertura_plano = $valor_cobertura_plano + floatval( $arrCoberturas[$idx]["custo"] );
+                                // Correção do cálculo de premio para não considerar no cálculo as assistências (CAP, Assistencias). Se "cob_resp" igual a 0 a corbertura e uma assistencia. 
+                                if($arrCoberturas[$idx]["cob_resp"] == '1'){
+                                    $valor_cobertura_plano = $valor_cobertura_plano + floatval( $arrCoberturas[$idx]["custo"] );
+                                }                               
                             }
                         }
                         $valores[$produto_parceiro_plano_id] = $valor_cobertura_plano;
