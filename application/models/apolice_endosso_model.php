@@ -383,13 +383,12 @@ Class Apolice_Endosso_Model extends MY_Model
                     //     return null;
                     // }
 
-
                     // Unico: Depois da vigencia
                     // Parcelado: Para todas as parcelas canceladas
                     if ( ($tipo_pagto == 2 && $vcto_inferior_cancel) || !empty($dias_utilizados) )
                     {
                         // Parcelado: *NAO* gera dados para enviar caso o vencimento seja anterior ao cancelamento
-                        if ( $tipo_pagto == 2 )
+                        if ( $tipo_pagto == 2 && $vcto_inferior_cancel )
                         {
                             $geraDadosEndosso = false;
                         }
