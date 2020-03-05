@@ -2208,6 +2208,8 @@ if ( ! function_exists('app_integracao_retorno_generali_pagnet'))
         {
             $CI->integracao_model->update_log_fail(NULL, $chave, FALSE, TRUE);
 
+            $response->msg[] = ['id' => 12, 'msg' => 'Rejeitado pelo Banco', 'slug' => "pagnet_retorno"];
+
             foreach ($ret_inconsistencia as $key => $value)
             {
                 $id = 12; // retorno padrao
@@ -2223,32 +2225,45 @@ if ( ! function_exists('app_integracao_retorno_generali_pagnet'))
 
                 $response->msg[] = ['id' => $id, 'msg' => $descricao_erro, 'slug' => "erro_retorno"];
             }
-        } else {
+        } else if ( in_array($cod_ocorrencia, ['003']) ) {
             $response->status = true;
             $CI->integracao_model->update_log_sucess(NULL, FALSE, $chave, 'pagnet', TRUE);
+            
+            $response->msg[] = ['id' => 12, 'msg' => 'Realizado/Pago', 'slug' => "pagnet_retorno"];
+        }
+        else{
+            if ( in_array($cod_ocorrencia, ['002']) )
+            {
+                $response->status = 2;
+                $response->msg[] = ['id' => 12, 'msg' => 'Aguardando Retorno', 'slug' => "pagnet_retorno"];
+            }
+            else if ( in_array($cod_ocorrencia, ['004']) )
+            {
+                $response->status = 2;
+                $response->msg[] = ['id' => 12, 'msg' => 'Cancelado', 'slug' => "pagnet_retorno"];
+            }
+            else if ( in_array($cod_ocorrencia, ['006']) )
+            {
+                $response->status = 2;
+                $response->msg[] = ['id' => 12, 'msg' => 'Pagamento Rejeitado Ja Tratado  (igual a 0.A Pagar)', 'slug' => "pagnet_retorno"];
+            }
         }
 
-        return $response;
-    }
-}
-if ( ! function_exists('app_integracao_retorno_generali_success')) {
-    function app_integracao_retorno_generali_success($formato, $dados = array())
-    {
-
-        if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
-            return false;
+        if ( in_array($cod_ocorrencia, ['999']) )
+        {
+            $response->status = 2;
+            $response->msg[] = ['id' => 12, 'msg' => 'Titulo Inativado', 'slug' => "pagnet_retorno"];
         }
-
-        $CI =& get_instance();
-        $CI->load->model('integracao_model');
-        $proc = $CI->integracao_model->detectFileRetorno($dados['log']['nome_arquivo']);
-        $file = $proc['file'];
-        $sinistro = ($proc['tipo'] == 'SINISTRO');
-
-        // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
-        $CI->integracao_model->update_log_sucess($file, $sinistro);
-
-        return true;
+        elseif ( in_array($cod_ocorrencia, ['990']) )
+        {
+            $response->status = 2;
+            $response->msg[] = ['id' => 12, 'msg' => 'Título rejeitado PagNet - devolvido ao sistema de origem', 'slug' => "pagnet_retorno"];
+        }
+        elseif ( in_array($cod_ocorrencia, ['991']) )
+        {
+            $response->status = 2;
+            $response->msg[] = ['id' => 12, 'msg' => 'Título rejeitado PagNet - aguardando acerto PagNet', 'slug' => "pagnet_retorno"];
+        }
     }
 }
 if ( ! function_exists('app_integracao_generali_sinistro')) {
