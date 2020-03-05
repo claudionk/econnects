@@ -384,14 +384,14 @@ Class Apolice_Endosso_Model extends MY_Model
                     // }
 
                     // Parcelado: *NAO* gera dados para enviar caso o vencimento seja anterior ao cancelamento
-                    if ( $tipo == 2 && $vcto_inferior_cancel )
+                    if ( $tipo_pagto == 2 && $vcto_inferior_cancel )
                     {
-                        $geraDadosEndosso = (app_date_get_diff_master($apolice['data_cancelamento'], $dados_end['data_vencimento']) == 0);
+                        $geraDadosEndosso = (app_date_get_diff_master($apolice['data_cancelamento'], $dados_end['data_vencimento'])['months'] == 0);
                     }
 
                     // Unico: Depois da vigencia
                     // Parcelado: Para todas as parcelas canceladas
-                    if ( ($tipo == 2 && $vcto_inferior_cancel) || !empty($dias_utilizados) )
+                    if ( ($tipo_pagto == 2 && $vcto_inferior_cancel) || !empty($dias_utilizados) )
                     {
                         // deverá informar data posterior a data do cancelamento, ou seja, D+1 da data de cancelamento
                         $d1 = new DateTime( $apolice['data_cancelamento'] );
