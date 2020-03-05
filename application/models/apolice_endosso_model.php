@@ -252,6 +252,7 @@ Class Apolice_Endosso_Model extends MY_Model
             $apolice = $this->apolice->getApolice($apolice_id);
 
             $vcto_inferior_cancel = true;
+            $geraDadosEndosso = true;
             $executaInsert = false;
 
             $dados_end = array();
@@ -382,6 +383,12 @@ Class Apolice_Endosso_Model extends MY_Model
                     //     return null;
                     // }
 
+                    // Parcelado: *NAO* gera dados para enviar caso o vencimento seja anterior ao cancelamento
+                    if ( $tipo == 2 && $vcto_inferior_cancel )
+                    {
+                        $geraDadosEndosso = (app_date_get_diff_master($apolice['data_cancelamento'], $dados_end['data_vencimento']) == 0);
+                    }
+
                     // Unico: Depois da vigencia
                     // Parcelado: Para todas as parcelas canceladas
                     if ( ($tipo == 2 && $vcto_inferior_cancel) || !empty($dias_utilizados) )
@@ -398,7 +405,11 @@ Class Apolice_Endosso_Model extends MY_Model
             $dados_end['tipo']                  = $this->defineTipo($tipo, $dados_end['endosso'], $tipo_pagto);
             $dados_end['id_transacao']          = $this->getIDTransacao($apolice_id, $dados_end['endosso'], $dados_end['parcela']);
 
-            $this->insert($dados_end, TRUE);
+
+            // Valida se deve gerar o registro da parcela
+            if ( $geraDadosEndosso )
+                $this->insert($dados_end, TRUE);
+
 
             // gera o registro adicional na Adesão da Capa ou Cancelamento de Parcelado
             if ( $tipo == 'A' || ($tipo == 'C' && $tipo_pagto == 2) )
