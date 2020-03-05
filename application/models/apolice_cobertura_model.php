@@ -70,7 +70,7 @@ Class Apolice_Cobertura_Model extends MY_Model
                 case 'preco':
                     // encontra o percentual da cobertura referente ao premio liquido
                     $percentagem = $valor_config = floatval($cobertura["valor"] / $cobertura['valor_premio_net'] * 100);
-                    $valor_cobertura = $valor_base * $percentagem;
+                    $valor_cobertura = $valor_base * $percentagem / 100;
                     break;
                 // case 'preco':
                 //     $valor_cobertura = $valor_config = floatval($cobertura["valor_config"]);
