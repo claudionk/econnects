@@ -671,6 +671,7 @@ Class Integracao_Model extends MY_Model
 
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
         $this->data_template_script['parceiro_id'] = $integracao['parceiro_id'];
+        $this->data_template_script['cod_tpa'] = $integracao['cod_tpa'];
     	$this->tipo_layout=$integracao['tipo_layout'];
     	$this->layout_separador=$integracao['layout_separador'];
 
