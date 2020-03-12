@@ -1948,7 +1948,6 @@ if ( ! function_exists('app_integracao_retorno_generali_pagnet'))
     function app_integracao_retorno_generali_pagnet($formato, $dados = array())
     {
         $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
-
         if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
             $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
             return $response;
@@ -2720,5 +2719,61 @@ if ( ! function_exists('app_integracao_quero_quero_define_operacao')) {
         $result->parceiro = $acesso->parceiro;
         $result->status = true;
         return $result;
+    }
+}
+if ( ! function_exists('app_integracao_retorno_cta'))
+{
+    function app_integracao_retorno_cta($formato, $dados = array())
+    {
+        $sinistro = false;
+        $pagnet = false; // Ainda não tem um padrão de retorno definido. Desenvolver esta funcionalidade após concluir este desenvolvimento do pagnet
+        $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
+        if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
+            $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
+            return $response;
+        }
+        //Remove os caracteres não imprimíveis
+        $dados['registro']['descricao_erro'] = preg_replace( '/[^[:print:]\r\n]/', '?',$dados['registro']['descricao_erro']);
+        $data_processado    = date('d/m/Y', strtotime($dados['registro']['data_processado']));
+        $mensagem_registro  = 'Codigo: ' . $dados['registro']['cod_erro'] . ' - Mensagem: ' . $dados['registro']['descricao_erro'] . ' - Processado em: '. $data_processado;
+        $chave              = $dados['registro']['id_log'];
+        $file_registro      = $dados['registro']['nome_arquivo'];
+
+        if (empty($chave)) {
+            $response->msg[] = ['id' => 12, 'msg' => 'Chave não identificada', 'slug' => "erro_interno"];
+            return $response;
+        }
+        //echo '<pre><br> Log: '. print_r($dados['log']);
+        //echo '<pre><br> Reg: '. print_r($dados['registro']);
+
+        $CI =& get_instance();
+        $CI->load->model('integracao_model');
+        $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
+        
+        $proc = $CI->integracao_model->detectFileRetorno($dados['log']['nome_arquivo']);
+        $file = $proc['file'];
+        $sinistro = ($proc['tipo'] == 'SINISTRO');
+
+        //A - Acatado com sucesso (id=[4]), R - Rejeitado (Erro => id=[5]) ou P - Pendente (id=[3])
+        if (!empty($dados['registro']['status']))
+        {
+            if($dados['registro']['status'] == 'A'){
+                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '4', $mensagem_registro, $sinistro, $pagnet);
+                return $response;
+            }elseif($dados['registro']['status'] == 'R'){   
+                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '5', $mensagem_registro, $sinistro, $pagnet);
+                return $response;
+            }elseif($dados['registro']['status'] == 'P'){
+                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '3', $mensagem_registro, $sinistro, $pagnet);
+                return $response;
+            }else{
+                $response->msg[] = ['id' => 12, 'msg' => 'Status não identificado'];
+                return $response;
+            }
+            return true;
+        }else{
+            $response->msg[] = ['id' => 12, 'msg' => 'Registro sem status definido'];
+            return $response;
+        }
     }
 }
