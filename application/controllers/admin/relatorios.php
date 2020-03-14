@@ -869,7 +869,7 @@ class Relatorios extends Admin_Controller
         exit();
     }    
 
-    public function exportExcel($columns, $rows = [], $formato = 'XLS') {
+    public function exportExcel2($columns, $rows = [], $formato = 'XLS') {
         $this->load->library('Excel');
         $objPHPExcel = new PHPExcel();
 
@@ -898,18 +898,151 @@ class Relatorios extends Admin_Controller
                 )
             )
         );
-
+    
+        //print_pre ($rows);
         // Cria as Linhas
         foreach ($rows as $row) {
-            $contR++;
-            $contC = 0;
-
+           $contR++;
+           $contC = 0;
+            
             foreach ($columns as $column) {
-                $objPHPExcel->setActiveSheetIndex(0)->setCellValue($letters[$contC] . $contR, $row[$contC]);
+               $objPHPExcel->setActiveSheetIndex(0)->setCellValue($letters[$contC] . $contR, $row[$contC]);
                 $contC++;
             }
             
         }
+
+        // $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        // $objWriter->save(str_replace('.php', '.xlsx', app_assets_dir('temp', 'uploads'). basename(__FILE__)));
+
+        // Redirect output to a client’s web browser (Excel5)
+        header('Content-Type: application/vnd.ms-excel');
+        if($formato == 'CSV'){
+            header('Content-Disposition: attachment;filename="relatorio.csv"');
+        }else{
+            header('Content-Disposition: attachment;filename="relatorio.xls"');
+        }
+        header('Cache-Control: max-age=0');
+        // If you're serving to IE 9, then the following may be needed
+        header('Cache-Control: max-age=1');
+        // If you're serving to IE over SSL, then the following may be needed
+        header ('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+        header ('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT'); // always modified
+        header ('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+        header ('Pragma: public'); // HTTP/1.0
+        if($formato == 'CSV'){
+            $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'CSV');
+        }else{
+            $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        }
+        $objWriter->save('php://output');
+        exit;
+    }
+
+    public function exportExcel($columns, $rows = [], $formato = 'XLS') {
+        $this->load->library('Excel');
+        $objPHPExcel = new PHPExcel();
+        //print_pre ($rows);
+        
+        $objPHPExcel->getDefaultStyle()->getFont()->setName('Arial')->setSize(12);
+
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A3:C3')->applyFromArray(
+            array(
+                'fill' => array(
+                    'type' => PHPExcel_Style_Fill::FILL_SOLID,
+                    'color' => array('rgb' => '#0aa89e')
+                ),
+                'alignment' => array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,),
+            )
+        );
+
+        $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, 3, "CONSOLIDADO");
+        $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(1, 3, "%");
+        $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(2, 3, "TOTAL");
+
+        //TITULO DIAS
+        $row = 3;
+        $col = 3;
+        foreach($rows['dias'] as $data) {
+            $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col, $row, $data['dia']);
+            $col++;
+        }
+
+        $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, 5, "VENDAS");
+        $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(1, 5, "X%");
+        $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(2, 5, emptyor($rows['vendas']['total_venda'],0));
+        
+        //TOTAL VENDAS POR DIA
+        $row = 5;
+        $col = 3;   
+        foreach($rows['dias'] as $data) {
+            $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col, $row, emptyor($rows['vendas']['totais_dia'][$data['dia_format']],0));
+            $col++;
+        }
+
+        //TOTAL VENDAS POR PLANO
+        $row = 6; //ULTIMO VALOR DE LINHA INSERIDO MANUALMENTE 
+        foreach($rows['planos'] as $plano) {
+            $col = 3;
+            $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, $row, $plano['nome']);
+            $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(1, $row, emptyor($plano['percentual'],0));
+            $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(2, $row, $plano['qtde']);
+            
+            foreach($rows['dias'] as $data) {
+                $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col, $row, emptyor($rows['data']['vendas'][$plano['produto_parceiro_plano_id']][$data['dia_format']],0));
+                $col++;
+                }
+                $row++;
+        }
+
+        //<!-- GRUPOS / STATUS -->
+            $descricao_grupo = '';
+            foreach ($rows['grupos'] as $grupo) {
+                $col = 3;
+
+                // valida se deve fazer a quebra do grupo
+                if ( $descricao_grupo != $grupo['descricao_grupo'] ) {
+                    $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, $row, " ");
+                    $row++;
+                    $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, $row, $grupo['descricao_grupo']);
+                    $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(1, $row, emptyor($rows['grupos_totais'][$grupo['cliente_evolucao_status_grupo_id']]['percentual'], 0 ).'%');
+                    $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(2, $row, emptyor($rows['grupos_totais'][$grupo['cliente_evolucao_status_grupo_id']]['valor'], 0 ));
+                    
+                    foreach($rows['dias'] as $data) {
+                        $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col, $row, emptyor($rows['grupos_totais'][$grupo['cliente_evolucao_status_grupo_id']][$data['dia_format']], 0));
+                        $col++;
+                    }
+                    $row++;
+                    $descricao_grupo = $grupo['descricao_grupo'];
+                }
+
+                $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, $row, $grupo['descricao']);
+                $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(1, $row, emptyor($grupo['percentual'],0).'%');
+                $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(2, $row, emptyor($grupo['qtde']));
+                
+                $col = 3;
+                foreach($rows['dias'] as $data) {
+                    $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col, $row, emptyor($rows['data']['mailing'][$grupo['produto_parceiro_cliente_status_id']][$data['dia_format']], 0));
+                    $col++;
+                }
+                $row++;
+            }
+
+        
+
+        //print_pre ($rows);
+        // Cria as Linhas
+        //foreach ($rows as $row) {
+           // $contR++;
+           // $contC = 0;
+
+            
+            //foreach ($columns as $column) {
+               // $objPHPExcel->setActiveSheetIndex(0)->setCellValue($letters[$contC] . $contR, $row[$contC]);
+                //$contC++;
+            //}
+            
+        //}
 
         // $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         // $objWriter->save(str_replace('.php', '.xlsx', app_assets_dir('temp', 'uploads'). basename(__FILE__)));
@@ -948,7 +1081,7 @@ class Relatorios extends Admin_Controller
         $linhaheader = 'Relatório de Mapa de Repasse';
         fwrite($fp, $linhaheader."\n");
         $linhaheader  = '';
-        $linhaheader .= 'Plano'.";";
+        $linhaheader .= 'VANESSA'.";";
         $linhaheader .= 'Representante'.";";
         $linhaheader .= 'Cobertura'.";";
         $linhaheader .= 'Tipo Movimento (Emissão ou Cancelamento'.";";
@@ -1639,26 +1772,24 @@ class Relatorios extends Admin_Controller
             $data['result']['grupos_totais'] = $result['grupos_totais'];
             $data['result']['vendas'] = $result['vendas'];
 
-            if (!empty($_POST['btnExcel'])) {
 
+
+            if (!empty($_POST['btnExcel'])) {
                 $rows = [];
-                foreach ($data['result'] as $row) {
+                foreach ($data['result']['grupos_totais'] as $row) {
                     $rows[] = [
-                        app_date_mysql_to_mask($row['status_data'], 'd/m/Y'), 
-                        $row['segurado'], 
-                        $row['documento'], 
-                        $row['plano_nome'], 
-                        $row['nome_produto_parceiro'], 
-                        app_format_currency($row['nota_fiscal_valor'], true), 
-                        app_format_currency($row['premio_liquido_total'], true), 
-                        $row['num_apolice'], 
-                        $row['nome_fantasia'], 
-                        $row['cnpj'], 
-                        $row['UF'], 
-                        $row['vendedor'], 
+                        //app_date_mysql_to_mask($row['status_data'], 'd/m/Y'), 
+                        $row['valor'], 
+                        $row['percentual'], 
+                        $row['cliente_evolucao_status_grupo_id'], 
+                        //app_format_currency($row['nota_fiscal_valor'], true), 
+                        //app_format_currency($row['premio_liquido_total'], true), 
+                         
                     ];
+                
                 }
-                $this->exportExcel($data['columns'], $rows);
+                
+                $this->exportExcel($data['columns'], $data['result']);
             }
 
         }

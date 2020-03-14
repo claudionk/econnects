@@ -2351,8 +2351,8 @@ Class Pedido_Model extends MY_Model
     {
 
         $where = '';
-        $where .= " AND ce.`data` >= '". app_date_only_numbers_to_mysql($data_inicio) ."' ";
-        $where .= " AND ce.`data` >= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."' ";
+        // $where .= " AND ce.`data` >= '". app_date_only_numbers_to_mysql($data_inicio) ."' ";
+        // $where .= " AND ce.`data` >= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."' ";
 
         $query = $this->_database->query("
         select ppcs.produto_parceiro_cliente_status_id, cesg.cliente_evolucao_status_grupo_id, cesg.descricao_grupo, ces.cliente_evolucao_status_id, ces.descricao, DATE_FORMAT(ce.`data`, '%Y%m%d') data_format, DATE_FORMAT(ce.`data`, '%d/%m/%Y') data, count(1) qtde
