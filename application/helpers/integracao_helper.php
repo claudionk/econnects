@@ -355,7 +355,15 @@ if ( ! function_exists('app_integracao_format_date_r')) {
         return $date;
     }
 
-}           
+}   
+if ( ! function_exists('app_integracao_format_file_name_pagnet')) {
+    function app_integracao_format_file_name_pagnet($formato, $dados = array())
+    {
+        /*MCAP_II_NEW_PPPP_DDMMAA_SS.TXT*/
+        $file = "PAGNET_". date('dmyHis'). '.TXT';
+        return  $file;
+    }
+}       
 if ( ! function_exists('app_integracao_format_file_name_capmapfre')) {
 
     function app_integracao_format_file_name_capmapfre($formato, $dados = array())
@@ -1946,6 +1954,107 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
         return $response;
     }
 }
+if ( ! function_exists('app_integracao_retorno_generali_pagnet'))
+{
+    function app_integracao_retorno_generali_pagnet($formato, $dados = array())
+    {
+        $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
+        if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
+            $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
+            return $response;
+        }
+
+        $chave = $dados['registro']['id_log'];
+        $file = $dados['log']['nome_arquivo'];
+        $cod_ocorrencia = $dados['registro']['ret_cod_ocorrencia'];
+        $response->coderr = $dados['registro']['ret_inconsistencia1'];
+        $ret_inconsistencia = [];
+        $ret_inconsistenciass = [
+            $dados['registro']['ret_inconsistencia1'],
+            $dados['registro']['ret_inconsistencia2'],
+            $dados['registro']['ret_inconsistencia3'],
+            $dados['registro']['ret_inconsistencia4'],
+            $dados['registro']['ret_inconsistencia5'],
+        ];
+
+        foreach ($ret_inconsistenciass as $key => $value)
+        {
+            if ( !empty($value) )
+                $ret_inconsistencia[] = $value;
+        }
+
+        if (empty($chave)) {
+            $response->msg[] = ['id' => 12, 'msg' => 'Chave não identificada', 'slug' => "erro_interno"];
+            return $response;
+        }
+
+        $CI =& get_instance();
+        $CI->load->model('integracao_model');
+        $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
+
+        // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
+        if ( in_array($cod_ocorrencia, ['005']) )
+        {
+            $CI->integracao_model->update_log_fail(NULL, $chave, FALSE, TRUE);
+
+            $response->msg[] = ['id' => 12, 'msg' => 'Rejeitado pelo Banco', 'slug' => "pagnet_retorno"];
+
+            foreach ($ret_inconsistencia as $key => $value)
+            {
+                $id = 12; // retorno padrao
+                $descricao_erro = "Nao identificado ( {$value} )";
+
+                // identifica o ID através do DE x PARA
+                $ret = $CI->log_erro->filterByCodErroParceiro($value, 'pagnet_retorno')->get_all();
+                if ( !empty($ret) )
+                {
+                    $id = $ret[0]['integracao_log_detalhe_erro_id'];
+                    $descricao_erro = $ret[0]['nome'];
+                }
+
+                $response->msg[] = ['id' => $id, 'msg' => $descricao_erro, 'slug' => "erro_retorno"];
+            }
+        } else if ( in_array($cod_ocorrencia, ['003']) ) {
+            $response->status = true;
+            $CI->integracao_model->update_log_sucess(NULL, FALSE, $chave, 'pagnet', TRUE);
+            
+            $response->msg[] = ['id' => 12, 'msg' => 'Realizado/Pago', 'slug' => "pagnet_retorno"];
+        }
+        else{
+            if ( in_array($cod_ocorrencia, ['002']) )
+            {
+                $response->status = 2;
+                $response->msg[] = ['id' => 12, 'msg' => 'Aguardando Retorno', 'slug' => "pagnet_retorno"];
+            }
+            else if ( in_array($cod_ocorrencia, ['004']) )
+            {
+                $response->status = 2;
+                $response->msg[] = ['id' => 12, 'msg' => 'Cancelado', 'slug' => "pagnet_retorno"];
+            }
+            else if ( in_array($cod_ocorrencia, ['006']) )
+            {
+                $response->status = 2;
+                $response->msg[] = ['id' => 12, 'msg' => 'Pagamento Rejeitado Ja Tratado  (igual a 0.A Pagar)', 'slug' => "pagnet_retorno"];
+            }
+        }
+
+        if ( in_array($cod_ocorrencia, ['999']) )
+        {
+            $response->status = 2;
+            $response->msg[] = ['id' => 12, 'msg' => 'Titulo Inativado', 'slug' => "pagnet_retorno"];
+        }
+        elseif ( in_array($cod_ocorrencia, ['990']) )
+        {
+            $response->status = 2;
+            $response->msg[] = ['id' => 12, 'msg' => 'Título rejeitado PagNet - devolvido ao sistema de origem', 'slug' => "pagnet_retorno"];
+        }
+        elseif ( in_array($cod_ocorrencia, ['991']) )
+        {
+            $response->status = 2;
+            $response->msg[] = ['id' => 12, 'msg' => 'Título rejeitado PagNet - aguardando acerto PagNet', 'slug' => "pagnet_retorno"];
+        }
+    }
+}
 if ( ! function_exists('app_integracao_retorno_generali_success')) {
     function app_integracao_retorno_generali_success($formato, $dados = array())
     {
@@ -1975,7 +2084,7 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
 
         // Ações que zeram ou diminuem ou valor da reserva
         // Ajuste a menor, Cancelamento, Pagamento Total e Parcial
-        if (in_array($d['cod_tipo_mov'], [2, 7, 9, 146]) ) {
+        if (in_array($d['cod_tipo_mov'], [2, 7, 9, 146,'P']) ) {
             $valor *= -1;
         }
 
@@ -2000,11 +2109,19 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
         return $id_exp_hist_carga;
     }
 }
+
 if ( ! function_exists('app_integracao_gera_sinistro')) {
     function app_integracao_gera_sinistro($formato, $dados = array())
     {
         $CI =& get_instance();
         $CI->db->query("call sp_gera_sinistro(27)");
+    }
+}
+if ( ! function_exists('app_integracao_gera_chave_pagnet')) {
+    function app_integracao_gera_chave_pagnet($formato, $dados = array())
+    {
+        $CI =& get_instance();
+        $CI->db->query("call sisconnects.sp_gera_chave_pagnet(27);");
     }
 }
 if ( ! function_exists('app_integracao_novo_mundo')) {
@@ -2614,5 +2731,61 @@ if ( ! function_exists('app_integracao_quero_quero_define_operacao')) {
         $result->parceiro = $acesso->parceiro;
         $result->status = true;
         return $result;
+    }
+}
+if ( ! function_exists('app_integracao_retorno_cta'))
+{
+    function app_integracao_retorno_cta($formato, $dados = array())
+    {
+        $sinistro = false;
+        $pagnet = false; // Ainda não tem um padrão de retorno definido. Desenvolver esta funcionalidade após concluir este desenvolvimento do pagnet
+        $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
+        if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
+            $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
+            return $response;
+        }
+        //Remove os caracteres não imprimíveis
+        $dados['registro']['descricao_erro'] = preg_replace( '/[^[:print:]\r\n]/', '?',$dados['registro']['descricao_erro']);
+        $data_processado    = date('d/m/Y', strtotime($dados['registro']['data_processado']));
+        $mensagem_registro  = 'Codigo: ' . $dados['registro']['cod_erro'] . ' - Mensagem: ' . $dados['registro']['descricao_erro'] . ' - Processado em: '. $data_processado;
+        $chave              = $dados['registro']['id_log'];
+        $file_registro      = $dados['registro']['nome_arquivo'];
+
+        if (empty($chave)) {
+            $response->msg[] = ['id' => 12, 'msg' => 'Chave não identificada', 'slug' => "erro_interno"];
+            return $response;
+        }
+        //echo '<pre><br> Log: '. print_r($dados['log']);
+        //echo '<pre><br> Reg: '. print_r($dados['registro']);
+
+        $CI =& get_instance();
+        $CI->load->model('integracao_model');
+        $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
+        
+        $proc = $CI->integracao_model->detectFileRetorno($dados['log']['nome_arquivo']);
+        $file = $proc['file'];
+        $sinistro = ($proc['tipo'] == 'SINISTRO');
+
+        //A - Acatado com sucesso (id=[4]), R - Rejeitado (Erro => id=[5]) ou P - Pendente (id=[3])
+        if (!empty($dados['registro']['status']))
+        {
+            if($dados['registro']['status'] == 'A'){
+                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '4', $mensagem_registro, $sinistro, $pagnet);
+                return $response;
+            }elseif($dados['registro']['status'] == 'R'){   
+                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '5', $mensagem_registro, $sinistro, $pagnet);
+                return $response;
+            }elseif($dados['registro']['status'] == 'P'){
+                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '3', $mensagem_registro, $sinistro, $pagnet);
+                return $response;
+            }else{
+                $response->msg[] = ['id' => 12, 'msg' => 'Status não identificado'];
+                return $response;
+            }
+            return true;
+        }else{
+            $response->msg[] = ['id' => 12, 'msg' => 'Registro sem status definido'];
+            return $response;
+        }
     }
 }
