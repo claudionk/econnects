@@ -1229,7 +1229,6 @@ Class Integracao_Model extends MY_Model
 
     function update_log_sucess($file = null, $sinistro = false, $chave = null, $slug_group = '', $pagnet = false)
     {
-
         $where = $whereItem = '';
 
         // Caso tenha sido enviada uma chave específica
@@ -1393,6 +1392,7 @@ Class Integracao_Model extends MY_Model
     public function detectFileRetorno($file, $dados = [])
     {
         $file = str_replace("-RT-", "-EV-", $file);
+        $file = str_replace("-RC-", "-EV-", $file); // Tratamento para o novo arquivo complementar.
         $result_file = explode("-", $file);
         if (count($result_file) < 3)
             return null;
@@ -1493,4 +1493,91 @@ Class Integracao_Model extends MY_Model
 	    }
     }
 
+    function update_log_detalhe_cta($file_registro, $chave, $integracao_log_status_id, $mensagem_registro, $sinistro, $pagnet)
+    {
+        if ($pagnet) { //PRECISO DE CENARIO PARA VALIDAR ESTE TESTE
+            $sql = "UPDATE integracao_log il
+                INNER JOIN integracao_log_detalhe ild ON il.integracao_log_id = ild.integracao_log_id 
+                INNER JOIN sissolucoes1.sis_exp_pagnet ec ON ec.identificacao_pagamento = ild.chave
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp 
+                       AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
+                 LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_exp = ehcx.id_exp 
+                       AND ehcx.tipo_expediente = ehc.tipo_expediente 
+                       AND ehcx.status = 'C'
+                       SET ehc.data_retorno = NOW()
+                         , ehc.`status` = 'F'
+                     WHERE il.deletado = 0
+                       AND ehc.`status` = 'P'
+                       AND ehcx.id_exp IS NULL
+                       AND il.nome_arquivo = '{$file_registro}'
+                       AND ild.chave = '{$chave}'
+                    ";
+            $query = $this->_database->query($sql);
+        }
+
+        if ($sinistro) { //PRECISO DE CENARIO PARA VALIDAR ESTE TESTE
+            $sql = "UPDATE integracao_log il
+                INNER JOIN integracao_log_detalhe ild ON il.integracao_log_id = ild.integracao_log_id 
+                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(ild.chave, LOCATE('|', ild.chave)-1)
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp 
+                       AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
+                 LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_exp = ehcx.id_exp 
+                       AND ehcx.tipo_expediente = ehc.tipo_expediente 
+                       AND ehcx.status = 'C'
+                       SET ehc.data_retorno = NOW()
+                         , ehc.`status` = 'F'
+                     WHERE 1 {$where}
+                       AND il.deletado = 0
+                       AND ehc.`status` = 'P'
+                       AND IF(ehc.tipo_expediente = 'AJU', 1, ehcx.id_exp IS NULL)
+                       AND ild.chave LIKE '{$chave}%'
+                   ";
+            $query = $this->_database->query($sql);
+        }
+        // marca o registro como erro (5) para processado com sucesso (4) e aguardando outro arquivo de retorno/complemento (3)
+        $sql = " UPDATE integracao_log_detalhe ild 
+                   JOIN integracao_log il 
+                     ON il.integracao_log_id = ild.integracao_log_id
+                    AND il.deletado = 0
+                    AND il.nome_arquivo = '{$file_registro}'
+                    AND ild.deletado = 0
+                    AND ild.integracao_log_status_id <> '{$integracao_log_status_id}'
+                    AND ild.chave = '{$chave}'
+                    SET ild.integracao_log_status_id = '{$integracao_log_status_id}'
+                      , ild.alteracao = NOW()
+                      , ild.retorno = '{$mensagem_registro}'  
+        ";
+        $query = $this->_database->query($sql);  
+        //Altera a Log para cada registro processado, uma vez que o nome do arquivo não é mais chave única
+        $sql = "SELECT CASE WHEN  REJEITADO = 1 THEN 5
+                            WHEN  PENDENTE  = 1 THEN 3
+                            WHEN  SUCESSO   = 1 THEN 4
+                            ELSE ATUAL
+                        END AS integracao_log_status_id
+                    FROM (SELECT MAX(CASE WHEN ild.integracao_log_status_id = '5' THEN 1 ELSE 0 END) AS REJEITADO,
+                                 MAX(CASE WHEN ild.integracao_log_status_id = '3' THEN 1 ELSE 0 END) AS PENDENTE,
+                                 MAX(CASE WHEN ild.integracao_log_status_id = '4' THEN 1 ELSE 0 END) AS SUCESSO,
+                                 MAX(il.integracao_log_status_id) AS ATUAL
+                            FROM integracao_log il
+                            JOIN integracao_log_detalhe ild 
+                              ON il.integracao_log_id = ild.integracao_log_id
+                             AND il.deletado = 0
+                             AND il.nome_arquivo = '{$file_registro}'
+                             AND ild.deletado = 0
+                         ) VALIDACAO
+                ";
+        $query = $this->_database->query($sql);
+        $row = $query->row_array();
+        $integracao_log_status_id = $row['integracao_log_status_id'];
+        if ($integracao_log_status_id > 0){
+            $sql = "UPDATE integracao_log
+                       SET integracao_log_status_id = {$integracao_log_status_id}, alteracao = NOW()
+                     WHERE deletado = 0
+                       AND nome_arquivo = '{$file_registro}'
+                       AND integracao_log_status_id <> {$integracao_log_status_id}
+                   ";
+            $query = $this->_database->query($sql);
+        }
+        return true;
+    }
 }
