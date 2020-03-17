@@ -322,9 +322,7 @@ Class Integracao_Model extends MY_Model
                 $file = $this->getFileName($result, $layout_filename);
             }
 
-            //$result_file = $this->getFile($result, $file);
-            //$result_file['file'] = '/var/www/webroot/ROOT/econnects/assets/uploads/integracao/14/R/C01.LASA.EMSCMS-RT-2974-20200301.TXT'; // TODO: RETIRAR APÓS TESTE
-            $result_file['file'] = '/var/www/webroot/ROOT/econnects/assets/uploads/integracao/14/R/C01.LASA.PARCEMS-RT-2974-20200301.TXT'; // TODO: RETIRAR APÓS TESTE
+            $result_file = $this->getFile($result, $file);
             $result_process = [];
             if(!empty($result_file['file']) && $result['tipo_layout']!='ZIP')
             {
@@ -1419,7 +1417,7 @@ Class Integracao_Model extends MY_Model
                 AND a.deletado = 0;
         ";
         $query = $this->_database->query($sql);
-        
+
         return ($query->row()) ? $query->result()[0]->num_apolice : FALSE; 
     }
 
