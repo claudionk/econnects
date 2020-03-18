@@ -1969,7 +1969,7 @@ Class Pedido_Model extends MY_Model
                                     LEFT JOIN apolice_equipamento ON apolice_equipamento.apolice_id = apolice.apolice_id
                                 
                                     #APENAS COBERTURAS (SEM ASSISTENCIAS)
-                                    LEFT JOIN cobertura_plano ON apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id AND pp.parceiro_id = cobertura_plano.parceiro_id
+                                    INNER JOIN cobertura_plano ON apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id AND pp.parceiro_id = cobertura_plano.parceiro_id
 
                                     WHERE 1
                                         AND pedido.deletado = 0
