@@ -2775,12 +2775,16 @@ if ( ! function_exists('app_integracao_retorno_cta'))
 
             if($dados['registro']['status'] == 'A'){
                 $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '4', $mensagem_registro, $sinistro, $pagnet);
+
+                $response->status = true;
                 return $response;
             }elseif($dados['registro']['status'] == 'R'){   
                 $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '5', $mensagem_registro, $sinistro, $pagnet);
                 return $response;
             }elseif($dados['registro']['status'] == 'P'){
                 $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '3', $mensagem_registro, $sinistro, $pagnet);
+
+                $response->status = true;
                 return $response;
             }else{
                 $response->msg[] = ['id' => 12, 'msg' => 'Status não identificado'];

@@ -1004,12 +1004,12 @@ Class Integracao_Model extends MY_Model
                             if ( empty($callFuncReturn->status) ){
                                 // seta para erro
                                 $integracao_log_status_id = 5; 
-                                $msgDetCampo = $callFuncReturn->msg; 
                             } elseif ( $callFuncReturn->status === 2 ) {
                                 // seta para ignorado
                                 $integracao_log_status_id = 7;
-                                $msgDetCampo = $callFuncReturn->msg;
                             }
+
+                            $msgDetCampo = emptyor($callFuncReturn->msg, $msgDetCampo);
 
                         }
                     }
