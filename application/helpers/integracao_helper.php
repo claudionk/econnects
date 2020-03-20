@@ -2744,31 +2744,35 @@ if ( ! function_exists('app_integracao_retorno_cta'))
             $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
             return $response;
         }
+
         //Remove os caracteres não imprimíveis
         $dados['registro']['descricao_erro'] = preg_replace( '/[^[:print:]\r\n]/', '?',$dados['registro']['descricao_erro']);
         $data_processado    = date('d/m/Y', strtotime($dados['registro']['data_processado']));
-        $mensagem_registro  = 'Codigo: ' . $dados['registro']['cod_erro'] . ' - Mensagem: ' . $dados['registro']['descricao_erro'] . ' - Processado em: '. $data_processado;
+        $mensagem_registro  = 'Cod: ' . $dados['registro']['cod_erro'] . ' - Mensagem: ' . $dados['registro']['descricao_erro'] . ' - Processado em: '. $data_processado;
         $chave              = $dados['registro']['id_log'];
         $file_registro      = $dados['registro']['nome_arquivo'];
 
-        if (empty($chave)) {
+        if (empty($chave))
+        {
             $response->msg[] = ['id' => 12, 'msg' => 'Chave não identificada', 'slug' => "erro_interno"];
             return $response;
         }
-        //echo '<pre><br> Log: '. print_r($dados['log']);
-        //echo '<pre><br> Reg: '. print_r($dados['registro']);
 
         $CI =& get_instance();
         $CI->load->model('integracao_model');
         $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
-        
-        $proc = $CI->integracao_model->detectFileRetorno($dados['log']['nome_arquivo']);
+
+        $proc = $CI->integracao_model->detectFileRetorno($file_registro);
         $file = $proc['file'];
         $sinistro = ($proc['tipo'] == 'SINISTRO');
 
         //A - Acatado com sucesso (id=[4]), R - Rejeitado (Erro => id=[5]) ou P - Pendente (id=[3])
         if (!empty($dados['registro']['status']))
         {
+            // Retorna o codigo e descrição do status de retorno do arquivo 
+            $response->coderr = $dados['registro']['cod_erro']; 
+            $response->msg[] = ['id' => 12, 'msg' => $dados['registro']['cod_erro'] ." - ". $dados['registro']['descricao_erro'], 'slug' => "erro_retorno"];
+
             if($dados['registro']['status'] == 'A'){
                 $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '4', $mensagem_registro, $sinistro, $pagnet);
                 return $response;
