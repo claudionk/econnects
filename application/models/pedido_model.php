@@ -696,7 +696,7 @@ Class Pedido_Model extends MY_Model
         $adesao = mktime(0, 0, 0, $adesao[1], $adesao[2], $adesao[0]);
 
         $data_hoje = explode('-', date('Y-m-d'));
-        $data_hoje = mktime(0, 0, 0, $adesao[1], $adesao[2], $adesao[0]);
+        $data_hoje = mktime(0, 0, 0, $data_hoje[1], $data_hoje[2], $data_hoje[0]);
 
         list( $current_year, $current_month, $current_day, $current_hour, $current_minute, $current_second ) = preg_split("/[- :]/", $define_date);
         $hoje = mktime( $current_hour, $current_minute, $current_second, $current_month, $current_day, $current_year );
