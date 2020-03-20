@@ -711,13 +711,24 @@ Class Pedido_Model extends MY_Model
         $adesao = explode('-', $apolice['data_adesao']);
         $adesao = mktime(0, 0, 0, $adesao[1], $adesao[2], $adesao[0]);
 
+        $data_hoje = explode('-', date('Y-m-d'));
+        $data_hoje = mktime(0, 0, 0, $adesao[1], $adesao[2], $adesao[0]);
+
         list( $current_year, $current_month, $current_day, $current_hour, $current_minute, $current_second ) = preg_split("/[- :]/", $define_date);
         $hoje = mktime( $current_hour, $current_minute, $current_second, $current_month, $current_day, $current_year );
 
-        // valida a data de cancelamento
+        // valida a data de cancelamento anterior à adesão
         if ( $hoje < $adesao )
         {
             $result['mensagem'] = "A data de Cancelamento não pode ser inferior à data de Adesão";
+            $result['redirect'] = "admin/pedido/view/{$pedido_id}";
+            return $result;
+        }
+
+        // valida a data de cancelamento posterior à data atual
+        if ( $hoje > $data_hoje )
+        {
+            $result['mensagem'] = "A data de Cancelamento não pode ser superior à data de Hoje";
             $result['redirect'] = "admin/pedido/view/{$pedido_id}";
             return $result;
         }
