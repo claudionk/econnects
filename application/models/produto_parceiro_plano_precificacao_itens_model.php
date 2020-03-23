@@ -143,6 +143,19 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         return $this;
     }
 
+    /**
+    * Filtra o preço pela vigência, somente quando houver data de adesão
+    * @param $dataAdesao
+    * @return mixed|null
+    */
+    function filter_by_vigencia_equipamento($dataAdesao){
+        if(isset($dataAdesao) && !empty($dataAdesao)){
+            $this->_database->where("('$dataAdesao' >=", "{$this->_table}.dt_inicio_vigencia OR dt_inicio_vigencia IS NULL)", FALSE);
+            $this->_database->where("('$dataAdesao' <=", "{$this->_table}.dt_final_vigencia OR dt_final_vigencia IS NULL)", FALSE);
+        }
+        return $this;
+    }
+
     function filter_by_equipamento_de_para($equipamento_de_para){
         $this->_database->where("{$this->_table}.equipamento_de_para", "{$equipamento_de_para}");
         return $this;
@@ -195,7 +208,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param int $num_passageiro
     * @return array
     */
-    public function getValoresPlano( $cotacao_id = 0, $cotacao_aux_id = NULL, $valor_fixo = NULL, $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_sub_categoria_id = NULL, $equipamento_de_para = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
+    public function getValoresPlano( $cotacao_id = 0, $cotacao_aux_id = NULL, $valor_fixo = NULL, $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_sub_categoria_id = NULL, $equipamento_de_para = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL, $data_adesao = NULL){
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
@@ -349,6 +362,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                                 $valor = $query
                                     ->filter_by_equipamento_de_para($equipamento_de_para)
+                                    ->filter_by_vigencia_equipamento($data_adesao)                                        
                                     ->get_all();
 
                             } else {
