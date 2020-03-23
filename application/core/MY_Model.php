@@ -1816,7 +1816,6 @@ class MY_Model extends CI_Model
         return $this;
     }
 
-
     public function processa_parceiros_permitidos( $campo ) {
         $parceiro_id = $this->session->userdata('parceiro_id');
         $parceiros_permitidos = $this->session->userdata("parceiros_permitidos");
@@ -1843,6 +1842,23 @@ class MY_Model extends CI_Model
 
     public function disableLog(){
         $this->enable_log = FALSE;
+    }
+
+    protected function search($array, $key, $value)
+    {
+        $results = array();
+
+        if (is_array($array)) {
+            if (isset($array[$key]) && $array[$key] == $value) {
+                $results = $array;
+            }
+
+            foreach ($array as $subarray) {
+                $results = array_merge($results, $this->search($subarray, $key, $value));
+            }
+        }
+
+        return $results;
     }
 
 }

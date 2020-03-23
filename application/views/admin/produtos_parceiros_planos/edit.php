@@ -126,6 +126,16 @@ if($_POST)
                                                         </div>
                                                     </div>
 
+                                                    <?php $field_name = 'qtd_min_vida';?>
+                                                    <div class="form-group">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Mínimo de Vidas
+                                                            <a  href="" class="pull-right" data-toggle="modal" data-target="#modal_explicacao_vidas">
+                                                                O que é este campo <i class="fa fa-question"></i>
+                                                            </a>
+                                                        </label>
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                    </div>
+
                                                     <?php $field_name = 'idade_minima';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Idade Mínima</label>
@@ -254,6 +264,31 @@ if($_POST)
             </div>
             <!-- // END col-separator.box -->
         </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modal_explicacao_vidas" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Quantidade Mínima de Vidas</h4>
+            </div>
+            <div class="modal-body explicacao_modal">
+                <div class="row">
+                    <div class="col-md-12">
+                        <p>Informe a quantidade mínima de vidas exigidas pelo plano atual.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Fechar</button>
+            </div>
+        </div>
+
     </div>
 </div>
 

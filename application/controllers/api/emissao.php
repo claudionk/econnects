@@ -411,11 +411,14 @@ class Emissao extends CI_Controller {
                     {
                         $retorno = convert_objeto_to_array($r);
                         $flag = false;
-                        foreach ($retorno as $vl) {
-                            if($vl->tipo->slug == $this->meio_pagto_slug) {
-                                $this->produto_parceiro_pagamento_id = $vl->pagamento[0]->produto_parceiro_pagamento_id;
-                                $this->forma_pagamento_id = $vl->pagamento[0]->forma_pagamento_id;
-                                $flag = true;
+                        if (!empty($retorno) && is_array($retorno))
+                        {
+                            foreach ($retorno as $vl) {
+                                if($vl->tipo->slug == $this->meio_pagto_slug) {
+                                    $this->produto_parceiro_pagamento_id = $vl->pagamento[0]->produto_parceiro_pagamento_id;
+                                    $this->forma_pagamento_id = $vl->pagamento[0]->forma_pagamento_id;
+                                    $flag = true;
+                                }
                             }
                         }
                         if(!$flag) {

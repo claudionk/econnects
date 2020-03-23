@@ -417,7 +417,7 @@
                                                                 </tr>
                                                                 <tr class="">
                                                                     <td class="td-add-car">
-                                                                        <a class="add-car" href="javascript: void(0);" data-plano="<?php echo $plano['produto_parceiro_plano_id']; ?>">
+                                                                        <a class="add-car" href="javascript: void(0);" data-plano="<?php echo $plano['produto_parceiro_plano_id']; ?>" data-enabled="1" >
                                                                             Escolher
                                                                         </a>
                                                                     </td>
@@ -566,7 +566,7 @@
                                                                 </tr>
                                                                 <tr>
                                                                     <td class="td-add-car">
-                                                                      <a class="add-car" href="javascript: void(0);" data-plano="<?php echo $plano['produto_parceiro_plano_id']; ?>">
+                                                                      <a class="add-car" href="javascript: void(0);" data-plano="<?php echo $plano['produto_parceiro_plano_id']; ?>" data-enabled="1" >
                                                                         Escolher
                                                                       </a>
                                                                   </td>

@@ -1,9 +1,9 @@
 <?php
-Class Cliente_Evolucao_Status_Model extends MY_Model
+Class Cliente_Evolucao_Status_Grupo_Model extends MY_Model
 {
     //Dados da tabela e chave primária
-    protected $_table = 'cliente_evolucao_status';
-    protected $primary_key = 'cliente_evolucao_status_id';
+    protected $_table = 'cliente_evolucao_status_grupo';
+    protected $primary_key = 'cliente_evolucao_status_grupo_id';
 
     //Configurações
     protected $return_type = 'array';
@@ -16,14 +16,14 @@ Class Cliente_Evolucao_Status_Model extends MY_Model
 
     //campos para transformação em maiusculo e minusculo
     protected $fields_lowercase = array();
-    protected $fields_uppercase = array('descricao');
+    protected $fields_uppercase = array('descricao_grupo');
 
 
     //Dados
     public $validate = array(
    
         array(
-            'field' => 'descricao',
+            'field' => 'descricao_grupo',
             'label' => 'Descrição',
             'rules' => 'required',
             'groups' => 'default'
@@ -35,7 +35,7 @@ Class Cliente_Evolucao_Status_Model extends MY_Model
     {
         //Dados
         $data =  array(
-            'descricao' => $this->input->post('descricao'),
+            'descricao_grupo' => $this->input->post('descricao_grupo'),
         );
         return $data;
     }
@@ -47,7 +47,7 @@ Class Cliente_Evolucao_Status_Model extends MY_Model
 
     public function getDescricao($id)
     {
-        $this->db->select($this->_table. '.descricao');
+        $this->db->select($this->_table. '.descricao_grupo');
         $this->db->from($this->_table);
         $this->db->where($this->_table. '.' .$this->primary_key, $id);
         $this->db->limit(1);
@@ -57,7 +57,7 @@ Class Cliente_Evolucao_Status_Model extends MY_Model
         if ($query->num_rows() == 1) 
         {
             $data = $query->result_array();
-            return $data[0]['descricao'];
+            return $data[0]['descricao_grupo'];
         }
         else
         {
@@ -68,7 +68,7 @@ Class Cliente_Evolucao_Status_Model extends MY_Model
     //Retorna por CPF/CNPJ
     public function filter_by_descricao($descricao)
     {
-        $this->_database->where($this->_table . '.descricao', $descricao);
+        $this->_database->where($this->_table . '.descricao_grupo', $descricao);
         $this->_database->where($this->_table . '.deletado', 0);
         return $this;
     }
