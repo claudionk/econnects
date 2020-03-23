@@ -137,6 +137,18 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
         return $this;
     }
+    /**
+    * Filtra o preço pela vigência, somente quando houver data de adesão
+    * @param $dataAdesao
+    * @return mixed|null
+    */
+    function filter_by_vigencia_equipamento($dataAdesao){
+        if(isset($dataAdesao) && !empty($dataAdesao)){
+            $this->_database->where("('$dataAdesao' >=", "{$this->_table}.dt_inicio_vigencia OR dt_inicio_vigencia IS NULL)", FALSE);
+            $this->_database->where("('$dataAdesao' <=", "{$this->_table}.dt_final_vigencia OR dt_final_vigencia IS NULL)", FALSE);
+        }
+        return $this;
+    }
 
     function filter_by_equipamento($equipamento){
         $this->_database->like("{$this->_table}.equipamento", "'{$equipamento}'");
@@ -196,7 +208,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param int $num_passageiro
     * @return array
     */
-    public function getValoresPlano( $valor_fixo = NULL, $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_sub_categoria_id = NULL, $equipamento_de_para = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL ){
+    public function getValoresPlano( $valor_fixo = NULL, $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_sub_categoria_id = NULL, $equipamento_de_para = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL, $data_adesao = NULL ){
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
@@ -226,7 +238,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         $valores = array();
 
         foreach ($arrPlanos as $plano){
-
             $valor_cobertura_plano = 0;
             $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
 
@@ -238,7 +249,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                 switch ((int)$plano['precificacao_tipo_id']) {
                     case $this->config->item("PRECO_TIPO_TABELA"):
-
                         $calculo = [];
 
                         if( $produto_slug == 'equipamento' ) {
@@ -270,7 +280,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                         break;
                     case $this->config->item("PRECO_TIPO_COBERTURA"):
-
                         $this->load->model("produto_parceiro_plano_precificacao_model", "produto_parceiro_plano_precificacao");
                         $this->load->model("cobertura_plano_model", "plano_cobertura");
                         
@@ -308,7 +317,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                         break;
                     case $this->config->item("PRECO_POR_EQUIPAMENTO");
-
                         $try = true;
 
                         while ($try)
@@ -325,8 +333,9 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                                 $valor = $query
                                     ->filter_by_equipamento_de_para($equipamento_de_para)
+                                    ->filter_by_vigencia_equipamento($data_adesao)                                        
                                     ->get_all();
-
+                                    //print_pre($this->db->last_query()); exit;
                             } else {
 
                                 // tratamento para identificar o equipamento
@@ -361,7 +370,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                         break;
                     case $this->config->item("PRECO_TIPO_FIXO_SERVICO"):
-
                         $this->load->model('produto_parceiro_plano_precificacao_servico_model', 'produto_parceiro_plano_precificacao_servico');
                         $preco = $this->produto_parceiro_plano_precificacao_servico
                             ->get_by(array(
