@@ -325,9 +325,23 @@ if ( ! function_exists('app_integracao_format_decimal_r')) {
 
     function app_integracao_format_decimal_r($formato, $dados = array())
     {
+        /**
+        * $f[0] = qtde final de casas decimais
+        * $f[1] = caracter final para separar os decimais
+        * $f[2] = caracter inicial para separar os decimais
+        * $f[3] = caracter inicial para separar os milhares
+        **/
         $f = explode("|", $formato);
-        $defaultValue = str_pad(0,  100, '0', STR_PAD_LEFT);
-        $valor = (!empty($dados['valor'])) ? (int)$dados['valor'] : $defaultValue;
+        $decimalIN = emptyor($f[2], '');
+        $milharesIN = emptyor($f[3], '');
+
+        if ( empty($dados['valor']) )
+        {
+            $valor = str_pad(0,  100, '0', STR_PAD_LEFT);
+        } else
+        {
+            $valor = (int)str_replace($decimalIN, "", str_replace($milharesIN, "", $dados['valor']));
+        }
 
         $a = $val = left($valor, strlen($valor)-$f[0]);
         $a = (int)$a;
@@ -2943,6 +2957,44 @@ if ( ! function_exists('app_integracao_quero_quero_define_operacao')) {
         return $result;
     }
 }
+if ( ! function_exists('app_integracao_coop_define_operacao')) {
+    function app_integracao_coop_define_operacao($dados = [])
+    {
+        $result = (object) ['status' => false, 'msg' => []];
+
+        $equipamento_de_para = $dados['equipamento_de_para'];
+        if (empty($equipamento_de_para)) {
+            $result->msg = ['id' => -1, 'msg' => "Código da Garantia Não informada", 'slug' => "equipamento_de_para"];
+            return $result;
+        }
+
+        $result->parceiro_id = 104;
+        $result->email = "coop@sisconnects.com.br";
+        $result->produto_parceiro_id = 108;
+
+        // NAO POSSUI DANOS ELETRICOS
+        if (strpos($equipamento_de_para, "X") === FALSE) 
+        {
+            $result->produto_parceiro_plano_id = 164;
+        } else 
+        {
+            $result->produto_parceiro_plano_id = 165;
+        }
+
+        // Dados para definição do parceiro, produto e plano
+        $acesso = app_integracao_generali_dados([
+            "email" => $result->email,
+            "parceiro_id" => $result->parceiro_id,
+            "produto_parceiro_id" => $result->produto_parceiro_id,
+            "produto_parceiro_plano_id" => $result->produto_parceiro_plano_id,
+        ]);
+
+        $result->apikey = $acesso->apikey;
+        $result->parceiro = $acesso->parceiro;
+        $result->status = true;
+        return $result;
+    }
+}
 if ( ! function_exists('app_integracao_mailing')) {
     function app_integracao_mailing($formato, $dados = array())
     {
@@ -3309,5 +3361,172 @@ if ( ! function_exists('app_integracao_retorno_cta'))
             $response->msg[] = ['id' => 12, 'msg' => 'Registro sem status definido'];
             return $response;
         }
+    }
+}
+if ( ! function_exists('app_integracao_coop')) {
+    function app_integracao_coop($formato, $dados = array())
+    {
+        $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
+
+        // Emissão
+        if ( $dados['registro']['tipo_transacao'] == 'FC' )
+        {
+            $dados['registro']['acao'] = '1';
+
+        // Cancelamento
+        } elseif ( $dados['registro']['tipo_transacao'] == 'NC' )
+        {
+            $dados['registro']['acao'] = '9';
+        } else {
+            $dados['registro']['acao'] = '0';
+        }
+
+        $reg = $dados['registro'];
+        // print_pre($reg, false);
+
+        $CI =& get_instance();
+        $CI->session->sess_destroy();
+        $CI->session->set_userdata("operacao", "coop");
+        $vigencia = $reg['garantia_total'] - $reg['garantia_fabricante'];
+
+        if (!empty($formato))
+        {
+            $geraDados['tipo_transacao']            = $reg['tipo_transacao'];
+            $geraDados['tipo_operacao']             = $reg['acao'];
+            $geraDados['cod_loja']                  = $reg['cod_loja'];
+            $geraDados['num_apolice']               = $reg['num_apolice'];
+            $geraDados['nota_fiscal_numero']        = $reg['nota_fiscal_numero'];
+            $geraDados['cod_vendedor']              = $reg['cod_vendedor'];
+            $geraDados['nome']                      = $reg['nome'];
+            $geraDados['sexo']                      = null;
+            $geraDados['data_nascimento']           = null;
+            $geraDados['telefone']                  = $reg['telefone'];
+            $geraDados['endereco']                  = $reg['endereco_logradouro'];
+            $geraDados['endereco_numero']           = $reg['endereco_numero'];
+            $geraDados['complemento']               = $reg['complemento'];
+            $geraDados['endereco_bairro']           = $reg['endereco_bairro'];
+            $geraDados['endereco_cidade']           = $reg['endereco_cidade'];
+            $geraDados['endereco_estado']           = $reg['endereco_estado'];
+            $geraDados['endereco_cep']              = $reg['endereco_cep'];
+            $geraDados['tipo_pessoa']               = (app_verifica_cpf_cnpj($reg['cpf']) == 'CNPJ') ? 'PJ' : 'PF';
+            $geraDados['cpf']                       = $reg['cpf'];
+            $geraDados['premio_bruto']              = $reg['premio_bruto'];
+            $geraDados['num_parcela']               = 1;
+            $geraDados['vigencia']                  = $vigencia;
+            $geraDados['garantia_fabricante']       = $reg['garantia_fabricante'];
+            $geraDados['marca']                     = $reg['marca'];
+            $geraDados['modelo']                    = $reg['modelo'];
+            $geraDados['cod_produto_sap']           = $reg['cod_produto_sap'];
+            $geraDados['equipamento_nome']          = $reg['equipamento_nome'];
+            $geraDados['num_serie']                 = $reg['num_serie'];
+            $geraDados['nota_fiscal_data']          = $reg['nota_fiscal_data'];
+            $geraDados['data_adesao_cancel']        = $reg['data_adesao_cancel'];
+            $geraDados['nota_fiscal_valor']         = $reg['nota_fiscal_valor'];
+            $geraDados['cod_faixa_preco']           = $reg['equipamento_de_para'];
+            $geraDados['num_sorte']                 = $reg['num_sorte'];
+            $geraDados['num_serie_cap']             = $reg['num_serie_cap'];
+            $geraDados['rg']                        = $reg['rg'];
+            $geraDados['rg_data_expedicao']         = $reg['rg_data_expedicao'];
+            $geraDados['rg_orgao_expedidor']        = $reg['rg_orgao_expedidor'];
+            $geraDados['integracao_log_detalhe_id'] = $formato;
+
+            // Cancelamento
+            if ( $dados['registro']['tipo_transacao'] == 'NC' ) {
+                $geraDados['data_cancelamento']         = $dados['registro']['data_adesao_cancel'];
+                $dados['registro']['data_cancelamento'] = $dados['registro']['data_adesao_cancel'];
+            } 
+            // Emissão
+            elseif ( $dados['registro']['tipo_transacao'] == 'FC' )
+            {
+                // gerar as vigências
+                // $dados['registro']['data_inicio_vigencia'] = ;
+            }
+
+            $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
+            $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
+        }
+
+        // Emissão
+        if ( ! in_array( $dados['registro']['tipo_transacao'], ['FC','NC'] ) )
+        {
+            $response->msg[] = ['id' => -1, 'msg' => "Registro recebido como {$dados['registro']['tipo_transacao']}", 'slug' => "ignorado"];
+            return $response;
+        }
+
+        // definir dados da operação
+        $acesso = app_integracao_coop_define_operacao($reg);
+        if ( empty($acesso->status) )
+        {
+            $response->status = 2;
+            $response->msg[] = $acesso->msg;
+            return $response;
+        }
+
+        // recupera as variaveis mais importantes
+        $num_apolice    = $reg['num_apolice'];
+        $cpf            = $reg['cpf'];
+
+        $dados['registro']['produto_parceiro_id']       = $acesso->produto_parceiro_id;
+        $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
+        $dados['registro']['data_adesao']               = $dados['registro']['data_adesao_cancel'];
+        $dados['registro']['equipamento_de_para']       = $vigencia . $dados['registro']['equipamento_de_para'];
+        $eanErro = true;
+        $eanErroMsg = "";
+
+        // validações iniciais
+        $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, null, $dados, true, $acesso);
+        if ( $valid->status !== true )
+        {
+            $response = $valid;
+            return $response;
+        }
+
+        // Campos para cotação
+        $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id, 'GET', [], $acesso);
+        if (empty($camposCotacao['status']))
+        {
+            $response->msg[] = ['id' => -1, 'msg' => $camposCotacao['response'], 'slug' => "cotacao_campos"];
+            return $response;
+        }
+
+        $camposCotacao = $camposCotacao['response'];
+
+        // Validar Regras
+        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, false, $acesso);
+        // echo "<pre>";print_r($validaRegra);echo "</pre>";die();
+
+        if (!empty($validaRegra->status))
+        {
+            $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
+            $dados['registro']['fields'] = $validaRegra->fields;
+            $emissao = app_integracao_emissao($formato, $dados, $acesso);
+
+            if (empty($emissao->status)) {
+
+                if ( !empty($emissao->msg) ) {
+
+                    if ( !is_array($emissao->msg) ) {
+                        $response->msg[] = $emissao->msg;
+                    } else {
+                        $response->msg = $emissao->msg;
+                    }
+
+                } else {
+                    $response->msg = $emissao->errors;
+                }
+
+            } else {
+                $response->status = true;
+            }
+
+        } else {
+            if (!empty($response->msg)) {
+                $response->msg = array_merge($validaRegra->errors, $response->msg);
+            } else {
+                $response->msg = $validaRegra->errors;
+            }
+        }
+
+        return $response;
     }
 }
