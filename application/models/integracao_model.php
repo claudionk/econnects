@@ -961,7 +961,7 @@ Class Integracao_Model extends MY_Model
                     {
                         $id_log = $proc['chave'];
                     } else {
-                        $id_log = implode($ids, "|");
+                        $id_log = $this->geraCampoChave($integracao['campo_chave'], $ids);
                     }
 
                 } else {

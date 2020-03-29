@@ -1384,7 +1384,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
 
                     $d1 = new DateTime($dados["data_adesao"]);
                     $d2 = $d1->format('Y-m-d');
-                    $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
+                    // $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
                     $dados["data_inicio_vigencia"] = $d1->format('Y-m-d');
 
                     // Período de Vigência: 12 meses
@@ -1603,6 +1603,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $fields['data_fim_vigencia']            = isempty($dados['data_fim_vigencia'], null);
                 $fields['numero_sorte']                 = isempty($dados['num_sorte'], null);
                 $fields['ean']                          = isempty($dados['ean'], null);
+                $fields['coberturas']                   = isempty($dados['coberturas'], []);
                 $fields['emailAPI']                     = app_get_userdata("email");
 
                 // Retirar os acentos
@@ -1635,7 +1636,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $response->cotacao_id = $cotacao_id;
 
                 // Cálculo do prêmio
-                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0) );
+                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0), $fields['coberturas'] );
                 if (empty($calcPremio['status'])){
                     $response->errors[] = ['id' => -1, 'msg' => $calcPremio['response'], 'slug' => "calcula_premio"];
                     return $response;
@@ -1664,9 +1665,15 @@ if ( ! function_exists('app_integracao_valida_regras'))
 }
 if ( ! function_exists('app_integracao_calcula_premio'))
 {
-    function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso = null, $premio_liquido = NULL, $valor_iof = NULL, $valor_fixo = NULL, $qtde = 0){
+    function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso = null, $premio_liquido = NULL, $valor_iof = NULL, $valor_fixo = NULL, $qtde = 0, $coberturas = []){
+        $fields = [
+            'cotacao_id' => $cotacao_id,
+            'valor_fixo' => $valor_fixo,
+            'coberturas' => $coberturas,
+        ];
         // Cálculo do prêmio
-        $calcPremio = app_get_api("calculo_premio/". $cotacao_id ."/". $valor_fixo, 'GET', [], $acesso);
+        // $calcPremio = app_get_api("calculo_premio/". $cotacao_id ."/". $valor_fixo, 'GET', [], $acesso);
+        $calcPremio = app_get_api("calculo_premio", "POST", json_encode($fields), $acesso);
         if (empty($calcPremio['status'])){
             return ['status' => false, 'response' => $calcPremio['response']];
         }
@@ -1714,7 +1721,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
                         print_r( [$qtde, $premio_liquido, $valor_iof, $premio_bruto, ( 1 + round($valor_iof / $premio_liquido, 4)), $novo_liquido] );
                         echo "<br>";
 
-                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso, $premio_liquido, $valor_iof, $novo_liquido, $qtde);
+                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso, $premio_liquido, $valor_iof, $novo_liquido, $qtde, $coberturas);
                     }
 
                 } else {
@@ -1752,7 +1759,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
                         $CI->cobertura_plano->update(281, ['porcentagem' => $percRF], TRUE);
                         $CI->cobertura_plano->update(282, ['porcentagem' => $percQA], TRUE);
 
-                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso);
+                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso, $premio_liquido, $valor_iof, $novo_liquido, $qtde, $coberturas);
                     }
                 }
             }
@@ -2775,6 +2782,7 @@ if ( ! function_exists('app_integracao_coop_define_operacao')) {
         $result->parceiro_id = 104;
         $result->email = "coop@sisconnects.com.br";
         $result->produto_parceiro_id = 108;
+        $result->coberturas[] = ['cobertura' => 'garantia-estendida'];
 
         // NAO POSSUI DANOS ELETRICOS
         if (strpos($equipamento_de_para, "X") === FALSE) 
@@ -2783,6 +2791,7 @@ if ( ! function_exists('app_integracao_coop_define_operacao')) {
         } else 
         {
             $result->produto_parceiro_plano_id = 165;
+            $result->coberturas[] = ['cobertura' => 'danos-eletricos'];
         }
 
         // Dados para definição do parceiro, produto e plano
@@ -3235,22 +3244,16 @@ if ( ! function_exists('app_integracao_coop')) {
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
             // Cancelamento
-            if ( $dados['registro']['tipo_transacao'] == 'NC' ) {
+            if ( $reg['acao'] == '9' ) {
                 $geraDados['data_cancelamento']         = $dados['registro']['data_adesao_cancel'];
                 $dados['registro']['data_cancelamento'] = $dados['registro']['data_adesao_cancel'];
-            } 
-            // Emissão
-            elseif ( $dados['registro']['tipo_transacao'] == 'FC' )
-            {
-                // gerar as vigências
-                // $dados['registro']['data_inicio_vigencia'] = ;
             }
 
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
             $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
         }
 
-        // Emissão
+        // Valida o tipo de transacao
         if ( ! in_array( $dados['registro']['tipo_transacao'], ['FC','NC'] ) )
         {
             $response->msg[] = ['id' => -1, 'msg' => "Registro recebido como {$dados['registro']['tipo_transacao']}", 'slug' => "ignorado"];
@@ -3265,6 +3268,50 @@ if ( ! function_exists('app_integracao_coop')) {
             $response->msg[] = $acesso->msg;
             return $response;
         }
+
+        // Emissao
+        if ( $reg['acao'] == '1' )
+        {
+            // print_pre($acesso->coberturas);
+            print_pre($reg);
+
+            // gerar as vigências de GarantiaEstendida
+            $idx = app_search( $acesso->coberturas, 'garantia-estendida', 'cobertura' );
+            if ( $idx >= 0 )
+            {
+                // inicio da vigencia
+                $dGE = new DateTime($reg["nota_fiscal_data"]);
+                $dGE->add(new DateInterval("P{$reg['garantia_fabricante']}M")); //Adiciona a garantia do fabricante à data da nf
+                // $dGE->add(new DateInterval("P1D")); //Adiciona a garantia do fabricante à data da nf
+                $ini_vig_ge = $dGE->format('Y-m-d');
+
+                // Fim da vigencia
+                $dGE->add(new DateInterval("P{$vigencia}M")); //Adiciona a garantia do fabricante à data da nf
+                $fim_vig_ge = $dGE->format('Y-m-d');
+
+                $dados["registro"]["data_inicio_vigencia"] = $ini_vig_ge;
+                $dados["registro"]["data_fim_vigencia"] = $fim_vig_ge;
+
+                $acesso->coberturas[$idx]['data_inicio_vigencia'] = $ini_vig_ge;
+                $acesso->coberturas[$idx]['data_fim_vigencia'] = $fim_vig_ge;
+            }
+
+            // gerar as vigências de DanosEletricos
+            $idx = app_search( $acesso->coberturas, 'danos-eletricos', 'cobertura' );
+            if ( $idx >= 0 )
+            {
+                $ini_vig_de = $reg['data_adesao_cancel'];
+                $dDE = new DateTime($ini_vig_ge);
+                $dDE->sub(new DateInterval("P1D")); //1 dia antes do inicio da vigencia da GE
+                $fim_vig_de = $dDE->format('Y-m-d');
+
+                $acesso->coberturas[$idx]['data_inicio_vigencia'] = $ini_vig_de;
+                $acesso->coberturas[$idx]['data_fim_vigencia'] = $fim_vig_de;
+            }
+        }
+
+        // print_pre($acesso->coberturas);
+        $dados["registro"]["coberturas"] = $acesso->coberturas;
 
         // recupera as variaveis mais importantes
         $num_apolice    = $reg['num_apolice'];

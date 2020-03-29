@@ -311,7 +311,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         // Validação para que o retorno seja sempre por cobertura
         if ( empty($coberturas) )
         {
-            $coberturas[] = [ 'data_base' => $data_base, 'cotacao_salva' => $cotacao_salva];
+            $coberturas[] = [ 'data_base' => $data_base];
         }
 
         /*

@@ -219,9 +219,12 @@ class Api extends Site_Controller
         return;
     }
 
-    public function calculo_premio($cotacao_id, $valor_fixo = null){
-        $retorno = $this->execute($this->url."cotacao/calculo?cotacao_id=$cotacao_id&valor_fixo=$valor_fixo");
-        // echo '<pre>'; echo $this->url."cotacao/calculo?cotacao_id=$cotacao_id&valor_fixo=$valor_fixo"; print_r(json_decode($retorno)); die();
+    public function calculo_premio(){
+        $json = file_get_contents( "php://input" );
+        $trat = $this->extractEmail($json);
+        $json = $trat->json;
+        $email = $trat->email;
+        $retorno = $this->execute($this->url."cotacao/calculo", 'POST', $json, $email);
 
         $this->output
             ->set_content_type('application/json')
