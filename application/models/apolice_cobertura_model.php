@@ -93,19 +93,21 @@ Class Apolice_Cobertura_Model extends MY_Model
             }
 
             $dados = [
-                'cotacao_id'         => $cobertura["cotacao_id"],
-                'pedido_id'          => $cobertura["pedido_id"],
-                'apolice_id'         => $cobertura["apolice_id"],
-                'cobertura_plano_id' => $cobertura["cobertura_plano_id"],
-                'valor'              => $valor_cobertura,
-                'iof'                => isempty($cobertura["iof"], 0),
-                'mostrar'            => $cobertura["mostrar"],
-                'valor_config'       => $valor_config,
-                'cod_cobertura'      => $cobertura['cod_cobertura'],
-                'cod_ramo'           => isempty($cobertura['cod_ramo'],     $dados_bilhete['cod_ramo']),
-                'cod_produto'        => isempty($cobertura['cod_produto'],  $dados_bilhete['cod_produto']),
-                'cod_sucursal'       => isempty($cobertura['cod_sucursal'], $dados_bilhete['cod_sucursal']),
-                'criacao'            => date("Y-m-d H:i:s"),
+                'cotacao_id'            => $cobertura["cotacao_id"],
+                'pedido_id'             => $cobertura["pedido_id"],
+                'apolice_id'            => $cobertura["apolice_id"],
+                'cobertura_plano_id'    => $cobertura["cobertura_plano_id"],
+                'valor'                 => $valor_cobertura,
+                'iof'                   => isempty($cobertura["iof"], 0),
+                'mostrar'               => $cobertura["mostrar"],
+                'valor_config'          => $valor_config,
+                'cod_cobertura'         => $cobertura['cod_cobertura'],
+                'data_inicio_vigencia'  => $cobertura['data_inicio_vigencia'],
+                'data_fim_figencia'     => $cobertura['data_fim_figencia'],
+                'cod_ramo'              => isempty($cobertura['cod_ramo'],     $dados_bilhete['cod_ramo']),
+                'cod_produto'           => isempty($cobertura['cod_produto'],  $dados_bilhete['cod_produto']),
+                'cod_sucursal'          => isempty($cobertura['cod_sucursal'], $dados_bilhete['cod_sucursal']),
+                'criacao'               => date("Y-m-d H:i:s"),
             ];
 
             $idInsert = $this->insert($dados, TRUE);
