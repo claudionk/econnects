@@ -293,9 +293,8 @@ class Produto_Parceiro_Plano_Model extends MY_Model
      * @param $data_base
      */
 
-    public function getInicioFimVigencia($produto_parceiro_plano_id, $data_base = null, $cotacao_salva = null, $coberturas = [])
+    public function getInicioFimVigencia($produto_parceiro_plano_id, $data_base_rec = null, $cotacao_salva = null, $coberturas = [])
     {
-
         $produto_parceiro_plano = $this->get($produto_parceiro_plano_id);
 
         $config = $this->with_produto_parceiro_configuracao($produto_parceiro_plano_id)->get_all();
@@ -311,7 +310,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         // Validação para que o retorno seja sempre por cobertura
         if ( empty($coberturas) )
         {
-            $coberturas[] = [ 'data_base' => $data_base];
+            $coberturas[] = [ 'data_base_rec' => $data_base_rec];
         }
 
         /*
@@ -336,6 +335,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             $data_fim_vigencia     = emptyor($cob['data_fim_vigencia'],     emptyor($cotacao_salva['data_fim_vigencia'],    null) );
             $nota_fiscal_data      = emptyor($cob['nota_fiscal_data'],      emptyor($cotacao_salva['nota_fiscal_data'],     null) );
             $data_ad               = emptyor($cob['data_adesao'],           emptyor($cotacao_salva['data_adesao'],          null) );
+            $data_base             = $data_base_rec;
 
             // se nao foi informada a data base. Se foi, tem que ser o q informou
             if (empty($data_base))
@@ -488,8 +488,8 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         }
 
         return array(
-            'inicio_vigencia' => $result[0]['date_inicio'],
-            'fim_vigencia'    => $result[0]['date_fim'],
+            'inicio_vigencia' => $result[0]['inicio_vigencia'],
+            'fim_vigencia'    => $result[0]['fim_vigencia'],
             'dias'            => $result[0]['dias'],
             'data_adesao'     => $result[0]['data_adesao'],
             'coberturas'      => $result,    

@@ -405,6 +405,8 @@ class Cotacao extends CI_Controller {
                 $name_banco = "generico";
             }
 
+            // deve remover as coberturas antes de inserir na session
+            unset( $params["coberturas"] );
             $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $params );
             $cotacao_aux->insert_update( $produto_parceiro_id, $cotacao_id, 3 );
 

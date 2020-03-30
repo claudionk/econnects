@@ -3272,9 +3272,6 @@ if ( ! function_exists('app_integracao_coop')) {
         // Emissao
         if ( $reg['acao'] == '1' )
         {
-            // print_pre($acesso->coberturas);
-            print_pre($reg);
-
             // gerar as vigências de GarantiaEstendida
             $idx = app_search( $acesso->coberturas, 'garantia-estendida', 'cobertura' );
             if ( $idx >= 0 )
@@ -3310,7 +3307,6 @@ if ( ! function_exists('app_integracao_coop')) {
             }
         }
 
-        // print_pre($acesso->coberturas);
         $dados["registro"]["coberturas"] = $acesso->coberturas;
 
         // recupera as variaveis mais importantes
