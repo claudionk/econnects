@@ -337,10 +337,14 @@ class Emissao extends CI_Controller {
             case 'calculocotacao':
 
                 // Validar o valor passado se diferente alertar e abortar
-                $url = base_url() ."api/cotacao/calculo?cotacao_id=".$this->cotacao_id;
+                $url = base_url() ."api/cotacao/calculo";
+                $fields = [
+                    'cotacao_id' => $this->cotacao_id,
+                    'coberturas' => emptyor($this->campos_estrutura['coberturas'], []),
+                ];
 
                 $obj = new Api();
-                $r = $obj->execute($url, 'GET');
+                $r = $obj->execute($url, 'POST', json_encode($fields));
 
                 if(!empty($r))
                 {

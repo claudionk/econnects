@@ -237,34 +237,7 @@ class Apolice_Model extends MY_Model
         $this->movimentacao->insMovimentacao('A', $apolice_id, $pedido);
 
         $this->apolice_cobertura->deleteByCotacao($cotacao_id);
-
-        $dados_bilhete = $this->defineDadosBilhete($produto_parceiro_plano_id);
-
-        $coberturas = $this->cotacao_cobertura
-            ->with_cobertura_plano()
-            ->filterByID($cotacao_id)
-            ->get_all();
-
-        foreach ($coberturas as $cobertura) {
-
-            $dados_apolice_cobertura = [
-                'cotacao_id'         => $cotacao_id,
-                'pedido_id'          => $pedido_id,
-                'apolice_id'         => $apolice_id,
-                'cobertura_plano_id' => $cobertura["cobertura_plano_id"],
-                'valor'              => $cobertura["valor"],
-                'iof'                => $cobertura["iof"],
-                'mostrar'            => $cobertura["mostrar"],
-                'valor_config'       => $cobertura['valor_config'],
-                'cod_cobertura'      => $cobertura['cod_cobertura'],
-                'cod_ramo'           => isempty($cobertura['cod_ramo'], $dados_bilhete['cod_ramo']),
-                'cod_produto'        => isempty($cobertura['cod_produto'], $dados_bilhete['cod_produto']),
-                'cod_sucursal'       => isempty($cobertura['cod_sucursal'], $dados_bilhete['cod_sucursal']),
-                'criacao'            => date("Y-m-d H:i:s"),
-            ];
-
-            $this->apolice_cobertura->insert($dados_apolice_cobertura, true);
-        }
+        $this->apolice_cobertura->geraDadosEmissao($cotacao_id, $pedido_id, $apolice_id, $produto_parceiro_plano_id);
 
     }
 

@@ -106,7 +106,10 @@ class Cotacao extends CI_Controller {
         }
 
         $coberturas_adicionais = null;
-        if (!empty($POST['produto_parceiro_plano_id'])) {
+        $coberturas = emptyor($POST['coberturas'], null);
+
+        if (!empty($POST['produto_parceiro_plano_id']))
+        {
             $POST['nota_fiscal_data'] = issetor($POST['nota_fiscal_data'], null);
             $valid = $this->produto_parceiro_plano->verifica_tempo_limite_de_uso($POST['produto_parceiro_id'], $POST['produto_parceiro_plano_id'], $POST['nota_fiscal_data']);
 
@@ -114,7 +117,7 @@ class Cotacao extends CI_Controller {
                 die( json_encode( array( "status" => false, "message" => $valid ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
             }
 
-            $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($POST['produto_parceiro_plano_id'], null, $POST);
+            $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($POST['produto_parceiro_plano_id'], null, $POST, $coberturas);
             if (!empty($vigencia))
             {
                 if ( app_date_get_diff_dias(app_dateonly_mysql_to_mask($vigencia["data_adesao"]), date('d/m/Y'),  "D") < 0 )
@@ -133,6 +136,7 @@ class Cotacao extends CI_Controller {
             }
         }
         unset( $POST["coberturas_opcionais"] );
+        unset( $POST["coberturas"] );
 
         $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $POST );
         $cotacao_id = (int)$cotacao_id;
@@ -188,12 +192,18 @@ class Cotacao extends CI_Controller {
     }
 
     public function calculo() {
-        if( $_SERVER["REQUEST_METHOD"] !== "GET" ) {
-        ob_clean();
-        die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
+        if( $_SERVER["REQUEST_METHOD"] !== "GET" && $_SERVER["REQUEST_METHOD"] !== "POST") {
+            ob_clean();
+            die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
         }
 
-        $GET = $_GET;
+        if( $_SERVER["REQUEST_METHOD"] === "GET" )
+        {
+            $GET = $_GET;
+        } else {
+            $GET = json_decode( file_get_contents( "php://input" ), true );
+        }
+
         $this->load->model( "cotacao_model", "cotacao" );
         $this->load->model( "produto_parceiro_campo_model", "produto_parceiro_campo" );
         $this->load->model( 'produto_parceiro_regra_preco_model', 'regra_preco');
@@ -215,7 +225,8 @@ class Cotacao extends CI_Controller {
         $equipamento_de_para            = issetor( $GET["equipamento_de_para"] , null);
         $equipamento_sub_categoria_id   = issetor( $GET["equipamento_sub_categoria_id"] , null);
         $quantidade                     = issetor( $GET["quantidade"] , 1);
-        $coberturas                     = issetor( $GET["coberturas_opcionais"] , null);
+        $coberturas_opcionais           = issetor( $GET["coberturas_opcionais"] , null);
+        $coberturas_v                   = issetor( $GET["coberturas"] , null);
         $repasse_comissao               = issetor( $GET["repasse_comissao"] , 0);
         $desconto_condicional           = issetor( $GET["desconto_condicional"] , 0);
         $comissao_premio                = issetor( $GET["comissao_premio"] , 0);
@@ -245,17 +256,18 @@ class Cotacao extends CI_Controller {
         $params["repasse_comissao"]             = emptyor($repasse_comissao, $cotacao_aux['repasse_comissao']);
         $params["desconto_condicional"]         = emptyor($desconto_condicional, $cotacao_aux['desconto_condicional']);
         $params["comissao_premio"]              = emptyor($comissao_premio, $cotacao_aux['comissao_premio']);
+        $params["coberturas"]                   = emptyor($coberturas_v, null);
 
-        if ( !empty($params["coberturas_opcionais"]) && is_array($params["coberturas_opcionais"]))
+        if ( !empty($coberturas_opcionais) && is_array($coberturas_opcionais))
         {
-            $coberturas = $this->cobertura_plano->filter_adicional_by_cobertura_slug($cotacao_id, $params["coberturas_opcionais"])->get_all();
+            $coberturas = $this->cobertura_plano->filter_adicional_by_cobertura_slug($cotacao_id, $coberturas_opcionais)->get_all();
             foreach ($coberturas as $cobAdd) {
-                $params["coberturas"][] = $cobAdd['cobertura_plano_id'] .";". $cobAdd['preco'];
+                $params["coberturas_adicionais"][] = $cobAdd['cobertura_plano_id'] .";". $cobAdd['preco'];
             }
         } else {
             $coberturas = $this->cotacao_generico_cobertura->with_cotacao($cotacao_id)->get_all();
             foreach ($coberturas as $cobAdd) {
-                $params["coberturas"][] = $cobAdd['produto_parceiro_plano_id'] .";". $cobAdd['cobertura_plano_id'];
+                $params["coberturas_adicionais"][] = $cobAdd['produto_parceiro_plano_id'] .";". $cobAdd['cobertura_plano_id'];
             }
         }
 
@@ -393,6 +405,8 @@ class Cotacao extends CI_Controller {
                 $name_banco = "generico";
             }
 
+            // deve remover as coberturas antes de inserir na session
+            unset( $params["coberturas"] );
             $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $params );
             $cotacao_aux->insert_update( $produto_parceiro_id, $cotacao_id, 3 );
 

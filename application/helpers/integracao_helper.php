@@ -1598,7 +1598,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
 
                     $d1 = new DateTime($dados["data_adesao"]);
                     $d2 = $d1->format('Y-m-d');
-                    $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
+                    // $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
                     $dados["data_inicio_vigencia"] = $d1->format('Y-m-d');
 
                     // Período de Vigência: 12 meses
@@ -1817,6 +1817,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $fields['data_fim_vigencia']            = isempty($dados['data_fim_vigencia'], null);
                 $fields['numero_sorte']                 = isempty($dados['num_sorte'], null);
                 $fields['ean']                          = isempty($dados['ean'], null);
+                $fields['coberturas']                   = isempty($dados['coberturas'], []);
                 $fields['emailAPI']                     = app_get_userdata("email");
 
                 // Retirar os acentos
@@ -1849,7 +1850,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $response->cotacao_id = $cotacao_id;
 
                 // Cálculo do prêmio
-                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0) );
+                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0), $fields['coberturas'] );
                 if (empty($calcPremio['status'])){
                     $response->errors[] = ['id' => -1, 'msg' => $calcPremio['response'], 'slug' => "calcula_premio"];
                     return $response;
@@ -1878,9 +1879,16 @@ if ( ! function_exists('app_integracao_valida_regras'))
 }
 if ( ! function_exists('app_integracao_calcula_premio'))
 {
-    function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso = null, $premio_liquido = NULL, $valor_iof = NULL, $valor_fixo = NULL, $qtde = 0){
+    function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso = null, $premio_liquido = NULL, $valor_iof = NULL, $valor_fixo = NULL, $qtde = 0, $coberturas = [])
+    {
+        $fields = [
+            'cotacao_id' => $cotacao_id,
+            'valor_fixo' => $valor_fixo,
+            'coberturas' => $coberturas,
+        ];
+
         // Cálculo do prêmio
-        $calcPremio = app_get_api("calculo_premio/". $cotacao_id ."/". $valor_fixo, 'GET', [], $acesso);
+        $calcPremio = app_get_api("calculo_premio", "POST", json_encode($fields), $acesso);
         if (empty($calcPremio['status'])){
             return ['status' => false, 'response' => $calcPremio['response']];
         }
@@ -1928,7 +1936,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
                         print_r( [$qtde, $premio_liquido, $valor_iof, $premio_bruto, ( 1 + round($valor_iof / $premio_liquido, 4)), $novo_liquido] );
                         echo "<br>";
 
-                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso, $premio_liquido, $valor_iof, $novo_liquido, $qtde);
+                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso, $premio_liquido, $valor_iof, $novo_liquido, $qtde, $coberturas);
                     }
 
                 } else {
@@ -1961,7 +1969,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
                         $CI->cobertura_plano->update(281, ['porcentagem' => $percRF], TRUE);
                         $CI->cobertura_plano->update(282, ['porcentagem' => $percQA], TRUE);
 
-                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso);
+                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso, $premio_liquido, $valor_iof, $novo_liquido, $qtde, $coberturas);
                     }
                 }
             }
@@ -2971,6 +2979,7 @@ if ( ! function_exists('app_integracao_coop_define_operacao')) {
         $result->parceiro_id = 104;
         $result->email = "coop@sisconnects.com.br";
         $result->produto_parceiro_id = 108;
+        $result->coberturas[] = ['cobertura' => 'garantia-estendida'];
 
         // NAO POSSUI DANOS ELETRICOS
         if (strpos($equipamento_de_para, "X") === FALSE) 
@@ -2979,6 +2988,7 @@ if ( ! function_exists('app_integracao_coop_define_operacao')) {
         } else 
         {
             $result->produto_parceiro_plano_id = 165;
+            $result->coberturas[] = ['cobertura' => 'danos-eletricos'];
         }
 
         // Dados para definição do parceiro, produto e plano
@@ -2993,6 +3003,70 @@ if ( ! function_exists('app_integracao_coop_define_operacao')) {
         $result->parceiro = $acesso->parceiro;
         $result->status = true;
         return $result;
+    }
+}
+if ( ! function_exists('app_integracao_retorno_cta'))
+{
+    function app_integracao_retorno_cta($formato, $dados = array())
+    {
+        $sinistro = false;
+        $pagnet = false; // Ainda não tem um padrão de retorno definido. Desenvolver esta funcionalidade após concluir este desenvolvimento do pagnet
+        $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
+        if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
+            $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
+            return $response;
+        }
+
+        //Remove os caracteres não imprimíveis
+        $dados['registro']['descricao_erro'] = preg_replace( '/[^[:print:]\r\n]/', '?',$dados['registro']['descricao_erro']);
+        $data_processado    = date('d/m/Y', strtotime($dados['registro']['data_processado']));
+        $mensagem_registro  = 'Cod: ' . $dados['registro']['cod_erro'] . ' - Mensagem: ' . $dados['registro']['descricao_erro'] . ' - Processado em: '. $data_processado;
+        $chave              = $dados['registro']['id_log'];
+        $file_registro      = $dados['registro']['nome_arquivo'];
+
+        if (empty($chave))
+        {
+            $response->msg[] = ['id' => 12, 'msg' => 'Chave não identificada', 'slug' => "erro_interno"];
+            return $response;
+        }
+
+        $CI =& get_instance();
+        $CI->load->model('integracao_model');
+        $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
+
+        $proc = $CI->integracao_model->detectFileRetorno($file_registro);
+        $file = $proc['file'];
+        $sinistro = ($proc['tipo'] == 'SINISTRO');
+
+        //A - Acatado com sucesso (id=[4]), R - Rejeitado (Erro => id=[5]) ou P - Pendente (id=[3])
+        if (!empty($dados['registro']['status']))
+        {
+            // Retorna o codigo e descrição do status de retorno do arquivo 
+            $response->coderr = $dados['registro']['cod_erro']; 
+            $response->msg[] = ['id' => 12, 'msg' => $dados['registro']['cod_erro'] ." - ". $dados['registro']['descricao_erro'], 'slug' => "erro_retorno"];
+
+            if($dados['registro']['status'] == 'A'){
+                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '4', $mensagem_registro, $sinistro, $pagnet);
+
+                $response->status = true;
+                return $response;
+            }elseif($dados['registro']['status'] == 'R'){   
+                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '5', $mensagem_registro, $sinistro, $pagnet);
+                return $response;
+            }elseif($dados['registro']['status'] == 'P'){
+                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '3', $mensagem_registro, $sinistro, $pagnet);
+
+                $response->status = true;
+                return $response;
+            }else{
+                $response->msg[] = ['id' => 12, 'msg' => 'Status não identificado'];
+                return $response;
+            }
+            return true;
+        }else{
+            $response->msg[] = ['id' => 12, 'msg' => 'Registro sem status definido'];
+            return $response;
+        }
     }
 }
 if ( ! function_exists('app_integracao_mailing')) {
@@ -3299,70 +3373,6 @@ if ( ! function_exists('app_integracao_mailing_adesao_emitir')) {
 
     }
 }
-if ( ! function_exists('app_integracao_retorno_cta'))
-{
-    function app_integracao_retorno_cta($formato, $dados = array())
-    {
-        $sinistro = false;
-        $pagnet = false; // Ainda não tem um padrão de retorno definido. Desenvolver esta funcionalidade após concluir este desenvolvimento do pagnet
-        $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
-        if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
-            $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
-            return $response;
-        }
-
-        //Remove os caracteres não imprimíveis
-        $dados['registro']['descricao_erro'] = preg_replace( '/[^[:print:]\r\n]/', '?',$dados['registro']['descricao_erro']);
-        $data_processado    = date('d/m/Y', strtotime($dados['registro']['data_processado']));
-        $mensagem_registro  = 'Cod: ' . $dados['registro']['cod_erro'] . ' - Mensagem: ' . $dados['registro']['descricao_erro'] . ' - Processado em: '. $data_processado;
-        $chave              = $dados['registro']['id_log'];
-        $file_registro      = $dados['registro']['nome_arquivo'];
-
-        if (empty($chave))
-        {
-            $response->msg[] = ['id' => 12, 'msg' => 'Chave não identificada', 'slug' => "erro_interno"];
-            return $response;
-        }
-
-        $CI =& get_instance();
-        $CI->load->model('integracao_model');
-        $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
-
-        $proc = $CI->integracao_model->detectFileRetorno($file_registro);
-        $file = $proc['file'];
-        $sinistro = ($proc['tipo'] == 'SINISTRO');
-
-        //A - Acatado com sucesso (id=[4]), R - Rejeitado (Erro => id=[5]) ou P - Pendente (id=[3])
-        if (!empty($dados['registro']['status']))
-        {
-            // Retorna o codigo e descrição do status de retorno do arquivo 
-            $response->coderr = $dados['registro']['cod_erro']; 
-            $response->msg[] = ['id' => 12, 'msg' => $dados['registro']['cod_erro'] ." - ". $dados['registro']['descricao_erro'], 'slug' => "erro_retorno"];
-
-            if($dados['registro']['status'] == 'A'){
-                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '4', $mensagem_registro, $sinistro, $pagnet);
-
-                $response->status = true;
-                return $response;
-            }elseif($dados['registro']['status'] == 'R'){   
-                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '5', $mensagem_registro, $sinistro, $pagnet);
-                return $response;
-            }elseif($dados['registro']['status'] == 'P'){
-                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '3', $mensagem_registro, $sinistro, $pagnet);
-
-                $response->status = true;
-                return $response;
-            }else{
-                $response->msg[] = ['id' => 12, 'msg' => 'Status não identificado'];
-                return $response;
-            }
-            return true;
-        }else{
-            $response->msg[] = ['id' => 12, 'msg' => 'Registro sem status definido'];
-            return $response;
-        }
-    }
-}
 if ( ! function_exists('app_integracao_coop')) {
     function app_integracao_coop($formato, $dados = array())
     {
@@ -3431,22 +3441,16 @@ if ( ! function_exists('app_integracao_coop')) {
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
             // Cancelamento
-            if ( $dados['registro']['tipo_transacao'] == 'NC' ) {
+            if ( $reg['acao'] == '9' ) {
                 $geraDados['data_cancelamento']         = $dados['registro']['data_adesao_cancel'];
                 $dados['registro']['data_cancelamento'] = $dados['registro']['data_adesao_cancel'];
-            } 
-            // Emissão
-            elseif ( $dados['registro']['tipo_transacao'] == 'FC' )
-            {
-                // gerar as vigências
-                // $dados['registro']['data_inicio_vigencia'] = ;
             }
 
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
             $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
         }
 
-        // Emissão
+        // Valida o tipo de transacao
         if ( ! in_array( $dados['registro']['tipo_transacao'], ['FC','NC'] ) )
         {
             $response->msg[] = ['id' => -1, 'msg' => "Registro recebido como {$dados['registro']['tipo_transacao']}", 'slug' => "ignorado"];
@@ -3461,6 +3465,46 @@ if ( ! function_exists('app_integracao_coop')) {
             $response->msg[] = $acesso->msg;
             return $response;
         }
+
+        // Emissao
+        if ( $reg['acao'] == '1' )
+        {
+            // gerar as vigências de GarantiaEstendida
+            $idx = app_search( $acesso->coberturas, 'garantia-estendida', 'cobertura' );
+            if ( $idx >= 0 )
+            {
+                // inicio da vigencia
+                $dGE = new DateTime($reg["nota_fiscal_data"]);
+                $dGE->add(new DateInterval("P{$reg['garantia_fabricante']}M")); //Adiciona a garantia do fabricante à data da nf
+                // $dGE->add(new DateInterval("P1D")); //Adiciona a garantia do fabricante à data da nf
+                $ini_vig_ge = $dGE->format('Y-m-d');
+
+                // Fim da vigencia
+                $dGE->add(new DateInterval("P{$vigencia}M")); //Adiciona a garantia do fabricante à data da nf
+                $fim_vig_ge = $dGE->format('Y-m-d');
+
+                $dados["registro"]["data_inicio_vigencia"] = $ini_vig_ge;
+                $dados["registro"]["data_fim_vigencia"] = $fim_vig_ge;
+
+                $acesso->coberturas[$idx]['data_inicio_vigencia'] = $ini_vig_ge;
+                $acesso->coberturas[$idx]['data_fim_vigencia'] = $fim_vig_ge;
+            }
+
+            // gerar as vigências de DanosEletricos
+            $idx = app_search( $acesso->coberturas, 'danos-eletricos', 'cobertura' );
+            if ( $idx >= 0 )
+            {
+                $ini_vig_de = $reg['data_adesao_cancel'];
+                $dDE = new DateTime($ini_vig_ge);
+                $dDE->sub(new DateInterval("P1D")); //1 dia antes do inicio da vigencia da GE
+                $fim_vig_de = $dDE->format('Y-m-d');
+
+                $acesso->coberturas[$idx]['data_inicio_vigencia'] = $ini_vig_de;
+                $acesso->coberturas[$idx]['data_fim_vigencia'] = $fim_vig_de;
+            }
+        }
+
+        $dados["registro"]["coberturas"] = $acesso->coberturas;
 
         // recupera as variaveis mais importantes
         $num_apolice    = $reg['num_apolice'];

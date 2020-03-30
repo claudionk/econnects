@@ -104,7 +104,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $equipamento_de_para            = issetor($params['equipamento_de_para'], '');
         $quantidade                     = issetor($params['quantidade'], 0);
         $valor_fixo                     = issetor($params['valor_fixo'], NULL);
-        $coberturas_adicionais          = issetor($params['coberturas'], array());
+        $coberturas_adicionais          = issetor($params['coberturas_adicionais'], []);
+        $pCoberturas                    = issetor($params['coberturas'], []);
         $repasse_comissao               = app_unformat_percent(issetor($params['repasse_comissao'],0));
         $desconto_condicional           = app_unformat_percent(issetor($params['desconto_condicional'],0));
         $desconto                       = $this->desconto->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
@@ -112,12 +113,35 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $cotacao_aux_id                 = issetor($params['cotacao_aux_id'], 0);
 
         if($cotacao_id) {
+            $pedido = $this->pedido->filter_by_cotacao($cotacao_id)->get_all();
+            if( $pedido ) {
+                ob_clean();
+                return array( 
+                    "status" => false, 
+                    "message" => "Não foi possível efetuar o calculo. Motivo: já existe um pedido para essa cotação.",
+                    "pedido_id" => $pedido[0]['pedido_id']
+                );
+            }
+
             $cotacao = $this->cotacao->get($cotacao_id);
 
             if(($cotacao) && ((int)$cotacao['cotacao_upgrade_id']) > 0){
                 $pedido_antigo = $this->pedido->get_by(array('cotacao_id' => $cotacao['cotacao_upgrade_id']));
                 $desconto_upgrade = $pedido_antigo['valor_total'];
             }
+        }
+
+        // Valida a vigencia enviada por cobertura
+        foreach ($pCoberturas as $cob)
+        {
+            if ( empty($data_inicio_vigencia) && !empty($cob['data_inicio_vigencia']) && $cob['data_inicio_vigencia'] != "0000-00-00" )
+                $data_inicio_vigencia = $cob['data_inicio_vigencia'];
+
+            if ( empty($data_fim_vigencia) && !empty($cob['data_fim_vigencia']) && $cob['data_fim_vigencia'] != "0000-00-00" )
+                $data_fim_vigencia = $cob['data_fim_vigencia'];
+
+            if ( !empty($data_inicio_vigencia) && !empty($data_fim_vigencia) )
+                break;
         }
 
         $row =  $this->produto_parceiro->with_produto()->get_by_id($produto_parceiro_id);
@@ -136,8 +160,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
         $cotacao = $cotacao[0];
         $produto_parceiro_plano_id = $cotacao["produto_parceiro_plano_id"];
-        $data_inicio_vigencia = issetor($cotacao['data_inicio_vigencia'], null);
-        $data_fim_vigencia = issetor($cotacao['data_fim_vigencia'], null);
+        $data_inicio_vigencia = emptyor($data_inicio_vigencia, issetor($cotacao['data_inicio_vigencia'], null));
+        $data_fim_vigencia = emptyor($data_fim_vigencia, issetor($cotacao['data_fim_vigencia'], null));
         $servico_produto_id = issetor($cotacao['servico_produto_id'],0);
         $servico_produto = $this->servico_produto->get($servico_produto_id);
         if($servico_produto && $quantidade < $servico_produto['quantidade_minima'])
@@ -450,7 +474,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                 ->get_all();
 
             $cotacao_salva = $cotacao_salva[0];
-            $cotacao_eqp = array();
+            $coberturas = [];
+            $cotacao_eqp = [];
             $cotacao_eqp['repasse_comissao'] = $repasse_comissao;
             $cotacao_eqp['comissao_corretor'] = $comissao_corretor;
             $cotacao_eqp['desconto_condicional'] = $desconto_condicional;
@@ -459,37 +484,26 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             $cotacao_eqp['premio_liquido_total'] = $valores_liquido_total[$planoActual['produto_parceiro_plano_id']];
             $cotacao_eqp['iof'] = $iof;
 
-            $coberturas = [];
-            $pedido = $this->db->query( "SELECT * FROM pedido WHERE cotacao_id=$cotacao_id AND deletado=0" )->result_array();
-            if( $pedido ) {
-                ob_clean();
-                return array( 
-                    "status" => false, 
-                    "message" => "Não foi possível efetuar o calculo. Motivo: já existe um pedido para essa cotação.",
-                    "pedido_id" => $pedido[0]['pedido_id']
-                );
-            } else {
-                if (!empty($produto_parceiro_plano_id)){
+            if (!empty($produto_parceiro_plano_id)){
 
-                    if($row['produto_slug'] == 'seguro_viagem'){
-                        $cotacaoUpdate = $this->cotacao_seguro_viagem;
-                        $cotacao_item_id = $cotacao_salva['cotacao_seguro_viagem_id'];
-                    }elseif($row['produto_slug'] == 'equipamento') {
-                        $cotacaoUpdate = $this->cotacao_equipamento;
-                        $cotacao_item_id = $cotacao_salva['cotacao_equipamento_id'];
-                    }elseif( $row["produto_slug"] == "generico" || $row["produto_slug"] == "seguro_saude" ) {
-                        $cotacaoUpdate = $this->cotacao_generico;
-                        $cotacao_item_id = $cotacao_salva['cotacao_generico_id'];
-                    }
-
-                    $cotacaoUpdate->update($cotacao_item_id, $cotacao_eqp, TRUE);
+                if($row['produto_slug'] == 'seguro_viagem'){
+                    $cotacaoUpdate = $this->cotacao_seguro_viagem;
+                    $cotacao_item_id = $cotacao_salva['cotacao_seguro_viagem_id'];
+                }elseif($row['produto_slug'] == 'equipamento') {
+                    $cotacaoUpdate = $this->cotacao_equipamento;
+                    $cotacao_item_id = $cotacao_salva['cotacao_equipamento_id'];
+                }elseif( $row["produto_slug"] == "generico" || $row["produto_slug"] == "seguro_saude" ) {
+                    $cotacaoUpdate = $this->cotacao_generico;
+                    $cotacao_item_id = $cotacao_salva['cotacao_generico_id'];
                 }
 
-                // Só gera os dados de cobertura quando calcular todo o plano
-                if ( empty($cotacao_aux_id) )
-                {
-                    $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $produto_parceiro_plano_id, $cotacao["nota_fiscal_valor"], $cotacao_eqp['premio_liquido']);
-                }
+                $cotacaoUpdate->update($cotacao_item_id, $cotacao_eqp, TRUE);
+            }
+
+            // Só gera os dados de cobertura quando calcular todo o plano
+            if ( empty($cotacao_aux_id) )
+            {
+                $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $produto_parceiro_plano_id, $cotacao["nota_fiscal_valor"], $cotacao_eqp['premio_liquido'], $pCoberturas);
             }
 
             $result["importancia_segurada"] = $cotacao["nota_fiscal_valor"];
