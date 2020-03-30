@@ -700,7 +700,8 @@ Class Pedido_Model extends MY_Model
 
         list( $current_year, $current_month, $current_day, $current_hour, $current_minute, $current_second ) = preg_split("/[- :]/", $define_date);
         $hoje = mktime( $current_hour, $current_minute, $current_second, $current_month, $current_day, $current_year );
-
+        $hoje_mdy = mktime( 0,0,0, $current_month, $current_day, $current_year );
+        
         // valida a data de cancelamento anterior à adesão
         if ( $hoje < $adesao )
         {
@@ -710,7 +711,7 @@ Class Pedido_Model extends MY_Model
         }
 
         // valida a data de cancelamento posterior à data atual
-        if ( $hoje > $data_hoje )
+        if ( $hoje_mdy > $data_hoje )
         {
             $result['mensagem'] = "A data de Cancelamento não pode ser superior à data de Hoje";
             $result['redirect'] = "admin/pedido/view/{$pedido_id}";
