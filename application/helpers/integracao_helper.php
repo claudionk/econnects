@@ -1850,7 +1850,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $response->cotacao_id = $cotacao_id;
 
                 // Cálculo do prêmio
-                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0), $fields['coberturas'] );
+                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0), NULL, 0, $fields['coberturas'] );
                 if (empty($calcPremio['status'])){
                     $response->errors[] = ['id' => -1, 'msg' => $calcPremio['response'], 'slug' => "calcula_premio"];
                     return $response;
@@ -1969,7 +1969,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
                         $CI->cobertura_plano->update(281, ['porcentagem' => $percRF], TRUE);
                         $CI->cobertura_plano->update(282, ['porcentagem' => $percQA], TRUE);
 
-                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso, $premio_liquido, $valor_iof, $novo_liquido, $qtde, $coberturas);
+                        return app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso, $premio_liquido, $valor_iof, $valor_fixo, $qtde, $coberturas);
                     }
                 }
             }
