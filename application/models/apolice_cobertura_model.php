@@ -103,7 +103,7 @@ Class Apolice_Cobertura_Model extends MY_Model
                 'valor_config'          => $valor_config,
                 'cod_cobertura'         => $cobertura['cod_cobertura'],
                 'data_inicio_vigencia'  => $cobertura['data_inicio_vigencia'],
-                'data_fim_figencia'     => $cobertura['data_fim_figencia'],
+                'data_fim_vigencia'     => $cobertura['data_fim_vigencia'],
                 'cod_ramo'              => isempty($cobertura['cod_ramo'],     $dados_bilhete['cod_ramo']),
                 'cod_produto'           => isempty($cobertura['cod_produto'],  $dados_bilhete['cod_produto']),
                 'cod_sucursal'          => isempty($cobertura['cod_sucursal'], $dados_bilhete['cod_sucursal']),
@@ -125,6 +125,42 @@ Class Apolice_Cobertura_Model extends MY_Model
         }
 
         return true;
+    }
+
+    public function geraDadosEmissao($cotacao_id, $pedido_id, $apolice_id, $produto_parceiro_plano_id)
+    {
+        $this->load->model('apolice_model', 'apolice');
+        $this->load->model('cotacao_cobertura_model', 'cotacao_cobertura');
+
+        $dados_bilhete = $this->apolice->defineDadosBilhete($produto_parceiro_plano_id);
+
+        $coberturas = $this->cotacao_cobertura
+            ->with_cobertura_plano()
+            ->filterByID($cotacao_id)
+            ->get_all();
+
+        foreach ($coberturas as $cobertura) {
+
+            $dados_apolice_cobertura = [
+                'cotacao_id'            => $cotacao_id,
+                'pedido_id'             => $pedido_id,
+                'apolice_id'            => $apolice_id,
+                'cobertura_plano_id'    => $cobertura["cobertura_plano_id"],
+                'valor'                 => $cobertura["valor"],
+                'iof'                   => $cobertura["iof"],
+                'mostrar'               => $cobertura["mostrar"],
+                'valor_config'          => $cobertura['valor_config'],
+                'cod_cobertura'         => $cobertura['cod_cobertura'],
+                'data_inicio_vigencia'  => $cobertura['data_inicio_vigencia'],
+                'data_fim_vigencia'     => $cobertura['data_fim_vigencia'],
+                'cod_ramo'              => isempty($cobertura['cod_ramo'], $dados_bilhete['cod_ramo']),
+                'cod_produto'           => isempty($cobertura['cod_produto'], $dados_bilhete['cod_produto']),
+                'cod_sucursal'          => isempty($cobertura['cod_sucursal'], $dados_bilhete['cod_sucursal']),
+                'criacao'               => date("Y-m-d H:i:s"),
+            ];
+
+            $this->insert($dados_apolice_cobertura, true);
+        }
     }
 
 }
