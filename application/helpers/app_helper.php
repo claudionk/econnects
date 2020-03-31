@@ -1191,7 +1191,13 @@ function emptyor(&$var, $default = ' ') {
 if ( ! function_exists('isempty')) {
     function isempty(&$var, $default = ' ')
     {
-        return (!empty($var)) ? $var : $default; // $default : $var;
+        if ( !isset($var) )
+            return $default;
+
+        if ( is_array($var) || is_object($var) )
+            return (!empty($var)) ? $var : $default;
+
+        return (strlen($var) > 0) ? $var : $default;
     }
 }
 
