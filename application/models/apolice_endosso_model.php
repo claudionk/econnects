@@ -403,13 +403,8 @@ Class Apolice_Endosso_Model extends MY_Model
                         $multiplasVigencias = true;
                         $dados_end['data_inicio_vigencia'] = emptyor($cob_vig[$contador-1]['data_inicio_vigencia'], $dados_end['data_inicio_vigencia']);
                         $dados_end['data_fim_vigencia']    = emptyor($cob_vig[$contador-1]['data_fim_vigencia'], $dados_end['data_fim_vigencia']);
-                        $dados_end['valor']                = round($apolice['valor_premio_net'] / count($cob_vig), 2);
 
-                        // Acerta o valor da última parcela
-                        $total_recalc = $dados_end['valor'] * count($cob_vig);
-                        if (count($cob_vig) == $contador && $total_recalc != $apolice['valor_premio_net'] )
-                            $dados_end['valor'] += $apolice['valor_premio_net'] - $total_recalc;
-
+                        // Nota: Nao faz ajuste de valor pois deve apenas mudar o sequencial
                     }
                 }
             }
