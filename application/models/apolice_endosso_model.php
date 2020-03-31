@@ -244,21 +244,15 @@ Class Apolice_Endosso_Model extends MY_Model
         return $endosso;
     }
 
-    public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null, $devolucao_integral = true, $dias_utilizados = 0, $contador = 1)
+    public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null, $devolucao_integral = true, $dias_utilizados = 0)
     {
         try
         {
             $this->load->model('apolice_model', 'apolice');
             $this->load->model('apolice_cobertura_model', 'apolice_cobertura');
             $this->load->model('produto_parceiro_pagamento_model', 'parceiro_pagamento');
-            $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
 
             $apolice = $this->apolice->getApolice($apolice_id);
-
-            $vcto_inferior_cancel = true;
-            $geraDadosEndosso = true;
-            $executaInsert = false;
-            $multiplasVigencias = false;
 
             $dados_end = array();
             $dados_end['apolice_id']                    = $apolice_id;
@@ -280,6 +274,58 @@ Class Apolice_Endosso_Model extends MY_Model
             }
 
             $tipo_pagto = $this->parceiro_pagamento->isRecurrent($produto_parceiro_pagamento_id) ? 1 : $is_controle_endosso_pelo_cliente;
+
+            // Pagamento Unico
+            if ( $tipo_pagto == 0 )
+            {
+                $cob_vig = $this->apolice_cobertura->filterByVigenciaCob($apolice_id)->get_all();
+            }
+
+            $dados = [
+                'tipo'               => $tipo,
+                'parcela'            => $parcela,
+                'valor'              => $valor,
+                'devolucao_integral' => $devolucao_integral,
+                'dias_utilizados'    => $dias_utilizados,
+                'tipo_pagto'         => $tipo_pagto,
+                'max_parcela'        => $max_parcela,
+                'apolice'            => $apolice,
+                'dados_endosso'      => $dados_end,
+                'dados_cobertura'    => $cob_vig,
+            ];
+
+            return $this->insEndossoCore($dados);
+
+        }
+        catch (Exception $e)
+        {
+            throw new Exception($e->getMessage());
+        }
+
+    }
+
+    private function insEndossoCore($dados)
+    {
+        try
+        {
+            $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
+
+            $apolice = $dados['apolice'];
+            $dados_end = $dados['dados_endosso'];
+            $max_parcela = $dados['max_parcela'];
+            $tipo_pagto = $dados['tipo_pagto'];
+            $parcela = $dados['parcela'];
+            $tipo = $dados['tipo'];
+            $valor = $dados['valor'];
+            $contador = emptyor($dados['contador'], 0);
+            $apolice_id = $dados_end['apolice_id'];
+            $devolucao_integral = $dados['devolucao_integral'];
+            $dias_utilizados = $dados['dias_utilizados'];
+
+            $vcto_inferior_cancel = true;
+            $geraDadosEndosso = true;
+            $executaInsert = false;
+            $multiplasVigencias = false;
 
             // VALIDAÇÃO DE CAPA
             // caso seja recorrência terá capa
@@ -332,7 +378,7 @@ Class Apolice_Endosso_Model extends MY_Model
                             $d1->add(new DateInterval("P1D"));
                             $dados_end['data_inicio_vigencia']  = $d1->format('Y-m-d');
                         }
-                        $dados_end['data_vencimento']       = $result['data_vencimento'];
+                        $dados_end['data_vencimento'] = $result['data_vencimento'];
                     }
 
                     $vigencia = $this->produto_parceiro_plano->getDatasCapa($apolice['produto_parceiro_plano_id'], $dados_end['data_inicio_vigencia'], $dados_end['data_vencimento'], $tipo_pagto);
@@ -353,13 +399,13 @@ Class Apolice_Endosso_Model extends MY_Model
                 // Pagamento Unico
                 if ( $tipo_pagto == 0 )
                 {
-                    $cob_vig = $this->apolice_cobertura->filterByVigenciaCob($apolice_id)->get_all();
-                    if ( count($cob_vig) > $contador)
+                    $cob_vig = $dados['dados_cobertura'];
+                    if ( count($cob_vig) > $contador+1 )
                     {
-                        $contador++;
+                        $dados_end['data_inicio_vigencia'] = emptyor($cob_vig[$contador]['data_inicio_vigencia'], $dados_end['data_inicio_vigencia']);
+                        $dados_end['data_fim_vigencia']    = emptyor($cob_vig[$contador]['data_fim_vigencia'], $dados_end['data_fim_vigencia']);
                         $multiplasVigencias = true;
-                        $dados_end['data_inicio_vigencia'] = emptyor($cob_vig['data_inicio_vigencia'], $dados_end['data_inicio_vigencia']);
-                        $dados_end['data_fim_vigencia']    = emptyor($cob_vig['data_fim_vigencia'], $dados_end['data_fim_vigencia']);
+                        $contador++;
                     }
                 }
             }
@@ -449,7 +495,12 @@ Class Apolice_Endosso_Model extends MY_Model
                 // executa a proxima ação no endosso
                 if ($executaInsert)
                 {
-                    return $this->insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $dados_end['parcela']+1, null, $devolucao_integral, $dias_utilizados, $contador);
+                    $dados['parcela'] = $dados_end['parcela']+1;
+                    $dados['valor'] =  null;
+                    $dados['dados_endosso'] =  $dados_end;
+                    $dados['contador'] =  $contador;
+
+                    return $this->insEndossoCore($dados);
                 }
             }
 
