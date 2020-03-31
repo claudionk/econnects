@@ -232,12 +232,15 @@ class Apolice_Model extends MY_Model
         $produto_parceiro_id = $pedido['produto_parceiro_id'];
         $cotacao_id = $pedido['cotacao_id'];
 
+        // Dados da Capitalização
         $this->insertCapitalizacao($produto_parceiro_id, $pedido_id);
 
-        $this->movimentacao->insMovimentacao('A', $apolice_id, $pedido);
-
+        // Dados das Coberturas. Nota: Precisa ser antes dos dados do Endosso
         $this->apolice_cobertura->deleteByCotacao($cotacao_id);
         $this->apolice_cobertura->geraDadosEmissao($cotacao_id, $pedido_id, $apolice_id, $produto_parceiro_plano_id);
+
+        // Dados da Movimentação e Endosso
+        $this->movimentacao->insMovimentacao('A', $apolice_id, $pedido);
 
     }
 
