@@ -358,8 +358,8 @@ Class Apolice_Endosso_Model extends MY_Model
                     {
                         $contador++;
                         $multiplasVigencias = true;
-                        $dados_end['data_inicio_vigencia'] = $cob_vig['data_ini_vigencia'];
-                        $dados_end['data_fim_vigencia']    = $cob_vig['data_fim_vigencia'];
+                        $dados_end['data_inicio_vigencia'] = emptyor($cob_vig['data_inicio_vigencia'], $dados_end['data_inicio_vigencia']);
+                        $dados_end['data_fim_vigencia']    = emptyor($cob_vig['data_fim_vigencia'], $dados_end['data_fim_vigencia']);
                     }
                 }
             }
