@@ -355,9 +355,7 @@ Class Apolice_Endosso_Model extends MY_Model
                             // Acerta o valor da última parcela
                             $total_recalc = $dados_end['valor'] * $max_parcela;
                             if ($parcela == $max_parcela && $total_recalc != $apolice['valor_premio_net'] )
-                            {
                                 $dados_end['valor'] += $apolice['valor_premio_net'] - $total_recalc;
-                            }
 
                         } else 
                         {
@@ -402,10 +400,16 @@ Class Apolice_Endosso_Model extends MY_Model
                 {
                     if ( count($cob_vig) > 1 && count($cob_vig) >= $contador )
                     {
+                        $multiplasVigencias = true;
                         $dados_end['data_inicio_vigencia'] = emptyor($cob_vig[$contador-1]['data_inicio_vigencia'], $dados_end['data_inicio_vigencia']);
                         $dados_end['data_fim_vigencia']    = emptyor($cob_vig[$contador-1]['data_fim_vigencia'], $dados_end['data_fim_vigencia']);
-                        $multiplasVigencias = true;
-                        $contador++;
+                        $dados_end['valor']                = round($apolice['valor_premio_net'] / count($cob_vig), 2);
+
+                        // Acerta o valor da última parcela
+                        $total_recalc = $dados_end['valor'] * count($cob_vig);
+                        if (count($cob_vig) == $contador && $total_recalc != $apolice['valor_premio_net'] )
+                            $dados_end['valor'] += $apolice['valor_premio_net'] - $total_recalc;
+
                     }
                 }
             }
@@ -479,6 +483,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 // Pagamento Unico
                 if ( $tipo_pagto == 0 && $multiplasVigencias && count($cob_vig) > $contador)
                 {
+                    $contador++;
                     $executaInsert = true;
                 }
                 // Mensal - gera apenas a primeira parcela
