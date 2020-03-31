@@ -78,7 +78,7 @@ Class Apolice_Endosso_Model extends MY_Model
         return null;
     }
 
-    function max_seq_by_apolice_id($apolice_id, $tipo_pagto = 0, $tipo = 'A')
+    function max_seq_by_apolice_id($apolice_id, $tipo_pagto = 0, $tipo = 'A', $multiplasVigencias = false)
     {
         $sequencia = 1;
         $endosso = 0;
@@ -111,7 +111,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 $sequencia++;
             }
 
-            $endosso = $this->defineEndosso($sequencia, $apolice_id);
+            $endosso = $this->defineEndosso($sequencia, $apolice_id, $tipo_pagto, $tipo, $multiplasVigencias);
         }
 
         return [
@@ -221,11 +221,14 @@ Class Apolice_Endosso_Model extends MY_Model
         return $tipo;
     }
 
-    public function defineEndosso($sequencial, $apolice_id)
+    public function defineEndosso($sequencial, $apolice_id, $tipo_pagto = 0, $tipo = 'A', $multiplasVigencias = false)
     {
         $endosso = 0;
 
-        if ( $sequencial > 1 )
+        // PU - emissao com mais de 1 seq
+        $mesmoEndosso = ($multiplasVigencias && $tipo == 'A');
+
+        if ( $sequencial > 1 && !$mesmoEndosso )
         {
             $this->load->model('apolice_model', 'apolice');
             $dadosPP = $this->apolice->getProdutoParceiro($apolice_id);
@@ -255,6 +258,7 @@ Class Apolice_Endosso_Model extends MY_Model
             $vcto_inferior_cancel = true;
             $geraDadosEndosso = true;
             $executaInsert = false;
+            $multiplasVigencias = false;
 
             $dados_end = array();
             $dados_end['apolice_id']                    = $apolice_id;
@@ -334,7 +338,7 @@ Class Apolice_Endosso_Model extends MY_Model
                     $vigencia = $this->produto_parceiro_plano->getDatasCapa($apolice['produto_parceiro_plano_id'], $dados_end['data_inicio_vigencia'], $dados_end['data_vencimento'], $tipo_pagto);
                     $dados_end['data_vencimento'] = $vigencia['data_vencimento'];
 
-                    // no mensal, a vigencia não se altera vigenia
+                    // no mensal, a vigencia não se altera
                     if ($tipo_pagto != 2) {
                         $dados_end['data_inicio_vigencia']  = $vigencia['inicio_vigencia'];
                         $dados_end['data_fim_vigencia']     = $vigencia['fim_vigencia'];
@@ -345,9 +349,22 @@ Class Apolice_Endosso_Model extends MY_Model
             } else 
             {
                 $dados_end['parcela'] = 1;
+
+                // Pagamento Unico
+                if ( $tipo_pagto == 0 )
+                {
+                    $cob_vig = $this->apolice_cobertura->filterByVigenciaCob($apolice_id)->get_all();
+                    if ( count($cob_vig) > $contador)
+                    {
+                        $contador++;
+                        $multiplasVigencias = true;
+                        $dados_end['data_inicio_vigencia'] = $cob_vig['data_ini_vigencia'];
+                        $dados_end['data_fim_vigencia']    = $cob_vig['data_fim_vigencia'];
+                    }
+                }
             }
 
-            $seq_end                    = $this->max_seq_by_apolice_id($apolice_id, $tipo_pagto, $tipo);
+            $seq_end                    = $this->max_seq_by_apolice_id($apolice_id, $tipo_pagto, $tipo, $multiplasVigencias);
             $dados_end['sequencial']    = $seq_end['sequencial'];
             $dados_end['endosso']       = $seq_end['endosso'];
 
@@ -414,14 +431,9 @@ Class Apolice_Endosso_Model extends MY_Model
             if ( $tipo == 'A' || ($tipo == 'C' && $tipo_pagto == 2) )
             {
                 // Pagamento Unico
-                if ( $tipo_pagto == 0 )
+                if ( $tipo_pagto == 0 && $multiplasVigencias )
                 {
-                    $cob_vig = $this->apolice_cobertura->filterByVigenciaCob($apolice_id)->get_all();
-                    if ( count($cob_vig) > $contador)
-                    {
-                        $contador++;
-                        $executaInsert = true;
-                    }
+                    $executaInsert = true;
                 }
                 // Mensal - gera apenas a primeira parcela
                 elseif ( $tipo_pagto == 1 && $dados_end['parcela'] == 0 )
