@@ -317,10 +317,11 @@ Class Apolice_Endosso_Model extends MY_Model
             $parcela = $dados['parcela'];
             $tipo = $dados['tipo'];
             $valor = $dados['valor'];
-            $contador = emptyor($dados['contador'], 0);
+            $contador = emptyor($dados['contador'], 1);
             $apolice_id = $dados_end['apolice_id'];
             $devolucao_integral = $dados['devolucao_integral'];
             $dias_utilizados = $dados['dias_utilizados'];
+            $cob_vig = emptyor($dados['dados_cobertura'], []);
 
             $vcto_inferior_cancel = true;
             $geraDadosEndosso = true;
@@ -399,11 +400,10 @@ Class Apolice_Endosso_Model extends MY_Model
                 // Pagamento Unico
                 if ( $tipo_pagto == 0 )
                 {
-                    $cob_vig = $dados['dados_cobertura'];
-                    if ( count($cob_vig) > $contador+1 )
+                    if ( count($cob_vig) > 1 && count($cob_vig) >= $contador )
                     {
-                        $dados_end['data_inicio_vigencia'] = emptyor($cob_vig[$contador]['data_inicio_vigencia'], $dados_end['data_inicio_vigencia']);
-                        $dados_end['data_fim_vigencia']    = emptyor($cob_vig[$contador]['data_fim_vigencia'], $dados_end['data_fim_vigencia']);
+                        $dados_end['data_inicio_vigencia'] = emptyor($cob_vig[$contador-1]['data_inicio_vigencia'], $dados_end['data_inicio_vigencia']);
+                        $dados_end['data_fim_vigencia']    = emptyor($cob_vig[$contador-1]['data_fim_vigencia'], $dados_end['data_fim_vigencia']);
                         $multiplasVigencias = true;
                         $contador++;
                     }
@@ -477,7 +477,7 @@ Class Apolice_Endosso_Model extends MY_Model
             if ( $tipo == 'A' || ($tipo == 'C' && $tipo_pagto == 2) )
             {
                 // Pagamento Unico
-                if ( $tipo_pagto == 0 && $multiplasVigencias )
+                if ( $tipo_pagto == 0 && $multiplasVigencias && count($cob_vig) > $contador)
                 {
                     $executaInsert = true;
                 }
