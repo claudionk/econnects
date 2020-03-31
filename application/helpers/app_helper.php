@@ -1191,7 +1191,10 @@ function emptyor(&$var, $default = ' ') {
 if ( ! function_exists('isempty')) {
     function isempty(&$var, $default = ' ')
     {
-        return (!empty($var)) ? $var : $default; // $default : $var;
+        //return (!empty($var)) ? $var : $default; // $default : $var; 
+        /*TODO: Voltei a versão anterior para corrigir o campos com default 0 como por exemplo NR_SEQ_MOV do Sinistro. 
+        Só que esta funcionalidade tem que ser ajustada novamente para o caso da branch "Ajuste emissão Saúde via API"*/
+        return (strlen($var) > 0) ? $var : $default; // $default : $var;
     }
 }
 
