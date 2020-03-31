@@ -241,11 +241,12 @@ Class Apolice_Endosso_Model extends MY_Model
         return $endosso;
     }
 
-    public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null, $devolucao_integral = true, $dias_utilizados = 0)
+    public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null, $devolucao_integral = true, $dias_utilizados = 0, $contador = 1)
     {
         try
         {
             $this->load->model('apolice_model', 'apolice');
+            $this->load->model('apolice_cobertura_model', 'apolice_cobertura');
             $this->load->model('produto_parceiro_pagamento_model', 'parceiro_pagamento');
             $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
 
@@ -405,18 +406,25 @@ Class Apolice_Endosso_Model extends MY_Model
             $dados_end['tipo']                  = $this->defineTipo($tipo, $dados_end['endosso'], $tipo_pagto);
             $dados_end['id_transacao']          = $this->getIDTransacao($apolice_id, $dados_end['endosso'], $dados_end['parcela']);
 
-
             // Valida se deve gerar o registro da parcela
             if ( $geraDadosEndosso )
                 $this->insert($dados_end, TRUE);
 
-
             // gera o registro adicional na Adesão da Capa ou Cancelamento de Parcelado
             if ( $tipo == 'A' || ($tipo == 'C' && $tipo_pagto == 2) )
             {
-
+                // Pagamento Unico
+                if ( $tipo_pagto == 0 )
+                {
+                    $cob_vig = $this->apolice_cobertura->filterByVigenciaCob($apolice_id)->get_all();
+                    if ( count($cob_vig) > $contador)
+                    {
+                        $contador++;
+                        $executaInsert = true;
+                    }
+                }
                 // Mensal - gera apenas a primeira parcela
-                if ( $tipo_pagto == 1 && $dados_end['parcela'] == 0 )
+                elseif ( $tipo_pagto == 1 && $dados_end['parcela'] == 0 )
                 {
                     $executaInsert = true;
                 } 
@@ -429,7 +437,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 // executa a proxima ação no endosso
                 if ($executaInsert)
                 {
-                    return $this->insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $dados_end['parcela']+1, null, $devolucao_integral, $dias_utilizados);
+                    return $this->insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $dados_end['parcela']+1, null, $devolucao_integral, $dias_utilizados, $contador);
                 }
             }
 
