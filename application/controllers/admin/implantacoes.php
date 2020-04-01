@@ -30,7 +30,7 @@ class Implantacoes extends Admin_Controller
 
     public function index($offset = 0) //Função padrão (load)
     {
-        //Carrega bibliotecas
+        //Carrega bibliotecas 
         $this->load->library('pagination');
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
