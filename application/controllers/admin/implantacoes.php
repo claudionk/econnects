@@ -30,14 +30,20 @@ class Implantacoes extends Admin_Controller
 
     public function index($offset = 0) //Função padrão (load)
     {
+        //Carrega bibliotecas
+        $this->load->library('pagination');
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Implantações");
-        $this->template->set_breadcrumb("Implantações", base_url("{$this->controller_uri}/index"));
-
+        $this->template->set_breadcrumb("Implantações", base_url("{$this->controller_uri}/index"));  
+        //Inicializa tabela
+        $config['base_url'] = base_url("$this->controller_uri/index");
+        $config['uri_segment'] = 4;
+        $config['total_rows'] =  $this->current_model->filterFromInput()->get_total()-1;
+        $config['per_page'] = 20; //voltar
+        $this->pagination->initialize($config);
         $produtos = $this->current_model
         ->with_implantacao_staus();
-
         if ( isset($_GET['filter']) )
         {
             if (!empty($_GET['filter']['produto']))
@@ -46,28 +52,24 @@ class Implantacoes extends Admin_Controller
             if (!empty($_GET['filter']['implantacao_status_id']))
                 $produtos = $produtos->filter_implantacao_status_id($_GET['filter']['implantacao_status_id']);
         }
-
         //relacionamentos
-        $produtos = $produtos->get_produtos_venda_admin_parceiros($this->parceiro_id);
+        $produtos = $produtos->filterFromInput()->order_by('nome_prod_parc')->limit($config['per_page'], $offset)->get_produtos_venda_admin_parceiros($this->parceiro_id);
         $parceiros = [];
         $parceiros_ids = [];
-
         //Carrega dados para a página
         $data = array();
         $data["rows"] = $produtos;
         $data['primary_key'] = $this->current_model->primary_key();
         $data['implantacao_status'] = $this->implantacao_status->get_all();
-
+        $data["pagination_links"] = $this->pagination->create_links();
         if ( isset($_GET['filter']) )
         {
             if (!empty($_GET['filter']['nome_fantasia']))
-                $parceiros = $this->parceiro->filterFromInput()->get_all();
+                $parceiros = $this->parceiro->filterFromInput($_GET['filter']['nome_fantasia'])->get_all();
         }
-
         foreach ($parceiros as $key => $value) {
             array_push($parceiros_ids, $value['parceiro_id']);
         }
-
         if ( !empty($data["rows"]) )
         {
             foreach ($data["rows"] as $key => $value) {
@@ -85,7 +87,6 @@ class Implantacoes extends Admin_Controller
                 }
             }
         }
-
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data );
     }
