@@ -60,7 +60,7 @@
                             <!-- // Table body END -->
 
                         </table>
-                        <?php echo $pagination_links?> 
+                        <?php echo $pagination_links?>
                     </div>
                 </div>
                 <!-- // Widget END -->

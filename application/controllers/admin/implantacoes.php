@@ -30,12 +30,12 @@ class Implantacoes extends Admin_Controller
 
     public function index($offset = 0) //Função padrão (load)
     {
-        //Carrega bibliotecas 
+        //Carrega bibliotecas
         $this->load->library('pagination');
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Implantações");
-        $this->template->set_breadcrumb("Implantações", base_url("{$this->controller_uri}/index"));  
+        $this->template->set_breadcrumb("Implantações", base_url("{$this->controller_uri}/index"));
         //Inicializa tabela
         $config['base_url'] = base_url("$this->controller_uri/index");
         $config['uri_segment'] = 4;
@@ -62,10 +62,11 @@ class Implantacoes extends Admin_Controller
         $data['primary_key'] = $this->current_model->primary_key();
         $data['implantacao_status'] = $this->implantacao_status->get_all();
         $data["pagination_links"] = $this->pagination->create_links();
+        
         if ( isset($_GET['filter']) )
         {
             if (!empty($_GET['filter']['nome_fantasia']))
-                $parceiros = $this->parceiro->filterFromInput($_GET['filter']['nome_fantasia'])->get_all();
+            $parceiros = $this->parceiro->filterFromInput($_GET['filter']['nome_fantasia'])->get_all();
         }
         foreach ($parceiros as $key => $value) {
             array_push($parceiros_ids, $value['parceiro_id']);
