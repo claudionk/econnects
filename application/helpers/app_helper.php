@@ -1222,8 +1222,8 @@ if ( ! function_exists('isvazio')) {
                 }
             }
         }
-
         return $var; // $default : $var;
+
     }
 }
 
