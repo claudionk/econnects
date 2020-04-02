@@ -55,15 +55,16 @@ Class Apolice_Endosso_Model extends MY_Model
      * @author Davi Souto
      * @since  08/04/2019
      */
-    function lastParcela($apolice_id, $parcela = null, $apolice_movimentacao_tipo_id = null) {
+    function lastParcela($apolice_id, $parcela = null, $apolice_movimentacao_tipo_id = null, $data_inicio_vigencia = null) {
 
-        if ( !is_null($parcela) ) {
+        if ( !is_null($parcela) )
             $this->_database->where('parcela', $parcela);
-        }
 
-        if ( !empty($apolice_movimentacao_tipo_id) ) {
+        if ( !empty($apolice_movimentacao_tipo_id) )
             $this->_database->where('apolice_movimentacao_tipo_id', $apolice_movimentacao_tipo_id);
-        }
+
+        if ( !empty($data_inicio_vigencia) )
+            $this->_database->where('data_inicio_vigencia', $data_inicio_vigencia);
 
         $this->_database->where('apolice_id', $apolice_id);
         $this->_database->where('deletado', 0);
@@ -225,10 +226,21 @@ Class Apolice_Endosso_Model extends MY_Model
     {
         $endosso = 0;
 
-        // PU - emissao com mais de 1 seq
-        $mesmoEndosso = ($multiplasVigencias && $tipo == 'A');
+        // O sequencial aqui se refere ao sequencial de endosso e nao ao numero sequencial das coberturas
+        // Pagamento Unico
+        if ($tipo_pagto == 0)
+        {
+            if ($tipo == 'A')
+            {
+                $sequencial = 1;
+            }
+            if ($tipo == 'C')
+            {
+                $sequencial = 2;
+            }
+        }
 
-        if ( $sequencial > 1 && !$mesmoEndosso )
+        if ( $sequencial > 1 )
         {
             $this->load->model('apolice_model', 'apolice');
             $dadosPP = $this->apolice->getProdutoParceiro($apolice_id);
@@ -423,7 +435,16 @@ Class Apolice_Endosso_Model extends MY_Model
                     return null;
                 }
 
-                $result = $this->lastParcela($apolice_id, $dados_end['parcela']);
+                $ap_mov_tip_id = null;
+                $dt_ini_vig = null;
+
+                // No PU com multiplas vignecias deve pegar o ultimo dado de emissão, para dar continuidade
+                if ( $multiplasVigencias )
+                {
+                    $ap_mov_tip_id = 1;
+                    $dt_ini_vig = $dados_end['data_inicio_vigencia'];
+                }
+                $result = $this->lastParcela($apolice_id, $dados_end['parcela'], $ap_mov_tip_id, $dt_ini_vig );
 
                 $dados_end['data_fim_vigencia']     = $result['data_fim_vigencia'];
                 $dados_end['valor']                 = $result['valor'];
@@ -472,36 +493,34 @@ Class Apolice_Endosso_Model extends MY_Model
             if ( $geraDadosEndosso )
                 $this->insert($dados_end, TRUE);
 
-            // gera o registro adicional na Adesão da Capa ou Cancelamento de Parcelado
-            if ( $tipo == 'A' || ($tipo == 'C' && $tipo_pagto == 2) )
+            /**** Gera o registro adicional na Adesão da Capa ou Cancelamento de Parcelado ****/
+
+            // Pagamento Unico - Adesao/Cancelamento multiplas coberturas
+            if ( $tipo_pagto == 0 && $multiplasVigencias && count($cob_vig) > $contador)
             {
-                // Pagamento Unico
-                if ( $tipo_pagto == 0 && $multiplasVigencias && count($cob_vig) > $contador)
-                {
-                    $contador++;
-                    $executaInsert = true;
-                }
-                // Mensal - gera apenas a primeira parcela
-                elseif ( $tipo_pagto == 1 && $dados_end['parcela'] == 0 )
-                {
-                    $executaInsert = true;
-                } 
-                // Parcelado - gera todas as parcelas
-                elseif ( $tipo_pagto == 2 && $dados_end['parcela'] < $max_parcela )
-                {
-                    $executaInsert = true;
-                }
+                $contador++;
+                $executaInsert = true;
+            }
+            // Mensal - Adesao apenas a primeira parcela
+            elseif ( $tipo_pagto == 1 && $tipo == 'A' && $dados_end['parcela'] == 0 )
+            {
+                $executaInsert = true;
+            }
+            // Parcelado - Adesao/Cancelamento de todas as parcelas
+            elseif ( $tipo_pagto == 2 && $dados_end['parcela'] < $max_parcela )
+            {
+                $executaInsert = true;
+            }
 
-                // executa a proxima ação no endosso
-                if ($executaInsert)
-                {
-                    $dados['parcela'] = $dados_end['parcela']+1;
-                    $dados['valor'] =  null;
-                    $dados['dados_endosso'] =  $dados_end;
-                    $dados['contador'] =  $contador;
+            // executa a proxima ação no endosso
+            if ($executaInsert)
+            {
+                $dados['parcela'] = $dados_end['parcela']+1;
+                $dados['valor'] =  null;
+                $dados['dados_endosso'] =  $dados_end;
+                $dados['contador'] =  $contador;
 
-                    return $this->insEndossoCore($dados);
-                }
+                return $this->insEndossoCore($dados);
             }
 
             return $dados_end;
