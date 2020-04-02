@@ -3255,7 +3255,7 @@ if ( ! function_exists('app_integracao_coop')) {
         }
 
         // Valida o tipo de transacao
-        if ( ! in_array( $dados['registro']['tipo_transacao'], ['FC','NC'] ) )
+        if ( $reg['acao'] == '0' )
         {
             $response->msg[] = ['id' => -1, 'msg' => "Registro recebido como {$dados['registro']['tipo_transacao']}", 'slug' => "ignorado"];
             return $response;
@@ -3318,6 +3318,7 @@ if ( ! function_exists('app_integracao_coop')) {
         $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
         $dados['registro']['data_adesao']               = $dados['registro']['data_adesao_cancel'];
         $dados['registro']['equipamento_de_para']       = $vigencia . $dados['registro']['equipamento_de_para'];
+        $dados['registro']['endereco_numero']           = emptyor($dados['registro']['endereco_numero'], '-'); // definição do Lee-GBS para qdo nao enviar o número não rejeitar
         $eanErro = true;
         $eanErroMsg = "";
 
