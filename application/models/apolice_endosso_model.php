@@ -79,11 +79,33 @@ Class Apolice_Endosso_Model extends MY_Model
         return null;
     }
 
+    /**
+     * Retorna a última parcela registrada da apólice
+     * @param int $apolice_id
+     * @return array
+     * @author Cristiano Arruda
+     * @since  03/04/2020
+     */
+    function firstVecto($apolice_id, $data_cancelamento)
+    {
+        $this->_database->where('apolice_id', $apolice_id);
+        $this->_database->where('apolice_movimentacao_tipo_id', 1);
+        $this->_database->where("data_vencimento > '{$data_cancelamento}' ");
+        $this->_database->where('deletado', 0);
+        $this->_database->order_by('data_vencimento', 'ASC');
+        $this->_database->limit(1);
+        $result = $this->get_all();
+        if (!empty($result)) {
+            return $result[0];
+        }
+
+        return null;
+    }
+
     function max_seq_by_apolice_id($apolice_id, $tipo_pagto = 0, $tipo = 'A', $multiplasVigencias = false)
     {
         $sequencia = 1;
         $endosso = 0;
-
         $result = $this->lastSequencial($apolice_id);
 
         // tratamento para gerar o endosso e o sequencial
@@ -156,7 +178,7 @@ Class Apolice_Endosso_Model extends MY_Model
      * @author Cristiano Arruda
      * @since  08/04/2019
      */
-    public function defineMovCob($tipo, $parcela, $tipo_pagto, $devolucao_integral = true, $vcto_inferior_cancel = false)
+    public function defineMovCob($tipo, $parcela, $tipo_pagto, $devolucao_integral = true, $possui_restituicao = false)
     {
         // é o registro de capa
         if ( $parcela == 0 )
@@ -173,7 +195,7 @@ Class Apolice_Endosso_Model extends MY_Model
             else
             {
                 // devolução integral ou vencimento inferior a data de cancelamento, envia com restituição
-                $cd_mov_cob = (($devolucao_integral && $parcela==1) || $vcto_inferior_cancel) ? 2 : 3;
+                $cd_mov_cob = (($devolucao_integral && $parcela==1) || $possui_restituicao) ? 2 : 3;
             }
         }
         // emissão
@@ -339,6 +361,7 @@ Class Apolice_Endosso_Model extends MY_Model
             $geraDadosEndosso = true;
             $executaInsert = false;
             $multiplasVigencias = false;
+            $parcelaRestituicao = false;
 
             // VALIDAÇÃO DE CAPA
             // caso seja recorrência terá capa
@@ -460,21 +483,31 @@ Class Apolice_Endosso_Model extends MY_Model
                 // Não é integral
                 if ( empty($devolucao_integral) )
                 {
-                    // NAO FAZ O CANCELAMENTO
-                    // Parcelado: Apos X dias e antes do inicio da vigência
-                    // if ( $tipo_pagto == 2 && empty($dias_utilizados) && !$vcto_inferior_cancel )
-                    // {
-                    //     return null;
-                    // }
-
                     // Unico: Depois da vigencia
                     // Parcelado: Para todas as parcelas canceladas
                     if ( ($tipo_pagto == 2 && $vcto_inferior_cancel) || !empty($dias_utilizados) )
                     {
-                        // Parcelado: *NAO* gera dados para enviar caso o vencimento seja anterior ao cancelamento
-                        if ( $tipo_pagto == 2 && $vcto_inferior_cancel )
+                        // Parcelado
+                        if ( $tipo_pagto == 2 )
                         {
-                            $geraDadosEndosso = false;
+                            // *NAO* gera dados para enviar caso o vencimento seja anterior ao cancelamento
+                            if ( $vcto_inferior_cancel ) {
+                                $geraDadosEndosso = false;
+                            }
+                            else {
+                                // Se nao é o mesmo dia do cancelamento ( simulacao de pagto e cancelamento no mesmo dia)
+                                if ( app_date_mysql_to_mask($apolice['data_cancelamento'], "d") != app_date_mysql_to_mask($dados_end['data_vencimento'], "d") )
+                                {
+                                    $r = $this->firstVecto($apolice_id, $apolice['data_cancelamento']);
+
+                                    // se o vencimento atual é o primeiro após o cancelamento
+                                    if ( !empty($r) && $r['data_vencimento'] == $dados_end['data_vencimento'] )
+                                    {
+                                        // possui restituição parcial
+                                        $parcelaRestituicao = true;
+                                    }
+                                }
+                            }
                         }
 
                         // deverá informar data posterior a data do cancelamento, ou seja, D+1 da data de cancelamento
@@ -485,7 +518,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 }
             }
 
-            $dados_end['cd_movimento_cobranca'] = $this->defineMovCob($tipo, $dados_end['parcela'], $tipo_pagto, $devolucao_integral, $vcto_inferior_cancel);
+            $dados_end['cd_movimento_cobranca'] = $this->defineMovCob($tipo, $dados_end['parcela'], $tipo_pagto, $devolucao_integral, $parcelaRestituicao);
             $dados_end['tipo']                  = $this->defineTipo($tipo, $dados_end['endosso'], $tipo_pagto);
             $dados_end['id_transacao']          = $this->getIDTransacao($apolice_id, $dados_end['endosso'], $dados_end['parcela']);
 
