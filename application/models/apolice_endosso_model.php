@@ -357,6 +357,7 @@ Class Apolice_Endosso_Model extends MY_Model
             $devolucao_integral = $dados['devolucao_integral'];
             $dias_utilizados = $dados['dias_utilizados'];
             $cob_vig = emptyor($dados['dados_cobertura'], []);
+            $dados_end['cod_cobertura'] = null;
 
             $vcto_inferior_cancel = true;
             $geraDadosEndosso = true;
@@ -439,6 +440,7 @@ Class Apolice_Endosso_Model extends MY_Model
                         $multiplasVigencias = true;
                         $dados_end['data_inicio_vigencia'] = emptyor($cob_vig[$contador-1]['data_inicio_vigencia'], $dados_end['data_inicio_vigencia']);
                         $dados_end['data_fim_vigencia']    = emptyor($cob_vig[$contador-1]['data_fim_vigencia'], $dados_end['data_fim_vigencia']);
+                        $dados_end['cod_cobertura']        = emptyor($cob_vig[$contador-1]['cod_cobertura'], $dados_end['cod_cobertura']);
 
                         // Nota: Nao faz ajuste de valor pois deve apenas mudar o sequencial
                     }
