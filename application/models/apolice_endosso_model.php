@@ -308,6 +308,7 @@ Class Apolice_Endosso_Model extends MY_Model
             }
 
             $tipo_pagto = $this->parceiro_pagamento->isRecurrent($produto_parceiro_pagamento_id) ? 1 : $is_controle_endosso_pelo_cliente;
+            $cob_vig = [];
 
             // Pagamento Unico
             if ( $tipo_pagto == 0 )
