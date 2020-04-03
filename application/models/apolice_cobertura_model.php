@@ -42,9 +42,9 @@ Class Apolice_Cobertura_Model extends MY_Model
     }
 
     function filterByVigenciaCob($apolice_id){
-        $this->_database->select("{$this->_table}.data_inicio_vigencia, {$this->_table}.data_fim_vigencia");
-        $this->_database->where("{$this->_table}.apolice_id", $apolice_id);
-        $this->_database->group_by("{$this->_table}.data_inicio_vigencia, {$this->_table}.data_fim_vigencia");
+        $this->_database->select("data_inicio_vigencia, data_fim_vigencia, cod_cobertura");
+        $this->_database->where("apolice_id", $apolice_id);
+        $this->_database->group_by("data_inicio_vigencia, data_fim_vigencia");
         return $this;
     }
 
