@@ -65,8 +65,8 @@ function buscaCep(cep, plano_id){
 
                 $("#plano_"+ plano_id +"_endereco_cidade").val(json.data.cidade.toUpperCase());
                 $("#plano_"+ plano_id +"_endereco_bairro").val(json.data.bairro.toUpperCase());
-                $("#plano_"+ plano_id +"_endereco").val(json.data.tipo_logradouro.toUpperCase() + ' ' + json.data.logradouro.toUpperCase() );
-                $("#plano_"+ plano_id +"_endereco_uf").val(json.data.uf);
+                $("#plano_"+ plano_id +"_endereco_logradouro").val(json.data.tipo_logradouro.toUpperCase() + ' ' + json.data.logradouro.toUpperCase() );
+                $("#plano_"+ plano_id +"_endereco_estado").val(json.data.uf);
 
                 $("#plano_"+ plano_id +"_endereco_numero").focus();
             }else {

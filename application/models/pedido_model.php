@@ -695,13 +695,25 @@ Class Pedido_Model extends MY_Model
         $adesao = explode('-', $apolice['data_adesao']);
         $adesao = mktime(0, 0, 0, $adesao[1], $adesao[2], $adesao[0]);
 
+        $data_hoje = explode('-', date('Y-m-d'));
+        $data_hoje = mktime(0, 0, 0, $data_hoje[1], $data_hoje[2], $data_hoje[0]);
+
         list( $current_year, $current_month, $current_day, $current_hour, $current_minute, $current_second ) = preg_split("/[- :]/", $define_date);
         $hoje = mktime( $current_hour, $current_minute, $current_second, $current_month, $current_day, $current_year );
-
-        // valida a data de cancelamento
+        $hoje_mdy = mktime( 0,0,0, $current_month, $current_day, $current_year );
+        
+        // valida a data de cancelamento anterior à adesão
         if ( $hoje < $adesao )
         {
             $result['mensagem'] = "A data de Cancelamento não pode ser inferior à data de Adesão";
+            $result['redirect'] = "admin/pedido/view/{$pedido_id}";
+            return $result;
+        }
+
+        // valida a data de cancelamento posterior à data atual
+        if ( $hoje_mdy > $data_hoje )
+        {
+            $result['mensagem'] = "A data de Cancelamento não pode ser superior à data de Hoje";
             $result['redirect'] = "admin/pedido/view/{$pedido_id}";
             return $result;
         }
@@ -1276,25 +1288,77 @@ Class Pedido_Model extends MY_Model
     }
 
     /**
-    * Extrai relatório de vendas
+    * Extrai relatório de vendas - CORE
     */
-    public function extrairRelatorioVendas($data_inicio = null, $data_fim = null)
+    public function extrairRelatorioVendasCore($data_inicio = null, $data_fim = null, $produto_parceiro_id = null)
     {
 
         $where = $this->restrictProdutos();
         if (!empty($where)) $this->_database->where($where, NULL, FALSE);
 
+        $this->_database->from($this->_table);
+
+        $this->_database->join("apolice a", "a.pedido_id = {$this->_table}.pedido_id", "inner");
+        $this->_database->join("apolice_status ast", "a.apolice_status_id = ast.apolice_status_id", "inner");
+        $this->_database->join("apolice_movimentacao am", "a.apolice_id = am.apolice_id AND am.apolice_movimentacao_tipo_id = 1", "inner"); // para identificar a data de emissão
+        $this->_database->join("cotacao c", "c.cotacao_id = {$this->_table}.cotacao_id", "inner");
+        $this->_database->join("cotacao_status cs", "cs.cotacao_status_id = c.cotacao_status_id", "inner");
+        $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
+        $this->_database->join("parceiro p", "p.parceiro_id = c.parceiro_id", "inner");
+        $this->_database->join("produto_parceiro pp", "pp.produto_parceiro_id = c.produto_parceiro_id", "inner");
+        $this->_database->join("produto pr", "pr.produto_id = pp.produto_id", "inner");
+        $this->_database->join("cotacao_seguro_viagem csv", "csv.cotacao_id = {$this->_table}.cotacao_id and csv.deletado = 0", "left");
+        $this->_database->join("cotacao_equipamento ce", "ce.cotacao_id = {$this->_table}.cotacao_id and ce.deletado = 0", "left");
+        $this->_database->join("cotacao_generico cg", "cg.cotacao_id = {$this->_table}.cotacao_id and cg.deletado = 0", "left");
+        $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = IF(pr.slug = 'equipamento', ce.produto_parceiro_plano_id, IF(pr.slug = 'seguro_viagem', csv.produto_parceiro_plano_id, cg.produto_parceiro_plano_id))", "inner");
+        $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
+        $this->_database->join("usuario u", "u.usuario_id = c.usuario_cotacao_id", "left");
+        $this->_database->join("comissao_gerada cmg", "cmg.pedido_id = {$this->_table}.pedido_id AND cmg.parceiro_id = p.parceiro_id", "left");
+
+        $this->_database->join("apolice_seguro_viagem asv", "asv.apolice_id = a.apolice_id and asv.deletado = 0", "left");
+        $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "left");
+        $this->_database->join("apolice_generico ag", "ag.apolice_id = a.apolice_id and ag.deletado = 0", "left");
+
+        // colaborador só visualiza os próprios pedidos
+        if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
+            $this->_database->where("c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}");
+        }
+
+        if(isset($data_inicio) && !empty($data_inicio))
+            $this->_database->where("am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
+        if( isset($data_fim) && !empty($data_fim) )
+            $this->_database->where("am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
+
+        if ( !empty($produto_parceiro_id) )
+        {
+            $this->_database->where("pp.produto_parceiro_id = $produto_parceiro_id");
+        }
+
+        $this->_database->where("cs.slug = 'finalizada'");
+        $this->_database->where("{$this->_table}.deletado = 0");
+        $this->_database->where("a.deletado = 0");
+        return $this;
+    }
+
+    /**
+    * Extrai relatório de vendas
+    */
+    public function extrairRelatorioVendas($data_inicio = null, $data_fim = null, $produto_parceiro_id = null)
+    {
+        // Core com a base dos relacionamentos de tabelas
+        $this->extrairRelatorioVendasCore($data_inicio, $data_fim, $produto_parceiro_id);
+
         $this->_database->distinct();
         $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.cnpj, p.nome_fantasia,
         pp.nome as nome_produto_parceiro, pr.nome as nome_produto, ppp.nome as plano_nome, {$this->_table}.valor_parcela, {$this->_table}.codigo, a.num_apolice, le.sigla as UF, u.nome as vendedor, cmg.valor AS comissao_parceiro, ast.nome as Movimentacao ");
 
-        $this->_database->select("IF(pr.slug = 'generico', cg.premio_liquido, IF(pr.slug = 'seguro_viagem', csv.premio_liquido, ce.premio_liquido)) as premio_liquido", FALSE);
-        $this->_database->select("IF(pr.slug = 'generico', cg.premio_liquido_total, IF(pr.slug = 'seguro_viagem', csv.premio_liquido_total, ce.premio_liquido_total)) as premio_liquido_total", FALSE);
-        $this->_database->select("IF(pr.slug = 'generico', cg.comissao_corretor, IF(pr.slug = 'seguro_viagem', csv.comissao_corretor, ce.comissao_corretor)) as comissao_corretor", FALSE);
-        $this->_database->select("IF(pr.slug = 'generico', cg.nota_fiscal_valor, IF(pr.slug = 'seguro_viagem', csv.nota_fiscal_valor, ce.nota_fiscal_valor)) as nota_fiscal_valor", FALSE);
+        $this->_database->select("IF(pr.slug = 'equipamento', ce.premio_liquido, IF(pr.slug = 'seguro_viagem', csv.premio_liquido, cg.premio_liquido)) as premio_liquido", FALSE);
+        $this->_database->select("IF(pr.slug = 'equipamento', ce.premio_liquido_total, IF(pr.slug = 'seguro_viagem', csv.premio_liquido_total, cg.premio_liquido_total)) as premio_liquido_total", FALSE);
+        $this->_database->select("IF(pr.slug = 'equipamento', ce.comissao_corretor, IF(pr.slug = 'seguro_viagem', csv.comissao_corretor, cg.comissao_corretor)) as comissao_corretor", FALSE);
+        $this->_database->select("IF(pr.slug = 'equipamento', ce.nota_fiscal_valor, IF(pr.slug = 'seguro_viagem', csv.nota_fiscal_valor, cg.nota_fiscal_valor)) as nota_fiscal_valor", FALSE);
 
-        $this->_database->select("IF(pr.slug = 'generico', cg.premio_liquido, IF(pr.slug = 'seguro_viagem', csv.premio_liquido, ce.premio_liquido)) * (IF(pr.slug = 'generico', cg.iof, IF(pr.slug = 'seguro_viagem', csv.iof, ce.iof))/100) as IOF", FALSE);
-        $this->_database->select("IF(pr.slug = 'generico', ag.data_adesao, IF(pr.slug = 'seguro_viagem', asv.data_adesao, ae.data_adesao)) as status_data", FALSE);
+        $this->_database->select("IF(pr.slug = 'equipamento', ce.premio_liquido, IF(pr.slug = 'seguro_viagem', csv.premio_liquido, cg.premio_liquido)) * (IF(pr.slug = 'equipamento', ce.iof, IF(pr.slug = 'seguro_viagem', csv.iof, cg.iof))/100) as IOF", FALSE);
+        $this->_database->select("IF(pr.slug = 'equipamento', ae.data_adesao, IF(pr.slug = 'seguro_viagem', asv.data_adesao, ag.data_adesao)) as status_data", FALSE);
 
         $this->_database->select("(SELECT cmg.valor
         FROM comissao_gerada cmg 
@@ -1319,42 +1383,6 @@ Class Pedido_Model extends MY_Model
         $this->_database->select("IF(pr.slug = 'generico', cg.nome, IF(pr.slug = 'seguro_viagem', csv.nome, ce.nome)) as segurado", FALSE);
         $this->_database->select("IF(pr.slug = 'generico', cg.cnpj_cpf, IF(pr.slug = 'seguro_viagem', csv.cnpj_cpf, ce.cnpj_cpf)) as documento", FALSE);
 
-        $this->_database->from($this->_table);
-
-        $this->_database->join("apolice a", "a.pedido_id = {$this->_table}.pedido_id", "inner");
-        $this->_database->join("apolice_status ast", "a.apolice_status_id = ast.apolice_status_id", "inner");
-        $this->_database->join("apolice_movimentacao am", "a.apolice_id = am.apolice_id AND am.apolice_movimentacao_tipo_id = 1", "inner"); // para identificar a data de emissão
-        $this->_database->join("cotacao c", "c.cotacao_id = {$this->_table}.cotacao_id", "inner");
-        $this->_database->join("cotacao_status cs", "cs.cotacao_status_id = c.cotacao_status_id", "inner");
-        $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
-        $this->_database->join("parceiro p", "p.parceiro_id = c.parceiro_id", "inner");
-        $this->_database->join("produto_parceiro pp", "pp.produto_parceiro_id = c.produto_parceiro_id", "inner");
-        $this->_database->join("produto pr", "pr.produto_id = pp.produto_id", "inner");
-        $this->_database->join("cotacao_seguro_viagem csv", "csv.cotacao_id = {$this->_table}.cotacao_id and csv.deletado = 0", "left");
-        $this->_database->join("cotacao_equipamento ce", "ce.cotacao_id = {$this->_table}.cotacao_id and ce.deletado = 0", "left");
-        $this->_database->join("cotacao_generico cg", "cg.cotacao_id = {$this->_table}.cotacao_id and cg.deletado = 0", "left");
-        $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = IF(pr.slug = 'generico', cg.produto_parceiro_plano_id, IF(pr.slug = 'seguro_viagem', csv.produto_parceiro_plano_id, ce.produto_parceiro_plano_id))", "inner");
-        $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
-        $this->_database->join("usuario u", "u.usuario_id = c.usuario_cotacao_id", "left");
-        $this->_database->join("comissao_gerada cmg", "cmg.pedido_id = {$this->_table}.pedido_id AND cmg.parceiro_id = p.parceiro_id", "left");
-
-        $this->_database->join("apolice_seguro_viagem asv", "asv.apolice_id = a.apolice_id and asv.deletado = 0", "left");
-        $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "left");
-        $this->_database->join("apolice_generico ag", "ag.apolice_id = a.apolice_id and ag.deletado = 0", "left");
-
-        // colaborador só visualiza os próprios pedidos
-        if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
-            $this->_database->where("c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}");
-        }
-
-        if(isset($data_inicio) && !empty($data_inicio))
-            $this->_database->where("am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
-        if( isset($data_fim) && !empty($data_fim) )
-            $this->_database->where("am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
-
-        $this->_database->where("cs.slug = 'finalizada'");
-        $this->_database->where("{$this->_table}.deletado = 0");
-        $this->_database->where("a.deletado = 0");
         $query = $this->_database->get();
         $resp = [];
         //print_r($this->db->last_query()); exit;
@@ -1363,7 +1391,30 @@ Class Pedido_Model extends MY_Model
             $resp = $query->result_array();
         }
         return $resp;
+    }
 
+    /**
+    * Extrai relatório de vendas
+    */
+    public function extrairRelatorioVendasDiario($data_inicio, $data_fim, $produto_parceiro_id)
+    {
+        // Core com a base dos relacionamentos de tabelas
+        $this->extrairRelatorioVendasCore($data_inicio, $data_fim, $produto_parceiro_id);
+
+        $this->_database->select("SUM( IF(pr.slug = 'equipamento', ae.valor_premio_net, IF(pr.slug = 'seguro_viagem', asv.valor_premio_net, ag.valor_premio_net)) ) as premio_liquido", FALSE);
+        $this->_database->select("SUM( IF(pr.slug = 'equipamento', ae.valor_premio_total, IF(pr.slug = 'seguro_viagem', asv.valor_premio_total, ag.valor_premio_total)) ) as premio_liquido_total", FALSE);
+        $this->_database->select("SUM( IF(pr.slug = 'equipamento', ae.pro_labore, IF(pr.slug = 'seguro_viagem', asv.pro_labore, ag.pro_labore)) ) as IOF", FALSE);
+        $this->_database->select("DATE_FORMAT(am.criacao,'%Y%m%d') as data_format, DATE_FORMAT(am.criacao,'%d/%m/%Y') as status_data, ppp.nome as plano, ppp.produto_parceiro_plano_id, COUNT(1) qtde", FALSE);
+        $this->_database->group_by( array("DATE_FORMAT(am.criacao,'%Y%m%d')", "DATE_FORMAT(am.criacao,'%d/%m/%Y')", "ppp.nome", "ppp.produto_parceiro_plano_id") );
+
+        $query = $this->_database->get();
+        $resp = [];
+
+        if($query->num_rows() > 0)
+        {
+            $resp = $query->result_array();
+        }
+        return $resp;
     }
 
     /**
@@ -1445,101 +1496,101 @@ Class Pedido_Model extends MY_Model
         if (!empty($where)) $this->_database->where($where, NULL, FALSE);
         
         $this->_database->select("RELAT.*, EQUIP_MARCAS.nome AS marca, EQUIP_LINHAS.nome AS equipamento FROM ( SELECT DISTINCT 
-		  c.cotacao_status_id AS cotacao_status_id
-		, c.parceiro_id AS parceiro_id
-		, c.cotacao_upgrade_id AS cotacao_upgrade_id
-		, c.codigo AS codigo_cotacao
-		, c.cotacao_tipo AS cotacao_tipo
-		, c.motivo AS motivo
-		, c.motivo_ativo AS motivo_ativo
-		, c.motivo_obs AS motivo_obs
-		, c.usuario_cotacao_id AS usuario_cotacao_id
-		, c.usuario_venda_id AS usuario_venda_id
-		, c.cliente_id AS cliente_id
-		, c.deletado AS deletado_cotacao
-		, c.criacao AS criacao_cotacao
-		, c.alteracao_usuario_id AS alteracao_usuario_id_cotacao
-		, c.alteracao AS alteracao_cotacao
-		, c.data_inicio_vigencia AS data_inicio_vigencia
-		, c.data_fim_vigencia AS data_fim_vigencia
-		, pedido.pedido_id AS pedido_id
-		, pedido.cotacao_id AS cotacao_id
-		, pedido.pedido_status_id AS pedido_status_id
-		, pedido.produto_parceiro_pagamento_id AS produto_parceiro_pagamento_id
-		, pedido.valor_estorno AS valor_estorno
-		, pedido.id_usuario_cancelamento AS id_usuario_cancelamento
-		, pedido.codigo AS codigo
-		, pedido.status_data AS status_data
-		, pedido.valor_total AS valor_total
-		, pedido.num_parcela AS num_parcela
-		, pedido.lock AS `lock`
-		, pedido.nao_possui_conta_bancaria AS nao_possui_conta_bancaria
-		, pedido.conta_terceiro AS conta_terceiro
-		, pedido.tipo_conta AS tipo_conta
-		, pedido.favo_tipo AS favo_tipo
-		, pedido.favo_nome AS favo_nome
-		, pedido.favo_doc AS favo_doc
-		, pedido.favo_bco_nome AS favo_bco_nome
-		, pedido.favo_bco_num AS favo_bco_num
-		, pedido.favo_bco_cc AS favo_bco_cc
-		, pedido.favo_bco_cc_dg AS favo_bco_cc_dg
-		, pedido.favo_bco_ag AS favo_bco_ag
-		, pedido.deletado AS deletado
-		, pedido.criacao AS criacao
-		, pedido.alteracao_usuario_id AS alteracao_usuario_id
-		, pedido.alteracao AS alteracao
-        , ps.nome as status
-        , p.cnpj
-        , p.nome_fantasia
-        , pp.nome as nome_produto_parceiro
-        , pr.nome as nome_produto
-        , ppp.nome as plano_nome
-        , a.num_apolice
-        , le.sigla as UF
-        , u.nome as vendedor 
-        , IF(pp.cod_tpa = '007', '', '') AS plano
-        , pp.produto_parceiro_id
-        , parc.nome as representante
-        , DATE_FORMAT({$this->_table}.status_data, '%d/%m/%Y') AS data_emissao
-        , DATE_FORMAT(ae.data_ini_vigencia, '%d/%m/%Y') AS ini_vigencia
-        , DATE_FORMAT(ae.data_fim_vigencia, '%d/%m/%Y') AS fim_vigencia
-        , a.num_apolice_cliente AS num_apolice_cliente,
-        , cli.razao_nome AS segurado_nome
-        , cli.cnpj_cpf AS documento
-        , ae.equipamento_nome as modelo
-        , ae.imei
-        , ae.nota_fiscal_valor as importancia_segurada
-        , fp.nome AS forma_pagto
-        , IF(a.apolice_status_id = 2, CONCAT(a.cod_sucursal, a.cod_ramo, LPAD(1,7,'0')), '0') AS num_endosso
-        , DATE_FORMAT({$this->_table}.status_data, '%b/%y') AS vigencia_parcela
-        , '1|1' as parcela
-        , 'PAGO' as status_parcela
-        , pedido.criacao as data_processamento_cli_sis
-        , DATE_FORMAT(ae.data_cancelamento, '%d/%m/%Y') AS data_cancelamento
-        , ae.valor_premio_total as valor_parcela
-        , ae.valor_premio_total as PremioBruto 
-        , ae.valor_premio_net AS PremioLiquido
-        , cb.nome as cobertura
-        , IF(ast.nome = 'ATIVA','VENDA',IF(ast.nome = 'CANCELADA','CANCELAMENTO','')) as venda_cancelamento, 
-        , FORMAT(ac.valor + ac.valor / ae.valor_premio_net * ae.pro_labore, 2) AS PB
-        , ac.valor AS PL
-        , `ae`.`equipamento_marca_id`
-        , `ae`.`equipamento_categoria_id`
-        , (
-        SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2) as valor_comissao
-        FROM comissao_gerada cmg
-        INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
-        WHERE cmg.pedido_id = {$this->_table}.pedido_id AND parc_com.parceiro_tipo_id = 3
-        LIMIT 1
-        ) AS pro_labore
-        , (
-        SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2) as valor_comissao
-        FROM comissao_gerada cmg
-        INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
-        WHERE cmg.pedido_id = {$this->_table}.pedido_id AND parc_com.parceiro_tipo_id = 2
-        LIMIT 1
-        ) AS valor_comissao
-        ", FALSE);
+              c.cotacao_status_id AS cotacao_status_id
+            , c.parceiro_id AS parceiro_id
+            , c.cotacao_upgrade_id AS cotacao_upgrade_id
+            , c.codigo AS codigo_cotacao
+            , c.cotacao_tipo AS cotacao_tipo
+            , c.motivo AS motivo
+            , c.motivo_ativo AS motivo_ativo
+            , c.motivo_obs AS motivo_obs
+            , c.usuario_cotacao_id AS usuario_cotacao_id
+            , c.usuario_venda_id AS usuario_venda_id
+            , c.cliente_id AS cliente_id
+            , c.deletado AS deletado_cotacao
+            , c.criacao AS criacao_cotacao
+            , c.alteracao_usuario_id AS alteracao_usuario_id_cotacao
+            , c.alteracao AS alteracao_cotacao
+            , c.data_inicio_vigencia AS data_inicio_vigencia
+            , c.data_fim_vigencia AS data_fim_vigencia
+            , pedido.pedido_id AS pedido_id
+            , pedido.cotacao_id AS cotacao_id
+            , pedido.pedido_status_id AS pedido_status_id
+            , pedido.produto_parceiro_pagamento_id AS produto_parceiro_pagamento_id
+            , pedido.valor_estorno AS valor_estorno
+            , pedido.id_usuario_cancelamento AS id_usuario_cancelamento
+            , pedido.codigo AS codigo
+            , pedido.status_data AS status_data
+            , pedido.valor_total AS valor_total
+            , pedido.num_parcela AS num_parcela
+            , pedido.lock AS `lock`
+            , pedido.nao_possui_conta_bancaria AS nao_possui_conta_bancaria
+            , pedido.conta_terceiro AS conta_terceiro
+            , pedido.tipo_conta AS tipo_conta
+            , pedido.favo_tipo AS favo_tipo
+            , pedido.favo_nome AS favo_nome
+            , pedido.favo_doc AS favo_doc
+            , pedido.favo_bco_nome AS favo_bco_nome
+            , pedido.favo_bco_num AS favo_bco_num
+            , pedido.favo_bco_cc AS favo_bco_cc
+            , pedido.favo_bco_cc_dg AS favo_bco_cc_dg
+            , pedido.favo_bco_ag AS favo_bco_ag
+            , pedido.deletado AS deletado
+            , pedido.criacao AS criacao
+            , pedido.alteracao_usuario_id AS alteracao_usuario_id
+            , pedido.alteracao AS alteracao
+            , ps.nome as status
+            , p.cnpj
+            , p.nome_fantasia
+            , pp.nome as nome_produto_parceiro
+            , pr.nome as nome_produto
+            , ppp.nome as plano_nome
+            , a.num_apolice
+            , le.sigla as UF
+            , u.nome as vendedor 
+            , IF(pp.cod_tpa = '007', '', '') AS plano
+            , pp.produto_parceiro_id
+            , parc.nome as representante
+            , DATE_FORMAT({$this->_table}.status_data, '%d/%m/%Y') AS data_emissao
+            , DATE_FORMAT(IFNULL(ae.data_ini_vigencia,ag.data_ini_vigencia), '%d/%m/%Y') AS ini_vigencia
+            , DATE_FORMAT(IFNULL(ae.data_fim_vigencia,ag.data_fim_vigencia), '%d/%m/%Y') AS fim_vigencia
+            , a.num_apolice_cliente AS num_apolice_cliente,
+            , cli.razao_nome AS segurado_nome
+            , cli.cnpj_cpf AS documento
+            , ae.equipamento_nome as modelo
+            , ae.imei
+            , IFNULL(ae.nota_fiscal_valor, cp.preco) as importancia_segurada
+            , fp.nome AS forma_pagto
+            , IF(a.apolice_status_id = 2, CONCAT(a.cod_sucursal, a.cod_ramo, LPAD(1,7,'0')), '0') AS num_endosso
+            , DATE_FORMAT({$this->_table}.status_data, '%b/%y') AS vigencia_parcela
+            , '1|1' as parcela
+            , 'PAGO' as status_parcela
+            , pedido.criacao as data_processamento_cli_sis
+            , DATE_FORMAT(IFNULL(ae.data_cancelamento,ag.data_cancelamento), '%d/%m/%Y') AS data_cancelamento
+            , IFNULL(ae.valor_premio_total,ag.valor_premio_total) as valor_parcela
+            , IFNULL(ae.valor_premio_total,ag.valor_premio_total) as PremioBruto 
+            , IFNULL(ae.valor_premio_net,ag.valor_premio_net) AS PremioLiquido
+            , cb.nome as cobertura
+            , IF(ast.nome = 'ATIVA','VENDA',IF(ast.nome = 'CANCELADA','CANCELAMENTO','')) as venda_cancelamento, 
+            , FORMAT(ac.valor + ac.valor / IFNULL(ae.valor_premio_net,ag.valor_premio_net) * IFNULL(ae.pro_labore,ag.pro_labore), 2) AS PB
+            , ac.valor AS PL
+            , `ae`.`equipamento_marca_id`
+            , `ae`.`equipamento_categoria_id`
+            , (
+            SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2) as valor_comissao
+            FROM comissao_gerada cmg
+            INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
+            WHERE cmg.pedido_id = {$this->_table}.pedido_id AND parc_com.parceiro_tipo_id = 3
+            LIMIT 1
+            ) AS pro_labore
+            , (
+            SELECT FORMAT(cmg.comissao / 100 * ac.valor, 2) as valor_comissao
+            FROM comissao_gerada cmg
+            INNER JOIN parceiro parc_com ON parc_com.parceiro_id = cmg.parceiro_id
+            WHERE cmg.pedido_id = {$this->_table}.pedido_id AND parc_com.parceiro_tipo_id = 2
+            LIMIT 1
+            ) AS valor_comissao
+            ", FALSE);
 
         $this->_database->from($this->_table);
         $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
@@ -1551,16 +1602,16 @@ Class Pedido_Model extends MY_Model
 
         $this->_database->join("cotacao c", "c.cotacao_id = {$this->_table}.cotacao_id", "inner");
         $this->_database->join("cotacao_status cs", "cs.cotacao_status_id = c.cotacao_status_id", "inner");
-        $this->_database->join("cotacao_equipamento ce", "ce.cotacao_id = {$this->_table}.cotacao_id and ce.deletado = 0", "left");
         $this->_database->join("produto_parceiro pp", "pp.produto_parceiro_id = c.produto_parceiro_id", "inner");
         $this->_database->join("parceiro p", "p.parceiro_id = pp.parceiro_id", "inner");
         $this->_database->join("parceiro parc", "parc.parceiro_id = a.parceiro_id", "inner");
         $this->_database->join("produto pr", "pr.produto_id = pp.produto_id", "inner");
-        $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "inner");
+        $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "left");
+        $this->_database->join("apolice_generico ag", "ag.apolice_id = a.apolice_id and ag.deletado = 0", "left");
         $this->_database->join("cliente cli", "cli.cliente_id = c.cliente_id", "inner");
         //$this->_database->join("vw_Equipamentos_Linhas ec", "ec.equipamento_categoria_id = ae.equipamento_categoria_id", "left");
         //$this->_database->join("vw_Equipamentos_Marcas em", "em.equipamento_marca_id = ae.equipamento_marca_id", "left");
-        $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = ce.produto_parceiro_plano_id", "inner");
+        $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = a.produto_parceiro_plano_id", "inner");
 
         $this->_database->join("produto_parceiro_pagamento pppag", "pppag.produto_parceiro_pagamento_id = pedido.produto_parceiro_pagamento_id", "inner");
         $this->_database->join("forma_pagamento fp", "fp.forma_pagamento_id = pppag.forma_pagamento_id", "inner");
@@ -1607,7 +1658,7 @@ Class Pedido_Model extends MY_Model
         ");
         $query = $this->_database->get();
 
-        //print_r($this->db->last_query()); exit;
+        #print_pre($this->db->last_query()); exit;
 
         $resp = [];
 
@@ -2027,7 +2078,7 @@ Class Pedido_Model extends MY_Model
         {
             $resp = $query->result_array();
         }
-        //print_r($this->db->last_query());
+        //print_pre($this->db->last_query());
         //die;
         return $resp;
     }
@@ -2303,6 +2354,38 @@ Class Pedido_Model extends MY_Model
         }
 
         return $resp;
+    }
+
+    /**
+    * Extrai relatório de vendas
+    */
+    public function getRelatorioVendaDireta($data_inicio, $data_fim, $produto_parceiro_id)
+    {
+
+        $where = '';
+        // $where .= " AND ce.`data` >= '". app_date_only_numbers_to_mysql($data_inicio) ."' ";
+        // $where .= " AND ce.`data` >= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."' ";
+
+        $query = $this->_database->query("
+        select ppcs.produto_parceiro_cliente_status_id, cesg.cliente_evolucao_status_grupo_id, cesg.descricao_grupo, ces.cliente_evolucao_status_id, ces.descricao, DATE_FORMAT(ce.`data`, '%Y%m%d') data_format, DATE_FORMAT(ce.`data`, '%d/%m/%Y') data, count(1) qtde
+        from produto_parceiro_cliente_status ppcs 
+        join cliente_evolucao_status_grupo cesg on ppcs.cliente_evolucao_status_grupo_id = cesg.cliente_evolucao_status_grupo_id 
+        join cliente_evolucao_status ces on ppcs.cliente_evolucao_status_id = ces.cliente_evolucao_status_id 
+        join cliente_evolucao ce on ppcs.cliente_evolucao_status_id = ce.cliente_evolucao_status_id
+        where ppcs.produto_parceiro_id = {$produto_parceiro_id} and ppcs.deletado = 0
+        {$where}
+        group by ppcs.produto_parceiro_cliente_status_id, cesg.cliente_evolucao_status_grupo_id, cesg.descricao_grupo, ces.cliente_evolucao_status_id, ces.descricao, date(ce.`data`)
+        order by cesg.descricao_grupo, ces.descricao, DATE_FORMAT(ce.`data`, '%Y%m%d'), DATE_FORMAT(ce.`data`, '%d/%m/%Y');
+        ");
+
+        $resp = [];
+
+        if($query->num_rows() > 0)
+        {
+            $resp = $query->result_array();
+        }
+        return $resp;
+
     }
 
     /**

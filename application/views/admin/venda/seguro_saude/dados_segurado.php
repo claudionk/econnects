@@ -45,10 +45,10 @@
 
 
                 <?php
-          			error_log( "Carrossel#1: " . print_r( $carrossel, true ) . "\n", 3, "/var/log/httpd/php_errors.log" );
                     $planos = explode(';', $carrossel['plano']);
                     $plano_nome = explode(';', $carrossel['plano_nome']);
                     $valor_total = explode(';', $carrossel['valor_total']);
+                    $plano_dependente = explode(';', $carrossel['num_dependente']);
                     $expanded = " aria-expanded=\"true\"";
                     $collapse = " in";
                     foreach ($planos as $index => $plano) :
@@ -56,7 +56,7 @@
                         <div class="panel-group col-md-12" id="accordion6">
                             <div class="card panel expanded">
                                 <div class="card-head style-primary" data-toggle="collapse" data-parent="#accordion6" data-target="#accordion6-1" <?php echo $expanded; ?>>
-                                    <header><?php echo app_produto_traducao('Contratante', $carrossel['produto_parceiro_id']); ?></header>
+                                    <header><?php echo app_produto_traducao('Contratante - Dados do Titular', $carrossel['produto_parceiro_id']); ?></header>
                                     <div class="tools">
                                         <a class="btn btn-icon-toggle"><i class="fa fa-angle-down"></i></a>
                                     </div>
@@ -74,12 +74,8 @@
                                         );
 
                                         $dados_sessao = $this->session->userdata("cotacao_" . $carrossel['produto_parceiro_id']);
-
-                                        ?>
-
-                                        <?php foreach ($campos as $campo): ?>
-
-                                            <?php
+                                        
+                                        foreach ($campos as $campo):
 
                                             $data_campo = array();
 
@@ -97,11 +93,10 @@
                                             {
                                                 $data_row["plano_{$plano}_{$campo['campo_nome_banco']}"] = $dados_sessao[$campo['campo_nome_banco']];
                                             }
-                                            else if (isset($dados_sessao) && isset($dados_sessao[$campo['campo_nome_banco_equipamento']]))
+                                            else if (isset($dados_sessao) && isset($dados_sessao[$campo['campo_nome_banco_generico']]))
                                             {
                                                 $data_row["plano_{$plano}_{$campo['campo_nome_banco']}"] = $dados_sessao[$campo['campo_nome_banco_generico']];
                                             }
-
 
                                             $data_campo['passageiro'] = 1;
                                             $data_campo['row'] = $data_row;
@@ -112,11 +107,10 @@
                                             $data_campo['tamanho'] = $campo['tamanho'] == 0 ? 6 : $campo['tamanho'];
                                             $data_campo['class'] = $campo['campo_classes'];
                                             $data_campo['opcoes'] = $campo['campo_opcoes'];
-                                            ?>
+                                            
+                                            $this->load->view('admin/campos_sistema/'. $campo['campo_slug'], $data_campo);
 
-                                            <?php $this->load->view('admin/campos_sistema/'. $campo['campo_slug'], $data_campo);?>
-
-                                        <?php endforeach; ?>
+                                        endforeach; ?>
                                     </div>
                                 </div>
                             </div>
@@ -124,7 +118,49 @@
                             <?php
                             $expanded = '';
                             $collapse = '';
-                            ?>
+
+                            for ($dependente = 2; $dependente <= $plano_dependente[$index]; $dependente++ ) : ?>
+                                <div class="card panel expanded">
+                                    <div class="card-head style-primary" data-toggle="collapse" data-parent="#accordion6" data-target="#accordion6-<?php echo $dependente?>" <?php echo $expanded; ?>>
+                                        <header><?php echo app_produto_traducao('Dados do Beneficiário '. $dependente, $carrossel['produto_parceiro_id']); ?></header>
+                                        <div class="tools">
+                                            <a class="btn btn-icon-toggle"><i class="fa fa-angle-down"></i></a>
+                                        </div>
+                                    </div>
+                                    <div id="accordion6-<?php echo $dependente?>" class="collapse<?php echo $collapse; ?>" <?php echo $expanded; ?>>
+                                        <div class="panel-body">
+                                            <?php foreach ($campos_dependente as $campo):
+
+                                            $data_row_dependente = $row_dependente[$dependente];
+
+                                            //Seta valor do campo
+                                            if(isset($_POST["plano_{$plano}_{$dependente}_{$campo['campo_nome_banco']}"]) && !empty($_POST["plano_{$plano}_{$dependente}_{$campo['campo_nome_banco']}"]))
+                                            {
+                                                $data_row_dependente["plano_{$plano}_{$dependente}_{$campo['campo_nome_banco']}"] = $_POST["plano_{$plano}_{$dependente}_{$campo['campo_nome_banco']}"];
+                                            }
+                                            elseif (isset($row_dependente["plano_{$plano}_{$dependente}_{$campo['campo_nome_banco']}"]) && !empty($row_dependente["plano_{$plano}_{$dependente}_{$campo['campo_nome_banco']}"]))
+                                            {
+                                                $data_row_dependente["plano_{$plano}_{$dependente}_{$campo['campo_nome_banco']}"] = $row_dependente["plano_{$plano}_{$dependente}_{$campo['campo_nome_banco']}"];
+                                            }
+
+                                            $data_campo = array();
+                                            $data_campo['row'] = $data_row_dependente;
+                                            $data_campo['x'] = true;
+                                            $data_campo['dependente'] = $dependente;
+                                            $data_campo['field_name'] = "plano_{$plano}_{$dependente}_{$campo['campo_nome_banco']}";
+                                            $data_campo['field_label'] = $campo['campo_nome'];
+                                            $data_campo['list'] = isset($list) ? $list : array();
+                                            $data_campo['tamanho'] = $campo['tamanho'] == 0 ? 6 : $campo['tamanho'];
+                                            $data_campo['class'] = $campo['campo_classes'];
+                                            $data_campo['opcoes'] = $campo['campo_opcoes'];
+
+                                            $this->load->view('admin/campos_sistema/'. $campo['campo_slug'], $data_campo);
+
+                                            endforeach; ?>
+                                        </div>
+                                </div>
+                            </div>
+                            <?php endfor; ?>
 
                         </div>
                     <?php endforeach; ?>
@@ -145,5 +181,3 @@
         </a>
     </div>
 </div>
-
-

@@ -146,16 +146,16 @@ class Base_Pessoa_Model extends MY_Model
                 $this->base_pessoa_contato->delete_by(array("base_pessoa_id" => $base_pessoa_id));
                 $this->base_pessoa_empresa->delete_by(array("base_pessoa_id" => $base_pessoa_id));
                 $this->base_pessoa_endereco->delete_by(array("base_pessoa_id" => $base_pessoa_id));
-                $this->update_base_pessoa($base_pessoa_id, $result);
+                $this->update_base_pessoa($base_pessoa_id, $result, $produto_parceiro_id);
             } else {
-                $this->update_base_pessoa($base_pessoa_id, $result);
+                $this->update_base_pessoa($base_pessoa_id, $result, $produto_parceiro_id);
             }
         } else {
             return array();
         }
     }
 
-    public function update_base_pessoa($base_pessoa_id, $data)
+    public function update_base_pessoa($base_pessoa_id, $data, $produto_parceiro_id)
     {
         $this->load->model('cliente_model', 'cliente');
         $this->load->model('base_pessoa_contato_model', 'base_pessoa_contato');
@@ -168,7 +168,7 @@ class Base_Pessoa_Model extends MY_Model
             $pessoa = array('quantidade_atualziacao' => 0);
         }
 
-        $cliente_id                            = $this->cliente->cliente_insert_update($data);
+        $cliente_id                            = $this->cliente->cliente_insert_update($data, $produto_parceiro_id);
         $data_pessoa                           = array();
         $data_pessoa['cliente_id']             = $cliente_id;
         $data_pessoa['documento']              = isset($data['DADOS_CADASTRAIS'][0]['CPF']) ? $data['DADOS_CADASTRAIS'][0]['CPF'] : $data['DADOS_CADASTRAIS']['CPF'];

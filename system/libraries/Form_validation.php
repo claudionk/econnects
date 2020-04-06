@@ -1140,8 +1140,20 @@ class CI_Form_validation {
 	 */
 	public function numeric($str)
 	{
-		return (bool)preg_match( '/^[\-+]?[0-9]*\.?[0-9]+$/', $str);
+		if ( is_array($str))
+		{
+			$ret = true;
+			foreach ($str as $key => $value) {
+				if ( ! (bool)preg_match( '/^[\-+]?[0-9]*\.?[0-9]+$/', $value) )
+				{
+					return false;
+				}
+			}
+		} else {
+			$ret = preg_match( '/^[\-+]?[0-9]*\.?[0-9]+$/', $str);
+		}
 
+		return (bool)$ret;
 	}
 
 	// --------------------------------------------------------------------
