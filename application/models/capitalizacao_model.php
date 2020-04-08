@@ -281,7 +281,7 @@ Class Capitalizacao_Model extends MY_Model
                 AND capitalizacao_serie.ativo = 1
                 AND capitalizacao_serie.deletado = 0
                 AND capitalizacao_serie_titulo.deletado = 0
-                AND capitalizacao_serie_titulo.utilizado = 0
+                AND capitalizacao_serie_titulo.utilizado = 1
                 AND capitalizacao_serie_titulo.ativo = 1 
                 AND capitalizacao_serie.data_inicio < '{$date}'
                 AND capitalizacao_serie.data_fim > '{$date}'
