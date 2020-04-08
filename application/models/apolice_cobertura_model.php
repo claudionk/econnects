@@ -41,6 +41,13 @@ Class Apolice_Cobertura_Model extends MY_Model
         return $this;
     }
 
+    function filterByVigenciaCob($apolice_id){
+        $this->_database->select("data_inicio_vigencia, data_fim_vigencia, cod_cobertura");
+        $this->_database->where("apolice_id", $apolice_id);
+        $this->_database->group_by("data_inicio_vigencia, data_fim_vigencia");
+        return $this;
+    }
+
     function get_by_id($id)
     {
         return $this->get($id);
@@ -69,8 +76,8 @@ Class Apolice_Cobertura_Model extends MY_Model
                 case 'descricao':
                 case 'preco':
                     // encontra o percentual da cobertura referente ao premio liquido
-                    $percentagem = $valor_config = floatval($cobertura["valor"] / $cobertura['valor_premio_net']);
-                    $valor_cobertura = $valor_base * $percentagem;
+                    $percentagem = $valor_config = floatval($cobertura["valor"] / $cobertura['valor_premio_net'] * 100);
+                    $valor_cobertura = $valor_base * $percentagem / 100;
                     break;
                 // case 'preco':
                 //     $valor_cobertura = $valor_config = floatval($cobertura["valor_config"]);

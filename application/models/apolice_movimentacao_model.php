@@ -23,7 +23,7 @@ class Apolice_Movimentacao_Model extends MY_Model
 
     );
 
-    public function insMovimentacao($tipo, $apolice_id, $pedido, $parcela = null, $devolucao_integral = true)
+    public function insMovimentacao($tipo, $apolice_id, $pedido, $parcela = null, $devolucao_integral = true, $dias_utilizados = 0)
     {
 
         try {
@@ -45,7 +45,7 @@ class Apolice_Movimentacao_Model extends MY_Model
             $pedido_id                     = $pedido['pedido_id'];
             $produto_parceiro_pagamento_id = $pedido['produto_parceiro_pagamento_id'];
 
-            $this->apolice_endosso->insEndosso($tipo_slug, $tipo['apolice_movimentacao_tipo_id'], $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela, null, $devolucao_integral);
+            $this->apolice_endosso->insEndosso($tipo_slug, $tipo['apolice_movimentacao_tipo_id'], $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela, null, $devolucao_integral, $dias_utilizados);
 
             // $this->apolice_chave->insChave($pedido_id, $apolice_id);
 
