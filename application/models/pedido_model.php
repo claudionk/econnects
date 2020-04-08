@@ -701,9 +701,9 @@ Class Pedido_Model extends MY_Model
         list( $current_year, $current_month, $current_day, $current_hour, $current_minute, $current_second ) = preg_split("/[- :]/", $define_date);
         $hoje = mktime( $current_hour, $current_minute, $current_second, $current_month, $current_day, $current_year );
         $hoje_mdy = mktime( 0,0,0, $current_month, $current_day, $current_year );
-        
+
         // valida a data de cancelamento anterior à adesão
-        if ( $hoje < $adesao )
+        if ( $hoje_mdy < $adesao )
         {
             $result['mensagem'] = "A data de Cancelamento não pode ser inferior à data de Adesão";
             $result['redirect'] = "admin/pedido/view/{$pedido_id}";
@@ -717,20 +717,23 @@ Class Pedido_Model extends MY_Model
             $result['redirect'] = "admin/pedido/view/{$pedido_id}";
             return $result;
         }
-
-        if ( $hoje >= $inicio_vigencia && $hoje <= $fim_vigencia ) {
+        if ( $hoje_mdy >= $inicio_vigencia && $hoje_mdy <= $fim_vigencia )
+        {
             //Já comeceu a vigencia
-            if($produto_parceiro_cancelamento['seg_depois_hab'] == 0){
+            if($produto_parceiro_cancelamento['seg_depois_hab'] == 0)
+            {
                 //não pode executar cancelamento antes do início da vigência
                 $result['mensagem'] = 'Cancelamento não permitido após o início da vigência';
                 $result['redirect'] = "admin/pedido/view/{$pedido_id}";
                 return $result;
             }else{
                 // pode efetuar o cancelamento depois do início da vigência
-                if($produto_parceiro_cancelamento['seg_depois_dias'] != 0){
+                if($produto_parceiro_cancelamento['seg_depois_dias'] != 0)
+                {
                     // verifica a quantidade de dias que pode executar o cancelamento antes do inicio da vigência
                     $qnt_dias = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), sprintf("%02d/%02d/%04d",(int)$current_day,(int)$current_month,(int)$current_year), 'D');
-                    if($qnt_dias > $produto_parceiro_cancelamento['seg_depois_dias']){
+                    if($qnt_dias > $produto_parceiro_cancelamento['seg_depois_dias'])
+                    {
                         //não pode executar cancelamento com limite de dias antes do início da vigência
                         $result['mensagem'] = "Cancelamento só é permitido até {$produto_parceiro_cancelamento['seg_depois_dias']} dia(s) após o início da vigência";
                         $result['redirect'] = "admin/pedido/view/{$pedido_id}";
@@ -741,15 +744,19 @@ Class Pedido_Model extends MY_Model
                 $vigencia = TRUE;
             }
 
-        } elseif ( $hoje < $inicio_vigencia ) {
-            if($produto_parceiro_cancelamento['seg_antes_hab'] == 0){
+        } elseif ( $hoje_mdy < $inicio_vigencia )
+        {
+            if($produto_parceiro_cancelamento['seg_antes_hab'] == 0)
+            {
                 $result['mensagem'] = 'Cancelamento não permitido antes do início da vigência';
                 $result['redirect'] = "admin/pedido/view/{$pedido_id}";
                 return $result;
             } else {
-                if($produto_parceiro_cancelamento['seg_antes_dias'] != 0){
+                if($produto_parceiro_cancelamento['seg_antes_dias'] != 0)
+                {
                     $qnt_dias = app_date_get_diff_dias( sprintf("%02d/%02d/%04d",(int)$current_day,(int)$current_month,(int)$current_year) , app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), 'D');
-                    if($qnt_dias < $produto_parceiro_cancelamento['seg_antes_dias']){
+                    if($qnt_dias < $produto_parceiro_cancelamento['seg_antes_dias'])
+                    {
                         $result['mensagem'] = "Cancelamento só é permitido até {$produto_parceiro_cancelamento['seg_antes_dias']} dia(s) antes do início da vigência";
                         $result['redirect'] = "admin/pedido/view/{$pedido_id}";
                         return $result;
@@ -900,95 +907,73 @@ Class Pedido_Model extends MY_Model
         return $result;
     }
 
-    function calcula_estorno_cancelamento($pedido_id, $vigente = FALSE, $define_date = false ){
-
+    function calcula_estorno_cancelamento($pedido_id, $vigente = FALSE, $define_date = false )
+    {
         if( ! $define_date ){
             $define_date = date("Y-m-d H:i:s");
         }
 
-        $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
+        $this->load->model("produto_parceiro_cancelamento_model", "cancelamento");
         $this->load->model("apolice_model", "apolice");
         $this->load->model("fatura_model", "fatura");
         $this->load->model("apolice_equipamento_model", "apolice_equipamento");
         $this->load->model("apolice_generico_model", "apolice_generico");
         $this->load->model("apolice_seguro_viagem_model", "apolice_seguro_viagem");
-        $this->load->model('apolice_movimentacao_model', 'movimentacao');
-        $this->load->model( "produto_parceiro_model", "produto_parceiro" );
+        $this->load->model("apolice_movimentacao_model", "movimentacao");
+        $this->load->model("produto_parceiro_model", "produto_parceiro");
 
-
-        $pedido = $this->get($pedido_id);
+        $apolices = $this->apolice->getApolicePedido($pedido_id);
 
         //pega as configurações de cancelamento do pedido
         $produto_parceiro = $this->getPedidoProdutoParceiro($pedido_id);
         $produto_parceiro = $produto_parceiro[0];
         $produto_parceiro_cancelamento = $this->cancelamento->filter_by_produto_parceiro($produto_parceiro['produto_parceiro_id'])->get_all();
         $produto_parceiro_cancelamento = $produto_parceiro_cancelamento[0];
-
-        $apolices = $this->apolice->getApolicePedido($pedido_id);
-        $apolice = $apolices[0];
+        
         list( $current_year , $current_month , $current_day , $current_hour , $current_minute, $current_second ) = preg_split("/[- :]/",$define_date);
         $data_cancelamento = date('Y-m-d H:i:s' , mktime($current_hour , $current_minute, $current_second, $current_month, $current_day , $current_year ) );
 
         $valor_estorno_total = $valor_estorno_total_liquido = 0;
         $retorno = [];
-        $devolucao_integral = true;
         $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro["produto_parceiro_id"] );
 
-        //FAZ CALCULO DO VALOR PARCIAL
-        $dias_utilizados = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
-
-        // caso não tenha iniciado a vigência, deve realizar o calculo com 100% nao usada da vigência
-        if ($dias_utilizados < 0)
+        foreach ($apolices as $apolice)
         {
-            $dias_utilizados = 0;
-            $dia_inicio = $apolice["data_ini_vigencia"];
-        } else {
-            $dia_inicio = $data_cancelamento;
-        }
+            $datas = $this->define_dias_cancelamento($apolice['apolice_id'], $data_cancelamento, null, $apolice, $produto_parceiro_cancelamento);
+            $devolucao_integral = $datas['devolucao_integral'];
+            $dias_utilizados = $datas['dias_utilizados'];
+            $dias_aderido = $datas['dias_aderido'];
+            $dias_total = $datas['dias_total'];
+            $dias_restantes = $datas['dias_restantes'];
 
-        $dias_restantes = app_date_get_diff_dias(app_dateonly_mysql_to_mask($dia_inicio), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]), "D");
-        $dias_aderido = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_adesao"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
-        $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_ini_vigencia"]), app_dateonly_mysql_to_mask($apolice["data_fim_vigencia"]),  "D");
+            // devolução integral
+            if ($devolucao_integral) {
+                $porcento_nao_utilizado = 100;
+                $valor_premio = $apolice['valor_premio_total'];
+            } else {
+                $valor_premio = $apolice['valor_premio_net'];
+                $porcento_nao_utilizado = (($dias_restantes / $dias_total) * 100);
+            }
 
-        if ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_aderido <= $produto_parceiro_cancelamento['seg_depois_dias_carencia'] )
-        {
-            $porcento_nao_utilizado = 100;
-            $dias_restantes = $dias_total;
-        } 
-        else
-        {
-            $devolucao_integral = false;
-            $porcento_nao_utilizado = (($dias_restantes / $dias_total) * 100);
-        }
+            $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
+            
+            // devolução integral
+            if ($devolucao_integral) {
+                $valor_premio_liq = $apolice['valor_premio_net'];
+            } else {
+                $valor_premio_liq = $valor_premio;
+            }
 
-        // devolução integral
-        if ($devolucao_integral) {
-            $valor_premio = $apolice['valor_premio_total'];
-        } else {
-            $valor_premio = $apolice['valor_premio_net'];
-        }
-
-        $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
-        
-        // devolução integral
-        if ($devolucao_integral) {
-            $valor_premio_liq = $apolice['valor_premio_net'];
-        } else {
-            $valor_premio_liq = $valor_premio;
-        }
-
-        if($vigente == FALSE)
-        {
-            $calc_antes_depois = $produto_parceiro_cancelamento["seg_antes_calculo"];
-            $valor_antes_depois = $produto_parceiro_cancelamento["seg_antes_valor"];
-        }
-        else
-        {
-            $calc_antes_depois = $produto_parceiro_cancelamento["seg_depois_calculo"];
-            $valor_antes_depois = $produto_parceiro_cancelamento["seg_depois_valor"];
-        }
-
-        foreach ($apolices as $apolice) {
+            if($vigente == FALSE)
+            {
+                $calc_antes_depois = $produto_parceiro_cancelamento["seg_antes_calculo"];
+                $valor_antes_depois = $produto_parceiro_cancelamento["seg_antes_valor"];
+            }
+            else
+            {
+                $calc_antes_depois = $produto_parceiro_cancelamento["seg_depois_calculo"];
+                $valor_antes_depois = $produto_parceiro_cancelamento["seg_depois_valor"];
+            }
 
             $valor_estorno = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio);
             $valor_estorno_liq = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio_liq);
@@ -1007,7 +992,6 @@ Class Pedido_Model extends MY_Model
                     'apolices' => $apolice,
                 ];
             }
-
         }
 
         return [
@@ -1019,6 +1003,76 @@ Class Pedido_Model extends MY_Model
             'dias_aderido' => issetor($dias_aderido, 0),
             'devolucao_integral' => $devolucao_integral,
             'dados' => $retorno,
+        ];
+    }
+
+    function define_dias_cancelamento($apolice_id, $data_cancelamento, $cod_cobertura = null, $apolice = [], $produto_parceiro_cancelamento = [] )
+    {
+        $this->load->model("produto_parceiro_cancelamento_model", "cancelamento");
+        $this->load->model("apolice_cobertura_model", "apolice_cobertura");
+        $this->load->model("apolice_model", "apolice");
+
+        // caso não tenha passado os dados da apolice
+        if ( empty($apolice) ) {
+            $apolice = $this->apolice->get($apolice_id);
+        }
+
+        //pega as configurações de cancelamento do pedido, caso não tenha passado
+        if ( empty($produto_parceiro_cancelamento) )
+        {
+            $produto_parceiro = $this->getPedidoProdutoParceiro($apolice['pedido_id']);
+            $produto_parceiro = $produto_parceiro[0];
+            $produto_parceiro_cancelamento = $this->cancelamento->filter_by_produto_parceiro($produto_parceiro['produto_parceiro_id'])->get_all();
+            $produto_parceiro_cancelamento = $produto_parceiro_cancelamento[0];
+        }
+
+        // Valida se existe diferentes vigências
+        $cob_vig = $this->apolice_cobertura->filterByVigenciaCob($apolice_id)->get_all();
+
+        // Se não existe vigência multiplas
+        if (count($cob_vig) <= 1)
+        {
+            // os dados padrões vem da apolice
+            $cob_vig[] = [
+                'data_inicio_vigencia'  => $apolice['data_ini_vigencia'],
+                'data_fim_vigencia'     => $apolice['data_fim_vigencia'],
+                'vigencia_unica'        => true,
+            ];
+        }
+
+        foreach ($cob_vig as $key => $vig)
+        {
+            // Que seja multipla, foi enviada uma cobertura específica e é a cobertura informada
+            if ( empty($vig['vigencia_unica']) && !empty($cod_cobertura) && $vig['cod_cobertura'] != $cod_cobertura )
+            {
+                // avança até achar a cobertura
+                continue;
+            }
+
+            //FAZ CALCULO DO VALOR PARCIAL
+            $dias_utilizados = app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
+
+            // caso não tenha iniciado a vigência, deve realizar o calculo com 100% nao usada da vigência
+            if ($dias_utilizados < 0)
+            {
+                $dias_utilizados = 0;
+                $dia_inicio = $vig["data_inicio_vigencia"];
+            } else {
+                $dia_inicio = $data_cancelamento;
+            }
+
+            $dias_restantes = app_date_get_diff_dias(app_dateonly_mysql_to_mask($dia_inicio), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]), "D");
+            $dias_aderido = app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_adesao"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
+            $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]),  "D");
+            $devolucao_integral = ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_aderido <= $produto_parceiro_cancelamento['seg_depois_dias_carencia'] );
+        }
+
+        return [
+            'devolucao_integral' => $devolucao_integral,
+            'dias_utilizados' => issetor($dias_utilizados, 0),
+            'dias_aderido' => issetor($dias_aderido, 0),
+            'dias_total' => issetor($dias_total, 0),
+            'dias_restantes' => issetor($dias_restantes, 0),
         ];
     }
 
@@ -1057,8 +1111,7 @@ Class Pedido_Model extends MY_Model
 
                 if($ins_movimentacao) {
                     $pedido = $this->get($pedido_id);
-
-                    $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido, null, $calculo['devolucao_integral'], $calculo['dias_utilizados']);
+                    $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido);
                 }
 
             }

@@ -278,7 +278,7 @@ Class Apolice_Endosso_Model extends MY_Model
         return $endosso;
     }
 
-    public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null, $devolucao_integral = true, $dias_utilizados = 0)
+    public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null)
     {
         try
         {
@@ -320,8 +320,6 @@ Class Apolice_Endosso_Model extends MY_Model
                 'tipo'               => $tipo,
                 'parcela'            => $parcela,
                 'valor'              => $valor,
-                'devolucao_integral' => $devolucao_integral,
-                'dias_utilizados'    => $dias_utilizados,
                 'tipo_pagto'         => $tipo_pagto,
                 'max_parcela'        => $max_parcela,
                 'apolice'            => $apolice,
@@ -344,6 +342,7 @@ Class Apolice_Endosso_Model extends MY_Model
         try
         {
             $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
+            $this->load->model('pedido_model', 'pedido');
 
             $apolice = $dados['apolice'];
             $dados_end = $dados['dados_endosso'];
@@ -354,8 +353,6 @@ Class Apolice_Endosso_Model extends MY_Model
             $valor = $dados['valor'];
             $contador = emptyor($dados['contador'], 1);
             $apolice_id = $dados_end['apolice_id'];
-            $devolucao_integral = $dados['devolucao_integral'];
-            $dias_utilizados = $dados['dias_utilizados'];
             $cob_vig = emptyor($dados['dados_cobertura'], []);
             $dados_end['cod_cobertura'] = null;
 
@@ -450,6 +447,10 @@ Class Apolice_Endosso_Model extends MY_Model
             $seq_end                    = $this->max_seq_by_apolice_id($apolice_id, $tipo_pagto, $tipo, $multiplasVigencias);
             $dados_end['sequencial']    = $seq_end['sequencial'];
             $dados_end['endosso']       = $seq_end['endosso'];
+
+            $datas = $this->pedido->define_dias_cancelamento($apolice_id, $apolice['data_cancelamento'], $dados_end['cod_cobertura'], $apolice);
+            $devolucao_integral = $datas['devolucao_integral'];
+            $dias_utilizados = $datas['dias_utilizados'];
 
             // caso seja cancelamento
             if ( $tipo == 'C' )
