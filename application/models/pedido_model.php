@@ -1062,7 +1062,7 @@ Class Pedido_Model extends MY_Model
             }
 
             $dias_restantes = app_date_get_diff_dias(app_dateonly_mysql_to_mask($dia_inicio), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]), "D");
-            $dias_aderido = app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_adesao"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
+            $dias_aderido = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_adesao"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
             $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]),  "D");
             $devolucao_integral = ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_aderido <= $produto_parceiro_cancelamento['seg_depois_dias_carencia'] );
         }
