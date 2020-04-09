@@ -51,6 +51,7 @@ Class Cotacao_Cobertura_Model extends MY_Model
         $this->load->model('cotacao_generico_cobertura_model', 'cotacao_generico_cobertura');
         $this->load->model('cotacao_equipamento_cobertura_model', 'cotacao_equipamento_cobertura');
         $this->load->model('cotacao_seguro_viagem_cobertura_model', 'cotacao_seguro_viagem_cobertura');
+        $this->load->model('produto_parceiro_model', 'produto_parceiro');
 
         $coberturas = $this->plano_cobertura->with_prod_parc($produto_parceiro_id, $produto_parceiro_plano_id)->get_all();
         $importancia_segurada = floatval( $importancia_segurada );
