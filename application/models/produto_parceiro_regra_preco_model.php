@@ -480,8 +480,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             $cotacao_eqp['comissao_corretor'] = $comissao_corretor;
             $cotacao_eqp['desconto_condicional'] = $desconto_condicional;
             $cotacao_eqp['desconto_condicional_valor'] = $desconto_condicional_valor;
-            $cotacao_eqp['premio_liquido'] = $valores_liquido[$planoActual['produto_parceiro_plano_id']];
-            $cotacao_eqp['premio_liquido_total'] = $valores_liquido_total[$planoActual['produto_parceiro_plano_id']];
+            $cotacao_eqp['premio_liquido'] = round($valores_liquido[$planoActual['produto_parceiro_plano_id']], 2);
+            $cotacao_eqp['premio_liquido_total'] = round($valores_liquido_total[$planoActual['produto_parceiro_plano_id']], 2);
             $cotacao_eqp['iof'] = $iof;
 
             if (!empty($produto_parceiro_plano_id)){
