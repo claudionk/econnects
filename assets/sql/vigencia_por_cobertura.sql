@@ -22,6 +22,7 @@ create table integracao_detalhe_bkp_sql (
 	order by cobranca desc, i.cod_tpa
 );
 
+/****** PARCELA ********/
 #query unico
 update integracao i
 join produto_parceiro pp on i.cod_tpa = pp.cod_tpa and pp.parceiro_id = 32
@@ -29,8 +30,7 @@ join produto_parceiro_configuracao pc on pp.produto_parceiro_id = pc.produto_par
 join integracao_detalhe d on i.integracao_id = d.integracao_id and d.tipo = 'D'
 set d.script_sql = 'call sp_cta_parcemissao_unico({apolice_id}, {apolice_status_id}, {apolice_endosso_id});'
 where i.slug_group = 'parc-emissao' and i.deletado = 0 and pp.deletado = 0 and pc.deletado = 0
-AND i.cod_tpa in( '031',  '032',  '053',  '054',  '055',  '057',  '071',  '010', '011', '015', '020', '021', '067', '012', '045', '007', '029', '048' )
-;
+AND i.cod_tpa in( '031',  '032',  '053',  '054',  '055',  '057',  '071',  '010', '011', '015', '020', '021', '067', '045', '007', '029', '048' );
 
 #query parcelado
 update integracao i
@@ -39,8 +39,28 @@ join produto_parceiro_configuracao pc on pp.produto_parceiro_id = pc.produto_par
 join integracao_detalhe d on i.integracao_id = d.integracao_id and d.tipo = 'D'
 set d.script_sql = 'call sp_cta_parcemissao_parcelado({apolice_id}, {apolice_status_id}, {apolice_endosso_id});'
 where i.slug_group = 'parc-emissao' and i.deletado = 0 and pp.deletado = 0 and pc.deletado = 0
-AND i.cod_tpa in( '022',  '026' )
-;
+AND i.cod_tpa in( '022',  '026' );
+
+
+/****** COMISSAO ********/
+#query unico
+update integracao i
+join produto_parceiro pp on i.cod_tpa = pp.cod_tpa and pp.parceiro_id = 32
+join produto_parceiro_configuracao pc on pp.produto_parceiro_id = pc.produto_parceiro_id
+join integracao_detalhe d on i.integracao_id = d.integracao_id and d.tipo = 'D'
+set d.script_sql = 'call sp_cta_emsemissao_unico({apolice_id}, {apolice_status_id}, {apolice_endosso_id});'
+where i.slug_group = 'ems-emissao' and i.deletado = 0 and pp.deletado = 0 and pc.deletado = 0
+AND i.cod_tpa IN('007', '010', '011', '015', '020', '021', '045', '029', '031', '032', '053', '054', '055', '057', '067', '071', '048');
+
+#query parcelado
+update integracao i
+join produto_parceiro pp on i.cod_tpa = pp.cod_tpa and pp.parceiro_id = 32
+join produto_parceiro_configuracao pc on pp.produto_parceiro_id = pc.produto_parceiro_id
+join integracao_detalhe d on i.integracao_id = d.integracao_id and d.tipo = 'D'
+set d.script_sql = 'call sp_cta_emsemissao_parcelado({apolice_id}, {apolice_status_id}, {apolice_endosso_id});'
+where i.slug_group = 'ems-emissao' and i.deletado = 0 and pp.deletado = 0 and pc.deletado = 0
+AND i.cod_tpa IN('022', '026');
+
 
 update apolice_cobertura set valor_config= valor_config*100 where valor < 0 and deletado = 0;
 
