@@ -447,7 +447,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 }
             }
 
-            $seq_end                    = $this->max_seq_by_apolice_id($apolice_id, $dados_end['apolice_movimentacao_tipo_id'], $tipo_pagto, $tipo, $multiplasVigencias);
+            $seq_end                    = $this->max_seq_by_apolice_id($apolice_id, NULL, $tipo_pagto, $tipo, $multiplasVigencias);
             $dados_end['sequencial']    = $seq_end['sequencial'];
             $dados_end['endosso']       = $seq_end['endosso'];
 
@@ -482,7 +482,9 @@ Class Apolice_Endosso_Model extends MY_Model
                 $dados_end['data_vencimento']       = $result['data_vencimento'];
 
                 // verifica se o vencimento é inferior ao cancelamento
-                $vcto_inferior_cancel = (app_date_get_diff_mysql($apolice['data_cancelamento'], $dados_end['data_vencimento'], 'D') <= 0);
+                // o vencimento refere-se ao "inicio" do vencimento, e o conceito para tratativa abaixo é o "final" do vencimento
+                $vigencia = $this->produto_parceiro_plano->getDatasCapa($apolice['produto_parceiro_plano_id'], $dados_end['data_inicio_vigencia'], $dados_end['data_vencimento'], $tipo_pagto);
+                $vcto_inferior_cancel = (app_date_get_diff_mysql($apolice['data_cancelamento'], $vigencia['data_vencimento'], 'D') <= 0);
 
                 /***
                  *** INICIO DE VIGÊNCIA ***
