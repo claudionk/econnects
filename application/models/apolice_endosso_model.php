@@ -484,7 +484,8 @@ Class Apolice_Endosso_Model extends MY_Model
                 // verifica se o vencimento é inferior ao cancelamento
                 // o vencimento refere-se ao "inicio" do vencimento, e o conceito para tratativa abaixo é o "final" do vencimento
                 $vigencia = $this->produto_parceiro_plano->getDatasCapa($apolice['produto_parceiro_plano_id'], $dados_end['data_inicio_vigencia'], $dados_end['data_vencimento'], $tipo_pagto);
-                $vcto_inferior_cancel = (app_date_get_diff_mysql($apolice['data_cancelamento'], $vigencia['data_vencimento'], 'D') <= 0);
+                $vcto_inferior_cancel = (app_date_get_diff_mysql($apolice['data_cancelamento'], $dados_end['data_vencimento'], 'D') <= 0); // Inicio do vencimento
+                $vcto_inferior_entre_cancel = (app_date_get_diff_mysql($apolice['data_cancelamento'], $vigencia['data_vencimento'], 'D') <= 0); // Final do vencimento
 
                 /***
                  *** INICIO DE VIGÊNCIA ***
@@ -496,33 +497,28 @@ Class Apolice_Endosso_Model extends MY_Model
                     // Parcelado: Para todas as parcelas canceladas
                     if ( ($tipo_pagto == 2 && $vcto_inferior_cancel) || !empty($dias_utilizados) )
                     {
+                        // Não é integral e Após a Vigência
+                        if ( !empty($dias_utilizados) )
+                        {
+                            // deverá informar data posterior a data do cancelamento, ou seja, D+1 da data de cancelamento
+                            $d1 = new DateTime( $apolice['data_cancelamento'] );
+                            $d1->add(new DateInterval('P1D'));
+                            $dados_end['data_inicio_vigencia'] = $d1->format('Y-m-d');
+                        }
+
                         // Parcelado
                         if ( $tipo_pagto == 2 )
                         {
-                            // *NAO* gera dados para enviar caso o vencimento seja anterior ao cancelamento
-                            if ( $vcto_inferior_cancel ) {
+                            // *NAO* gera dados para enviar caso o vencimento seja anterior ao cancelamento e 
+                            if ( !empty($dias_utilizados) && $vcto_inferior_entre_cancel )
+                            {
                                 $geraDadosEndosso = false;
-                            }
-                            else {
-                                // Se nao é o mesmo dia do cancelamento ( simulacao de pagto e cancelamento no mesmo dia)
-                                if ( app_date_mysql_to_mask($apolice['data_cancelamento'], "d") != app_date_mysql_to_mask($dados_end['data_vencimento'], "d") )
-                                {
-                                    $r = $this->firstVecto($apolice_id, $apolice['data_cancelamento']);
-
-                                    // se o vencimento atual é o primeiro após o cancelamento
-                                    if ( !empty($r) && $r['data_vencimento'] == $dados_end['data_vencimento'] )
-                                    {
-                                        // possui restituição parcial
-                                        $parcelaRestituicao = true;
-                                    }
-                                }
+                            } 
+                            elseif ($vcto_inferior_cancel) {
+                                // possui restituição parcial
+                                $parcelaRestituicao = true;
                             }
                         }
-
-                        // deverá informar data posterior a data do cancelamento, ou seja, D+1 da data de cancelamento
-                        $d1 = new DateTime( $apolice['data_cancelamento'] );
-                        $d1->add(new DateInterval('P1D'));
-                        $dados_end['data_inicio_vigencia'] = $d1->format('Y-m-d');
                     }
                 }
             }

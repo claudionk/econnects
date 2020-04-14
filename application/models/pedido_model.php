@@ -1033,11 +1033,11 @@ Class Pedido_Model extends MY_Model
         if (count($cob_vig) <= 1)
         {
             // os dados padrões vem da apolice
-            $cob_vig[] = [
+            $cob_vig = [[
                 'data_inicio_vigencia'  => $apolice['data_ini_vigencia'],
                 'data_fim_vigencia'     => $apolice['data_fim_vigencia'],
                 'vigencia_unica'        => true,
-            ];
+            ]];
         }
 
         foreach ($cob_vig as $key => $vig)
