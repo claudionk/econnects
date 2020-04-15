@@ -422,7 +422,7 @@ Class Apolice_Endosso_Model extends MY_Model
                         // no mensal, a vigencia não se altera
                         if ($tipo_pagto != 2) {
                             $dados_end['data_inicio_vigencia']  = $vigencia['inicio_vigencia'];
-                            $dados_end['data_fim_vigencia']     = $vigencia['fim_vigencia'];
+                            $dados_end['data_fim_vigencia']     = emptyor($vigencia['fim_vigencia'], $dados_end['data_fim_vigencia']);
                         }
                     }
 

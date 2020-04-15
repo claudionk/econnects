@@ -500,6 +500,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
     {
 
         $date_inicio = $data_base;
+        $date_fim = null;
 
         $config = $this->with_produto_parceiro_configuracao($produto_parceiro_plano_id)->get_all();
         if ($config) {
