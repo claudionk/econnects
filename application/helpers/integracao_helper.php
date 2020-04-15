@@ -3246,8 +3246,8 @@ if ( ! function_exists('app_integracao_coop')) {
 
             // Cancelamento
             if ( $reg['acao'] == '9' ) {
-                $geraDados['data_cancelamento']         = $dados['registro']['data_adesao_cancel'];
-                $dados['registro']['data_cancelamento'] = $dados['registro']['data_adesao_cancel'];
+                $geraDados['data_cancelamento']         = $dados['registro']['nota_fiscal_data'];
+                $dados['registro']['data_cancelamento'] = $dados['registro']['nota_fiscal_data'];
             }
 
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
