@@ -17,7 +17,7 @@ class SoapCurl
         if(!empty($config)){
             $this->url = $config['urlCurl'];
             $this->method = $config['methodCurl'];
-            $this->fields = $config['fieldsCurl'];
+            $this->fields = emptyor($config['fieldsCurl'], null);
             $this->header = $config['headerCurl'];
             $this->timeout = !empty($config['timeout']) ? $config['timeout'] : 30;
             $this->setData();

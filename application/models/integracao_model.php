@@ -322,9 +322,9 @@ Class Integracao_Model extends MY_Model
                 $file = $this->getFileName($result, $layout_filename);
             }
 
-            $result_file = $this->getFile($result, $file);
+    	    $result_file = $this->getFile($result, $file);
             $result_process = [];
-            if(!empty($result_file['file']) && $result['tipo_layout']!='ZIP')
+            if ( !empty($result_file['file']) )
             {
                 $result_process = $this->processFileIntegracao($result, $result_file['file']);
             }
@@ -432,7 +432,8 @@ Class Integracao_Model extends MY_Model
         }
     }
 
-    private function getFile($integracao = array(), $file){
+    private function getFile($integracao = array(), $file)
+    {
         try{
 
             switch ($integracao['integracao_comunicacao_id']){
@@ -455,9 +456,7 @@ Class Integracao_Model extends MY_Model
             }
 
         }catch (Exception $e) {
-		
-	  	echo "getFile::Exception " . print_r($e, true) . "\n";
-
+	  	    echo "getFile::Exception " . print_r($e, true) . "\n";
         }
     }
 
@@ -667,6 +666,7 @@ Class Integracao_Model extends MY_Model
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
         $this->data_template_script['parceiro_id'] = $integracao['parceiro_id'];
         $this->data_template_script['cod_tpa'] = $integracao['cod_tpa'];
+
     	$this->tipo_layout=$integracao['tipo_layout'];
     	$this->layout_separador=$integracao['layout_separador'];
 
@@ -907,148 +907,148 @@ Class Integracao_Model extends MY_Model
             }
         }
 
-        $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
-        $integracao['script_sql'] = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
-        $sql = $integracao['script_sql'];
+        if ( $integracao['tipo_layout'] != 'ZIP' )
+        {
+            $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
+            $integracao['script_sql'] = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
+            $sql = $integracao['script_sql']; 
 
-        $data = array();
-        $id_log = 0;
-        $num_linha = 0;
-        foreach ($detail as  $rows) {
-            // add o header em cada linha
-            $rows = array_merge($rows, $header);
-            $rows = array_merge($rows, $trailler);
-            $data_row = $ids = array();
+            $data = array();
+            $id_log = 0;
+            $num_linha = 0;
+            foreach ($detail as  $rows) {
 
-            foreach ($rows as $index => $row) {
-                $row['valor_anterior'] = $row['valor'];
-                if ($row['layout']['insert'] == 1) {
-                    if(function_exists($row['layout']['function'])){
-                        $row['valor'] = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor']));
+                // add o header em cada linha
+                $rows = array_merge($rows, $header);
+                $rows = array_merge($rows, $trailler);
+                $data_row = $ids = array();
+
+                foreach ($rows as $index => $row) {
+                    $row['valor_anterior'] = $row['valor'];
+
+                    if ($row['layout']['insert'] == 1) {
+                        if(function_exists($row['layout']['function'])){
+                            $row['valor'] = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor']));
+                        }
+                        $data_row[$row['layout']['nome_banco']] = trim($row['valor']);
                     }
-                    $data_row[$row['layout']['nome_banco']] = trim($row['valor']);
+                    if ($row['layout']['campo_log'] == 1) {
+                        $id_log = trim($row['valor']);
+
+                        if(function_exists($row['layout']['function'])){
+                            $id_log = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor_anterior']));
+                        }
+
+                        if (!empty($id_log)) {
+                            $ids[$row['layout']['nome_banco']] = $id_log;
+                        }
+                    }
                 }
-                if ($row['layout']['campo_log'] == 1) {
-                    $id_log = trim($row['valor']);
 
-                    if(function_exists($row['layout']['function'])){
-                        $id_log = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor_anterior']));
-                    }
+                if (!empty($ids)) {
 
-                    if (!empty($id_log)) {
-                        $ids[$row['layout']['nome_banco']] = $id_log;
-                    }
-                }
-            }
+                    if (count($ids) > 1) {
 
+                        $proc = $this->detectFileRetorno(basename($file), $ids);
+                        if (!empty($proc))
+                        {
+                            $id_log = $proc['chave'];
+                        } else {
+                            $id_log = implode($ids, "|");
+                        }
 
-            if (!empty($ids)) {
-
-                if (count($ids) > 1) {
-
-                    $proc = $this->detectFileRetorno(basename($file), $ids);
-                    if (!empty($proc))
-                    {
-                        $id_log = $proc['chave'];
                     } else {
-                        $id_log = implode($ids, "|");
+                      foreach ($ids as $id_)
+                        $id_log = $id_;
                     }
 
-                } else {
-                  foreach ($ids as $id_)
-                    $id_log = $id_;
+                    $data_row['id_log'] = $id_log;
+
+                    $_tipo_file = $this->detectFileRetorno(basename($file), $ids);
+
+                    $data_row['tipo_arquivo'] = (!empty($_tipo_file)) ? $_tipo_file['tipo'] : '';
                 }
 
-                $data_row['id_log'] = $id_log;
-
-                $_tipo_file = $this->detectFileRetorno(basename($file), $ids);
-
-                $data_row['tipo_arquivo'] = (!empty($_tipo_file)) ? $_tipo_file['tipo'] : '';
-
-
+                $data[] = $data_row;
+                $num_linha++;
             }
 
-            $data[] = $data_row;
-            $num_linha++;
-        }
-
-
-        $num_linha = 1;
-        foreach ($data as $index => $datum) {
-
-            // gera log
-            $integracao_log_detalhe_id = null;
-            $integracao_log_status_id = 4;
-            $msgDetCampo = [];
-
-            if (!empty($datum['id_log'])) {
-                $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $datum['id_log'], left(addslashes(json_encode($datum)),100) );
-            }
-
-            //execute before detail
-            if (!empty($integracao['before_detail']) )
+            $num_linha = 1;
+            foreach ($data as $index => $datum)
             {
-                if ( function_exists($integracao['before_detail']) )
+                // gera log
+                $integracao_log_detalhe_id = null;
+                $integracao_log_status_id = 4;
+                $msgDetCampo = [];
+
+                if (!empty($datum['id_log'])) {
+                    $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $datum['id_log'], addslashes(json_encode($datum)));
+                }
+
+                //execute before detail
+                if (!empty($integracao['before_detail']) )
                 {
-                    // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods 
-                    // Tratando o erro 110 - Registro duplicado no arquivo de origem
-                    if(!empty($datum['cod_erro']) && in_array($datum['cod_erro'], [22, 110]) && ( $datum['tipo_arquivo'] == 'CLIENTE' || $datum['tipo_arquivo'] == 'EMSCMS' || $datum['tipo_arquivo'] == 'PARCEMS' ) ) 
+                    if ( function_exists($integracao['before_detail']) )
                     {
-                        $msgDetCampo[] = ['id' => 12, 'msg' => $datum['cod_erro'] ." - ". $datum['descricao_erro'], 'slug' => "erro_retorno"];
-                    } else 
-                    {
-                        $callFuncReturn = call_user_func($integracao['before_detail'], $integracao_log_detalhe_id, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
+                        // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods 
+                        // Tratando o erro 110 - Registro duplicado no arquivo de origem
+                        if(!empty($datum['cod_erro']) && in_array($datum['cod_erro'], [22, 110]) && ( $datum['tipo_arquivo'] == 'CLIENTE' || $datum['tipo_arquivo'] == 'EMSCMS' || $datum['tipo_arquivo'] == 'PARCEMS' ) ) 
+                        {
+                            $msgDetCampo[] = ['id' => 12, 'msg' => $datum['cod_erro'] ." - ". $datum['descricao_erro'], 'slug' => "erro_retorno"];
+                        } else 
+                        {
+                            $callFuncReturn = call_user_func($integracao['before_detail'], $integracao_log_detalhe_id, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
 
-                        if ( !empty($callFuncReturn) && !empty($integracao_log_detalhe_id) ){
+                            if ( !empty($callFuncReturn) && !empty($integracao_log_detalhe_id) ){
 
-                            if ( empty($callFuncReturn->status) ){
-                                // seta para erro
-                                $integracao_log_status_id = 5; 
-                            } elseif ( $callFuncReturn->status === 2 ) {
-                                // seta para ignorado
-                                $integracao_log_status_id = 7;
+                                if ( empty($callFuncReturn->status) ){
+                                    // seta para erro
+                                    $integracao_log_status_id = 5; 
+                                } elseif ( $callFuncReturn->status === 2 ) {
+                                    // seta para ignorado
+                                    $integracao_log_status_id = 7;
+                                }
+
+                                $msgDetCampo = emptyor($callFuncReturn->msg, $msgDetCampo);
+
                             }
-
-                            $msgDetCampo = emptyor($callFuncReturn->msg, $msgDetCampo);
-
                         }
-                    }
 
-                    if (!empty($msgDetCampo)) {
-                        foreach ($msgDetCampo as $er) {
-                            $ErroID = !empty($er['id']) ? $er['id'] : -1;
-                            $ErroMSG = !empty($er['msg']) ? $er['msg'] : $er;
-                            $ErroSLUG = !empty($er['slug']) ? $er['slug'] : "";
-                            $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, $ErroID, $ErroMSG, $ErroSLUG);
+                        if (!empty($msgDetCampo)) {
+                            foreach ($msgDetCampo as $er) {
+                                $ErroID = !empty($er['id']) ? $er['id'] : -1;
+                                $ErroMSG = !empty($er['msg']) ? $er['msg'] : $er;
+                                $ErroSLUG = !empty($er['slug']) ? $er['slug'] : "";
+                                $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, $ErroID, $ErroMSG, $ErroSLUG);
+                            }
                         }
-                    }
 
+                    }
+                }
+
+                $ultimo_id = null;
+                if (!empty($sql)){
+                    $this->_database->query($sql, $datum);
+                    $ultimo_id = $this->_database->insert_id();
+                    $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $ultimo_id);
+                }
+
+                $num_linha++;
+
+                //execute before detail
+                if((!empty($integracao['after_detail'])) && (function_exists($integracao['after_detail']))){
+                    call_user_func($integracao['after_detail'], null, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => $ultimo_id));
+                }
+
+                if (!empty($integracao_log_detalhe_id) ){
+                    // seta para erro
+                    $this->integracao_log_detalhe->update_by(
+                        array('integracao_log_detalhe_id' =>$integracao_log_detalhe_id),array(
+                            'integracao_log_status_id' => $integracao_log_status_id
+                        )
+                    );
                 }
             }
-
-            $ultimo_id = null;
-            if (!empty($sql)){
-                $this->_database->query($sql, $datum);
-                $ultimo_id = $this->_database->insert_id();
-                $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $ultimo_id);
-            }
-
-            $num_linha++;
-
-            //execute before detail
-            if((!empty($integracao['after_detail'])) && (function_exists($integracao['after_detail']))){
-                call_user_func($integracao['after_detail'], null, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => $ultimo_id));
-            }
-
-            if (!empty($integracao_log_detalhe_id) ){
-                // seta para erro
-                $this->integracao_log_detalhe->update_by(
-                    array('integracao_log_detalhe_id' =>$integracao_log_detalhe_id),array(
-                        'integracao_log_status_id' => $integracao_log_status_id
-                    )
-                );
-            }
-
         }
 
         $dados_log = array();

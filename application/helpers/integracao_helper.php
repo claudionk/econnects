@@ -526,38 +526,248 @@ if ( ! function_exists('app_integracao_file_name_novomundo')) {
     }
 
 }
-if ( ! function_exists('app_integracao_zip_extract_novomundo')) {
-
+if ( ! function_exists('app_integracao_zip_extract_novomundo'))
+{
     function app_integracao_zip_extract_novomundo($formato, $dados = array())
     {
+        $CI =& get_instance();
+        $CI->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
+        $CI->load->model('integracao_log_detalhe_campo_model', 'integracao_log_detalhe_campo');
+
         $diretorio  = $dados['registro']['file'];
         $arquivo    = $dados['registro']['fileget'];
         $diretorio  = str_replace($arquivo, "", $diretorio);
-        $novo_diretorio = str_replace(".zip", "", $arquivo);
+        $chave = $novo_diretorio = str_replace(".zip", "", $arquivo);
 
-        if(!file_exists($diretorio . '/' . $novo_diretorio))
+        // retira a data do nome do arquivo para gerar a chave do log
+        if ( !empty($dados['registro']['fileRemove']) )
         {
-          mkdir($diretorio . '/' . $novo_diretorio, 0777, true);
+            $quebraArquivo = explode("_", $novo_diretorio);
+            $chave = $quebraArquivo[0];
         }
 
-        rename($diretorio . '/' . $arquivo, $diretorio . '/' . $novo_diretorio . '/' . $arquivo );
+        // Gera o registro lido
+        $integracao_log_detalhe_id = $CI->integracao_log_detalhe->insLogDetalhe($dados['log']['integracao_log_id'], 0, $chave, '');
+
+        if(!file_exists($diretorio . $arquivo))
+        {
+            $CI->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, -1, 'caminho nao identiicado '. $diretorio.$arquivo, 'nm_zip');
+            return false;
+        }
+
+        // print_pre( ['a', $diretorio . $novo_diretorio], false );
+        if(!file_exists($diretorio . $novo_diretorio))
+        {
+            mkdir($diretorio . $novo_diretorio, 0777, true);
+        }
+
+        // print_pre( ['b', $diretorio.$arquivo, $diretorio.$novo_diretorio .'/'. $arquivo], false );
+        rename( $diretorio.$arquivo, $diretorio.$novo_diretorio .'/'. $arquivo );
 
         $zip = new ZipArchive;
-        $res = $zip->open($diretorio . '/' . $novo_diretorio . '/' . $arquivo);
+        $res = $zip->open($diretorio . $novo_diretorio . '/' . $arquivo);
         if ($res === TRUE) 
         {
-            $zip->extractTo($diretorio . '/' . $novo_diretorio);
+            $zip->extractTo($diretorio . $novo_diretorio);
             $zip->close();
-        } 
-        else 
+
+            // Não lê o arquivo novamente para nao entrar em um loop infinito
+            $notRead[] = $arquivo;
+
+            // só remove os arquivos filhos pois o backup está no pai
+            if ( !empty($dados['registro']['fileRemove']) )
+            {
+                // remove o arquivo para não ler novamente e pq já manteve o backup o arquivo pai
+                unlink($diretorio . $novo_diretorio . '/' . $arquivo);
+
+                // Faz o upload do arquivo
+                $ret = app_integracao_zip_extract_novomundo_upload($formato, $dados);
+
+                // valida o retorno
+                if ( empty($ret['status']) )
+                {
+                    $integracao_log_status_id = 5;
+                    $ErroID = emptyor($ret['id'], -1);
+                    $ErroMSG = emptyor($ret['erro'], '');
+                    $ErroSLUG = emptyor($ret['slug'], 'nm_zip');
+                    $CI->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, $ErroID, $ErroMSG, $ErroSLUG);
+                } else
+                {
+                    $integracao_log_status_id = 4;
+                }
+
+                // gerar log de sucesso
+                $CI->integracao_log_detalhe->update_by(
+                    array('integracao_log_detalhe_id' => $integracao_log_detalhe_id),
+                    array('integracao_log_status_id' => $integracao_log_status_id)
+                );
+
+                // Para a leitura dos arquivos
+                return true;
+            }
+
+            $dir = new DirectoryIterator( $diretorio . $novo_diretorio );
+            foreach($dir as $file)
+            {
+                // verifica se $file é diferente de '.' ou '..'
+                if ( $file->isDot() )
+                {
+                    continue;
+                }
+
+                // recupera o nome do arquivo e seu path
+                $caminho = $file->getPathname();
+                $fileName = $file->getFilename();
+                // print_pre(['c', $fileName, $caminho, $dados['registro']], false);
+
+                // tratamento para nao ler novamente o mesmo arquivo (pai)
+                if ( in_array($fileName, $notRead) )
+                {
+                    continue;
+                }
+
+                // altera os dados para procurar o novo arquivo
+                $dados['registro']['file']       = $caminho;
+                $dados['registro']['fileget']    = $fileName;
+                $dados['registro']['fileRemove'] = true; // só remove os arquivos filhos pois o backup está no pai
+                // print_pre( ['d', $dados['registro']], false);
+
+                // se tiver um ZIP
+                $pos = strpos(strtoupper($fileName), ".ZIP");
+                if ($pos !== FALSE)
+                {
+                    // Faz a extração do arquivo ZIP
+                    app_integracao_zip_extract_novomundo($formato, $dados);
+                }
+            }
+        }
+        else
         {
-            echo "Erro na extracao de arquivo:$arquivo";
-                return false;
+            $CI->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, -1, "Erro na extracao de arquivo: {$arquivo}", 'nm_zip');
+            return false;
         }
 
         return true;
     }
+}
+if ( ! function_exists('app_integracao_docs_novo_mundo'))
+{
+    function app_integracao_docs_novo_mundo($fileName)
+    {
+        if (empty($fileName))
+        {
+            return null;
+        }
 
+        $docs = [ 
+            [ 'doc' => 'CARTA_TROCA_', 'id' => 355 ],
+            [ 'doc' => 'CARTEIRA_DE_IDENTIDADE_', 'id' => 100 ],
+            [ 'doc' => 'NF_', 'id' => 108 ],
+            [ 'doc' => 'CPF_', 'id' => 154 ],
+            [ 'doc' => 'CARTEIRA_DE_MOTORISTA_COM_FOTO_', 'id' => 356 ],
+        ];
+
+        foreach ($docs as $key => $value) {
+            $pos = strpos(strtoupper($fileName), $value['doc']);
+            if ($pos !== FALSE)
+            {
+                return $value['id'];
+            }
+        }
+
+        return null;
+    }
+}
+if ( ! function_exists('app_integracao_zip_extract_novomundo_upload'))
+{
+    function app_integracao_zip_extract_novomundo_upload($formato, $dados = array())
+    {
+        $CI =& get_instance();
+        $CI->load->library("SoapCurl");
+        $SoapCurl = new SoapCurl();
+        $retorno  = ['status' => false, 'erro' => "Falha no envio do Documento"];
+
+        $diretorio      = $dados['registro']['file'];
+        $arquivo        = $dados['registro']['fileget'];
+        $diretorio      = str_replace($arquivo, "", $diretorio);
+        $novo_diretorio = str_replace(".zip", "", $arquivo);
+        $quebraArquivo  = explode("_", $arquivo);
+        $num_cert       = $quebraArquivo[0];
+        // print_pre( ['h', $num_cert, $dados['registro']], false);
+
+        if(!file_exists($diretorio . $novo_diretorio))
+        {
+            $retorno['erro'] = "Caminho não identificado [{$diretorio}{$novo_diretorio}]";
+            return $retorno;
+        }
+
+        $dir = new DirectoryIterator( $diretorio . $novo_diretorio );
+        foreach($dir as $file)
+        {
+            // verifica se $file é diferente de '.' ou '..'
+            if ( $file->isDot() )
+            {
+                continue;
+            }
+
+            // recupera o nome do arquivo e seu path
+            $caminho = $file->getPathname();
+            $fileName = $file->getFilename();
+            $quebraArquivo = explode(".", $fileName);
+            $ext_arquivo = strtolower(end($quebraArquivo));
+            $id_documento = app_integracao_docs_novo_mundo($quebraArquivo[0]);
+            // print_pre( [$id_documento, $ext_arquivo, $quebraArquivo], false );
+
+            if ( empty($id_documento) )
+            {
+                $retorno['erro'] = "ID do documento não identificado";
+                return $retorno;
+            }
+
+            $ret = $SoapCurl->getAPI("atendimento/ListaExpedienteByCertificadoVoucher/". $num_cert, "GET");
+            if (empty($ret)){
+                $retorno['erro'] = 'Sem resposta na pesquisa de Sinistro por Certificado';
+                return $retorno;
+            }elseif (empty($ret['status'])) {
+                $retorno['erro'] = $ret['erro'];
+                return $retorno;
+            }elseif (empty($ret['response']['Expedientes'])) {
+                $retorno['erro'] = "Nenhum expediente encontrado através do certificado {$num_cert}";
+                return $retorno;
+            }
+
+            // recupera o numero da OS
+            $id_exp =  $ret['response']['Expedientes'][0]['id_exp'];
+
+            // print_pre( [$id_exp, $fileName, $caminho, $ext_arquivo, $id_documento, base64_encode( file_get_contents( $caminho ) )], false );
+
+            try
+            {
+                $ret = $SoapCurl->getAPI("documentos/enviaDocumento", "POST", json_encode([
+                    "idTipoDocumento" => $id_documento,
+                    "Extensao" => $ext_arquivo,
+                    "File" => base64_encode( file_get_contents( $caminho ) ) ,
+                    "idExpediente" => $id_exp,
+                ]), 900);
+                // print_pre($ret, false);
+                if (empty($ret)) {
+                    $retorno['erro'] = 'Sem resposta no envio do Documento';
+                    return $retorno;
+                }elseif (empty($ret['status'])) {
+                    $retorno['erro'] = $ret['erro'];
+                    return $retorno;
+                }
+            }
+            catch (Exception $e) 
+            {
+                $retorno['erro'] = $e->getMessage();
+                return $retorno;
+            }
+        }
+
+        $retorno = ['status' => true, 'erro' => ''];
+        return $retorno;
+    }
 }
 if ( ! function_exists('app_integracao_format_file_name_ret_sis')) {
 
