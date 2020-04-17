@@ -878,22 +878,32 @@ Class Integracao_Model extends MY_Model
                         );
                     }
                 }
-
             }
-
         } 
         else if($integracao['tipo_layout'] == 'CSV') 
         {
             $ignore = TRUE;
-            while (($data = fgetcsv($fh, 4096, $integracao['layout_separador'])) !== FALSE)
+            // while (($data = fgetcsv($fh, 4096, $integracao['layout_separador'])) !== FALSE)
+            while (!feof($fh)) #INICIO DO WHILE NO ARQUIVO
             {
-                if ($ignore) {
+                // Nao esta sendo usada a funcao nativa fgetcsv pois nao aceita caracter "especial" como delimitador
+                // parceiros podem enviar o delimitador como um caracter especial
+                $data = explode( $integracao['layout_separador'], utf8_encode( str_replace("'"," ",fgets($fh, 4096)) ) );
+
+                if ($ignore)
+                {
                     $ignore = FALSE;
                     continue;
                 }
+
+                // valida linha em branco
+                if ( empty($data) || empty($data[0]) )
+                {
+                    continue;
+                }
+
                 $sub_detail = array();
                 $c = 0;
-                $num = count($data);
                 foreach ($layout_detail as $idxd => $item_d) {
                     $sub_detail[] = array(
                         'layout' => $item_d,
@@ -954,12 +964,12 @@ Class Integracao_Model extends MY_Model
                         {
                             $id_log = $proc['chave'];
                         } else {
-                            $id_log = implode($ids, "|");
+                            $id_log = $this->geraCampoChave($integracao['campo_chave'], $ids);
                         }
 
                     } else {
-                      foreach ($ids as $id_)
-                        $id_log = $id_;
+                        foreach ($ids as $id_)
+                            $id_log = $id_;
                     }
 
                     $data_row['id_log'] = $id_log;

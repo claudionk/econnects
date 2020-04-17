@@ -232,39 +232,15 @@ class Apolice_Model extends MY_Model
         $produto_parceiro_id = $pedido['produto_parceiro_id'];
         $cotacao_id = $pedido['cotacao_id'];
 
+        // Dados da Capitalização
         $this->insertCapitalizacao($produto_parceiro_id, $pedido_id);
 
-        $this->movimentacao->insMovimentacao('A', $apolice_id, $pedido);
-
+        // Dados das Coberturas. Nota: Precisa ser antes dos dados do Endosso
         $this->apolice_cobertura->deleteByCotacao($cotacao_id);
+        $this->apolice_cobertura->geraDadosEmissao($cotacao_id, $pedido_id, $apolice_id, $produto_parceiro_plano_id);
 
-        $dados_bilhete = $this->defineDadosBilhete($produto_parceiro_plano_id);
-
-        $coberturas = $this->cotacao_cobertura
-            ->with_cobertura_plano()
-            ->filterByID($cotacao_id)
-            ->get_all();
-
-        foreach ($coberturas as $cobertura) {
-
-            $dados_apolice_cobertura = [
-                'cotacao_id'         => $cotacao_id,
-                'pedido_id'          => $pedido_id,
-                'apolice_id'         => $apolice_id,
-                'cobertura_plano_id' => $cobertura["cobertura_plano_id"],
-                'valor'              => $cobertura["valor"],
-                'iof'                => $cobertura["iof"],
-                'mostrar'            => $cobertura["mostrar"],
-                'valor_config'       => $cobertura['valor_config'],
-                'cod_cobertura'      => $cobertura['cod_cobertura'],
-                'cod_ramo'           => isempty($cobertura['cod_ramo'], $dados_bilhete['cod_ramo']),
-                'cod_produto'        => isempty($cobertura['cod_produto'], $dados_bilhete['cod_produto']),
-                'cod_sucursal'       => isempty($cobertura['cod_sucursal'], $dados_bilhete['cod_sucursal']),
-                'criacao'            => date("Y-m-d H:i:s"),
-            ];
-
-            $this->apolice_cobertura->insert($dados_apolice_cobertura, true);
-        }
+        // Dados da Movimentação e Endosso
+        $this->movimentacao->insMovimentacao('A', $apolice_id, $pedido);
 
     }
 
@@ -419,6 +395,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['equipamento_marca_id']          = $cotacao_salva['equipamento_marca_id'];
             $dados_equipamento['nota_fiscal_data']              = $cotacao_salva['nota_fiscal_data'];
             $dados_equipamento['nota_fiscal_valor']             = $cotacao_salva['nota_fiscal_valor'];
+            $dados_equipamento['nota_fiscal_numero']            = $cotacao_salva['nota_fiscal_numero'];
             $dados_equipamento['imei']                          = $cotacao_salva['imei'];
 
             $dados_equipamento['estado_civil']       = $cotacao_salva['estado_civil'];
