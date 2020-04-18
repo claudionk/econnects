@@ -525,7 +525,7 @@ Class Integracao_Model extends MY_Model
                     continue;
 
                 $extensao = '';
-                if ( $integracao['tipo_layout'] != 'LAYOUT' )
+                if ( $integracao['limita_extensao'] == 1 )
                 {
                     $extensao = explode('.', $item);
                     $extensao = end($extensao);
