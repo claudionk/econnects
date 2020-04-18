@@ -318,12 +318,11 @@ Class Integracao_Model extends MY_Model
             $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
 
             if(empty($file))
-    	    {
+            {
                 $file = $this->getFileName($result, $layout_filename);
-    	    }
+            }
 
     	    $result_file = $this->getFile($result, $file);
-
             $result_process = [];
             if ( !empty($result_file['file']) )
             {
@@ -526,7 +525,7 @@ Class Integracao_Model extends MY_Model
                     continue;
 
                 $extensao = '';
-                if ( $integracao['tipo_layout'] != 'LAYOUT' )
+                if ( $integracao['limita_extensao'] == 1 )
                 {
                     $extensao = explode('.', $item);
                     $extensao = end($extensao);
@@ -672,6 +671,7 @@ Class Integracao_Model extends MY_Model
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
         $this->data_template_script['parceiro_id'] = $integracao['parceiro_id'];
         $this->data_template_script['cod_tpa'] = $integracao['cod_tpa'];
+
     	$this->tipo_layout=$integracao['tipo_layout'];
     	$this->layout_separador=$integracao['layout_separador'];
 
@@ -953,7 +953,6 @@ Class Integracao_Model extends MY_Model
                         $id_log = trim($row['valor']);
 
                         if(function_exists($row['layout']['function'])){
-
                             $id_log = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor_anterior']));
                         }
 
@@ -976,8 +975,8 @@ Class Integracao_Model extends MY_Model
                         }
 
                     } else {
-                      foreach ($ids as $id_)
-                        $id_log = $id_;
+                        foreach ($ids as $id_)
+                            $id_log = $id_;
                     }
 
                     $data_row['id_log'] = $id_log;
@@ -1028,6 +1027,7 @@ Class Integracao_Model extends MY_Model
                                 }
 
                                 $msgDetCampo = emptyor($callFuncReturn->msg, $msgDetCampo);
+
                             }
 
                             if (!empty($msgDetCampo)) {
