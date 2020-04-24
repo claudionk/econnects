@@ -497,6 +497,17 @@ if ( ! function_exists('app_integracao_file_name_sulacap')) {
     }
 
 }
+if ( ! function_exists('app_integracao_file_name_icatu')) {
+
+    function app_integracao_file_name_icatu($formato, $dados = array())
+    {
+        $cod_produto = emptyor($dados['registro'][0]['cod_produto'], '');
+        $data = date('dmy');
+        $file = "{$formato}{$cod_produto}{$data}.txt";
+        return $file;
+    }
+
+}
 if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
 
     function app_integracao_csv_retorno_novomundo($formato, $dados = array())

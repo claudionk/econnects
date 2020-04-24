@@ -22,3 +22,11 @@ ADD COLUMN `solicita_range` VARCHAR(45) NULL DEFAULT 0 COMMENT '0 - Nao solicita
 
 #Atualiza a Série para 1 de todas as operações vigentes
 update capitalizacao_serie set num_serie = 1 where deletado = 0;
+
+#cria um novo tipo
+INSERT INTO `sisconnects`.`capitalizacao_tipo` (`capitalizacao_tipo_id`, `nome`, `slug`, `deletado`, `criacao`, `alteracao_usuario_id`) VALUES (4, 'ICATU SEGURSOS S/A', 'icatu', '0', '2020-04-24 10:38:25', '0');
+
+#alterar o tipo de capitalizacao para Icatu
+UPDATE `sisconnects`.`capitalizacao` SET `capitalizacao_tipo_id`='4' WHERE `capitalizacao_id`= ?;
+
+
