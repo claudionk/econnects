@@ -3594,3 +3594,14 @@ if ( ! function_exists('app_integracao_coop')) {
         return $response;
     }
 }
+if ( ! function_exists('app_integracao_icatu_pedido'))
+{
+    function app_integracao_icatu_pedido($formato, $dados = array())
+    {
+        $CI =& get_instance();
+        $CI->load->model('capitalizacao_serie_model');
+        $CI->capitalizacao_serie_model->update($dados['registro']['capitalizacao_serie_id'], [
+            'solicita_range' => 2
+        ], TRUE);       
+    }
+}

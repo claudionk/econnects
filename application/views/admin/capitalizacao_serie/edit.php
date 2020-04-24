@@ -140,7 +140,7 @@ if($_POST)
                                                     </div>
 
                                                     <?php $field_name = 'solicita_range';$solicita_range = issetor($row[$field_name], set_value($field_name)); ?>
-                                                    <div class="form-group radio radio-styled">
+                                                    <div class="form-group <?php echo ( $solicita_range != 2 ) ? 'radio radio-styled' : ''; ?>">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Solicitar Range de Número da Sorte</label>
                                                     <?php
                                                     /*
@@ -151,7 +151,12 @@ if($_POST)
                                                     if ( $solicita_range == 2 )
                                                     {
 
-                                                        ?><div class="col-md-8">Série Solicitada. Aguardando Retorno</div><?php 
+                                                        ?>
+                                                        <div class="col-md-8 alert-warning">
+                                                            Série Solicitada. Aguardando Retorno
+                                                            <input id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="hidden" value="<?php echo $solicita_range; ?>" />
+                                                        </div>
+                                                        <?php 
 
                                                     } else { 
 
@@ -167,9 +172,10 @@ if($_POST)
                                                                 Não
                                                             </label>
                                                         </div>
-                                                    </div>
 
                                                     <?php } ?>
+
+                                                    </div>
 
                                                     <?php $field_name = 'responsavel_num_sorte';?>
                                                     <input id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="hidden" value="<?php echo (!empty($responsavel_num_sorte)) ? '1' : '0'; ?>" />
