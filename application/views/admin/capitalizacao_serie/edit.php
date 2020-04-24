@@ -87,21 +87,6 @@ if($_POST)
                                                         <div class="col-md-8"><input <?php if($new_record == '0') : echo 'readonly'; endif; ?> class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
 
-                                                    <?php $field_name = 'serie_aberta';?>
-                                                    <div class="radio radio-styled">
-                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Tipo de Série *</label>
-                                                        <label class="radio-inline">
-                                                            <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                                                   value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
-                                                            Aberta
-                                                        </label>
-                                                        <label class="radio-inline">
-                                                            <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                                                   value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
-                                                            Fechada
-                                                        </label>
-                                                    </div>
-
                                                     <?php $field_name = 'data_inicio';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Início Distribuição</label>
@@ -114,27 +99,84 @@ if($_POST)
                                                         <div class="col-md-8"><input class="form-control inputmask-date" placeholder="__/__/____" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? app_dateonly_mysql_to_mask($row[$field_name]) : set_value($field_name); ?>" /></div>
                                                     </div>
 
-                                                    <?php $field_name = 'ativo';?>
-                                                    <div class="radio radio-styled">
-                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Ativo *</label>
-                                                        <label class="radio-inline">
-                                                            <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                                                   value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
-                                                            Sim
-                                                        </label>
-                                                        <label class="radio-inline">
-                                                            <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                                                   value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
-                                                            Não
-                                                        </label>
+                                                    <?php $field_name = 'num_serie';?>
+                                                    <div class="form-group">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Número da Série <?php echo (!empty($responsavel_num_sorte)) ? '*' : ''; ?></label>
+                                                        <div class="col-md-8"><input <?php echo (!empty($required_num_serieresponsavel_num_sorte)) ? 'required' : ''; ?> class="form-control <?php echo (!empty($responsavel_num_sorte)) ? 'required' : ''; ?>" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
+
+                                                    <?php $field_name = 'serie_aberta';?>
+                                                    <div class="form-group radio radio-styled">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Tipo de Série *</label>
+                                                        <div class="col-md-8">
+                                                            <label class="radio-inline">
+                                                                <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                       value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
+                                                                Aberta
+                                                            </label>
+                                                            <label class="radio-inline">
+                                                                <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                       value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
+                                                                Fechada
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <?php $field_name = 'ativo';?>
+                                                    <div class="form-group radio radio-styled">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Ativo *</label>
+                                                        <div class="col-md-8">
+                                                            <label class="radio-inline">
+                                                                <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                       value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
+                                                                Sim
+                                                            </label>
+                                                            <label class="radio-inline">
+                                                                <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                       value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
+                                                                Não
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <?php $field_name = 'solicita_range';$solicita_range = issetor($row[$field_name], set_value($field_name)); ?>
+                                                    <div class="form-group radio radio-styled">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Solicitar Range de Número da Sorte</label>
+                                                    <?php
+                                                    /*
+                                                    0 - Nao solicita
+                                                    1 - Solicitar
+                                                    2 - Solicitado - Ag Retorno
+                                                    */
+                                                    if ( $solicita_range == 2 )
+                                                    {
+
+                                                        ?><div class="col-md-8">Série Solicitada. Aguardando Retorno</div><?php 
+
+                                                    } else { 
+
+                                                        ?><div class="col-md-8">
+                                                            <label class="radio-inline">
+                                                                <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                       value="1" <?php if ($solicita_range == '1') echo 'checked="checked"'; ?> />
+                                                                Sim
+                                                            </label>
+                                                            <label class="radio-inline">
+                                                                <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                       value="0" <?php if ($solicita_range == '0') echo 'checked="checked"'; ?> />
+                                                                Não
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <?php } ?>
+
+                                                    <?php $field_name = 'responsavel_num_sorte';?>
+                                                    <input id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="hidden" value="<?php echo (!empty($responsavel_num_sorte)) ? '1' : '0'; ?>" />
 
                                                 </div>
 
-
-
                                                 <!-- // Column END -->
-
 
                                             </div>
                                             <!-- // Row END -->
