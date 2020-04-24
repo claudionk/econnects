@@ -991,7 +991,7 @@ Class Integracao_Model extends MY_Model
                 $integracao_log_status_id = 4;
                 $msgDetCampo = [];
 
-                if (!empty($datum['id_log'])) {
+                if ( !empty($datum['id_log']) && !empty($integracao_log['integracao_log_id']) ) {
                     $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $datum['id_log'], addslashes(json_encode($datum)));
                 }
 
@@ -1009,7 +1009,7 @@ Class Integracao_Model extends MY_Model
                         {
                             $callFuncReturn = call_user_func($integracao['before_detail'], $integracao_log_detalhe_id, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
 
-                            if ( !empty($callFuncReturn) && !empty($integracao_log_detalhe_id) ){
+                            if ( !empty($callFuncReturn) ){
 
                                 if ( empty($callFuncReturn->status) ){
                                     // seta para erro
@@ -1024,7 +1024,7 @@ Class Integracao_Model extends MY_Model
                             }
                         }
 
-                        if (!empty($msgDetCampo)) {
+                        if ( !empty($msgDetCampo) && !empty($integracao_log_detalhe_id) ) {
                             foreach ($msgDetCampo as $er) {
                                 $ErroID = !empty($er['id']) ? $er['id'] : -1;
                                 $ErroMSG = !empty($er['msg']) ? $er['msg'] : $er;
@@ -1137,7 +1137,10 @@ Class Integracao_Model extends MY_Model
                     $integracao_log_status_id = 8;
 
                     // gera log do erro
-                    $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, 1, "O campo {$item['nome']} é obrigatório", $item['nome_banco']);
+                    if ( !empty($integracao_log_detalhe_id) )
+                    {
+                        $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, 1, "O campo {$item['nome']} é obrigatório", $item['nome_banco']);
+                    }
 
                     // não gera a linha
                     continue;

@@ -3598,10 +3598,35 @@ if ( ! function_exists('app_integracao_icatu_pedido'))
 {
     function app_integracao_icatu_pedido($formato, $dados = array())
     {
+        if ( empty($dados['registro']) )
+        {
+            return false;
+        }
+
         $CI =& get_instance();
         $CI->load->model('capitalizacao_serie_model');
-        $CI->capitalizacao_serie_model->update($dados['registro']['capitalizacao_serie_id'], [
-            'solicita_range' => 2
-        ], TRUE);       
+        $CI->load->model('integracao_log_model');
+
+        // trava uma nova solicitação de range até obter retorno
+        $CI->capitalizacao_serie_model->update($dados['registro']['capitalizacao_serie_id'], ['solicita_range' => 2], TRUE);
+
+        // para controle do sequencial por codigo do porduto
+        $CI->integracao_log_model->update($dados['log']['integracao_log_id'], ['retorno' => $dados['registro']['cod_produto']], TRUE);
+
+        return true;
+    }
+}
+if ( ! function_exists('app_integracao_icatu_sequencia'))
+{
+    function app_integracao_icatu_sequencia($formato, $dados = array())
+    {
+        if( !empty($dados['registro']['cod_produto']) && !empty($dados['log']['integracao_id']) )
+        {
+            $CI =& get_instance();
+            $CI->load->model('integracao_log_model');
+            return $CI->integracao_log_model->get_sequencia_by_cod_prod($dados['log']['integracao_id'], $dados['registro']['cod_produto']);
+        }else{
+            return 1;
+        }
     }
 }

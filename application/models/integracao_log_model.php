@@ -82,4 +82,17 @@ Class Integracao_Log_Model extends MY_Model
         return $q;
     }
 
+    function get_sequencia_by_cod_prod($integracao_id, $cod_produto)
+    {
+        $this->_database->select("COUNT(`integracao_log`.`integracao_id`) AS seq");
+        $this->_database->join("integracao_log_status", "{$this->_table}.integracao_log_status_id = integracao_log_status.integracao_log_status_id");
+        $this->_database->where("{$this->_table}.integracao_id", $integracao_id);
+        $this->_database->where("{$this->_table}.retorno", $cod_produto);
+        $this->_database->where("integracao_log_status.slug", "S");
+        $result = $this->get_all();
+        $seq = emptyor($result[0]['seq'], 0);
+        $result = (int)$seq + 1;
+        return $result;
+    }
+
 }
