@@ -203,8 +203,9 @@ class Capitalizacao_Serie extends Admin_Controller
             }
         }
 
-        $data['capitalizacao_id'] = $capitalizacao['capitalizacao_id'];
         $data['capitalizacao'] = $capitalizacao;
+        $data['capitalizacao_id'] = $capitalizacao['capitalizacao_id'];
+        $data['responsavel_num_sorte'] = !empty($capitalizacao['responsavel_num_sorte']);
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
@@ -223,6 +224,25 @@ class Capitalizacao_Serie extends Admin_Controller
         $this->session->set_flashdata('succ_msg', 'Registro excluido corretamente.');
 
         redirect("{$this->controller_uri}/index/{$row['capitalizacao_id']}");
+    }
+
+    public function required_if($data, $j)
+    {
+        $this->load->library('form_validation');
+
+        $values = explode(",", $j);
+        $valueField = $this->input->post($values[0]);
+        $valueExpected = $values[1];
+        $valueDesc = $values[2];
+
+        $this->form_validation->set_message('required_if', "O campo {$valueDesc} é obrigatório");
+
+        if ($valueField == $valueExpected)
+        {
+            return !empty($data);
+        }
+
+        return TRUE;
     }
 
 }

@@ -71,7 +71,7 @@ Class Capitalizacao_Model extends MY_Model
         array(
             'field' => 'valor_custo_titulo',
             'label' => 'Custo do título',
-            'rules' => 'required_if[tipo_custo,0]',
+            'rules' => 'required_if[tipo_custo,0,Custo do título]',
             'groups' => 'default'
         ),
         array(
@@ -107,7 +107,7 @@ Class Capitalizacao_Model extends MY_Model
         array(
             'field' => 'qnt_sorteio',
             'label' => 'Quantidade Sorteios',
-            'rules' => "required_if[tipo_qnt_sorteio,0]",
+            'rules' => "required_if[tipo_qnt_sorteio,0,Quantidade de Sorteios]",
             'groups' => 'default'
         ),
         array(
@@ -140,6 +140,11 @@ Class Capitalizacao_Model extends MY_Model
             'rules' => 'required|validate_data',
             'groups' => 'default'
         ),
+        array(
+            'field' => 'codigo_interno',
+            'label' => 'Código Interno do Produto',
+            'groups' => 'default'
+        ),
     );
 
     //Get dados
@@ -153,6 +158,7 @@ Class Capitalizacao_Model extends MY_Model
             'qnt_sorteio' => $this->input->post('qnt_sorteio'),
             'nome' => $this->input->post('nome'),
             'descricao' => $this->input->post('descricao'),
+            'codigo_interno' => $this->input->post('codigo_interno'),
             'data_inicio' => app_dateonly_mask_to_mysql($this->input->post('data_inicio')),
             'data_fim' => app_dateonly_mask_to_mysql($this->input->post('data_fim')),
             'titulo_randomico' => $this->input->post('titulo_randomico'),
