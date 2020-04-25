@@ -30,3 +30,14 @@ INSERT INTO `sisconnects`.`capitalizacao_tipo` (`capitalizacao_tipo_id`, `nome`,
 UPDATE `sisconnects`.`capitalizacao` SET `capitalizacao_tipo_id`='4' WHERE `capitalizacao_id`= ?;
 
 
+##INSTALACAO DO SSH2 NA APLICAÇÃO
+/*
+php -m | grep ssh2
+sudo yum install autoconf
+phpize
+sudo pecl install -f ssh2
+echo extension=ssh2.so > /etc/php.d/ssh2.ini
+sudo service httpd restart
+php -m | grep ssh2
+
+*/
