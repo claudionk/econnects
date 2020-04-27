@@ -3632,3 +3632,16 @@ if ( ! function_exists('app_integracao_icatu_sequencia'))
         }
     }
 }
+if ( ! function_exists('app_integracao_icatu_pedido_retorno'))
+{
+    function app_integracao_icatu_pedido_retorno($formato, $dados = array())
+    {
+        print_pre( [$formato, $dados] );
+
+        $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
+        if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
+            $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
+            return $response;
+        }
+    }
+}

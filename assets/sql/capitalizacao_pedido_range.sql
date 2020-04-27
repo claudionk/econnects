@@ -41,3 +41,9 @@ sudo service httpd restart
 php -m | grep ssh2
 
 */
+
+#migrar as integrações de pedido e retorno de pedido
+select * from integracao where integracao_id IN(102, 218) and deletado = 0;
+select * from integracao_detalhe where integracao_id IN(102, 218) and deletado = 0;
+select * from integracao_layout where integracao_id IN(102, 218) and deletado = 0;
+
