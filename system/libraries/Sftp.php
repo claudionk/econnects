@@ -265,7 +265,12 @@ class CI_SFTP {
 			return FALSE;
 		}
 
-      	$result = ssh2_scp_send($this->conn_id, $locpath, $rempath, 0644);
+		$sftp = ssh2_sftp($this->conn_id);
+      	$sftp_df = intval($sftp);
+      	$pathDf = $sftp_df.$rempath;
+
+      	$data = file_get_contents($locpath);
+      	$result = file_put_contents("ssh2.sftp://$pathDf", $data);
 
 		if ($result === FALSE)
 		{
@@ -467,7 +472,7 @@ class CI_SFTP {
 			return FALSE;
 		}
 
-		if ( ! function_exists('ftp_chmod'))
+		if ( ! function_exists('ssh2_sftp_chmod'))
 		{
 			if ($this->debug == TRUE)
 			{
@@ -476,7 +481,7 @@ class CI_SFTP {
 			return FALSE;
 		}
 
-		$result = @ftp_chmod($this->conn_id, $perm, $path);
+		$result = @ssh2_sftp_chmod($this->conn_id, $path, $perm);
 
 		if ($result === FALSE)
 		{
