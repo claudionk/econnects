@@ -319,7 +319,6 @@ if ( ! function_exists('app_integracao_format_decimal_pad')) {
         $valor[0] = preg_replace("/[^0-9]/", "", $valor[0]);
         return str_pad($valor[0], ($dados['item']['tamanho']-($a[2] + strlen($a[3]) )), $dados['item']['valor_padrao'], STR_PAD_LEFT) .$a[3]. str_pad($valor[1], $a[2], '0', STR_PAD_RIGHT);
     }
-
 }
 if ( ! function_exists('app_integracao_format_decimal_r')) {
 
@@ -372,14 +371,12 @@ if ( ! function_exists('app_integracao_format_date_r')) {
 
 }
 if ( ! function_exists('app_integracao_format_file_name_pagnet')) {
-
     function app_integracao_format_file_name_pagnet($formato, $dados = array())
     {
         /*MCAP_II_NEW_PPPP_DDMMAA_SS.TXT*/
         $file = "PAGNET_". date('dmyHis'). '.TXT';
         return  $file;
     }
-
 }
 if ( ! function_exists('app_integracao_format_file_name_capmapfre')) {
 
@@ -517,18 +514,18 @@ if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
 
     function app_integracao_csv_retorno_novomundo($formato, $dados = array())
     {
-    	$CI=& get_instance();
-    	$CI->load->model('integracao_model');
+        $CI=& get_instance();
+        $CI->load->model('integracao_model');
 
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
-    	$os = $dados['registro']['id_exp'];
-    	$status_troca = $dados['registro']['status_troca'];
+        $os = $dados['registro']['id_exp'];
+        $status_troca = $dados['registro']['status_troca'];
 
-    	switch($status_troca)
-    	{
-    		case "TROCA REALIZADA":
-    		case "CANCELADA":
-    			$ret = $CI->integracao_model->update_status_novomundo($os, $status_troca);
+        switch($status_troca)
+        {
+            case "TROCA REALIZADA":
+            case "CANCELADA":
+                $ret = $CI->integracao_model->update_status_novomundo($os, $status_troca);
                 if ( !empty($ret['status']) )
                 {
                     $response->status = true;
@@ -537,9 +534,9 @@ if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
                     $response->msg[] = ['id' => -1, 'msg' => $ret['erro'] ." [$os - {$status_troca}]", 'slug' => "voucher_retorno"];
                 }
                 break;
-    		default:
-    		  break;
-    	}
+            default:
+                break;
+        }
 
         return $response;
     }
@@ -564,7 +561,7 @@ if ( ! function_exists('app_integracao_zip_extract_novomundo'))
         $CI->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
         $CI->load->model('integracao_log_detalhe_campo_model', 'integracao_log_detalhe_campo');
 
-    	$diretorio  = $dados['registro']['file'];
+        $diretorio  = $dados['registro']['file'];
         $arquivo    = $dados['registro']['fileget'];
         $diretorio  = str_replace($arquivo, "", $diretorio);
         $chave = $novo_diretorio = str_replace(".zip", "", $arquivo);
@@ -671,11 +668,11 @@ if ( ! function_exists('app_integracao_zip_extract_novomundo'))
                 }
             }
         }
-    	else
-    	{
+        else
+        {
             $CI->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, -1, "Erro na extracao de arquivo: {$arquivo}", 'nm_zip');
             return false;
-    	}
+        }
 
         return true;
     }
@@ -2204,7 +2201,6 @@ if ( ! function_exists('app_integracao_retorno_generali_pagnet'))
     function app_integracao_retorno_generali_pagnet($formato, $dados = array())
     {
         $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
-
         if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
             $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
             return $response;
@@ -2723,7 +2719,6 @@ if ( ! function_exists('app_integracao_inicio')) {
                     } else {
                         $eanErroMsg = "Equipamento não identificado - [{$dados['registro']['equipamento_nome']}]";
                     }
-
                 }
 
                 if ($eanErro){

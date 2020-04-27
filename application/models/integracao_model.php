@@ -537,7 +537,7 @@ Class Integracao_Model extends MY_Model
         return $result;
     }
 
-    private function getFileTransferProtocol($obj, $integracao = array(), $file){
+    private function getFileTransferProtocol($obj, $list, $integracao = array(), $file){
 
         $this->load->model('integracao_log_model', 'integracao_log');
 
