@@ -369,7 +369,7 @@ if ( ! function_exists('app_integracao_format_date_r')) {
         return $date;
     }
 
-}   
+}
 if ( ! function_exists('app_integracao_format_file_name_pagnet')) {
     function app_integracao_format_file_name_pagnet($formato, $dados = array())
     {
@@ -377,7 +377,7 @@ if ( ! function_exists('app_integracao_format_file_name_pagnet')) {
         $file = "PAGNET_". date('dmyHis'). '.TXT';
         return  $file;
     }
-}       
+}
 if ( ! function_exists('app_integracao_format_file_name_capmapfre')) {
 
     function app_integracao_format_file_name_capmapfre($formato, $dados = array())
@@ -796,8 +796,8 @@ if ( ! function_exists('app_integracao_zip_extract_novomundo_upload'))
         return $retorno;
     }
 }
-if ( ! function_exists('app_integracao_format_file_name_ret_sis')) {
-
+if ( ! function_exists('app_integracao_format_file_name_ret_sis'))
+{
     function app_integracao_format_file_name_ret_sis($formato, $dados = array())
     {
 
@@ -818,7 +818,6 @@ if ( ! function_exists('app_integracao_format_file_name_ret_sis')) {
         $file = "{$formato}_{$num_sequencia}_{$data}.TXT";
         return  $file;
     }
-
 }
 if ( ! function_exists('app_integracao_format_file_name_generali_conciliacao')) {
 
@@ -2363,7 +2362,6 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
         return $id_exp_hist_carga;
     }
 }
-
 if ( ! function_exists('app_integracao_gera_sinistro')) {
     function app_integracao_gera_sinistro($formato, $dados = array())
     {
