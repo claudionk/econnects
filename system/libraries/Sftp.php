@@ -33,7 +33,6 @@ class CI_SFTP {
 	var $passive	= TRUE;
 	var $debug		= FALSE;
 	var $conn_id	= FALSE;
-  	var $obj		= NULL;
 
 
 	/**
@@ -85,14 +84,12 @@ class CI_SFTP {
 	 */
 	function connect($config = array())
 	{
-      //print_r($config);die();
 		if (count($config) > 0)
 		{
 			$this->initialize($config);
 		}
 
-      	;
-		if (FALSE === ($this->conn_id = ssh2_connect($this->hostname, $this->port)))
+		if (FALSE === ($this->conn_id = @ssh2_connect($this->hostname, $this->port)))
 		{
 			if ($this->debug == TRUE)
 			{
@@ -123,7 +120,7 @@ class CI_SFTP {
 	 */
 	function _login()
 	{
-		return ssh2_auth_password($this->conn_id, $this->username, $this->password);
+		return @ssh2_auth_password($this->conn_id, $this->username, $this->password);
 	}
 
 	// --------------------------------------------------------------------
