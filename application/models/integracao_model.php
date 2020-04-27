@@ -2,6 +2,7 @@
 ini_set('display_errors',1);
 ini_set('display_startup_erros',1);
 error_reporting(E_ALL);
+if (ob_get_level() == 0) ob_start();
 
 Class Integracao_Model extends MY_Model
 {
@@ -218,6 +219,12 @@ Class Integracao_Model extends MY_Model
         return $data;
     }
 
+    private function int_flush( )
+    {
+        ob_flush(); // Flush (send) the output buffer
+        flush(); // Flush system output buffer
+    }
+
     public function get_proxima_execucao($integracao_id = 0){
         if($integracao_id == 0){
             return null;
@@ -278,6 +285,11 @@ Class Integracao_Model extends MY_Model
 
     public function run_r($integracao_id){
         echo "run_r($integracao_id)\n";
+
+        // remove memory limit
+        $limit = ini_get('memory_limit');
+        ini_set('memory_limit', -1);
+
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
         $this->load->model('integracao_log_detalhe_campo_model', 'integracao_log_detalhe_campo');
@@ -341,6 +353,9 @@ Class Integracao_Model extends MY_Model
             }
 
         }
+
+        // reset memory limit
+        ini_set('memory_limit', ($limit==-1) ? "128MB" : $limit);
     }
 
     public function run_s($integracao_id){
@@ -921,6 +936,9 @@ Class Integracao_Model extends MY_Model
                         );
                     }
                 }
+
+                $linhas = NULL; //cleanup memory
+                $this->int_flush();
             }
         } 
         else if($integracao['tipo_layout'] == 'CSV') 
@@ -957,6 +975,8 @@ Class Integracao_Model extends MY_Model
                 }
                 $detail[] = $sub_detail;
                 $num_registro++;
+                $data = NULL; //cleanup memory
+                $this->int_flush();
             }
         }
 
@@ -996,6 +1016,9 @@ Class Integracao_Model extends MY_Model
                             $ids[$row['layout']['nome_banco']] = $id_log;
                         }
                     }
+
+                    $row = NULL: //cleanup memory
+                    $this->int_flush();
                 }
 
                 if (!empty($ids)) {
@@ -1024,6 +1047,8 @@ Class Integracao_Model extends MY_Model
 
                 $data[] = $data_row;
                 $num_linha++;
+                $rows = NULL: //cleanup memory
+                $this->int_flush();
             }
 
             $num_linha = 1;
@@ -1101,6 +1126,9 @@ Class Integracao_Model extends MY_Model
                         )
                     );
                 }
+
+                $datum = NULL: //cleanup memory
+                $this->int_flush();
             }
         }
 
@@ -1632,3 +1660,5 @@ Class Integracao_Model extends MY_Model
         return true;
     }
 }
+
+ob_end_flush();
