@@ -512,8 +512,12 @@ class CI_SFTP {
       	$handle = opendir("ssh2.sftp://$pathDf");
 
       	$nList = [];
-        while (false != ($entry = readdir($handle))){
-            $nList[] = $entry;
+        while (false != ($entry = readdir($handle)))
+        {
+        	if ( in_array($entry, ['.','..'] ) )
+              continue;
+
+            $nList[] = $path.$entry;
         }
         closedir($handle);
 

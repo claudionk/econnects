@@ -443,8 +443,9 @@ Class Integracao_Model extends MY_Model
                     break;
 
                 case 2:
-
+                    return $this->getFileSFTP($integracao, $file);
                     break;
+
                 case 3:
 
                     break;
@@ -501,17 +502,43 @@ Class Integracao_Model extends MY_Model
 
     private function getFileFTP($integracao = array(), $file){
 
-        $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->library('ftp');
 
         $config['hostname'] = $integracao['host'];
         $config['username'] = $integracao['usuario'];
         $config['password'] = $integracao['senha'];
-        $config['port'] = $integracao['porta'];
+        $config['port']     = $integracao['porta'];
         $config['debug']    = TRUE;
 
         $this->ftp->connect($config);
         $list = $this->ftp->list_files("{$integracao['diretorio']}");
+        $result = $this->getFileTransferProtocol($this->ftp, $list, $integracao, $file);
+        $this->ftp->close();
+
+        return $result;
+    }
+
+    private function getFileSFTP($integracao = array(), $file){
+
+        $this->load->library('sftp');
+
+        $config['hostname'] = $integracao['host'];
+        $config['username'] = $integracao['usuario'];
+        $config['password'] = $integracao['senha'];
+        $config['port']     = $integracao['porta'];
+        $config['debug']    = TRUE;
+
+        $this->sftp->connect($config);
+        $list = $this->sftp->list_files("{$integracao['diretorio']}");
+        $result = $this->getFileTransferProtocol($this->sftp, $list, $integracao, $file);
+        $this->sftp->close();
+
+        return $result;
+    }
+
+    private function getFileTransferProtocol($obj, $integracao = array(), $file){
+
+        $this->load->model('integracao_log_model', 'integracao_log');
 
         $result = array(
             'file' => '',
@@ -555,7 +582,7 @@ Class Integracao_Model extends MY_Model
             }
 
             $fileget = basename($file_processar);
-            if($this->ftp->download($file_processar, "{$diretorio}/{$fileget}", 'binary')){
+            if($obj->download($file_processar, "{$diretorio}/{$fileget}", 'binary')){
                 $result = array(
                     'file' => "{$diretorio}/{$fileget}",
                     'fileget' => $fileget,
@@ -563,7 +590,7 @@ Class Integracao_Model extends MY_Model
             }
 
         }
-        $this->ftp->close();
+
         return $result;
     }
 
