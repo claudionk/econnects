@@ -504,9 +504,11 @@ if ( ! function_exists('app_integracao_file_name_icatu')) {
 
     function app_integracao_file_name_icatu($formato, $dados = array())
     {
-        $cod_produto = emptyor($dados['registro'][0]['cod_produto'], '');
-        $data = date('dmy');
-        $file = "{$formato}{$cod_produto}{$data}.txt";
+        $dados['registro'] = emptyor($dados['registro'][0], []);
+        $cod_produto = emptyor($dados['registro']['cod_produto'], '');
+        $sequencial = app_integracao_icatu_sequencia($formato, $dados);
+        $sequencial = mb_str_pad($sequencial, 6, '0', STR_PAD_LEFT);
+        $file = "{$formato}{$cod_produto}{$sequencial}.txt";
         return $file;
     }
 
