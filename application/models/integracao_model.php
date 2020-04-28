@@ -221,7 +221,7 @@ Class Integracao_Model extends MY_Model
 
     private function int_flush( )
     {
-        ob_flush(); // Flush (send) the output buffer
+        if( ob_get_level() > 0 ) ob_flush(); // Flush (send) the output buffer
         flush(); // Flush system output buffer
     }
 
@@ -1012,12 +1012,13 @@ Class Integracao_Model extends MY_Model
                             $id_log = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor_anterior']));
                         }
 
-                        if (!empty($id_log)) {
+                        if ( !ifempty($id_log) )
+                        {
                             $ids[$row['layout']['nome_banco']] = $id_log;
                         }
                     }
 
-                    $row = NULL: //cleanup memory
+                    $row = NULL; //cleanup memory
                     $this->int_flush();
                 }
 
@@ -1047,7 +1048,7 @@ Class Integracao_Model extends MY_Model
 
                 $data[] = $data_row;
                 $num_linha++;
-                $rows = NULL: //cleanup memory
+                $rows = NULL; //cleanup memory
                 $this->int_flush();
             }
 
@@ -1127,7 +1128,7 @@ Class Integracao_Model extends MY_Model
                     );
                 }
 
-                $datum = NULL: //cleanup memory
+                $datum = NULL; //cleanup memory
                 $this->int_flush();
             }
         }

@@ -535,7 +535,7 @@ if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
                 }
                 break;
             default:
-              break;
+                break;
         }
 
         return $response;
@@ -3634,12 +3634,73 @@ if ( ! function_exists('app_integracao_icatu_pedido_retorno'))
 {
     function app_integracao_icatu_pedido_retorno($formato, $dados = array())
     {
-        print_pre( [$formato, $dados] );
-
         $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
         if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
             $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
             return $response;
         }
+
+        // Dados de entrada
+        $cod_produto        = $dados['registro']['cod_produto'];
+        $ret_inconsistencia = [];
+        $codsEr      = [
+            $dados['registro']['cod_erro1'],
+            $dados['registro']['cod_erro2'],
+            $dados['registro']['cod_erro3'],
+        ];
+
+        foreach ($codsEr as $key => $value) {
+            if ( $value != '000' ) )
+                $ret_inconsistencia[] = $value;
+        }
+
+        $CI =& get_instance();
+        $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
+        $CI->load->model('capitalizacao_serie_model', 'capitalizacao_serie');
+        $CI->load->model('capitalizacao_serie_titulo_model', 'titulo');
+
+        if (!empty($codigos_erros))
+        {
+            foreach ($ret_inconsistencia as $key => $value)
+            {
+                $id = 12; // retorno padrao
+                $descricao_erro = "Código de Erro ( {$value} )";
+
+                // identifica o ID através do DE x PARA
+                $ret = $CI->log_erro->filterByCodErroParceiro($value, 'icatu_retorno')->get_all();
+                if ( !empty($ret) )
+                {
+                    $id = $ret[0]['integracao_log_detalhe_erro_id'];
+                    $descricao_erro = $ret[0]['nome'];
+                }
+
+                $response->msg[] = ['id' => $id, 'msg' => $descricao_erro, 'slug' => "erro_retorno"];
+            }
+
+            return $response;
+        }
+
+        $capitalizacao_serie = $CI->capitalizacao_serie->filter_by_codigo_interno( $cod_produto )->get_all();
+        if ( empty($capitalizacao_serie) )
+        {
+            $response->msg[] = ['id' => 12, 'msg' => 'Nenhum Produto identificado com o código '. $cod_produto, 'slug' => "erro_interno"];
+            return $response;
+        }
+
+        $capitalizacao_serie_id = $capitalizacao_serie[0]['capitalizacao_serie_id'];
+        $CI->capitalizacao_serie->updateRangeSolicitada( $capitalizacao_serie_id );
+
+        $CI->titulo->insert([
+            'capitalizacao_serie_id' => $capitalizacao_serie_id,
+            'contemplado' => 0,
+            'num_lote' => $dados['registro']['num_serie'],
+            'numero' => $dados['registro']['num_sorte'],
+            'sequencial' => $dados['registro']['sequencial'],
+            'utilizado' => 0,
+            'ativo' => 1,
+        ], FALSE);
+
+        $response->status = true;
+        return $response;
     }
 }
