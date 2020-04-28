@@ -207,6 +207,7 @@ Class Capitalizacao_Model extends MY_Model
             inner JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id
             where 
             capitalizacao.capitalizacao_id = {$capitalizacao_id}
+            and capitalizacao.responsavel_num_sorte != 1 #PARCEIRO ENVIA O NÚMERO
             and capitalizacao_serie.ativo = 1
             and capitalizacao_serie.deletado = 0
             and capitalizacao_serie_titulo.utilizado = 0

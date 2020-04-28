@@ -1357,19 +1357,23 @@ class Apolice_Model extends MY_Model
                 // get_by_id retorna apenas 1 registro
                 $plano_capitalizacao['numero_sorte'] = $apolice['numero_sorte'];
                 $capitalizacoes[] = $plano_capitalizacao;
+            } else
+            {
+                //capitalização no produto
+                if ( !empty($parceiro_capitalizacao) )
+                {
+                    // get_all retornar vários registros
+                    foreach ($parceiro_capitalizacao as $key => $value) {
+                        $value['numero_sorte'] = $apolice['numero_sorte'];
+                        $capitalizacoes[] = $value;
+                    }
+                }
             }
         }
 
         // caso não tenha capialização no plano
         if ( empty($capitalizacoes) )
-        {
-            //capitalização no produto
-            if ( empty($parceiro_capitalizacao) )
-                return false;
-
-            // get_all retornar vários registros
-            $capitalizacoes = $parceiro_capitalizacao;
-        }
+             return false;
 
         foreach ($capitalizacoes as $index => $item)
         {
