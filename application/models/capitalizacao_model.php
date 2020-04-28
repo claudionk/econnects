@@ -380,8 +380,17 @@ Class Capitalizacao_Model extends MY_Model
                     $result['message'] = "A cotação não possui cobertura de Capitalização";
                 }
 
-            } else {
-                $result['message'] = "Parceiro não é o responsável por gerar o Número da Sorte";
+            } else
+            {
+                // Se não é gerado pelo parceiro não pode ser recebido
+                if ( !empty($cotacao["numero_sorte"]) )
+                {
+                    $result['status'] = false;
+                    $result['message'] = 'O Número da Sorte não deve ser gerado pelo parceiro';
+                } else
+                {
+                    $result['message'] = "Parceiro não é o responsável por gerar o Número da Sorte";
+                }
             }
         }
 
