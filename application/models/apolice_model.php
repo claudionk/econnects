@@ -1436,12 +1436,10 @@ class Apolice_Model extends MY_Model
                     }
 
                     $obj_aux->update_by(
-                        ['apolice_id' => $item['apolice_id']], 
-                        [
+                        array('apolice_id' => $item['apolice_id']), array(
                             'numero_sorte' => $capitalizacao['numero'],
                             'num_proposta_capitalizacao' => $capitalizacao['num_lote']
-                        ],
-                        true
+                        )
                     );
                 }
             }
