@@ -930,6 +930,7 @@ class Apolice_Model extends MY_Model
             ->select("parceiro.nome as parceiro")
             ->select("produto_parceiro.slug_produto")
             ->select("produto.nome as produto")
+            ->select("produto.slug as slug_produto_seguro")
             ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
             ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner')
             ->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
@@ -1333,6 +1334,9 @@ class Apolice_Model extends MY_Model
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
         $this->load->model('capitalizacao_model', 'capitalizacao');
         $this->load->model('capitalizacao_serie_titulo_model', 'capitalizacao_serie_titulo');
+        $this->load->model('apolice_equipamento_model', 'apolice_equipamento');
+        $this->load->model('apolice_generico_model', 'apolice_generico');
+        $this->load->model('apolice_seguro_viagem_model', 'apolice_seguro_viagem');
 
         $capitalizacoes = [];
         $apolices = $this->getApolicePedido($pedido_id);
@@ -1355,7 +1359,9 @@ class Apolice_Model extends MY_Model
             if ( !empty($plano_capitalizacao) )
             {
                 // get_by_id retorna apenas 1 registro
+                $plano_capitalizacao['apolice_id']   = $apolice['apolice_id'];
                 $plano_capitalizacao['numero_sorte'] = $apolice['numero_sorte'];
+                $plano_capitalizacao['slug']         = $apolice['slug_produto_seguro'];
                 $capitalizacoes[] = $plano_capitalizacao;
             } else
             {
@@ -1364,7 +1370,9 @@ class Apolice_Model extends MY_Model
                 {
                     // get_all retornar vários registros
                     foreach ($parceiro_capitalizacao as $key => $value) {
-                        $value['numero_sorte'] = $apolice['numero_sorte'];
+                        $value['apolice_id']    = $apolice['apolice_id'];
+                        $value['numero_sorte']  = $apolice['numero_sorte'];
+                        $value['slug']          = $apolice['slug_produto_seguro'];
                         $capitalizacoes[] = $value;
                     }
                 }
@@ -1403,12 +1411,37 @@ class Apolice_Model extends MY_Model
                     }
                 }
 
-            } else {
+            } else
+            {
                 $capitalizacao = $this->capitalizacao->getTituloNaoUtilizado($item['capitalizacao_id']);
-
-                if (count($capitalizacao) > 0) {
+                if (count($capitalizacao) > 0)
+                {
+                    $obj_aux = null;
                     $capitalizacao = $capitalizacao[0];
                     $this->capitalizacao_serie_titulo->update($capitalizacao['capitalizacao_serie_titulo_id'], $dados_capitalizacao, true);
+
+                    // atualizar o número da sorte utilizado na apólice
+                    if ($item['slug'] == 'seguro_viagem')
+                    {
+                        $obj_aux = $this->apolice_seguro_viagem;
+
+                    } elseif ($item['slug'] == 'equipamento')
+                    {
+                        $obj_aux = $this->apolice_equipamento;
+
+                    } elseif ($item["slug"] == "generico" || $item["slug"] == "seguro_saude")
+                    {
+                        $obj_aux = $this->apolice_generico;
+                    }
+
+                    $obj_aux->update_by(
+                        ['apolice_id' => $item['apolice_id']], 
+                        [
+                            'numero_sorte' => $capitalizacao['numero'],
+                            'num_proposta_capitalizacao' => $capitalizacao['num_lote']
+                        ]
+                        true,
+                    );
                 }
             }
         }
