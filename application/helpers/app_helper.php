@@ -1910,3 +1910,21 @@ function print_pre($arr, $die = true)
 
     if ($die) die();
 }
+
+/**
+ * @description Se for uma variavel vazia/nula retorna true, senão, false
+ * @param $var
+ * @return string
+ */
+if ( ! function_exists('ifempty')) {
+    function ifempty($var)
+    {
+        if ( !isset($var) )
+            return true;
+
+        if ( is_array($var) || is_object($var) )
+            return empty($var);
+
+        return !(strlen($var) > 0);
+    }
+}

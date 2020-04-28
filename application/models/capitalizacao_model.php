@@ -368,4 +368,9 @@ Class Capitalizacao_Model extends MY_Model
         return $result;
     }
 
+    function filter_by_codigo_interno($codigo_interno){
+        $this->_database->where("{$this->_table}.codigo_interno", $codigo_interno);
+        return $this;
+    }
+
 }

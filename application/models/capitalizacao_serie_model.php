@@ -105,4 +105,22 @@ Class Capitalizacao_Serie_Model extends MY_Model
         return $this;
     }
 
+    function filter_by_codigo_interno($codigo_interno){
+        $this->_database->join("capitalizacao", "{$this->_table}.capitalizacao_id = capitalizacao.capitalizacao_id");
+        $this->_database->where("capitalizacao.codigo_interno", $codigo_interno);
+        $this->_database->where("capitalizacao.deletado", 0);
+        return $this;
+    }
+
+    function updateRangeSolicitada( $capitalizacao_serie_id )
+    {
+        $sql = "
+            UPDATE capitalizacao c
+            INNER JOIN capitalizacao_serie cs ON c.capitalizacao_id = cs.capitalizacao_id
+            SET cs.solicita_range = 0
+            WHERE cs.capitalizacao_serie_id = $capitalizacao_serie_id AND c.deletado = 0 AND cs.deletado = 0 AND cs.solicita_range = 2;
+        ";
+        $result = $this->_database->query($sql);
+    }
+
 }
