@@ -44,8 +44,9 @@
                             <thead>
                             <tr>
                                 <th class="center">ID</th>
-                                <th width='35%'>Nome</th>
-                                <th width='25%'>Tipo</th>
+                                <th width='30%'>Nome</th>
+                                <th width='20%'>Tipo</th>
+                                <th width='20%'>Descrição</th>
                                 <th class="center" width='30%'>Ações</th>
                             </tr>
                             </thead>
@@ -61,6 +62,7 @@
                                 <td class="center"><?php echo $row[$primary_key];?></td>
                                 <td><?php echo $row['nome'];?></td>
                                 <td><?php echo $row['capitalizacao_tipo_nome'];?></td>
+                                <td><?php echo $row['descricao'];?></td>
                                 <td class="center">
                                     <a href="<?php echo base_url("admin/capitalizacao_serie/index/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Série </a>
                                     <a href="<?php echo base_url("{$current_controller_uri}/edit/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Editar </a>

@@ -61,21 +61,18 @@ Class Produto_Parceiro_Capitalizacao_Model extends MY_Model
         return $this;
     }
 
-    function filter_by_produto_parceiro($produto_parceiro_id){
-
+    function filter_by_produto_parceiro($produto_parceiro_id)
+    {
         $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
-
         return $this;
     }
 
-    function filter_by_capitalizacao_ativa(){
-
+    function filter_by_capitalizacao_ativa()
+    {
         $this->_database->where("capitalizacao.data_inicio <", date('Y-m-d H:i:s'));
         $this->_database->where("capitalizacao.data_fim >", date('Y-m-d H:i:s'));
         $this->_database->where("capitalizacao.ativo", 1);
-
         return $this;
     }
-
 
 }

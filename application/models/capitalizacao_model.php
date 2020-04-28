@@ -189,6 +189,14 @@ Class Capitalizacao_Model extends MY_Model
         return $this;
     }
 
+    function with_produto_parceiro_capitalizacao($produto_parceiro_id)
+    {
+        $this->_database->join("produto_parceiro_capitalizacao", "produto_parceiro_capitalizacao.capitalizacao_id = {$this->_table}.capitalizacao_id");
+        $this->_database->where("produto_parceiro_capitalizacao.produto_parceiro_id", $produto_parceiro_id);
+        $this->_database->where("produto_parceiro_capitalizacao.deletado", 0);
+        return $this;
+    }
+
     function getTituloNaoUtilizado($capitalizacao_id){
 
         $date = date('Y-m-d H:i:s');
@@ -199,6 +207,7 @@ Class Capitalizacao_Model extends MY_Model
             inner JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id
             where 
             capitalizacao.capitalizacao_id = {$capitalizacao_id}
+            and capitalizacao.responsavel_num_sorte != 1 #PARCEIRO ENVIA O NÚMERO
             and capitalizacao_serie.ativo = 1
             and capitalizacao_serie.deletado = 0
             and capitalizacao_serie_titulo.utilizado = 0
@@ -302,14 +311,26 @@ Class Capitalizacao_Model extends MY_Model
 
     public function validaNumeroSorte($cotacao_id)
     {
-
         $this->load->model('produto_parceiro_capitalizacao_model', 'produto_parceiro_capitalizacao');
+        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
         $this->load->model('cotacao_model', 'cotacao');
 
         $result['status'] = true;
         $result['message'] = 'OK';
+        $capitalizacoes = [];
 
         $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
+
+        $plano_capitalizacao = $this->produto_parceiro_plano
+            ->with_capitalizacao()
+            ->filter_by_capitalizacao_ativa()
+            ->get_by_id($cotacao['produto_parceiro_plano_id']);
+
+        if ( !empty($plano_capitalizacao) )
+        {
+            // get_by_id retorna apenas 1 registro
+            $capitalizacoes[] = $plano_capitalizacao;
+        }
 
         //verifica se tem capitalização configurado
         $parceiro_capitalizacao = $this->produto_parceiro_capitalizacao->with_capitalizacao()
@@ -318,51 +339,50 @@ Class Capitalizacao_Model extends MY_Model
             ->get_all();
 
         //capitalização
-        if (count($parceiro_capitalizacao) > 0) {
+        if ( !empty($parceiro_capitalizacao) )
+        {
+            // get_all retornar vários registros
+            $capitalizacoes = $parceiro_capitalizacao;
+        }
 
-            foreach ($parceiro_capitalizacao as $index => $item) {
+        if ( empty($capitalizacoes) )
+        {
+            $result['message'] = "Produto/Plano não está configurado para aceitar Número da Sorte";
+            return $result;
+        }
 
-                $capitalizacaoItem = $this->get($item['capitalizacao_id']);
-                if (count($capitalizacaoItem) > 0) {
+        foreach ($capitalizacoes as $index => $item)
+        {
+            // Parceiro é o responsável por gerar o número da sorte
+            if ( $item['responsavel_num_sorte'] == 1 )
+            {
+                // verifica se possui capitalizacao nas coberturas
+                if ( $this->cotacao->tem_capitalizacao($cotacao_id) )
+                {
+                    if ( empty($cotacao["numero_sorte"]) ) {
 
-                    // Parceiro é o responsável por gerar o número da sorte
-                    if ( $capitalizacaoItem['responsavel_num_sorte'] == 1 )
-                    {
-                        // verifica se possui capitalizacao nas coberturas
-                        if ( $this->cotacao->tem_capitalizacao($cotacao_id) )
-                        {
+                        $result['status'] = false;
+                        $result['message'] = 'O Número da Sorte não foi informado';
 
-                            if ( empty($cotacao["numero_sorte"]) ) {
+                    // validar se está dentro da range
+                    } elseif ( !$this->numSorteRange($item['capitalizacao_id'], $cotacao["numero_sorte"]) ) {
 
-                                $result['status'] = false;
-                                $result['message'] = 'O Número da Sorte não foi informado';
+                        $result['status'] = false;
+                        $result['message'] = 'Número da Sorte fora do Range aceito';
 
-                            // validar se está dentro da range
-                            } elseif ( !$this->numSorteRange($item['capitalizacao_id'], $cotacao["numero_sorte"]) ) {
+                    } elseif ( $this->numSorteUtilizado($item['capitalizacao_id'], $cotacao["numero_sorte"]) ) {
 
-                                $result['status'] = false;
-                                $result['message'] = 'Número da Sorte fora do Range aceito';
+                        $result['status'] = false;
+                        $result['message'] = 'Número da Sorte já utilizado';
 
-                            } elseif ( $this->numSorteUtilizado($item['capitalizacao_id'], $cotacao["numero_sorte"]) ) {
-
-                                $result['status'] = false;
-                                $result['message'] = 'Número da Sorte já utilizado';
-
-                            }
-                        } else {
-                            $result['message'] = "A cotação não possui cobertura de Capitalização";
-                        }
-
-                    } else {
-                        $result['message'] = "Parceiro não é o responsável por gerar o Número da Sorte";
                     }
-
+                } else {
+                    $result['message'] = "A cotação não possui cobertura de Capitalização";
                 }
 
+            } else {
+                $result['message'] = "Parceiro não é o responsável por gerar o Número da Sorte";
             }
-
-        } else {
-            $result['message'] = "Produto não está configurado para aceitar Número da Sorte";
         }
 
         return $result;

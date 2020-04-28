@@ -410,7 +410,8 @@ Class Cotacao_Model extends MY_Model
         $this->_database->where("cotacao.deletado", 0);
         $this->_database->where("cp.deletado", 0);
         $this->_database->where("c.deletado", 0);
-        $this->_database->where("c.slug", 'sorteio_mensal');
+        $this->_database->where_in('c.slug', ['capitalizacao_nro_sorte', 'sorteio_mensal'] );
+
         return !empty($this->get_total());
     }
 

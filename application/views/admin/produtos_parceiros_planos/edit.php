@@ -126,6 +126,24 @@ if($_POST)
                                                         </div>
                                                     </div>
 
+                                                    <?php $field_name = 'capitalizacao_id';?>
+                                                    <div class="form-group">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Capitalização </label>
+                                                        <div class="col-md-8">
+                                                            <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
+                                                                <option name="" value="">Selecione</option>
+                                                                <?php
+
+                                                                foreach($capitalizacao as $linha) { ?>
+                                                                    <option name="" value="<?php echo $linha[$field_name] ?>" title="<?php echo htmlentities($linha['descricao'], ENT_QUOTES); ?>"
+                                                                        <?php if(isset($row)){if($row[$field_name] == $linha[$field_name]) {echo " selected ";};}; ?> >
+                                                                        <?php echo $linha['capitalizacao_tipo_nome'] . ' - ' . $linha['nome']; ?>
+                                                                    </option>
+                                                                <?php }  ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
                                                     <?php $field_name = 'qtd_min_vida';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Mínimo de Vidas
