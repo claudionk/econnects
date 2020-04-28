@@ -1329,10 +1329,15 @@ class Apolice_Model extends MY_Model
 
     public function insertCapitalizacao($produto_parceiro_id, $pedido_id)
     {
-
         $this->load->model('produto_parceiro_capitalizacao_model', 'produto_parceiro_capitalizacao');
+        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
         $this->load->model('capitalizacao_model', 'capitalizacao');
         $this->load->model('capitalizacao_serie_titulo_model', 'capitalizacao_serie_titulo');
+
+        $capitalizacoes = [];
+        $apolices = $this->getApolicePedido($pedido_id);
+        if ( empty($apolices) )
+            return false;
 
         //verifica se tem capitalização configurado
         $parceiro_capitalizacao = $this->produto_parceiro_capitalizacao->with_capitalizacao()
@@ -1340,58 +1345,68 @@ class Apolice_Model extends MY_Model
             ->filter_by_capitalizacao_ativa()
             ->get_all();
 
-        //capitalização
-        if (count($parceiro_capitalizacao) > 0) {
+        foreach ($apolices as $apolice)
+        {
+            $plano_capitalizacao = $this->produto_parceiro_plano
+                ->with_capitalizacao()
+                ->filter_by_capitalizacao_ativa()
+                ->get_by_id($apolice['produto_parceiro_plano_id']);
 
-            foreach ($parceiro_capitalizacao as $index => $item) {
+            if ( !empty($plano_capitalizacao) )
+            {
+                // get_by_id retorna apenas 1 registro
+                $plano_capitalizacao['numero_sorte'] = $apolice['numero_sorte'];
+                $capitalizacoes[] = $plano_capitalizacao;
+            }
+        }
 
-                $capitalizacaoItem = $this->capitalizacao->get($item['capitalizacao_id']);
-                if (count($capitalizacaoItem) > 0) {
+        // caso não tenha capialização no plano
+        if ( empty($capitalizacoes) )
+        {
+            //capitalização no produto
+            if ( empty($parceiro_capitalizacao) )
+                return false;
 
-                    // Dados de entrada
-                    $dados_capitalizacao                = array();
-                    $dados_capitalizacao['pedido_id']   = $pedido_id;
-                    $dados_capitalizacao['utilizado']   = 1;
-                    $dados_capitalizacao['data_compra'] = date('Y-m-d H:i:s');
+            // get_all retornar vários registros
+            $capitalizacoes = $parceiro_capitalizacao;
+        }
 
-                    // Parceiro
-                    if ($capitalizacaoItem['responsavel_num_sorte'] == 1)
+        foreach ($capitalizacoes as $index => $item)
+        {
+            // Dados de entrada
+            $dados_capitalizacao                = array();
+            $dados_capitalizacao['pedido_id']   = $pedido_id;
+            $dados_capitalizacao['utilizado']   = 1;
+            $dados_capitalizacao['data_compra'] = date('Y-m-d H:i:s');
+
+            // Parceiro
+            if ($item['responsavel_num_sorte'] == 1)
+            {
+                // Recupera o número da Sorte
+                $numero_sorte = $item['numero_sorte'];
+
+                // Se foi enviado o número da sorte - Aceita "0"
+                if ( !ifempty($numero_sorte) )
+                {
+                    // validar se está dentro da range
+                    if ($capitalizacao_serie = $this->capitalizacao->getDadosSerie($item['capitalizacao_id'], $numero_sorte) )
                     {
-                        // Recupera o número da Sorte
-                        $apolices = $this->getApolicePedido($pedido_id);
-                        if ($apolices) {
-                            foreach ($apolices as $apolice) {
-                                $numero_sorte = $apolice['numero_sorte'];
-
-                                // Se foi enviado o número da sorte
-                                if ($numero_sorte){
-                                    // validar se está dentro da range
-                                    if ($capitalizacao_serie = $this->capitalizacao->getDadosSerie($item['capitalizacao_id'], $numero_sorte) )
-                                    {
-                                        $dados_capitalizacao['capitalizacao_serie_id'] = $capitalizacao_serie['capitalizacao_serie_id'];
-                                        $dados_capitalizacao['contemplado'] = 0;
-                                        $dados_capitalizacao['numero'] = $numero_sorte;
-                                        $dados_capitalizacao['ativo'] = 1;
-                                        $this->capitalizacao_serie_titulo->insert($dados_capitalizacao, TRUE);
-                                    }
-
-                                }
-                            }
-                        }
-
-                    } else {
-                        $capitalizacao = $this->capitalizacao->getTituloNaoUtilizado($item['capitalizacao_id']);
-
-                        if (count($capitalizacao) > 0) {
-                            $capitalizacao = $capitalizacao[0];
-                            $this->capitalizacao_serie_titulo->update($capitalizacao['capitalizacao_serie_titulo_id'], $dados_capitalizacao, true);
-                        }
+                        $dados_capitalizacao['capitalizacao_serie_id'] = $capitalizacao_serie['capitalizacao_serie_id'];
+                        $dados_capitalizacao['contemplado'] = 0;
+                        $dados_capitalizacao['numero'] = $numero_sorte;
+                        $dados_capitalizacao['ativo'] = 1;
+                        $this->capitalizacao_serie_titulo->insert($dados_capitalizacao, TRUE);
                     }
-
                 }
 
-            }
+            } else {
+                $capitalizacao = $this->capitalizacao->getTituloNaoUtilizado($item['capitalizacao_id']);
 
+                if (count($capitalizacao) > 0) {
+                    $capitalizacao = $capitalizacao[0];
+                    $this->capitalizacao_serie_titulo->update($capitalizacao['capitalizacao_serie_titulo_id'], $dados_capitalizacao, true);
+                }
+            }
         }
 
     }

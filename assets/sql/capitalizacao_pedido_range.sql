@@ -3,7 +3,6 @@ CHANGE COLUMN `data_inicio` `data_inicio` DATE NULL DEFAULT NULL ,
 CHANGE COLUMN `data_fim` `data_fim` DATE NULL DEFAULT NULL 
 ADD COLUMN `codigo_interno` VARCHAR(10) NULL AFTER `data_fim`;
 
-
 /*
 #Atualizar o campo codigo_interno e nome conforme descrito abaixo
 Cód Marco Regulatório Sul América	Código Icatu	Nome do Produto	Nome do Estipulante
@@ -14,6 +13,15 @@ Cód Marco Regulatório Sul América	Código Icatu	Nome do Produto	Nome do Estip
 5532	9309	SEG PROT MACAVI - S	MACAVI
 5548	9311	SEGURO RESID RENAULT	RENAULT
 */
+
+ALTER TABLE `sisconnects`.`produto_parceiro_plano` 
+ADD COLUMN `capitalizacao_id` INT NULL AFTER `qtd_min_vida`,
+CHANGE COLUMN `deletado` `deletado` TINYINT(4) NULL DEFAULT '0' AFTER `capitalizacao_id`,
+CHANGE COLUMN `criacao` `criacao` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP AFTER `deletado`,
+CHANGE COLUMN `criacao_usuario_id` `criacao_usuario_id` INT(11) NULL DEFAULT '0' AFTER `criacao`,
+CHANGE COLUMN `alteracao` `alteracao` TIMESTAMP NULL DEFAULT NULL AFTER `criacao_usuario_id`,
+CHANGE COLUMN `alteracao_usuario_id` `alteracao_usuario_id` INT(11) NULL DEFAULT '0' AFTER `alteracao`,
+CHANGE COLUMN `unidade_limite_tempo` `unidade_limite_tempo` ENUM('', 'DIA', 'MES', 'ANO') NULL DEFAULT NULL;
 
 ALTER TABLE `sisconnects`.`capitalizacao_serie` 
 CHANGE COLUMN `serie_aberta` `serie_aberta` TINYINT(4) NULL DEFAULT '0' AFTER `data_fim`,
@@ -47,3 +55,5 @@ select * from integracao where integracao_id IN(102, 218) and deletado = 0;
 select * from integracao_detalhe where integracao_id IN(102, 218) and deletado = 0;
 select * from integracao_layout where integracao_id IN(102, 218) and deletado = 0;
 
+#ATRIBUIR A CAPITALIZAÇÃO AOS PLANOS DA QUERO QUERO
+select * from produto_parceiro_plano where produto_parceiro_id = 90 AND deletado = 0;

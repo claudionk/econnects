@@ -24,7 +24,7 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $this->load->model('comissao_tipo_model', 'comissao_tipo');
         $this->load->model('parceiro_model', 'parceiro');
         $this->load->model('moeda_model', 'moeda');
-
+        $this->load->model('capitalizacao_model', 'capitalizacao');
 
     }
 
@@ -49,7 +49,6 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         }
         exit('1');
     }
-
 
     public function view_by_produto_parceiro($produto_parceiro_id , $offset = 0)
     {
@@ -107,7 +106,6 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
 
-
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Produtos");
@@ -147,8 +145,6 @@ class Produtos_Parceiros_Planos extends Admin_Controller
             }
         }
 
-
-
         $data = array();
         $data['primary_key'] = $this->current_model->primary_key();
         $data['new_record'] = '1';
@@ -156,10 +152,9 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $data['produto_parceiro_id'] = $produto_parceiro_id;
         $data['produto_parceiro'] = $produto_parceiro;
         $data['precificacao_tipo'] = $this->precificacao_tipo->get_all();
+        $data['capitalizacao'] = $this->capitalizacao->with_capitalizacao_tipo()->with_produto_parceiro_capitalizacao($produto_parceiro['produto_parceiro_id'])->get_all();
         $data['comissao_tipo'] = $this->comissao_tipo->get_all();
         $data['moeda'] = $this->moeda->get_all();
-
-
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
@@ -175,7 +170,6 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Editar Plano");
         $this->template->set_breadcrumb('Editar', base_url("$this->controller_uri/index"));
-
 
         //Carrega dados para a página
         $data = array();
@@ -193,9 +187,7 @@ class Produtos_Parceiros_Planos extends Admin_Controller
             redirect("$this->controller_uri/index");
         }
 
-
         $produto_parceiro =  $this->produto_parceiro->get($data['row']['produto_parceiro_id']);
-
 
         //Caso post
         if($_POST)
@@ -213,10 +205,10 @@ class Produtos_Parceiros_Planos extends Admin_Controller
             }
         }
 
-
         $data['produto_parceiro_id'] = $produto_parceiro['produto_parceiro_id'];
         $data['produto_parceiro'] = $produto_parceiro;
         $data['precificacao_tipo'] = $this->precificacao_tipo->get_all();
+        $data['capitalizacao'] = $this->capitalizacao->with_capitalizacao_tipo()->with_produto_parceiro_capitalizacao($produto_parceiro['produto_parceiro_id'])->get_all();
         $data['comissao_tipo'] = $this->comissao_tipo->get_all();
         $data['moeda'] = $this->moeda->get_all();
 
@@ -238,6 +230,5 @@ class Produtos_Parceiros_Planos extends Admin_Controller
 
         redirect("{$this->controller_uri}/view_by_produto_parceiro/{$row['produto_parceiro_id']}");
     }
-
 
 }
