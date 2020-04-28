@@ -1439,8 +1439,8 @@ class Apolice_Model extends MY_Model
                         [
                             'numero_sorte' => $capitalizacao['numero'],
                             'num_proposta_capitalizacao' => $capitalizacao['num_lote']
-                        ]
-                        true,
+                        ],
+                        true
                     );
                 }
             }
