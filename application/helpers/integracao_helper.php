@@ -3642,6 +3642,8 @@ if ( ! function_exists('app_integracao_icatu_pedido_retorno'))
 
         // Dados de entrada
         $cod_produto        = $dados['registro']['cod_produto'];
+        $num_sorte          = $dados['registro']['num_sorte'];
+        $num_serie          = $dados['registro']['num_serie'];
         $ret_inconsistencia = [];
         $codsEr      = [
             $dados['registro']['cod_erro1'],
@@ -3650,12 +3652,13 @@ if ( ! function_exists('app_integracao_icatu_pedido_retorno'))
         ];
 
         foreach ($codsEr as $key => $value) {
-            if ( $value != '000' ) )
+            if ( $value != '000' )
                 $ret_inconsistencia[] = $value;
         }
 
         $CI =& get_instance();
         $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
+        $CI->load->model('capitalizacao_model', 'capitalizacao');
         $CI->load->model('capitalizacao_serie_model', 'capitalizacao_serie');
         $CI->load->model('capitalizacao_serie_titulo_model', 'titulo');
 
@@ -3688,13 +3691,21 @@ if ( ! function_exists('app_integracao_icatu_pedido_retorno'))
         }
 
         $capitalizacao_serie_id = $capitalizacao_serie[0]['capitalizacao_serie_id'];
+        $capitalizacao_id       = $capitalizacao_serie[0]['capitalizacao_id'];
+
+        if ( !$CI->capitalizacao->getDadosSerie($capitalizacao_id, $num_sorte) )
+        {
+            $response->msg[] = ['id' => 12, 'msg' => "O número da sorte {$num_sorte} já foi recebido no produto {$cod_produto} e série {$num_serie}", 'slug' => "erro_interno"];
+            return $response;
+        }
+
         $CI->capitalizacao_serie->updateRangeSolicitada( $capitalizacao_serie_id );
 
         $CI->titulo->insert([
             'capitalizacao_serie_id' => $capitalizacao_serie_id,
             'contemplado' => 0,
-            'num_lote' => $dados['registro']['num_serie'],
-            'numero' => $dados['registro']['num_sorte'],
+            'num_lote' => $num_serie,
+            'numero' => $num_sorte,
             'sequencial' => $dados['registro']['sequencial'],
             'utilizado' => 0,
             'ativo' => 1,
