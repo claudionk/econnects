@@ -129,13 +129,12 @@ Class Capitalizacao_Serie_Model extends MY_Model
             SELECT capitalizacao_serie.capitalizacao_serie_id
             FROM capitalizacao
             INNER JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
-            LEFT JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id 
+            INNER JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id 
                 AND capitalizacao_serie_titulo.numero = '{$numero_sorte}'
                 AND capitalizacao_serie_titulo.ativo = 1
             WHERE capitalizacao_serie.capitalizacao_serie_id = {$capitalizacao_serie_id}
             AND capitalizacao_serie.ativo = 1
             AND capitalizacao_serie.deletado = 0
-            AND capitalizacao_serie_titulo.capitalizacao_serie_id IS NULL #Não exista o número da sorte
         ";
 
         $result = $this->_database->query($sql);
