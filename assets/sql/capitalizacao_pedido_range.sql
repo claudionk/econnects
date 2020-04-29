@@ -1,7 +1,9 @@
 ALTER TABLE `sisconnects`.`capitalizacao` 
 CHANGE COLUMN `data_inicio` `data_inicio` DATE NULL DEFAULT NULL ,
 CHANGE COLUMN `data_fim` `data_fim` DATE NULL DEFAULT NULL 
-ADD COLUMN `codigo_interno` VARCHAR(10) NULL AFTER `data_fim`;
+ADD COLUMN `codigo_interno` VARCHAR(10) NULL AFTER `data_fim`,
+ADD COLUMN `responsavel_num_sorte_distribuicao` TINYINT(4) NULL DEFAULT '0' COMMENT '0 - Sistema\n1 - Parceiro' AFTER `responsavel_num_sorte`;
+
 
 /*
 #Atualizar o campo codigo_interno e nome conforme descrito abaixo
@@ -12,6 +14,9 @@ Cód Marco Regulatório Sul América	Código Icatu	Nome do Produto	Nome do Estip
 5547	8968	SEGUROS POMPEIA	LOJAS POMPÉIA
 5532	9309	SEG PROT MACAVI - S	MACAVI
 5548	9311	SEGURO RESID RENAULT	RENAULT
+
+#Popular o campo responsavel_num_sorte_distribuicao definindo os casos em que o parceiro envia o número da sorte
+#Apenas RCI e Uniqq são entregues pelo sistema
 */
 
 ALTER TABLE `sisconnects`.`produto_parceiro_plano` 
@@ -57,3 +62,14 @@ select * from integracao_layout where integracao_id IN(102, 218) and deletado = 
 
 #ATRIBUIR A CAPITALIZAÇÃO AOS PLANOS DA QUERO QUERO
 select * from produto_parceiro_plano where produto_parceiro_id = 90 AND deletado = 0;
+
+
+ALTER TABLE `sisconnects`.`cotacao_equipamento` 
+ADD COLUMN `num_proposta_capitalizacao` VARCHAR(50) NULL DEFAULT NULL AFTER `numero_sorte`;
+
+ALTER TABLE `sisconnects`.`cotacao_generico` 
+ADD COLUMN `num_proposta_capitalizacao` VARCHAR(50) NULL DEFAULT NULL AFTER `numero_sorte`;
+
+ALTER TABLE `sisconnects`.`cotacao_seguro_viagem` 
+ADD COLUMN `num_proposta_capitalizacao` VARCHAR(50) NULL DEFAULT NULL AFTER `numero_sorte`;
+

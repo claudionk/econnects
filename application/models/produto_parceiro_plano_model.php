@@ -227,7 +227,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
 
     public function with_capitalizacao()
     {
-        $this->_database->select("capitalizacao.nome as capitalizacao, capitalizacao.responsavel_num_sorte");
+        $this->_database->select("capitalizacao.nome as capitalizacao, capitalizacao.responsavel_num_sorte, capitalizacao.responsavel_num_sorte_distribuicao");
         $this->_database->join("capitalizacao", "capitalizacao.capitalizacao_id = {$this->_table}.capitalizacao_id");
         return $this;
     }

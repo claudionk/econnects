@@ -1826,6 +1826,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $fields['data_inicio_vigencia']         = isempty($dados['data_inicio_vigencia'], null);
                 $fields['data_fim_vigencia']            = isempty($dados['data_fim_vigencia'], null);
                 $fields['numero_sorte']                 = isempty($dados['num_sorte'], null);
+                $fields['num_proposta_capitalizacao']   = isempty($dados['num_serie_cap'], null);
                 $fields['ean']                          = isempty($dados['ean'], null);
                 $fields['coberturas']                   = isempty($dados['coberturas'], []);
                 $fields['emailAPI']                     = app_get_userdata("email");

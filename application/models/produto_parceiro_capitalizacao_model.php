@@ -45,7 +45,7 @@ Class Produto_Parceiro_Capitalizacao_Model extends MY_Model
     }
 
     function with_capitalizacao(){
-        $this->with_simple_relation('capitalizacao', 'capitalizacao_', 'capitalizacao_id', array('nome','tipo_qnt_sorteio','qnt_sorteio','dia_corte','qtde_titulos_por_compra','valor_sorteio','valor_custo_titulo','serie','responsavel_num_sorte'));
+        $this->with_simple_relation('capitalizacao', 'capitalizacao_', 'capitalizacao_id', array('nome','tipo_qnt_sorteio','qnt_sorteio','dia_corte','qtde_titulos_por_compra','valor_sorteio','valor_custo_titulo','serie','responsavel_num_sorte','responsavel_num_sorte_distribuicao'));
         return $this;
     }
 
