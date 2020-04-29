@@ -135,6 +135,12 @@ Class Capitalizacao_Model extends MY_Model
             'groups' => 'default'
         ),
         array(
+            'field' => 'responsavel_num_sorte_distribuicao',
+            'label' => 'Responsável pela Distribuição do Número da Sorte',
+            'rules' => 'required',
+            'groups' => 'default'
+        ),
+        array(
             'field' => 'data_primeiro_sorteio',
             'label' => 'Primeiro Sorteio',
             'rules' => 'required|validate_data',
@@ -172,6 +178,7 @@ Class Capitalizacao_Model extends MY_Model
             'tipo_custo' => $this->input->post('tipo_custo'),
             'dia_corte' => $this->input->post('dia_corte'),
             'responsavel_num_sorte' => $this->input->post('responsavel_num_sorte'),
+            'responsavel_num_sorte_distribuicao' => $this->input->post('responsavel_num_sorte_distribuicao'),
             'data_primeiro_sorteio' => app_dateonly_mask_to_mysql($this->input->post('data_primeiro_sorteio')),
         );
         return $data;
@@ -237,15 +244,20 @@ Class Capitalizacao_Model extends MY_Model
         return $this->_database->query($sql)->result_array();
     }
 
-    public function getDadosSerie($capitalizacao_id, $numero_sorte){
+    public function getDadosSerie($capitalizacao_id, $numero_sorte, $num_proposta_capitalizacao = null)
+    {
+        $sqlAuxTitulo = '';
+        if ( !empty($num_proposta_capitalizacao) )
+            $sqlAuxTitulo .= " AND capitalizacao_serie_titulo.num_lote = '{$num_proposta_capitalizacao}' ";
 
         $date = date('Y-m-d H:i:s');
         $sql = "
-            SELECT capitalizacao.*, capitalizacao_serie.*
+            SELECT capitalizacao.*, capitalizacao_serie.*, capitalizacao_serie_titulo.capitalizacao_serie_titulo_id
             FROM capitalizacao
             INNER JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
             LEFT JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id 
                 AND capitalizacao_serie_titulo.numero = '{$numero_sorte}'
+                {$sqlAuxTitulo}
                 AND capitalizacao_serie_titulo.utilizado = 0
                 AND capitalizacao_serie_titulo.ativo = 1 
             WHERE capitalizacao.capitalizacao_id = {$capitalizacao_id}
@@ -254,8 +266,6 @@ Class Capitalizacao_Model extends MY_Model
             AND capitalizacao_serie.data_inicio < '{$date}'
             AND capitalizacao_serie.data_fim > '{$date}'
             AND '{$numero_sorte}' BETWEEN CAST(capitalizacao_serie.numero_inicio as SIGNED) AND CAST(capitalizacao_serie.numero_fim as SIGNED)
-            AND capitalizacao_serie_titulo.capitalizacao_serie_id IS NULL #Não exista o número da sorte
-            LIMIT 1;
         ";
 
         $result = $this->_database->query($sql)->result_array();
@@ -284,7 +294,11 @@ Class Capitalizacao_Model extends MY_Model
 
     }
 
-    public function numSorteUtilizado($capitalizacao_id, $numero_sorte){
+    public function numSorteUtilizado($capitalizacao_id, $numero_sorte, $num_proposta_capitalizacao = null)
+    {
+        $sqlAux = '';
+        if ( !empty($num_proposta_capitalizacao) )
+            $sqlAux .= " AND capitalizacao_serie_titulo.num_lote = '{$num_proposta_capitalizacao}' ";
 
         $date = date('Y-m-d H:i:s');
         $sql = "
@@ -301,6 +315,7 @@ Class Capitalizacao_Model extends MY_Model
                 AND capitalizacao_serie.data_inicio < '{$date}'
                 AND capitalizacao_serie.data_fim > '{$date}'
                 AND capitalizacao_serie_titulo.numero = '{$numero_sorte}'
+                {$sqlAux}
             LIMIT 1;
         ";
 
@@ -353,31 +368,32 @@ Class Capitalizacao_Model extends MY_Model
 
         foreach ($capitalizacoes as $index => $item)
         {
-            // Parceiro é o responsável por gerar o número da sorte
-            if ( $item['responsavel_num_sorte'] == 1 )
+            // Parceiro é o responsável pela distribuição do número da sorte
+            if ( $item['responsavel_num_sorte_distribuicao'] == 1 )
             {
                 // verifica se possui capitalizacao nas coberturas
                 if ( $this->cotacao->tem_capitalizacao($cotacao_id) )
                 {
-                    if ( empty($cotacao["numero_sorte"]) ) {
+                    $result['message'] = "A cotação não possui cobertura de Capitalização";
 
+                } else
+                {
+                    if ( empty($cotacao["numero_sorte"]) )
+                    {
                         $result['status'] = false;
                         $result['message'] = 'O Número da Sorte não foi informado';
 
                     // validar se está dentro da range
-                    } elseif ( !$this->numSorteRange($item['capitalizacao_id'], $cotacao["numero_sorte"]) ) {
-
+                    } elseif ( !$this->numSorteRange($item['capitalizacao_id'], $cotacao["numero_sorte"]) )
+                    {
                         $result['status'] = false;
                         $result['message'] = 'Número da Sorte fora do Range aceito';
 
-                    } elseif ( $this->numSorteUtilizado($item['capitalizacao_id'], $cotacao["numero_sorte"]) ) {
-
+                    } elseif ( $this->numSorteUtilizado($item['capitalizacao_id'], $cotacao["numero_sorte"], $cotacao["num_proposta_capitalizacao"]) )
+                    {
                         $result['status'] = false;
                         $result['message'] = 'Número da Sorte já utilizado';
-
                     }
-                } else {
-                    $result['message'] = "A cotação não possui cobertura de Capitalização";
                 }
 
             } else
@@ -389,7 +405,7 @@ Class Capitalizacao_Model extends MY_Model
                     $result['message'] = 'O Número da Sorte não deve ser gerado pelo parceiro';
                 } else
                 {
-                    $result['message'] = "Parceiro não é o responsável por gerar o Número da Sorte";
+                    $result['message'] = "Parceiro não é o responsável por enviar o Número da Sorte";
                 }
             }
         }
