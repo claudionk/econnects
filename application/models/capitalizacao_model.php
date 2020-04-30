@@ -345,19 +345,21 @@ Class Capitalizacao_Model extends MY_Model
         {
             // get_by_id retorna apenas 1 registro
             $capitalizacoes[] = $plano_capitalizacao;
-        }
-
-        //verifica se tem capitalização configurado
-        $parceiro_capitalizacao = $this->produto_parceiro_capitalizacao->with_capitalizacao()
-            ->filter_by_produto_parceiro($cotacao['produto_parceiro_id'])
-            ->filter_by_capitalizacao_ativa()
-            ->get_all();
-
-        //capitalização
-        if ( !empty($parceiro_capitalizacao) )
+        } 
+        else
         {
-            // get_all retornar vários registros
-            $capitalizacoes = $parceiro_capitalizacao;
+            //verifica se tem capitalização configurado
+            $parceiro_capitalizacao = $this->produto_parceiro_capitalizacao->with_capitalizacao()
+                ->filter_by_produto_parceiro($cotacao['produto_parceiro_id'])
+                ->filter_by_capitalizacao_ativa()
+                ->get_all();
+
+            //capitalização
+            if ( !empty($parceiro_capitalizacao) )
+            {
+                // get_all retornar vários registros
+                $capitalizacoes = $parceiro_capitalizacao;
+            }
         }
 
         if ( empty($capitalizacoes) )
