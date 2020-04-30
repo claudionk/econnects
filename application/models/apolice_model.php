@@ -947,15 +947,15 @@ class Apolice_Model extends MY_Model
             $pedido = $pedido[0];
             if ($pedido['slug'] == 'seguro_viagem')
             {
-                $this->_database->join("apolice_seguro_viagem apolice_auxiliar", "apolice.apolice_id = apolice_seguro_viagem.apolice_id", 'inner');
+                $this->_database->join("apolice_seguro_viagem apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", 'inner');
             } 
             elseif ($pedido['slug'] == 'equipamento')
             {
-                $this->_database->join("apolice_equipamento apolice_auxiliar", "apolice.apolice_id = apolice_equipamento.apolice_id", 'inner');
+                $this->_database->join("apolice_equipamento apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", 'inner');
             }
             elseif ($pedido["slug"] == "generico" || $pedido["slug"] == "seguro_saude")
             {
-                $this->_database->join("apolice_generico apolice_auxiliar", "apolice.apolice_id = apolice_generico.apolice_id", 'inner');
+                $this->_database->join("apolice_generico apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", 'inner');
             }
 
             $this->_database->select("apolice_auxiliar.*, IFNULL(apolice_auxiliar.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte, IFNULL(apolice_auxiliar.num_proposta_capitalizacao, capitalizacao_serie_titulo.num_lote) as num_proposta_capitalizacao ", FALSE);
