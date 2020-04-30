@@ -73,3 +73,11 @@ ADD COLUMN `num_proposta_capitalizacao` VARCHAR(50) NULL DEFAULT NULL AFTER `num
 ALTER TABLE `sisconnects`.`cotacao_seguro_viagem` 
 ADD COLUMN `num_proposta_capitalizacao` VARCHAR(50) NULL DEFAULT NULL AFTER `numero_sorte`;
 
+ALTER TABLE `sisconnects`.`integracao` 
+CHANGE COLUMN `cod_tpa` `cod_tpa` VARCHAR(4) NULL DEFAULT NULL ;
+
+#INFORMAR O COD DO PRODUTO NO CAMPO COD_TPA DO RESULTADO ABAIXO
+#select * from integracao where slug_group = 'sulacap-ativacao' and deletado = 0;
+
+ALTER TABLE `sisconnects`.`integracao_log_detalhe_api` 
+CHANGE COLUMN `retorno_amigavel` `retorno_amigavel` TEXT NULL DEFAULT NULL ;
