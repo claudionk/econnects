@@ -289,6 +289,8 @@ Class Integracao_Model extends MY_Model
         // remove memory limit
         $limit = ini_get('memory_limit');
         ini_set('memory_limit', -1);
+        set_time_limit(999999);
+        ini_set('max_execution_time', 999999);
 
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
