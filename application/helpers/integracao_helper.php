@@ -3633,7 +3633,7 @@ if ( ! function_exists('app_integracao_icatu_pedido_retorno'))
         // Dados de entrada
         $cod_produto        = $dados['registro']['cod_produto'];
         $num_sorte          = $dados['registro']['num_sorte'];
-        $cod_cliente        = $dados['registro']['cod_cliente'];
+        $num_lote        = $dados['registro']['num_lote'];
         $ret_inconsistencia = [];
         $codsEr      = [
             $dados['registro']['cod_erro1'],
@@ -3680,20 +3680,23 @@ if ( ! function_exists('app_integracao_icatu_pedido_retorno'))
         }
 
         $capitalizacao_serie_id = $capitalizacao_serie[0]['capitalizacao_serie_id'];
+        $solicita_range         = $capitalizacao_serie[0]['solicita_range'];
 
         // Valida se o número da sorte já foi inserido
-        if ( $CI->capitalizacao_serie->existNumSorte($capitalizacao_serie_id, $num_sorte) )
+        if ( $CI->capitalizacao_serie->existNumSorte($capitalizacao_serie_id, $num_sorte, $num_lote) )
         {
-            $response->msg[] = ['id' => 12, 'msg' => "O número da sorte {$num_sorte} já foi recebido no produto {$cod_produto} e cód. cliente {$cod_cliente}", 'slug' => "erro_interno"];
+            $response->msg[] = ['id' => 12, 'msg' => "O número da sorte {$num_sorte} já foi recebido no produto {$cod_produto} e proposta {$num_lote}", 'slug' => "erro_interno"];
             return $response;
         }
 
-        $CI->capitalizacao_serie->updateRangeSolicitada( $capitalizacao_serie_id );
+        // Aguardando Retorno
+        if ($solicita_range == 2)
+            $CI->capitalizacao_serie->updateRangeSolicitada( $capitalizacao_serie_id );
 
         $CI->titulo->insert([
             'capitalizacao_serie_id' => $capitalizacao_serie_id,
             'contemplado' => 0,
-            'num_lote' => $cod_cliente,
+            'num_lote' => $num_lote,
             'numero' => $num_sorte,
             'sequencial' => $dados['registro']['sequencial'],
             'utilizado' => 0,
