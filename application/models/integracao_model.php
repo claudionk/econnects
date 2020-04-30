@@ -315,7 +315,7 @@ Class Integracao_Model extends MY_Model
             $result = $result[0];
             $dados_integracao = array();
             $dados_integracao['status'] = 'L';
-            $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
@@ -334,7 +334,8 @@ Class Integracao_Model extends MY_Model
                 $file = $this->getFileName($result, $layout_filename);
             }
 
-    	    $result_file = $this->getFile($result, $file);
+    	    // $result_file = $this->getFile($result, $file);
+            $result_file['file'] = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/218/R/RETPEDIDO9334000002_0.txt";
             $result_process = [];
             if ( !empty($result_file['file']) )
             {
@@ -345,7 +346,7 @@ Class Integracao_Model extends MY_Model
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
             $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');
             $dados_integracao['status'] = 'A';
-            $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            // $this->update($result['integracao_id'], $dados_integracao, TRUE);
 
             //execute after execute
             if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
@@ -868,6 +869,32 @@ Class Integracao_Model extends MY_Model
         return $arRet;
     }
 
+    private function file_get_contents_chunked($file,$chunk_size,$data,$callback)
+    {
+        try
+        {
+            $result = [];
+            $handle = fopen($file, "r");
+            $i = 0;
+            while (!feof($handle))
+            {
+                // call_user_func_array($callback,array(fread($handle,$chunk_size),&$handle,$i));
+                $result[] = call_user_func_array($callback,array(fgets($handle,$chunk_size),&$handle,$i,$data));
+                $i++;
+            }
+
+            fclose($handle);
+
+        }
+        catch(Exception $e)
+        {
+             trigger_error("file_get_contents_chunked::" . $e->getMessage(),E_USER_NOTICE);
+             return false;
+        }
+
+        return $result;
+    }
+
     private function processFileIntegracao($integracao = array(), $file){
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
@@ -891,20 +918,36 @@ Class Integracao_Model extends MY_Model
             ->order_by('ordem')
             ->get_all();
 
-        $fh = fopen($file, 'r');
+        #$fh = fopen($file, 'r');
 
         $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], count(file($file)), basename($file));
 
         $header = array();
         $detail = array();
         $trailler = array();
-        $num_registro = 0;
+        $dados = [
+            'layout_header' => $layout_header,
+            'layout_detail' => $layout_detail,
+            'layout_trailler' => $layout_trailler,
+        ];
 
         if($integracao['tipo_layout'] == 'LAYOUT') 
         {
-            while (!feof($fh)) #INICIO DO WHILE NO ARQUIVO
+            #while (!feof($fh)) #INICIO DO WHILE NO ARQUIVO
+            $result = $this->file_get_contents_chunked($file,4096,$dados,function($linhas,&$handle,$iteration,$dados)
             {
-                $linhas = str_replace("'"," ",fgets($fh, 4096));
+                $header = array();
+                $detail = array();
+                $trailler = array();
+
+                $linhas = str_replace("'"," ",$linhas);
+                // print_pre($linhas, false);
+                // print_pre($dados, false);
+                // print_pre('-----', false);
+
+                $layout_header = $dados['layout_header'];
+                $layout_detail = $dados['layout_detail'];
+                $layout_trailler = $dados['layout_trailler'];
 
                 //header
                 if(substr($linhas,($layout_header[0]['inicio'])-1,$layout_header[0]['tamanho']) == $layout_header[0]['valor_padrao']){
@@ -912,7 +955,7 @@ Class Integracao_Model extends MY_Model
                         $header[] = array(
                             'layout' => $item_h,
                             'valor' => substr($linhas,($item_h['inicio'])-1,$item_h['tamanho']),
-                            'linha' => $linhas,
+                            // 'linha' => $linhas,
                         );
                     }
                 }elseif(substr($linhas,($layout_detail[0]['inicio'])-1,$layout_detail[0]['tamanho']) == $layout_detail[0]['valor_padrao']){
@@ -921,35 +964,41 @@ Class Integracao_Model extends MY_Model
                         $sub_detail[] = array(
                             'layout' => $item_d,
                             'valor' => substr($linhas,($item_d['inicio'])-1,$item_d['tamanho']),
-                            'linha' => $linhas,
+                            // 'linha' => $linhas,
                         );
                     }
 
-                    $detail[] = $sub_detail;
-                    $num_registro++;
+                    $detail = $sub_detail;
                 }elseif(substr($linhas,($layout_trailler[0]['inicio'])-1,$layout_trailler[0]['tamanho']) == $layout_trailler[0]['valor_padrao']){
                     foreach ($layout_trailler as $idxt => $item_t) {
                         $trailler[] = array(
                             'layout' => $item_t,
                             'valor' => substr($linhas,($item_t['inicio'])-1,$item_t['tamanho']),
-                            'linha' => $linhas,
+                            // 'linha' => $linhas,
                         );
                     }
                 }
 
-                $linhas = NULL; //cleanup memory
+                // $linhas = NULL; //cleanup memory
                 $this->int_flush();
-            }
-        } 
+                return [
+                    'header' => $header,
+                    'detail' => $detail,
+                    'trailler' => $trailler,
+                ];
+            });
+
+        }
         else if($integracao['tipo_layout'] == 'CSV') 
         {
             $ignore = TRUE;
             // while (($data = fgetcsv($fh, 4096, $integracao['layout_separador'])) !== FALSE)
-            while (!feof($fh)) #INICIO DO WHILE NO ARQUIVO
+            #while (!feof($fh)) #INICIO DO WHILE NO ARQUIVO
+            $this->file_get_contents_chunked($file,4096,function($linhas,&$handle,$iteration)
             {
                 // Nao esta sendo usada a funcao nativa fgetcsv pois nao aceita caracter "especial" como delimitador
                 // parceiros podem enviar o delimitador como um caracter especial
-                $data = explode( $integracao['layout_separador'], utf8_encode( str_replace("'"," ",fgets($fh, 4096)) ) );
+                $data = explode( $integracao['layout_separador'], utf8_encode( str_replace("'"," ",$linhas) ) );
 
                 if ($ignore)
                 {
@@ -974,11 +1023,12 @@ Class Integracao_Model extends MY_Model
                     $c++;
                 }
                 $detail[] = $sub_detail;
-                $num_registro++;
                 $data = NULL; //cleanup memory
                 $this->int_flush();
-            }
+            });
         }
+
+        print_pre($result);
 
         if ( $integracao['tipo_layout'] != 'ZIP' )
         {
@@ -986,15 +1036,34 @@ Class Integracao_Model extends MY_Model
             $integracao['script_sql'] = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
             $sql = $integracao['script_sql']; 
 
+            $header = array();
+            $detail = array();
+            $trailler = array();
+            foreach ($result as $res)
+            {
+                if ( !empty($res['header']) )
+                    $header = $res['header'];
+
+                if ( !empty($res['detail']) )
+                    $detail[] = $res['detail'];
+
+                if ( !empty($res['trailler']) )
+                    $trailler = $res['trailler'];
+            }
+
+            // print_pre($detail);
+
             $data = array();
             $id_log = 0;
             $num_linha = 0;
             foreach ($detail as  $rows) {
 
+
                 // add o header em cada linha
                 $rows = array_merge($rows, $header);
                 $rows = array_merge($rows, $trailler);
                 $data_row = $ids = array();
+                print_pre($rows);
 
                 foreach ($rows as $index => $row) {
                     $row['valor_anterior'] = $row['valor'];
