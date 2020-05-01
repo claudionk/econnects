@@ -3625,83 +3625,30 @@ if ( ! function_exists('app_integracao_icatu_pedido_retorno'))
     function app_integracao_icatu_pedido_retorno($formato, $dados = array())
     {
         $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
-        if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
-            $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
-            return $response;
-        }
 
         // Dados de entrada
-        $cod_produto        = $dados['registro']['cod_produto'];
-        $num_sorte          = $dados['registro']['num_sorte'];
-        $num_lote        = $dados['registro']['num_lote'];
-        $ret_inconsistencia = [];
-        $codsEr      = [
-            $dados['registro']['cod_erro1'],
-            $dados['registro']['cod_erro2'],
-            $dados['registro']['cod_erro3'],
-        ];
-
-        foreach ($codsEr as $key => $value) {
-            if ( $value != '000' )
-                $ret_inconsistencia[] = $value;
-        }
+        $cod_produto  = $dados['registro']['cod_produto'];
+        $num_sorte    = $dados['registro']['num_sorte'];
+        $num_lote     = $dados['registro']['num_lote'];
+        $sequencial   = $dados['registro']['sequencial'];
+        $cod_erro1    = $dados['registro']['cod_erro1'];
+        $cod_erro2    = $dados['registro']['cod_erro2'];
+        $cod_erro3    = $dados['registro']['cod_erro3'];
 
         $CI =& get_instance();
-        $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
-        $CI->load->model('capitalizacao_serie_model', 'capitalizacao_serie');
-        $CI->load->model('capitalizacao_serie_titulo_model', 'titulo');
+        $query = $CI->db->query("CALL sp_icatu_pedido('{$cod_produto}', '{$num_sorte}', '{$num_lote}', {$sequencial}, '{$cod_erro1}', '{$cod_erro2}', '{$cod_erro3}')");
+        $reg = $query->result_array();
+        $query->next_result();
 
-        if (!empty($codigos_erros))
+        if ( !empty($reg) )
         {
-            foreach ($ret_inconsistencia as $key => $value)
+            foreach ($reg as $key => $value)
             {
-                $id = 12; // retorno padrao
-                $descricao_erro = "Código de Erro ( {$value} )";
-
-                // identifica o ID através do DE x PARA
-                $ret = $CI->log_erro->filterByCodErroParceiro($value, 'icatu_retorno')->get_all();
-                if ( !empty($ret) )
-                {
-                    $id = $ret[0]['integracao_log_detalhe_erro_id'];
-                    $descricao_erro = $ret[0]['nome'];
-                }
-
-                $response->msg[] = ['id' => $id, 'msg' => $descricao_erro, 'slug' => "erro_retorno"];
+                $response->msg[] = ['id' => $value['id'], 'msg' => $value['msg'], 'slug' => "erro_retorno"];
             }
 
             return $response;
         }
-
-        $capitalizacao_serie = $CI->capitalizacao_serie->filter_by_codigo_interno( $cod_produto )->get_all();
-        if ( empty($capitalizacao_serie) )
-        {
-            $response->msg[] = ['id' => 12, 'msg' => 'Nenhum Produto identificado com o código '. $cod_produto, 'slug' => "erro_interno"];
-            return $response;
-        }
-
-        $capitalizacao_serie_id = $capitalizacao_serie[0]['capitalizacao_serie_id'];
-        $solicita_range         = $capitalizacao_serie[0]['solicita_range'];
-
-        // Valida se o número da sorte já foi inserido
-        if ( $CI->capitalizacao_serie->existNumSorte($capitalizacao_serie_id, $num_sorte, $num_lote) )
-        {
-            $response->msg[] = ['id' => 12, 'msg' => "O número da sorte {$num_sorte} já foi recebido no produto {$cod_produto} e proposta {$num_lote}", 'slug' => "erro_interno"];
-            return $response;
-        }
-
-        // Aguardando Retorno
-        if ($solicita_range == 2)
-            $CI->capitalizacao_serie->updateRangeSolicitada( $capitalizacao_serie_id );
-
-        $CI->titulo->insert([
-            'capitalizacao_serie_id' => $capitalizacao_serie_id,
-            'contemplado' => 0,
-            'num_lote' => $num_lote,
-            'numero' => $num_sorte,
-            'sequencial' => $dados['registro']['sequencial'],
-            'utilizado' => 0,
-            'ativo' => 1,
-        ], FALSE);
 
         $response->status = true;
         return $response;

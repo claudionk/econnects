@@ -60,6 +60,11 @@ select * from integracao where integracao_id IN(102, 218) and deletado = 0;
 select * from integracao_detalhe where integracao_id IN(102, 218) and deletado = 0;
 select * from integracao_layout where integracao_id IN(102, 218) and deletado = 0;
 
+#atualizar as integrações de ativacao
+UPDATE `sisconnects`.`integracao_layout` SET `nome_banco`='', `valor_padrao`='000' WHERE `integracao_id` IN(select integracao_id from integracao where slug_group = 'sulacap-ativacao' and deletado = 0) and ordem = 1;
+UPDATE `sisconnects`.`integracao_layout` SET `nome_banco`='num_serie' WHERE `integracao_id` IN(select integracao_id from integracao where slug_group = 'sulacap-ativacao' and deletado = 0) and ordem = 6;
+
+
 #ATRIBUIR A CAPITALIZAÇÃO AOS PLANOS DA QUERO QUERO
 select * from produto_parceiro_plano where produto_parceiro_id = 90 AND deletado = 0;
 
@@ -81,3 +86,10 @@ CHANGE COLUMN `cod_tpa` `cod_tpa` VARCHAR(4) NULL DEFAULT NULL ;
 
 ALTER TABLE `sisconnects`.`integracao_log_detalhe_api` 
 CHANGE COLUMN `retorno_amigavel` `retorno_amigavel` TEXT NULL DEFAULT NULL ;
+
+ALTER TABLE `sisconnects`.`integracao_log_detalhe` 
+CHANGE COLUMN `chave` `chave` VARCHAR(45) NULL DEFAULT NULL ;
+
+#Criar a procedure abaixo
+CREATE PROCEDURE `sp_icatu_pedido`
+
