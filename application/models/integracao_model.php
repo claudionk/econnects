@@ -1063,7 +1063,7 @@ Class Integracao_Model extends MY_Model
                 $msgDetCampo = [];
 
                 if ( !empty($datum['id_log']) && !empty($integracao_log['integracao_log_id']) ) {
-                    $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $datum['id_log'], addslashes(json_encode($datum)));
+                    $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $datum['id_log'], left(addslashes(json_encode($datum)),100) );
                 }
 
                 //execute before detail

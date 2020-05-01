@@ -478,7 +478,8 @@ class CI_SFTP {
 			return FALSE;
 		}
 
-		$result = @ssh2_sftp_chmod($this->conn_id, $path, $perm);
+		$sftp = ssh2_sftp($this->conn_id);
+		$result = @ssh2_sftp_chmod($sftp, $path, $perm);
 
 		if ($result === FALSE)
 		{
