@@ -183,6 +183,7 @@ Class Integracao_Model extends MY_Model
             'data_fim_mes' => date('Y-m-t', mktime(0, 0, 0, date('m'), 1, date('Y'))),
             'totalRegistros' => 0,
             'totalItens' => 0,
+            'campo_chave' => '',
         );
     }
 
@@ -664,6 +665,12 @@ Class Integracao_Model extends MY_Model
                 $campo_chave .= $under.$registro[$r];
                 $under = '|';
             }
+        }
+
+        if ( !empty($campo_chave) )
+        {
+            print_pre(['geraChave', $result,$registro,$campo_chave], false);
+            $this->data_template_script['campo_chave'] = $campo_chave;
         }
 
         return $campo_chave;
@@ -1194,10 +1201,12 @@ Class Integracao_Model extends MY_Model
             }
 
             // Valida a chave da criação do log
-            if ( !empty($integracao) ) {
+            if ( !empty($integracao) && !empty($item['nome_banco']) ) {
                 $key_field = explode("|", $integracao['campo_chave']);
-                if ( in_array($item['nome_banco'], $key_field) ) {
-                    $arCampoChave[$item['nome_banco']] = $campo;
+                $search_chave_idx = array_search($item['nome_banco'], $key_field);
+
+                if ( $search_chave_idx ) {
+                    $arCampoChave[$search_chave_idx] = $campo;
                 }
             }
 
@@ -1249,22 +1258,25 @@ Class Integracao_Model extends MY_Model
         }
 
         // Valida a chave da criação do log
-        /*
         if ( !empty($arCampoChave) )
         {
-            // verifica se mantém a mesma quantidade de campos para não perder alguma no meio do caminho
-            // dessa forma, assume a inicial informada antes do processamento linha a linha
-            $key_field = explode("|", $integracao['campo_chave']);
-            if (count($key_field) == count($arCampoChave))
+            $key_field = explode("|", $this->data_template_script['campo_chave']);
+            foreach ($key_field as $key => $value) {
+                $key_field[$key] = emptyor($arCampoChave[$key], $value);
+            }
+            $implode = implode("|", $key_field);
+
+            // Caso tenha alterado a chave
+            if ( $implode != $this->data_template_script['campo_chave'])
             {
+                $this->data_template_script['campo_chave'] = $implode;
                 $this->integracao_log_detalhe->update_by(
                     array('integracao_log_detalhe_id' => $integracao_log_detalhe_id),array(
-                        'chave' => $this->geraCampoChave($integracao['campo_chave'], $arCampoChave)
+                        'chave' => $this->data_template_script['campo_chave']
                     )
                 );
             }
         }
-        */
 
         if ($integracao_log_status_id != 4){
             $this->integracao_log_detalhe->update_by(
