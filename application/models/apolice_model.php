@@ -1390,7 +1390,7 @@ class Apolice_Model extends MY_Model
 
         // caso não tenha capialização no plano
         if ( empty($capitalizacoes) )
-             return false;
+            return false;
 
         foreach ($capitalizacoes as $index => $item)
         {
