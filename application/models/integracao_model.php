@@ -2,6 +2,7 @@
 ini_set('display_errors',1);
 ini_set('display_startup_erros',1);
 error_reporting(E_ALL);
+if (ob_get_level() == 0) ob_start();
 
 Class Integracao_Model extends MY_Model
 {
@@ -182,6 +183,7 @@ Class Integracao_Model extends MY_Model
             'data_fim_mes' => date('Y-m-t', mktime(0, 0, 0, date('m'), 1, date('Y'))),
             'totalRegistros' => 0,
             'totalItens' => 0,
+            'campo_chave' => '',
         );
     }
 
@@ -216,6 +218,12 @@ Class Integracao_Model extends MY_Model
             'after_detail' => $this->input->post('after_detail'),
         );
         return $data;
+    }
+
+    private function int_flush( )
+    {
+        if( ob_get_level() > 0 ) ob_flush(); // Flush (send) the output buffer
+        flush(); // Flush system output buffer
     }
 
     public function get_proxima_execucao($integracao_id = 0){
@@ -278,6 +286,13 @@ Class Integracao_Model extends MY_Model
 
     public function run_r($integracao_id){
         echo "run_r($integracao_id)\n";
+
+        // remove memory limit
+        $limit = ini_get('memory_limit');
+        ini_set('memory_limit', -1);
+        set_time_limit(999999);
+        ini_set('max_execution_time', 999999);
+
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
         $this->load->model('integracao_log_detalhe_campo_model', 'integracao_log_detalhe_campo');
@@ -341,6 +356,9 @@ Class Integracao_Model extends MY_Model
             }
 
         }
+
+        // reset memory limit
+        ini_set('memory_limit', ($limit==-1) ? "128MB" : $limit);
     }
 
     public function run_s($integracao_id){
@@ -420,8 +438,9 @@ Class Integracao_Model extends MY_Model
                     break;
 
                 case 2:
-
+                    $this->sendFileSFTP($integracao, $file);
                     break;
+
                 case 3:
 
                     break;
@@ -443,8 +462,9 @@ Class Integracao_Model extends MY_Model
                     break;
 
                 case 2:
-
+                    return $this->getFileSFTP($integracao, $file);
                     break;
+
                 case 3:
 
                     break;
@@ -501,17 +521,43 @@ Class Integracao_Model extends MY_Model
 
     private function getFileFTP($integracao = array(), $file){
 
-        $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->library('ftp');
 
         $config['hostname'] = $integracao['host'];
         $config['username'] = $integracao['usuario'];
         $config['password'] = $integracao['senha'];
-        $config['port'] = $integracao['porta'];
+        $config['port']     = $integracao['porta'];
         $config['debug']    = TRUE;
 
         $this->ftp->connect($config);
         $list = $this->ftp->list_files("{$integracao['diretorio']}");
+        $result = $this->getFileTransferProtocol($this->ftp, $list, $integracao, $file);
+        $this->ftp->close();
+
+        return $result;
+    }
+
+    private function getFileSFTP($integracao = array(), $file){
+
+        $this->load->library('sftp');
+
+        $config['hostname'] = $integracao['host'];
+        $config['username'] = $integracao['usuario'];
+        $config['password'] = $integracao['senha'];
+        $config['port']     = $integracao['porta'];
+        $config['debug']    = TRUE;
+
+        $this->sftp->connect($config);
+        $list = $this->sftp->list_files("{$integracao['diretorio']}");
+        $result = $this->getFileTransferProtocol($this->sftp, $list, $integracao, $file);
+        $this->sftp->close();
+
+        return $result;
+    }
+
+    private function getFileTransferProtocol($obj, $list, $integracao = array(), $file){
+
+        $this->load->model('integracao_log_model', 'integracao_log');
 
         $result = array(
             'file' => '',
@@ -555,7 +601,7 @@ Class Integracao_Model extends MY_Model
             }
 
             $fileget = basename($file_processar);
-            if($this->ftp->download($file_processar, "{$diretorio}/{$fileget}", 'binary')){
+            if($obj->download($file_processar, "{$diretorio}/{$fileget}", 'binary')){
                 $result = array(
                     'file' => "{$diretorio}/{$fileget}",
                     'fileget' => $fileget,
@@ -563,7 +609,7 @@ Class Integracao_Model extends MY_Model
             }
 
         }
-        $this->ftp->close();
+
         return $result;
     }
 
@@ -580,6 +626,21 @@ Class Integracao_Model extends MY_Model
         $this->ftp->connect($config);
         $this->ftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
         $this->ftp->close();
+    }
+
+    private function sendFileSFTP($integracao = array(), $file){
+
+        $this->load->library('sftp');
+
+        $config['hostname'] = $integracao['host'];
+        $config['username'] = $integracao['usuario'];
+        $config['password'] = $integracao['senha'];
+        $config['port'] = $integracao['porta'];
+        $config['debug']    = TRUE;
+        $filename = basename($file);
+        $this->sftp->connect($config);
+        $this->sftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
+        $this->sftp->close();
     }
 
     private function processLine($multiplo, $layout, $registro, $integracao_log, $integracao_log_detalhe_id = null, $integracao = null) {
@@ -604,6 +665,11 @@ Class Integracao_Model extends MY_Model
                 $campo_chave .= $under.$registro[$r];
                 $under = '|';
             }
+        }
+
+        if ( !empty($campo_chave) )
+        {
+            $this->data_template_script['campo_chave'] = $campo_chave;
         }
 
         return $campo_chave;
@@ -878,6 +944,9 @@ Class Integracao_Model extends MY_Model
                         );
                     }
                 }
+
+                $linhas = NULL; //cleanup memory
+                $this->int_flush();
             }
         } 
         else if($integracao['tipo_layout'] == 'CSV') 
@@ -914,6 +983,8 @@ Class Integracao_Model extends MY_Model
                 }
                 $detail[] = $sub_detail;
                 $num_registro++;
+                $data = NULL; //cleanup memory
+                $this->int_flush();
             }
         }
 
@@ -949,10 +1020,14 @@ Class Integracao_Model extends MY_Model
                             $id_log = call_user_func($row['layout']['function'], $row['layout']['formato'], array('item' => array(), 'registro' => array(), 'log' => array(), 'valor' => $row['valor_anterior']));
                         }
 
-                        if (!empty($id_log)) {
+                        if ( !ifempty($id_log) )
+                        {
                             $ids[$row['layout']['nome_banco']] = $id_log;
                         }
                     }
+
+                    $row = NULL; //cleanup memory
+                    $this->int_flush();
                 }
 
                 if (!empty($ids)) {
@@ -981,6 +1056,8 @@ Class Integracao_Model extends MY_Model
 
                 $data[] = $data_row;
                 $num_linha++;
+                $rows = NULL; //cleanup memory
+                $this->int_flush();
             }
 
             $num_linha = 1;
@@ -991,8 +1068,8 @@ Class Integracao_Model extends MY_Model
                 $integracao_log_status_id = 4;
                 $msgDetCampo = [];
 
-                if (!empty($datum['id_log'])) {
-                    $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $datum['id_log'], addslashes(json_encode($datum)));
+                if ( !empty($datum['id_log']) && !empty($integracao_log['integracao_log_id']) ) {
+                    $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $num_linha, $datum['id_log'], left(addslashes(json_encode($datum)),100) );
                 }
 
                 //execute before detail
@@ -1009,7 +1086,7 @@ Class Integracao_Model extends MY_Model
                         {
                             $callFuncReturn = call_user_func($integracao['before_detail'], $integracao_log_detalhe_id, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
 
-                            if ( !empty($callFuncReturn) && !empty($integracao_log_detalhe_id) ){
+                            if ( !empty($callFuncReturn) ){
 
                                 if ( empty($callFuncReturn->status) ){
                                     // seta para erro
@@ -1024,7 +1101,7 @@ Class Integracao_Model extends MY_Model
                             }
                         }
 
-                        if (!empty($msgDetCampo)) {
+                        if ( !empty($msgDetCampo) && !empty($integracao_log_detalhe_id) ) {
                             foreach ($msgDetCampo as $er) {
                                 $ErroID = !empty($er['id']) ? $er['id'] : -1;
                                 $ErroMSG = !empty($er['msg']) ? $er['msg'] : $er;
@@ -1058,6 +1135,9 @@ Class Integracao_Model extends MY_Model
                         )
                     );
                 }
+
+                $datum = NULL; //cleanup memory
+                $this->int_flush();
             }
         }
 
@@ -1120,10 +1200,12 @@ Class Integracao_Model extends MY_Model
             }
 
             // Valida a chave da criação do log
-            if ( !empty($integracao) ) {
+            if ( !empty($integracao) && !empty($item['nome_banco']) ) {
                 $key_field = explode("|", $integracao['campo_chave']);
-                if ( in_array($item['nome_banco'], $key_field) ) {
-                    $arCampoChave[$item['nome_banco']] = $campo;
+                $search_chave_idx = array_search($item['nome_banco'], $key_field);
+
+                if ( $search_chave_idx ) {
+                    $arCampoChave[$search_chave_idx] = $campo;
                 }
             }
 
@@ -1137,7 +1219,10 @@ Class Integracao_Model extends MY_Model
                     $integracao_log_status_id = 8;
 
                     // gera log do erro
-                    $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, 1, "O campo {$item['nome']} é obrigatório", $item['nome_banco']);
+                    if ( !empty($integracao_log_detalhe_id) )
+                    {
+                        $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, 1, "O campo {$item['nome']} é obrigatório", $item['nome_banco']);
+                    }
 
                     // não gera a linha
                     continue;
@@ -1172,22 +1257,25 @@ Class Integracao_Model extends MY_Model
         }
 
         // Valida a chave da criação do log
-        /*
         if ( !empty($arCampoChave) )
         {
-            // verifica se mantém a mesma quantidade de campos para não perder alguma no meio do caminho
-            // dessa forma, assume a inicial informada antes do processamento linha a linha
-            $key_field = explode("|", $integracao['campo_chave']);
-            if (count($key_field) == count($arCampoChave))
+            $key_field = explode("|", $this->data_template_script['campo_chave']);
+            foreach ($key_field as $key => $value) {
+                $key_field[$key] = emptyor($arCampoChave[$key], $value);
+            }
+            $implode = implode("|", $key_field);
+
+            // Caso tenha alterado a chave
+            if ( $implode != $this->data_template_script['campo_chave'])
             {
+                $this->data_template_script['campo_chave'] = $implode;
                 $this->integracao_log_detalhe->update_by(
                     array('integracao_log_detalhe_id' => $integracao_log_detalhe_id),array(
-                        'chave' => $this->geraCampoChave($integracao['campo_chave'], $arCampoChave)
+                        'chave' => $this->data_template_script['campo_chave']
                     )
                 );
             }
         }
-        */
 
         if ($integracao_log_status_id != 4){
             $this->integracao_log_detalhe->update_by(
@@ -1586,3 +1674,5 @@ Class Integracao_Model extends MY_Model
         return true;
     }
 }
+
+ob_end_flush();

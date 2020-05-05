@@ -124,7 +124,39 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             'rules'  => '',
             'groups' => 'default',
         ),
+        array(
+            'field'  => 'capitalizacao_id',
+            'label'  => 'Capitalização',
+            'groups' => 'default',
+        ),
     );
+
+    //Get dados
+    public function get_form_data($just_check = false)
+    {
+        //Dados
+        $data =  array(
+            'nome'                  => $this->input->post('nome'),
+            'descricao'             => $this->input->post('descricao'),
+            'slug_plano'            => $this->input->post('slug_plano'),
+            'codigo_operadora'      => $this->input->post('codigo_operadora'),
+            'produto_parceiro_id'   => $this->input->post('produto_parceiro_id'),
+            'precificacao_tipo_id'  => $this->input->post('precificacao_tipo_id'),
+            'moeda_id'              => $this->input->post('moeda_id'),
+            'unidade_tempo'         => $this->input->post('unidade_tempo'),
+            'limite_vigencia'       => isempty($this->input->post('limite_vigencia'), NULL),
+            'possui_limite_tempo'   => isempty($this->input->post('possui_limite_tempo'), 0),
+            'unidade_limite_tempo'  => $this->input->post('unidade_limite_tempo'),
+            'limite_tempo'          => isempty($this->input->post('limite_tempo'), 0),
+            'passivel_upgrade'      => isempty($this->input->post('passivel_upgrade'), NULL),
+            'ordem'                 => isempty($this->input->post('ordem'), 0),
+            'qtd_min_vida'          => isempty($this->input->post('qtd_min_vida'), 0),
+            'idade_minima'          => isempty($this->input->post('idade_minima'), 0),
+            'idade_maxima'          => isempty($this->input->post('idade_maxima'), 0),
+            'capitalizacao_id'      => isempty($this->input->post('capitalizacao_id'), NULL),
+        );
+        return $data;
+    }
 
     /**
      * Busca planos com esta destino
@@ -190,6 +222,21 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         $this->with_simple_relation('produto_parceiro_configuracao', '', 'produto_parceiro_id', array('apolice_vigencia', 'apolice_vigencia_regra', 'pagamento_tipo', 'pagamento_periodicidade_unidade'));
         $this->_database->where("{$this->_table}.{$this->primary_key}", $produto_parceiro_plano_id);
 
+        return $this;
+    }
+
+    public function with_capitalizacao()
+    {
+        $this->_database->select("capitalizacao.nome as capitalizacao, capitalizacao.responsavel_num_sorte, capitalizacao.responsavel_num_sorte_distribuicao");
+        $this->_database->join("capitalizacao", "capitalizacao.capitalizacao_id = {$this->_table}.capitalizacao_id");
+        return $this;
+    }
+
+    public function filter_by_capitalizacao_ativa()
+    {
+        $this->_database->where("capitalizacao.data_inicio <", date('Y-m-d H:i:s'));
+        $this->_database->where("capitalizacao.data_fim >", date('Y-m-d H:i:s'));
+        $this->_database->where("capitalizacao.ativo", 1);
         return $this;
     }
 

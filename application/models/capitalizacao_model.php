@@ -71,7 +71,7 @@ Class Capitalizacao_Model extends MY_Model
         array(
             'field' => 'valor_custo_titulo',
             'label' => 'Custo do título',
-            'rules' => 'required_if[tipo_custo,0]',
+            'rules' => 'required_if[tipo_custo,0,Custo do título]',
             'groups' => 'default'
         ),
         array(
@@ -107,7 +107,7 @@ Class Capitalizacao_Model extends MY_Model
         array(
             'field' => 'qnt_sorteio',
             'label' => 'Quantidade Sorteios',
-            'rules' => "required_if[tipo_qnt_sorteio,0]",
+            'rules' => "required_if[tipo_qnt_sorteio,0,Quantidade de Sorteios]",
             'groups' => 'default'
         ),
         array(
@@ -135,9 +135,20 @@ Class Capitalizacao_Model extends MY_Model
             'groups' => 'default'
         ),
         array(
+            'field' => 'responsavel_num_sorte_distribuicao',
+            'label' => 'Responsável pela Distribuição do Número da Sorte',
+            'rules' => 'required',
+            'groups' => 'default'
+        ),
+        array(
             'field' => 'data_primeiro_sorteio',
             'label' => 'Primeiro Sorteio',
             'rules' => 'required|validate_data',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'codigo_interno',
+            'label' => 'Código Interno do Produto',
             'groups' => 'default'
         ),
     );
@@ -153,6 +164,7 @@ Class Capitalizacao_Model extends MY_Model
             'qnt_sorteio' => $this->input->post('qnt_sorteio'),
             'nome' => $this->input->post('nome'),
             'descricao' => $this->input->post('descricao'),
+            'codigo_interno' => $this->input->post('codigo_interno'),
             'data_inicio' => app_dateonly_mask_to_mysql($this->input->post('data_inicio')),
             'data_fim' => app_dateonly_mask_to_mysql($this->input->post('data_fim')),
             'titulo_randomico' => $this->input->post('titulo_randomico'),
@@ -166,6 +178,7 @@ Class Capitalizacao_Model extends MY_Model
             'tipo_custo' => $this->input->post('tipo_custo'),
             'dia_corte' => $this->input->post('dia_corte'),
             'responsavel_num_sorte' => $this->input->post('responsavel_num_sorte'),
+            'responsavel_num_sorte_distribuicao' => $this->input->post('responsavel_num_sorte_distribuicao'),
             'data_primeiro_sorteio' => app_dateonly_mask_to_mysql($this->input->post('data_primeiro_sorteio')),
         );
         return $data;
@@ -183,6 +196,14 @@ Class Capitalizacao_Model extends MY_Model
         return $this;
     }
 
+    function with_produto_parceiro_capitalizacao($produto_parceiro_id)
+    {
+        $this->_database->join("produto_parceiro_capitalizacao", "produto_parceiro_capitalizacao.capitalizacao_id = {$this->_table}.capitalizacao_id");
+        $this->_database->where("produto_parceiro_capitalizacao.produto_parceiro_id", $produto_parceiro_id);
+        $this->_database->where("produto_parceiro_capitalizacao.deletado", 0);
+        return $this;
+    }
+
     function getTituloNaoUtilizado($capitalizacao_id){
 
         $date = date('Y-m-d H:i:s');
@@ -193,6 +214,7 @@ Class Capitalizacao_Model extends MY_Model
             inner JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id
             where 
             capitalizacao.capitalizacao_id = {$capitalizacao_id}
+            and capitalizacao.responsavel_num_sorte != 1 #PARCEIRO ENVIA O NÚMERO
             and capitalizacao_serie.ativo = 1
             and capitalizacao_serie.deletado = 0
             and capitalizacao_serie_titulo.utilizado = 0
@@ -222,15 +244,20 @@ Class Capitalizacao_Model extends MY_Model
         return $this->_database->query($sql)->result_array();
     }
 
-    public function getDadosSerie($capitalizacao_id, $numero_sorte){
+    public function getDadosSerie($capitalizacao_id, $numero_sorte, $num_proposta_capitalizacao = null)
+    {
+        $sqlAuxTitulo = '';
+        if ( !empty($num_proposta_capitalizacao) )
+            $sqlAuxTitulo .= " AND capitalizacao_serie_titulo.num_lote = '{$num_proposta_capitalizacao}' ";
 
         $date = date('Y-m-d H:i:s');
         $sql = "
-            SELECT capitalizacao.*, capitalizacao_serie.*
+            SELECT capitalizacao.*, capitalizacao_serie.*, capitalizacao_serie_titulo.capitalizacao_serie_titulo_id
             FROM capitalizacao
             INNER JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
             LEFT JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id 
                 AND capitalizacao_serie_titulo.numero = '{$numero_sorte}'
+                {$sqlAuxTitulo}
                 AND capitalizacao_serie_titulo.utilizado = 0
                 AND capitalizacao_serie_titulo.ativo = 1 
             WHERE capitalizacao.capitalizacao_id = {$capitalizacao_id}
@@ -239,8 +266,6 @@ Class Capitalizacao_Model extends MY_Model
             AND capitalizacao_serie.data_inicio < '{$date}'
             AND capitalizacao_serie.data_fim > '{$date}'
             AND '{$numero_sorte}' BETWEEN CAST(capitalizacao_serie.numero_inicio as SIGNED) AND CAST(capitalizacao_serie.numero_fim as SIGNED)
-            AND capitalizacao_serie_titulo.capitalizacao_serie_id IS NULL #Não exista o número da sorte
-            LIMIT 1;
         ";
 
         $result = $this->_database->query($sql)->result_array();
@@ -269,7 +294,11 @@ Class Capitalizacao_Model extends MY_Model
 
     }
 
-    public function numSorteUtilizado($capitalizacao_id, $numero_sorte){
+    public function numSorteUtilizado($capitalizacao_id, $numero_sorte, $num_proposta_capitalizacao = null)
+    {
+        $sqlAux = '';
+        if ( !empty($num_proposta_capitalizacao) )
+            $sqlAux .= " AND capitalizacao_serie_titulo.num_lote = '{$num_proposta_capitalizacao}' ";
 
         $date = date('Y-m-d H:i:s');
         $sql = "
@@ -286,6 +315,7 @@ Class Capitalizacao_Model extends MY_Model
                 AND capitalizacao_serie.data_inicio < '{$date}'
                 AND capitalizacao_serie.data_fim > '{$date}'
                 AND capitalizacao_serie_titulo.numero = '{$numero_sorte}'
+                {$sqlAux}
             LIMIT 1;
         ";
 
@@ -296,70 +326,98 @@ Class Capitalizacao_Model extends MY_Model
 
     public function validaNumeroSorte($cotacao_id)
     {
-
         $this->load->model('produto_parceiro_capitalizacao_model', 'produto_parceiro_capitalizacao');
+        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
         $this->load->model('cotacao_model', 'cotacao');
 
         $result['status'] = true;
         $result['message'] = 'OK';
+        $capitalizacoes = [];
 
         $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
 
-        //verifica se tem capitalização configurado
-        $parceiro_capitalizacao = $this->produto_parceiro_capitalizacao->with_capitalizacao()
-            ->filter_by_produto_parceiro($cotacao['produto_parceiro_id'])
+        $plano_capitalizacao = $this->produto_parceiro_plano
+            ->with_capitalizacao()
             ->filter_by_capitalizacao_ativa()
-            ->get_all();
+            ->get_by_id($cotacao['produto_parceiro_plano_id']);
 
-        //capitalização
-        if (count($parceiro_capitalizacao) > 0) {
+        if ( !empty($plano_capitalizacao) )
+        {
+            // get_by_id retorna apenas 1 registro
+            $capitalizacoes[] = $plano_capitalizacao;
+        } 
+        else
+        {
+            //verifica se tem capitalização configurado
+            $parceiro_capitalizacao = $this->produto_parceiro_capitalizacao->with_capitalizacao()
+                ->filter_by_produto_parceiro($cotacao['produto_parceiro_id'])
+                ->filter_by_capitalizacao_ativa()
+                ->get_all();
 
-            foreach ($parceiro_capitalizacao as $index => $item) {
+            //capitalização
+            if ( !empty($parceiro_capitalizacao) )
+            {
+                // get_all retornar vários registros
+                $capitalizacoes = $parceiro_capitalizacao;
+            }
+        }
 
-                $capitalizacaoItem = $this->get($item['capitalizacao_id']);
-                if (count($capitalizacaoItem) > 0) {
+        if ( empty($capitalizacoes) )
+        {
+            $result['message'] = "Produto/Plano não está configurado para aceitar Número da Sorte";
+            return $result;
+        }
 
-                    // Parceiro é o responsável por gerar o número da sorte
-                    if ( $capitalizacaoItem['responsavel_num_sorte'] == 1 )
+        foreach ($capitalizacoes as $index => $item)
+        {
+            // Parceiro é o responsável pela distribuição do número da sorte
+            if ( $item['responsavel_num_sorte_distribuicao'] == 1 )
+            {
+                // verifica se possui capitalizacao nas coberturas
+                if ( $this->cotacao->tem_capitalizacao($cotacao_id) )
+                {
+                    $result['message'] = "A cotação não possui cobertura de Capitalização";
+
+                } else
+                {
+                    if ( empty($cotacao["numero_sorte"]) )
                     {
-                        // verifica se possui capitalizacao nas coberturas
-                        if ( $this->cotacao->tem_capitalizacao($cotacao_id) )
-                        {
+                        $result['status'] = false;
+                        $result['message'] = 'O Número da Sorte não foi informado';
 
-                            if ( empty($cotacao["numero_sorte"]) ) {
+                    // validar se está dentro da range
+                    } elseif ( !$this->numSorteRange($item['capitalizacao_id'], $cotacao["numero_sorte"]) )
+                    {
+                        $result['status'] = false;
+                        $result['message'] = 'Número da Sorte fora do Range aceito';
 
-                                $result['status'] = false;
-                                $result['message'] = 'O Número da Sorte não foi informado';
-
-                            // validar se está dentro da range
-                            } elseif ( !$this->numSorteRange($item['capitalizacao_id'], $cotacao["numero_sorte"]) ) {
-
-                                $result['status'] = false;
-                                $result['message'] = 'Número da Sorte fora do Range aceito';
-
-                            } elseif ( $this->numSorteUtilizado($item['capitalizacao_id'], $cotacao["numero_sorte"]) ) {
-
-                                $result['status'] = false;
-                                $result['message'] = 'Número da Sorte já utilizado';
-
-                            }
-                        } else {
-                            $result['message'] = "A cotação não possui cobertura de Capitalização";
-                        }
-
-                    } else {
-                        $result['message'] = "Parceiro não é o responsável por gerar o Número da Sorte";
+                    } elseif ( $this->numSorteUtilizado($item['capitalizacao_id'], $cotacao["numero_sorte"], $cotacao["num_proposta_capitalizacao"]) )
+                    {
+                        $result['status'] = false;
+                        $result['message'] = 'Número da Sorte já utilizado';
                     }
-
                 }
 
+            } else
+            {
+                // Se não é gerado pelo parceiro não pode ser recebido
+                if ( !empty($cotacao["numero_sorte"]) )
+                {
+                    $result['status'] = false;
+                    $result['message'] = 'O Número da Sorte não deve ser gerado pelo parceiro';
+                } else
+                {
+                    $result['message'] = "Parceiro não é o responsável por enviar o Número da Sorte";
+                }
             }
-
-        } else {
-            $result['message'] = "Produto não está configurado para aceitar Número da Sorte";
         }
 
         return $result;
+    }
+
+    function filter_by_codigo_interno($codigo_interno){
+        $this->_database->where("{$this->_table}.codigo_interno", $codigo_interno);
+        return $this;
     }
 
 }

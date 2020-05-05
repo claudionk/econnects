@@ -141,6 +141,12 @@ if($_POST)
                                                         <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
 
+                                                    <?php $field_name = 'codigo_interno';?>
+                                                    <div class="form-group">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Código Interno do Produto</label>
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                    </div>
+
                                                     <?php $field_name = 'data_inicio';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Início Distribuição</label>
@@ -210,6 +216,43 @@ if($_POST)
                                                         <div class="col-md-8"><input class="form-control inputmask-moeda2" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div> <!-- //Alterado para Quero Quero -->  
                                                     </div>
 
+                                                    <?php $field_name = 'responsavel_num_sorte';?>
+                                                    <div class="form-group radio radio-styled">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Responsável por <br>Gerar o número da Sorte *</label>
+                                                        <div class="col-md-8" > 
+                                                            <label class="radio-inline">
+                                                                <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                       value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
+                                                                Integração
+                                                            </label>
+                                                            <label class="radio-inline">
+                                                                <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                       value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
+                                                                Parceiro
+                                                            </label>
+                                                            <label class="radio-inline">
+                                                                <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                       value="2" <?php if (isset($row[$field_name]) && $row[$field_name] == '2') echo 'checked="checked"'; ?> />
+                                                                Manual
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <?php $field_name = 'responsavel_num_sorte_distribuicao';?>
+                                                    <div class="form-group radio radio-styled">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Responsável pela Distribuição <br>do número da Sorte *</label>
+                                                        <div class="col-md-8" > 
+                                                            <label class="radio-inline">
+                                                                <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                       value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
+                                                                Sistema
+                                                            </label>
+                                                            <label class="radio-inline">
+                                                                <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                                                       value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
+                                                                Parceiro
+                                                            </label>
+                                                        </div>
+                                                    </div>
                                                     <?php $field_name = 'titulo_randomico';?>
                                                     <div class="form-group radio radio-styled">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Forma de distribuição *</label>
@@ -239,27 +282,6 @@ if($_POST)
                                                                 <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
                                                                        value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
                                                                 Aberta
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                    <?php $field_name = 'responsavel_num_sorte';?>
-                                                    <div class="form-group radio radio-styled">
-                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Responsável por <br>Gerar o número da Sorte *</label>
-                                                        <div class="col-md-8" > 
-                                                            <label class="radio-inline">
-                                                                <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                                                       value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
-                                                                Integração
-                                                            </label>
-                                                            <label class="radio-inline">
-                                                                <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                                                       value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
-                                                                Parceiro
-                                                            </label>
-                                                            <label class="radio-inline">
-                                                                <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                                                       value="2" <?php if (isset($row[$field_name]) && $row[$field_name] == '2') echo 'checked="checked"'; ?> />
-                                                                Manual
                                                             </label>
                                                         </div>
                                                     </div>

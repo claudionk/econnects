@@ -398,27 +398,28 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['nota_fiscal_numero']            = $cotacao_salva['nota_fiscal_numero'];
             $dados_equipamento['imei']                          = $cotacao_salva['imei'];
 
-            $dados_equipamento['estado_civil']       = $cotacao_salva['estado_civil'];
-            $dados_equipamento['rg_orgao_expedidor'] = $cotacao_salva['rg_orgao_expedidor'];
-            $dados_equipamento['rg_uf']              = $cotacao_salva['rg_uf'];
-            $dados_equipamento['rg_data_expedicao']  = $cotacao_salva['rg_data_expedicao'];
-            $dados_equipamento['aux_01']             = $cotacao_salva['aux_01'];
-            $dados_equipamento['aux_02']             = $cotacao_salva['aux_02'];
-            $dados_equipamento['aux_03']             = $cotacao_salva['aux_03'];
-            $dados_equipamento['aux_04']             = $cotacao_salva['aux_04'];
-            $dados_equipamento['aux_05']             = $cotacao_salva['aux_05'];
-            $dados_equipamento['aux_06']             = $cotacao_salva['aux_06'];
-            $dados_equipamento['aux_07']             = $cotacao_salva['aux_07'];
-            $dados_equipamento['aux_08']             = $cotacao_salva['aux_08'];
-            $dados_equipamento['aux_09']             = $cotacao_salva['aux_09'];
-            $dados_equipamento['aux_10']             = $cotacao_salva['aux_10'];
-            $dados_equipamento['tempo_uso']          = $cotacao_salva['tempo_uso'];
-            $dados_equipamento['imei2']              = $cotacao_salva['imei2'];
-            $dados_equipamento['latitude_longitude'] = $cotacao_salva['latitude_longitude'];
-            $dados_equipamento['serial']             = $cotacao_salva['serial'];
-            $dados_equipamento['uuid']               = $cotacao_salva['uuid'];
-            $dados_equipamento['data_aceite_termo']  = $cotacao_salva['data_aceite_termo'];
-            $dados_equipamento['numero_sorte']       = $cotacao_salva['numero_sorte'];
+            $dados_equipamento['estado_civil']               = $cotacao_salva['estado_civil'];
+            $dados_equipamento['rg_orgao_expedidor']         = $cotacao_salva['rg_orgao_expedidor'];
+            $dados_equipamento['rg_uf']                      = $cotacao_salva['rg_uf'];
+            $dados_equipamento['rg_data_expedicao']          = $cotacao_salva['rg_data_expedicao'];
+            $dados_equipamento['aux_01']                     = $cotacao_salva['aux_01'];
+            $dados_equipamento['aux_02']                     = $cotacao_salva['aux_02'];
+            $dados_equipamento['aux_03']                     = $cotacao_salva['aux_03'];
+            $dados_equipamento['aux_04']                     = $cotacao_salva['aux_04'];
+            $dados_equipamento['aux_05']                     = $cotacao_salva['aux_05'];
+            $dados_equipamento['aux_06']                     = $cotacao_salva['aux_06'];
+            $dados_equipamento['aux_07']                     = $cotacao_salva['aux_07'];
+            $dados_equipamento['aux_08']                     = $cotacao_salva['aux_08'];
+            $dados_equipamento['aux_09']                     = $cotacao_salva['aux_09'];
+            $dados_equipamento['aux_10']                     = $cotacao_salva['aux_10'];
+            $dados_equipamento['tempo_uso']                  = $cotacao_salva['tempo_uso'];
+            $dados_equipamento['imei2']                      = $cotacao_salva['imei2'];
+            $dados_equipamento['latitude_longitude']         = $cotacao_salva['latitude_longitude'];
+            $dados_equipamento['serial']                     = $cotacao_salva['serial'];
+            $dados_equipamento['uuid']                       = $cotacao_salva['uuid'];
+            $dados_equipamento['data_aceite_termo']          = $cotacao_salva['data_aceite_termo'];
+            $dados_equipamento['numero_sorte']               = $cotacao_salva['numero_sorte'];
+            $dados_equipamento['num_proposta_capitalizacao'] = $cotacao_salva['num_proposta_capitalizacao'];
 
             $dados_equipamento['endereco_logradouro']     = $cotacao_salva['endereco_logradouro'];
             $dados_equipamento['endereco_numero']         = $cotacao_salva['endereco_numero'];
@@ -624,27 +625,28 @@ class Apolice_Model extends MY_Model
             $dados_generico['valor_estorno']           = 0;
             $dados_generico['comissao_premio']         = round($cotacao_salva['comissao_premio'], 2);
 
-            $dados_generico['estado_civil']       = $cotacao_salva['estado_civil'];
-            $dados_generico['rg_orgao_expedidor'] = $cotacao_salva['rg_orgao_expedidor'];
-            $dados_generico['rg_uf']              = $cotacao_salva['rg_uf'];
-            $dados_generico['rg_data_expedicao']  = $cotacao_salva['rg_data_expedicao'];
-            $dados_generico['aux_01']             = $cotacao_salva['aux_01'];
-            $dados_generico['aux_02']             = $cotacao_salva['aux_02'];
-            $dados_generico['aux_03']             = $cotacao_salva['aux_03'];
-            $dados_generico['aux_04']             = $cotacao_salva['aux_04'];
-            $dados_generico['aux_05']             = $cotacao_salva['aux_05'];
-            $dados_generico['aux_06']             = $cotacao_salva['aux_06'];
-            $dados_generico['aux_07']             = $cotacao_salva['aux_07'];
-            $dados_generico['aux_08']             = $cotacao_salva['aux_08'];
-            $dados_generico['aux_09']             = $cotacao_salva['aux_09'];
-            $dados_generico['aux_10']             = $cotacao_salva['aux_10'];
-            $dados_generico['tempo_uso']          = $cotacao_salva['tempo_uso'];
-            $dados_generico['imei2']              = $cotacao_salva['imei2'];
-            $dados_generico['latitude_longitude'] = $cotacao_salva['latitude_longitude'];
-            $dados_generico['serial']             = $cotacao_salva['serial'];
-            $dados_generico['uuid']               = $cotacao_salva['uuid'];
-            $dados_generico['data_aceite_termo']  = $cotacao_salva['data_aceite_termo'];
-            $dados_generico['numero_sorte']       = $cotacao_salva['numero_sorte'];
+            $dados_generico['estado_civil']                 = $cotacao_salva['estado_civil'];
+            $dados_generico['rg_orgao_expedidor']           = $cotacao_salva['rg_orgao_expedidor'];
+            $dados_generico['rg_uf']                        = $cotacao_salva['rg_uf'];
+            $dados_generico['rg_data_expedicao']            = $cotacao_salva['rg_data_expedicao'];
+            $dados_generico['aux_01']                       = $cotacao_salva['aux_01'];
+            $dados_generico['aux_02']                       = $cotacao_salva['aux_02'];
+            $dados_generico['aux_03']                       = $cotacao_salva['aux_03'];
+            $dados_generico['aux_04']                       = $cotacao_salva['aux_04'];
+            $dados_generico['aux_05']                       = $cotacao_salva['aux_05'];
+            $dados_generico['aux_06']                       = $cotacao_salva['aux_06'];
+            $dados_generico['aux_07']                       = $cotacao_salva['aux_07'];
+            $dados_generico['aux_08']                       = $cotacao_salva['aux_08'];
+            $dados_generico['aux_09']                       = $cotacao_salva['aux_09'];
+            $dados_generico['aux_10']                       = $cotacao_salva['aux_10'];
+            $dados_generico['tempo_uso']                    = $cotacao_salva['tempo_uso'];
+            $dados_generico['imei2']                        = $cotacao_salva['imei2'];
+            $dados_generico['latitude_longitude']           = $cotacao_salva['latitude_longitude'];
+            $dados_generico['serial']                       = $cotacao_salva['serial'];
+            $dados_generico['uuid']                         = $cotacao_salva['uuid'];
+            $dados_generico['data_aceite_termo']            = $cotacao_salva['data_aceite_termo'];
+            $dados_generico['numero_sorte']                 = $cotacao_salva['numero_sorte'];
+            $dados_generico['num_proposta_capitalizacao']   = $cotacao_salva['num_proposta_capitalizacao'];
 
             $this->apolice_generico->insert($dados_generico, true);
             $this->concluiApolice($pedido, $apolice_id, $dados_apolice['produto_parceiro_plano_id']);
@@ -835,6 +837,7 @@ class Apolice_Model extends MY_Model
                 $dados_seguro_viagem['data_aceite_termo']             = $cotacao_salva['data_aceite_termo'];
                 $dados_seguro_viagem['comissao_premio']               = round($cotacao_salva['comissao_premio'], 2);
                 $dados_seguro_viagem['numero_sorte']                  = $cotacao_salva['numero_sorte'];
+                $dados_seguro_viagem['num_proposta_capitalizacao']    = $cotacao_salva['num_proposta_capitalizacao'];
 
                 $this->apolice_seguro_viagem->insert($dados_seguro_viagem, true);
                 $this->concluiApolice($pedido, $apolice_id, $dados_apolice['produto_parceiro_plano_id']);
@@ -930,6 +933,7 @@ class Apolice_Model extends MY_Model
             ->select("parceiro.nome as parceiro")
             ->select("produto_parceiro.slug_produto")
             ->select("produto.nome as produto")
+            ->select("produto.slug as slug_produto_seguro")
             ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
             ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner')
             ->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
@@ -938,19 +942,23 @@ class Apolice_Model extends MY_Model
             ->join("parceiro", "parceiro.parceiro_id = apolice.parceiro_id", 'inner')
             ->join("capitalizacao_serie_titulo", "apolice.pedido_id = capitalizacao_serie_titulo.pedido_id and capitalizacao_serie_titulo.deletado = 0", 'left');
 
-        if ($pedido) {
+        if ($pedido)
+        {
             $pedido = $pedido[0];
-            if ($pedido['slug'] == 'seguro_viagem') {
-                $this->_database->select("apolice_seguro_viagem.*, IFNULL(apolice_seguro_viagem.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte ", FALSE)
-                    ->join("apolice_seguro_viagem", "apolice.apolice_id = apolice_seguro_viagem.apolice_id", 'inner');
-            } elseif ($pedido['slug'] == 'equipamento') {
-                $this->_database->select("apolice_equipamento.*, IFNULL(apolice_equipamento.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte ", FALSE)
-                    ->join("apolice_equipamento", "apolice.apolice_id = apolice_equipamento.apolice_id", 'inner');
-            } elseif ($pedido["slug"] == "generico" || $pedido["slug"] == "seguro_saude") {
-                $this->_database->select("apolice_generico.*, IFNULL(apolice_generico.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte ", FALSE)
-                    ->join("apolice_generico", "apolice.apolice_id = apolice_generico.apolice_id", 'inner');
+            if ($pedido['slug'] == 'seguro_viagem')
+            {
+                $this->_database->join("apolice_seguro_viagem apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", 'inner');
+            } 
+            elseif ($pedido['slug'] == 'equipamento')
+            {
+                $this->_database->join("apolice_equipamento apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", 'inner');
+            }
+            elseif ($pedido["slug"] == "generico" || $pedido["slug"] == "seguro_saude")
+            {
+                $this->_database->join("apolice_generico apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", 'inner');
             }
 
+            $this->_database->select("apolice_auxiliar.*, IFNULL(apolice_auxiliar.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte, IFNULL(apolice_auxiliar.num_proposta_capitalizacao, capitalizacao_serie_titulo.num_lote) as num_proposta_capitalizacao ", FALSE);
             $this->_database->where("apolice.pedido_id", $pedido_id);
             return $this->get_all();
         } else {
@@ -1329,10 +1337,18 @@ class Apolice_Model extends MY_Model
 
     public function insertCapitalizacao($produto_parceiro_id, $pedido_id)
     {
-
         $this->load->model('produto_parceiro_capitalizacao_model', 'produto_parceiro_capitalizacao');
+        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
         $this->load->model('capitalizacao_model', 'capitalizacao');
         $this->load->model('capitalizacao_serie_titulo_model', 'capitalizacao_serie_titulo');
+        $this->load->model('apolice_equipamento_model', 'apolice_equipamento');
+        $this->load->model('apolice_generico_model', 'apolice_generico');
+        $this->load->model('apolice_seguro_viagem_model', 'apolice_seguro_viagem');
+
+        $capitalizacoes = [];
+        $apolices = $this->getApolicePedido($pedido_id);
+        if ( empty($apolices) )
+            return false;
 
         //verifica se tem capitalização configurado
         $parceiro_capitalizacao = $this->produto_parceiro_capitalizacao->with_capitalizacao()
@@ -1340,58 +1356,117 @@ class Apolice_Model extends MY_Model
             ->filter_by_capitalizacao_ativa()
             ->get_all();
 
-        //capitalização
-        if (count($parceiro_capitalizacao) > 0) {
+        foreach ($apolices as $apolice)
+        {
+            $plano_capitalizacao = $this->produto_parceiro_plano
+                ->with_capitalizacao()
+                ->filter_by_capitalizacao_ativa()
+                ->get_by_id($apolice['produto_parceiro_plano_id']);
 
-            foreach ($parceiro_capitalizacao as $index => $item) {
+            if ( !empty($plano_capitalizacao) )
+            {
+                // get_by_id retorna apenas 1 registro
+                $plano_capitalizacao['apolice_id']                 = $apolice['apolice_id'];
+                $plano_capitalizacao['slug']                       = $apolice['slug_produto_seguro'];
+                $plano_capitalizacao['numero_sorte']               = $apolice['numero_sorte'];
+                $plano_capitalizacao['num_proposta_capitalizacao'] = $apolice['num_proposta_capitalizacao'];
+                $capitalizacoes[] = $plano_capitalizacao;
+            } else
+            {
+                //capitalização no produto
+                if ( !empty($parceiro_capitalizacao) )
+                {
+                    // get_all retornar vários registros
+                    foreach ($parceiro_capitalizacao as $key => $value) {
+                        $value['apolice_id']                 = $apolice['apolice_id'];
+                        $value['slug']                       = $apolice['slug_produto_seguro'];
+                        $value['numero_sorte']               = $apolice['numero_sorte'];
+                        $value['num_proposta_capitalizacao'] = $apolice['num_proposta_capitalizacao'];
+                        $capitalizacoes[] = $value;
+                    }
+                }
+            }
+        }
 
-                $capitalizacaoItem = $this->capitalizacao->get($item['capitalizacao_id']);
-                if (count($capitalizacaoItem) > 0) {
+        // caso não tenha capialização no plano
+        if ( empty($capitalizacoes) )
+            return false;
 
-                    // Dados de entrada
-                    $dados_capitalizacao                = array();
-                    $dados_capitalizacao['pedido_id']   = $pedido_id;
-                    $dados_capitalizacao['utilizado']   = 1;
-                    $dados_capitalizacao['data_compra'] = date('Y-m-d H:i:s');
+        foreach ($capitalizacoes as $index => $item)
+        {
+            // Dados de entrada
+            $dados_capitalizacao                = array();
+            $dados_capitalizacao['pedido_id']   = $pedido_id;
+            $dados_capitalizacao['utilizado']   = 1;
+            $dados_capitalizacao['data_compra'] = date('Y-m-d H:i:s');
 
-                    // Parceiro
-                    if ($capitalizacaoItem['responsavel_num_sorte'] == 1)
+            // Parceiro
+            if ($item['responsavel_num_sorte_distribuicao'] == 1)
+            {
+                // Recupera o número da Sorte
+                $numero_sorte               = $item['numero_sorte'];
+                $num_proposta_capitalizacao = $item['num_proposta_capitalizacao'];
+
+                // Se foi enviado o número da sorte - Aceita "0"
+                if ( !ifempty($numero_sorte) )
+                {
+                    // validar se está dentro da range
+                    $capitalizacao_serie = $this->capitalizacao->getDadosSerie($item['capitalizacao_id'], $numero_sorte, $num_proposta_capitalizacao);
+                    if ($capitalizacao_serie)
                     {
-                        // Recupera o número da Sorte
-                        $apolices = $this->getApolicePedido($pedido_id);
-                        if ($apolices) {
-                            foreach ($apolices as $apolice) {
-                                $numero_sorte = $apolice['numero_sorte'];
-
-                                // Se foi enviado o número da sorte
-                                if ($numero_sorte){
-                                    // validar se está dentro da range
-                                    if ($capitalizacao_serie = $this->capitalizacao->getDadosSerie($item['capitalizacao_id'], $numero_sorte) )
-                                    {
-                                        $dados_capitalizacao['capitalizacao_serie_id'] = $capitalizacao_serie['capitalizacao_serie_id'];
-                                        $dados_capitalizacao['contemplado'] = 0;
-                                        $dados_capitalizacao['numero'] = $numero_sorte;
-                                        $dados_capitalizacao['ativo'] = 1;
-                                        $this->capitalizacao_serie_titulo->insert($dados_capitalizacao, TRUE);
-                                    }
-
-                                }
-                            }
+                        // Caso não exista os dados enviados
+                        if ( empty($capitalizacao_serie['capitalizacao_serie_titulo_id']) )
+                        {
+                            // faz o insert dos dados completos
+                            $dados_capitalizacao['capitalizacao_serie_id'] = $capitalizacao_serie['capitalizacao_serie_id'];
+                            $dados_capitalizacao['contemplado'] = 0;
+                            $dados_capitalizacao['numero'] = $numero_sorte;
+                            $dados_capitalizacao['num_lote'] = $num_proposta_capitalizacao;
+                            $dados_capitalizacao['ativo'] = 1;
+                            $this->capitalizacao_serie_titulo->insert($dados_capitalizacao, true);
                         }
-
-                    } else {
-                        $capitalizacao = $this->capitalizacao->getTituloNaoUtilizado($item['capitalizacao_id']);
-
-                        if (count($capitalizacao) > 0) {
-                            $capitalizacao = $capitalizacao[0];
-                            $this->capitalizacao_serie_titulo->update($capitalizacao['capitalizacao_serie_titulo_id'], $dados_capitalizacao, true);
+                        else
+                        {
+                            // apenas atualiza que foi usado e em qual pedido
+                            $this->capitalizacao_serie_titulo->update($capitalizacao_serie['capitalizacao_serie_titulo_id'], $dados_capitalizacao, true);
                         }
                     }
-
                 }
 
-            }
+            } else
+            {
+                $capitalizacao = $this->capitalizacao->getTituloNaoUtilizado($item['capitalizacao_id']);
+                if (count($capitalizacao) > 0)
+                {
+                    $obj_aux = null;
+                    $capitalizacao = $capitalizacao[0];
+                    $this->capitalizacao_serie_titulo->update($capitalizacao['capitalizacao_serie_titulo_id'], $dados_capitalizacao, true);
 
+                    // atualizar o número da sorte utilizado na apólice
+                    if ($item['slug'] == 'seguro_viagem')
+                    {
+                        $obj_aux = $this->apolice_seguro_viagem;
+
+                    } elseif ($item['slug'] == 'equipamento')
+                    {
+                        $obj_aux = $this->apolice_equipamento;
+
+                    } elseif ($item["slug"] == "generico" || $item["slug"] == "seguro_saude")
+                    {
+                        $obj_aux = $this->apolice_generico;
+                    }
+
+                    if ( $obj_aux )
+                    {
+                        $obj_aux->update_by(
+                            array('apolice_id' => $item['apolice_id']), array(
+                                'numero_sorte' => $capitalizacao['numero'],
+                                'num_proposta_capitalizacao' => $capitalizacao['num_lote']
+                            )
+                        );
+                    }
+                }
+            }
         }
 
     }

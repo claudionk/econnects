@@ -369,7 +369,7 @@ if ( ! function_exists('app_integracao_format_date_r')) {
         return $date;
     }
 
-}   
+}
 if ( ! function_exists('app_integracao_format_file_name_pagnet')) {
     function app_integracao_format_file_name_pagnet($formato, $dados = array())
     {
@@ -377,7 +377,7 @@ if ( ! function_exists('app_integracao_format_file_name_pagnet')) {
         $file = "PAGNET_". date('dmyHis'). '.TXT';
         return  $file;
     }
-}       
+}
 if ( ! function_exists('app_integracao_format_file_name_capmapfre')) {
 
     function app_integracao_format_file_name_capmapfre($formato, $dados = array())
@@ -497,6 +497,19 @@ if ( ! function_exists('app_integracao_file_name_sulacap')) {
     }
 
 }
+if ( ! function_exists('app_integracao_file_name_icatu')) {
+
+    function app_integracao_file_name_icatu($formato, $dados = array())
+    {
+        $dados['registro'] = emptyor($dados['registro'][0], []);
+        $cod_produto = emptyor($dados['registro']['cod_produto'], '');
+        $sequencial = app_integracao_icatu_sequencia($formato, $dados);
+        $sequencial = mb_str_pad($sequencial, 6, '0', STR_PAD_LEFT);
+        $file = "{$formato}{$cod_produto}{$sequencial}.txt";
+        return $file;
+    }
+
+}
 if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
 
     function app_integracao_csv_retorno_novomundo($formato, $dados = array())
@@ -522,7 +535,7 @@ if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
                 }
                 break;
             default:
-              break;
+                break;
         }
 
         return $response;
@@ -783,8 +796,8 @@ if ( ! function_exists('app_integracao_zip_extract_novomundo_upload'))
         return $retorno;
     }
 }
-if ( ! function_exists('app_integracao_format_file_name_ret_sis')) {
-
+if ( ! function_exists('app_integracao_format_file_name_ret_sis'))
+{
     function app_integracao_format_file_name_ret_sis($formato, $dados = array())
     {
 
@@ -805,7 +818,6 @@ if ( ! function_exists('app_integracao_format_file_name_ret_sis')) {
         $file = "{$formato}_{$num_sequencia}_{$data}.TXT";
         return  $file;
     }
-
 }
 if ( ! function_exists('app_integracao_format_file_name_generali_conciliacao')) {
 
@@ -1347,7 +1359,7 @@ if ( ! function_exists('app_get_api'))
         }
 
         $dataApi = [
-            'status' => $ret['status'],
+            'status' => !empty($ret['status']),
             'response' => addslashes(print_r($retorno, true)),
             'retorno_amigavel' => addslashes(print_r($ret['response'], true)),
         ];
@@ -1812,6 +1824,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $fields['data_inicio_vigencia']         = isempty($dados['data_inicio_vigencia'], null);
                 $fields['data_fim_vigencia']            = isempty($dados['data_fim_vigencia'], null);
                 $fields['numero_sorte']                 = isempty($dados['num_sorte'], null);
+                $fields['num_proposta_capitalizacao']   = isempty($dados['num_serie_cap'], null);
                 $fields['ean']                          = isempty($dados['ean'], null);
                 $fields['coberturas']                   = isempty($dados['coberturas'], []);
                 $fields['emailAPI']                     = app_get_userdata("email");
@@ -2350,7 +2363,6 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
         return $id_exp_hist_carga;
     }
 }
-
 if ( ! function_exists('app_integracao_gera_sinistro')) {
     function app_integracao_gera_sinistro($formato, $dados = array())
     {
@@ -3582,4 +3594,75 @@ if ( ! function_exists('app_integracao_coop')) {
 
         return $response;
     }
+}
+if ( ! function_exists('app_integracao_icatu_pedido'))
+{
+    function app_integracao_icatu_pedido($formato, $dados = array())
+    {
+        if ( empty($dados['registro']) )
+        {
+            return false;
+        }
+
+        $CI =& get_instance();
+        $CI->load->model('capitalizacao_serie_model');
+        $CI->load->model('integracao_log_model');
+
+        // trava uma nova solicitação de range até obter retorno
+        $CI->capitalizacao_serie_model->update($dados['registro']['capitalizacao_serie_id'], ['solicita_range' => 2], TRUE);
+
+        // para controle do sequencial por codigo do porduto
+        $CI->integracao_log_model->update($dados['log']['integracao_log_id'], ['retorno' => $dados['registro']['cod_produto']], TRUE);
+
+        return true;
+    }
+}
+if ( ! function_exists('app_integracao_icatu_sequencia'))
+{
+    function app_integracao_icatu_sequencia($formato, $dados = array())
+    {
+        if( !empty($dados['registro']['cod_produto']) && !empty($dados['log']['integracao_id']) )
+        {
+            $CI =& get_instance();
+            $CI->load->model('integracao_log_model');
+            return $CI->integracao_log_model->get_sequencia_by_cod_prod($dados['log']['integracao_id'], $dados['registro']['cod_produto']);
+        }else{
+            return 1;
+        }
+    }
+}
+if ( ! function_exists('app_integracao_icatu_pedido_retorno'))
+{
+    function app_integracao_icatu_pedido_retorno($formato, $dados = array())
+    {
+        $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
+
+        // Dados de entrada
+        $cod_produto  = $dados['registro']['cod_produto'];
+        $num_sorte    = $dados['registro']['num_sorte'];
+        $num_lote     = $dados['registro']['num_lote'];
+        $sequencial   = $dados['registro']['sequencial'];
+        $cod_erro1    = $dados['registro']['cod_erro1'];
+        $cod_erro2    = $dados['registro']['cod_erro2'];
+        $cod_erro3    = $dados['registro']['cod_erro3'];
+
+        $CI =& get_instance();
+        $query = $CI->db->query("CALL sp_icatu_pedido('{$cod_produto}', '{$num_sorte}', '{$num_lote}', {$sequencial}, '{$cod_erro1}', '{$cod_erro2}', '{$cod_erro3}')");
+        $reg = $query->result_array();
+        $query->next_result();
+
+        if ( !empty($reg) )
+        {
+            foreach ($reg as $key => $value)
+            {
+                $response->msg[] = ['id' => $value['id'], 'msg' => $value['msg'], 'slug' => "erro_retorno"];
+            }
+
+            return $response;
+        }
+
+        $response->status = true;
+        return $response;
+    }
+
 }
