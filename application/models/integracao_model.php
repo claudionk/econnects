@@ -669,7 +669,6 @@ Class Integracao_Model extends MY_Model
 
         if ( !empty($campo_chave) )
         {
-            print_pre(['geraChave', $result,$registro,$campo_chave], false);
             $this->data_template_script['campo_chave'] = $campo_chave;
         }
 
