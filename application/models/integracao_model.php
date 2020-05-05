@@ -1237,7 +1237,7 @@ Class Integracao_Model extends MY_Model
         		}
         		else
         		{
-                    $pre_result .= mb_str_pad(trataRetorno($campo, $upCase, $trim), $qnt_valor_padrao, isempty($item['valor_padrao'],' '), $item['str_pad']);
+                    $pre_result .= mb_str_pad(trataRetorno($campo, $upCase, $trim), $qnt_valor_padrao, isvazio($item['valor_padrao'],' '), $item['str_pad']);
         		}
             }
 
