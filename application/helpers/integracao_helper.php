@@ -491,8 +491,8 @@ if ( ! function_exists('app_integracao_file_name_sulacap')) {
 
     function app_integracao_file_name_sulacap($formato, $dados = array())
     {
-        $data = date('dmy');
-        $file = "{$formato}{$data}.txt";
+        $sequencia =  str_pad($dados['log']['sequencia'], 6, 0, STR_PAD_LEFT);
+        $file = "{$formato}{$sequencia}.txt";
         return $file;
     }
 
