@@ -441,19 +441,20 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                         $data_base = date("Y-m-d");
                     }
 
-                    if ($apolice_vigencia_regra)
-                    {
-                        switch ($config["apolice_vigencia_regra"])
-                        {
-                            case 'M':
-                                $d1 = new DateTime($data_base);
-                                $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
-                                $data_base = $d1->format('Y-m-d');
-                                break;
-                            default:
-                                break;
-                        }
-                    }
+                    // comentado pois a vigência deve ser a mesa da adesao
+                    // if ($apolice_vigencia_regra)
+                    // {
+                    //     switch ($config["apolice_vigencia_regra"])
+                    //     {
+                    //         case 'M':
+                    //             $d1 = new DateTime($data_base);
+                    //             $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
+                    //             $data_base = $d1->format('Y-m-d');
+                    //             break;
+                    //         default:
+                    //             break;
+                    //     }
+                    // }
                 }
 
                 // se depois de todas as validações, ainda não conseguiu definir a data base
