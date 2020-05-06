@@ -179,6 +179,14 @@ if($_POST)
                               <input ng-model="custo" ui-number-mask="10" class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/> <!-- //Alterado para Quero Quero -->
                             </div>
                           </div>
+                          <?php $field_name = 'importancia_segurada';?>
+                          <div class="form-group">
+                            <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Importância Segurada</label>
+                            <div class="col-md-4">
+                              <input ng-model="importancia_segurada" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/>
+                              <label class="control-label" for="<?php echo $field_name;?>">Utilizado quando a Importância Segurada é fixa</label>
+                            </div>
+                          </div>
 
                           <?php $field_name = 'usar_iof';?>
                           <div class="form-group">
@@ -294,6 +302,7 @@ if($_POST)
     $scope.custo = parseFloat( "<?php echo isset($row['custo']) ? $row['custo'] : '0'; ?>" );
     $scope.porcentagem = parseFloat( "<?php echo isset($row['porcentagem']) ? $row['porcentagem'] : '0'; ?>" );
     $scope.iof = parseFloat( "<?php echo isset($row['iof']) ? $row['iof'] : '0'; ?>" );
+    $scope.importancia_segurada = parseFloat( "<?php echo isset($row['importancia_segurada']) ? $row['importancia_segurada'] : '0'; ?>" );
   }]);
 </script>
 <style type="text/css">

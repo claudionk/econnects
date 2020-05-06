@@ -39,7 +39,7 @@ Class Cotacao_Cobertura_Model extends MY_Model
         $this->db->delete($this->_table);
     }
 
-    function with_cobertura_plano($fields = array('cobertura_plano.cod_cobertura', 'cobertura_plano.cod_ramo', 'cobertura_plano.cod_produto', 'cobertura_plano.cod_sucursal')) {
+    function with_cobertura_plano($fields = array('cobertura_plano.cod_cobertura', 'cobertura_plano.cod_ramo', 'cobertura_plano.cod_produto', 'cobertura_plano.cod_sucursal', 'cobertura_plano.importancia_segurada')) {
         $this->_database->select($fields);
         $this->_database->join("cobertura_plano", "cobertura_plano.cobertura_plano_id = {$this->_table}.cobertura_plano_id");
         return $this;
