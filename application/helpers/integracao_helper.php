@@ -2318,6 +2318,26 @@ if ( ! function_exists('app_integracao_retorno_generali_success')) {
         return true;
     }
 }
+if ( ! function_exists('app_integracao_retorno_success_cta')) {
+    function app_integracao_retorno_success_cta($formato, $dados = array())
+    {
+        if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
+            return false;
+        }
+
+        $CI =& get_instance();
+        $CI->load->model('integracao_model');
+        $proc = $CI->integracao_model->detectFileRetorno($dados['log']['nome_arquivo']);
+        $file = $proc['file'];
+        $sinistro = ($proc['tipo'] == 'SINISTRO');
+
+        if($sinistro){ // Ainda está no formato antigo. Desenvolver esta funcionalidade após o cliente começar a enviar o sinistro no mesmo padrão estabelecido
+            // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
+            $CI->integracao_model->update_log_sucess($file, $sinistro);
+        }
+        return true;
+    }
+}
 if ( ! function_exists('app_integracao_generali_sinistro')) {
     function app_integracao_generali_sinistro($formato, $dados = array())
     {
@@ -3046,6 +3066,13 @@ if ( ! function_exists('app_integracao_retorno_cta'))
         $proc = $CI->integracao_model->detectFileRetorno($file_registro);
         $file = $proc['file'];
         $sinistro = ($proc['tipo'] == 'SINISTRO');
+
+        if($sinistro){ // Ainda está no formato antigo. Desenvolver esta funcionalidade após o cliente começar a enviar o sinistro no mesmo padrão estabelecido
+            $CI->integracao_model->update_log_fail($file, $chave, $sinistro);
+            $response->coderr = $dados['registro']['cod_erro']; 
+            $response->msg[] = ['id' => 12, 'msg' => $dados['registro']['cod_erro'] ." - ". $dados['registro']['descricao_erro'], 'slug' => "erro_retorno"];
+            return $response;
+        }        
 
         //A - Acatado com sucesso (id=[4]), R - Rejeitado (Erro => id=[5]) ou P - Pendente (id=[3])
         if (!empty($dados['registro']['status']))
