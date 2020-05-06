@@ -122,6 +122,12 @@ Class Cobertura_Plano_Model extends MY_Model {
             'rules' => '',
             'groups' => 'default'
         ),
+        array(
+            'field' => 'importancia_segurada',
+            'label' => 'Importância Segurada',
+            'rules' => '',
+            'groups' => 'default'
+        ),
     );
 
     //Get dados
@@ -139,6 +145,7 @@ Class Cobertura_Plano_Model extends MY_Model {
             'descricao'                 => $this->input->post('descricao'),
             'cobertura_custo'           => $this->input->post('cobertura_custo'),
             'iof'                       => app_unformat_currency($this->input->post('iof')),
+            'importancia_segurada'      => app_unformat_currency($this->input->post('importancia_segurada')),
             'usar_iof'                  => $this->input->post('usar_iof'),
             'diarias'                   => $this->input->post('diarias'),
             'franquia'                  => $this->input->post('franquia'),
