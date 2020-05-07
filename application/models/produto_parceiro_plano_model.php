@@ -227,7 +227,16 @@ class Produto_Parceiro_Plano_Model extends MY_Model
 
     public function with_capitalizacao()
     {
-        $this->_database->select("capitalizacao.nome as capitalizacao, capitalizacao.responsavel_num_sorte, capitalizacao.responsavel_num_sorte_distribuicao");
+        $this->_database->select("capitalizacao.nome as capitalizacao_nome, 
+            capitalizacao.tipo_qnt_sorteio as capitalizacao_tipo_qnt_sorteio, 
+            capitalizacao.qnt_sorteio as capitalizacao_qnt_sorteio, 
+            capitalizacao.dia_corte as capitalizacao_dia_corte, 
+            capitalizacao.qtde_titulos_por_compra as capitalizacao_qtde_titulos_por_compra, 
+            capitalizacao.valor_sorteio as capitalizacao_valor_sorteio, 
+            capitalizacao.valor_custo_titulo as capitalizacao_valor_custo_titulo, 
+            capitalizacao.serie as capitalizacao_serie, 
+            capitalizacao.responsavel_num_sorte as capitalizacao_responsavel_num_sorte, 
+            capitalizacao.responsavel_num_sorte_distribuicao as capitalizacao_responsavel_num_sorte_distribuicao");
         $this->_database->join("capitalizacao", "capitalizacao.capitalizacao_id = {$this->_table}.capitalizacao_id");
         return $this;
     }
