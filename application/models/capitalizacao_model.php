@@ -371,10 +371,10 @@ Class Capitalizacao_Model extends MY_Model
         foreach ($capitalizacoes as $index => $item)
         {
             // Parceiro é o responsável pela distribuição do número da sorte
-            if ( $item['responsavel_num_sorte_distribuicao'] == 1 )
+            if ( $item['capitalizacao_responsavel_num_sorte_distribuicao'] == 1 )
             {
                 // verifica se possui capitalizacao nas coberturas
-                if ( $this->cotacao->tem_capitalizacao($cotacao_id) )
+                if ( !$this->cotacao->tem_capitalizacao($cotacao_id) )
                 {
                     $result['message'] = "A cotação não possui cobertura de Capitalização";
 
