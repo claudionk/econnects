@@ -24,8 +24,6 @@ class Apolice extends CI_Controller {
         $this->load->model("fatura_parcela_model", "fatura_parcela");
 
         $this->load->helper("api_helper");
-
-        
     }
 
     private function checkKey() {
