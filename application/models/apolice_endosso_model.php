@@ -105,7 +105,7 @@ Class Apolice_Endosso_Model extends MY_Model
         return null;
     }
 
-    function max_seq_by_apolice_id($apolice_id, $apolice_movimentacao_tipo_id = null, $tipo_pagto = 0, $tipo = 'A', $multiplasVigencias = false)
+    function max_seq_by_apolice_id($apolice_id, $apolice_movimentacao_tipo_id, $tipo_pagto = 0, $tipo = 'A', $multiplasVigencias = false, $cod_mov_cob = null)
     {
         $sequencia = 1;
         $endosso = 0;
@@ -114,30 +114,23 @@ Class Apolice_Endosso_Model extends MY_Model
         // tratamento para gerar o endosso e o sequencial
         if (!empty($result))
         {
-            $sequencia = emptyor($result['sequencial'], 0);
-            $incrementa = true;
+            // sequencial para o endosso e para a contagem do seq (são coisas distintas)
+            $sequencia_end = $sequencia = emptyor($result['sequencial'], 0);
+            $cd_movimento_cobranca = emptyor($result['cd_movimento_cobranca'], 0);
 
-            // no parcelado
-            if ($tipo_pagto == 2)
+            // o sequencial é incrementado sempre que há alteração de movimento
+            if ($cd_movimento_cobranca != $cod_mov_cob )
             {
-                // O sequencial é 1 para todas as parcelas na emissão
-                if ( $tipo == 'A' && $sequencia > 1)
-                {
-                    $incrementa = false;
-                }
-                // O sequencial é 2 para todas as parcelas no cancelamento
-                elseif ( $tipo == 'C' && $sequencia > 2)
-                {
-                    $incrementa = false;
-                }
+                $sequencia_end++;
             }
 
-            if ( $incrementa )
+            // no caso de múltiplas coberturas, também deve incrementar por cobertura
+            if ( $multiplasVigencias )
             {
-                $sequencia++;
+                $sequencia = $sequencia_end;
             }
 
-            $endosso = $this->defineEndosso($sequencia, $apolice_id, $tipo_pagto, $tipo, $multiplasVigencias);
+            $endosso = $this->defineEndosso($sequencia_end, $apolice_id);
         }
 
         return [
@@ -216,16 +209,16 @@ Class Apolice_Endosso_Model extends MY_Model
         Codigo do tipo de emissão:
 
         # ADESAO - A
-        1 - Emissão da Apólice (nr_endosso = 0) - Sem Capa
-        2 - Emissão da Apólice (nr_endosso = 0) - Com Capa
-        3 - Demais parcelas   (nr_endosso <> 0)
+        1 -  1 - Emissão da Apólice (nr_endosso = 0) - Sem Capa
+        2 - 18 - Emissão da Apólice (nr_endosso = 0) - Com Capa
+        3 - 20 - Demais parcelas   (nr_endosso <> 0)
 
         # ALTERAÇÃO - U
-        4 - Alteração Cadastral
+        4 - 7 - Alteração Cadastral
 
         # CANCELAMENTO - C
-        5 - Cancelamento da apólice
-        6 - Cancelamento por falta de pagamento
+        5 - 10 - Cancelamento da apólice
+        6 - 11- Cancelamento por falta de pagamento
         */
 
         if ($tipo == 'A') {
@@ -247,23 +240,9 @@ Class Apolice_Endosso_Model extends MY_Model
         return $tipo;
     }
 
-    public function defineEndosso($sequencial, $apolice_id, $tipo_pagto = 0, $tipo = 'A', $multiplasVigencias = false)
+    public function defineEndosso($sequencial, $apolice_id)
     {
         $endosso = 0;
-
-        // O sequencial aqui se refere ao sequencial de endosso e nao ao numero sequencial das coberturas
-        // Pagamento Unico
-        if ($tipo_pagto == 0)
-        {
-            if ($tipo == 'A')
-            {
-                $sequencial = 1;
-            }
-            if ($tipo == 'C')
-            {
-                $sequencial = 2;
-            }
-        }
 
         if ( $sequencial > 1 )
         {
@@ -447,10 +426,6 @@ Class Apolice_Endosso_Model extends MY_Model
                 }
             }
 
-            $seq_end                    = $this->max_seq_by_apolice_id($apolice_id, NULL, $tipo_pagto, $tipo, $multiplasVigencias);
-            $dados_end['sequencial']    = $seq_end['sequencial'];
-            $dados_end['endosso']       = $seq_end['endosso'];
-
             $datas = $this->pedido->define_dias_cancelamento($apolice_id, $apolice['data_cancelamento'], $dados_end['cod_cobertura'], $apolice);
             $devolucao_integral = $datas['devolucao_integral'];
             $dias_utilizados = $datas['dias_utilizados'];
@@ -524,6 +499,9 @@ Class Apolice_Endosso_Model extends MY_Model
             }
 
             $dados_end['cd_movimento_cobranca'] = $this->defineMovCob($tipo, $dados_end['parcela'], $tipo_pagto, $devolucao_integral, $parcelaRestituicao);
+            $seq_end                            = $this->max_seq_by_apolice_id($apolice_id, $dados_end['apolice_movimentacao_tipo_id'], $tipo_pagto, $tipo, $multiplasVigencias, $dados_end['cd_movimento_cobranca']);
+            $dados_end['sequencial']            = $seq_end['sequencial'];
+            $dados_end['endosso']               = $seq_end['endosso'];
             $dados_end['tipo']                  = $this->defineTipo($tipo, $dados_end['endosso'], $tipo_pagto);
             $dados_end['id_transacao']          = $this->getIDTransacao($apolice_id, $dados_end['endosso'], $dados_end['parcela']);
 

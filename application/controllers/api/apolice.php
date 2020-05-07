@@ -461,7 +461,7 @@ class Apolice extends CI_Controller {
             $produto_parceiro_id = $pedido['produto_parceiro_id'];
 
             // Selecionar parcela atual
-            $ultima_parcela = $this->apolice_endosso->lastSequencial($apolice_id);
+            $ultima_parcela = $this->apolice_endosso->lastSequencial($apolice_id, 1);
             $parcela_atual = (int) $ultima_parcela['parcela'] + 1;
 
             // Validar parcela
