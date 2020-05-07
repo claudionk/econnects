@@ -1401,7 +1401,7 @@ class Apolice_Model extends MY_Model
             $dados_capitalizacao['data_compra'] = date('Y-m-d H:i:s');
 
             // Parceiro
-            if ($item['responsavel_num_sorte_distribuicao'] == 1)
+            if ($item['capitalizacao_responsavel_num_sorte_distribuicao'] == 1)
             {
                 // Recupera o número da Sorte
                 $numero_sorte               = $item['numero_sorte'];
@@ -1421,7 +1421,7 @@ class Apolice_Model extends MY_Model
                             $dados_capitalizacao['capitalizacao_serie_id'] = $capitalizacao_serie['capitalizacao_serie_id'];
                             $dados_capitalizacao['contemplado'] = 0;
                             $dados_capitalizacao['numero'] = $numero_sorte;
-                            $dados_capitalizacao['num_lote'] = $num_proposta_capitalizacao;
+                            $dados_capitalizacao['num_lote'] = emptyor($num_proposta_capitalizacao, 1);
                             $dados_capitalizacao['ativo'] = 1;
                             $this->capitalizacao_serie_titulo->insert($dados_capitalizacao, true);
                         }
