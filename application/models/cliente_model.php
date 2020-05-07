@@ -399,13 +399,14 @@ class Cliente_Model extends MY_Model
         $this->load->model('cliente_codigo_model', 'cliente_codigo');
         $this->load->model('localidade_cidade_model', 'localidade_cidade');
         $this->load->model('cliente_evolucao_model', 'cliente_evolucao');
+        $this->load->model('produto_parceiro_model', 'produto_parceiro');
 
         if (!isset($data['DADOS_CADASTRAIS'])) {
             return 0;
         }
 
         if ( ( isset($data['produto_parceiro_id']) || !empty($produto_parceiro_id) ) && empty($data['parceiro_id'])) {
-            $produto = $this->produto_parceiro->get( emptyor($produto_parceiro_id, $data['produto_parceiro_id']) );
+            $produto = $this->produto_parceiro->get( emptyor($produto_parceiro_id, emptyor($data['produto_parceiro_id'], null)) );
             if (isset($produto['parceiro_id'])) {
                 $data['parceiro_id'] = $produto['parceiro_id'];
             }
@@ -448,7 +449,7 @@ class Cliente_Model extends MY_Model
                 $data_cliente['cep']         = (isset($item['CEP']) && !is_array($item['CEP'])) ? app_format_cep($item['CEP']) : '';
                 $data_cliente['endereco']    = (isset($item['LOGRADOURO']) && !is_array($item['LOGRADOURO'])) ? $item['LOGRADOURO'] : '';
                 $data_cliente['bairro']      = (isset($item['BAIRRO']) && !is_array($item['BAIRRO'])) ? $item['BAIRRO'] : '';
-                $data_cliente['numero']      = (isset($item['NUMERO']) && !is_array($item['NUMERO'])) ? app_retorna_numeros($item['NUMERO']) : '';
+                $data_cliente['numero']      = (isset($item['NUMERO']) && !is_array($item['NUMERO'])) ? app_retorna_numeros($item['NUMERO']) : '0';
                 $data_cliente['complemento'] = (isset($item['COMPLEMENTO']) && !is_array($item['COMPLEMENTO'])) ? $item['COMPLEMENTO'] : '';
                 if ((isset($item['CIDADE']) && !is_array($item['CIDADE']))) {
                     $localidade_cidade = $this->localidade_cidade->get_by_nome($item['CIDADE']);
