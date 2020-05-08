@@ -105,29 +105,38 @@ Class Apolice_Endosso_Model extends MY_Model
         return null;
     }
 
-    function max_seq_by_apolice_id($apolice_id, $apolice_movimentacao_tipo_id, $tipo_pagto = 0, $tipo = 'A', $multiplasVigencias = false, $cod_mov_cob = null)
+    function max_seq_by_apolice_id($apolice_id, $tipo_pagto = 0, $tipo = 'A', $multiplasVigencias = false, $cod_mov_cob = null)
     {
         $sequencia = 1;
         $endosso = 0;
-        $result = $this->lastSequencial($apolice_id, $apolice_movimentacao_tipo_id);
+        $result = $this->lastSequencial($apolice_id);
 
         // tratamento para gerar o endosso e o sequencial
         if (!empty($result))
         {
             // sequencial para o endosso e para a contagem do seq (são coisas distintas)
-            $sequencia_end = $sequencia = emptyor($result['sequencial'], 0);
+            $sequencia = emptyor($result['sequencial'], 0);
             $cd_movimento_cobranca = emptyor($result['cd_movimento_cobranca'], 0);
 
             // o sequencial é incrementado sempre que há alteração de movimento
-            if ($cd_movimento_cobranca != $cod_mov_cob )
+            if ($cd_movimento_cobranca != $cod_mov_cob || $multiplasVigencias)
             {
-                $sequencia_end++;
+                $sequencia++;
             }
 
-            // no caso de múltiplas coberturas, também deve incrementar por cobertura
-            if ( $multiplasVigencias )
+            // Pagamento Unico
+            if ($tipo_pagto == 0)
             {
-                $sequencia = $sequencia_end;
+                if ($tipo == 'A')
+                {
+                    $sequencia_end = 1;
+                }
+                if ($tipo == 'C')
+                {
+                    $sequencia_end = 2;
+                }
+            } else {
+                $sequencia_end = $sequencia;
             }
 
             $endosso = $this->defineEndosso($sequencia_end, $apolice_id);
@@ -382,9 +391,10 @@ Class Apolice_Endosso_Model extends MY_Model
 
                 // valida a vigência
                 // caso seja cancelamento, a vigência deve ser a mesma da parcela cancelada
-                if ($dados_end['parcela'] > 0 && $tipo != 'C') {
-
-                    if ($dados_end['parcela'] > 1) {
+                if ($dados_end['parcela'] > 0 && $tipo != 'C')
+                {
+                    if ($dados_end['parcela'] > 1)
+                    {
                         $result = $this->lastSequencial($apolice_id, $dados_end['apolice_movimentacao_tipo_id']);
 
                         if ($tipo_pagto == 1)
@@ -499,7 +509,7 @@ Class Apolice_Endosso_Model extends MY_Model
             }
 
             $dados_end['cd_movimento_cobranca'] = $this->defineMovCob($tipo, $dados_end['parcela'], $tipo_pagto, $devolucao_integral, $parcelaRestituicao);
-            $seq_end                            = $this->max_seq_by_apolice_id($apolice_id, $dados_end['apolice_movimentacao_tipo_id'], $tipo_pagto, $tipo, $multiplasVigencias, $dados_end['cd_movimento_cobranca']);
+            $seq_end                            = $this->max_seq_by_apolice_id($apolice_id, $tipo_pagto, $tipo, $multiplasVigencias, $dados_end['cd_movimento_cobranca']);
             $dados_end['sequencial']            = $seq_end['sequencial'];
             $dados_end['endosso']               = $seq_end['endosso'];
             $dados_end['tipo']                  = $this->defineTipo($tipo, $dados_end['endosso'], $tipo_pagto);
