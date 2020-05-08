@@ -267,7 +267,7 @@ class CI_SFTP {
       	$pathDf = $sftp_df.$rempath;
 
       	$data = file_get_contents($locpath);
-      	$result = file_put_contents("ssh2.sftp://$pathDf", $data);
+      	$result = @file_put_contents("ssh2.sftp://$pathDf", $data);
 
 		if ($result === FALSE)
 		{
@@ -309,10 +309,10 @@ class CI_SFTP {
       	$sftp_df = intval($sftp);
       	$pathDf = $sftp_df.$rempath;
 
-      	$data = file_get_contents("ssh2.sftp://$pathDf");
+      	$data = @file_get_contents("ssh2.sftp://$pathDf");
       	$result = file_put_contents($locpath, $data);
 
-		if ($result === FALSE)
+		if ($data === FALSE || $result === FALSE)
 		{
 			if ($this->debug == TRUE)
 			{
