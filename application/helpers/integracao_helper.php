@@ -520,12 +520,14 @@ if ( ! function_exists('app_integracao_csv_retorno_novomundo')) {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
         $os = $dados['registro']['id_exp'];
         $status_troca = $dados['registro']['status_troca'];
+        $data_troca = $dados['registro']['data_troca'];
+        $valor_troca = $dados['registro']['valor_troca'];
 
         switch($status_troca)
         {
             case "TROCA REALIZADA":
             case "CANCELADA":
-                $ret = $CI->integracao_model->update_status_novomundo($os, $status_troca);
+                $ret = $CI->integracao_model->update_status_novomundo($os, $status_troca, $data_troca, $valor_troca);
                 if ( !empty($ret['status']) )
                 {
                     $response->status = true;

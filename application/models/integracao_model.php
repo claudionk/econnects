@@ -337,7 +337,7 @@ Class Integracao_Model extends MY_Model
                 $file = $this->getFileName($result, $layout_filename);
             }
 
-    	    $result_file = $this->getFile($result, $file);
+            $result_file = $this->getFile($result, $file);
             $result_process = [];
             if ( !empty($result_file['file']) )
             {
@@ -1556,7 +1556,7 @@ Class Integracao_Model extends MY_Model
     	}
     }
 
-    function update_status_novomundo($id_exp, $status)
+    function update_status_novomundo($id_exp, $status, $data_troca = null, $valor_troca = null)
     {
 	    $this->load->library("SoapCurl");
 	    $SoapCurl = new SoapCurl();
@@ -1567,11 +1567,11 @@ Class Integracao_Model extends MY_Model
 		    switch($status)
 		    {
 			    case "TROCA REALIZADA":
-				    $retorno = $SoapCurl->getAPI("atendimento/EncerrarExpediente", "PUT", json_encode( [ "idMotivoEncerramento" => 6, "idExpediente" => $id_exp, "voucherUsado" => true ] ), 900);
+                    $retorno = $SoapCurl->getAPI("atendimento/EncerrarExpediente", "PUT", json_encode( [ "idMotivoEncerramento" => 6, "idExpediente" => $id_exp, "voucherUsado" => true, "dataTroca" => $data_troca, "valorTroca" => $valor_troca] ), 900);
 				    return $retorno;
 			    break;
 			    case "CANCELADA":
-				    $retorno = $SoapCurl->getAPI("atendimento/ConverteExpediente", "PUT", json_encode( [ "idMotivoConversao" => 4, "idExpediente" => $id_exp ] ), 900);
+                    $retorno = $SoapCurl->getAPI("atendimento/ConverteExpediente", "PUT", json_encode( [ "idMotivoConversao" => 4, "idExpediente" => $id_exp ] ), 900);
 				    return $retorno;
 			    break;
 			    default:
