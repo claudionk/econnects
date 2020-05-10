@@ -1928,3 +1928,16 @@ if ( ! function_exists('ifempty')) {
         return !(strlen($var) > 0);
     }
 }
+
+/**
+ * @description Retorna apenas os caracteres printáveis, e exibe ? quando não conseguir printar
+ * @param $text
+ * @return string
+ */
+if ( ! function_exists('printable')) {
+    function printable($text)
+    {
+        return preg_replace( '/[^[:print:]\r\n]/', '?',$text);
+    }
+}
+
