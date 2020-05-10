@@ -405,6 +405,14 @@ if ( ! function_exists('app_integracao_format_int')) {
     }
 
 }
+if ( ! function_exists('app_integracao_format_printable')) {
+
+    function app_integracao_format_printable($formato, $dados = array())
+    {
+        return printable($dados['valor']);
+    }
+
+}
 if ( ! function_exists('app_integracao_format_file_name_mapfre_assistencia')) {
 
     function app_integracao_format_file_name_mapfre_assistencia($formato, $dados = array())
@@ -1004,7 +1012,7 @@ if ( ! function_exists('app_integracao_rastrecall_sms')) {
             $geraDados['cod_vendedor']              = '';
             $geraDados['cpf']                       = $dados['registro']['cnpj_cpf'];
             $geraDados['nota_fiscal_numero']        = $dados['registro']['nota_fiscal_numero'];
-            $geraDados['num_parcela']               = '00';
+            $geraDados['num_parcela']               = 1;
             $geraDados['nota_fiscal_valor']         = app_format_currency($dados['registro']['nota_fiscal_valor']);
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
@@ -2052,6 +2060,7 @@ if ( ! function_exists('app_integracao_emissao'))
                     "produto_parceiro_id" => $dados["produto_parceiro_id"],
                     "forma_pagamento_id" => $forma_pagamento_id,
                     "produto_parceiro_pagamento_id" => $produto_parceiro_pagamento_id,
+                    "parcelas" => emptyor($dados['num_parcela'], 1),
                     "campos" => [],
                     "emailAPI" => app_get_userdata("email"),
                 ];
@@ -3691,5 +3700,209 @@ if ( ! function_exists('app_integracao_icatu_pedido_retorno'))
         $response->status = true;
         return $response;
     }
+}
+if ( ! function_exists('app_integracao_88i')) {
+    function app_integracao_88i($formato, $dados = array())
+    {
+        $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
 
+        // Emissão
+        if ( $dados['registro']['tipo_transacao'] == '01' )
+        {
+            $dados['registro']['acao'] = '1';
+
+        // Cancelamento
+        } elseif ( $dados['registro']['tipo_transacao'] == '02' )
+        {
+            $dados['registro']['acao'] = '9';
+        } else {
+            $dados['registro']['acao'] = '0';
+        }
+
+        $dados['registro']['num_parcela'] = 12;
+        $reg = $dados['registro'];
+        // print_pre($reg);
+
+        $CI =& get_instance();
+        $CI->session->sess_destroy();
+        $CI->session->set_userdata("operacao", "88insurtech");
+
+        if (!empty($formato))
+        {
+            $geraDados['tipo_transacao']        = $reg['tipo_transacao'];
+            $geraDados['tipo_operacao']         = $reg['acao'];
+            $geraDados['data_adesao_cancel']    = $reg['data_adesao_cancel'];
+            $geraDados['data_inicio_vigencia']  = $reg['data_inicio_vigencia'];
+            $geraDados['data_fim_vigencia']     = $reg['data_fim_vigencia'];
+            $geraDados['num_apolice']           = $reg['num_apolice'];
+            $geraDados['tipo_pessoa']           = (app_verifica_cpf_cnpj($reg['cpf']) == 'CNPJ') ? 'PJ' : 'PF';
+            $geraDados['cpf']                   = $reg['cpf'];
+            $geraDados['nome']                  = $reg['nome'];
+            $geraDados['sexo']                  = $reg['sexo'];
+            $geraDados['data_nascimento']       = $reg['data_nascimento'];
+            $geraDados['telefone']              = $reg['telefone'];
+            $geraDados['telefone_celular']      = $reg['telefone_celular'];
+            $geraDados['email']                 = $reg['email'];
+            $geraDados['endereco_cep']          = $reg['endereco_cep'];
+            $geraDados['endereco']              = $reg['endereco_logradouro'];
+            $geraDados['endereco_numero']       = $reg['endereco_numero'];
+            $geraDados['complemento']           = $reg['complemento'];
+            $geraDados['endereco_bairro']       = $reg['endereco_bairro'];
+            $geraDados['endereco_cidade']       = $reg['endereco_cidade'];
+            $geraDados['endereco_estado']       = $reg['endereco_estado'];
+            $geraDados['premio_bruto']          = $reg['premio_bruto'];
+            $geraDados['num_parcela']           = $reg['num_parcela'];
+            $geraDados['cod_loja']              = $reg['cod_loja'];
+            $geraDados['cod_vendedor']          = $reg['cod_vendedor'];
+            $geraDados['nome_vendedor']         = $reg['nome_vendedor'];
+            $geraDados['garantia_fabricante']   = $reg['garantia_fabricante'];
+            $geraDados['marca']                 = $reg['marca'];
+            $geraDados['equipamento_nome']      = $reg['equipamento_nome'];
+            $geraDados['num_serie']             = $reg['num_serie'];
+            $geraDados['ean']                   = $reg['ean'];
+            $geraDados['nota_fiscal_valor']     = $reg['nota_fiscal_valor'];
+            $geraDados['nota_fiscal_numero']    = $reg['nota_fiscal_numero'];
+            $geraDados['nota_fiscal_data']      = $reg['nota_fiscal_data'];
+            $geraDados['cod_faixa_preco']       = $reg['equipamento_de_para'];
+            $geraDados['arquivo_data']          = $reg['arquivo_data'];
+            $geraDados['numero_seq_lote']       = $reg['numero_seq_lote'];
+            $geraDados['integracao_log_detalhe_id'] = $formato;
+
+            // Cancelamento
+            if ( $reg['acao'] == '9' ) {
+                $geraDados['data_cancelamento']         = $dados['registro']['data_adesao_cancel'];
+                $dados['registro']['data_cancelamento'] = $dados['registro']['data_adesao_cancel'];
+            }
+
+            $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
+            $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
+        }
+
+        // definir operação pelo nome do arquivo ou por integracao?
+        $acesso = app_integracao_88i_define_operacao($reg);
+        if ( empty($acesso->status) ) {
+            $response->status = 2;
+            $response->msg[] = $acesso->msg;
+            return $response;
+        }
+
+        // recupera as variaveis mais importantes
+        $num_apolice    = $reg['num_apolice'];
+        $cpf            = $reg['cpf'];
+        $ean            = $reg['ean'];
+
+        $dados['registro']['produto_parceiro_id']       = $acesso->produto_parceiro_id;
+        $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
+        $dados['registro']['data_adesao']               = $dados['registro']['data_adesao_cancel'];
+        $eanErro = true;
+        $eanErroMsg = "";
+
+        // validações iniciais
+        $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, true, $acesso);
+        if ( $valid->status !== true ) {
+            $response = $valid;
+            return $response;
+        }
+
+        // Campos para cotação
+        $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id, 'GET', [], $acesso);
+        if (empty($camposCotacao['status'])){
+            $response->msg[] = ['id' => -1, 'msg' => $camposCotacao['response'], 'slug' => "cotacao_campos"];
+            return $response;
+        }
+
+        $camposCotacao = $camposCotacao['response'];
+
+        // Validar Regras
+        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, false, $acesso);
+        // echo "<pre>";print_r($validaRegra);echo "</pre>";die();
+
+        if (!empty($validaRegra->status)) {
+            $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
+            $dados['registro']['fields'] = $validaRegra->fields;
+            $emissao = app_integracao_emissao($formato, $dados, $acesso);
+
+            if (empty($emissao->status)) {
+
+                if ( !empty($emissao->msg) ) {
+
+                    if ( !is_array($emissao->msg) ) {
+                        $response->msg[] = $emissao->msg;
+                    } else {
+                        $response->msg = $emissao->msg;
+                    }
+
+                } else {
+                    $response->msg = $emissao->errors;
+                }
+
+            } else {
+                $response->status = true;
+            }
+
+        } else {
+            if (!empty($response->msg)) {
+                $response->msg = array_merge($validaRegra->errors, $response->msg);
+            } else {
+                $response->msg = $validaRegra->errors;
+            }
+        }
+
+        return $response;
+    }
+}
+if ( ! function_exists('app_integracao_88i_define_operacao')) {
+    function app_integracao_88i_define_operacao($dados = [])
+    {
+        $result = (object) ['status' => false, 'msg' => []];
+
+        $CI =& get_instance();
+        $CI->load->model('parceiro_model');
+        $CI->load->model('produto_parceiro_model');
+        $CI->load->model('produto_parceiro_plano_model');
+
+        // Parceiro
+        $parceiro = $CI->parceiro_model->filter_by_slug('88')->get_all();
+        if ( empty($parceiro) )
+        {
+            $result->msg = ['id' => -1, 'msg' => "Parceiro não identificado", 'slug' => "parceiro_by_slug"];
+            return $result;
+        }
+
+        $result->parceiro_id = $parceiro[0]['parceiro_id'];
+        $result->email = "88@sissolucoes.com.br";
+
+        // Produto
+        $produto = $CI->produto_parceiro_model->getProdutosByParceiro($result->parceiro_id, null, true, $dados['slug_produto']);
+        if ( empty($produto) )
+        {
+            $result->msg = ['id' => -1, 'msg' => "Produto não identificado", 'slug' => "produto_by_slug"];
+            return $result;
+        }
+
+        $result->produto_parceiro_id = $produto[0]['produto_parceiro_id'];
+
+        // Plano
+        $planos = $CI->produto_parceiro_plano_model->PlanosHabilitados($result->parceiro_id, $result->produto_parceiro_id, $dados['slug_plano']);
+        if ( empty($planos) )
+        {
+            $result->msg = ['id' => -1, 'msg' => "Plano não identificado", 'slug' => "plano_by_slug"];
+            return $result;
+        }
+
+        $result->produto_parceiro_plano_id = $planos[0]['produto_parceiro_plano_id'];
+
+        // Dados para definição do parceiro, produto e plano
+        $acesso = app_integracao_generali_dados([
+            "email" => $result->email,
+            "parceiro_id" => $result->parceiro_id,
+            "produto_parceiro_id" => $result->produto_parceiro_id,
+            "produto_parceiro_plano_id" => $result->produto_parceiro_plano_id,
+        ]);
+
+        $result->apikey = $acesso->apikey;
+        $result->parceiro = $acesso->parceiro;
+        $result->status = true;
+        return $result;
+    }
 }

@@ -677,4 +677,39 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         return null;
     }
 
+    public function PlanosHabilitados($parceiro_id, $produto_parceiro_id, $slug_plano = null)
+    {
+        $this->load->model( "produto_parceiro_plano_destino_model", "produto_parceiro_plano_destino" );
+        $this->load->model( "produto_parceiro_plano_origem_model", "produto_parceiro_plano_origem" );
+
+        $planos = $this
+            ->wtih_plano_habilitado($parceiro_id)
+            ->coreSelectPlanosProdutoParceiro($produto_parceiro_id);
+
+        if ( !empty($slug_plano) )
+        {
+            $planos = $planos->filter_by_slug($slug_plano);
+        }
+
+        $planos = $planos->get_all_select();
+
+        $i = 0; 
+        foreach ($planos as $plano)
+        {
+            $origens = $this->produto_parceiro_plano_origem->coreSelectLocalidadeProdutoParceiro($plano["produto_parceiro_plano_id"])->get_all_select();
+            if( $origens )
+            {
+                $planos[$i]["origens"] = $origens;
+            }
+            $destinos = $this->produto_parceiro_plano_destino->coreSelectLocalidadeProdutoParceiro($plano["produto_parceiro_plano_id"])->get_all_select();
+            if( $destinos )
+            {
+                $planos[$i]["destinos"] = $destinos;
+            }
+            $i++;
+        }
+
+        return $planos;
+    }
+
 }
