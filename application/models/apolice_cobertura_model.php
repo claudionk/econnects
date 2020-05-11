@@ -31,6 +31,32 @@ Class Apolice_Cobertura_Model extends MY_Model
 
     }
 
+    public function filterByApoliceID($apolice_id)
+    {
+        $this->db->where("{$this->_table}.apolice_id", $apolice_id);
+        return $this;
+    }
+
+    /**
+    * Retorna apenas registros de Emissão ou Cancelamento
+    * @param char $tipo (A / C)
+    * @return mixed
+    */
+    public function filterByTipo($tipo)
+    {
+        // Adesão
+        if ($tipo == 'A')
+        {
+            $this->db->where("{$this->_table}.valor >= 0");
+        } 
+        // Cancelamento
+        elseif ($tipo == 'C')
+        {
+            $this->db->where("{$this->_table}.valor <= 0");
+        }
+        return $this;
+    }
+
     function filterByPedidoID($pedido_id){
         $this->_database->select("{$this->_table}.*, IFNULL(IFNULL(apolice_equipamento.valor_premio_net,apolice_generico.valor_premio_net),apolice_seguro_viagem.valor_premio_net) AS valor_premio_net", FALSE);
         $this->_database->join("apolice_equipamento","apolice_equipamento.apolice_id = {$this->_table}.apolice_id", "left");
@@ -42,7 +68,7 @@ Class Apolice_Cobertura_Model extends MY_Model
     }
 
     function filterByVigenciaCob($apolice_id){
-        $this->_database->select("data_inicio_vigencia, data_fim_vigencia, cod_cobertura");
+        $this->_database->select("data_inicio_vigencia, data_fim_vigencia, cod_cobertura, apolice_cobertura_id");
         $this->_database->where("apolice_id", $apolice_id);
         $this->_database->group_by("data_inicio_vigencia, data_fim_vigencia");
         return $this;
@@ -51,6 +77,64 @@ Class Apolice_Cobertura_Model extends MY_Model
     function get_by_id($id)
     {
         return $this->get($id);
+    }
+
+    function OnlyCoberturas(){
+        $this->_database->join("cobertura_plano","cobertura_plano.cobertura_plano_id = {$this->_table}.cobertura_plano_id");
+        $this->_database->join("produto_parceiro_plano","produto_parceiro_plano.produto_parceiro_plano_id = cobertura_plano.produto_parceiro_plano_id");
+        $this->_database->join("produto_parceiro","produto_parceiro.produto_parceiro_id = produto_parceiro_plano.produto_parceiro_id AND cobertura_plano.parceiro_id = produto_parceiro.parceiro_id");
+        return $this;
+    }
+
+    /**
+    * Retorna o valor do IOF de cada cobertura
+    * @param int $apolice_id
+    * @return mixed
+    */
+    function getValorIOF($apolice_id, $pedido_id, $apolice_movimentacao_tipo_id, $cod_cobertura = null)
+    {
+    	$this->load->model('apolice_model', 'apolice');
+
+    	$controle_endosso = $this->apolice->isControleEndossoPeloClienteByPedidoId($pedido_id);
+
+        // Pagamento Único
+        if ($controle_endosso['tipo_pagto'] == 0)
+        {
+        	$query = $this->_database->query("CALL sp_cta_parcemissao_unico($apolice_id, $apolice_movimentacao_tipo_id, NULL)");
+        } 
+        // Pagamento Parcelado
+        elseif ( $controle_endosso['tipo_pagto'] == 2 )
+        {
+	        $query = $this->_database->query("CALL sp_cta_parcemissao_parcelado($apolice_id, $apolice_movimentacao_tipo_id, NULL)");
+        }
+        else {
+        	return null;
+        }
+
+        $reg = $query->result_array();
+		$query->next_result();
+		if ( empty($reg) ) return null;
+		$coberturas = [];
+
+		// soma os resultados por coberturas
+		foreach ($reg as $key => $value)
+		{
+			if ( !empty($cod_cobertura) && $cod_cobertura != $value['cod_cobertura'] )
+			{
+				continue;
+			}
+
+			$coberturas[$value['cod_cobertura']] = [
+				'premio_liquido' 		=> ( issetor($coberturas[$value['cod_cobertura']]['premio_liquido'], 0) + $value['premio_liquido'] ),
+				'valor_iof' 	 		=> ( issetor($coberturas[$value['cod_cobertura']]['valor_iof'], 0) 		+ $value['valor_iof'] ),
+				'premio_bruto' 	 		=> ( issetor($coberturas[$value['cod_cobertura']]['premio_bruto'], 0) 	+ $value['premio_liquido_total'] ),
+				'data_inicio_vigencia' 	=> issetor($coberturas[$value['cod_cobertura']]['data_inicio_vigencia'],  $value['ini_vig']),
+				'data_fim_vigencia' 	=> issetor($coberturas[$value['cod_cobertura']]['data_fim_vigencia'], 	  $value['fim_vig']),
+			];
+		}
+
+		// print_pre($coberturas);
+        return $coberturas;
     }
 
     public function geraDadosCancelamento($pedido_id, $valor_base)
