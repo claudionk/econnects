@@ -87,8 +87,11 @@ Class Apolice_Cobertura_Model extends MY_Model
     }
 
     /**
-    * Retorna o valor do IOF de cada cobertura
+    * Retorna o valor do IOF e Prêmios de cada cobertura
     * @param int $apolice_id
+    * @param int $pedido_id
+    * @param int $apolice_movimentacao_tipo_id
+    * @param char $cod_cobertura
     * @return mixed
     */
     function getValorIOF($apolice_id, $pedido_id, $apolice_movimentacao_tipo_id, $cod_cobertura = null)
@@ -133,7 +136,6 @@ Class Apolice_Cobertura_Model extends MY_Model
 			];
 		}
 
-		// print_pre($coberturas);
         return $coberturas;
     }
 

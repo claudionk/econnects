@@ -936,11 +936,16 @@ Class Pedido_Model extends MY_Model
         $valor_estorno_total = $valor_estorno_total_liquido = 0;
         $retorno = [];
         $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro["produto_parceiro_id"] );
+        $devolucao_integral = null;
 
         foreach ($apolices as $apolice)
         {
         	// Recupera todas as coberturas da Apolice
             $datasByCob = $this->define_dias_cancelamento($apolice['apolice_id'], $data_cancelamento, null, $apolice, $produto_parceiro_cancelamento);
+
+            if ( empty($datasByCob['itens']) )
+                continue;
+
         	foreach ($datasByCob['itens'] as $key => $datas)
         	{
 	            $dias_aderido = $datasByCob['dias_aderido'];
@@ -989,9 +994,8 @@ Class Pedido_Model extends MY_Model
 	        }
 
             if( $produto ) {
-                $produto_slug = $produto["produto_slug"];
                 $retorno[] = [
-                    'slug' => $produto_slug,
+                    'slug' => $produto["produto_slug"],
                     'dados_apolice' => $dados_apolice,
                     'apolices' => $apolice,
                 ];
@@ -1744,8 +1748,6 @@ Class Pedido_Model extends MY_Model
         ");
         $query = $this->_database->get();
 
-        #print_pre($this->db->last_query()); exit;
-
         $resp = [];
 
         if($query->num_rows() > 0)
@@ -2164,8 +2166,7 @@ Class Pedido_Model extends MY_Model
         {
             $resp = $query->result_array();
         }
-        //print_pre($this->db->last_query());
-        //die;
+
         return $resp;
     }
 
