@@ -494,8 +494,7 @@ Class Apolice_Endosso_Model extends MY_Model
                         if ( $tipo_pagto == 2 )
                         {
                             // *NAO* gera dados para enviar caso o vencimento seja anterior ao cancelamento
-                            // OU caso a cobertura não esteja vigente
-                            if ( ( !empty($dias_utilizados) && $vcto_inferior_entre_cancel ) || empty($vigente) )
+                            if ( !empty($dias_utilizados) && $vcto_inferior_entre_cancel )
                             {
                                 $geraDadosEndosso = false;
                             } 
@@ -506,6 +505,10 @@ Class Apolice_Endosso_Model extends MY_Model
                         }
                     }
                 }
+
+                // Emq qualquer caso que a cobertura não esteja vigente
+				if ( empty($vigente) )
+					$geraDadosEndosso = false;
             }
 
             // Valida se deve gerar o registro da parcela

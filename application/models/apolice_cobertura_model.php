@@ -128,9 +128,9 @@ Class Apolice_Cobertura_Model extends MY_Model
 			}
 
 			$coberturas[$value['cod_cobertura']] = [
-				'premio_liquido' 		=> ( issetor($coberturas[$value['cod_cobertura']]['premio_liquido'], 0) + $value['premio_liquido'] ),
-				'valor_iof' 	 		=> ( issetor($coberturas[$value['cod_cobertura']]['valor_iof'], 0) 		+ $value['valor_iof'] ),
-				'premio_bruto' 	 		=> ( issetor($coberturas[$value['cod_cobertura']]['premio_bruto'], 0) 	+ $value['premio_liquido_total'] ),
+				'premio_liquido' 		=> ( issetor($coberturas[$value['cod_cobertura']]['premio_liquido'], 0) + emptyor($value['premio_liquido'], 0) ),
+				'valor_iof' 	 		=> ( issetor($coberturas[$value['cod_cobertura']]['valor_iof'], 0) 		+ emptyor($value['valor_iof'], 0) ),
+				'premio_bruto' 	 		=> ( issetor($coberturas[$value['cod_cobertura']]['premio_bruto'], 0) 	+ emptyor($value['premio_liquido_total'], 0) ),
 				'data_inicio_vigencia' 	=> issetor($coberturas[$value['cod_cobertura']]['data_inicio_vigencia'],  $value['ini_vig']),
 				'data_fim_vigencia' 	=> issetor($coberturas[$value['cod_cobertura']]['data_fim_vigencia'], 	  $value['fim_vig']),
 			];
