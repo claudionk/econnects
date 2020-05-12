@@ -204,28 +204,28 @@ Class Capitalizacao_Model extends MY_Model
         return $this;
     }
 
-    function getTituloNaoUtilizado($capitalizacao_id){
-
+    function getTituloNaoUtilizado($capitalizacao_id)
+    {
         $date = date('Y-m-d H:i:s');
         $sql = "
-            SELECT *
+            SELECT capitalizacao_serie_titulo.capitalizacao_serie_titulo_id, capitalizacao_serie_titulo.numero, capitalizacao_serie_titulo.num_lote
             from capitalizacao
             inner JOIN capitalizacao_serie ON capitalizacao.capitalizacao_id = capitalizacao_serie.capitalizacao_id
             inner JOIN capitalizacao_serie_titulo ON capitalizacao_serie.capitalizacao_serie_id = capitalizacao_serie_titulo.capitalizacao_serie_id
-            where 
-            capitalizacao.capitalizacao_id = {$capitalizacao_id}
-            and capitalizacao.responsavel_num_sorte != 1 #PARCEIRO ENVIA O NÚMERO
-            and capitalizacao_serie.ativo = 1
-            and capitalizacao_serie.deletado = 0
-            and capitalizacao_serie_titulo.utilizado = 0
-            and capitalizacao_serie_titulo.ativo = 1 
-            and capitalizacao_serie.data_inicio < '{$date}'
-            and capitalizacao_serie.data_fim > '{$date}'
+            WHERE 
+                capitalizacao.capitalizacao_id = {$capitalizacao_id}
+                AND capitalizacao.responsavel_num_sorte != 1 #PARCEIRO ENVIA O NÚMERO
+                AND capitalizacao_serie.ativo = 1
+                AND capitalizacao_serie.deletado = 0
+                AND capitalizacao_serie_titulo.utilizado = 0
+                AND capitalizacao_serie_titulo.ativo = 1 
+                AND capitalizacao_serie.data_inicio < '{$date}'
+                AND capitalizacao_serie.data_fim > '{$date}'
+            ORDER BY IF(capitalizacao.titulo_randomico = 1, rand(), capitalizacao_serie_titulo.numero)
             LIMIT 1;
         ";
 
         return $this->_database->query($sql)->result_array();
-
     }
 
     function get_titulos_pedido($pedido_id){
