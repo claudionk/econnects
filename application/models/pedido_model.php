@@ -1045,6 +1045,7 @@ Class Pedido_Model extends MY_Model
 		$tot_dias_restantes = 0;
 		$tot_valor_liquido = 0;
 		$tot_valor_bruto = 0;
+        $vig_soma = '';
 
         // Busca todas as coberturas da apolice
         $cob_vig = $this->apolice_cobertura->getValorIOF($apolice_id, $apolice['pedido_id'], 1, $cod_cobertura);
@@ -1052,12 +1053,21 @@ Class Pedido_Model extends MY_Model
         {
 	        foreach ($cob_vig as $key => $vig)
 	        {
-	        	// Caso nao tenha vigência por cobertura, aplica-se a vigÊncia da apólice
-	        	$vig['data_inicio_vigencia']  = emptyor($vig['data_inicio_vigencia']	, $apolice['data_ini_vigencia']);
-	            $vig['data_fim_vigencia']     = emptyor($vig['data_fim_vigencia']		, $apolice['data_fim_vigencia']);
+                $soma_valores = false;
+
+	        	// Caso nao tenha vigência por cobertura, aplica-se a vigência da apólice
+	        	$vig['data_inicio_vigencia'] = emptyor($vig['data_inicio_vigencia']	, $apolice['data_ini_vigencia']);
+	            $vig['data_fim_vigencia']    = emptyor($vig['data_fim_vigencia']	, $apolice['data_fim_vigencia']);
+
+                // caso a vigência seja por cobertura deve se somar os períodos
+                if ( $vig['data_inicio_vigencia'] != $vig_soma )
+                {
+                    $soma_valores = true;
+                    $vig_soma = $vig['data_inicio_vigencia'];
+                }
 
 	            //FAZ CALCULO DO VALOR PARCIAL
-	            $dias_utilizados = app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
+	            $dias_utilizados = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D"), 0);
 
 	            // caso não tenha iniciado a vigência, deve realizar o calculo com 100% nao usada da vigência
 	            if ($dias_utilizados < 0)
@@ -1068,34 +1078,37 @@ Class Pedido_Model extends MY_Model
 	                $dia_inicio = $data_cancelamento;
 	            }
 
-	            $dias_restantes = app_date_get_diff_dias(app_dateonly_mysql_to_mask($dia_inicio), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]), "D");
-
-	            // cobertura não vigente não retorna dados
-	            if ($dias_restantes < 0)
-	            {
-	            	continue;
-	            }
-
-	            $dias_aderido = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_adesao"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
-	            $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]),  "D");
+	            $dias_restantes = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($dia_inicio), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]), "D"), 0);
+	            $dias_aderido = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_adesao"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D"), 0);
+	            $dias_total = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]),  "D"), 0);
 	            $devolucao_integral = ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_aderido <= $produto_parceiro_cancelamento['seg_depois_dias_carencia'] );
 
-	            // Dados por cobertura
-	            $itens[$key] = [
-	            	'devolucao_integral' => $devolucao_integral,
-		            'dias_utilizados' 	 => issetor($dias_utilizados, 0),
-		            'dias_total' 		 => issetor($dias_total, 0),
-		            'dias_restantes' 	 => issetor($dias_restantes, 0),
-		            'valor_liquido' 	 => issetor($vig['premio_liquido'], 0),
-		            'valor_bruto' 	 	 => issetor($vig['premio_bruto'], 0),
-	            ];
+                // cobertura vigente retorna dados
+                if ($dias_restantes >= 0)
+                {
+    	            // Dados por cobertura
+    	            $itens[$key] = [
+    	            	'devolucao_integral' => $devolucao_integral,
+    		            'dias_utilizados' 	 => $dias_utilizados,
+    		            'dias_total' 		 => $dias_total,
+    		            'dias_restantes' 	 => $dias_restantes,
+    		            'valor_liquido' 	 => $vig['premio_liquido'],
+    		            'valor_bruto' 	 	 => $vig['premio_bruto'],
+    	            ];
+                } else
+                {
+                    $devolucao_integral = false;
+                }
 
 	            // Totalizadores
-	            $tot_dias_utilizados += $itens[$key]['dias_utilizados'];
-	            $tot_dias_total 	 += $itens[$key]['dias_total'];
-	            $tot_dias_restantes  += $itens[$key]['dias_restantes'];
-	            $tot_valor_liquido 	 += $itens[$key]['valor_liquido'];
-	            $tot_valor_bruto 	 += $itens[$key]['valor_bruto'];
+                if ($soma_valores)
+                {
+    	            $tot_dias_utilizados += $dias_utilizados;
+    	            $tot_dias_total 	 += $dias_total;
+    	            $tot_dias_restantes  += $dias_restantes;
+    	            $tot_valor_liquido 	 += $vig['premio_liquido'];
+    	            $tot_valor_bruto 	 += $vig['premio_bruto'];
+                }
 
 	            // Caso haja qualquer cobertura com restituição, então a apólice ńão tem devolução integral 
 	            if ( !$devolucao_integral )
