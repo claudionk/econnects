@@ -1295,7 +1295,7 @@ function app_calculo_valor($tipo, $quantidade, $valor){
         $result = $valor - $quantidade;
     }
 
-    return round($result, 2);
+    return $result;
 }
 /**
  * Cálculo de porcentagem
