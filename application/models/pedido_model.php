@@ -986,17 +986,21 @@ Class Pedido_Model extends MY_Model
 	            $valor_estorno = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio);
 	            $valor_estorno_liq = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio_liq);
 
+                $datas['valor_restituido'] = $valor_estorno;
 	            $valor_estorno_total += $valor_estorno;
 	            $valor_estorno_total_liquido += $valor_estorno_liq;
-	            $dados_apolice = array();
-	            $dados_apolice['data_cancelamento'] = $data_cancelamento;
-	            $dados_apolice['valor_estorno'] = $valor_estorno_total;
 	        }
+
+            $valor_estorno_total = round($valor_estorno_total, 2);
+            $valor_estorno_total_liquido = round($valor_estorno_total_liquido, 2);
 
             if( $produto ) {
                 $retorno[] = [
                     'slug' => $produto["produto_slug"],
-                    'dados_apolice' => $dados_apolice,
+                    'dados_apolice' => [
+                        'data_cancelamento' => $data_cancelamento,
+                        'valor_estorno' => round($valor_estorno_total, 2),
+                    ],
                     'apolices' => $apolice,
                 ];
             }
