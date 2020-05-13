@@ -3785,6 +3785,7 @@ if ( ! function_exists('app_integracao_88i')) {
         $dados['registro']['produto_parceiro_id']       = $acesso->produto_parceiro_id;
         $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
         $dados['registro']['data_adesao']               = $dados['registro']['data_adesao_cancel'];
+        $dados['registro']['nota_fiscal_data']          = $dados['registro']['data_adesao_cancel'];
         $eanErro = true;
         $eanErroMsg = "";
 
