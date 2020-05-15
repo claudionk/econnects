@@ -474,7 +474,7 @@ class Cliente_Model extends MY_Model
                 foreach ($data['TELEFONES'] as $telefone)
                 {
                     $data_contato['contato']         = app_retorna_numeros($telefone['TELEFONE']);
-                    $data_contato['melhor_horario']  = $telefone['MELHOR_HORARIO'];
+                    $data_contato['melhor_horario']  = emptyor($telefone['MELHOR_HORARIO'], 'Q');
                     $data_contato['contato_tipo_id'] = (app_validate_mobile_phone(app_format_telefone_unitfour(app_retorna_numeros($telefone['TELEFONE'])))) ? 2 : 3;
                     $this->cliente_contato->insert_contato($data_contato);
                 }
