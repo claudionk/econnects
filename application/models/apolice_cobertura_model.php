@@ -67,6 +67,15 @@ Class Apolice_Cobertura_Model extends MY_Model
         return $this;
     }
 
+    function getByApoliceID($apolice_id){
+        $this->_database->select("{$this->_table}.*, IFNULL(IFNULL(apolice_equipamento.valor_premio_net,apolice_generico.valor_premio_net),apolice_seguro_viagem.valor_premio_net) AS valor_premio_net", FALSE);
+        $this->_database->join("apolice_equipamento","apolice_equipamento.apolice_id = {$this->_table}.apolice_id", "left");
+        $this->_database->join("apolice_generico","apolice_generico.apolice_id = {$this->_table}.apolice_id", "left");
+        $this->_database->join("apolice_seguro_viagem","apolice_seguro_viagem.apolice_id = {$this->_table}.apolice_id", "left");
+        $this->_database->where("{$this->_table}.apolice_id", $apolice_id);
+        return $this;
+    }
+
     function filterByVigenciaCob($apolice_id){
         $this->_database->select("data_inicio_vigencia, data_fim_vigencia, cod_cobertura, apolice_cobertura_id");
         $this->_database->where("apolice_id", $apolice_id);
@@ -139,22 +148,28 @@ Class Apolice_Cobertura_Model extends MY_Model
         return $coberturas;
     }
 
-    public function geraDadosCancelamento($pedido_id, $valor_base)
+    // public function geraDadosCancelamento($pedido_id, $valor_base)
+    public function geraDadosCancelamento($apolice_id, $valor_base, $produto_parceiro_plano_id = null, $ValuesCoberturas = [])
     {
-        $this->load->model('apolice_model', 'apolice');
+        $valor_base = floatval( $valor_base );
+        $coberturas = $this->getByApoliceID($apolice_id)->get_all();
 
-        $valor_base                 = floatval( $valor_base );
-        $coberturas                 = $this->filterByPedidoID($pedido_id)->get_all();
-        $apolice                    = $this->apolice->getApolicePedido($pedido_id);
-        $produto_parceiro_plano_id  = (!empty($apolice)) ? $apolice[0]['produto_parceiro_plano_id'] : null;
+        // Caso não tenha enviado o Id do Plano
+        if ( empty($produto_parceiro_plano_id) )
+        {
+            $this->load->model('apolice_model', 'apolice');
+            $apolice                   = $this->apolice->get($apolice_id);
+            $produto_parceiro_plano_id = (!empty($apolice)) ? $apolice[0]['produto_parceiro_plano_id'] : null;
+        }
+
         $dados_bilhete              = $this->apolice->defineDadosBilhete($produto_parceiro_plano_id);
         $percentual                 = false;
         $total                      = 0;
         $maior_valor                = 0;
         $maior_pos                  = 0;
 
-        foreach ($coberturas as $i => $v) {
-
+        foreach ($coberturas as $i => $v)
+        {
             $cobertura      = $v;
             $percentagem    = $valor_cobertura = $valor_config = 0;
             switch ($cobertura["mostrar"]) {
@@ -168,6 +183,13 @@ Class Apolice_Cobertura_Model extends MY_Model
                 // case 'preco':
                 //     $valor_cobertura = $valor_config = floatval($cobertura["valor_config"]);
                 //     break;
+            }
+
+            // Caso tenha enviado o valor da cobertura
+            if ( !empty($ValuesCoberturas[$cobertura['cod_cobertura']]) )
+            {
+                $valor_cobertura = $ValuesCoberturas[$cobertura['cod_cobertura']]['valor_restituido'];
+                $valor_config = floatval($valor_cobertura / $cobertura['valor_premio_net'] * 100);
             }
 
             $valor_cobertura = round($valor_cobertura*-1,2);
