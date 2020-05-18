@@ -333,6 +333,12 @@ Class Parceiro_Model extends MY_Model
         return $this;
     }
 
+    public function filter_by_slug($slug)
+    {
+        $this->_database->where('slug',$slug );
+        return $this;
+    }
+
     public function getParceiroCombo($arrIds)
     {
         $query = $this->db->query( "

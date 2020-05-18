@@ -214,7 +214,7 @@ Class Produto_Parceiro_Model extends MY_Model
         return $this->get_all(0,0,false,false);
     }
 
-    public function getProdutosByParceiro($parceiro_id, $produto_id = null, $onlyEnable = true)
+    public function getProdutosByParceiro($parceiro_id, $produto_id = null, $onlyEnable = true, $slug_produto = null)
     {
         $produtos = $this->get_produtos_venda_admin( $parceiro_id, $produto_id );
         $relacionamento = $this->get_produtos_venda_admin_parceiros( $parceiro_id, null, $produto_id );
@@ -230,7 +230,7 @@ Class Produto_Parceiro_Model extends MY_Model
             if ($onlyEnable) {
                 // $result = array_intersect_key($result, $this->getProdutosHabilitados($parceiro_id));
 
-                $produtosHabilitados = $this->getProdutosHabilitados($parceiro_id);
+                $produtosHabilitados = $this->getProdutosHabilitados($parceiro_id, null, $slug_produto);
                 $ret = [];
                 foreach ($result as $rs) {
                     foreach ($produtosHabilitados as $prod) {
@@ -251,7 +251,7 @@ Class Produto_Parceiro_Model extends MY_Model
             return null;
         }
     }
-    public function getProdutosHabilitados($parceiro_id = null, $produto_parceiro_id = null)
+    public function getProdutosHabilitados($parceiro_id = null, $produto_parceiro_id = null, $slug_produto = null)
     {
         $where = '';
         if ( !empty($parceiro_id) )
@@ -265,10 +265,14 @@ Class Produto_Parceiro_Model extends MY_Model
             }
         }
 
-
         if ( !empty($produto_parceiro_id) )
         {
             $where .= " AND h.produto_parceiro_id = $produto_parceiro_id ";
+        }
+
+        if ( !empty($slug_produto) )
+        {
+            $where .= " AND produto_parceiro.slug_produto = '{$slug_produto}' ";
         }
 
         // print_r("
