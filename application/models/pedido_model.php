@@ -986,7 +986,7 @@ Class Pedido_Model extends MY_Model
 	            $valor_estorno = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio);
 	            $valor_estorno_liq = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio_liq);
 
-                $datas['valor_restituido'] = $valor_estorno;
+                $datasByCob['itens'][$key]['valor_restituido'] = $valor_estorno;
 	            $valor_estorno_total += $valor_estorno;
 	            $valor_estorno_total_liquido += $valor_estorno_liq;
 	        }
@@ -1001,6 +1001,7 @@ Class Pedido_Model extends MY_Model
                         'data_cancelamento' => $data_cancelamento,
                         'valor_estorno' => round($valor_estorno_total, 2),
                     ],
+                    'coberturas' => $datasByCob['itens'],
                     'apolices' => $apolice,
                 ];
             }
@@ -1148,6 +1149,7 @@ Class Pedido_Model extends MY_Model
             foreach ($calculo['dados'] as $row) {
                 $apolice = $row['apolices'];
                 $dados_apolice = $row['dados_apolice'];
+                $coberturas = $row['coberturas'];
 
                 switch( $row['slug'] ) {
                     case "seguro_viagem":
@@ -1168,6 +1170,7 @@ Class Pedido_Model extends MY_Model
                     $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido);
                 }
 
+                $this->apolice_cobertura->geraDadosCancelamento($apolice["apolice_id"], $calculo['valor_estorno_total_liquido'], $apolice["produto_parceiro_plano_id"], $coberturas);
             }
 
         }
@@ -1175,7 +1178,6 @@ Class Pedido_Model extends MY_Model
         $this->atualizarDadosBancarios($pedido_id, $dados_bancarios);
         $this->pedido_transacao->insStatus($pedido_id, 'cancelado', "PEDIDO CANCELADO COM SUCESSO");
         $this->fatura->insertFaturaEstorno($pedido_id, $calculo['valor_estorno_total']);
-        $this->apolice_cobertura->geraDadosCancelamento($pedido_id, $calculo['valor_estorno_total_liquido']);
     }
 
     public function atualizarDadosBancarios($pedido_id, $dados_bancarios = []) {
