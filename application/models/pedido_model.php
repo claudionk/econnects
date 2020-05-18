@@ -872,12 +872,18 @@ Class Pedido_Model extends MY_Model
         $d1 = new DateTime($define_date);
         $define_date = $d1->format('Y-m-d H:i:s');
 
-        if (!empty($criticas['result'])) {
+        if (!empty($criticas['result']))
+        {
             // efetuar o cancelamento
-            $this->executa_estorno_cancelamento($pedido_id, $criticas['vigencia'], TRUE, $dados_bancarios, $define_date, $tipo);
+            $result = $this->executa_estorno_cancelamento($pedido_id, $criticas['vigencia'], TRUE, $dados_bancarios, $define_date, $tipo);
+            if ( empty($result['status']) )
+            {
+            	$criticas['result'] = $criticas['status'] = false;
+            	$criticas['mensagem'] = $result['mensagem'];
+            }
         }
 
-        return $criticas;
+		return $criticas;
     }
 
     function cancelamento_calculo($pedido_id, $define_date = false )
@@ -1120,6 +1126,7 @@ Class Pedido_Model extends MY_Model
         }
 
         return [
+        	'status'			 => !empty($cob_vig),
         	'devolucao_integral' => $tot_devolucao_integral,
             'dias_utilizados' 	 => $tot_dias_utilizados,
             'dias_aderido' 		 => issetor($dias_aderido, 0),
@@ -1131,10 +1138,17 @@ Class Pedido_Model extends MY_Model
         ];
     }
 
-    function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $dados_bancarios = [], $define_data = false, $tipo = 'C' ){
+    function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $dados_bancarios = [], $define_data = false, $tipo = 'C' )
+    {
+    	$result = [
+            'status' => false,
+            'mensagem' => '',
+        ];
+
         if( !$define_data ){
             $define_data = date("Y-m-d H:i:s");
         }
+
         $this->load->model("apolice_model", "apolice");
         $this->load->model("apolice_cobertura_model", "apolice_cobertura");
         $this->load->model("apolice_equipamento_model", "apolice_equipamento");
@@ -1144,40 +1158,47 @@ Class Pedido_Model extends MY_Model
 
         $calculo = $this->calcula_estorno_cancelamento($pedido_id, $vigente, $define_data);
 
-        if (!empty($calculo['status'])) {
+        // caso não tenha conseguido calcular o valor a estornar
+        if ( empty($calculo['status']) )
+        {
+        	$result['mensagem'] = $calculo['mensagem'];
+        	return $result;
+        }
 
-            foreach ($calculo['dados'] as $row) {
-                $apolice = $row['apolices'];
-                $dados_apolice = $row['dados_apolice'];
-                $coberturas = $row['coberturas'];
+        foreach ($calculo['dados'] as $row)
+        {
+            $apolice = $row['apolices'];
+            $dados_apolice = $row['dados_apolice'];
+            $coberturas = $row['coberturas'];
 
-                switch( $row['slug'] ) {
-                    case "seguro_viagem":
-                        $this->apolice_seguro_viagem->update($apolice["apolice_seguro_viagem_id"],  $dados_apolice, TRUE);
-                        break;
-                    case "equipamento":
-                        $this->apolice_equipamento->update($apolice["apolice_equipamento_id"],  $dados_apolice, TRUE);
-                        break;
-                    default:
-                        $this->apolice_generico->update($apolice["apolice_generico_id"],  $dados_apolice, TRUE);
-                        break;
-                }
-
-                $this->apolice->update($apolice["apolice_id"], ['apolice_status_id' => 2], TRUE);
-
-                if($ins_movimentacao) {
-                    $pedido = $this->get($pedido_id);
-                    $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido);
-                }
-
-                $this->apolice_cobertura->geraDadosCancelamento($apolice["apolice_id"], $calculo['valor_estorno_total_liquido'], $apolice["produto_parceiro_plano_id"], $coberturas);
+            switch( $row['slug'] ) {
+                case "seguro_viagem":
+                    $this->apolice_seguro_viagem->update($apolice["apolice_seguro_viagem_id"],  $dados_apolice, TRUE);
+                    break;
+                case "equipamento":
+                    $this->apolice_equipamento->update($apolice["apolice_equipamento_id"],  $dados_apolice, TRUE);
+                    break;
+                default:
+                    $this->apolice_generico->update($apolice["apolice_generico_id"],  $dados_apolice, TRUE);
+                    break;
             }
 
+            $this->apolice->update($apolice["apolice_id"], ['apolice_status_id' => 2], TRUE);
+
+            if($ins_movimentacao) {
+                $pedido = $this->get($pedido_id);
+                $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido);
+            }
+
+            $this->apolice_cobertura->geraDadosCancelamento($apolice["apolice_id"], $calculo['valor_estorno_total_liquido'], $apolice["produto_parceiro_plano_id"], $coberturas);
         }
 
         $this->atualizarDadosBancarios($pedido_id, $dados_bancarios);
         $this->pedido_transacao->insStatus($pedido_id, 'cancelado', "PEDIDO CANCELADO COM SUCESSO");
         $this->fatura->insertFaturaEstorno($pedido_id, $calculo['valor_estorno_total']);
+
+        $result['status'] = true;
+        return $result;
     }
 
     public function atualizarDadosBancarios($pedido_id, $dados_bancarios = []) {
