@@ -2071,7 +2071,7 @@ if ( ! function_exists('app_integracao_emissao'))
 
                 $efetuaPagto = app_get_api("pagamento_pagar", "POST", json_encode($camposPagto), $acesso);
                 if (empty($efetuaPagto['status'])) {
-                    $response->msg[] = ['id' => -1, 'msg' => $efetuaPagto['response'], 'slug' => "pagamento_pagar"];
+                    $response->msg[] = ['id' => -1, 'msg' => $efetuaPagto['response']->mensagem, 'slug' => "pagamento_pagar"];
                     return $response;
                 }
 
