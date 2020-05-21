@@ -2126,7 +2126,7 @@ if ( ! function_exists('app_integracao_apolice')) {
 
         if ($dados['registro']['cod_tpa'] == '025')
         {
-            $num_apolice_aux .= substr($num_apolice, 3, 3) . str_pad(substr($num_apolice, 10, 5), 5, '0', STR_PAD_LEFT);
+            $num_apolice_aux .= substr($num_apolice, 3, 3) . str_pad(substr($num_apolice, 10, 7), 7, '0', STR_PAD_LEFT);
         } else {
             $num_apolice_aux .= str_pad(substr($num_apolice, 7, 8), 8, '0', STR_PAD_LEFT);
         }
