@@ -934,12 +934,12 @@ class Apolice_Model extends MY_Model
             ->select("produto_parceiro.slug_produto")
             ->select("produto.nome as produto")
             ->select("produto.slug as slug_produto_seguro")
-            ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
-            ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner')
-            ->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
-            ->join("produto", "produto_parceiro.produto_id = produto.produto_id", 'inner')
-            ->join("parceiro parceiro_seg", "parceiro_seg.parceiro_id = produto_parceiro.parceiro_id", 'inner')
-            ->join("parceiro", "parceiro.parceiro_id = apolice.parceiro_id", 'inner')
+            ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", "inner")
+            ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", "inner")
+            ->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id", "inner")
+            ->join("produto", "produto_parceiro.produto_id = produto.produto_id", "inner")
+            ->join("parceiro parceiro_seg", "parceiro_seg.parceiro_id = produto_parceiro.parceiro_id", "inner")
+            ->join("parceiro", "parceiro.parceiro_id = apolice.parceiro_id", "inner")
             ->join("capitalizacao_serie_titulo", "apolice.pedido_id = capitalizacao_serie_titulo.pedido_id and capitalizacao_serie_titulo.deletado = 0", 'left');
 
         if ($pedido)
@@ -947,18 +947,24 @@ class Apolice_Model extends MY_Model
             $pedido = $pedido[0];
             if ($pedido['slug'] == 'seguro_viagem')
             {
-                $this->_database->join("apolice_seguro_viagem apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", 'inner');
+                $this->_database->join("apolice_seguro_viagem apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", "inner");
             } 
             elseif ($pedido['slug'] == 'equipamento')
             {
-                $this->_database->join("apolice_equipamento apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", 'inner');
+                $this->_database->join("apolice_equipamento apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", "inner");
             }
             elseif ($pedido["slug"] == "generico" || $pedido["slug"] == "seguro_saude")
             {
-                $this->_database->join("apolice_generico apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", 'inner');
+                $this->_database->join("apolice_generico apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", "inner");
             }
 
-            $this->_database->select("apolice_auxiliar.*, IFNULL(apolice_auxiliar.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte, IFNULL(apolice_auxiliar.num_proposta_capitalizacao, capitalizacao_serie_titulo.num_lote) as num_proposta_capitalizacao ", FALSE);
+            $this->_database->select("apolice_auxiliar.*
+                , IFNULL(apolice_auxiliar.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte
+                , IFNULL(apolice_auxiliar.num_proposta_capitalizacao, capitalizacao_serie_titulo.num_lote) as num_proposta_capitalizacao
+                , IFNULL(av.rec_data_inicio_vigencia, apolice_auxiliar.data_ini_vigencia) as data_ini_vigencia
+                , IFNULL(av.rec_data_fim_vigencia, apolice_auxiliar.data_fim_vigencia) as data_fim_vigencia
+                 ", FALSE);
+            $this->_database->join("apolice_vigencia_nm av", "apolice.apolice_id = av.apolice_id", "left");
             $this->_database->where("apolice.pedido_id", $pedido_id);
             return $this->get_all();
         } else {
