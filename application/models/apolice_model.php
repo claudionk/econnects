@@ -1691,7 +1691,7 @@ class Apolice_Model extends MY_Model
                 $num_apolice_aux = $dadosPP['cod_sucursal'] . $dadosPP['cod_ramo'] . $dadosPP['cod_tpa'];
 
                 if ($dadosPP['cod_tpa'] == '025') {
-                    $num_apolice_aux .= substr($dadosPP['num_apolice'], 3, 3) . str_pad(substr($dadosPP['num_apolice'], 10, 7), 7, '0', STR_PAD_LEFT);
+                    $num_apolice_aux .= substr($dadosPP['num_apolice'], 3, 3) . str_pad(substr($dadosPP['num_apolice'], 8, 7), 7, '0', STR_PAD_LEFT);
                 } elseif ($dadosPP['cod_tpa'] == '048') {
                     $num_apolice_aux .= str_pad(substr($dadosPP['num_apolice'], 7, 6), 8, '0', STR_PAD_LEFT);
                 } else {
