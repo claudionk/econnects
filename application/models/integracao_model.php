@@ -678,7 +678,7 @@ Class Integracao_Model extends MY_Model
     private function processRegisters($linhas, $layout_m, $registros, $integracao_log, $integracao) {
         if (!empty($layout_m)){
             foreach ($registros as $registro) {
-                $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $this->data_template_script['totalRegistros']+1, $this->geraCampoChave($integracao['campo_chave'], $registro), null, $this->geraCampoChave($integracao['parametros'], $registro));
+                $integracao_log_detalhe_id = $this->integracao_log_detalhe->insLogDetalhe($integracao_log['integracao_log_id'], $this->data_template_script['totalRegistros']+1, $this->geraCampoChave($integracao['campo_chave'], $registro), null);
 
                 foreach ($layout_m as $lm) {
 
