@@ -148,7 +148,6 @@ Class Apolice_Cobertura_Model extends MY_Model
         return $coberturas;
     }
 
-    // public function geraDadosCancelamento($pedido_id, $valor_base)
     public function geraDadosCancelamento($apolice_id, $valor_base, $produto_parceiro_plano_id = null, $ValuesCoberturas = [])
     {
         $valor_base = floatval( $valor_base );
@@ -188,7 +187,7 @@ Class Apolice_Cobertura_Model extends MY_Model
             // Caso tenha enviado o valor da cobertura
             if ( !empty($ValuesCoberturas[$cobertura['cod_cobertura']]) )
             {
-                $valor_cobertura = $ValuesCoberturas[$cobertura['cod_cobertura']]['valor_restituido'];
+                $valor_cobertura = $ValuesCoberturas[$cobertura['cod_cobertura']]['valor_restituido_liquido'];
                 $valor_config = floatval($valor_cobertura / $cobertura['valor_premio_net'] * 100);
             }
 

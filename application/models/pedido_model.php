@@ -993,6 +993,7 @@ Class Pedido_Model extends MY_Model
 	            $valor_estorno_liq = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio_liq);
 
                 $datasByCob['itens'][$key]['valor_restituido'] = $valor_estorno;
+                $datasByCob['itens'][$key]['valor_restituido_liquido'] = $valor_estorno_liq;
 	            $valor_estorno_total += $valor_estorno;
 	            $valor_estorno_total_liquido += $valor_estorno_liq;
 	        }
