@@ -5,4 +5,3 @@ application/config/database\.php
 index\.php
 
 assets/files/
-dashboard/app/model/conn.php
