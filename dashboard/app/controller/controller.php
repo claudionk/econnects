@@ -24,7 +24,7 @@
         $data_error = get_error_process($dt_inicio, $dt_final);
         $data_error = json_encode(array('data_error' => $data_error));        
 
-        include('./app/view/dashboard/index.php');    
+        include('./app/view/dashboard/home.php');    
     }
 
     function detalhe(){
@@ -34,7 +34,7 @@
 
         $data = get_all_process($dt_inicio, $dt_final);        
         $data = json_encode(array ('data' => $data));
-        include('./app/view/detalhe/index.php');    
+        include('./app/view/detalhe/home.php');    
     }
 
     function detalhe_lock(){
@@ -44,7 +44,7 @@
   
         $data_lock = get_lock_process($dt_inicio, $dt_final);    
         $data_lock = json_encode(array('data_lock' => $data_lock));  
-        include('./app/view/detalhe_lock/index.php');    
+        include('./app/view/detalhe_lock/home.php');    
     }
 
     function detalhe_run_now(){
@@ -52,7 +52,7 @@
   
         $data_run_now = get_run_now_process();    
         $data_run_now = json_encode(array('data_run_now' => $data_run_now));  
-        include('./app/view/detalhe_run_now/index.php');    
+        include('./app/view/detalhe_run_now/home.php');    
     }
 
     function detalhe_not_exec(){
@@ -60,7 +60,7 @@
   
         $data_not_exec = get_not_exec_process();    
         $data_not_exec = json_encode(array('data_not_exec' => $data_not_exec));  
-        include('./app/view/detalhe_not_exec/index.php');    
+        include('./app/view/detalhe_not_exec/home.php');    
     }    
 
     function detalhe_successful(){
@@ -70,7 +70,7 @@
   
         $data_successful = get_successful_process($dt_inicio, $dt_final);    
         $data_successful = json_encode(array('data_successful' => $data_successful)); 
-        include('./app/view/detalhe_successful/index.php');    
+        include('./app/view/detalhe_successful/home.php');    
     }      
 
     function detalhe_error(){
@@ -80,7 +80,7 @@
   
         $data_error = get_error_process($dt_inicio, $dt_final);    
         $data_error = json_encode(array('data_error' => $data_error));        
-        include('./app/view/detalhe_error/index.php');    
+        include('./app/view/detalhe_error/home.php');    
     }          
 
     function detalhe_error_details(){
@@ -91,7 +91,7 @@
   
         $data_error_det = get_error_process_details($dt_inicio, $dt_final, $file_name);    
         $data_error_det = json_encode(array('data_error_det' => $data_error_det));        
-        include('./app/view/detalhe_error_details/index.php');    
+        include('./app/view/detalhe_error_details/home.php');    
     }    
 
     function faturamento(){        
@@ -102,7 +102,7 @@
         $data_invoicing = get_all_invoicing();    
         $data_invoicing = json_encode(array('data_invoicing' => $data_invoicing));
 
-        include('./app/view/faturamento/index.php');    
+        include('./app/view/faturamento/home.php');    
     }  
 
     function faturamento_report(){        
