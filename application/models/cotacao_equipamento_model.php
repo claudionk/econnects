@@ -470,7 +470,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
         }
 
         if(isset($cotacao['cnpj_cpf'])){
-            $data_cotacao['cnpj_cpf'] = app_retorna_numeros($cotacao['cnpj_cpf']);
+            $data_cotacao['cnpj_cpf'] = app_completa_cpf_cnpj($cotacao['cnpj_cpf']);
         }
 
         if(isset($cotacao['rg'])){

@@ -150,7 +150,7 @@ class Cliente_Model extends MY_Model
     {
         //Dados
         $data = array(
-            'cnpj_cpf'                   => app_retorna_numeros($this->input->post('cnpj_cpf')),
+            'cnpj_cpf'                   => app_completa_cpf_cnpj($this->input->post('cnpj_cpf')),
             'codigo'                     => $this->input->post('codigo'),
             'colaborador_id'             => $this->input->post('colaborador_id'),
             'colaborador_comercial_id'   => $this->input->post('colaborador_comercial_id'),
@@ -249,7 +249,7 @@ class Cliente_Model extends MY_Model
         $cliente['quantidade']      = 0;
         $cliente['cliente_id']      = 0;
 
-        $documento = app_retorna_numeros($documento);
+        $documento = app_completa_cpf_cnpj($documento);
         if (empty($documento)) {
             return $cliente;
         }
@@ -294,9 +294,7 @@ class Cliente_Model extends MY_Model
                 }
 
             } else {
-                $cliente = $this->filterByCPFCNPJ(app_retorna_numeros($documento))
-
-                    ->get_all();
+                $cliente = $this->filterByCPFCNPJ($documento)->get_all();
 
                 if (count($cliente) > 0) {
                     $cliente = $cliente[0];
@@ -352,7 +350,7 @@ class Cliente_Model extends MY_Model
 
                 }
             } else {
-                $cliente = $this->filterByCPFCNPJ(app_retorna_numeros($documento))->get_all();
+                $cliente = $this->filterByCPFCNPJ($documento)->get_all();
                 if (count($cliente) > 0) {
                     $cliente             = $cliente[0];
                     $contatos            = $this->cliente_contato->with_contato()->get_by_cliente($cliente["cliente_id"]);
@@ -369,7 +367,7 @@ class Cliente_Model extends MY_Model
             }
         } else {
 
-            $cliente = $this->filterByCPFCNPJ(app_retorna_numeros($documento))->get_all();
+            $cliente = $this->filterByCPFCNPJ($documento)->get_all();
 
             if (count($cliente) > 0) {
                 $cliente = $cliente[0];
@@ -413,7 +411,7 @@ class Cliente_Model extends MY_Model
         }
 
         //verifica se o cliente existe
-        $documento = isset($data['DADOS_CADASTRAIS'][0]['CPF']) ? app_retorna_numeros($data['DADOS_CADASTRAIS'][0]['CPF']) : app_retorna_numeros($data['DADOS_CADASTRAIS']['CPF']);
+        $documento = isset($data['DADOS_CADASTRAIS'][0]['CPF']) ? app_completa_cpf_cnpj($data['DADOS_CADASTRAIS'][0]['CPF']) : app_completa_cpf_cnpj($data['DADOS_CADASTRAIS']['CPF']);
         $cliente   = $this->filterByCPFCNPJ($documento)->filterByParceiroID($data["parceiro_id"])->get_all();
 
         if (count($cliente) == 0)
@@ -429,8 +427,8 @@ class Cliente_Model extends MY_Model
 
             //insere novo cliente
             $data_cliente                               = array();
-            $data_cliente['tipo_cliente']               = (app_verifica_cpf_cnpj(app_retorna_numeros($data['DADOS_CADASTRAIS']['CPF'])) == 'CNPJ') ? 'CO' : 'CF';
-            $data_cliente['cnpj_cpf']                   = app_retorna_numeros($data['DADOS_CADASTRAIS']['CPF']);
+            $data_cliente['tipo_cliente']               = (app_verifica_cpf_cnpj(app_completa_cpf_cnpj($data['DADOS_CADASTRAIS']['CPF'])) == 'CNPJ') ? 'CO' : 'CF';
+            $data_cliente['cnpj_cpf']                   = app_completa_cpf_cnpj($data['DADOS_CADASTRAIS']['CPF']);
             $data_cliente['codigo']                     = emptyor( $data['DADOS_CADASTRAIS']['CODIGO'], $this->cliente_codigo->get_codigo_cliente_formatado($data_cliente['tipo_cliente']) );
             $data_cliente['parceiro_id']                = emptyor( $data['parceiro_id'], 0);
             $data_cliente['colaborador_id']             = 1;
@@ -497,7 +495,7 @@ class Cliente_Model extends MY_Model
             $cliente_id = $cliente[0]['cliente_id'];
 
             $data_cliente                               = array();
-            $data_cliente['cnpj_cpf']                   = app_retorna_numeros($data['DADOS_CADASTRAIS']['CPF']);
+            $data_cliente['cnpj_cpf']                   = app_completa_cpf_cnpj($data['DADOS_CADASTRAIS']['CPF']);
             $data_cliente['razao_nome']                 = $data['DADOS_CADASTRAIS']['NOME'];
             $data_cliente['data_nascimento']            = app_dateonly_mask_to_mysql($data['DADOS_CADASTRAIS']['DATANASC']);
             if ( !empty( $data['DADOS_CADASTRAIS']['STATUS']) )
@@ -674,7 +672,7 @@ class Cliente_Model extends MY_Model
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
 
         //verifica se o cliente existe
-        $cliente = $this->filterByCPFCNPJ(app_retorna_numeros($data['cnpj_cpf']))
+        $cliente = $this->filterByCPFCNPJ(app_completa_cpf_cnpj($data['cnpj_cpf']))
             ->get_all();
 
         if (isset($data['produto_parceiro_id']) && empty($data['parceiro_id'])) {
@@ -688,8 +686,8 @@ class Cliente_Model extends MY_Model
 
             //insere novo cliente
             $data_cliente                             = array();
-            $data_cliente['tipo_cliente']             = (app_verifica_cpf_cnpj(app_retorna_numeros($data['cnpj_cpf'])) == 'CNPJ') ? 'CO' : 'CF';
-            $data_cliente['cnpj_cpf']                 = app_retorna_numeros($data['cnpj_cpf']);
+            $data_cliente['tipo_cliente']             = (app_verifica_cpf_cnpj(app_completa_cpf_cnpj($data['cnpj_cpf'])) == 'CNPJ') ? 'CO' : 'CF';
+            $data_cliente['cnpj_cpf']                 = app_completa_cpf_cnpj($data['cnpj_cpf']);
             $data_cliente['ie_rg']                    = issetor($data['rg'], '');
             $data_cliente['codigo']                   = $this->cliente_codigo->get_codigo_cliente_formatado($data_cliente['tipo_cliente']);
             $data_cliente['colaborador_id']           = 1;

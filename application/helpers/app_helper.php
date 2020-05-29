@@ -458,6 +458,8 @@ function app_valida_email($str)
 
 function app_verifica_cpf_cnpj($cpf_cnpj)
 {
+    $cpf_cnpj = app_clear_number($cpf_cnpj);
+
     // Verifica CPF
     if ( strlen($cpf_cnpj ) === 11 ) {
         return 'CPF';
@@ -484,6 +486,20 @@ function app_verifica_cpf_cnpj($cpf_cnpj)
 
         return false;
     }
+}
+
+function app_completa_cpf_cnpj($cpf_cnpj)
+{
+    $cpf_cnpj = "00000000000". app_clear_number($cpf_cnpj);
+    $cpf = substr($cpf_cnpj, -11);
+    $cnpj = substr($cpf_cnpj, -14);
+
+    if (app_verifica_cpf_cnpj($cpf_cnpj) == 'CNPJ')
+    {
+        return $cnpj;
+    }
+
+    return $cpf;
 }
 
 function app_clear_number($str)
