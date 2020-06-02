@@ -268,45 +268,64 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
         return $comissao;
     }
 
-    public function get_todas_comissoes($produto_parceiro_id, $parceiro_relacionamento_produto_id = 0, $parceiro_id = 0){
+    public function get_todas_comissoes($produto_parceiro_id, $parceiro_relacionamento_produto_id = 0, $parceiro_id = 0, $pai_id_new = 0)
+    {
         $this->soma = 0;
         $this->somatoria = [];
+
         $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
         $this->_database->where("comissao_tipo", 0);
-
         $rows = $this->get_all(0, 0, true, 'ASC');
 
-        if(!empty($rows)){
+        if(!empty($rows))
+        {
             $oArray = [];
             $parceiro_id_pai = 0;
 
-            foreach ($rows as $row) {
+            foreach ($rows as $row)
+            {
                 // echo "id = ".$row["parceiro_relacionamento_produto_id"] ." - ". $row['parceiro_id'] ." - ". $row['pai_id'] ."<br>";
 
-                if ( $row['pai_id'] == 0 ){
-
+                if ( $row['pai_id'] == 0 )
+                {
                     $parceiro_id_pai = $row['parceiro_id'];
                     $oArray = [
                         $parceiro_id_pai => [
-                            "comissao" => $row['comissao']
+                            "comissao" => $row['comissao'],
                         ]
                     ];
 
                 } else {
+
+                    // se está na mesma hierarquia (irmao)
+                    if ( !empty($pai_id_new) && $pai_id_new == $row['pai_id'])
+                    {
+                        // não considera na soma
+                        continue;
+                    }
 
                     $result = $this
                         ->filter_by_pai($row["parceiro_relacionamento_produto_id"])
                         ->filter_by_produto_parceiro($produto_parceiro_id)
                         ->get_all();
 
-                    if ( !empty($result) ) {
+                    if ( !empty($result) )
+                    {
                         $oArray[$parceiro_id_pai][$row['parceiro_id']] = [
                             'comissao' => $row['comissao'],
                         ];
 
-                        foreach ($result as $r) {
+                        foreach ($result as $r)
+                        {
+                            // se está na mesma hierarquia (irmao)
+                            if ( !empty($pai_id_new) && $pai_id_new == $r['pai_id'])
+                            {
+                                // não considera na soma
+                                continue;
+                            }
+
                             $oArray[$parceiro_id_pai][$row['parceiro_id']][$r['parceiro_id']] = [
-                                "comissao" => $r['comissao']
+                                "comissao" => $r['comissao'],
                             ];
                         }
                     }
