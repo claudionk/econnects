@@ -204,8 +204,8 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
         $produto_parceiro_id = $this->input->post('produto_parceiro_id');
         $parceiro_relacionamento_produto_id = $this->input->post('parceiro_relacionamento_produto_id');
         $parceiro_id = $this->input->post('parceiro_id');
-
-        $soma = $this->relacionamento->get_todas_comissoes($produto_parceiro_id, $parceiro_relacionamento_produto_id, $parceiro_id);
+        $pai_id = $this->input->post('pai_id');
+        $soma = $this->relacionamento->get_todas_comissoes($produto_parceiro_id, $parceiro_relacionamento_produto_id, $parceiro_id, $pai_id);
 
         $configuracao = $this->configuracao->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
 
