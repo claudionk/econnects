@@ -48,9 +48,17 @@
                     <?php 
                       $outhtml = '';
                       foreach ($data_lock['data_lock']['result_lock'] as $row) {
-                        $caminho_prd_arq_1 = (@fopen($row['caminho_prd_arq_1'],'r')) ? ' <a title="ServPrd40" href="'.$row['caminho_prd_arq_1'].'" target="_blank"><i class="fas fa-file-alt fa-2x" style="color:green"></i></a>' : '<i class="fas fa-file-alt fa-2x" style="color:darkgrey"></i>' ;
+                        if (strpos($row['caminho_prd_arq_1'], 'SEM_ARQUIVO')){
+                          $caminho_prd_arq_1 = '<a title="ServPrd40" href="'.str_replace('SEM_ARQUIVO','?C=M;O=D',$row['caminho_prd_arq_1']).'" target="_blank"><i class="fas fa-file-alt fa-2x" style="color:orange"></i></a>';
+                        }else{
+                          $caminho_prd_arq_1 = (@fopen($row['caminho_prd_arq_1'],'r')) ? ' <a title="ServPrd40" href="'.$row['caminho_prd_arq_1'].'" target="_blank"><i class="fas fa-file-alt fa-2x" style="color:green"></i></a>' : '<i class="fas fa-file-alt fa-2x" style="color:darkgrey"></i>' ;
+                        }
                         //$caminho_prd_arq_2 = (@fopen($row['caminho_prd_arq_2'],'r')) ? ' <a title="ServPrd41" href="'.$row['caminho_prd_arq_2'].'" target="_blank"><i class="fas fa-file-alt fa-2x" style="color:green"></i></a>' : '<i class="fas fa-file-alt fa-2x" style="color:darkgrey"></i>' ;
-                        $caminho_prd_arq_3 = (@fopen($row['caminho_prd_arq_3'],'r')) ? ' <a title="ServPrd42" href="'.$row['caminho_prd_arq_3'].'" target="_blank"><i class="fas fa-file-alt fa-2x" style="color:green"></i></a>' : '<i class="fas fa-file-alt fa-2x" style="color:darkgrey"></i>' ;
+                        if (strpos($row['caminho_prd_arq_3'], 'SEM_ARQUIVO')){
+                          $caminho_prd_arq_3 = '<a title="ServPrd42" href="'.str_replace('SEM_ARQUIVO','?C=M;O=D',$row['caminho_prd_arq_3']).'" target="_blank"><i class="fas fa-file-alt fa-2x" style="color:orange"></i></a>';
+                        }else{
+                          $caminho_prd_arq_3 = (@fopen($row['caminho_prd_arq_3'],'r')) ? ' <a title="ServPrd42" href="'.$row['caminho_prd_arq_3'].'" target="_blank"><i class="fas fa-file-alt fa-2x" style="color:green"></i></a>' : '<i class="fas fa-file-alt fa-2x" style="color:darkgrey"></i>' ;
+                        }                        
                         $outhtml .= '<tr>';
                         $outhtml .= '<td>' . $row['parceiro'] .'</td>';
                         $outhtml .= '<td>' . $row['descricao'] .'</td>';

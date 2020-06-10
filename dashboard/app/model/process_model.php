@@ -105,6 +105,10 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
         return true;
     }
 
+    function get_process_by_id($integracao_id){
+        return true;
+    }    
+
     function get_lock_process($dt_inicio, $dt_final){
         global $conn;
         $query = "SELECT DISTINCT 
@@ -115,10 +119,10 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
                           END AS status_atual,
                          DATE_FORMAT(i.ultima_execucao,'%d/%m/%Y %H:%i:%s') as ultima_execucao,
                          i.integracao_id,
-                         CONCAT('http://econnects-h.jelastic.saveincloud.net//assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', il.nome_arquivo) AS caminho_hml_arq_1,
-                         CONCAT('http://node23640-econnects-prod.jelastic.saveincloud.net/assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', il.nome_arquivo) AS caminho_prd_arq_1,
-                         CONCAT('http://node23641-econnects-prod.jelastic.saveincloud.net/assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', il.nome_arquivo) AS caminho_prd_arq_2,
-                         CONCAT('http://node23642-econnects-prod.jelastic.saveincloud.net/assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', il.nome_arquivo) AS caminho_prd_arq_3,
+                         CONCAT('http://econnects-h.jelastic.saveincloud.net//assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', IFNULL(il.nome_arquivo,'SEM_ARQUIVO')) AS caminho_hml_arq_1,
+                         CONCAT('http://node23640-econnects-prod.jelastic.saveincloud.net/assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', IFNULL(il.nome_arquivo,'SEM_ARQUIVO')) AS caminho_prd_arq_1,
+                         CONCAT('http://node23641-econnects-prod.jelastic.saveincloud.net/assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', IFNULL(il.nome_arquivo,'SEM_ARQUIVO')) AS caminho_prd_arq_2,
+                         CONCAT('http://node23642-econnects-prod.jelastic.saveincloud.net/assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', IFNULL(il.nome_arquivo,'SEM_ARQUIVO')) AS caminho_prd_arq_3,
                          DATE(il.processamento_inicio) as proces_inicio_orig,
                          DATE_FORMAT(il.processamento_inicio,'%d/%m/%Y %H:%i:%s') as processamento_inicio,
                          il.nome_arquivo
