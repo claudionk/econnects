@@ -104,7 +104,7 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
     function get_process_by_filter(){
         return true;
     }
-
+// TODO: Implementar esta rotina
     function get_process_by_id($integracao_id){
         return true;
     }    
@@ -125,7 +125,10 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
                          CONCAT('http://node23642-econnects-prod.jelastic.saveincloud.net/assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', IFNULL(il.nome_arquivo,'SEM_ARQUIVO')) AS caminho_prd_arq_3,
                          DATE(il.processamento_inicio) as proces_inicio_orig,
                          DATE_FORMAT(il.processamento_inicio,'%d/%m/%Y %H:%i:%s') as processamento_inicio,
-                         il.nome_arquivo
+                         il.nome_arquivo,
+                         il.quantidade_registros,
+                         (select count(1) from integracao_log_detalhe where integracao_log_id = il.integracao_log_id) as quantidade_processado,
+                         CONCAT(ROUND((((select count(1) from integracao_log_detalhe where integracao_log_id = il.integracao_log_id) / il.quantidade_registros) * 100),2),'%') AS percentual                         
                     FROM integracao i
                     JOIN parceiro p ON i.parceiro_id = p.parceiro_id
                      AND i.status <> 'A'
@@ -144,17 +147,20 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
             $qtde_lock = 0;
             while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
                 $qtde_lock ++;
-                $rs_lock['parceiro']            = $row['parceiro'];
-                $rs_lock['descricao']           = $row['descricao']; 
-                $rs_lock['status_atual']        = $row['status_atual'];
-                $rs_lock['ultima_execucao']     = $row['ultima_execucao'];
-                $rs_lock['integracao_id']       = $row['integracao_id'];
-                $rs_lock['caminho_hml_arq_1']   = $row['caminho_hml_arq_1'];
-                $rs_lock['caminho_prd_arq_1']   = $row['caminho_prd_arq_1'];
-                $rs_lock['caminho_prd_arq_2']   = $row['caminho_prd_arq_2'];
-                $rs_lock['caminho_prd_arq_3']   = $row['caminho_prd_arq_3'];
-                $rs_lock['proces_inicio_orig']  = $row['proces_inicio_orig'];
-                $rs_lock['nome_arquivo']        = $row['nome_arquivo'];
+                $rs_lock['parceiro']              = $row['parceiro'];
+                $rs_lock['descricao']             = $row['descricao']; 
+                $rs_lock['status_atual']          = $row['status_atual'];
+                $rs_lock['ultima_execucao']       = $row['ultima_execucao'];
+                $rs_lock['integracao_id']         = $row['integracao_id'];
+                $rs_lock['caminho_prd_arq_3']     = $row['caminho_prd_arq_3'];
+                $rs_lock['caminho_hml_arq_1']     = $row['caminho_hml_arq_1'];
+                $rs_lock['caminho_prd_arq_1']     = $row['caminho_prd_arq_1'];
+                $rs_lock['caminho_prd_arq_2']     = $row['caminho_prd_arq_2'];
+                $rs_lock['proces_inicio_orig']    = $row['proces_inicio_orig'];
+                $rs_lock['nome_arquivo']          = $row['nome_arquivo'];
+                $rs_lock['quantidade_registros']  = $row['quantidade_registros'];
+                $rs_lock['quantidade_processado'] = $row['quantidade_processado'];
+                $rs_lock['percentual']            = $row['percentual'];
                 $result_lock[] = $rs_lock;
             }
             $stmt = null;

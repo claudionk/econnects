@@ -19,7 +19,7 @@
               Dados de Integração</div>
             <div class="card-body">
               <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <table class="table table-bordered" id="dataTableDetalhe" width="100%" cellspacing="0">
                   <thead>
                     <tr>
                       <th>Parceiro</th>
@@ -27,6 +27,8 @@
                       <th>Nome do Arquivo</th>
                       <th>Status</th>
                       <th>Última Execução</th>
+                      <th>Reg. Proc.</th>
+                      <th>Reg. Total</th>                      
                       <th>ID da Integração</th>
                       <th>Processos</th>
                       <th>Arquivos</th>
@@ -39,6 +41,8 @@
                       <th>Nome do Arquivo</th>
                       <th>Status</th>
                       <th>Última Execução</th>
+                      <th>Reg. Proc.</th>
+                      <th>Reg. Total</th>                      
                       <th>ID da Integração</th>
                       <th>Processos</th>
                       <th>Arquivos</th>
@@ -65,6 +69,8 @@
                         $outhtml .= '<td>' . $row['nome_arquivo'] .'</td>';
                         $outhtml .= '<td>' . $row['status_atual'] .'</td>';
                         $outhtml .= '<td>' . $row['ultima_execucao'] .'</td>';
+                        $outhtml .= '<td>' . $row['quantidade_processado'] .' ('. $row['percentual'] .')</td>';
+                        $outhtml .= '<td>' . $row['quantidade_registros'] .'</td>';                        
                         $outhtml .= '<td>' . $row['integracao_id'] .'</td>';
                         $outhtml .= '<td> <a title="Ver detalhes" href="?c=detalhe_error_details&ambiente=' . $ambiente . '&data_inicio=' . $row['proces_inicio_orig']. '&file_name=' .$row['nome_arquivo'].'" target="_blank"><i class="fas fa-list fa-2x" style="color:lightslategray"></i></a>' . 
                                         ' <a title="Reprocessar" href="#"><i class="fas fa-sync-alt fa-2x" style="color:orange"></i></a>' . 
