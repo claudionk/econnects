@@ -154,20 +154,22 @@ Class Cta_Movimentacao_Model extends MY_Model
                 INNER JOIN pedido p on a.pedido_id = p.pedido_id
                 INNER JOIN cotacao c on p.cotacao_id = c.cotacao_id
                 INNER JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
-                INNER JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
+                INNER JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id
                 INNER JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
-                , integracao i        
-                , integracao_log il 
-                , integracao_log_detalhe ild
             WHERE 
                 a.deletado = 0 
                 AND p.deletado = 0 
                 AND c.deletado = 0
-                and i.integracao_id = il.integracao_id
-                and ild.integracao_log_id = il.integracao_log_id
-                and i.slug_group in ('parc-emissao','ems-emissao')
-                and concat(a.num_apolice, '|', ae.sequencial) = ild.chave
-                and date_add( now(), interval {$this->time} minute ) < IFNULL(ild.alteracao,ild.criacao)
+                AND am.deletado = 0
+                AND ae.deletado = 0
+                AND concat(a.num_apolice, '|', ae.sequencial) IN(
+                    SELECT ild.chave
+                    FROM integracao i
+                    INNER JOIN integracao_log il on i.integracao_id = il.integracao_id
+                    INNER JOIN integracao_log_detalhe ild on ild.integracao_log_id = il.integracao_log_id
+                    WHERE il.deletado = 0 AND ild.deletado = 0 and i.slug_group in ('parc-emissao','ems-emissao')
+                    AND date_add( now(), interval {$this->time} minute ) < IFNULL(ild.alteracao,ild.criacao)
+                )
         ". $q['end'];
 
         if ( $this->_database->query( $sql ) ){
