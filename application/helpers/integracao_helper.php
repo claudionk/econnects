@@ -1196,9 +1196,23 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
         $CI->session->sess_destroy();
         $CI->session->set_userdata("operacao", "lasa");
 
+        // Emissão
+        if ( in_array($dados['registro']['tipo_transacao'], ['NS','XP']) )
+        {
+            $dados['registro']['acao'] = '1';
+        } 
+        // Cancelamento
+        else if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX','XD']) )
+        {
+            $dados['registro']['acao'] = '9';
+        } else {
+            $dados['registro']['acao'] = '0';
+        }
+
         if (!empty($formato)) {
 
             $geraDados['tipo_transacao']            = $dados['registro']['tipo_transacao'];
+            $geraDados['tipo_operacao']             = $dados['registro']['acao'];
             $geraDados['cod_loja']                  = $dados['registro']['cod_loja'];
             $geraDados['num_apolice']               = $dados['registro']['num_apolice'];
             $geraDados['data_adesao_cancel']        = $dados['registro']['data_adesao_cancel'];
@@ -1220,8 +1234,9 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $geraDados['num_parcela']               = $dados['registro']['num_parcela'];
             $geraDados['nota_fiscal_valor']         = $dados['registro']['nota_fiscal_valor'];
 
-            // Emissão
-            if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX','XD']) ) {
+            // Cancelamento
+            if ( $dados['registro']['acao'] == '9' )
+            {
                 $geraDados['data_cancelamento']         = $dados['registro']['data_adesao_cancel'];
                 $dados['registro']['data_cancelamento'] = $dados['registro']['data_adesao_cancel'];
             }
@@ -1232,29 +1247,8 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
         }
 
-        $cpf = $dados['registro']['cpf'];
-        $ean = $dados['registro']['ean'];
-        $num_apolice = $dados['registro']['num_apolice'];
-
-        echo "****************** CPF: $cpf - {$dados['registro']['tipo_transacao']}<br>";
-
-        // Emissão
-        if ( in_array($dados['registro']['tipo_transacao'], ['NS','XP']) )
+        if ( $dados['registro']['acao'] == '0' )
         {
-            $dados['registro']['acao']        = '1';
-            $dados['registro']['data_adesao'] = $dados['registro']['data_adesao_cancel'];
-
-            // Trata o nome da marca retornada pela LASA
-            $searchWord = 'CORRIGIR';
-            if(preg_match("/{$searchWord}/i", $dados['registro']['marca'])) {
-                $dados['registro']['marca'] = '';
-            }
-
-        // Cancelamento
-        } else if ( in_array($dados['registro']['tipo_transacao'], ['XS','XX','XD']) )
-        {
-            $dados['registro']['acao']              = '9';
-        } else {
 
             // XI = Cancelamento por Inadimplência
             switch ($dados['registro']['tipo_transacao']) {
@@ -1268,6 +1262,24 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $response->msg[] = ['id' => $integracao_log_detalhe_erro_id, 'msg' => "Registro recebido como {$dados['registro']['tipo_transacao']}", 'slug' => "ignorado"];
             return $response;
 
+        }
+
+        $cpf = $dados['registro']['cpf'];
+        $ean = $dados['registro']['ean'];
+        $num_apolice = $dados['registro']['num_apolice'];
+
+        echo "****************** CPF: $cpf - {$dados['registro']['tipo_transacao']}<br>";
+
+        // Emissão
+        if ( $dados['registro']['acao'] == '1' )
+        {
+            $dados['registro']['data_adesao'] = $dados['registro']['data_adesao_cancel'];
+
+            // Trata o nome da marca retornada pela LASA
+            $searchWord = 'CORRIGIR';
+            if(preg_match("/{$searchWord}/i", $dados['registro']['marca'])) {
+                $dados['registro']['marca'] = '';
+            }
         }
 
         $acesso = app_integracao_generali_dados();
@@ -2361,8 +2373,8 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
         }
 
         $CI =& get_instance();
-        $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
-            SELECT {$d['id_exp']}, NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$valor} 
+        $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, id_sinistro, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
+            SELECT {$d['id_exp']}, '{$d['cod_sinistro']}', NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$valor} 
             FROM sissolucoes1.sis_exp a
             LEFT JOIN sissolucoes1.sis_exp_hist_carga b ON a.id_exp = b.id_exp AND b.`status` = 'P'
             WHERE a.id_exp = {$d['id_exp']} AND b.id_exp IS NULL
@@ -2400,15 +2412,15 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
     {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
 
-        $reg = $dados['registro'];
-        // echo "<pre>";print_r($reg);echo "</pre>";die();
-
         $CI =& get_instance();
         $CI->session->sess_destroy();
         $CI->session->set_userdata("operacao", "novomundo");
+        $reg = $dados['registro'];
 
-        if (!empty($formato)) {
+        if (!empty($formato)) 
+        {
             $geraDados['tipo_produto']              = $reg['tipo_produto'];
+            $geraDados['tipo_transacao']            = $reg['acao'];
             $geraDados['tipo_operacao']             = $reg['acao'];
             $geraDados['ramo']                      = $reg['ramo'];
             $geraDados['agrupador']                 = $reg['agrupador'];
@@ -2794,18 +2806,15 @@ if ( ! function_exists('app_integracao_quero_quero')) {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
 
         // Emissão
-        if ( $dados['registro']['tipo_operacao'] == 'I' )
+        if ( $dados['registro']['tipo_transacao'] == 'I' )
         {
             $dados['registro']['acao'] = '1';
         // Cancelamento
-        } elseif ( $dados['registro']['tipo_operacao'] == 'C' )
+        } elseif ( $dados['registro']['tipo_transacao'] == 'C' )
         {
             $dados['registro']['acao'] = '9';
         } else {
-
-            $response->msg[] = ['id' => -1, 'msg' => "Registro recebido como {$dados['registro']['tipo_operacao']}", 'slug' => "ignorado"];
-            return $response;
-
+            $dados['registro']['acao'] = '0';
         }
 
         $reg = $dados['registro'];
@@ -2820,7 +2829,8 @@ if ( ! function_exists('app_integracao_quero_quero')) {
             $geraDados['estado_civil']          = $reg['estado_civil'];
             $geraDados['data_nascimento']       = $reg['data_nascimento'];
             $geraDados['cpf']                   = $reg['cpf'];
-            $geraDados['tipo_operacao']         = $reg['tipo_operacao'];
+            $geraDados['tipo_transacao']        = $reg['tipo_transacao'];
+            $geraDados['tipo_operacao']         = $reg['acao'];
             $geraDados['cod_loja']              = $reg['cod_loja'];
             $geraDados['nome_loja']             = $reg['nome_loja'];
             $geraDados['nome']                  = $reg['nome'];
@@ -2860,6 +2870,12 @@ if ( ! function_exists('app_integracao_quero_quero')) {
 
             // remove para realizar o cálculo do prêmio sem multiplicar por 12 meses
             $dados['registro']['data_fim_vigencia'] = null;
+        }
+
+        if ($dados['registro']['acao'] == '0')
+        {
+            $response->msg[] = ['id' => -1, 'msg' => "Registro recebido como {$dados['registro']['tipo_transacao']}", 'slug' => "ignorado"];
+            return $response;
         }
 
         // definir operação pelo nome do arquivo ou por integracao?
