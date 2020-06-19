@@ -1084,28 +1084,21 @@ Class Integracao_Model extends MY_Model
                 {
                     if ( function_exists($integracao['before_detail']) )
                     {
-                        // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods 
-                        // Tratando o erro 110 - Registro duplicado no arquivo de origem
-                        if(!empty($datum['cod_erro']) && in_array($datum['cod_erro'], [22, 110]) && ( $datum['tipo_arquivo'] == 'CLIENTE' || $datum['tipo_arquivo'] == 'EMSCMS' || $datum['tipo_arquivo'] == 'PARCEMS' ) ) 
+                        $callFuncReturn = call_user_func($integracao['before_detail'], $integracao_log_detalhe_id, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
+
+                        if ( !empty($callFuncReturn) )
                         {
-                            $msgDetCampo[] = ['id' => 12, 'msg' => $datum['cod_erro'] ." - ". $datum['descricao_erro'], 'slug' => "erro_retorno"];
-                        } else 
-                        {
-                            $callFuncReturn = call_user_func($integracao['before_detail'], $integracao_log_detalhe_id, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
-
-                            if ( !empty($callFuncReturn) ){
-
-                                if ( empty($callFuncReturn->status) ){
-                                    // seta para erro
-                                    $integracao_log_status_id = 5; 
-                                } elseif ( $callFuncReturn->status === 2 ) {
-                                    // seta para ignorado
-                                    $integracao_log_status_id = 7;
-                                }
-
-                                $msgDetCampo = emptyor($callFuncReturn->msg, $msgDetCampo);
-
+                            if ( empty($callFuncReturn->status) )
+                            {
+                                // seta para erro
+                                $integracao_log_status_id = 5; 
+                            } elseif ( $callFuncReturn->status === 2 )
+                            {
+                                // seta para ignorado
+                                $integracao_log_status_id = 7;
                             }
+
+                            $msgDetCampo = emptyor($callFuncReturn->msg, $msgDetCampo);
                         }
 
                         if ( !empty($msgDetCampo) && !empty($integracao_log_detalhe_id) ) {

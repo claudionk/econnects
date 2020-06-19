@@ -2191,7 +2191,6 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
     function app_integracao_retorno_generali_fail($formato, $dados = array())
     {
         $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
-        // echo "<pre>";print_r($dados['registro']);
 
         if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
             $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
@@ -2204,6 +2203,15 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
         $chave = $proc['chave'];
         $file = $proc['file'];
         $sinistro = ($proc['tipo'] == 'SINISTRO');
+
+        // Tratamento para erros que são considerados sucesso
+        // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods
+        // Tratando o erro 110 - Registro duplicado no arquivo de origem
+        if ( !empty($dados['registro']['cod_erro']) && in_array($dados['registro']['cod_erro'], [22, 110]) && ( in_array($proc['tipo'], ['CLIENTE', 'EMSCMS', 'PARCEMS', 'LCTCMS', 'COBRANCA']) ) )
+		{
+			$response->msg[] = ['id' => 12, 'msg' => $dados['registro']['cod_erro'] ." - ". $dados['registro']['descricao_erro'], 'slug' => "erro_retorno"];
+            return $response;
+		}
 
         // echo "chave = $chave<br>";
         if (empty($chave)) {
@@ -3108,15 +3116,27 @@ if ( ! function_exists('app_integracao_retorno_cta'))
             $response->coderr = $dados['registro']['cod_erro']; 
             $response->msg[] = ['id' => 12, 'msg' => $dados['registro']['cod_erro'] ." - ". $dados['registro']['descricao_erro'], 'slug' => "erro_retorno"];
 
-            if($dados['registro']['status'] == 'A'){
+            if($dados['registro']['status'] == 'A')
+            {
                 $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '4', $mensagem_registro, $sinistro, $pagnet);
 
                 $response->status = true;
                 return $response;
-            }elseif($dados['registro']['status'] == 'R'){   
-                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '5', $mensagem_registro, $sinistro, $pagnet);
+            }elseif($dados['registro']['status'] == 'R')
+            {
+            	$cdEr = '5';
+            	// Tratamento para erros que são considerados sucesso
+		        // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods
+		        // Tratando o erro 110 - Registro duplicado no arquivo de origem
+		        if ( !empty($dados['registro']['cod_erro']) && in_array($dados['registro']['cod_erro'], [22, 110]) && in_array($proc['tipo'], ['CLIENTE', 'EMSCMS', 'PARCEMS', 'LCTCMS', 'COBRANCA']) )
+				{
+					$cdEr = '4';
+				}
+
+                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, $cdEr, $mensagem_registro, $sinistro, $pagnet);
                 return $response;
-            }elseif($dados['registro']['status'] == 'P'){
+            }elseif($dados['registro']['status'] == 'P')
+            {
                 $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '3', $mensagem_registro, $sinistro, $pagnet);
 
                 $response->status = true;
