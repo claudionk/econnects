@@ -70,9 +70,9 @@
                                 <td><?php echo $row['ordem'];?></td>
                                 <td><?php echo $row['nome'];?></td>
                                 <td class="center">
+                                    <a href="" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modal_gerar_chave" id="modalGerarChave"> <i class="fa fa-bolt"></i>  Gerar Chave </a>
                                     <div class="btn-group">
-                                        <button type="button" class="btn btn-sm ink-reaction btn-primary">Configurações</button>
-                                        <button type="button" class="btn btn-sm ink-reaction btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i class="fa fa-caret-down"></i></button>
+                                        <button type="button" class="btn btn-sm ink-reaction btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Configurações &nbsp; <i class="fa fa-caret-down"></i></button>
                                         <ul class="dropdown-menu dropdown-menu-right" role="menu">
                                             <?php if( $row['precificacao_tipo_id'] == 1 || $row['precificacao_tipo_id'] == 5 || $row['precificacao_tipo_id'] == 6 ) : ?>
                                                 <li><a href="<?php echo base_url("admin/cobertura_plano/index/{$row[$primary_key]}")?>"> Coberturas </a></li>
@@ -111,3 +111,47 @@
     </div>
 </div>
 
+<!-- Modal -->
+<div id="modal_gerar_chave" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Gerar Chaves</h4>
+            </div>
+            <div class="modal-body explicacao_modal">
+                <div class="row">
+
+                <form class="form-horizontal margin-none" id="formGerarChave" method="post" autocomplete="off">
+                    <div class="form-group">
+                        <div class="text-col text-uppercase">Informe a quantidade de chaves que deseja gerar</div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-12"><input class="form-control" id="inp_gerar_chave" name="inp_gerar_chave" type="text" placeholder="Ex: 100" /></div>
+                    </div>
+                </form>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Fechar</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script type="text/javascript">
+jQuery(function($){
+    // $('#modalGerarChave').click(function(){
+    $('#modal_gerar_chave').on('shown.bs.modal', function (e) {
+        // debugger;
+        // setTimeout(function(){
+            $('#inp_gerar_chave').select().focus();
+        // }, 100);
+    });
+});
+</script>
