@@ -9,29 +9,25 @@ function salvarOrdem()
         i++;
     });
 
-
     url = $('#url_ordem').val();
 
-        $.ajax({
-                type: "POST",
-                url: url,
-                cache: false,
-                data: {itens: a}
-            })
-            .done(function( result ) {
-                location.reload();
-            });
+    $.ajax({
+            type: "POST",
+            url: url,
+            cache: false,
+            data: {itens: a}
+        })
+        .done(function( result ) {
+            location.reload();
+        });
 
 }
-
-
 
 $(document).ready(function(){
 
     $('#tabela-ordem').tableDnD({
         onDragClass: "drag",
     });
-
 
     $(".salvar-ordem").click(function () {
         salvarOrdem();
@@ -43,8 +39,36 @@ $(document).ready(function(){
         console.log(url);
         document.location.href = url;
     });
+
+    $('#a_key_create').click(function(){
+        $('#id').val($(this).data('id'));
+    });
+
+    $('#modal_gerar_chave').on('shown.bs.modal', function (e) {
+        $('#inp_gerar_chave').select().focus();
+    });
+
+    $('#modalGerarChave').click(function()
+    {
+        if ( !Number.isInteger(parseInt($('#inp_gerar_chave').val())) )
+        {
+            toastr.info("A Quantidade de Chave deve ser numérica.");
+            $('#inp_gerar_chave').focus();
+            return;
+        }
+
+        if ( !($('#inp_gerar_chave').val() > 0) )
+        {
+            toastr.info("A Quantidade de Chave deve ser maior que zero.");
+            $('#inp_gerar_chave').focus();
+            return;
+        }
+
+        $(this).attr('disabled', true).text('Aguarde ...');
+
+        var actForm = $('#formGerarChave').attr("action");
+        $('#formGerarChave')
+            .attr("action", actForm +'/'+ $('#id').val() )
+            .submit();
+    });
 });
-
-
-
-

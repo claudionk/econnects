@@ -18,9 +18,8 @@ class Cotacao extends Admin_Controller
 
         //Carrega modelos
         $this->load->model('cotacao_model', 'current_model');
-
-
     }
+
     public function index($offset = 0) //Função padrão (load)
     {
         //Carrega bibliotecas
@@ -55,17 +54,12 @@ class Cotacao extends Admin_Controller
             ->with_produto_parceiro()
             ->get_all();
 
-
         $data['primary_key'] = $this->current_model->primary_key();
         $data["pagination_links"] = $this->pagination->create_links();
         
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data );
     }
-
-
-
-
 
     public function view($id)
     {
@@ -77,12 +71,10 @@ class Cotacao extends Admin_Controller
         $this->template->set('page_subtitle', "Detalhes da Cotação");
         $this->template->set_breadcrumb('Cotação', base_url("$this->controller_uri/view/{$id}"));
 
-
         //Carrega dados para a página
         $data = array();
         $data['row'] = $this->current_model->with_produto_parceiro()->get($id);
         $data['produto'] = $this->current_model->get_cotacao_produto($id);
-
 
         if(!$data['row'])
         {
@@ -97,12 +89,10 @@ class Cotacao extends Admin_Controller
         $data['form_action'] =  base_url("$this->controller_uri/view/{$id}");
         
         //Verifica se registro existe
-
         
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/view", $data );
     }
-
 
     public  function delete($id)
     {
@@ -111,6 +101,5 @@ class Cotacao extends Admin_Controller
         $this->session->set_flashdata('succ_msg', 'Registro excluido corretamente.');
         redirect("{$this->controller_uri}/index");
     }
-
 
 }

@@ -47,6 +47,7 @@
 
                         <!-- Table -->
                         <input type="hidden" name="url_ordem" id="url_ordem" value="<?php echo  base_url("$current_controller_uri/set_ordem/{$produto_parceiro_id}"); ?>">
+
                         <table id="tabela-ordem" class="table table-hover">
 
                             <!-- Table heading -->
@@ -70,7 +71,7 @@
                                 <td><?php echo $row['ordem'];?></td>
                                 <td><?php echo $row['nome'];?></td>
                                 <td class="center">
-                                    <a href="" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modal_gerar_chave" id="modalGerarChave"> <i class="fa fa-bolt"></i>  Gerar Chave </a>
+                                    <a href="" class="btn btn-sm btn-primary" <?php if( empty($row['enableCreateKey'])) { ?> disabled="disabled" <?php } ?> data-toggle="modal" data-target="#modal_gerar_chave" id="a_key_create" data-id="<?php echo $row[$primary_key]; ?>" > <i class="fa fa-bolt"></i>  Gerar Chave </a>
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-sm ink-reaction btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Configurações &nbsp; <i class="fa fa-caret-down"></i></button>
                                         <ul class="dropdown-menu dropdown-menu-right" role="menu">
@@ -103,6 +104,13 @@
                         </table>
                         <!-- // Table END -->
 
+                        <?php if ( empty($enableSomeCreateKey) ) { ?>
+                            <div class="text-default-light">
+                                <a href="#" class="btn btn-sm" disabled="disabled" > <i class="fa fa-bolt"></i>  Gerar Chave </a>
+                                O botão de gerar chave é exibido disabilitado quando o usuário não possuir permissão para criar Cotação para qualquer Plano
+                            </div>
+                        <?php } ?>
+
                     </div>
                 </div>
                 <!-- // Widget END -->
@@ -124,34 +132,24 @@
             <div class="modal-body explicacao_modal">
                 <div class="row">
 
-                <form class="form-horizontal margin-none" id="formGerarChave" method="post" autocomplete="off">
-                    <div class="form-group">
-                        <div class="text-col text-uppercase">Informe a quantidade de chaves que deseja gerar</div>
-                    </div>
-                    <div class="form-group">
-                        <div class="col-md-12"><input class="form-control" id="inp_gerar_chave" name="inp_gerar_chave" type="text" placeholder="Ex: 100" /></div>
-                    </div>
-                </form>
+                    <form class="form-horizontal margin-none" id="formGerarChave" method="post" autocomplete="off" action="<?php echo base_url("{$current_controller_uri}/keyCreate/{$produto_parceiro_id}")?>">
+                        <div class="form-group">
+                            <div class="text-col text-uppercase">Informe a quantidade de chaves que deseja gerar</div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                <input class="form-control" id="inp_gerar_chave" name="inp_gerar_chave" type="text" placeholder="Ex: 100" />
+                                <input type="hidden" name="id" id="id" />
+                            </div>
+                        </div>
+                    </form>
 
                 </div>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="modalGerarChave" > Gerar</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Fechar</button>
             </div>
         </div>
-
     </div>
 </div>
-
-
-<script type="text/javascript">
-jQuery(function($){
-    // $('#modalGerarChave').click(function(){
-    $('#modal_gerar_chave').on('shown.bs.modal', function (e) {
-        // debugger;
-        // setTimeout(function(){
-            $('#inp_gerar_chave').select().focus();
-        // }, 100);
-    });
-});
-</script>

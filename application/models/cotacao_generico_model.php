@@ -280,6 +280,7 @@ Class Cotacao_Generico_Model extends MY_Model
         $this->load->model('produto_parceiro_regra_preco_model', 'produto_parceiro_regra_preco');
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
         $this->load->model('cotacao_saude_faixa_etaria_model', 'faixa_etaria');
+        $this->load->model('apolice_model', 'apolice');
 
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $carrossel = $this->session->userdata("carrossel_{$produto_parceiro_id}");
@@ -317,7 +318,10 @@ Class Cotacao_Generico_Model extends MY_Model
         }
 
         //faz o Insert ou UPdate do Cliente
-        $cliente = $this->cliente->cotacao_insert_update($cotacao);
+        if ( !empty($cotacao['cnpj_cpf']) )
+        {
+            $cliente = $this->cliente->cotacao_insert_update($cotacao);
+        }
 
         if($cotacao_id){
             $dt_cotacao = array();
@@ -537,9 +541,10 @@ Class Cotacao_Generico_Model extends MY_Model
         }else{
             //salva cotacão
             $dt_cotacao = array();
-            $dt_cotacao['cliente_id'] = $cliente['cliente_id'];
+            $dt_cotacao['cliente_id'] = emptyor($cliente['cliente_id'], NULL);
             $dt_cotacao['codigo'] = $this->cotacao_codigo->get_codigo_cotacao_formatado('BE');
             $dt_cotacao['cotacao_tipo'] = 'ONLINE';
+            $dt_cotacao['numero_apolice'] = $this->apolice->defineNumApolice($produto_parceiro_id, 'cotacao');
             $dt_cotacao['parceiro_id'] = ( isset( $cotacao["parceiro_id"]) ? $cotacao["parceiro_id"] : $this->session->userdata("parceiro_id") );
             $dt_cotacao['usuario_venda_id'] = 0;
             $dt_cotacao['cotacao_status_id'] = 1;

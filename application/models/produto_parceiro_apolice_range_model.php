@@ -67,7 +67,7 @@ Class Produto_Parceiro_Apolice_Range_Model extends MY_Model
         $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
         $this->_database->where("{$this->_table}.deletado", 0);
         $this->_database->where("{$this->_table}.habilitado", 1);
-        $this->_database->where("{$this->_table}.sequencia < ", "{$this->_table}.numero_fim");
+        $this->_database->where("{$this->_table}.sequencia < {$this->_table}.numero_fim");
         $this->_database->from($this->_table);
         $this->_database->limit(1);
         $query = $this->_database->get();

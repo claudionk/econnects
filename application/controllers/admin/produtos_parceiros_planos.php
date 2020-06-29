@@ -6,6 +6,9 @@
  * @property Produto_Parceiro_Model $current_model
  *
  */
+
+require_once APPPATH . 'controllers/admin/api.php';
+
 class Produtos_Parceiros_Planos extends Admin_Controller
 {
 
@@ -26,6 +29,7 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $this->load->model('moeda_model', 'moeda');
         $this->load->model('capitalizacao_model', 'capitalizacao');
 
+        $this->parceiro_id = $this->session->userdata('parceiro_id');
     }
 
     public function set_ordem($produto_parceiro_id = 0)
@@ -52,12 +56,12 @@ class Produtos_Parceiros_Planos extends Admin_Controller
 
     public function view_by_produto_parceiro($produto_parceiro_id , $offset = 0)
     {
-
         //Carrega bibliotecas
         $this->load->library('pagination');
 
         $this->template->js(app_assets_url('core/js/jquery.tablednd.js', 'admin'));
         $this->template->js(app_assets_url('modulos/produtos_parceiros_planos/base.js', 'admin'));
+        $this->template->js(app_assets_url("template/js/libs/toastr/toastr.js", "admin"));
 
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
@@ -94,6 +98,16 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $data['produto_parceiro_id'] = $produto_parceiro_id;
         $data['produto_parceiro'] = $produto_parceiro;
 
+        $enableSomeCreateKey = true;
+        foreach ($data['rows'] as $key => $r)
+		{
+			$planos = $this->current_model->PlanosHabilitados($this->parceiro_id, $produto_parceiro_id, $r['slug_plano']);
+			$data['rows'][$key]['enableCreateKey'] = (!empty($planos));
+
+			if (empty($planos)) $enableSomeCreateKey = false;
+        }
+
+        $data['enableSomeCreateKey'] = $enableSomeCreateKey;
         $data['primary_key'] = $this->current_model->primary_key();
         $data["pagination_links"] = $this->pagination->create_links();
 
@@ -216,7 +230,7 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
 
-    public  function delete($id)
+    public function delete($id)
     {
         $row = $this->current_model->get($id);
         if(!$row){
@@ -227,6 +241,128 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         //Deleta registro
         $this->current_model->delete($id);
         $this->session->set_flashdata('succ_msg', 'Registro excluido corretamente.');
+
+        redirect("{$this->controller_uri}/view_by_produto_parceiro/{$row['produto_parceiro_id']}");
+    }
+
+    public function keyCreate($produto_parceiro_id, $id)
+    {
+        $row = $this->current_model->get($id);
+        if(!$row){
+            $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
+            //Redireciona para index
+            redirect("admin/parceiros/index");
+        }
+
+
+
+        //Gera as cotações
+        /*
+        case 'cotacao':
+
+            $this->load->model( "produto_parceiro_model", "produto_parceiro" );
+            $this->load->model( "produto_parceiro_plano_model", "produto_parceiro_plano" );
+
+            $produtos = $this->produto_parceiro->get_produtos_venda_admin_parceiros( $this->parceiro_id, $parametros['produto_slug'] );
+            if(!empty($produtos))
+            {
+                foreach ($produtos as $prod) {
+
+                    // Separando o produto do parceiro
+                    $r = $this->produto_parceiro_plano->coreSelectPlanosProdutoParceiro($prod['produto_parceiro_id'])->filter_by_slug($parametros["plano_slug"])->get_all();
+
+                    if(!empty($r)){
+                        $this->produto_parceiro_id = $prod['produto_parceiro_id'];
+                        $this->parceiro_id_pai     = $prod['parceiro_id'];
+                        $this->produto_parceiro_plano_id = $r[0]['produto_parceiro_plano_id'];
+                    }
+
+                }
+
+                if (empty($this->produto_parceiro_id)) {
+                    die(json_encode(array("status"=>false,"message"=>"Não foi possível identificar o Plano"),JSON_UNESCAPED_UNICODE));
+                }
+            }
+            else 
+            {
+                die(json_encode(array("status"=>false,"message"=>"Não foi possível identificar o Produto"),JSON_UNESCAPED_UNICODE));
+            }
+            */
+
+            // Campos da cotação
+            $arrOptions = [
+                "produto_parceiro_id"       => $produto_parceiro_id,
+                "produto_parceiro_plano_id" => $id,
+            ];
+
+            $url = base_url() ."api/cotacao";
+            $obj = new Api();
+            $r = $obj->execute($url, 'POST', json_encode($arrOptions));
+
+            print_pre($r);
+
+            if(!empty($r))
+            {
+                // pegando o ID da cotação
+                $retorno = convert_objeto_to_array($r);
+                if( !empty($retorno->{"status"}) )
+                {
+                    $cotacao_id = $retorno->{"cotacao_id"};
+
+                    // Chamando o Calculo da cotação
+                    // $this->etapas('calculocotacao');
+                } 
+                else 
+                {
+                    $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
+                    $this->session->set_flashdata('fail_msg', $msg);
+                }
+            }
+            else
+            {
+            	$this->session->set_flashdata('fail_msg', "Não foi possível criar a cotação");
+            }
+/*
+            break;
+
+        case 'calculocotacao':
+
+            // Validar o valor passado se diferente alertar e abortar
+            $url = base_url() ."api/cotacao/calculo";
+            $fields = [
+                'cotacao_id' => $this->cotacao_id,
+                'coberturas' => emptyor($this->campos_estrutura['coberturas'], []),
+            ];
+
+            $obj = new Api();
+            $r = $obj->execute($url, 'POST', json_encode($fields));
+
+            if(!empty($r))
+            {
+                $retorno = convert_objeto_to_array($r);
+                if( !empty($retorno->{"status"}) )
+                {
+                    // Validação valores  
+                    if(!empty($this->valor_premio_bruto) && $this->valor_premio_bruto != $retorno->{"premio_liquido_total"}){
+                        die(json_encode(array("status"=>false,"message"=>"O valor do prêmio {$this->valor_premio_bruto} informado diferente do valor calculado ".$retorno->{"premio_liquido_total"}, "cotacao_id" => $this->cotacao_id),JSON_UNESCAPED_UNICODE));
+                    }
+
+                    $retorno->{"cotacao_id"} = $this->cotacao_id;
+                    $this->etapas('contratarcotacao',$retorno);
+                }
+                else
+                {
+                    $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
+                    die(json_encode(array("status"=>false, "message"=>$msg, "cotacao_id" => $this->cotacao_id),JSON_UNESCAPED_UNICODE));
+                }
+            }
+            else
+            {
+                die(json_encode(array("status"=>false,"message"=>"Não foi possível retornar os dados do cálculo da cotação"),JSON_UNESCAPED_UNICODE));
+            }
+            break;
+*/
+        $this->session->set_flashdata('succ_msg', 'Chaves geradas com sucesso.');
 
         redirect("{$this->controller_uri}/view_by_produto_parceiro/{$row['produto_parceiro_id']}");
     }
