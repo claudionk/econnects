@@ -1548,7 +1548,7 @@ class Apolice_Model extends MY_Model
         return $this;
     }
 
-    public function defineNumApolice($produto_parceiro_id, $etapa = 'contratacao', $cotacao_id = NULL)
+    public function defineNumApolice($produto_parceiro_id, $etapa = 'contratacao', $cotacao_id = NULL, $data_template = [])
     {
         $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
         $this->load->model('apolice_numero_seq_model', 'apolice_seq');
@@ -1560,7 +1560,6 @@ class Apolice_Model extends MY_Model
         //obter numero da apolice;
         $configuracao = $this->parceiro_configuracao->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
         $configuracao = $configuracao[0];
-
         $num_apolice = NULL;
 
         // É cotação e NÃO gera apolice nessa etapa
@@ -1598,7 +1597,10 @@ class Apolice_Model extends MY_Model
 
         }
 
-        return $num_apolice;
+        // Faz o parse das variáveis
+        $num_apolice = $this->apolice_range->getSequencialVariavel($num_apolice, 0, $data_template, true);
+
+        return $num_apolice['result'];
     }
 
     /**
