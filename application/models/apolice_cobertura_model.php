@@ -172,7 +172,7 @@ Class Apolice_Cobertura_Model extends MY_Model
             $cobertura = $v;
 
             // Se passou as coberturas que devem gerar estorno MAS NÃO é a cobertura enviada 
-            if ( count($ValuesCoberturas) > 0 && empty($ValuesCoberturas[ $cobertura['cod_cobertura'] ]) ))
+            if ( count($ValuesCoberturas) > 0 && empty($ValuesCoberturas[ $cobertura['cod_cobertura'] ]) )
             {
                 continue;
             }
