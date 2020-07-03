@@ -169,7 +169,14 @@ Class Apolice_Cobertura_Model extends MY_Model
 
         foreach ($coberturas as $i => $v)
         {
-            $cobertura      = $v;
+            $cobertura = $v;
+
+            // Se passou as coberturas que devem gerar estorno MAS NÃO é a cobertura enviada 
+            if ( count($ValuesCoberturas) > 0 && empty($ValuesCoberturas[ $cobertura['cod_cobertura'] ]) ))
+            {
+                continue;
+            }
+
             $percentagem    = $valor_cobertura = $valor_config = 0;
             switch ($cobertura["mostrar"]) {
                 case 'importancia_segurada':

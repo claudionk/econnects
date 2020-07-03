@@ -217,7 +217,7 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
 
             $this->form_validation->set_message('check_markup_relacionamento', 'A soma de todas as comissões dos parceiros relacionados deve ser inferior ou igual ao MARKUP configurado apara esse produto. Soma total: ' . $soma . ' - MARKUP: ' . $markup);
 
-            if ($soma > $markup) {
+            if (round($soma, 15) > round($markup, 15)) {
                 return false;
             } else {
                 return true;
