@@ -339,6 +339,7 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
                          DATE_FORMAT(il.processamento_inicio,'%d/%m/%Y %H:%i:%s') as processamento_inicio,
                          il.nome_arquivo,
                          CASE WHEN il.integracao_log_status_id = 5 THEN 'Processado com Erro'
+                              WHEN i.slug_group LIKE 'vendas-canc%' THEN 'Processado com Erro'
                          END AS status_processo,
                          i.integracao_id,
                          CONCAT('http://econnects-h.jelastic.saveincloud.net//assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', il.nome_arquivo) AS caminho_hml_arq_1,
@@ -351,7 +352,9 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
                     JOIN integracao_log il ON i.integracao_id = il.integracao_id
                      AND il.deletado = 0
                      AND DATE(il.processamento_inicio) BETWEEN '$dt_inicio' AND '$dt_final'
-                     AND il.integracao_log_status_id = 5
+                     AND CASE WHEN i.slug_group LIKE 'vendas-canc%' THEN il.quantidade_registros <> (SELECT COUNT(*) + 2 AS qtde_sucesso FROM integracao_log_detalhe WHERE integracao_log_id = il.integracao_log_id and integracao_log_status_id = 4) 
+                              ELSE il.integracao_log_status_id = 5 
+                          END
                    ORDER BY p.nome_fantasia,
                             il.nome_arquivo,
                             i.ultima_execucao ASC
@@ -402,7 +405,7 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
                             CASE
                                 WHEN reg_proc.integracao_log_status_id = 2 THEN concat(ifnull(reg_proc.msg, 'Cod: SID2 - Processando...'))
                                 WHEN reg_proc.integracao_log_status_id = 3 THEN concat(ifnull(reg_proc.msg, 'Cod: SID3 - Processamento pendente'))
-                                WHEN reg_proc.integracao_log_status_id = 4 THEN concat(ifnull(reg_proc.msg, 'Cod: SID4 - Processado com sucesso'))
+                                WHEN reg_proc.integracao_log_status_id = 4 THEN IF (reg_proc.slug_group LIKE 'vendas-canc%', 'Cod: SID4 - Processado com sucesso', concat(ifnull(reg_proc.msg, 'Cod: SID4 - Processado com sucesso')))
                                 WHEN reg_proc.integracao_log_status_id = 5 THEN concat(ifnull(reg_proc.msg, 'Cod: SID5 - Processado com erro'))
                                 WHEN reg_proc.integracao_log_status_id = 7 THEN concat(ifnull(reg_proc.msg, 'Cod: SID7 - Já processado anteriormente'))
                                 ELSE reg_proc.integracao_log_status_id
