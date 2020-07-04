@@ -31,20 +31,17 @@ $(document).ready(function(){
 
     $(".salvar-ordem").click(function () {
         salvarOrdem();
-
     });
-    $(".campo_tipo").change(function () {
 
+    $(".campo_tipo").change(function () {
         url = $('#url_tipo').val() + '/' + $(".campo_tipo").val();
-        console.log(url);
         document.location.href = url;
     });
 
-    $('#a_key_create').click(function(){
-        $('#id').val($(this).data('id'));
-    });
-
     $('#modal_gerar_chave').on('shown.bs.modal', function (e) {
+        $('#id').val( $(e.relatedTarget).data('id') );
+        var plano = $('#ppp_id_'+ $('#id').val()).text();
+        $(' .modal-title', this).text( 'Gerar Chave para o plano '+ plano );
         $('#inp_gerar_chave').select().focus();
     });
 

@@ -250,119 +250,76 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $row = $this->current_model->get($id);
         if(!$row){
             $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
+
             //Redireciona para index
             redirect("admin/parceiros/index");
         }
 
+        $erros = [];
+        $cotacoes = [];
 
+        for ($i=0; $i < $this->input->post('inp_gerar_chave'); $i++)
+        {
 
-        //Gera as cotações
-        /*
-        case 'cotacao':
+	        //Gera as cotações
+	        $arrOptions = [
+	            "produto_parceiro_id"       => $produto_parceiro_id,
+	            "produto_parceiro_plano_id" => $id,
+	        ];
 
-            $this->load->model( "produto_parceiro_model", "produto_parceiro" );
-            $this->load->model( "produto_parceiro_plano_model", "produto_parceiro_plano" );
+	        $obj = new Api();
+	        $r = $obj->execute(base_url() ."api/cotacao", 'POST', json_encode($arrOptions));
 
-            $produtos = $this->produto_parceiro->get_produtos_venda_admin_parceiros( $this->parceiro_id, $parametros['produto_slug'] );
-            if(!empty($produtos))
-            {
-                foreach ($produtos as $prod) {
+	        if( empty($r) )
+	        {
+	            $erros[] = "Não foi possível criar a cotação";
+	            continue;
+	        }
 
-                    // Separando o produto do parceiro
-                    $r = $this->produto_parceiro_plano->coreSelectPlanosProdutoParceiro($prod['produto_parceiro_id'])->filter_by_slug($parametros["plano_slug"])->get_all();
+	        // pegando o ID da cotação
+	        $retorno = convert_objeto_to_array($r);
+	        if( empty($retorno->{"status"}) )
+	        {
+	            $erros[] = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
+	            continue;
+	        }
 
-                    if(!empty($r)){
-                        $this->produto_parceiro_id = $prod['produto_parceiro_id'];
-                        $this->parceiro_id_pai     = $prod['parceiro_id'];
-                        $this->produto_parceiro_plano_id = $r[0]['produto_parceiro_plano_id'];
-                    }
+	        $cotacao_id = $retorno->{"cotacao_id"};
 
-                }
+	        // Realizar o cálculo da cotação
+	        $fields = [
+	            'cotacao_id' => $cotacao_id,
+	            'coberturas' => [],
+	        ];
 
-                if (empty($this->produto_parceiro_id)) {
-                    die(json_encode(array("status"=>false,"message"=>"Não foi possível identificar o Plano"),JSON_UNESCAPED_UNICODE));
-                }
-            }
-            else 
-            {
-                die(json_encode(array("status"=>false,"message"=>"Não foi possível identificar o Produto"),JSON_UNESCAPED_UNICODE));
-            }
-            */
+	        $r = $obj->execute(base_url() ."api/cotacao/calculo", 'POST', json_encode($fields));
 
-            // Campos da cotação
-            $arrOptions = [
-                "produto_parceiro_id"       => $produto_parceiro_id,
-                "produto_parceiro_plano_id" => $id,
-            ];
+	        if( empty($r) )
+	        {
+	            $erros[] = "Não foi possível retornar os dados do cálculo da cotação";
+	            continue;
+	        }
 
-            $url = base_url() ."api/cotacao";
-            $obj = new Api();
-            $r = $obj->execute($url, 'POST', json_encode($arrOptions));
+	        $retorno = convert_objeto_to_array($r);
+	        if( !empty($retorno->{"status"}) )
+	        {
+	            $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
+	            $erros[] = $msg;
+	            continue;
+	        }
 
-            print_pre($r);
+	        $cotacoes[] = $cotacao_id;
+	    }
 
-            if(!empty($r))
-            {
-                // pegando o ID da cotação
-                $retorno = convert_objeto_to_array($r);
-                if( !empty($retorno->{"status"}) )
-                {
-                    $cotacao_id = $retorno->{"cotacao_id"};
+	    if ( !empty($erros) )
+	    {
+	    	$this->session->set_flashdata( empty($cotacoes) ? 'fail_msg' : 'warn_msg', $erros);
+	    }
 
-                    // Chamando o Calculo da cotação
-                    // $this->etapas('calculocotacao');
-                } 
-                else 
-                {
-                    $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
-                    $this->session->set_flashdata('fail_msg', $msg);
-                }
-            }
-            else
-            {
-            	$this->session->set_flashdata('fail_msg', "Não foi possível criar a cotação");
-            }
-/*
-            break;
-
-        case 'calculocotacao':
-
-            // Validar o valor passado se diferente alertar e abortar
-            $url = base_url() ."api/cotacao/calculo";
-            $fields = [
-                'cotacao_id' => $this->cotacao_id,
-                'coberturas' => emptyor($this->campos_estrutura['coberturas'], []),
-            ];
-
-            $obj = new Api();
-            $r = $obj->execute($url, 'POST', json_encode($fields));
-
-            if(!empty($r))
-            {
-                $retorno = convert_objeto_to_array($r);
-                if( !empty($retorno->{"status"}) )
-                {
-                    // Validação valores  
-                    if(!empty($this->valor_premio_bruto) && $this->valor_premio_bruto != $retorno->{"premio_liquido_total"}){
-                        die(json_encode(array("status"=>false,"message"=>"O valor do prêmio {$this->valor_premio_bruto} informado diferente do valor calculado ".$retorno->{"premio_liquido_total"}, "cotacao_id" => $this->cotacao_id),JSON_UNESCAPED_UNICODE));
-                    }
-
-                    $retorno->{"cotacao_id"} = $this->cotacao_id;
-                    $this->etapas('contratarcotacao',$retorno);
-                }
-                else
-                {
-                    $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
-                    die(json_encode(array("status"=>false, "message"=>$msg, "cotacao_id" => $this->cotacao_id),JSON_UNESCAPED_UNICODE));
-                }
-            }
-            else
-            {
-                die(json_encode(array("status"=>false,"message"=>"Não foi possível retornar os dados do cálculo da cotação"),JSON_UNESCAPED_UNICODE));
-            }
-            break;
-*/
-        $this->session->set_flashdata('succ_msg', 'Chaves geradas com sucesso.');
+	    if ( !empty($cotacoes) )
+	    {
+        	$this->session->set_flashdata('succ_msg', 'Chaves geradas para o plano '. $row['nome'] .' com sucesso.');
+	    }
 
         redirect("{$this->controller_uri}/view_by_produto_parceiro/{$row['produto_parceiro_id']}");
     }

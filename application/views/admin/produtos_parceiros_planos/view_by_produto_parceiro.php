@@ -69,7 +69,7 @@
                             <tr data-id="<?php echo $row[$primary_key];?>" data-ordem="<?php echo $i; ?>">
 
                                 <td><?php echo $row['ordem'];?></td>
-                                <td><?php echo $row['nome'];?></td>
+                                <td id="ppp_id_<?php echo $row[$primary_key]; ?>"><?php echo $row['nome'];?></td>
                                 <td class="center">
                                     <a href="" class="btn btn-sm btn-primary" <?php if( empty($row['enableCreateKey'])) { ?> disabled="disabled" <?php } ?> data-toggle="modal" data-target="#modal_gerar_chave" id="a_key_create" data-id="<?php echo $row[$primary_key]; ?>" > <i class="fa fa-bolt"></i>  Gerar Chave </a>
                                     <div class="btn-group">
