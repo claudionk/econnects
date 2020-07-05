@@ -9,8 +9,6 @@
 class Produtos_Parceiros_Apolice_Range extends Admin_Controller
 {
 
-
-
     public function __construct()
     {
         parent::__construct();
@@ -22,16 +20,10 @@ class Produtos_Parceiros_Apolice_Range extends Admin_Controller
         //Carrega modelos
         $this->load->model('produto_parceiro_apolice_range_model', 'current_model');
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
-
-
     }
-
-
 
     public function index($produto_parceiro_id , $offset = 0)
     {
-
-
         $this->auth->check_permission('view', 'produto_parceiro_apolice_range', 'admin/poroduto_parceiro/');
 
         //Carrega bibliotecas
@@ -42,7 +34,6 @@ class Produtos_Parceiros_Apolice_Range extends Admin_Controller
         $this->template->set('page_subtitle', "Apólice Range");
         $this->template->set_breadcrumb("Apólice Range", base_url("$this->controller_uri/index/{$produto_parceiro_id}"));
 
-
         $produto_parceiro = $this->produto_parceiro->get($produto_parceiro_id);
 
         //Verifica se registro existe
@@ -52,9 +43,6 @@ class Produtos_Parceiros_Apolice_Range extends Admin_Controller
             $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
             redirect("admin/parceiros/index");
         }
-
-
-
 
         //Inicializa tabela
         $config['base_url'] = base_url("$this->controller_uri/index/{$produto_parceiro_id}");
@@ -71,6 +59,14 @@ class Produtos_Parceiros_Apolice_Range extends Admin_Controller
             ->filter_by_produto_parceiro($produto_parceiro_id)
             ->get_all();
 
+        // ajuste do total disponível
+        foreach($data['rows'] as $k => $v)
+        {
+            $seqF = $this->current_model->getSequencialVariavel($v['numero_fim'], 0);
+            $seqS = $this->current_model->getSequencialVariavel($v['sequencia'], 0);
+            $data['rows'][$k]['disponivel'] = (int)$seqF['end'] - (int)$seqS['end'];
+        }
+
         $data['produto_parceiro_id'] = $produto_parceiro_id;
         $data['produto_parceiro'] = $produto_parceiro;
 
@@ -85,7 +81,6 @@ class Produtos_Parceiros_Apolice_Range extends Admin_Controller
 
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
-
 
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
@@ -126,8 +121,6 @@ class Produtos_Parceiros_Apolice_Range extends Admin_Controller
 
         }
 
-
-
         $data = array();
         $data['primary_key'] = $this->current_model->primary_key();
         $data['new_record'] = '1';
@@ -135,10 +128,8 @@ class Produtos_Parceiros_Apolice_Range extends Admin_Controller
         $data['produto_parceiro_id'] = $produto_parceiro_id;
         $data['produto_parceiro'] = $produto_parceiro;
 
-
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
-
     }
 
     public function edit($produto_parceiro_id, $id) //Função que edita registro
@@ -161,8 +152,6 @@ class Produtos_Parceiros_Apolice_Range extends Admin_Controller
             redirect("admin/parceiros/index");
         }
 
-
-
         //Carrega dados para a página
         $data = array();
         $data['row'] = $this->current_model->get($id);
@@ -182,8 +171,6 @@ class Produtos_Parceiros_Apolice_Range extends Admin_Controller
             redirect("$this->controller_uri/index");
         }
 
-
-
         //Caso post
         if($_POST)
         {
@@ -200,13 +187,11 @@ class Produtos_Parceiros_Apolice_Range extends Admin_Controller
             }
         }
 
-
-
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
 
-    public  function delete($produto_parceiro_id, $id)
+    public function delete($produto_parceiro_id, $id)
     {
         $row = $this->current_model->get($id);
         if(!$row){
@@ -220,6 +205,5 @@ class Produtos_Parceiros_Apolice_Range extends Admin_Controller
 
         redirect("$this->controller_uri/index/{$produto_parceiro_id}");
     }
-
 
 }

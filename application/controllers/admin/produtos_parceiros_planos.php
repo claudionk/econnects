@@ -6,6 +6,9 @@
  * @property Produto_Parceiro_Model $current_model
  *
  */
+
+require_once APPPATH . 'controllers/admin/api.php';
+
 class Produtos_Parceiros_Planos extends Admin_Controller
 {
 
@@ -26,6 +29,7 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $this->load->model('moeda_model', 'moeda');
         $this->load->model('capitalizacao_model', 'capitalizacao');
 
+        $this->parceiro_id = $this->session->userdata('parceiro_id');
     }
 
     public function set_ordem($produto_parceiro_id = 0)
@@ -52,12 +56,13 @@ class Produtos_Parceiros_Planos extends Admin_Controller
 
     public function view_by_produto_parceiro($produto_parceiro_id , $offset = 0)
     {
-
         //Carrega bibliotecas
         $this->load->library('pagination');
 
         $this->template->js(app_assets_url('core/js/jquery.tablednd.js', 'admin'));
         $this->template->js(app_assets_url('modulos/produtos_parceiros_planos/base.js', 'admin'));
+        $this->template->js(app_assets_url("template/js/libs/toastr/toastr.js", "admin"));
+        $this->template->js(app_assets_url("modulos/relatorios/vendas/jquery.blockUI.js", "admin"));
 
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
@@ -94,6 +99,16 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $data['produto_parceiro_id'] = $produto_parceiro_id;
         $data['produto_parceiro'] = $produto_parceiro;
 
+        $enableSomeCreateKey = true;
+        foreach ($data['rows'] as $key => $r)
+		{
+			$planos = $this->current_model->PlanosHabilitados($this->parceiro_id, $produto_parceiro_id, $r['slug_plano']);
+			$data['rows'][$key]['enableCreateKey'] = (!empty($planos));
+
+			if (empty($planos)) $enableSomeCreateKey = false;
+        }
+
+        $data['enableSomeCreateKey'] = $enableSomeCreateKey;
         $data['primary_key'] = $this->current_model->primary_key();
         $data["pagination_links"] = $this->pagination->create_links();
 
@@ -101,8 +116,8 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $this->template->load("admin/layouts/base", "$this->controller_uri/view_by_produto_parceiro", $data );
     }
 
-    public function add_by_produto_parceiro($produto_parceiro_id){
-
+    public function add_by_produto_parceiro($produto_parceiro_id)
+    {
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
 
@@ -216,7 +231,7 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
 
-    public  function delete($id)
+    public function delete($id)
     {
         $row = $this->current_model->get($id);
         if(!$row){
@@ -227,6 +242,108 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         //Deleta registro
         $this->current_model->delete($id);
         $this->session->set_flashdata('succ_msg', 'Registro excluido corretamente.');
+
+        redirect("{$this->controller_uri}/view_by_produto_parceiro/{$row['produto_parceiro_id']}");
+    }
+
+    public function keyCreate($produto_parceiro_id, $id)
+    {
+        $row = $this->current_model->get($id);
+        if(!$row){
+            $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
+
+            //Redireciona para index
+            redirect("admin/parceiros/index");
+        }
+
+        if ( empty($_POST) )
+        {
+			$data['produto_parceiro_id'] = $produto_parceiro_id;
+			$data['row'] = $row;
+
+        	$planos = $this->produto_parceiro->getPlanosHabilitados(null, $produto_parceiro_id, $id);
+			$data['empresas'] = emptyor($planos, []);
+
+        	//Carrega template
+        	$this->template->load("admin/layouts/empty", "$this->controller_uri/create_key", $data );
+
+        	return;
+        }
+
+        $erros = [];
+        $cotacoes = [];
+
+        // Pesquisa dados de acesso à API
+        $this->load->model('usuario_model', 'usuario');
+        $user = $this->usuario->get_user_externo( $this->input->post('parceiro_id') );
+        if ( empty($user) )
+        {
+        	$this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
+        	redirect("{$this->controller_uri}/view_by_produto_parceiro/{$row['produto_parceiro_id']}");
+        }
+
+        $email = $user[0]['email'];
+
+        for ($i=0; $i < $this->input->post('inp_gerar_chave'); $i++)
+        {
+
+	        //Gera as cotações
+	        $arrOptions = [
+	            "produto_parceiro_id"       => $produto_parceiro_id,
+	            "produto_parceiro_plano_id" => $id,
+	        ];
+
+	        $obj = new Api();
+	        $r = $obj->execute(base_url() ."api/cotacao", 'POST', json_encode($arrOptions), $email, null, false);
+	        if( empty($r) )
+	        {
+	            $erros[] = "Não foi possível criar a cotação";
+	            continue;
+	        }
+
+	        // pegando o ID da cotação
+	        $retorno = convert_objeto_to_array($r);
+	        if( empty($retorno->{"status"}) )
+	        {
+	            $erros[] = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
+	            continue;
+	        }
+
+	        $cotacao_id = $retorno->{"cotacao_id"};
+
+	        // Realizar o cálculo da cotação
+	        $fields = [
+	            'cotacao_id' => $cotacao_id,
+	            'coberturas' => [],
+	        ];
+
+	        $r = $obj->execute(base_url() ."api/cotacao/calculo", 'POST', json_encode($fields));
+	        if( empty($r) )
+	        {
+	            $erros[] = "Não foi possível retornar os dados do cálculo da cotação {$cotacao_id} ";
+	            continue;
+	        }
+
+	        $retorno = convert_objeto_to_array($r);
+	        if( !empty($retorno->{"status"}) )
+	        {
+	            $msg = ( !empty($retorno->{"mensagem"}) ) ? $retorno->{"mensagem"} : $r;
+	            $erros[] = $msg;
+	            continue;
+	        }
+
+	        $cotacoes[] = $cotacao_id;
+	    }
+
+	    if ( !empty($erros) )
+	    {
+	    	$this->session->set_flashdata( empty($cotacoes) ? 'fail_msg' : 'warn_msg', $erros);
+	    }
+
+	    if ( !empty($cotacoes) )
+	    {
+        	$this->session->set_flashdata('succ_msg', 'Chaves geradas para o plano '. $row['nome'] .' com sucesso.');
+	    }
 
         redirect("{$this->controller_uri}/view_by_produto_parceiro/{$row['produto_parceiro_id']}");
     }

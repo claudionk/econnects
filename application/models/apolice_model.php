@@ -359,7 +359,7 @@ class Apolice_Model extends MY_Model
             $dados_apolice['cod_sucursal']  = $dados_bilhete['cod_sucursal'];
 
             // Define o número da apólice
-            $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id']);
+            $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id'], 'contratacao', $cotacao_salva['cotacao_id']);
             $dados_apolice['num_apolice_cliente']   = $this->defineNumApoliceCliente([
                 'cod_tpa'       => $dados_bilhete['cod_tpa'],
                 'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
@@ -578,7 +578,7 @@ class Apolice_Model extends MY_Model
             $dados_apolice['cod_sucursal']  = $dados_bilhete['cod_sucursal'];
 
             // Define o número da apólice
-            $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id']);
+            $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id'], 'contratacao', $cotacao_salva['cotacao_id']);
             $dados_apolice['num_apolice_cliente']   = $this->defineNumApoliceCliente([
                 'cod_tpa'       => $dados_bilhete['cod_tpa'],
                 'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
@@ -789,7 +789,7 @@ class Apolice_Model extends MY_Model
                 $dados_apolice['cod_sucursal']  = $dados_bilhete['cod_sucursal'];
 
                 // Define o número da apólice
-                $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id']);
+                $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id'], 'contratacao', $cotacao_salva['cotacao_id']);
                 $dados_apolice['num_apolice_cliente']   = $this->defineNumApoliceCliente([
                     'cod_tpa'       => $dados_bilhete['cod_tpa'],
                     'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
@@ -1548,6 +1548,61 @@ class Apolice_Model extends MY_Model
         return $this;
     }
 
+    public function defineNumApolice($produto_parceiro_id, $etapa = 'contratacao', $cotacao_id = NULL, $data_template = [])
+    {
+        $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
+        $this->load->model('apolice_numero_seq_model', 'apolice_seq');
+        $this->load->model('produto_parceiro_apolice_range_model', 'apolice_range');
+        $this->load->model('produto_parceiro_apolice_multiplo_model', 'apolice_multiplo');
+        $this->load->model('produto_parceiro_apolice_multiplo_range_model', 'apolice_multiplo_range');
+        $this->load->model('cotacao_model', 'cotacao');
+
+        //obter numero da apolice;
+        $configuracao = $this->parceiro_configuracao->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
+        $configuracao = $configuracao[0];
+        $num_apolice = NULL;
+
+        // É cotação e NÃO gera apolice nessa etapa
+        if ( $etapa == 'cotacao' && empty($configuracao['gera_num_apolice_cotacao']) )
+            return NULL;
+
+        // É cotação e NÃO gera apolice nessa etapa
+        if ( $etapa == 'contratacao' && !empty($configuracao['gera_num_apolice_cotacao']) )
+        {
+            if ( !empty($cotacao_id) )
+            {
+                $cotacao_salva = $this->cotacao->filterByID($cotacao_id)->get_all();
+                if ( !empty($cotacao_salva) )
+                {
+                    $num_apolice = $cotacao_salva[0]['numero_apolice'];
+                }
+            }
+
+            return $num_apolice;
+        }
+
+        if ($configuracao['apolice_sequencia'] == 1) {
+            //é número Sequencial
+            $num_apolice = $this->apolice_seq->get_proximo_codigo($produto_parceiro_id);
+        } else {
+
+            // o sequencial é composto por vários produtos
+            if ($apolice_multiplo = $this->apolice_multiplo->get_by_produto_parceiro_id($produto_parceiro_id)->get_all() ) {
+                $apolice_multiplo = $apolice_multiplo[0];
+
+                $num_apolice = $this->apolice_multiplo_range->get_proximo_codigo($apolice_multiplo['produto_parceiro_apolice_multiplo_range_id']);
+            } else {
+                $num_apolice = $this->apolice_range->get_proximo_codigo($produto_parceiro_id);
+            }
+
+        }
+
+        // Faz o parse das variáveis
+        $num_apolice = $this->apolice_range->getSequencialVariavel($num_apolice, 0, $data_template, true);
+
+        return $num_apolice['result'];
+    }
+
     /**
      * Busca dados da Seguradora para montagem do número do bilhete
      * @param $localidade_id
@@ -1644,37 +1699,6 @@ class Apolice_Model extends MY_Model
             return $result[0];
         }
         return null;
-    }
-
-    public function defineNumApolice($produto_parceiro_id)
-    {
-        $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
-        $this->load->model('apolice_numero_seq_model', 'apolice_seq');
-        $this->load->model('produto_parceiro_apolice_range_model', 'apolice_range');
-        $this->load->model('produto_parceiro_apolice_multiplo_model', 'apolice_multiplo');
-        $this->load->model('produto_parceiro_apolice_multiplo_range_model', 'apolice_multiplo_range');
-
-        //obter numero da apolice;
-        $configuracao = $this->parceiro_configuracao->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
-        $configuracao = $configuracao[0];
-
-        if ($configuracao['apolice_sequencia'] == 1) {
-            //é número Sequencial
-            $num_apolice = $this->apolice_seq->get_proximo_codigo($produto_parceiro_id);
-        } else {
-
-            // o sequencial é composto por vários produtos
-            if ($apolice_multiplo = $this->apolice_multiplo->get_by_produto_parceiro_id($produto_parceiro_id)->get_all() ) {
-                $apolice_multiplo = $apolice_multiplo[0];
-
-                $num_apolice = $this->apolice_multiplo_range->get_proximo_codigo($apolice_multiplo['produto_parceiro_apolice_multiplo_range_id']);
-            } else {
-                $num_apolice = $this->apolice_range->get_proximo_codigo($produto_parceiro_id);
-            }
-
-        }
-
-        return $num_apolice;
     }
 
     function defineApoliceCliente($apolice_id) {

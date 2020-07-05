@@ -87,11 +87,10 @@
                                                 <!-- Table row -->
                                                 <?php foreach($rows as $row) :?>
                                                     <tr>
-
                                                         <td><?php echo $row['numero_inicio'];?></td>
                                                         <td><?php echo $row['numero_fim'];?></td>
                                                         <td><?php echo $row['quantidade'];?></td>
-                                                        <td><?php echo (((int)$row['numero_fim'] - (int)$row['sequencia'])); ?></td>
+                                                        <td><?php echo $row['disponivel'];?></td>
                                                         <td class="center">
                                                             <a href="<?php echo base_url("{$current_controller_uri}/edit/{$produto_parceiro_id}/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Editar </a>
                                                             <a href="<?php echo base_url("$current_controller_uri/delete/{$produto_parceiro_id}/{$row[$primary_key]}")?>" class="btn btn-sm btn-danger deleteRowButton"> <i class="fa fa-eraser"></i> Excluir </a>
