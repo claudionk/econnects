@@ -835,7 +835,13 @@ if ( ! function_exists('app_integracao_format_file_name_generali_conciliacao')) 
     {
         return date('Ymd') ."_GBS.TXT";
     }
-
+}
+if ( ! function_exists('app_integracao_format_file_name_bemvinda'))
+{
+    function app_integracao_format_file_name_bemvinda($formato, $dados = array())
+    {
+        return $formato ."-". date('Ymd') .".CSV";
+    }
 }
 if ( ! function_exists('app_integracao_format_file_name_novo_mundo')) {
 
