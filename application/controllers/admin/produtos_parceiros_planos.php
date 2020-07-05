@@ -62,6 +62,7 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $this->template->js(app_assets_url('core/js/jquery.tablednd.js', 'admin'));
         $this->template->js(app_assets_url('modulos/produtos_parceiros_planos/base.js', 'admin'));
         $this->template->js(app_assets_url("template/js/libs/toastr/toastr.js", "admin"));
+        $this->template->js(app_assets_url("modulos/relatorios/vendas/jquery.blockUI.js", "admin"));
 
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
@@ -115,8 +116,8 @@ class Produtos_Parceiros_Planos extends Admin_Controller
         $this->template->load("admin/layouts/base", "$this->controller_uri/view_by_produto_parceiro", $data );
     }
 
-    public function add_by_produto_parceiro($produto_parceiro_id){
-
+    public function add_by_produto_parceiro($produto_parceiro_id)
+    {
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
 
@@ -255,8 +256,33 @@ class Produtos_Parceiros_Planos extends Admin_Controller
             redirect("admin/parceiros/index");
         }
 
+        if ( empty($_POST) )
+        {
+			$data['produto_parceiro_id'] = $produto_parceiro_id;
+			$data['row'] = $row;
+
+        	$planos = $this->produto_parceiro->getPlanosHabilitados(null, $produto_parceiro_id, $id);
+			$data['empresas'] = emptyor($planos, []);
+
+        	//Carrega template
+        	$this->template->load("admin/layouts/empty", "$this->controller_uri/create_key", $data );
+
+        	return;
+        }
+
         $erros = [];
         $cotacoes = [];
+
+        // Pesquisa dados de acesso à API
+        $this->load->model('usuario_model', 'usuario');
+        $user = $this->usuario->get_user_externo( $this->input->post('parceiro_id') );
+        if ( empty($user) )
+        {
+        	$this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
+        	redirect("{$this->controller_uri}/view_by_produto_parceiro/{$row['produto_parceiro_id']}");
+        }
+
+        $email = $user[0]['email'];
 
         for ($i=0; $i < $this->input->post('inp_gerar_chave'); $i++)
         {
@@ -268,8 +294,7 @@ class Produtos_Parceiros_Planos extends Admin_Controller
 	        ];
 
 	        $obj = new Api();
-	        $r = $obj->execute(base_url() ."api/cotacao", 'POST', json_encode($arrOptions));
-
+	        $r = $obj->execute(base_url() ."api/cotacao", 'POST', json_encode($arrOptions), $email, null, false);
 	        if( empty($r) )
 	        {
 	            $erros[] = "Não foi possível criar a cotação";
@@ -293,10 +318,9 @@ class Produtos_Parceiros_Planos extends Admin_Controller
 	        ];
 
 	        $r = $obj->execute(base_url() ."api/cotacao/calculo", 'POST', json_encode($fields));
-
 	        if( empty($r) )
 	        {
-	            $erros[] = "Não foi possível retornar os dados do cálculo da cotação";
+	            $erros[] = "Não foi possível retornar os dados do cálculo da cotação {$cotacao_id} ";
 	            continue;
 	        }
 

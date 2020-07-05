@@ -71,7 +71,8 @@
                                 <td><?php echo $row['ordem'];?></td>
                                 <td id="ppp_id_<?php echo $row[$primary_key]; ?>"><?php echo $row['nome'];?></td>
                                 <td class="center">
-                                    <a href="" class="btn btn-sm btn-primary" <?php if( empty($row['enableCreateKey'])) { ?> disabled="disabled" <?php } ?> data-toggle="modal" data-target="#modal_gerar_chave" id="a_key_create" data-id="<?php echo $row[$primary_key]; ?>" > <i class="fa fa-bolt"></i>  Gerar Chave </a>
+                                    <a data-href="<?php echo base_url("{$current_controller_uri}/keyCreate/{$produto_parceiro_id}/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary" <?php if( empty($row['enableCreateKey'])) { ?> disabled="disabled" <?php } ?> data-toggle="modal" data-target="#modal_gerar_chave" > <i class="fa fa-bolt"></i>  Gerar Chave </a>
+
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-sm ink-reaction btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Configurações &nbsp; <i class="fa fa-caret-down"></i></button>
                                         <ul class="dropdown-menu dropdown-menu-right" role="menu">
@@ -122,34 +123,6 @@
 <!-- Modal -->
 <div id="modal_gerar_chave" class="modal fade" role="dialog">
     <div class="modal-dialog">
-
-        <!-- Modal content-->
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title">Gerar Chaves</h4>
-            </div>
-            <div class="modal-body explicacao_modal">
-                <div class="row">
-
-                    <form class="form-horizontal margin-none" id="formGerarChave" method="post" autocomplete="off" action="<?php echo base_url("{$current_controller_uri}/keyCreate/{$produto_parceiro_id}")?>">
-                        <div class="form-group">
-                            <div class="text-col text-uppercase">Informe a quantidade de chaves que deseja gerar</div>
-                        </div>
-                        <div class="form-group">
-                            <div class="col-md-12">
-                                <input class="form-control" id="inp_gerar_chave" name="inp_gerar_chave" type="text" placeholder="Ex: 100" />
-                                <input type="hidden" name="id" id="id" />
-                            </div>
-                        </div>
-                    </form>
-
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" id="modalGerarChave" > Gerar</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Fechar</button>
-            </div>
-        </div>
+        <div class="modal-content"></div>
     </div>
 </div>

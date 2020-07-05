@@ -38,15 +38,22 @@ $(document).ready(function(){
         document.location.href = url;
     });
 
-    $('#modal_gerar_chave').on('shown.bs.modal', function (e) {
-        $('#id').val( $(e.relatedTarget).data('id') );
-        var plano = $('#ppp_id_'+ $('#id').val()).text();
-        $(' .modal-title', this).text( 'Gerar Chave para o plano '+ plano );
+    $('#modal_gerar_chave').on('show.bs.modal', function (e) {
+        $(this).find(".modal-content").html('Carregando ...');
+        var link = $(e.relatedTarget);
+        $(this).find(".modal-content").load(link.data("href"));
         $('#inp_gerar_chave').select().focus();
     });
 
-    $('#modalGerarChave').click(function()
+    $(document).on("click", ".modalGerarChave" , function(e)
     {
+        if ( !($('#parceiro_id').val() > 0) )
+        {
+            toastr.info("Informe a Empresa");
+            $('#parceiro_id').focus();
+            return;
+        }
+
         if ( !Number.isInteger(parseInt($('#inp_gerar_chave').val())) )
         {
             toastr.info("A Quantidade de Chave deve ser numérica.");
@@ -61,11 +68,8 @@ $(document).ready(function(){
             return;
         }
 
-        $(this).attr('disabled', true).text('Aguarde ...');
-
-        var actForm = $('#formGerarChave').attr("action");
-        $('#formGerarChave')
-            .attr("action", actForm +'/'+ $('#id').val() )
-            .submit();
+        $(this).attr('disabled', true).text('Aguarde .... ');
+        $.blockUI({ message: null });
+        $('#formGerarChave').submit();
     });
 });
