@@ -68,7 +68,20 @@ $(document).ready(function(){
             return;
         }
 
-        $(this).attr('disabled', true).text('Aguarde .... ');
+        var $modal = $('#modal_gerar_chave');
+        var keyboard = false; // Prevent to close by ESC
+        var backdrop = 'static'; // Prevent to close on click outside the modal
+        $modal.data('bs.modal').options.keyboard = keyboard;
+        $modal.data('bs.modal').options.backdrop = backdrop;
+
+        if(keyboard === false) { 
+            $modal.off('keydown.dismiss.bs.modal'); // Disable ESC
+        } else { // 
+            $modal.data('bs.modal').escape(); // Resets ESC
+        }
+
+        $(this).attr('disabled', true).text('Processando, aguarde .... ');
+        $('.modalCloseGerarChave, .close').attr('disabled', true);
         $.blockUI({ message: null });
         $('#formGerarChave').submit();
     });
