@@ -468,7 +468,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 // o vencimento refere-se ao "inicio" do vencimento, e o conceito para tratativa abaixo é o "final" do vencimento
                 $vigencia = $this->produto_parceiro_plano->getDatasCapa($apolice['produto_parceiro_plano_id'], $dados_end['data_inicio_vigencia'], $dados_end['data_vencimento'], $tipo_pagto);
                 $vcto_inferior_cancel = (app_date_get_diff_mysql($apolice['data_cancelamento'], $dados_end['data_vencimento'], 'D') <= 0); // Inicio do vencimento
-                $vcto_inferior_entre_cancel = (app_date_get_diff_mysql($apolice['data_cancelamento'], $vigencia['data_vencimento'], 'D') <= 0); // Final do vencimento
+                $vcto_inferior_entre_cancel = (app_date_get_diff_mysql($apolice['data_cancelamento'], $vigencia['data_vencimento'], 'D') < 0); // Final do vencimento
                 $vigente = (app_date_get_diff_mysql($apolice['data_cancelamento'], $dados_end['data_fim_vigencia'], 'D') >= 0); // Cobertura Dentro de Vigência
 
                 /***
