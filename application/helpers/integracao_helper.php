@@ -360,10 +360,10 @@ if ( ! function_exists('app_integracao_format_date_r')) {
     function app_integracao_format_date_r($formato, $dados = array())
     {
         $a = explode("|", $formato);
-        $date = $dados['valor'];
-        if( isset( $dados['valor'] ) && !empty(trim($dados['valor'])) && preg_replace('/\D/', '', $dados['valor']) != '00000000' ){
-            $date = date_create_from_format( $a[0], $dados['valor'] );
-            $date = $date->format($a[1]);
+        $date = preg_replace("/[^0-9]/", "", $dados['valor']);
+        if( isset( $date ) && !empty(trim($date)) && preg_replace('/\D/', '', $date) != '00000000' ){
+            $datecff = date_create_from_format( $a[0], $dados['valor'] );
+            if ($datecff) $date = $datecff->format($a[1]);
         }
 
         return $date;
