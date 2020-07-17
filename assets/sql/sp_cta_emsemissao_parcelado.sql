@@ -38,7 +38,6 @@ CREATE TEMPORARY TABLE temp (
 		from pedido
 		inner join apolice on apolice.pedido_id = pedido.pedido_id
 		inner join apolice_cobertura on apolice.apolice_id = apolice_cobertura.apolice_id
-		inner join apolice_generico apolice_equipamento ON apolice_equipamento.apolice_id = apolice.apolice_id
         inner join comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.comissao > 0
         inner join parceiro on comissao_gerada.parceiro_id=parceiro.parceiro_id
 		inner join apolice_endosso ON apolice_endosso.apolice_id = apolice.apolice_id AND apolice_endosso.apolice_movimentacao_tipo_id = 1
@@ -74,7 +73,6 @@ CREATE TEMPORARY TABLE temp (
 		from pedido
 		inner join apolice on apolice.pedido_id = pedido.pedido_id
 		inner join apolice_cobertura on apolice.apolice_id = apolice_cobertura.apolice_id
-		inner join apolice_generico apolice_equipamento ON apolice_equipamento.apolice_id = apolice.apolice_id
 		INNER JOIN produto_parceiro_plano ppp ON apolice.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
 		INNER JOIN produto_parceiro ON ppp.produto_parceiro_id = produto_parceiro.produto_parceiro_id
 
@@ -127,6 +125,37 @@ IF EXISTS (
 END IF;
 
 
+#identifica a diferença da comissao por tipo e cobertura
+CREATE TEMPORARY TABLE temp2(
+	select apolice_id, parcela, cd_tipo_comissao, ROUND(SUM(premio_liquido) * (pc_comissao/100), 2) - SUM(valor_comissao) comissao_dif
+	from temp
+	group by apolice_id, parcela, cd_tipo_comissao, pc_comissao
+	having ROUND(SUM(premio_liquido) * (pc_comissao/100), 2) <> SUM(valor_comissao)
+);
+
+#identifica qual a maior parcela do registro com maior valor sw premio_liquido
+update temp t 
+inner join temp2 t2 on t.apolice_id = t2.apolice_id and t.parcela = t2.parcela and t.cd_tipo_comissao = t2.cd_tipo_comissao and t.cod_cobertura = @max_cod_cobertura
+SET t.valor_comissao = t.valor_comissao + t2.comissao_dif;
+
+DROP TEMPORARY TABLE temp2;
+
+
+#identifica a diferença da comissao por tipo e aplica na maior parcela
+CREATE TEMPORARY TABLE temp2(
+	select apolice_id, MAX(parcela) parcela, cd_tipo_comissao, ROUND(SUM(premio_liquido) * (pc_comissao/100), 2) - SUM(valor_comissao) comissao_dif
+	from temp
+	group by apolice_id, cd_tipo_comissao, pc_comissao
+	having ROUND(SUM(premio_liquido) * (pc_comissao/100), 2) <> SUM(valor_comissao)
+);
+
+#identifica qual a maior parcela do registro com maior valor sw premio_liquido
+update temp t 
+inner join temp2 t2 on t.apolice_id = t2.apolice_id and t.parcela = t2.parcela and t.cd_tipo_comissao = t2.cd_tipo_comissao and t.cod_cobertura = @max_cod_cobertura
+SET t.valor_comissao = t.valor_comissao + t2.comissao_dif;
+
+DROP TEMPORARY TABLE temp2;
+
 #No caso de cancelamento
 IF(_apolice_status_id = 2) THEN
 
@@ -156,22 +185,22 @@ IF(_apolice_status_id = 2) THEN
 	SET t.premio_liquido = t.premio_liquido + tu.dif, t.valor_comissao = ROUND((t.premio_liquido + tu.dif) * (t.pc_comissao/100), 2)
     ;
 
+	#identifica a diferença da comissao por tipo e aplica na maior parcela
+	CREATE TEMPORARY TABLE temp2(
+		select apolice_id, MIN(parcela) parcela, cd_tipo_comissao, ROUND(SUM(premio_liquido) * (pc_comissao/100), 2) - SUM(valor_comissao) comissao_dif
+		from temp
+		group by apolice_id, cd_tipo_comissao, pc_comissao
+		having ROUND(SUM(premio_liquido) * (pc_comissao/100), 2) <> SUM(valor_comissao)
+	);
+
+	#identifica qual a maior parcela do registro com maior valor sw premio_liquido
+	update temp t 
+	inner join temp2 t2 on t.apolice_id = t2.apolice_id and t.parcela = t2.parcela and t.cd_tipo_comissao = t2.cd_tipo_comissao and t.cod_cobertura = @max_cod_cobertura
+	SET t.valor_comissao = t.valor_comissao + t2.comissao_dif;
+
+	DROP TEMPORARY TABLE temp2;
 END IF;
 
-
-#identifica a diferença da comissao por tipo e cobertura
-CREATE TEMPORARY TABLE temp2(
-	select apolice_id, parcela, cd_tipo_comissao, ROUND(SUM(premio_liquido) * (pc_comissao/100), 2) - SUM(valor_comissao) comissao_dif
-	from temp
-	group by apolice_id, parcela, cd_tipo_comissao, pc_comissao
-	having ROUND(SUM(premio_liquido) * (pc_comissao/100), 2) <> SUM(valor_comissao)
-);
-
-
-#identifica qual a maior parcela do registro com maior valor sw premio_liquido
-update temp t 
-inner join temp2 t2 on t.apolice_id = t2.apolice_id and t.parcela = t2.parcela and t.cd_tipo_comissao = t2.cd_tipo_comissao and t.cod_cobertura = @max_cod_cobertura
-SET t.valor_comissao = t.valor_comissao + t2.comissao_dif;
 
 
 #retorna o resultado em tela
@@ -183,8 +212,8 @@ where ae.deletado = 0 and ae.apolice_movimentacao_tipo_id = _apolice_status_id
 and (ae.apolice_endosso_id = _apolice_endosso_id OR _apolice_endosso_id IS NULL )
 order by t.parcela, t.cd_tipo_comissao, t.cod_cobertura, t.parceiro;
 
+
 DROP TEMPORARY TABLE IF EXISTS temp;
-DROP TEMPORARY TABLE IF EXISTS temp2;
 DROP TEMPORARY TABLE IF EXISTS tmp_up;
 
 END

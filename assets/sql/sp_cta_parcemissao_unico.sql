@@ -108,7 +108,7 @@ LEFT JOIN (
             ) apolice_aux ON apolice_aux.apolice_id = apolice.apolice_id
 
 			#APENAS COBERTURAS (SEM ASSISTENCIAS)
-			LEFT JOIN cobertura_plano ON apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id AND produto_parceiro.parceiro_id = cobertura_plano.parceiro_id
+			INNER JOIN cobertura_plano ON apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id AND produto_parceiro.parceiro_id = cobertura_plano.parceiro_id
 
 			WHERE apolice.apolice_id = _apolice_id
 				AND pedido.deletado = 0

@@ -54,7 +54,7 @@ LEFT JOIN (
 			apolice.apolice_id
 			, pedido.num_parcela
             , SUM(ROUND(apolice_cobertura.valor * IF(_apolice_status_id = 1, 1, -1), 2)) AS premio_liquido
-            , apolice_aux.valor_premio_net
+            ,IF(_apolice_status_id = 2 AND apolice_aux.valor_premio_total <> apolice_aux.valor_estorno, apolice_aux.valor_estorno, apolice_aux.valor_premio_net) valor_premio_net
 			, SUM(ROUND(comissao_gerada.comissao / 100 * (ROUND(apolice_cobertura.valor * IF(_apolice_status_id = 1, 1, -1), 2) ), 2) ) AS valor_comissao
             , IF(IFNULL(comissao_gerada.parceiro_tipo_id, parceiro.parceiro_tipo_id) = 2, 'C', IF(IFNULL(comissao_gerada.parceiro_tipo_id, parceiro.parceiro_tipo_id) = 3, 'P', IF(IFNULL(comissao_gerada.parceiro_tipo_id, parceiro.parceiro_tipo_id) = 4, 'R', ''))) AS cd_tipo_comissao
 			, ROUND(comissao_gerada.comissao, 4) as pc_comissao

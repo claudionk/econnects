@@ -43,28 +43,34 @@ CREATE TEMPORARY TABLE temp (
 			apolice_cobertura.data_fim_vigencia AS fim_vig,
 			apolice_endosso.parcela,
 			pedido.num_parcela,
-            apolice_equipamento.valor_premio_total,
-            apolice_equipamento.valor_estorno,
-            apolice_equipamento.data_cancelamento,
+            apolice_aux.valor_premio_total,
+            apolice_aux.valor_estorno,
+            apolice_aux.data_cancelamento,
 			apolice_endosso.valor,
             apolice_endosso.data_inicio_vigencia,
             apolice_endosso.data_vencimento,
             apolice_endosso.cd_movimento_cobranca,
-			apolice_cobertura.iof,
+			IF(apolice_cobertura.iof > 0, apolice_cobertura.iof, IFNULL(pprp.parametros,0)) AS iof,
 			apolice_cobertura.valor_config,
 			apolice_cobertura.valor * IF(apolice_cobertura.valor < 0, -1, 1) AS valor_cob,
-            apolice_cobertura.importancia_segurada,
-			#@pr_liq := ROUND(IF(apolice_endosso.valor = 0, 0, apolice_endosso.valor * (apolice_cobertura.valor_config / 100)), 2) AS premio_liquido
+            IF(apolice_aux.slug_table = 'generico', apolice_cobertura.importancia_segurada, apolice_aux.nota_fiscal_valor) importancia_segurada,
             @pr_liq := IF(apolice_endosso.valor = 0, 0, ROUND(apolice_cobertura.valor / pedido.num_parcela, 2) * IF(apolice_cobertura.valor < 0, -1, 1)) AS premio_liquido,
-            apolice_equipamento.pro_labore iof_base
+            apolice_aux.pro_labore iof_base
 		from pedido
 		inner join apolice on apolice.pedido_id = pedido.pedido_id
 		inner join apolice_cobertura on apolice.apolice_id = apolice_cobertura.apolice_id
-		inner join apolice_generico apolice_equipamento ON apolice_equipamento.apolice_id = apolice.apolice_id
+        INNER JOIN (
+			select apolice_id, pro_labore, valor_premio_total, valor_estorno, data_cancelamento, nota_fiscal_valor, 'equipamento' slug_table from apolice_equipamento where apolice_id = _apolice_id
+			union 
+			select apolice_id, pro_labore, valor_premio_total, valor_estorno, data_cancelamento, nota_fiscal_valor, 'generico' slug_table from apolice_generico where apolice_id = _apolice_id
+		) apolice_aux ON apolice_aux.apolice_id = apolice.apolice_id
 		inner join apolice_endosso ON apolice_endosso.apolice_id = apolice.apolice_id AND apolice_endosso.apolice_movimentacao_tipo_id = 1
 			AND (apolice_cobertura.cod_cobertura = apolice_endosso.cod_cobertura OR apolice_endosso.cod_cobertura IS NULL)
 		INNER JOIN produto_parceiro_plano ppp ON apolice.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
 		INNER JOIN produto_parceiro ON ppp.produto_parceiro_id = produto_parceiro.produto_parceiro_id
+        
+        LEFT JOIN produto_parceiro_regra_preco pprp ON ppp.produto_parceiro_id = pprp.produto_parceiro_id AND pprp.deletado = 0
+		LEFT JOIN regra_preco rp on pprp.regra_preco_id = rp.regra_preco_id AND rp.slug = 'iof' 
 
         #APENAS COBERTURAS (SEM ASSISTENCIAS)
 		INNER JOIN cobertura_plano ON apolice_cobertura.cobertura_plano_id = cobertura_plano.cobertura_plano_id AND produto_parceiro.parceiro_id = cobertura_plano.parceiro_id
@@ -78,7 +84,7 @@ CREATE TEMPORARY TABLE temp (
 			and apolice.apolice_id = _apolice_id
 			and apolice_cobertura.valor > 0
 
-            #and 1 = IF(_apolice_status_id = 2 AND apolice_equipamento.valor_premio_total <> apolice_equipamento.valor_estorno AND apolice_endosso.data_vencimento <= apolice_equipamento.data_cancelamento, 0, 1) 
+            #and 1 = IF(_apolice_status_id = 2 AND apolice_aux.valor_premio_total <> apolice_aux.valor_estorno AND apolice_endosso.data_vencimento <= apolice_aux.data_cancelamento, 0, 1) 
 			#and (@cod_cobertura = '' or apolice_cobertura.cod_cobertura = @cod_cobertura)
 		order by apolice_endosso.sequencial, cobertura_plano.cod_cobertura
 	) x
@@ -95,7 +101,6 @@ CREATE TEMPORARY TABLE temp (
 		from pedido
 		inner join apolice on apolice.pedido_id = pedido.pedido_id
 		inner join apolice_cobertura on apolice.apolice_id = apolice_cobertura.apolice_id
-		inner join apolice_generico apolice_equipamento ON apolice_equipamento.apolice_id = apolice.apolice_id
 		INNER JOIN produto_parceiro_plano ppp ON apolice.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
 		INNER JOIN produto_parceiro ON ppp.produto_parceiro_id = produto_parceiro.produto_parceiro_id
 
@@ -122,6 +127,7 @@ SET @max_valor_cob := (SELECT max(valor_cob) FROM temp);
 
 #Código da cobertura de maior valor
 SET @max_cod_cobertura := (SELECT max(cod_cobertura) FROM temp WHERE valor_cob = @max_valor_cob);
+
 
 #**** 
 #**** CORRIGE O PREMIO LIQUIDO ****
