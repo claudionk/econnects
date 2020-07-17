@@ -1617,15 +1617,23 @@ class Apolice_Model extends MY_Model
     function isControleEndossoPeloClienteByPedidoId($pedido_id)
     {
         $this->load->model('pedido_model', 'pedido');
+        $this->load->model('produto_parceiro_pagamento_model', 'parceiro_pagamento');
 
         // Carregar pedido
-        $pedido                 = $this->pedido->getPedidosByID($pedido_id);
-        $pedido                 = $pedido[0];
-        $produto_parceiro_id    = $pedido['produto_parceiro_id'];
-        $num_parcela            = $pedido['num_parcela'];
-        $endosso                = $this->isControleEndossoPeloClienteByProdutoParceiroId($produto_parceiro_id);
+        $pedido = $this->pedido->getPedidosByID($pedido_id);
+        if ( empty($pedido) )
+        {
+            return [ 'num_parcela' => 1, 'tipo_pagto' => false ];
+        }
 
-        return [ 'num_parcela' => $num_parcela, 'endosso' => $endosso ];
+        $pedido                         = $pedido[0];
+        $produto_parceiro_id            = $pedido['produto_parceiro_id'];
+        $produto_parceiro_pagamento_id  = $pedido['produto_parceiro_pagamento_id'];
+        $num_parcela                    = emptyor($pedido['num_parcela'], 1);
+        $endosso                        = $this->isControleEndossoPeloClienteByProdutoParceiroId($produto_parceiro_id);
+        $tipo_pagto                     = $this->parceiro_pagamento->isRecurrent($produto_parceiro_pagamento_id) ? 1 : $endosso;
+
+        return [ 'num_parcela' => $num_parcela, 'tipo_pagto' => $tipo_pagto ];
     }
 
     /**

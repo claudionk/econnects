@@ -872,12 +872,18 @@ Class Pedido_Model extends MY_Model
         $d1 = new DateTime($define_date);
         $define_date = $d1->format('Y-m-d H:i:s');
 
-        if (!empty($criticas['result'])) {
+        if (!empty($criticas['result']))
+        {
             // efetuar o cancelamento
-            $this->executa_estorno_cancelamento($pedido_id, $criticas['vigencia'], TRUE, $dados_bancarios, $define_date, $tipo);
+            $result = $this->executa_estorno_cancelamento($pedido_id, $criticas['vigencia'], TRUE, $dados_bancarios, $define_date, $tipo);
+            if ( empty($result['status']) )
+            {
+            	$criticas['result'] = $criticas['status'] = false;
+            	$criticas['mensagem'] = $result['mensagem'];
+            }
         }
 
-        return $criticas;
+		return $criticas;
     }
 
     function cancelamento_calculo($pedido_id, $define_date = false )
@@ -936,59 +942,73 @@ Class Pedido_Model extends MY_Model
         $valor_estorno_total = $valor_estorno_total_liquido = 0;
         $retorno = [];
         $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro["produto_parceiro_id"] );
+        $devolucao_integral = null;
 
         foreach ($apolices as $apolice)
         {
-            $datas = $this->define_dias_cancelamento($apolice['apolice_id'], $data_cancelamento, null, $apolice, $produto_parceiro_cancelamento);
-            $devolucao_integral = $datas['devolucao_integral'];
-            $dias_utilizados = $datas['dias_utilizados'];
-            $dias_aderido = $datas['dias_aderido'];
-            $dias_total = $datas['dias_total'];
-            $dias_restantes = $datas['dias_restantes'];
+        	// Recupera todas as coberturas da Apolice
+            $datasByCob = $this->define_dias_cancelamento($apolice['apolice_id'], $data_cancelamento, null, $apolice, $produto_parceiro_cancelamento);
 
-            // devolução integral
-            if ($devolucao_integral) {
-                $porcento_nao_utilizado = 100;
-                $valor_premio = $apolice['valor_premio_total'];
-            } else {
-                $valor_premio = $apolice['valor_premio_net'];
-                $porcento_nao_utilizado = (($dias_restantes / $dias_total) * 100);
-            }
+            if ( empty($datasByCob['itens']) )
+                continue;
 
-            $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
-            
-            // devolução integral
-            if ($devolucao_integral) {
-                $valor_premio_liq = $apolice['valor_premio_net'];
-            } else {
-                $valor_premio_liq = $valor_premio;
-            }
+        	foreach ($datasByCob['itens'] as $key => $datas)
+        	{
+	            $dias_aderido = $datasByCob['dias_aderido'];
+	            $devolucao_integral = $datas['devolucao_integral'];
+	            $dias_utilizados = $datas['dias_utilizados'];
+	            $dias_total = $datas['dias_total'];
+	            $dias_restantes = $datas['dias_restantes'];
 
-            if($vigente == FALSE)
-            {
-                $calc_antes_depois = $produto_parceiro_cancelamento["seg_antes_calculo"];
-                $valor_antes_depois = $produto_parceiro_cancelamento["seg_antes_valor"];
-            }
-            else
-            {
-                $calc_antes_depois = $produto_parceiro_cancelamento["seg_depois_calculo"];
-                $valor_antes_depois = $produto_parceiro_cancelamento["seg_depois_valor"];
-            }
+	            // devolução integral
+	            if ($devolucao_integral) {
+	                $porcento_nao_utilizado = 100;
+	                $valor_premio = $datas['valor_bruto'];
+	            } else {
+	                $valor_premio = $datas['valor_liquido'];
+	                $porcento_nao_utilizado = (($dias_restantes / $dias_total) * 100);
+	            }
 
-            $valor_estorno = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio);
-            $valor_estorno_liq = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio_liq);
+	            $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
+	            
+	            // devolução integral
+	            if ($devolucao_integral) {
+	                $valor_premio_liq = $datas['valor_liquido'];
+	            } else {
+	                $valor_premio_liq = $valor_premio;
+	            }
 
-            $dados_apolice = array();
-            $dados_apolice['data_cancelamento'] = $data_cancelamento;
-            $dados_apolice['valor_estorno'] = $valor_estorno;
-            $valor_estorno_total += $valor_estorno;
-            $valor_estorno_total_liquido += $valor_estorno_liq;
+	            if($vigente == FALSE)
+	            {
+	                $calc_antes_depois = $produto_parceiro_cancelamento["seg_antes_calculo"];
+	                $valor_antes_depois = $produto_parceiro_cancelamento["seg_antes_valor"];
+	            }
+	            else
+	            {
+	                $calc_antes_depois = $produto_parceiro_cancelamento["seg_depois_calculo"];
+	                $valor_antes_depois = $produto_parceiro_cancelamento["seg_depois_valor"];
+	            }
+
+	            $valor_estorno = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio);
+	            $valor_estorno_liq = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio_liq);
+
+                $datasByCob['itens'][$key]['valor_restituido'] = $valor_estorno;
+                $datasByCob['itens'][$key]['valor_restituido_liquido'] = $valor_estorno_liq;
+	            $valor_estorno_total += $valor_estorno;
+	            $valor_estorno_total_liquido += $valor_estorno_liq;
+	        }
+
+            $valor_estorno_total = round($valor_estorno_total, 2);
+            $valor_estorno_total_liquido = round($valor_estorno_total_liquido, 2);
 
             if( $produto ) {
-                $produto_slug = $produto["produto_slug"];
                 $retorno[] = [
-                    'slug' => $produto_slug,
-                    'dados_apolice' => $dados_apolice,
+                    'slug' => $produto["produto_slug"],
+                    'dados_apolice' => [
+                        'data_cancelamento' => $data_cancelamento,
+                        'valor_estorno' => round($valor_estorno_total, 2),
+                    ],
+                    'coberturas' => $datasByCob['itens'],
                     'apolices' => $apolice,
                 ];
             }
@@ -1026,60 +1046,110 @@ Class Pedido_Model extends MY_Model
             $produto_parceiro_cancelamento = $produto_parceiro_cancelamento[0];
         }
 
-        // Valida se existe diferentes vigências
-        $cob_vig = $this->apolice_cobertura->filterByVigenciaCob($apolice_id)->get_all();
+        $itens = [];
+        $tot_devolucao_integral = true;
+		$tot_dias_utilizados = 0;
+		$tot_dias_total = 0;
+		$tot_dias_restantes = 0;
+		$tot_valor_liquido = 0;
+		$tot_valor_bruto = 0;
+        $vig_soma = '';
 
-        // Se não existe vigência multiplas
-        if (count($cob_vig) <= 1)
+        // Busca todas as coberturas da apolice
+        $cob_vig = $this->apolice_cobertura->getValorIOF($apolice_id, $apolice['pedido_id'], 1, $cod_cobertura);
+        if ( !empty($cob_vig) )
         {
-            // os dados padrões vem da apolice
-            $cob_vig = [[
-                'data_inicio_vigencia'  => $apolice['data_ini_vigencia'],
-                'data_fim_vigencia'     => $apolice['data_fim_vigencia'],
-                'vigencia_unica'        => true,
-            ]];
-        }
+	        foreach ($cob_vig as $key => $vig)
+	        {
+                $soma_valores = false;
 
-        foreach ($cob_vig as $key => $vig)
-        {
-            // Que seja multipla, foi enviada uma cobertura específica e é a cobertura informada
-            if ( empty($vig['vigencia_unica']) && !empty($cod_cobertura) && $vig['cod_cobertura'] != $cod_cobertura )
-            {
-                // avança até achar a cobertura
-                continue;
-            }
+	        	// Caso nao tenha vigência por cobertura, aplica-se a vigência da apólice
+	        	$vig['data_inicio_vigencia'] = emptyor($vig['data_inicio_vigencia']	, $apolice['data_ini_vigencia']);
+	            $vig['data_fim_vigencia']    = emptyor($vig['data_fim_vigencia']	, $apolice['data_fim_vigencia']);
 
-            //FAZ CALCULO DO VALOR PARCIAL
-            $dias_utilizados = app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
+                // caso a vigência seja por cobertura deve se somar os períodos
+                if ( $vig['data_inicio_vigencia'] != $vig_soma )
+                {
+                    $soma_valores = true;
+                    $vig_soma = $vig['data_inicio_vigencia'];
+                }
 
-            // caso não tenha iniciado a vigência, deve realizar o calculo com 100% nao usada da vigência
-            if ($dias_utilizados < 0)
-            {
-                $dias_utilizados = 0;
-                $dia_inicio = $vig["data_inicio_vigencia"];
-            } else {
-                $dia_inicio = $data_cancelamento;
-            }
+	            //FAZ CALCULO DO VALOR PARCIAL
+	            $dias_utilizados = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D"), 0);
 
-            $dias_restantes = app_date_get_diff_dias(app_dateonly_mysql_to_mask($dia_inicio), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]), "D");
-            $dias_aderido = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_adesao"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D");
-            $dias_total = app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]),  "D");
-            $devolucao_integral = ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_aderido <= $produto_parceiro_cancelamento['seg_depois_dias_carencia'] );
+	            // caso não tenha iniciado a vigência, deve realizar o calculo com 100% nao usada da vigência
+	            if ($dias_utilizados < 0)
+	            {
+	                $dias_utilizados = 0;
+	                $dia_inicio = $vig["data_inicio_vigencia"];
+	            } else {
+	                $dia_inicio = $data_cancelamento;
+	            }
+
+	            $dias_restantes = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($dia_inicio), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]), "D"), 0);
+	            $dias_aderido = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_adesao"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D"), 0);
+	            $dias_total = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]),  "D"), 0);
+	            $devolucao_integral = ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_aderido <= $produto_parceiro_cancelamento['seg_depois_dias_carencia'] );
+
+                // cobertura vigente retorna dados
+                if ($dias_restantes >= 0)
+                {
+    	            // Dados por cobertura
+    	            $itens[$key] = [
+    	            	'devolucao_integral' => $devolucao_integral,
+    		            'dias_utilizados' 	 => $dias_utilizados,
+    		            'dias_total' 		 => $dias_total,
+    		            'dias_restantes' 	 => $dias_restantes,
+    		            'valor_liquido' 	 => $vig['premio_liquido'],
+    		            'valor_bruto' 	 	 => $vig['premio_bruto'],
+    	            ];
+                } else
+                {
+                    $devolucao_integral = false;
+                }
+
+	            // Totalizadores
+                if ($soma_valores)
+                {
+    	            $tot_dias_utilizados += $dias_utilizados;
+    	            $tot_dias_total 	 += $dias_total;
+    	            $tot_dias_restantes  += $dias_restantes;
+    	            $tot_valor_liquido 	 += $vig['premio_liquido'];
+    	            $tot_valor_bruto 	 += $vig['premio_bruto'];
+                }
+
+	            // Caso haja qualquer cobertura com restituição, então a apólice ńão tem devolução integral 
+	            if ( !$devolucao_integral )
+	            {
+	            	$tot_devolucao_integral = false;
+	            }
+	        }
         }
 
         return [
-            'devolucao_integral' => $devolucao_integral,
-            'dias_utilizados' => issetor($dias_utilizados, 0),
-            'dias_aderido' => issetor($dias_aderido, 0),
-            'dias_total' => issetor($dias_total, 0),
-            'dias_restantes' => issetor($dias_restantes, 0),
+        	'status'			 => !empty($cob_vig),
+        	'devolucao_integral' => $tot_devolucao_integral,
+            'dias_utilizados' 	 => $tot_dias_utilizados,
+            'dias_aderido' 		 => issetor($dias_aderido, 0),
+            'dias_total' 		 => $tot_dias_total,
+            'dias_restantes' 	 => $tot_dias_restantes,
+            'valor_liquido'		 => $tot_valor_liquido,
+            'valor_bruto'		 => $tot_valor_bruto,
+            'itens' 			 => $itens,
         ];
     }
 
-    function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $dados_bancarios = [], $define_data = false, $tipo = 'C' ){
+    function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $dados_bancarios = [], $define_data = false, $tipo = 'C' )
+    {
+    	$result = [
+            'status' => false,
+            'mensagem' => '',
+        ];
+
         if( !$define_data ){
             $define_data = date("Y-m-d H:i:s");
         }
+
         $this->load->model("apolice_model", "apolice");
         $this->load->model("apolice_cobertura_model", "apolice_cobertura");
         $this->load->model("apolice_equipamento_model", "apolice_equipamento");
@@ -1089,39 +1159,47 @@ Class Pedido_Model extends MY_Model
 
         $calculo = $this->calcula_estorno_cancelamento($pedido_id, $vigente, $define_data);
 
-        if (!empty($calculo['status'])) {
+        // caso não tenha conseguido calcular o valor a estornar
+        if ( empty($calculo['status']) )
+        {
+        	$result['mensagem'] = $calculo['mensagem'];
+        	return $result;
+        }
 
-            foreach ($calculo['dados'] as $row) {
-                $apolice = $row['apolices'];
-                $dados_apolice = $row['dados_apolice'];
+        foreach ($calculo['dados'] as $row)
+        {
+            $apolice = $row['apolices'];
+            $dados_apolice = $row['dados_apolice'];
+            $coberturas = $row['coberturas'];
 
-                switch( $row['slug'] ) {
-                    case "seguro_viagem":
-                        $this->apolice_seguro_viagem->update($apolice["apolice_seguro_viagem_id"],  $dados_apolice, TRUE);
-                        break;
-                    case "equipamento":
-                        $this->apolice_equipamento->update($apolice["apolice_equipamento_id"],  $dados_apolice, TRUE);
-                        break;
-                    default:
-                        $this->apolice_generico->update($apolice["apolice_generico_id"],  $dados_apolice, TRUE);
-                        break;
-                }
-
-                $this->apolice->update($apolice["apolice_id"], ['apolice_status_id' => 2], TRUE);
-
-                if($ins_movimentacao) {
-                    $pedido = $this->get($pedido_id);
-                    $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido);
-                }
-
+            switch( $row['slug'] ) {
+                case "seguro_viagem":
+                    $this->apolice_seguro_viagem->update($apolice["apolice_seguro_viagem_id"],  $dados_apolice, TRUE);
+                    break;
+                case "equipamento":
+                    $this->apolice_equipamento->update($apolice["apolice_equipamento_id"],  $dados_apolice, TRUE);
+                    break;
+                default:
+                    $this->apolice_generico->update($apolice["apolice_generico_id"],  $dados_apolice, TRUE);
+                    break;
             }
 
+            $this->apolice->update($apolice["apolice_id"], ['apolice_status_id' => 2], TRUE);
+
+            if($ins_movimentacao) {
+                $pedido = $this->get($pedido_id);
+                $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido);
+            }
+
+            $this->apolice_cobertura->geraDadosCancelamento($apolice["apolice_id"], $calculo['valor_estorno_total_liquido'], $apolice["produto_parceiro_plano_id"], $coberturas);
         }
 
         $this->atualizarDadosBancarios($pedido_id, $dados_bancarios);
         $this->pedido_transacao->insStatus($pedido_id, 'cancelado', "PEDIDO CANCELADO COM SUCESSO");
         $this->fatura->insertFaturaEstorno($pedido_id, $calculo['valor_estorno_total']);
-        $this->apolice_cobertura->geraDadosCancelamento($pedido_id, $calculo['valor_estorno_total_liquido']);
+
+        $result['status'] = true;
+        return $result;
     }
 
     public function atualizarDadosBancarios($pedido_id, $dados_bancarios = []) {
@@ -1711,8 +1789,6 @@ Class Pedido_Model extends MY_Model
         ");
         $query = $this->_database->get();
 
-        #print_pre($this->db->last_query()); exit;
-
         $resp = [];
 
         if($query->num_rows() > 0)
@@ -2131,8 +2207,7 @@ Class Pedido_Model extends MY_Model
         {
             $resp = $query->result_array();
         }
-        //print_pre($this->db->last_query());
-        //die;
+
         return $resp;
     }
 
