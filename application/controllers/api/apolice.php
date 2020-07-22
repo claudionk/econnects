@@ -277,6 +277,31 @@ class Apolice extends CI_Controller {
         return $POST;
     }
 
+    public function validarDadosEntrada($POST = [])
+    {
+        if (empty($POST)) {
+            $POST = $this->getDados();
+        }
+
+        $apolice_id = null;
+        if( isset( $POST["apolice_id"] ) ) {
+            $apolice_id = $POST["apolice_id"];
+            $params["apolice_id"] = $apolice_id;
+        } else {
+            die( json_encode( array( "status" => false, "message" => "Campo apolice_id é obrigatório" ) ) );
+        }
+
+        $this->load->model("pedido_model", "pedido");
+
+        $pedido = $this->pedido->with_apolice()->filter_by_apolice($apolice_id)->get_all();
+
+        if(!$pedido) {
+            die( json_encode( array( "status" => false, "message" => "Apólice não encontrada" ) ) );
+        }
+
+        return [ 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
+    }
+
     public function cancelar() {
         
         $this->checkKey();
@@ -449,5 +474,38 @@ class Apolice extends CI_Controller {
 
     }
 
-}
+    public function getBilhete($apolice_id = null)
+    {
+        $this->checkKey();
 
+        if( !isset( $apolice_id ) ) {
+            die( json_encode( array( "status" => false, "message" => "Campo apolice_id é obrigatório" ) ) );
+        }
+
+        $apolice = $this->apolice->getApolice($apolice_id);
+        if( empty($apolice) )
+        {
+            die( json_encode( array(
+                "status" => false,
+                "message" => "Apólice não identificada",
+            ) ) );
+        }
+
+        $pdf_base64 = $this->apolice->certificado($apolice_id, 'pdf_file');
+        if($pdf_base64 !== FALSE)
+        {
+            $pdf_base64_handler = fopen($pdf_base64,'r');
+            $pdf_content = fread($pdf_base64_handler,filesize($pdf_base64));
+            fclose($pdf_base64_handler);
+
+            die( json_encode( array( 
+                "status" => true, 
+                "message" => "Apólice cancelada com sucesso",
+                "pdf" => base64_encode($pdf_content),
+            ) ) );
+        }
+
+        die( json_encode( array( "status" => false, "message" => "Não foi possível exportar o bilhete" ) ) );
+    }
+
+}
