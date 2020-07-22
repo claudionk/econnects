@@ -181,7 +181,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             'quantidade' => $quantidade,
         );
 
-        if (!$api) {
+        if (!$api || empty($produto_parceiro_plano_id) ) {
             $result['valores_bruto'] = 0;
             $result['valores_cobertura_adicional'] = 0;
             $result['valores_totais_cobertura_adicional'] = 0;
@@ -318,7 +318,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             }
 
             //precificacao_tipo_id
-            if (!$api || $plano['produto_parceiro_plano_id'] == $produto_parceiro_plano_id ) {
+            if ( !$api || empty($produto_parceiro_plano_id) || $plano['produto_parceiro_plano_id'] == $produto_parceiro_plano_id)
+            {
                 if ( !empty($valor_fixo) )
                 {
                     $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor_fixo;
@@ -355,7 +356,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
         $iof = 0;
         $valores_liquido_total = array();
-        foreach ($valores_liquido as $key => $value) {
+        foreach ($valores_liquido as $key => $value)
+        {
             $valores_liquido_total[$key] = $value;
             $valores_liquido_total_cobertura[$key] = 0;
             $valores_liquido_total_round[$key] = 0;
@@ -363,7 +365,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
 
             // Tratando se tem IOF - default para todas as coberturas
             $r = $this->plano_cobertura->with_prod_parc_iof($key)->get_all();
-            foreach ($r as $regra) {
+            foreach ($r as $regra)
+            {
                 $iof_calculado = true;
 
                 // trunca o valor do IOF por cobertura
@@ -373,8 +376,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                 $iof = $regra['iof'];
             }
 
-            if ($iof_calculado) {
-
+            if ($iof_calculado)
+            {
                 // arredonda a soma to IOF do bilhete
                 $valores_liquido_total_cobertura[$key] = round($valores_liquido_total_cobertura[$key], 2);
                 $valores_liquido_total_round[$key] = round($valores_liquido_total_round[$key], 2);
@@ -393,28 +396,35 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                 $valores_liquido_total[$key] -= $desconto_upgrade;
             }
 
-            foreach ($regra_preco as $regra) {
-                if( $iof_calculado && strtoupper($regra["regra_preco_nome"]) == "IOF" ) {
+            foreach ($regra_preco as $regra)
+            {
+                if( $iof_calculado && strtoupper($regra["regra_preco_nome"]) == "IOF" )
+                {
                     continue;
                 }
 
                 $valores_liquido_total[$key] += (($regra['parametros']/100) * $value);
                 $valores_liquido_total[$key] -= $desconto_upgrade;
 
-                if( strtoupper($regra["regra_preco_nome"]) == "IOF" ) {
+                if( strtoupper($regra["regra_preco_nome"]) == "IOF" )
+                {
                     $iof = $regra['parametros'];
                 }
             }
         }
 
-        if ( isset($valores_liquido) ) {
-            foreach ($valores_liquido as $key => $value) {
+        if ( isset($valores_liquido) )
+        {
+            foreach ($valores_liquido as $key => $value)
+            {
                 $valores_liquido[$key] = trim($valores_liquido[$key]);
             }
         }
 
-        if ( isset($valores_liquido_total) ) {
-            foreach ($valores_liquido_total as $key => $value) {
+        if ( isset($valores_liquido_total) )
+        {
+            foreach ($valores_liquido_total as $key => $value)
+            {
                 $valores_liquido_total[$key] = trim($valores_liquido_total[$key]);
             }
         }
@@ -434,7 +444,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             'iof' => (float)$iof,
         );
 
-        if (!$api) {
+        if (!$api || empty($produto_parceiro_plano_id) )
+        {
             $result['valores_bruto'] = $valores_bruto;
             $result['valores_cobertura_adicional'] = $valores_cobertura_adicional;
             $result['valores_totais_cobertura_adicional'] = $valores_cobertura_adicional_total;
@@ -443,8 +454,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         }
 
         //Salva cotação
-        if($cotacao_id) {
-
+        if($cotacao_id)
+        {
             if($row['produto_slug'] == 'seguro_viagem')
             {
                 $cotacao_salva = $this->cotacao->with_cotacao_seguro_viagem();
@@ -484,8 +495,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             $cotacao_eqp['premio_liquido_total'] = round($valores_liquido_total[$planoActual['produto_parceiro_plano_id']], 2);
             $cotacao_eqp['iof'] = $iof;
 
-            if (!empty($produto_parceiro_plano_id)){
-
+            if (!empty($produto_parceiro_plano_id))
+            {
                 if($row['produto_slug'] == 'seguro_viagem'){
                     $cotacaoUpdate = $this->cotacao_seguro_viagem;
                     $cotacao_item_id = $cotacao_salva['cotacao_seguro_viagem_id'];
