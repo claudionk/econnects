@@ -2328,6 +2328,10 @@ if ( ! function_exists('app_integracao_retorno_generali_pagnet'))
                 $response->status = 2;
                 $response->msg[] = ['id' => 12, 'msg' => 'Pagamento Rejeitado Ja Tratado  (igual a 0.A Pagar)', 'slug' => "pagnet_retorno"];
             }
+            else
+            {
+                $response->msg[] = ['id' => 12, 'msg' => "Ocorrência não prevista $cod_ocorrencia", 'slug' => "pagnet_retorno"];
+            }
         }
 
         return $response;
