@@ -2272,67 +2272,73 @@ if ( ! function_exists('app_integracao_retorno_generali_pagnet'))
         $CI->load->model('integracao_model');
         $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
 
-        // LIBERA TODOS OS QUE NAO FORAM LIDOS COMO ERRO E OS AINDA NAO FORAM LIBERADOS
-        if ( in_array($cod_ocorrencia, ['005']) )
+        // SUCESSO
+        if ( in_array($cod_ocorrencia, ['003']) )
+        {
+            $response->status = true;
+            $CI->integracao_model->update_log_sucess(NULL, FALSE, $chave, 'pagnet', TRUE);
+            
+            $response->msg[] = ['id' => 12, 'msg' => 'Realizado/Pago', 'slug' => "pagnet_retorno"];
+        }
+        // FALHA
+        elseif ( in_array($cod_ocorrencia, ['005','999','990','991','993']) )
         {
             $CI->integracao_model->update_log_fail(NULL, $chave, FALSE, TRUE);
 
-            $response->msg[] = ['id' => 12, 'msg' => 'Rejeitado pelo Banco', 'slug' => "pagnet_retorno"];
+            $response->status = 2;
+            if ( $cod_ocorrencia == '005' )
+            {
+                $response->msg[] = ['id' => 12, 'msg' => 'Rejeitado pelo Banco', 'slug' => "pagnet_retorno"];
+            }
+            elseif ( $cod_ocorrencia == '999' )
+            {
+                $response->msg[] = ['id' => 12, 'msg' => 'Titulo Inativado', 'slug' => "pagnet_retorno"];
+            }
+            elseif ( $cod_ocorrencia == '990' )
+            {
+                $response->msg[] = ['id' => 12, 'msg' => 'Título rejeitado PagNet - devolvido ao sistema de origem', 'slug' => "pagnet_retorno"];
+            }
+            elseif ( $cod_ocorrencia == '991' )
+            {
+                $response->msg[] = ['id' => 12, 'msg' => 'Título rejeitado PagNet - aguardando acerto PagNet', 'slug' => "pagnet_retorno"];
+            }
+            elseif ( $cod_ocorrencia == '993' )
+            {
+                $response->msg[] = ['id' => 12, 'msg' => 'Título rejeitado PagNet - 993', 'slug' => "pagnet_retorno"];
+            }
 
             foreach ($ret_inconsistencia as $key => $value)
             {
-                $id = 12; // retorno padrao
-                $descricao_erro = "Nao identificado ( {$value} )";
-
                 // identifica o ID através do DE x PARA
                 $ret = $CI->log_erro->filterByCodErroParceiro($value, 'pagnet_retorno')->get_all();
                 if ( !empty($ret) )
                 {
                     $id = $ret[0]['integracao_log_detalhe_erro_id'];
                     $descricao_erro = $ret[0]['nome'];
+                    $response->msg[] = ['id' => $id, 'msg' => $descricao_erro, 'slug' => "erro_retorno"];
                 }
-
-                $response->msg[] = ['id' => $id, 'msg' => $descricao_erro, 'slug' => "erro_retorno"];
             }
-        } else if ( in_array($cod_ocorrencia, ['003']) ) {
-            $response->status = true;
-            $CI->integracao_model->update_log_sucess(NULL, FALSE, $chave, 'pagnet', TRUE);
-            
-            $response->msg[] = ['id' => 12, 'msg' => 'Realizado/Pago', 'slug' => "pagnet_retorno"];
-        }
-        else{
-            if ( in_array($cod_ocorrencia, ['002']) )
+        // AGUARDANDO RETORNO
+        } else
+        {
+            if ( $cod_ocorrencia == '002' )
             {
                 $response->status = 2;
                 $response->msg[] = ['id' => 12, 'msg' => 'Aguardando Retorno', 'slug' => "pagnet_retorno"];
             }
-            else if ( in_array($cod_ocorrencia, ['004']) )
+            else if ( $cod_ocorrencia == '004' )
             {
                 $response->status = 2;
                 $response->msg[] = ['id' => 12, 'msg' => 'Cancelado', 'slug' => "pagnet_retorno"];
             }
-            else if ( in_array($cod_ocorrencia, ['006']) )
+            else if ( $cod_ocorrencia == '006' )
             {
                 $response->status = 2;
                 $response->msg[] = ['id' => 12, 'msg' => 'Pagamento Rejeitado Ja Tratado  (igual a 0.A Pagar)', 'slug' => "pagnet_retorno"];
             }
         }
 
-        if ( in_array($cod_ocorrencia, ['999']) )
-        {
-            $response->status = 2;
-            $response->msg[] = ['id' => 12, 'msg' => 'Titulo Inativado', 'slug' => "pagnet_retorno"];
-        }
-        elseif ( in_array($cod_ocorrencia, ['990']) )
-        {
-            $response->status = 2;
-            $response->msg[] = ['id' => 12, 'msg' => 'Título rejeitado PagNet - devolvido ao sistema de origem', 'slug' => "pagnet_retorno"];
-        }
-        elseif ( in_array($cod_ocorrencia, ['991']) )
-        {
-            $response->status = 2;
-            $response->msg[] = ['id' => 12, 'msg' => 'Título rejeitado PagNet - aguardando acerto PagNet', 'slug' => "pagnet_retorno"];
-        }
+        return $response;
     }
 }
 if ( ! function_exists('app_integracao_retorno_generali_success')) {
@@ -2390,11 +2396,7 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
 
         $CI =& get_instance();
         $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, id_sinistro, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
-            SELECT {$d['id_exp']}, '{$d['cod_sinistro']}', NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$valor} 
-            FROM sissolucoes1.sis_exp a
-            LEFT JOIN sissolucoes1.sis_exp_hist_carga b ON a.id_exp = b.id_exp AND b.`status` = 'P'
-            WHERE a.id_exp = {$d['id_exp']} AND b.id_exp IS NULL
-            ");
+            VALUES ({$d['id_exp']}, '{$d['cod_sinistro']}', NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$valor} )");
         $id_exp_hist_carga = $CI->db->insert_id();
 
         if ($d['tipo_expediente'] == 'ABE') {
