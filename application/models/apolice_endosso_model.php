@@ -131,7 +131,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 {
                     $sequencia_end = 1;
                 }
-                if ($tipo == 'C')
+                if ( in_array($tipo, ['C','F','E']) )
                 {
                     $sequencia_end = 2;
                 }
@@ -190,7 +190,7 @@ Class Apolice_Endosso_Model extends MY_Model
         {
             $cd_mov_cob = 3;
         }
-        elseif ( $tipo == 'C')
+        elseif ( in_array($tipo, ['C','F','E']) )
         {
             // nao é parcelado
             if ( $tipo_pagto != 2 )
@@ -227,7 +227,8 @@ Class Apolice_Endosso_Model extends MY_Model
 
         # CANCELAMENTO - C
         5 - 10 - Cancelamento da apólice
-        6 - 11- Cancelamento por falta de pagamento
+        6 - 11 - Cancelamento por falta de pagamento
+        7 - 13 - Cancelamento por erro na emissão
         */
 
         if ($tipo == 'A') {
@@ -244,6 +245,8 @@ Class Apolice_Endosso_Model extends MY_Model
             $tipo = 5;
         } elseif ($tipo == 'F') {
             $tipo = 6;
+        } elseif ($tipo == 'E') {
+            $tipo = 7;
         }
 
         return $tipo;
@@ -383,7 +386,7 @@ Class Apolice_Endosso_Model extends MY_Model
 
                 // valida a vigência
                 // caso seja cancelamento, a vigência deve ser a mesma da parcela cancelada
-                if ($dados_end['parcela'] > 0 && $tipo != 'C')
+                if ($dados_end['parcela'] > 0 && !in_array($tipo, ['C','F','E']) )
                 {
                     if ($dados_end['parcela'] > 1)
                     {
@@ -439,7 +442,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 $geraDadosEndosso = false;
             }
             // caso seja cancelamento
-            elseif ( $tipo == 'C' )
+            elseif ( in_array($tipo, ['C','F','E']) )
             {
                 // NAO FAZ O CANCELAMENTO
                 // Mensal: após X dias e após inicio da vigencia
