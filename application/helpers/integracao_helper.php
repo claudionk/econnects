@@ -2273,12 +2273,16 @@ if ( ! function_exists('app_integracao_retorno_generali_pagnet'))
             $response->msg[] = ['id' => 12, 'msg' => 'Realizado/Pago', 'slug' => "pagnet_retorno"];
         }
         // FALHA
-        elseif ( in_array($cod_ocorrencia, ['005','999','990','991','993']) )
+        elseif ( in_array($cod_ocorrencia, ['005','999','990','991','993','004']) )
         {
             $CI->integracao_model->update_log_fail(NULL, $chave, FALSE, TRUE);
 
             $response->status = 2;
-            if ( $cod_ocorrencia == '005' )
+            if ( $cod_ocorrencia == '004' )
+            {
+                $response->msg[] = ['id' => 12, 'msg' => 'Cancelado', 'slug' => "pagnet_retorno"];
+            }
+            else if ( $cod_ocorrencia == '005' )
             {
                 $response->msg[] = ['id' => 12, 'msg' => 'Rejeitado pelo Banco', 'slug' => "pagnet_retorno"];
             }
@@ -2322,11 +2326,6 @@ if ( ! function_exists('app_integracao_retorno_generali_pagnet'))
             {
                 $response->status = 2;
                 $response->msg[] = ['id' => 12, 'msg' => 'Aguardando Retorno', 'slug' => "pagnet_retorno"];
-            }
-            else if ( $cod_ocorrencia == '004' )
-            {
-                $response->status = 2;
-                $response->msg[] = ['id' => 12, 'msg' => 'Cancelado', 'slug' => "pagnet_retorno"];
             }
             else if ( $cod_ocorrencia == '006' )
             {
