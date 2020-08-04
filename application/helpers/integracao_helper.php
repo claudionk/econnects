@@ -2321,7 +2321,12 @@ if ( ! function_exists('app_integracao_retorno_generali_pagnet'))
         // AGUARDANDO RETORNO
         } else
         {
-            if ( $cod_ocorrencia == '002' )
+            if ( $cod_ocorrencia == '000' )
+            {
+                $response->status = 2;
+                $response->msg[] = ['id' => 12, 'msg' => 'Solicitacao Recebida', 'slug' => "pagnet_retorno"];
+            }
+            else if ( $cod_ocorrencia == '002' )
             {
                 $response->status = 2;
                 $response->msg[] = ['id' => 12, 'msg' => 'Aguardando Retorno', 'slug' => "pagnet_retorno"];
