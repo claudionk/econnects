@@ -380,7 +380,7 @@ Class Capitalizacao_Model extends MY_Model
 
                 } else
                 {
-                    if ( empty($cotacao["numero_sorte"]) )
+                    if ( !isset($cotacao["numero_sorte"]) || ( empty($cotacao["numero_sorte"]) && strlen($cotacao["numero_sorte"]) == 0) )
                     {
                         $result['status'] = false;
                         $result['message'] = 'O Número da Sorte não foi informado';
