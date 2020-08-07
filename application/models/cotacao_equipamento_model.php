@@ -684,7 +684,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
       $cotacao = $cotacao[0];
       if ($cotacao['produto_parceiro_plano_id'] > 0){
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
-        return $this->produto_parceiro_plano->verifica_tempo_limite_de_uso($cotacao['produto_parceiro_id'], $cotacao['produto_parceiro_plano_id'], $cotacao['nota_fiscal_data']);
+        return $this->produto_parceiro_plano->verifica_tempo_limite_de_uso($cotacao['produto_parceiro_id'], $cotacao['produto_parceiro_plano_id'], $cotacao['nota_fiscal_data'], $cotacao['data_adesao']);
       }
     }
 

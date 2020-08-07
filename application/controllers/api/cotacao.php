@@ -111,11 +111,6 @@ class Cotacao extends CI_Controller {
         if (!empty($POST['produto_parceiro_plano_id']))
         {
             $POST['nota_fiscal_data'] = issetor($POST['nota_fiscal_data'], null);
-            $valid = $this->produto_parceiro_plano->verifica_tempo_limite_de_uso($POST['produto_parceiro_id'], $POST['produto_parceiro_plano_id'], $POST['nota_fiscal_data']);
-
-            if (!empty($valid)) {
-                die( json_encode( array( "status" => false, "message" => $valid ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
-            }
 
             $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($POST['produto_parceiro_plano_id'], null, $POST, $coberturas);
             if (!empty($vigencia))
@@ -124,6 +119,11 @@ class Cotacao extends CI_Controller {
                 {
                     die( json_encode( array( "status" => false, "message" => "A data de adesão não pode ser superior à data atual" ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
                 }
+            }
+
+            $valid = $this->produto_parceiro_plano->verifica_tempo_limite_de_uso($POST['produto_parceiro_id'], $POST['produto_parceiro_plano_id'], $POST['nota_fiscal_data'], $vigencia["data_adesao"]);
+            if (!empty($valid)) {
+                die( json_encode( array( "status" => false, "message" => $valid ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
             }
 
             // Gera o registro de coberturas adicionais
