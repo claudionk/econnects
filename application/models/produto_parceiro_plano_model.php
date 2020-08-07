@@ -639,7 +639,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         );
     }
 
-    public function verifica_tempo_limite_de_uso($produto_parceiro_id, $produto_parceiro_plano_id, $data)
+    public function verifica_tempo_limite_de_uso($produto_parceiro_id, $produto_parceiro_plano_id, $data, $data_inicio = NULL)
     {
 
         $result = $this->coreSelectPlanosProdutoParceiro($produto_parceiro_id, $produto_parceiro_plano_id)->get_all();
@@ -664,7 +664,8 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                         break;
                 }
 
-                $d = app_date_get_diff($data, date('Y-m-d'), $base);
+                $data_inicio = emptyor($data_inicio, date('Y-m-d'));
+                $d = app_date_get_diff($data, $data_inicio, $base);
 
                 if ($d > $result['limite_tempo']) {
                     return "O plano {$result['nome']} requer que o Equipamento tenha um prazo máximo de uso de {$result['limite_tempo']} {$desc}";
