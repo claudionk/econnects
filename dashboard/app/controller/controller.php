@@ -105,48 +105,47 @@
         include('./app/view/faturamento/home.php');    
     }  
 
+    function run_invoicing(){
+        $dt_corte = (isset($_GET['dt_corte'])) ? $_GET['dt_corte'] : date('Y-m', strtotime(date('Y-m'). ' - 1 month'));
+        $oficial = (isset($_GET['oficial'])) ? $_GET['oficial'] : 'N';  
+        $ambiente = 'PRODUCAO';
+
+        $data_invoicing_process = invoicing_process(date("Y-m-t", strtotime($dt_corte)), $oficial);  
+        if ($data_invoicing_process['status'] == 'OK'){
+            echo '<script>alert("'.$data_invoicing_process['message'].'")</script>';   
+        } else{
+            echo '<script>alert("Falha no processamento")</script>';   
+        }
+
+        faturamento();
+    }
+
     function faturamento_report(){        
         $dt_corte   = (isset($_GET['dt_corte'])) ? $_GET['dt_corte'] : date('Y-m', strtotime(date('Y-m'). ' - 1 month'));
         $oficial    = (isset($_GET['oficial'])) ? $_GET['oficial'] : 'N';  
         $ambiente   = 'PRODUCAO';
         $tipo_rel   = (isset($_GET['tipo_rel'])) ? $_GET['tipo_rel'] : 'GERA_RESUMO';  
-        $id_lote   = (isset($_GET['id_lote'])) ? $_GET['id_lote'] : '0';  
-
-        $data_invoicing_report = get_invoicing_report($dt_corte, $oficial, $tipo_rel, $id_lote);    
-        $data_invoicing_report = json_encode(array('data_invoicing_report' => $data_invoicing_report));
-        $data_invoicing_report = json_decode($data_invoicing_report);
-        echo '<pre>';
-        echo array_keys(current($data_invoicing_report));
-        //echo($data_invoicing_report['data_invoicing_report']['result_invoicing_report']);
-        
-        //print_r($data_invoicing_report);
-        //exportCSV($data_invoicing_report,$data_invoicing_report,$tipo_rel);
+        $id_lote    = (isset($_GET['id_lote'])) ? $_GET['id_lote'] : '0';  
+        exportCSV(get_invoicing_report($dt_corte, $oficial, $tipo_rel, $id_lote),$tipo_rel .'_LOTE_'.$id_lote);
     }    
 
-    function exportCSV($columns, $rows = [], $nomeArq) {
+    function exportCSV($rows = [], $nomeArq) {
+        //print_r ($rows); exit;
         header('Content-Type: text/html; charset=utf-8');
         header("Pragma: no-cache");
         header("Cache: no-cahce");
-        $filename = './assets/temp/' . $nomeArq."_".date("Y-m-d_H-i-s",time()).".csv";
-        $fp = fopen($filename, "a+");
-        $linha = '';
-        $linhaheader = $nomeArq;
-        fwrite($fp, $linhaheader."\n");
-        $linhaheader = '';
-        // Cria as colunas
-        foreach ($columns as $column) {
-            $linhaheader .= $column . ";";
-        }
-        fwrite($fp, $linhaheader."\n");
-        // Cria as Linhas
-        foreach ($rows as $row) {
-            $contC = 0;
-            foreach ($columns as $column) {
-                $linha .= $row[$contC] . ";";
-                $contC++;
-            }            
-            fwrite($fp, $linha."\n"); 
-            $linha = '';           
+        $filename = '/var/www/webroot/ROOT/econnects/dashboard/app/controller/temp/' . $nomeArq."_".date("Y-m-d_H-i-s",time()).".csv";
+        $fp = fopen($filename, "w");
+        $header = false;
+        foreach ($rows as $row)
+        {
+            if (empty($header))
+            {
+                $header = array_keys($row);
+                fputcsv($fp, $header,';');
+                $header = array_flip($header);
+            }
+            fputcsv($fp, array_merge($header, $row),';');
         }
         fclose($fp);
         header('Content-Description: File Transfer');
@@ -155,6 +154,7 @@
         header('Content-Disposition: attachment; filename=' . basename($filename));
         readfile($filename);
         unlink($filename);
-        exit();
+        return; 
     }
+    
 ?>

@@ -536,39 +536,77 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
 
     function get_invoicing_report($dt_corte, $oficial, $tipo_rel, $id_lote){
         global $conn;
-        //CALL sp_gera_faturamento_relatorio('GERA_ANALITICO'      , 15, '2020-04-30', NULL);
-        //CALL sp_gera_faturamento_relatorio('GERA_RESUMO'         , 15, '2020-04-30', NULL);
-        //CALL sp_gera_faturamento_relatorio('GERA_SALDO_ACUMULADO', 15, '2020-04-30', NULL);
         $query = "CALL sp_gera_faturamento_relatorio('$tipo_rel', $id_lote, '$dt_corte', NULL)";
         try {
             $stmt = $conn->prepare($query, array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL));
             $stmt->execute();
             $result_invoicing_report = [];
-            $qtde_invoicing_report = 0;
-            while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                $qtde_invoicing_report ++;
-                $rs_invoicing_report['NF']                         = $row['NF'];
-                $rs_invoicing_report['Período de Referência']      = $row['Período de Referência']; 
-                $rs_invoicing_report['Cliente / Seguradora']       = $row['Cliente / Seguradora']; 
-                $rs_invoicing_report['Representante de Seguros']   = $row['Representante de Seguros'];
-                $rs_invoicing_report['Produto']                    = $row['Produto'];
-                $rs_invoicing_report['Tipo de Transação']          = $row['Tipo de Transação'];
-                $rs_invoicing_report['Valor']                      = $row['Valor'];
-                $rs_invoicing_report['Quantidade Emissão']         = $row['Quantidade Emissão'];
-                $rs_invoicing_report['Quantidade CTA']             = $row['Quantidade CTA'];
-                $rs_invoicing_report['Valor Total CTA']            = $row['Valor Total CTA'];
-                $rs_invoicing_report['Valor Total Emissão']        = $row['Valor Total Emissão'];
-                $rs_invoicing_report['Valor Parametrizado']        = $row['Valor Parametrizado'];
-                $result_invoicing_report[] = $rs_invoicing_report;
+            if ($tipo_rel == 'GERA_RESUMO') {
+                while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+                    $rs_invoicing_report['NF']                         = $row['NF'];
+                    $rs_invoicing_report['Período de Referência']      = $row['Período de Referência']; 
+                    $rs_invoicing_report['Cliente / Seguradora']       = $row['Cliente / Seguradora']; 
+                    $rs_invoicing_report['Representante de Seguros']   = $row['Representante de Seguros'];
+                    $rs_invoicing_report['Produto']                    = $row['Produto'];
+                    $rs_invoicing_report['Tipo de Transação']          = $row['Tipo de Transação'];
+                    $rs_invoicing_report['Valor']                      = str_replace('.',',',$row['Valor']);
+                    $rs_invoicing_report['Quantidade Emissão']         = $row['Quantidade Emissão'];
+                    $rs_invoicing_report['Quantidade CTA']             = $row['Quantidade CTA'];
+                    $rs_invoicing_report['Valor Total CTA']            = str_replace('.',',',$row['Valor Total CTA']);
+                    $rs_invoicing_report['Valor Total Emissão']        = str_replace('.',',',$row['Valor Total Emissão']);
+                    $rs_invoicing_report['Valor Parametrizado']        = str_replace('.',',',$row['Valor Parametrizado']);
+                    $result_invoicing_report[] = $rs_invoicing_report;
+                }
+            }
+            if ($tipo_rel == 'GERA_SALDO_ACUMULADO') {
+                while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+                    $rs_invoicing_report['Representante de Seguros']   = $row['Representante de Seguros'];
+                    $rs_invoicing_report['Produto']                    = $row['Produto'];
+                    $rs_invoicing_report['Período de Referência']      = $row['Período de Referência']; 
+                    $rs_invoicing_report['Quantidade Emissão']         = $row['Quantidade Emissão'];
+                    $rs_invoicing_report['Quantidade CTA']             = $row['Quantidade CTA'];
+                    $rs_invoicing_report['Saldo Mês']                  = $row['Saldo Mês'];
+                    $result_invoicing_report[] = $rs_invoicing_report;
+                }
+            }
+            if ($tipo_rel == 'GERA_ANALITICO') {
+                while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+                    $rs_invoicing_report['Bilhete']                         = $row['Bilhete'];                    
+                    $rs_invoicing_report['Origem Representante']            = $row['Origem Representante'];  
+                    $rs_invoicing_report['Período de Referência']           = $row['Período de Referência'];
+                    $rs_invoicing_report['Data Adesão']                     = $row['Data Adesão'];        
+                    $rs_invoicing_report['Data Cancelamento']               = $row['Data Cancelamento'];
+                    $rs_invoicing_report['Cliente / Seguradora']            = $row['Cliente / Seguradora'];
+                    $rs_invoicing_report['Representante de Seguros']        = $row['Representante de Seguros'];
+                    $rs_invoicing_report['Produto']                         = $row['Produto'];     
+                    $rs_invoicing_report['Tipo de Transação']               = $row['Tipo de Transação'];
+                    $rs_invoicing_report['Valor']                           = str_replace('.',',',$row['Valor']);            
+                    $rs_invoicing_report['Data Retorno Processamento CTA']  = $row['Data Retorno Processamento CTA'];
+                    $rs_invoicing_report['Nome do Arquivo CTA']             = $row['Nome do Arquivo CTA'];
+                    $result_invoicing_report[] = $rs_invoicing_report;
+                }
             }
             $stmt = null;
-            $resume_invoicing_report = array('qtde_invoicing_report' => $qtde_invoicing_report);
-            return array ('result_invoicing_report' => $result_invoicing_report,
-                          'resume_invoicing_report' => $resume_invoicing_report);            
+            return $result_invoicing_report;
         }
         catch (PDOException $e) {
             print $e->getMessage();
         }                                    
     }
-    
+
+    function invoicing_process($dt_corte, $oficial){
+        global $conn;
+        $query = "CALL sp_gera_faturamento_mensal('$dt_corte', '$oficial', NULL)";
+        try {
+            $stmt = $conn->prepare($query, array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL));
+            $stmt->execute();
+            $stmt = null;            
+            return array ('status' => 'OK',
+                          'message' => 'Processo realizado com sucesso!');            
+        }
+        catch (PDOException $e) {
+            print $e->getMessage();
+        }                                    
+    }    
+
 ?>
