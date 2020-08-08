@@ -134,7 +134,7 @@
         header('Content-Type: text/html; charset=utf-8');
         header("Pragma: no-cache");
         header("Cache: no-cahce");
-        $file_prd = '/var/www/webroot/ROOT/dashboard/app/controller/temp';
+        $file_prd = '/var/www/webroot/ROOT/dashboard/app/controller/temp/';
         $file_local = '/var/www/webroot/ROOT/econnects/dashboard/app/controller/temp/';
         $filename = $file_prd . $nomeArq."_".date("Y-m-d_H-i-s",time()).".csv";
         $fp = fopen($filename, "w");
