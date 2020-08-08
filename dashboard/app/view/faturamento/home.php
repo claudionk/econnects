@@ -4,8 +4,8 @@
     ?>
     <div id="content-wrapper">
         <div class="container-fluid"">
-            <form action="?c=faturamento" method="get">
-                <input type="hidden" name="c" id="c" value="faturamento">
+            <form action="?c=run_invoicing" method="post">
+                <!-- <input type="hidden" name="c" id="c" value="faturamento"> -->
                 <div class="form-row">
                     <div class="form-group col-md-3">
                         <label for="data1">Data de Corte</label>
@@ -22,7 +22,7 @@
                     <div class="form-group col-md-1">
                         <div>
                             <label for="data4">&nbsp;</label>
-                            <button type="submit" class="form-control btn btn-info">Gerar</button>
+                            <button type="submit" class="form-control btn btn-info" onclick="return confirm('Deseja realmente processar?')">Gerar</button>
                         </div>
                     </div>
                 </div>            

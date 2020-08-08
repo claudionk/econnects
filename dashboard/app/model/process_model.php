@@ -104,6 +104,10 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
     function get_process_by_filter(){
         return true;
     }
+// TODO: Implementar esta rotina
+    function get_process_by_id($integracao_id){
+        return true;
+    }    
 
     function get_lock_process($dt_inicio, $dt_final){
         global $conn;
@@ -115,13 +119,16 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
                           END AS status_atual,
                          DATE_FORMAT(i.ultima_execucao,'%d/%m/%Y %H:%i:%s') as ultima_execucao,
                          i.integracao_id,
-                         CONCAT('http://econnects-h.jelastic.saveincloud.net//assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', il.nome_arquivo) AS caminho_hml_arq_1,
-                         CONCAT('http://node23640-econnects-prod.jelastic.saveincloud.net/assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', il.nome_arquivo) AS caminho_prd_arq_1,
-                         CONCAT('http://node23641-econnects-prod.jelastic.saveincloud.net/assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', il.nome_arquivo) AS caminho_prd_arq_2,
-                         CONCAT('http://node23642-econnects-prod.jelastic.saveincloud.net/assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', il.nome_arquivo) AS caminho_prd_arq_3,
+                         CONCAT('http://econnects-h.jelastic.saveincloud.net//assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', IFNULL(il.nome_arquivo,'SEM_ARQUIVO')) AS caminho_hml_arq_1,
+                         CONCAT('http://node23640-econnects-prod.jelastic.saveincloud.net/assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', IFNULL(il.nome_arquivo,'SEM_ARQUIVO')) AS caminho_prd_arq_1,
+                         CONCAT('http://node23641-econnects-prod.jelastic.saveincloud.net/assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', IFNULL(il.nome_arquivo,'SEM_ARQUIVO')) AS caminho_prd_arq_2,
+                         CONCAT('http://node23642-econnects-prod.jelastic.saveincloud.net/assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', IFNULL(il.nome_arquivo,'SEM_ARQUIVO')) AS caminho_prd_arq_3,
                          DATE(il.processamento_inicio) as proces_inicio_orig,
                          DATE_FORMAT(il.processamento_inicio,'%d/%m/%Y %H:%i:%s') as processamento_inicio,
-                         il.nome_arquivo
+                         il.nome_arquivo,
+                         il.quantidade_registros,
+                         (select count(1) from integracao_log_detalhe where integracao_log_id = il.integracao_log_id) as quantidade_processado,
+                         CONCAT(ROUND((((select count(1) from integracao_log_detalhe where integracao_log_id = il.integracao_log_id) / il.quantidade_registros) * 100),2),'%') AS percentual                         
                     FROM integracao i
                     JOIN parceiro p ON i.parceiro_id = p.parceiro_id
                      AND i.status <> 'A'
@@ -140,17 +147,20 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
             $qtde_lock = 0;
             while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
                 $qtde_lock ++;
-                $rs_lock['parceiro']            = $row['parceiro'];
-                $rs_lock['descricao']           = $row['descricao']; 
-                $rs_lock['status_atual']        = $row['status_atual'];
-                $rs_lock['ultima_execucao']     = $row['ultima_execucao'];
-                $rs_lock['integracao_id']       = $row['integracao_id'];
-                $rs_lock['caminho_hml_arq_1']   = $row['caminho_hml_arq_1'];
-                $rs_lock['caminho_prd_arq_1']   = $row['caminho_prd_arq_1'];
-                $rs_lock['caminho_prd_arq_2']   = $row['caminho_prd_arq_2'];
-                $rs_lock['caminho_prd_arq_3']   = $row['caminho_prd_arq_3'];
-                $rs_lock['proces_inicio_orig']  = $row['proces_inicio_orig'];
-                $rs_lock['nome_arquivo']        = $row['nome_arquivo'];
+                $rs_lock['parceiro']              = $row['parceiro'];
+                $rs_lock['descricao']             = $row['descricao']; 
+                $rs_lock['status_atual']          = $row['status_atual'];
+                $rs_lock['ultima_execucao']       = $row['ultima_execucao'];
+                $rs_lock['integracao_id']         = $row['integracao_id'];
+                $rs_lock['caminho_prd_arq_3']     = $row['caminho_prd_arq_3'];
+                $rs_lock['caminho_hml_arq_1']     = $row['caminho_hml_arq_1'];
+                $rs_lock['caminho_prd_arq_1']     = $row['caminho_prd_arq_1'];
+                $rs_lock['caminho_prd_arq_2']     = $row['caminho_prd_arq_2'];
+                $rs_lock['proces_inicio_orig']    = $row['proces_inicio_orig'];
+                $rs_lock['nome_arquivo']          = $row['nome_arquivo'];
+                $rs_lock['quantidade_registros']  = $row['quantidade_registros'];
+                $rs_lock['quantidade_processado'] = $row['quantidade_processado'];
+                $rs_lock['percentual']            = $row['percentual'];
                 $result_lock[] = $rs_lock;
             }
             $stmt = null;
@@ -329,6 +339,7 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
                          DATE_FORMAT(il.processamento_inicio,'%d/%m/%Y %H:%i:%s') as processamento_inicio,
                          il.nome_arquivo,
                          CASE WHEN il.integracao_log_status_id = 5 THEN 'Processado com Erro'
+                              WHEN i.slug_group LIKE 'vendas-canc%' THEN 'Processado com Erro'
                          END AS status_processo,
                          i.integracao_id,
                          CONCAT('http://econnects-h.jelastic.saveincloud.net//assets/uploads/integracao/',i.integracao_id, '/', i.tipo, '/', il.nome_arquivo) AS caminho_hml_arq_1,
@@ -341,7 +352,9 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
                     JOIN integracao_log il ON i.integracao_id = il.integracao_id
                      AND il.deletado = 0
                      AND DATE(il.processamento_inicio) BETWEEN '$dt_inicio' AND '$dt_final'
-                     AND il.integracao_log_status_id = 5
+                     AND CASE WHEN i.slug_group LIKE 'vendas-canc%' THEN il.quantidade_registros <> (SELECT COUNT(*) + 2 AS qtde_sucesso FROM integracao_log_detalhe WHERE integracao_log_id = il.integracao_log_id and integracao_log_status_id = 4) 
+                              ELSE il.integracao_log_status_id = 5 
+                          END
                    ORDER BY p.nome_fantasia,
                             il.nome_arquivo,
                             i.ultima_execucao ASC
@@ -392,7 +405,7 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
                             CASE
                                 WHEN reg_proc.integracao_log_status_id = 2 THEN concat(ifnull(reg_proc.msg, 'Cod: SID2 - Processando...'))
                                 WHEN reg_proc.integracao_log_status_id = 3 THEN concat(ifnull(reg_proc.msg, 'Cod: SID3 - Processamento pendente'))
-                                WHEN reg_proc.integracao_log_status_id = 4 THEN concat(ifnull(reg_proc.msg, 'Cod: SID4 - Processado com sucesso'))
+                                WHEN reg_proc.integracao_log_status_id = 4 THEN IF (reg_proc.slug_group LIKE 'vendas-canc%', 'Cod: SID4 - Processado com sucesso', concat(ifnull(reg_proc.msg, 'Cod: SID4 - Processado com sucesso')))
                                 WHEN reg_proc.integracao_log_status_id = 5 THEN concat(ifnull(reg_proc.msg, 'Cod: SID5 - Processado com erro'))
                                 WHEN reg_proc.integracao_log_status_id = 7 THEN concat(ifnull(reg_proc.msg, 'Cod: SID7 - Já processado anteriormente'))
                                 ELSE reg_proc.integracao_log_status_id
@@ -523,39 +536,77 @@ Fazer a validação de processos não executados a mais de 3 dias pela data da p
 
     function get_invoicing_report($dt_corte, $oficial, $tipo_rel, $id_lote){
         global $conn;
-        //CALL sp_gera_faturamento_relatorio('GERA_ANALITICO'      , 15, '2020-04-30', NULL);
-        //CALL sp_gera_faturamento_relatorio('GERA_RESUMO'         , 15, '2020-04-30', NULL);
-        //CALL sp_gera_faturamento_relatorio('GERA_SALDO_ACUMULADO', 15, '2020-04-30', NULL);
         $query = "CALL sp_gera_faturamento_relatorio('$tipo_rel', $id_lote, '$dt_corte', NULL)";
         try {
             $stmt = $conn->prepare($query, array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL));
             $stmt->execute();
             $result_invoicing_report = [];
-            $qtde_invoicing_report = 0;
-            while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                $qtde_invoicing_report ++;
-                $rs_invoicing_report['NF']                         = $row['NF'];
-                $rs_invoicing_report['Período de Referência']      = $row['Período de Referência']; 
-                $rs_invoicing_report['Cliente / Seguradora']       = $row['Cliente / Seguradora']; 
-                $rs_invoicing_report['Representante de Seguros']   = $row['Representante de Seguros'];
-                $rs_invoicing_report['Produto']                    = $row['Produto'];
-                $rs_invoicing_report['Tipo de Transação']          = $row['Tipo de Transação'];
-                $rs_invoicing_report['Valor']                      = $row['Valor'];
-                $rs_invoicing_report['Quantidade Emissão']         = $row['Quantidade Emissão'];
-                $rs_invoicing_report['Quantidade CTA']             = $row['Quantidade CTA'];
-                $rs_invoicing_report['Valor Total CTA']            = $row['Valor Total CTA'];
-                $rs_invoicing_report['Valor Total Emissão']        = $row['Valor Total Emissão'];
-                $rs_invoicing_report['Valor Parametrizado']        = $row['Valor Parametrizado'];
-                $result_invoicing_report[] = $rs_invoicing_report;
+            if ($tipo_rel == 'GERA_RESUMO') {
+                while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+                    $rs_invoicing_report['NF']                         = $row['NF'];
+                    $rs_invoicing_report['Período de Referência']      = $row['Período de Referência']; 
+                    $rs_invoicing_report['Cliente / Seguradora']       = $row['Cliente / Seguradora']; 
+                    $rs_invoicing_report['Representante de Seguros']   = $row['Representante de Seguros'];
+                    $rs_invoicing_report['Produto']                    = $row['Produto'];
+                    $rs_invoicing_report['Tipo de Transação']          = $row['Tipo de Transação'];
+                    $rs_invoicing_report['Valor']                      = str_replace('.',',',$row['Valor']);
+                    $rs_invoicing_report['Quantidade Emissão']         = $row['Quantidade Emissão'];
+                    $rs_invoicing_report['Quantidade CTA']             = $row['Quantidade CTA'];
+                    $rs_invoicing_report['Valor Total CTA']            = str_replace('.',',',$row['Valor Total CTA']);
+                    $rs_invoicing_report['Valor Total Emissão']        = str_replace('.',',',$row['Valor Total Emissão']);
+                    $rs_invoicing_report['Valor Parametrizado']        = str_replace('.',',',$row['Valor Parametrizado']);
+                    $result_invoicing_report[] = $rs_invoicing_report;
+                }
+            }
+            if ($tipo_rel == 'GERA_SALDO_ACUMULADO') {
+                while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+                    $rs_invoicing_report['Representante de Seguros']   = $row['Representante de Seguros'];
+                    $rs_invoicing_report['Produto']                    = $row['Produto'];
+                    $rs_invoicing_report['Período de Referência']      = $row['Período de Referência']; 
+                    $rs_invoicing_report['Quantidade Emissão']         = $row['Quantidade Emissão'];
+                    $rs_invoicing_report['Quantidade CTA']             = $row['Quantidade CTA'];
+                    $rs_invoicing_report['Saldo Mês']                  = $row['Saldo Mês'];
+                    $result_invoicing_report[] = $rs_invoicing_report;
+                }
+            }
+            if ($tipo_rel == 'GERA_ANALITICO') {
+                while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+                    $rs_invoicing_report['Bilhete']                         = $row['Bilhete'];                    
+                    $rs_invoicing_report['Origem Representante']            = $row['Origem Representante'];  
+                    $rs_invoicing_report['Período de Referência']           = $row['Período de Referência'];
+                    $rs_invoicing_report['Data Adesão']                     = $row['Data Adesão'];        
+                    $rs_invoicing_report['Data Cancelamento']               = $row['Data Cancelamento'];
+                    $rs_invoicing_report['Cliente / Seguradora']            = $row['Cliente / Seguradora'];
+                    $rs_invoicing_report['Representante de Seguros']        = $row['Representante de Seguros'];
+                    $rs_invoicing_report['Produto']                         = $row['Produto'];     
+                    $rs_invoicing_report['Tipo de Transação']               = $row['Tipo de Transação'];
+                    $rs_invoicing_report['Valor']                           = str_replace('.',',',$row['Valor']);            
+                    $rs_invoicing_report['Data Retorno Processamento CTA']  = $row['Data Retorno Processamento CTA'];
+                    $rs_invoicing_report['Nome do Arquivo CTA']             = $row['Nome do Arquivo CTA'];
+                    $result_invoicing_report[] = $rs_invoicing_report;
+                }
             }
             $stmt = null;
-            $resume_invoicing_report = array('qtde_invoicing_report' => $qtde_invoicing_report);
-            return array ('result_invoicing_report' => $result_invoicing_report,
-                          'resume_invoicing_report' => $resume_invoicing_report);            
+            return $result_invoicing_report;
         }
         catch (PDOException $e) {
             print $e->getMessage();
         }                                    
     }
-    
+
+    function invoicing_process($dt_corte, $oficial){
+        global $conn;
+        $query = "CALL sp_gera_faturamento_mensal('$dt_corte', '$oficial', NULL)";
+        try {
+            $stmt = $conn->prepare($query, array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL));
+            $stmt->execute();
+            $stmt = null;            
+            return array ('status' => 'OK',
+                          'message' => 'Processo realizado com sucesso!');            
+        }
+        catch (PDOException $e) {
+            print $e->getMessage();
+        }                                    
+    }    
+
 ?>

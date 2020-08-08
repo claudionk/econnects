@@ -34,6 +34,14 @@
   <script src="./assets/js/demo/datatables-demo.js"></script>
   <script src="./assets/js/demo/chart-area-demo.js"></script>
 
+  <script>
+    $(document).ready(function() {
+        $('#dataTableDetalhe').DataTable( {
+            "lengthMenu": [[50, 100, -1], [50, 100, "All"]]
+        } );
+    } );
+  </script>
+
 </body>
 
 </html>

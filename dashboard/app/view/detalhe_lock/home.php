@@ -19,7 +19,7 @@
               Dados de Integração</div>
             <div class="card-body">
               <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <table class="table table-bordered" id="dataTableDetalhe" width="100%" cellspacing="0">
                   <thead>
                     <tr>
                       <th>Parceiro</th>
@@ -27,6 +27,8 @@
                       <th>Nome do Arquivo</th>
                       <th>Status</th>
                       <th>Última Execução</th>
+                      <th>Reg. Proc.</th>
+                      <th>Reg. Total</th>                      
                       <th>ID da Integração</th>
                       <th>Processos</th>
                       <th>Arquivos</th>
@@ -39,6 +41,8 @@
                       <th>Nome do Arquivo</th>
                       <th>Status</th>
                       <th>Última Execução</th>
+                      <th>Reg. Proc.</th>
+                      <th>Reg. Total</th>                      
                       <th>ID da Integração</th>
                       <th>Processos</th>
                       <th>Arquivos</th>
@@ -48,15 +52,25 @@
                     <?php 
                       $outhtml = '';
                       foreach ($data_lock['data_lock']['result_lock'] as $row) {
-                        $caminho_prd_arq_1 = (@fopen($row['caminho_prd_arq_1'],'r')) ? ' <a title="ServPrd40" href="'.$row['caminho_prd_arq_1'].'" target="_blank"><i class="fas fa-file-alt fa-2x" style="color:green"></i></a>' : '<i class="fas fa-file-alt fa-2x" style="color:darkgrey"></i>' ;
+                        if (strpos($row['caminho_prd_arq_1'], 'SEM_ARQUIVO')){
+                          $caminho_prd_arq_1 = '<a title="ServPrd40" href="'.str_replace('SEM_ARQUIVO','?C=M;O=D',$row['caminho_prd_arq_1']).'" target="_blank"><i class="fas fa-file-alt fa-2x" style="color:orange"></i></a>';
+                        }else{
+                          $caminho_prd_arq_1 = (@fopen($row['caminho_prd_arq_1'],'r')) ? ' <a title="ServPrd40" href="'.$row['caminho_prd_arq_1'].'" target="_blank"><i class="fas fa-file-alt fa-2x" style="color:green"></i></a>' : '<i class="fas fa-file-alt fa-2x" style="color:darkgrey"></i>' ;
+                        }
                         //$caminho_prd_arq_2 = (@fopen($row['caminho_prd_arq_2'],'r')) ? ' <a title="ServPrd41" href="'.$row['caminho_prd_arq_2'].'" target="_blank"><i class="fas fa-file-alt fa-2x" style="color:green"></i></a>' : '<i class="fas fa-file-alt fa-2x" style="color:darkgrey"></i>' ;
-                        $caminho_prd_arq_3 = (@fopen($row['caminho_prd_arq_3'],'r')) ? ' <a title="ServPrd42" href="'.$row['caminho_prd_arq_3'].'" target="_blank"><i class="fas fa-file-alt fa-2x" style="color:green"></i></a>' : '<i class="fas fa-file-alt fa-2x" style="color:darkgrey"></i>' ;
+                        if (strpos($row['caminho_prd_arq_3'], 'SEM_ARQUIVO')){
+                          $caminho_prd_arq_3 = '<a title="ServPrd42" href="'.str_replace('SEM_ARQUIVO','?C=M;O=D',$row['caminho_prd_arq_3']).'" target="_blank"><i class="fas fa-file-alt fa-2x" style="color:orange"></i></a>';
+                        }else{
+                          $caminho_prd_arq_3 = (@fopen($row['caminho_prd_arq_3'],'r')) ? ' <a title="ServPrd42" href="'.$row['caminho_prd_arq_3'].'" target="_blank"><i class="fas fa-file-alt fa-2x" style="color:green"></i></a>' : '<i class="fas fa-file-alt fa-2x" style="color:darkgrey"></i>' ;
+                        }                        
                         $outhtml .= '<tr>';
                         $outhtml .= '<td>' . $row['parceiro'] .'</td>';
                         $outhtml .= '<td>' . $row['descricao'] .'</td>';
                         $outhtml .= '<td>' . $row['nome_arquivo'] .'</td>';
                         $outhtml .= '<td>' . $row['status_atual'] .'</td>';
                         $outhtml .= '<td>' . $row['ultima_execucao'] .'</td>';
+                        $outhtml .= '<td>' . $row['quantidade_processado'] .' ('. $row['percentual'] .')</td>';
+                        $outhtml .= '<td>' . $row['quantidade_registros'] .'</td>';                        
                         $outhtml .= '<td>' . $row['integracao_id'] .'</td>';
                         $outhtml .= '<td> <a title="Ver detalhes" href="?c=detalhe_error_details&ambiente=' . $ambiente . '&data_inicio=' . $row['proces_inicio_orig']. '&file_name=' .$row['nome_arquivo'].'" target="_blank"><i class="fas fa-list fa-2x" style="color:lightslategray"></i></a>' . 
                                         ' <a title="Reprocessar" href="#"><i class="fas fa-sync-alt fa-2x" style="color:orange"></i></a>' . 

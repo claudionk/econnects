@@ -16,7 +16,7 @@
               Dados de Integração</div>
             <div class="card-body">
               <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <table class="table table-bordered" id="dataTableDetalhe" width="100%" cellspacing="0">
                   <thead>
                     <tr>
                       <th>Nome do Arquivo</th>
@@ -24,6 +24,7 @@
                       <th>Qtde</th>
                       <th>Tot. Arq.</th>
                       <th>Mensagem</th>
+                      <th>Apólices</th>
                       <th>Data da Execução</th>
                       <th>ID Log</th>
                       <th>ID Int.</th>
@@ -38,6 +39,7 @@
                       <th>Qtde</th>
                       <th>Tot. Arq.</th>
                       <th>Mensagem</th>
+                      <th>Apólices</th>
                       <th>Data da Execução</th>
                       <th>ID Int.</th>
                       <th>ID Log</th>
@@ -64,18 +66,19 @@
                         $outhtml .= '<td>' . $row['qtde'] .'</td>';
                         $outhtml .= '<td>' . $row['qtd_total_reg'] .'</td>';
                         $outhtml .= '<td>' . $row['mensagem'] .'</td>';
+                        $outhtml .= '<td>'  .$row['apolices'].'</td>';
                         $outhtml .= '<td>' . $row['processamento_inicio'] .'</td>';
                         $outhtml .= '<td>' . $row['integracao_id'] .'</td>';
                         $outhtml .= '<td>' . $row['integracao_log_id'] .'</td>';
                         $outhtml .= '<td>' . $row['parceiro'] .'</td>';
                         $outhtml .= '<td>' . $row['descricao'] .'</td>';
-                        $outhtml .= '</tr>';
-                        $outhtml .= '<tr style="background-color:'.$bg_color.';">';
-                        $outhtml .= '<td colspan="1"> Apólice: </td>';
-                        $outhtml .= '<td colspan="9">';
-                        $outhtml .= '<p>'.$row['apolices'].'</p>';
-                        $outhtml .= '</td>';
-                        $outhtml .= '</tr>';
+                        // $outhtml .= '</tr>';
+                        // $outhtml .= '<tr style="background-color:'.$bg_color.';">';
+                        // $outhtml .= '<td colspan="1"> Apólice: </td>';
+                        // $outhtml .= '<td colspan="9">';
+                        // $outhtml .= '<p>'.$row['apolices'].'</p>';
+                        // $outhtml .= '</td>';
+                        // $outhtml .= '</tr>';
                       }
                       echo $outhtml;
                     ?>
