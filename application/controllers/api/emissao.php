@@ -23,6 +23,7 @@ class Emissao extends CI_Controller {
 
     public $campos_estrutura;
     public $valor_premio_bruto;
+    public $premio_liquido;
     public $forma_pagamento_id;
     public $produto_parceiro_pagamento_id;
 
@@ -103,6 +104,7 @@ class Emissao extends CI_Controller {
         $this->ean                  = '';
         $this->num_apolice          = (!isset($POST['num_apolice'])) ? false : $POST['num_apolice'];
         $this->valor_premio_bruto   = (!isset($POST['valor_premio_bruto'])) ? 0 : $POST['valor_premio_bruto'];
+        $this->premio_liquido       = (!isset($POST['valor_premio_liquido'])) ? 0 : $POST['valor_premio_liquido'];
         $this->comissao_premio      = (empty($POST['comissao'])) ? 0 : $POST['comissao'];
         $this->coberturas_opcionais = (!isset($POST['coberturas_opcionais'])) ? '' : $POST['coberturas_opcionais'];
         $this->meio_pagto_slug      = (!isset($POST['meiopagamento']['meio_pagto_slug'])) ? '' : $POST['meiopagamento']['meio_pagto_slug'];
@@ -340,6 +342,7 @@ class Emissao extends CI_Controller {
                 $url = base_url() ."api/cotacao/calculo";
                 $fields = [
                     'cotacao_id' => $this->cotacao_id,
+                    'valor_fixo' => emptyor($this->premio_liquido, NULL),
                     'coberturas' => emptyor($this->campos_estrutura['coberturas'], []),
                 ];
 
