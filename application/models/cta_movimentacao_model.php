@@ -142,7 +142,7 @@ Class Cta_Movimentacao_Model extends MY_Model
         $sql = $q['begin'] . " 
             SELECT distinct
                 c.cliente_id
-                , concat(a.num_apolice, '|', ae.sequencial) as chave_emi
+                , concat(a.num_apolice, '|', IF(ppc.endosso_controle_cliente = 0, ae.sequencial, IF(ae.endosso = '0', 2, ae.sequencial))) as chave_emi
                 , am.apolice_movimentacao_tipo_id
                 , a.num_apolice
                 , a.pedido_id
@@ -151,17 +151,15 @@ Class Cta_Movimentacao_Model extends MY_Model
                 , ae.apolice_endosso_id
             FROM 
                 apolice a 
-                INNER JOIN pedido p on a.pedido_id = p.pedido_id
-                INNER JOIN cotacao c on p.cotacao_id = c.cotacao_id
-                INNER JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
+                INNER JOIN pedido p on a.pedido_id = p.pedido_id AND p.deletado = 0 
+                INNER JOIN cotacao c on p.cotacao_id = c.cotacao_id AND c.deletado = 0
+                INNER JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id AND am.deletado = 0
                 INNER JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id
-                INNER JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
+                INNER JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id AND ae.deletado = 0
+                INNER JOIN produto_parceiro_plano ppp on a.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
+                INNER JOIN produto_parceiro_configuracao ppc on ppp.produto_parceiro_id = ppc.produto_parceiro_id AND ppc.deletado = 0 
             WHERE 
                 a.deletado = 0 
-                AND p.deletado = 0 
-                AND c.deletado = 0
-                AND am.deletado = 0
-                AND ae.deletado = 0
                 AND concat(a.num_apolice, '|', ae.sequencial) IN(
                     SELECT ild.chave
                     FROM integracao i
@@ -189,7 +187,7 @@ Class Cta_Movimentacao_Model extends MY_Model
         $sql = $q['begin'] . " 
             SELECT distinct
                 c.cliente_id
-                , concat(a.num_apolice, '|', ae.sequencial) as chave_emi
+                , concat(a.num_apolice, '|', IF(ppc.endosso_controle_cliente = 0, ae.sequencial, IF(ae.endosso = '0', 2, ae.sequencial))) as chave_emi
                 , am.apolice_movimentacao_tipo_id
                 , a.num_apolice
                 , a.pedido_id
@@ -198,20 +196,23 @@ Class Cta_Movimentacao_Model extends MY_Model
                 , ae.apolice_endosso_id
             FROM 
                 apolice a 
-                INNER JOIN pedido p on a.pedido_id = p.pedido_id
-                INNER JOIN cotacao c on p.cotacao_id = c.cotacao_id
-                INNER JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
+                INNER JOIN pedido p on a.pedido_id = p.pedido_id AND p.deletado = 0 
+                INNER JOIN cotacao c on p.cotacao_id = c.cotacao_id AND c.deletado = 0
+                INNER JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id AND am.deletado = 0
                 INNER JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
-                INNER JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
+                INNER JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id AND ae.deletado = 0
+                INNER JOIN produto_parceiro_plano ppp on a.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
+                INNER JOIN produto_parceiro_configuracao ppc on ppp.produto_parceiro_id = ppc.produto_parceiro_id AND ppc.deletado = 0 
                 , integracao i        
                 , integracao_log il 
                 , integracao_log_detalhe ild
             WHERE 
                 a.deletado = 0 
-                AND p.deletado = 0 
-                AND c.deletado = 0
                 and i.integracao_id = il.integracao_id
                 and ild.integracao_log_id = il.integracao_log_id
+                and i.deletado = 0
+                and il.deletado = 0
+                and ild.deletado = 0
                 and i.slug_group = 'cliente'
                 and c.cliente_id = ild.chave
                 and date_add( now(), interval {$this->time} minute ) < IFNULL(ild.alteracao,ild.criacao)
@@ -234,7 +235,7 @@ Class Cta_Movimentacao_Model extends MY_Model
         $sql = $q['begin'] . " 
             SELECT DISTINCT
                 c.cliente_id
-                , concat(a.num_apolice, '|', ae.sequencial) as chave_emi
+                , concat(a.num_apolice, '|', IF(ppc.endosso_controle_cliente = 0, ae.sequencial, IF(ae.endosso = '0', 2, ae.sequencial))) as chave_emi
                 , am.apolice_movimentacao_tipo_id
                 , a.num_apolice
                 , a.pedido_id
@@ -243,16 +244,16 @@ Class Cta_Movimentacao_Model extends MY_Model
                 , ae.apolice_endosso_id
             FROM 
                 apolice a 
-                INNER JOIN pedido p on a.pedido_id = p.pedido_id
-                INNER JOIN cotacao c on p.cotacao_id = c.cotacao_id
-                INNER JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id
+                INNER JOIN pedido p on a.pedido_id = p.pedido_id AND p.deletado = 0 
+                INNER JOIN cotacao c on p.cotacao_id = c.cotacao_id AND c.deletado = 0
+                INNER JOIN apolice_movimentacao am on a.apolice_id = am.apolice_id AND am.deletado = 0
                 INNER JOIN apolice_movimentacao_tipo amt on am.apolice_movimentacao_tipo_id = amt.apolice_movimentacao_tipo_id    
-                INNER JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id
+                INNER JOIN apolice_endosso ae on ae.apolice_id = a.apolice_id and ae.apolice_movimentacao_tipo_id = am.apolice_movimentacao_tipo_id AND ae.deletado = 0
+                INNER JOIN produto_parceiro_plano ppp on a.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
+                INNER JOIN produto_parceiro_configuracao ppc on ppp.produto_parceiro_id = ppc.produto_parceiro_id AND ppc.deletado = 0 
                 LEFT JOIN cta_movimentacao cta on ae.apolice_id = cta.apolice_id and ae.apolice_movimentacao_tipo_id = cta.apolice_movimentacao_tipo_id and ae.apolice_endosso_id = cta.apolice_endosso_id
             WHERE 
                 a.deletado = 0 
-                AND p.deletado = 0 
-                AND c.deletado = 0
                 AND cta.apolice_id IS NULL
         ". $q['end'];
 
