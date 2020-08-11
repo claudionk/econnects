@@ -2,6 +2,7 @@
     require('./app/model/process_model.php'); 
     ini_set("display_errors", "1");
     error_reporting(E_ALL);
+    ini_set('memory_limit','512M');
 
     function dashboard(){
         $dt_inicio = (isset($_GET['dt_inicio'])) ? $_GET['dt_inicio'] : date('Y-m-d', strtotime(date('Y-m-d'). ' - 1 days'));
