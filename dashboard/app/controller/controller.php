@@ -129,6 +129,32 @@
         exportCSV(get_invoicing_report($dt_corte, $oficial, $tipo_rel, $id_lote),$tipo_rel .'_LOTE_'.$id_lote);
     }    
 
+    function exportCSVOld($rows = [], $nomeArq) {
+        header('Content-Type: text/html; charset=utf-8');
+        header("Pragma: no-cache");
+        header("Cache: no-cahce");
+        $file = dirname(__FILE__) . "/temp/";
+        $filename = $file . $nomeArq."_".date("Y-m-d_H-i-s",time()).".csv";
+        $fp = fopen($filename, "w");
+        $header = false;
+        foreach ($rows as $row){
+            if (empty($header)){
+                $header = array_keys($row);
+                fputcsv($fp, $header,';');
+                $header = array_flip($header);
+            }
+            fputcsv($fp, array_merge($header, $row),';');
+        }
+        fclose($fp);
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/force-download');
+        header('Content-Length: ' . filesize($filename));
+        header('Content-Disposition: attachment; filename=' . basename($filename));
+        readfile($filename);
+        unlink($filename);
+        return; 
+    }
+
     function exportCSV($rows = [], $nomeArq) {
         header('Content-Type: text/html; charset=utf-8');
         header("Pragma: no-cache");
@@ -137,15 +163,30 @@
         $filename = $file . $nomeArq."_".date("Y-m-d_H-i-s",time()).".csv";
         $fp = fopen($filename, "w");
         $header = false;
-        foreach ($rows as $row)
-        {
-            if (empty($header))
-            {
-                $header = array_keys($row);
-                fputcsv($fp, $header,';');
-                $header = array_flip($header);
+        $linhaheader = '';
+        $countheader = 0;
+        $linha = '';
+        // Cria o Header
+        foreach ($rows as $row){
+            $headers = array_keys($row);
+            $countheader = count($headers);
+            if ($countheader > 0 ){
+                foreach ($headers as $header) {
+                    $linhaheader .= $header . ";";
+                }
+                break;
             }
-            fputcsv($fp, array_merge($header, $row),';');
+        }
+        fwrite($fp, $linhaheader."\n");       
+
+        // Cria as Linhas
+        foreach ($rows as $row) {
+            $columns = array_values($row);
+            foreach ($columns as $column) {
+                $linha .= $column . ";";
+            }            
+            fwrite($fp, $linha."\n"); 
+            $linha = '';           
         }
         fclose($fp);
         header('Content-Description: File Transfer');
