@@ -1,5 +1,7 @@
 <?php   
     require('./app/model/process_model.php'); 
+    ini_set("display_errors", "1");
+    error_reporting(E_ALL);
 
     function dashboard(){
         $dt_inicio = (isset($_GET['dt_inicio'])) ? $_GET['dt_inicio'] : date('Y-m-d', strtotime(date('Y-m-d'). ' - 1 days'));
@@ -129,7 +131,7 @@
         exportCSV(get_invoicing_report($dt_corte, $oficial, $tipo_rel, $id_lote),$tipo_rel .'_LOTE_'.$id_lote);
     }    
 
-    function exportCSVOld($rows = [], $nomeArq) {
+    function exportCSV($rows = [], $nomeArq) {
         header('Content-Type: text/html; charset=utf-8');
         header("Pragma: no-cache");
         header("Cache: no-cahce");
@@ -155,7 +157,7 @@
         return; 
     }
 
-    function exportCSV($rows = [], $nomeArq) {
+    function exportCSVREMOVER($rows = [], $nomeArq) {
         header('Content-Type: text/html; charset=utf-8');
         header("Pragma: no-cache");
         header("Cache: no-cahce");
@@ -196,6 +198,5 @@
         readfile($filename);
         unlink($filename);
         return; 
-    }
-    
+    }    
 ?>
