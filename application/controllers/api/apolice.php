@@ -66,7 +66,7 @@ class Apolice extends CI_Controller {
                     //Monta resposta da apólice
                     $apolice = $this->apolice->getApolicePedido( $pedido["pedido_id"] );
                     $apolice[0]["inadimplente"] = ($this->pedido->isInadimplente( $pedido["pedido_id"] ) === false ) ? 0 : 1;
-                    $apolice[0]["coberturas"] = $this->apolice_cobertura->OnlyCoberturas()->getByApoliceID($apolice[0]["apolice_id"])->get_all();
+                    $apolice[0]["coberturas"] = $this->apolice_cobertura->OnlyCoberturas()->filterByTipo("A")->getByApoliceID($apolice[0]["apolice_id"])->get_all();
 
                     $faturas = $this->fatura->filterByPedido($pedido["pedido_id"])
                     ->with_fatura_status()
