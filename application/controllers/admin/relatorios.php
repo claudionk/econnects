@@ -154,6 +154,26 @@ class Relatorios extends Admin_Controller
             return $resultado;
     }
 
+    public function getRelatorioFaturamento($ajax = TRUE)
+    {
+        $this->load->model("faturamento_model", "faturamento");
+
+        $resultado = array();
+        $resultado['status'] = false;
+
+        //Dados via GET
+        $data_inicio = $this->input->get_post('data_inicio');
+        $data_fim = $this->input->get_post('data_fim');
+
+        $resultado['data'] = $this->faturamento->get_all_lote();
+        $resultado['status'] = true;
+
+        if ($ajax)
+            echo json_encode($resultado);
+        else
+            return $resultado;
+    }
+
     public function vendas1()
     {
         //Dados para template
@@ -467,6 +487,48 @@ class Relatorios extends Admin_Controller
         $this->template->load("admin/layouts/base", "{$this->controller_uri}/{$data['action']}" , $data);
     }
 
+
+    public function faturamento()
+    {
+        //Dados para template
+        $data = array();
+        $data['data_inicio'] = '01/' . date("m/Y",strtotime("-1 month"));
+        $data['data_fim'] = date("t/m/Y",strtotime("-1 month"));
+        $data['action'] = $this->uri->segment(2);
+        $data['src'] = $this->controller_uri;
+        $data['layout'] = 'faturamento';
+        $data['title'] = 'Relatório Faturamento de Bilhetes';
+        $data['columns'] = [
+            'PARCEIRO',
+            'ID DO LOTE',
+            'DATA DE CORTE',
+            'OFICIAL?',
+            'DATA DE EXECUÇÃO',
+            'DOWNLOAD DO RELATÓRIO'
+        ];
+
+        $result = $this->getRelatorioFaturamento(FALSE);
+        $data['result'] = $result['data'];
+        $rows = [];
+        foreach ($data['result'] as $row) {
+            $rows[] = [
+                $row['parceiro'],
+                $row['fatura_parceiro_lote_id'],
+                $row['data_corte'],
+                $row['gera_oficial'],
+                $row['data_processamento'],
+                $row['data_processamento'],
+            ];
+        }
+            //$this->exportCSV($data['columns'], $rows, 'Relatório Faturamento de Bilhetes');
+        //Dados via GET
+        $data['data_inicio'] = $this->input->get_post('data_inicio');
+        $data['data_fim'] = $this->input->get_post('data_fim');
+
+
+        //Carrega template
+        $this->template->load("admin/layouts/base", "$this->controller_uri/{$data['action']}", $data);
+    }    
 
     /* Retorno os dados para combo */
     public function getParceiro()
