@@ -862,7 +862,7 @@ Class Pedido_Model extends MY_Model
         return $retorno;
     }
 
-    function cancelamento($pedido_id, $dados_bancarios = [], $define_date = false, $tipo = 'C' ){
+    function cancelamento($pedido_id, $dados_bancarios = [], $define_date = false, $tipo = 'C', $tipo_motivo = 'C' ){
         if( ! $define_date ){
             $define_date = date("Y-m-d H:i:s");
         }
@@ -875,7 +875,7 @@ Class Pedido_Model extends MY_Model
         if (!empty($criticas['result']))
         {
             // efetuar o cancelamento
-            $result = $this->executa_estorno_cancelamento($pedido_id, $criticas['vigencia'], TRUE, $dados_bancarios, $define_date, $tipo);
+            $result = $this->executa_estorno_cancelamento($pedido_id, $criticas['vigencia'], TRUE, $dados_bancarios, $define_date, $tipo, $tipo_motivo);
             if ( empty($result['status']) )
             {
             	$criticas['result'] = $criticas['status'] = false;
@@ -1139,7 +1139,7 @@ Class Pedido_Model extends MY_Model
         ];
     }
 
-    function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $dados_bancarios = [], $define_data = false, $tipo = 'C' )
+    function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $dados_bancarios = [], $define_data = false, $tipo = 'C', $tipo_motivo = 'C' )
     {
     	$result = [
             'status' => false,
@@ -1188,7 +1188,7 @@ Class Pedido_Model extends MY_Model
 
             if($ins_movimentacao) {
                 $pedido = $this->get($pedido_id);
-                $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido);
+                $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido, NULL, $tipo_motivo);
             }
 
             $this->apolice_cobertura->geraDadosCancelamento($apolice["apolice_id"], $calculo['valor_estorno_total_liquido'], $apolice["produto_parceiro_plano_id"], $coberturas);
