@@ -241,9 +241,10 @@ class Apolice extends CI_Controller {
         $pedido_id = $validacao['pedido_id'];
         $dados_bancarios = !empty($validacao['dados']['dados_bancarios']) ? $validacao['dados']['dados_bancarios'] : [];
         $define_date = !empty($validacao['dados']["define_date"]) ? $validacao['dados']["define_date"] : date("Y-m-d H:i:s") ;
+        $tipo_motivo = emptyor($validacao['dados']["tipo_motivo"], 'C');
 
         //pega as configurações de cancelamento do pedido
-        $produto_parceiro_cancelamento = $this->pedido->cancelamento( $pedido_id, $dados_bancarios, $define_date);
+        $produto_parceiro_cancelamento = $this->pedido->cancelamento( $pedido_id, $dados_bancarios, $define_date, 'C', $tipo_motivo);
 
         if( isset( $produto_parceiro_cancelamento["result"] ) && $produto_parceiro_cancelamento["result"] == false ) {
             die( json_encode( array( "status" => false, "message" => $produto_parceiro_cancelamento["mensagem"] ) ) );

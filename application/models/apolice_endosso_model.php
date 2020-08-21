@@ -212,7 +212,7 @@ Class Apolice_Endosso_Model extends MY_Model
         return $cd_mov_cob;
     }
 
-    public function defineTipo($tipo, $endosso, $capa = false)
+    public function defineTipo($tipo, $endosso, $capa = false, $tipo_motivo = null)
     {
         /*
         Codigo do tipo de emissão:
@@ -241,12 +241,23 @@ Class Apolice_Endosso_Model extends MY_Model
             $tipo = 3;
         } elseif ($tipo == 'U') {
             $tipo = 4;
-        } elseif ($tipo == 'C') {
-            $tipo = 5;
-        } elseif ($tipo == 'F') {
-            $tipo = 6;
-        } elseif ($tipo == 'E') {
-            $tipo = 7;
+        } elseif ($tipo == 'C')
+        {
+            switch ($tipo_motivo) {
+                case 'C':
+                    $tipo = 5;
+                    break;
+                case 'F':
+                    $tipo = 6;
+                    break;
+                case 'E':
+                    $tipo = 7;
+                    break;
+                
+                default:
+                    $tipo = 5;
+                    break;
+            }
         }
 
         return $tipo;
@@ -272,7 +283,7 @@ Class Apolice_Endosso_Model extends MY_Model
         return $endosso;
     }
 
-    public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null)
+    public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null, $tipo_motivo = null)
     {
         try
         {
@@ -304,6 +315,7 @@ Class Apolice_Endosso_Model extends MY_Model
 
             $dados = [
                 'tipo'               => $tipo,
+                'tipo_motivo'        => $tipo_motivo,
                 'parcela'            => $parcela,
                 'valor'              => $valor,
                 'tipo_pagto'         => $tipo_pagto,
@@ -336,6 +348,7 @@ Class Apolice_Endosso_Model extends MY_Model
             $tipo_pagto = $dados['tipo_pagto'];
             $parcela = $dados['parcela'];
             $tipo = $dados['tipo'];
+            $tipo_motivo = $dados['tipo_motivo'];
             $valor = $dados['valor'];
             $contador = emptyor($dados['contador'], 1);
             $apolice_id = $dados_end['apolice_id'];
@@ -521,7 +534,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 $seq_end                            = $this->max_seq_by_apolice_id($apolice_id, $tipo_pagto, $tipo, $multiplasVigencias, $dados_end['cd_movimento_cobranca']);
                 $dados_end['sequencial']            = $seq_end['sequencial'];
                 $dados_end['endosso']               = $seq_end['endosso'];
-                $dados_end['tipo']                  = $this->defineTipo($tipo, $dados_end['endosso'], $tipo_pagto);
+                $dados_end['tipo']                  = $this->defineTipo($tipo, $dados_end['endosso'], $tipo_pagto, $tipo_motivo);
                 $dados_end['id_transacao']          = $this->getIDTransacao($apolice_id, $dados_end['endosso'], $dados_end['parcela']);
                 $this->insert($dados_end, TRUE);
             }
