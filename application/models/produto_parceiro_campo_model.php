@@ -55,6 +55,11 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
             'groups' => 'default'
         ),
         array(
+            'field' => 'classe_css',
+            'label' => 'Classe',
+            'groups' => 'default'
+        ),
+        array(
             'field' => 'ordem',
             'label' => 'Ordem',
             'groups' => 'default'
@@ -74,6 +79,11 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         if(isset($data['validacoes']) && is_array($data['validacoes']))
         {
             $data['validacoes'] = implode("|", $data['validacoes']);
+        }
+
+        if(isset($data['classe_css']) && is_array($data['classe_css']))
+        {
+            $data['classe_css'] = implode("|", $data['classe_css']);
         }
 
         return $data;
@@ -138,6 +148,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
 
         return $this;
     }
+    
 
     function coreSelecCampoProdutoParceiro($produto_parceiro_id, $campo_tipo_id){
         $this->_database->select("{$this->_table}.campo_id");
@@ -145,6 +156,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         $this->_database->select("{$this->_table}.tamanho");
         $this->_database->select("{$this->_table}.opcoes");
         $this->_database->select("{$this->_table}.validacoes");
+        $this->_database->select("{$this->_table}.classe_css");
         $this->_database->select("campo.nome");
         $this->_database->select("CASE produto.slug 
             WHEN 'equipamento' THEN
