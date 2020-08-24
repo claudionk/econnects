@@ -28,7 +28,10 @@ if (isset($result)) {
                 <td><?= $row['data_corte'] ?></td>
                 <td><?= $row['gera_oficial'] ?></td>
                 <td><?= $row['data_processamento'] ?></td>
-                <td><?= $row['data_processamento'] ?></td>
+                <td> <button type="submit" name="btnAnalitico" value="A" class="btn btn-primary btnExportExcel"><i class="fa fa-cloud-download"> </i>  Analítico</button>
+                     <button type="submit" name="btnResumo" value="R" class="btn btn-primary btnExportExcel"><i class="fa fa-cloud-download"> </i>  Resumo</button>
+                     <button type="submit" name="btnSaldo" value="S" class="btn btn-primary btnExportExcel"><i class="fa fa-cloud-download"> </i>  Saldo</button>
+                </td>
             </tr>
             <?php
         }
