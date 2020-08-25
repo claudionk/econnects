@@ -76,6 +76,26 @@ if($_POST)
                                                         <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
                                                 </div>
+
+                                                <!-- // Column END -->
+
+
+                                            </div>
+                                            <!-- // Row END -->
+
+                                            <!-- Row -->
+                                            <div class="row innerLR">
+
+                                                <!-- Column -->
+                                                <div class="col-md-6">
+
+                                                    <?php $field_name = 'slug';?>
+                                                    <div class="form-group">
+                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Slug</label>
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                    </div>
+                                                </div>
+                                                
                                                 <!-- // Column END -->
 
 

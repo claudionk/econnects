@@ -42,6 +42,7 @@ class Usuario_Acl_Tipo_Model extends MY_Model {
 
         $data =  array(
             'nome' => $this->input->post('nome'),
+            'slug' => $this->input->post('slug'),
         );
 
 
