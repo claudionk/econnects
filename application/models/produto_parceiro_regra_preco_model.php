@@ -228,7 +228,16 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             //buscar o markup
             $markup = $this->relacionamento->get_comissao_markup($produto_parceiro_id, $parceiro_id, $comissao);
 
-            if ( floatval($markup) > floatval($configuracao['markup']) )
+            // Converte em string para igualar os tipos de variáveis
+            // Apresentou rejeição após converter as 2 variaveis para float direto
+            // Foi presico prmeiramente igualar em string para só então converter em float
+            $markup = (string)$markup;
+            $configuracao['markup'] = (string)$configuracao['markup'];
+
+            $markup = (float)$markup;
+            $configuracao['markup'] = (float)$configuracao['markup'];
+
+            if ( $markup > $configuracao['markup'] )
             {
                 $markup = number_format($markup, 2, ',', '.');
                 $configuracao['markup'] = number_format($configuracao['markup'], 2, ',', '.');
