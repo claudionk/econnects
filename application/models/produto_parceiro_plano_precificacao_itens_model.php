@@ -208,7 +208,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param int $num_passageiro
     * @return array
     */
-    public function getValoresPlano( $cotacao_id = 0, $cotacao_aux_id = NULL, $valor_fixo = NULL, $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categora_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_sub_categoria_id = NULL, $equipamento_de_para = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL, $data_adesao = NULL){
+    public function getValoresPlano( $cotacao_id = 0, $cotacao_aux_id = NULL, $valor_fixo = NULL, $produto_slug, $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $valor_nota, $quantidade = 1, $data_nascimento = null, $equipamento_sub_categoria_id = NULL, $equipamento_de_para = NULL, $servico_produto_id = NULL, $data_inicio_vigencia = NULL, $data_fim_vigencia = NULL, $comissao = NULL, $data_adesao = NULL){
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
@@ -343,7 +343,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
                             ->filter_by_faixa( $valor_nota )
                             ->filter_by_tipo_equipamento("CATEGORIA")
-                            ->filter_by_equipamento($equipamento_categora_id)
+                            ->filter_by_equipamento($equipamento_categoria_id)
                             ->get_all();
 
                         $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
@@ -351,11 +351,32 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         break;
                     case $this->config->item("PRECO_POR_EQUIPAMENTO");
 
+                        $this->load->model("cotacao_model", "cotacao");
+
                         $try = true;
+                        $eqSubCatId = $equipamento_sub_categoria_id;
+                        $eqCatId = $equipamento_categoria_id;
 
                         while ($try)
                         {
                             $try = false;
+
+                            // tratamento para identificar o equipamento
+                            $eqSubCatId = emptyor($eqSubCatId, $eqCatId);
+
+                            // Se não passar, tentar pegar a categoria/sub pelo modelo
+                            if ( empty($equipamento_de_para) && empty($eqSubCatId) )
+                            {
+                                $cot = $this->cotacao->with_cotacao_equipamento()->with_cotacao_equipamento_modelo()->filterByID($cotacao_id)->get_all();
+                                if ( !empty($cot) )
+                                {
+                                    $cot = $cot[0];
+                                    $eqSubCatId = $cot['equipamento_sub_categoria_id'];
+                                    $eqCatId = $cot['equipamento_categoria_id'];
+
+                                    $eqSubCatId = emptyor($eqSubCatId, $eqCatId);
+                                }
+                            }
 
                             $query = $this
                                 ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
@@ -372,23 +393,19 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                             } else {
 
-                                // tratamento para identificar o equipamento
-                                $equipamento_sub_categoria_id = emptyor($equipamento_sub_categoria_id, $equipamento_categora_id);
                                 $valor = $query
-                                    ->filter_by_equipamento($equipamento_sub_categoria_id)
+                                    ->filter_by_equipamento($eqSubCatId)
                                     ->get_all();
 
                                 // nao encontrou resultado
                                 // a categoria é diferente da sub
                                 // existe categoria válida
-                                if ( empty($valor) && $equipamento_sub_categoria_id <> $equipamento_categora_id && !empty($equipamento_categora_id) )
+                                if ( empty($valor) && $eqSubCatId <> $eqCatId && !empty($eqCatId) )
                                 {
-                                    $equipamento_sub_categoria_id = $equipamento_categora_id;
+                                    $eqSubCatId = $eqCatId;
                                     $try = true;
                                 }
-
                             }
-
                         }
 
                         $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia);

@@ -180,7 +180,13 @@ function calculo_preco()
             }           
 
             setTimeout(function() {
-                window.location.href = base_url + "admin/venda_equipamento/equipamento/"+$('#produto_parceiro_id').val()+"/6/"+result.pedido_id+"?token="+$('#getToken').val()+"&layout="+$('#getLayout').val()+"&color="+$('#getColor').val()
+                if (result.pedido_id)
+                {
+                    window.location.href = base_url + "admin/venda_equipamento/equipamento/"+$('#produto_parceiro_id').val()+"/6/"+result.pedido_id+"?token="+$('#getToken').val()+"&layout="+$('#getLayout').val()+"&color="+$('#getColor').val();
+                } 
+                else {
+                    window.location.href = base_url + "admin/venda_equipamento/equipamento/"+$('#produto_parceiro_id').val()+"/1/"+$('#cotacao_id').val()
+                }
             }, 1800);
 
             $('.td-add-car').hide();

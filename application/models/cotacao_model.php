@@ -255,6 +255,16 @@ Class Cotacao_Model extends MY_Model
     }
 
     /**
+     * Com cotação de Equipamento
+     * @return $this
+     */
+    public function with_cotacao_equipamento_modelo() {
+        $this->_database->select('e.*');
+        $this->_database->join('vw_Equipamentos e', 'cotacao_equipamento.equipamento_id = e.equipamento_id', 'left');
+        return $this;
+    }
+
+    /**
      * Com cotação de seguro viagem
      * @return $this
      */
