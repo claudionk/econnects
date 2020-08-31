@@ -14,6 +14,8 @@ class Admin_Controller extends MY_Controller
 
     protected $controller_name;
     protected $controller_uri;
+    protected $parceiro_id;
+    protected $parceiro_pai_id;
 
     const FORMA_PAGAMENTO_CARTAO_CREDITO  = 1;
     const FORMA_PAGAMENTO_TRANSF_BRADESCO = 2;
@@ -46,6 +48,15 @@ class Admin_Controller extends MY_Controller
             $this->_setTheme($userdata['parceiro_id']);
         }
 
+
+        if ( !empty($this->session->userdata('parceiro_id')) ) {
+            $this->parceiro_id = $this->session->userdata('parceiro_id');
+        }
+        
+        if ( !empty($this->session->userdata('parceiro_pai_id')) ) {
+            $this->parceiro_pai_id = $this->session->userdata('parceiro_pai_id');
+        }
+        
         $this->template->set('theme', $this->_theme);
         $this->template->set('theme_logo', $this->_theme_logo);
         $this->template->set('title', $this->_theme_nome);
