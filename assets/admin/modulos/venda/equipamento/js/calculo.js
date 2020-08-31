@@ -180,7 +180,7 @@ function calculo_preco()
             }           
 
             setTimeout(function() {
-                window.location.href = "/admin/venda_equipamento/equipamento/"+$('#produto_parceiro_id').val()+"/6/"+result.pedido_id+"?token="+$('#getToken').val()+"&layout="+$('#getLayout').val()+"&color="+$('#getColor').val()
+                window.location.href = base_url + "admin/venda_equipamento/equipamento/"+$('#produto_parceiro_id').val()+"/6/"+result.pedido_id+"?token="+$('#getToken').val()+"&layout="+$('#getLayout').val()+"&color="+$('#getColor').val()
             }, 1800);
 
             $('.td-add-car').hide();
