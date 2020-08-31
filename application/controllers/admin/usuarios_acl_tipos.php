@@ -26,32 +26,27 @@ class Usuarios_Acl_Tipos extends Admin_Controller {
 	public function index($offset = 0)
 	{
 
-
-
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', 'List');
-
-
 
         $this->template->set_breadcrumb('List', base_url("$this->controller_uri/index"));
 
         $this->load->library('pagination');
+
+        //Inicializa paginação
         $config['base_url'] = base_url("$this->controller_uri/index");
         $config['uri_segment'] = 4;
-        $config['total_rows'] =  $this->current_model->get_total();
+        $config['total_rows'] =  $this->current_model->filter_by_parceiro($this->parceiro_id)->get_total();
         $config['per_page'] = 10;
         $this->pagination->initialize($config);
 
-
+        //Carrega dados
         $data = array();
         $data['primary_key'] = $this->current_model->primary_key();
         $data["pagination_links"] = $this->pagination->create_links();
-
-
-
-        $data['rows'] = $this->current_model->limit($config['per_page'], $offset )->get_all();
-
-
+        $data['parceiro_id'] = $this->parceiro_id;
+        $data['parceiro_pai_id'] = $this->parceiro_pai_id;
+        $data['rows'] = $this->current_model->limit($config['per_page'], $offset )->filter_by_parceiro($this->parceiro_id)->get_all();
 
         $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data );
 	}
@@ -88,6 +83,7 @@ class Usuarios_Acl_Tipos extends Admin_Controller {
 
         $data = array();
 
+        $data['parceiro_id'] = $this->parceiro_id;
         $data['primary_key'] = $this->current_model->primary_key();
         $data['new_record'] = '0';
         $data['form_action'] =  base_url("$this->controller_uri/add");
@@ -130,7 +126,7 @@ class Usuarios_Acl_Tipos extends Admin_Controller {
         }
 
 
-
+        $data['parceiro_id'] = $this->parceiro_id;
         $data['primary_key'] = $this->current_model->primary_key();
         $data['new_record'] = '0';
         $data['form_action'] =  base_url("$this->controller_uri/edit/{$id}");

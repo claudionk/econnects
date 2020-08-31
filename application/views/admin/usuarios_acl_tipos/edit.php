@@ -47,6 +47,8 @@ if($_POST)
                                 <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off">
                                     <input type="hidden" name="<?php echo $primary_key ?>" value="<?php if (isset($row[$primary_key])) echo $row[$primary_key]; ?>"/>
                                     <input type="hidden" name="new_record" value="<?php echo $new_record; ?>"/>
+                                    <input type="hidden" name="parceiro_id" value="<?php echo $parceiro_id; ?>"/>
+                                     <input type="hidden" name="parceiro_pai_id" value="<?php echo $parceiro_pai_id; ?>"/>
                                     <!-- Widget -->
                                     <div class="card">
 

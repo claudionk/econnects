@@ -34,6 +34,18 @@ class Usuario_Acl_Tipo_Model extends MY_Model {
             'label' => 'Slug',
             'rules' => 'required',
             'groups' => 'default'
+        ),
+        array(
+            'field' => 'parceiro_id',
+            'label' => 'Parceiro',
+            'rules' => '',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'parceiro_pai_id',
+            'label' => 'Pai id',
+            'rules' => '',
+            'groups' => 'default'
         )
 
     );
@@ -43,10 +55,34 @@ class Usuario_Acl_Tipo_Model extends MY_Model {
         $data =  array(
             'nome' => $this->input->post('nome'),
             'slug' => $this->input->post('slug'),
+            'parceiro_id' => $this->input->post('parceiro_id'),
+            'parceiro_pai_id' => $this->input->post('parceiro_pai_id'),
         );
 
 
         return $data;
     }
+    
+    function filter_by_parceiro($parceiro_id)
+    {
+        $this->_database->where("{$this->_table}.parceiro_id", 0);
+        $return = $this->get_all();
 
+        $this->_database->where("{$this->_table}.parceiro_id", $parceiro_id);
+        $result = $this->get_all();
+
+        if ( empty($result) ){
+            $this->_database->where("{$this->_table}.parceiro_id", $this->parceiro_pai_id);   
+            $result = $this->get_all();
+        }
+
+        if ( !empty($result) )
+        {
+            foreach ($result as $r) {
+                $return[] = $r;
+            }
+        }
+
+        return $return;
+    }
 }
