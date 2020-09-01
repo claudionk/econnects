@@ -21,11 +21,8 @@ class Usuarios_Acl_Tipos extends Admin_Controller {
 
     }
 
-
-
 	public function index($offset = 0)
 	{
-
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', 'List');
 
@@ -36,7 +33,7 @@ class Usuarios_Acl_Tipos extends Admin_Controller {
         //Inicializa paginação
         $config['base_url'] = base_url("$this->controller_uri/index");
         $config['uri_segment'] = 4;
-        $config['total_rows'] =  $this->current_model->filter_by_parceiro($this->parceiro_id)->get_total();
+        $config['total_rows'] = count($this->current_model->filter_by_parceiro($this->parceiro_id, $this->parceiro_pai_id));
         $config['per_page'] = 10;
         $this->pagination->initialize($config);
 
@@ -46,7 +43,7 @@ class Usuarios_Acl_Tipos extends Admin_Controller {
         $data["pagination_links"] = $this->pagination->create_links();
         $data['parceiro_id'] = $this->parceiro_id;
         $data['parceiro_pai_id'] = $this->parceiro_pai_id;
-        $data['rows'] = $this->current_model->limit($config['per_page'], $offset )->filter_by_parceiro($this->parceiro_id)->get_all();
+        $data['rows'] = $this->current_model->filter_by_parceiro($this->parceiro_id, $this->parceiro_pai_id, $config['per_page'], $offset);
 
         $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data );
 	}
