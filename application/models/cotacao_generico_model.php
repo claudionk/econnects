@@ -252,6 +252,12 @@ Class Cotacao_Generico_Model extends MY_Model
             'rules' => '',
             'groups' => 'default'
         ),
+        array(
+            'field' => 'garantia_fabricante',
+            'label' => 'garantia_fabricante',
+            'rules' => '',
+            'groups' => 'default'
+        ),
     );
 
 
@@ -424,6 +430,10 @@ Class Cotacao_Generico_Model extends MY_Model
 
         if(isset($cotacao['data_nascimento'])){
             $data_cotacao['data_nascimento'] =  app_dateonly_mask_to_mysql($cotacao['data_nascimento']);
+        }
+
+        if(isset($cotacao['garantia_fabricante'])){
+            $data_cotacao['garantia_fabricante'] =  app_dateonly_mask_to_mysql($cotacao['garantia_fabricante']);
         }
 
         if(isset($cotacao['endereco_cep'])){
