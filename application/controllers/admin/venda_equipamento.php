@@ -323,6 +323,7 @@ class Venda_Equipamento extends Admin_Controller{
         $this->template->css(app_assets_url("modulos/venda/equipamento/css/select2.css", "admin"));
         $this->template->js(app_assets_url("modulos/venda/equipamento/js/base.js", "admin"));
         $this->template->js(app_assets_url("modulos/venda/equipamento/js/formulario.js", "admin"));
+        $this->template->js(app_assets_url("modulos/venda/equipamento/js/busca_cotacao.js", "admin"));
 
         //Dados para template
         $data = array();
@@ -530,6 +531,7 @@ class Venda_Equipamento extends Admin_Controller{
         $this->template->css(app_assets_url('modulos/venda/equipamento/css/select2.css', 'admin'));
         $this->template->js(app_assets_url('modulos/venda/equipamento/js/dados_busca_cep.js', 'admin'));
         $this->template->js(app_assets_url('modulos/venda/equipamento/js/dados_segurado.js', 'admin'));
+        $this->template->js(app_assets_url("modulos/venda/equipamento/js/formulario.js", "admin"));
 
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $carrossel = $this->session->userdata("carrossel_{$produto_parceiro_id}");

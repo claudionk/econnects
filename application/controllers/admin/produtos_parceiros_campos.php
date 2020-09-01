@@ -167,6 +167,8 @@ class Produtos_Parceiros_Campos extends Admin_Controller
         $data['campo_tipo_list'] = $this->campo_tipo->get_all();
         $data['campo_list'] = $this->campo->get_all();
         $data['row']['validacoes'] = array();
+        $data['row']['classe_css'] = array();
+
 
         $data['campo_validacao_list'] = $this->campo_validacao->order_by('nome')->get_all();
         //Carrega template
@@ -209,6 +211,24 @@ class Produtos_Parceiros_Campos extends Admin_Controller
             }
 
             $data['row']['validacoes'] = $vals;
+        }
+
+        if(isset($data['row']['classe_css']))
+        {
+            $classe_css = explode("|", $data['row']['classe_css']);
+            $val = array();
+            if(is_array($classe_css))
+            {
+                foreach($classe_css as $classe)
+                {
+                    $val[] = array(
+                        'slug' => $classe,
+                    );
+
+                }
+            }
+
+            $data['row']['classe_css'] = $val;
         }
 
         $data['primary_key'] = $this->current_model->primary_key();

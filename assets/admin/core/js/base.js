@@ -355,7 +355,7 @@ function parseNumero(valor)
 function busca_cotacao_salva(){
 
     var data = {
-        cpf: $('#cnpj_cpf').val(),
+        cpf: $('.cnpj_cpf').val(),
         produto_parceiro_id: $('#produto_parceiro_id').val(),
     }
 
@@ -386,7 +386,7 @@ function busca_cotacao_salva(){
 function busca_cliente(){
 
     var data = {
-        cpf: $('#cnpj_cpf').val(),
+        cpf: $('.busca_cliente').val(),
         produto_parceiro_id: $('#produto_parceiro_id').val(),
     }
 
@@ -400,23 +400,23 @@ function busca_cliente(){
     }).done(function( result ) {
         console.log('result', result);
         if((result.sucess == true) && result.qnt > 0){
-            $('#nome').val(result.nome);
-            $('#data_nascimento').val(result.data_nascimento);
-            $('#data_nascimento').datepicker('setDate', result.data_nascimento);
+            $('.nome.enriquecer').val(result.nome);
+            $('.data_nascimento.enriquecer').val(result.data_nascimento);
+            $('.data_nascimento.enriquecer').datepicker('setDate', result.data_nascimento);
 
             // $('#email').val(result.email);
-            console.log('telefone', $('#telefone').val());
-            if(!$('#telefone').val()){
-                $('#telefone').val(result.telefone);
+            console.log('telefone', $('.telefone.enriquecer').val());
+            if(!$('.telefone.enriquecer').val()){
+                $('.telefone.enriquecer').val(result.telefone);
             }
 
-            $('#estado_civil').val(result.estado_civil);
-            $('#sexo').val(result.sexo);
-            $('#rg_orgao_expedidor').val(result.rg_orgao_expedidor);
-            $('#rg_uf').val(result.rg_uf);
-            $('#rg_data_expedicao').val(result.rg_data_expedicao);
+            $('.estado_civil.enriquecer').val(result.estado_civil);
+            $('.sexo.enriquecer').val(result.sexo);
+            $('.rg_orgao_expedidor.enriquecer').val(result.rg_orgao_expedidor);
+            $('.rg_uf.enriquecer').val(result.rg_uf);
+            $('.rg_data_expedicao.enriquecer').val(result.rg_data_expedicao);
 
-            $('#rg').val(result.rg);
+            $('.rg.enriquecer').val(result.rg);
 
             $('#seguro_viagem_motivo_id').focus();
             if(result.cliente_id > 0){
