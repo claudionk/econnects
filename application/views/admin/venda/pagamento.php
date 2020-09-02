@@ -75,8 +75,14 @@ if($_POST){
                     $this->load->view('admin/venda/partials/enviar_token_acesso');
 
                     // Exibe os meios de pagto se for no link externo ou se estiver habilitado
-                    if ( $layout == 'front' || !empty($produto_parceiro_configuracao['front_habilita_meio_pagamento']) ) :
+                    if ( $layout != 'front' && empty($produto_parceiro_configuracao['front_habilita_meio_pagamento']) ) {
                     ?>
+                        <div class="alert alert-info fade in">
+                            <button type="button" class="close" data-dismiss="alert">×</button>
+                            <i class="fa fa-info-circle"></i> Cobrança permitida através do pagamento externo
+                        </div>
+
+                    <?php } else { ?>
 
                     <div class="panel-group" id="accordion1">
                     <?php 
@@ -109,7 +115,7 @@ if($_POST){
                         <?php $in = ""; $expanded = ""; $select = "";
                     endforeach; ?>
                     </div>
-                    <?php endif; ?>
+                    <?php } ?>
 
                 </div>
             </div>
