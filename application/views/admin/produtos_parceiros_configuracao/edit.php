@@ -199,12 +199,12 @@ if ($_POST) {
                                     <?php $field_name = 'quantidade_cobertura_front';?>
                                     <div class="row">
                                       <label class="col-md-4 control-label" for="<?php echo $field_name; ?>">Quantidade de Coberturas Exibidas (Mobile) *</label>
-                                      <div class="col-md-4"><input class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
+                                      <div class="col-md-4"><input class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : '0'; ?>" /></div>
                                     </div>
                                     <?php $field_name = 'quantidade_cobertura';?>
                                     <div class="row">
                                       <label class="col-md-4 control-label" for="<?php echo $field_name; ?>">Quantidade de Coberturas Exibidas *</label>
-                                      <div class="col-md-4"><input class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
+                                      <div class="col-md-4"><input class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : '0'; ?>" /></div>
                                     </div>
 
                                     <?php $field_name = 'apolice_vigencia';?>
