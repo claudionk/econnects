@@ -7,11 +7,14 @@ foreach ($campos as $campo) {
   $data_campo["field_label"] = isset($campo["label"]) ? $campo["label"] : $campo["nome"];
   $data_campo["list"] = isset($list) ? $list : array();
   $data_campo["tamanho"] = $campo["tamanho"];
+
   if( strpos( $campo["classes"], "inputmask-date" ) !== false ) {
     $data_campo["class"] = "datepicker " . $campo["classes"];
   } else {
     $data_campo["class"] = $campo["classes"];
   }
+  $data_campo["class"] .= ' ' . $campo["nome_banco"];
+  $data_campo["class"] .= ' ' . implode(" ",explode("|", $campo["classe_css"]));
   $data_campo["opcoes"] = $campo["opcoes"];
   $this->load->view( "admin/campos_sistema/". $campo["slug"], $data_campo );
   

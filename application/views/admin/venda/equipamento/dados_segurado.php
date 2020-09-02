@@ -29,6 +29,7 @@
         <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
             <input type="hidden" name="produto_parceiro_id" value="<?php if (isset($carrossel['produto_parceiro_id'])) echo $carrossel['produto_parceiro_id']; ?>"/>
             <input type="hidden" name="cotacao_id" value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
+            <input type="hidden" id="url_busca_cliente"  name="url_busca_cliente" value="<?php echo base_url("{$current_controller_uri}/get_cliente"); ?>"/>
 
             <h2 class="text-light text-center"><?php echo app_produto_traducao('Dados da Contratação', $carrossel['produto_parceiro_id']); ?><br>
                 <small class="text-primary"><?php echo app_produto_traducao('Informe os dados pessoais da contratação', $carrossel['produto_parceiro_id']); ?></small>
@@ -127,6 +128,8 @@
                                                         $data_campo['tamanho'] = $campo['tamanho'] == 0 ? 6 : $campo['tamanho'];
                                                         $data_campo['class'] = $campo['campo_classes'];
                                                         $data_campo['opcoes'] = $campo['campo_opcoes'];
+                                                        $data_campo["class"] .= ' ' . $campo["campo_nome_banco"];
+                                                        $data_campo["class"] .= ' ' . implode(" ",explode("|", $campo["classe_css"]));
 
                                                         ?>
 
@@ -162,4 +165,3 @@
         </a>
     </div>
 </div>
-
