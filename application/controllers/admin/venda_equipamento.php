@@ -1226,6 +1226,7 @@ class Venda_Equipamento extends Admin_Controller{
             $cotacao['email'] = $cotacao_salva['email'];
             $cotacao['telefone'] = $cotacao_salva['telefone'];
             $cotacao['data_nascimento'] = app_date_mysql_to_mask($cotacao_salva['data_nascimento'], 'd/m/Y');
+            $cotacao['garantia_fabricante'] = $cotacao_salva['garantia_fabricante'];
 
             $cotacao['nota_fiscal_data'] = app_date_mysql_to_mask($cotacao_salva['nota_fiscal_data'], 'd/m/Y');
             $cotacao['nota_fiscal_valor'] = app_format_currency($cotacao_salva['nota_fiscal_valor']);
