@@ -1252,6 +1252,7 @@ class Venda_Seguro_Saude extends Admin_Controller
             $cotacao["{$name_aux}mei"] = $cotacao_salva['mei'];
             $cotacao["{$name_aux}data_inicio_vigencia"] = app_date_mysql_to_mask(issetor($cotacao_salva['data_inicio_vigencia'], null));
             $cotacao["{$name_aux}data_fim_vigencia"] = app_date_mysql_to_mask(issetor($cotacao_salva['data_fim_vigencia'], null));
+            $cotacao["{$name_aux}garantia_fabricante"] = $cotacao_salva['garantia_fabricante'];
         }
 
         return $cotacao;

@@ -53,17 +53,17 @@
             <div class="col-md-9 col-sm-9 col-xs-9">
 
                 <ul class="nav nav-pills pull-right">
-                    <?php if( !empty($this->session->userdata('logado'))){ ?>
-                    <li role="presentation">
-                        <a href="javascript:void(0)" title="<?php echo $this->name; ?>" class="username">
-                            <?php echo $this->name; ?>
-                        </a>
-                    </li>
-                    <li role="presentation">
-                        <a href="" title="">
-                            <i class="fa fa-bell" aria-hidden="true"></i>
-                        </a>
-                    </li>
+                    <?php if (!empty($this->session->userdata('logado'))) { ?>
+                        <li role="presentation">
+                            <a href="javascript:void(0)" title="<?php echo $this->name; ?>" class="username">
+                                <?php echo $this->name; ?>
+                            </a>
+                        </li>
+                        <li role="presentation">
+                            <a href="" title="">
+                                <i class="fa fa-bell" aria-hidden="true"></i>
+                            </a>
+                        </li>
                     <?php } ?>
                     <li>
                         <button aria-controls="bs-navbar" aria-expanded="false" class="navbar-toggle collapsed" data-target="#bs-navbar" data-toggle="collapse" type="button" id="menu-toggle">
@@ -82,6 +82,7 @@
     <?php $this->load->view('admin/venda/equipamento/front/head', array('logo' => true, 'logado' => true, 'current_uri' => 'admin/app', 'viewTitle' => false)); ?>
 
     <?php
+
     if ($layout <> 'front' || empty($step) )
     {
         $step = $this->uri->segment(5);
@@ -97,4 +98,3 @@
     </div>
 
     <h2 class="text-light text-center title-h2"><?php echo $title; ?></h2>
-

@@ -484,6 +484,10 @@ Class Cotacao_Equipamento_Model extends MY_Model
         if(isset($cotacao['data_nascimento'])){
             $data_cotacao['data_nascimento'] =  app_dateonly_mask_to_mysql($cotacao['data_nascimento']);
         }
+        
+        if(isset($cotacao['garantia_fabricante'])){
+            $data_cotacao['garantia_fabricante'] =  app_dateonly_mask_to_mysql($cotacao['garantia_fabricante']);
+        }
 
         if(isset($cotacao['nota_fiscal_data'])){
             $data_cotacao['nota_fiscal_data'] =  app_dateonly_mask_to_mysql($cotacao['nota_fiscal_data']);

@@ -378,6 +378,7 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['data_fim_vigencia']             = $vigencia['fim_vigencia'];
             $dados_equipamento['data_adesao']                   = $vigencia['data_adesao'];
             $dados_equipamento['data_pagamento']                = $vigencia['data_adesao'];
+            $dados_equipamento['garantia_fabricante']           = $cotacao_salva['garantia_fabricante'];
 
             $dados_equipamento['cnpj_cpf']        = $cotacao_salva['cnpj_cpf'];
             $dados_equipamento['rg']              = $cotacao_salva['rg'];
@@ -599,6 +600,7 @@ class Apolice_Model extends MY_Model
             $dados_generico['data_fim_vigencia']             = $vigencia['fim_vigencia'];
             $dados_generico['data_adesao']                   = $vigencia['data_adesao'];
             $dados_generico['data_pagamento']                = $vigencia['data_adesao'];
+            $dados_equipamento['garantia_fabricante']        = $cotacao_salva['garantia_fabricante'];
 
             $dados_generico['cnpj_cpf']                = $cotacao_salva['cnpj_cpf'];
             $dados_generico['rg']                      = $cotacao_salva['rg'];
@@ -802,6 +804,7 @@ class Apolice_Model extends MY_Model
                 $dados_seguro_viagem['apolice_id']                    = $apolice_id;
                 $dados_seguro_viagem['seguro_viagem_motivo_id']       = $cotacao_salva['seguro_viagem_motivo_id'];
                 $dados_seguro_viagem['produto_parceiro_pagamento_id'] = $pedido['produto_parceiro_pagamento_id'];
+                $dados_equipamento['garantia_fabricante']             = $cotacao_salva['garantia_fabricante'];
                 $dados_seguro_viagem['data_ini_vigencia']             = $cotacao_salva['data_saida'];
                 $dados_seguro_viagem['data_fim_vigencia']             = $cotacao_salva['data_retorno'];
                 $dados_seguro_viagem['data_adesao']                   = date('Y-m-d');
