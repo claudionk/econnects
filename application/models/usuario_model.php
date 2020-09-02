@@ -520,7 +520,7 @@ Class Usuario_Model extends MY_Model {
 
   function  filter_by_parceiro($parceiro_id){
 
-    $this->_database->where('parceiro_id', $parceiro_id);
+    $this->_database->where($this->_table.'.parceiro_id', $parceiro_id);
 
     return $this;
   }
