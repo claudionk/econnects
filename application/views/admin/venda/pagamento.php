@@ -77,9 +77,9 @@ if($_POST){
                     // Exibe os meios de pagto se for no link externo ou se estiver habilitado
                     if ( $layout != 'front' && empty($produto_parceiro_configuracao['front_habilita_meio_pagamento']) ) {
                     ?>
-                        <div class="alert alert-info fade in">
+                        <div class="alert alert-warning fade in">
                             <button type="button" class="close" data-dismiss="alert">×</button>
-                            <i class="fa fa-info-circle"></i> Cobrança permitida através do pagamento externo
+                            <i class="fa fa-info-circle"></i> Cobrança permitida somente através do Pagamento Externo
                         </div>
 
                     <?php } else { ?>
