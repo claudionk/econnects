@@ -142,6 +142,11 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
             'label' => 'Ir Para cotação salva após CPF',
             'rules' => 'required',
             'groups' => 'geral'
+        ),array(
+            'field' => 'front_habilita_meio_pagamento',
+            'label' => 'Habilita cobrança no Front',
+            'rules' => 'required',
+            'groups' => 'pagamento'
         )
     );
 
@@ -191,6 +196,7 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
                 'pagmaneto_cobranca' => $this->input->post('pagmaneto_cobranca'),
                 'pagmaneto_cobranca_dia' => $this->input->post('pagmaneto_cobranca_dia'),
                 'pagamento_teimosinha' => $this->input->post('pagamento_teimosinha'),
+                'front_habilita_meio_pagamento' => $this->input->post('front_habilita_meio_pagamento'),
             );
         }else{
             $data = array(
@@ -219,7 +225,7 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
                 'pagmaneto_cobranca' => $this->input->post('pagmaneto_cobranca'),
                 'pagmaneto_cobranca_dia' => $this->input->post('pagmaneto_cobranca_dia'),
                 'pagamento_teimosinha' => $this->input->post('pagamento_teimosinha'),
-
+                'front_habilita_meio_pagamento' => $this->input->post('front_habilita_meio_pagamento'),
             );
         }
 
