@@ -2,11 +2,11 @@
 if ($_POST) {
     $row = $_POST;
 }
-$cpfcnpj = isset($dados_segurado['plano_' . $carrossel['plano'] . '_cnpj_cpf']) ? $dados_segurado['plano_' . $carrossel['plano'] . '_cnpj_cpf'] : '';
-$nome = isset($dados_segurado['plano_' . $carrossel['plano'] . '_nome']) ? $dados_segurado['plano_' . $carrossel['plano'] . '_nome'] : '';
-$valor = isset($carrossel['valor_total']) ? $carrossel['valor_total'] : '';
-$produto = isset($cotacao['equipamento_nome']) ? $cotacao['equipamento_nome'] : '';
-$nome_seguro = isset($carrossel['plano_nome']) ? $carrossel['plano_nome'] : '';
+$cpfcnpj = app_cpf_to_mask(issetor($cotacao_dados['cnpj_cpf'], ''));
+$nome = issetor($cotacao_dados['nome'], '');
+$valor = app_format_currency(issetor($cotacao_dados['premio_liquido_total'], ''), true);
+$produto = issetor($cotacao_dados['equipamento_nome'], '');
+$nome_seguro = issetor($cotacao_dados['produto_nome'], '');
 ?>
 
 <form class="form form-pagamento form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">

@@ -260,6 +260,7 @@ class Admin_Controller extends MY_Controller
         $data['pedido_id']                     = $pedido_id;
         $data['forma_pagamento']               = $forma_pagamento;
         $data['produto_slug']                  = $cotacao['produto_slug'];
+        $data['cotacao_dados']                 = $cotacao;
         $data['cotacao']                       = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $data['carrossel']                     = $this->session->userdata("carrossel_{$produto_parceiro_id}");
         $data['dados_segurado']                = $this->session->userdata("dados_segurado_{$produto_parceiro_id}");
