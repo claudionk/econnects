@@ -1422,7 +1422,7 @@ function app_print_recursos($recursos)
                     <span>{$recurso['nome']}</span>
                 </label>
             </div>
-
+    
             ".app_print_recurso_filho($recurso)."
         </li>
         ";
@@ -1462,7 +1462,7 @@ function app_print_recurso_filho($recurso)
         foreach ($recurso['filhos'] as $filho) {
             echo "<li class='titulo'>";
 
-            foreach ($recurso['acoes'] as $acao)
+            foreach ($filho['acoes'] as $acao)
             {
                 if($acao['usuario_acl_acao_id'] == 1)
                 {

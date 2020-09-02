@@ -87,7 +87,7 @@ class Parceiros_Usuarios extends Admin_Controller
         $data['primary_key'] = $this->current_model->primary_key();
         $data['new_record'] = '0';
         $data['form_action'] =  base_url("$this->controller_uri/add");
-        $data['niveis'] = $this->niveis->get_all();
+        $data['niveis'] = $this->niveis->filter_by_parceiro($this->parceiro_id, $this->parceiro_pai_id);
         $data['cargos'] = $this->cargo->with_colaborador_departamento()->order_by('colaborador_departamento.descricao')->get_all();
         $data['bancos'] = $this->banco->get_all();
 
@@ -181,7 +181,7 @@ class Parceiros_Usuarios extends Admin_Controller
         }
 
         $data['parceiro_id'] = $parceiro_id;
-        $data['niveis'] = $this->niveis->get_all();
+        $data['niveis'] = $this->niveis->filter_by_parceiro($this->parceiro_id, $this->parceiro_pai_id);
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
