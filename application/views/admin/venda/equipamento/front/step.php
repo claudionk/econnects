@@ -52,17 +52,17 @@
             <div class="col-md-9 col-sm-9 col-xs-9">
 
                 <ul class="nav nav-pills pull-right">
-                    <?php if( !empty($this->session->userdata('logado'))){ ?>
-                    <li role="presentation">
-                        <a href="javascript:void(0)" title="<?php echo $this->name; ?>" class="username">
-                            <?php echo $this->name; ?>
-                        </a>
-                    </li>
-                    <li role="presentation">
-                        <a href="" title="">
-                            <i class="fa fa-bell" aria-hidden="true"></i>
-                        </a>
-                    </li>
+                    <?php if (!empty($this->session->userdata('logado'))) { ?>
+                        <li role="presentation">
+                            <a href="javascript:void(0)" title="<?php echo $this->name; ?>" class="username">
+                                <?php echo $this->name; ?>
+                            </a>
+                        </li>
+                        <li role="presentation">
+                            <a href="" title="">
+                                <i class="fa fa-bell" aria-hidden="true"></i>
+                            </a>
+                        </li>
                     <?php } ?>
                     <li>
                         <button aria-controls="bs-navbar" aria-expanded="false" class="navbar-toggle collapsed" data-target="#bs-navbar" data-toggle="collapse" type="button" id="menu-toggle">
@@ -80,27 +80,27 @@
 
     <?php
     $step = $this->uri->segment(5);
-    if(empty($step)){
+    if (empty($step)) {
         $step = 1;
     }
     ?>
-    <h2 class="text-light text-center title-h2"><?php echo $title; ?></h2>
+    <h2 class="text-light text-center title-h2" id="step-title"><?php echo $title; ?></h2>
 </div>
 <!-- Column -->
 <div class="col-md-12">
-<?php
-    if ($step == 1){
-     $this->load->view('admin/venda/step', array('step' => 1 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+    <?php
+    if ($step == 1) {
+        $this->load->view('admin/venda/step', array('step' => 1, 'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
     } elseif ($step == 2) {
-        $this->load->view('admin/venda/step', array('step' => 2 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
-    }elseif ($step == 3) {
-        $this->load->view('admin/venda/step', array('step' => 3 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
-    }elseif ($step == 4) {
-        $this->load->view('admin/venda/step', array('step' => 4 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
-    }elseif ($step == 5) {
-        $this->load->view('admin/venda/step', array('step' => 5 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+        $this->load->view('admin/venda/step', array('step' => 2, 'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+    } elseif ($step == 3) {
+        $this->load->view('admin/venda/step', array('step' => 3, 'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+    } elseif ($step == 4) {
+        $this->load->view('admin/venda/step', array('step' => 4, 'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
+    } elseif ($step == 5) {
+        $this->load->view('admin/venda/step', array('step' => 5, 'produto_parceiro_id' =>  issetor($produto_parceiro_id)));
     }
-?>
+    ?>
 </div>
 <script>
     $("#menu-close").click(function(e) {
