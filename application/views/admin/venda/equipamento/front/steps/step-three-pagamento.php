@@ -31,7 +31,7 @@ $nome_seguro = issetor($cotacao_dados['produto_nome'], '');
         <div class="col-md-12">
 
             <?php
-            $this->load->view('admin/venda/equipamento/front/step', array('step' => 4, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'], 'title' => 'PAGAMENTO'));
+            $this->load->view('admin/venda/equipamento/front/step', array('step' => 4, 'produto_parceiro_id' => $produto_parceiro_id, 'title' => 'PAGAMENTO'));
             ?>
 
             <?php $this->load->view('admin/venda/partials/enviar_token_acesso'); ?>

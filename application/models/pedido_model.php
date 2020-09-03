@@ -59,14 +59,26 @@ Class Pedido_Model extends MY_Model
         ),
     );
 
-    function getPedidoCarrinho($usuario_id){
+    function getPedidoCarrinho($usuario_id = null, $cnpj_cpf = ''){
 
         $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.codigo, pedido.codigo")
         ->select("pedido.valor_total, produto_parceiro.nome,  produto_parceiro.produto_parceiro_id")
         ->join("cotacao", "pedido.cotacao_id = cotacao.cotacao_id", 'inner')
         ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
-        ->where("pedido.pedido_status_id", 13)
-        ->where("pedido.alteracao_usuario_id", $usuario_id);
+        ->where("pedido.pedido_status_id", 13);
+
+        if ( !empty($usuario_id) )
+        {
+            $this->_database->where("pedido.alteracao_usuario_id", $usuario_id);
+        }
+
+        if ( !empty($cnpj_cpf) )
+        {
+            $this->_database->join("cotacao_equipamento", "cotacao.cotacao_id = cotacao_equipamento.cotacao_id", 'left')
+                ->join("cotacao_generico", "cotacao.cotacao_id = cotacao_generico.cotacao_id", 'left')
+                ->join("cotacao_seguro_viagem", "cotacao.cotacao_id = cotacao_seguro_viagem.cotacao_id", 'left')
+                ->where(" IFNULL(cotacao_equipamento.cnpj_cpf, IFNULL(cotacao_generico.cnpj_cpf, cotacao_seguro_viagem.cnpj_cpf)) = '". app_clear_number($cnpj_cpf) ."' ", NULL, FALSE);
+        }
 
         $carrinho = $this->get_all();
         return $carrinho;

@@ -14,7 +14,6 @@ class Venda_Equipamento extends Admin_Controller{
     protected $color  = 'default';
     protected $token;
     protected $getUrl = '';
-    public $name;
 
     public function __construct()
     {
@@ -110,56 +109,6 @@ class Venda_Equipamento extends Admin_Controller{
         }
     }
 
-    public function step_login($data)
-    {
-        $this->load->model('cliente_model', 'cliente');
-
-        $this->template->js(app_assets_url("modulos/venda/equipamento/js/login.js", "admin"));
-        $this->template->js(app_assets_url("core/js/SenhaForte.js", "admin"));
-        $this->template->js(app_assets_url("template/js/libs/popper.min.js", "admin"));
-
-        if ($_POST)
-        {
-            $documento  = $_POST['cnpj_cpf'];
-            $senha      = $_POST['password'];
-            $confSenha  = $_POST['password_confirm'];
-            $sucesso    = true;
-
-            if ( empty($documento) )
-            {
-                $this->session->set_flashdata('fail_msg', 'Informe o Documento (CPF / CNPJ).');
-                $sucesso = false;
-            }
-
-            if ( !app_validate_cpf_cnpj($documento) )
-            {
-                $this->session->set_flashdata('fail_msg', 'O documento informado é inválido.');
-                $sucesso = false;
-            }
-
-            if ( empty($senha) )
-            {
-                $this->session->set_flashdata('fail_msg', 'A senha é obrigatória.');
-                $sucesso = false;
-            }
-
-            if ( $senha != $confSenha )
-            {
-                $this->session->set_flashdata('fail_msg', 'A senha não confere');
-                $sucesso = false;
-            }
-
-            if ( $sucesso )
-            {
-                $this->cliente->atualizar($this->input->post('cliente_id'), $_POST);
-                $this->session->set_userdata('logado', true);
-                header("Refresh: 0;");
-            }
-        }
-
-        $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/{$this->layout}/login", $data);
-    }
-
     public function step_pagto($produto_parceiro_id, $cotacao_id = 0, $pedido_id = 0, $conclui_em_tempo_real = true, $data)
     {
         if(empty($this->session->userdata('logado')) && $this->template->get('layout') == 'front'){
@@ -215,7 +164,7 @@ class Venda_Equipamento extends Admin_Controller{
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $conclui_em_tempo_real = $this->prod_parc_config->item_config($produto_parceiro_id, 'conclui_em_tempo_real');
 
-        if(isset($cotacao['nome'])){
+        if( empty($this->name) && isset($cotacao['nome'])){
             $name = explode(' ',$cotacao['nome']);
             $this->name = trim($name[0]);
         }
@@ -1072,12 +1021,10 @@ class Venda_Equipamento extends Admin_Controller{
         //Carrega models
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('pedido_codigo_model', 'pedido_codigo');
-        $this->load->model('pedido_cartao_model', 'pedido_cartao');
         $this->load->model('pedido_transacao_model', 'pedido_transacao');
         $this->load->model('cotacao_equipamento', 'cotacao_equipamento');
         $this->load->model('cotacao_model', 'cotacao');
 
-        $cotacao = $this->cotacao->get($cotacao_id);
         $valor_total = $this->cotacao_equipamento->getValorTotal($cotacao_id);
 
         $dados_pedido = array();
@@ -1105,7 +1052,6 @@ class Venda_Equipamento extends Admin_Controller{
 
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('pedido_codigo_model', 'pedido_codigo');
-        $this->load->model('pedido_cartao_model', 'pedido_cartao');
         $this->load->model('pedido_transacao_model', 'pedido_transacao');
         $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento');
         $this->load->model('cotacao_model', 'cotacao');

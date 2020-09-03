@@ -2,9 +2,11 @@
 if($_POST){
     $row = $_POST;
 }
-?>
 
-<?php if ($layout != "front") { ?>
+$layout = issetor($layout, '');
+$disablePagto = ( $layout != 'front' && empty($produto_parceiro_configuracao['front_habilita_meio_pagamento']) );
+
+if ($layout != "front") { ?>
     <div class="section-header">
         <ol class="breadcrumb">
             <li class="active"><?php echo app_recurso_nome(); ?></li>
@@ -22,11 +24,13 @@ if($_POST){
                 <a class="btn  btn-app btn-primary" href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/7/{$cotacao_id}/$pedido_id")?>">
                     <i class="fa fa-cart-plus"></i> Adicionar no carrinho
                 </a>
-            <?php endif; ?>
+            <?php endif;
 
+            if ( !$disablePagto ) { ?>
             <a class="btn pull-right btn-app btn-primary btn-proximo" onclick="$('#validateSubmitForm').submit();">
                 <i class="fa fa-arrow-right"></i> Próximo
             </a>
+            <?php } ?>
         </div>
     </div>
 <?php } ?>
@@ -45,7 +49,6 @@ if($_POST){
             <input type="hidden" id="url_pagamento_confirmado"  name="url_pagamento_confirmado" value="<?php echo  base_url($url_pagamento_confirmado) ?>/"/>
             <!-- Widget -->
 
-
             <div class="row">
                 <div class="col-md-6">
                     <?php $this->load->view('admin/partials/validation_errors'); ?>
@@ -62,8 +65,6 @@ if($_POST){
                     </h2>
 
                     <?php
-                    $layout = issetor($layout, '');
-
                     if( $layout == 'front' && $context != "pagamento" ) {
                         $this->load->view('admin/venda/equipamento/front/step', array('step' => 4, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'] ));
                     }else{
@@ -75,7 +76,7 @@ if($_POST){
                     $this->load->view('admin/venda/partials/enviar_token_acesso');
 
                     // Exibe os meios de pagto se for no link externo ou se estiver habilitado
-                    if ( $layout != 'front' && empty($produto_parceiro_configuracao['front_habilita_meio_pagamento']) ) {
+                    if ( $disablePagto ) {
                     ?>
                         <div class="alert alert-warning fade in">
                             <button type="button" class="close" data-dismiss="alert">×</button>
@@ -123,7 +124,6 @@ if($_POST){
     </div>
 </div>
 
-
 <div class="card">
     <div class="card-body">
         <?php if ($context != "pagamento") { ?>
@@ -136,11 +136,13 @@ if($_POST){
             <a class="btn  btn-app btn-primary" href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/7/{$cotacao_id}/$pedido_id")?>">
                 <i class="fa fa-cart-plus"></i> Adicionar no carrinho
             </a>
-        <?php endif; ?>
+        <?php endif; 
 
+        if ( !$disablePagto ) { ?>
         <a class="btn pull-right btn-app btn-primary btn-proximo" onclick="$('#validateSubmitForm').submit();">
             <i class="fa fa-arrow-right"></i> Próximo
         </a>
+        <?php } ?>
 
         <a style="display:none;" class="btn pull-right btn-app btn-success btn-pagamento-efetuado" href="#">
             <i class="fa fa-arrow-right"></i> Pagamento Efetuado
