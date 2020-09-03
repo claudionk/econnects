@@ -277,6 +277,7 @@ class Admin_Controller extends MY_Controller
                 , array(
                     current_url(),
                     base_url("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/#"),
+                    base_url("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/#"),
                     base_url("admin/gateway/consulta"),
                 )
                 , 'front'
