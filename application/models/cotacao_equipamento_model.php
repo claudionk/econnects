@@ -737,6 +737,11 @@ Class Cotacao_Equipamento_Model extends MY_Model
     return $valor;
   }
 
+  public function updateEmailByCotacaoId($cotacaoId, $email){
+    $SQL = "UPDATE cotacao_equipamento SET email = '$email' WHERE cotacao_id = $cotacaoId";
+    $this->_database->query($SQL);
+  }
+
 }
 
 
