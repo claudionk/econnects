@@ -3,7 +3,7 @@
 <?php if ($layout != "front" && !empty($exibe_url_acesso_externo)) { ?>
 
     <!-- Trigger the modal with a button -->
-    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#modal_acesso_externo"><i class="fa fa-link"></i> ACESSO PARA PAGAMENTO EXTERNO</button>
+    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#modal_acesso_externo"><i class="fa fa-link"></i> ENVIO PARA PAGAMENTO EXTERNO</button>
     <br>
     <br>
 
@@ -15,7 +15,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Acesso externo de pagamento</h4>
+                    <h4 class="modal-title">Envio para pagamento externo</h4>
                 </div>
                 <div class="modal-body">
 
