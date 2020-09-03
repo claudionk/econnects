@@ -105,6 +105,19 @@ div#url_venda_online {
     .jp-card .jp-card-front .jp-card-lower .jp-card-name {
         font-size:17px !important;
     }
+
+    #form-login {
+        width: 100% !important;
+    }
+
+    #image-login-container {
+        height: 30% !important;
+    }
+
+    #form-login-container {
+        height: 70% !important;
+    }
+
 }
 .explicacao_modal {
     margin-left: 15px;
@@ -120,3 +133,126 @@ div#url_venda_online {
     border-right: 1px solid #fff;
     border-radius: 10px;
 }
+
+#body-login {
+    background: #000;
+}
+
+#image-login-container {
+    position: absolute;
+    height: 50%;
+    width: 100%;
+    max-width: 100%;
+}
+
+#image-login {
+    display: block;
+    margin: 0 auto;
+    height: 100%;
+}
+
+#form-login-container {
+    position: absolute;
+    height: 50%;
+    width: 100%;
+    bottom: 0;
+    padding: 10px !important;
+}
+
+#form-login {
+    display: block;
+    margin: 0 auto;
+    width: 30%;
+}
+
+
+.form-login-group{
+    position: relative;
+    margin-top: 25px;
+}
+
+.form-login-input{
+    border: 2px solid #1fec7a !important;;
+    border-radius: 18px !important;
+    padding: 48px 20px 28px 20px;
+    outline: none;
+    font-size: 20px !important;
+    transition: all .3s ease-out;
+    -webkit-transition: all .3s ease-out;
+    -moz-transition: all .3s ease-out;
+    -webkit-appearance:none;
+    color: #c5e6d4;
+    text-align: center;
+}
+
+.form-login-input::placeholder{
+    color:transparent;
+}
+
+.form-login-label{
+    color: #1fec7a;
+    text-align: center;
+    font-size: 28px !important;    
+    margin-top: 5px;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    transition: all .3s ease-out;
+    -webkit-transition: all .3s ease-out;
+    -moz-transition: all .3s ease-out;
+}
+
+.form-login-input:focus + label,
+.form-login-input:not(:placeholder-shown) + label{
+    font-size: 12px !important;
+    margin-top: 0;
+    border-bottom: 2px solid #1fec7a !important;;
+    padding: 0 !important;
+}
+
+.form-login-input.form-control:focus {
+    background-color: #000 !important;
+    -webkit-box-shadow:2px 2px 30px; 
+    box-shadow:2px 2px 30px;
+  }
+
+  #form-login-title, #form-login-esqueceu_a_senha {
+    color: #fff !important;
+  }
+
+  #form-login-esqueceu_a_senha{
+    font-size: 18px;
+    padding: 10px;
+  }
+
+  #form-login-submit {
+    background: #000 !important;
+    border: 2px solid #1fec7a !important;;
+    border-radius: 18px !important;
+    color: #1fec7a;
+    width: 100%;
+    font-size: 28px !important;    
+    transition: all 0.16s ease-out;
+  }
+
+  #form-login-submit:hover {
+    background: #10773e !important;
+    padding-right: 24px;
+  }
+
+  #form-login-submit:hover:after {
+    content: '\f105';
+    font: normal normal normal 44px/1 FontAwesome;
+    right: 30px;
+    position: absolute;
+}
+
+  .form-login-input:-webkit-autofill,
+  .form-login-input:-webkit-autofill:hover, 
+  .form-login-input:-webkit-autofill:focus{
+    -webkit-box-shadow: 0 0 0 100px black inset !important;
+    -webkit-text-fill-color: #c5e6d4;
+  }
