@@ -55,6 +55,25 @@ $nome_seguro = issetor($cotacao_dados['produto_nome'], '');
                             <div style=""><span>(ASSINATURA DO SEGURADO)</span></div> -->
                         </div>
                     </div>
+
+                    <div class="col-xs-12">
+                        <hr>
+                    </div>
+
+                    <?php if($isConfirmaEmail == true): ?>
+
+                        <div class="col-xs-12">
+                            <h5 class="text-sm-left">Você receberá no e-mail abaixo o Bilhete do Seguro, as Condições Gerais do Seguro e o Termo deAautorização de Cobrança.</h5>
+                            <input type="email" name="email" class="form-control" value="<?= $cotacao_dados["email"]; ?>">
+                        </div>
+                        
+
+                        <div class="col-xs-12">
+                            <hr>
+                        </div>
+
+                    <?php endif; ?>
+                    
                     <div id="div-ask-read-term" class="col-xs-11">
                         <h5 class=" text-justify text-sm-left">
                             Por favor, leia o texto até o final para habilitar o campo de aceite do termo.

@@ -17,6 +17,9 @@ class Admin_Controller extends MY_Controller
     protected $parceiro_id;
     protected $parceiro_pai_id;
 
+    protected $isConfirmaEmail  = true;
+    protected $hasApp           = false;
+
     const FORMA_PAGAMENTO_CARTAO_CREDITO  = 1;
     const FORMA_PAGAMENTO_TRANSF_BRADESCO = 2;
     const FORMA_PAGAMENTO_TRANSF_BB       = 7;
@@ -261,6 +264,7 @@ class Admin_Controller extends MY_Controller
         $data['forma_pagamento']               = $forma_pagamento;
         $data['produto_slug']                  = $cotacao['produto_slug'];
         $data['cotacao_dados']                 = $cotacao;
+        $data["isConfirmaEmail"]               = $this->isConfirmaEmail;
         $data['cotacao']                       = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $data['carrossel']                     = $this->session->userdata("carrossel_{$produto_parceiro_id}");
         $data['dados_segurado']                = $this->session->userdata("dados_segurado_{$produto_parceiro_id}");
@@ -435,6 +439,10 @@ class Admin_Controller extends MY_Controller
                     $this->pedido->insDadosPagamento($_POST, $pedido_id);
                 }
 
+                if(isset($_POST["email"])){
+                    $this->cotacao_equipamento->updateEmailByCotacaoId($cotacao_id, $_POST["email"]);
+                }
+                
                 //Se for faturamento, muda status para aguardando faturamento
                 if ($pedido_id && ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO || $tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_TERCEIROS)) {
                     $status = $this->pedido->mudaStatus($pedido_id, ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO) ? "aguardando_faturamento" : "pagamento_confirmado");

@@ -1474,6 +1474,7 @@ class Venda_Equipamento extends Admin_Controller{
         $apolice = $this->apolice->getApolicePedido($pedido_id);
         $pedido = $this->pedido->get($pedido_id);
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
+        $_cotacao = $this->cotacao->get_cotacao_produto($pedido['cotacao_id']);
 
         $data = array();
         $data['primary_key'] = $this->current_model->primary_key();
@@ -1483,6 +1484,10 @@ class Venda_Equipamento extends Admin_Controller{
         $data['apolice'] = $apolice;
         $data['pedido'] = $pedido;
         $data['equipamento_marca_id'] = emptyor($cotacao['equipamento_marca_id'], null);
+        $data["email"] = $_cotacao["email"];
+        $data["hasApp"] = $this->hasApp;
+
+
 
         $this->limpa_cotacao($produto_parceiro_id);
 
