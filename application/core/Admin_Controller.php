@@ -11,6 +11,7 @@ class Admin_Controller extends MY_Controller
     protected $layout      = "base";
     protected $whatsapp    = '';
     protected $whatsapp_msg    = '';
+    public $name;
 
     protected $controller_name;
     protected $controller_uri;
@@ -278,12 +279,7 @@ class Admin_Controller extends MY_Controller
         if ($exibe_url_acesso_externo) {
             $data['url_acesso_externo'] = $this->auth->generate_page_token(
                 ''
-                , array(
-                    current_url(),
-                    base_url("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/#"),
-                    base_url("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/#"),
-                    base_url("admin/gateway/consulta"),
-                )
+                , $this->urlAcessoExternoAutorizados($cotacao['produto_slug'], $produto_parceiro_id)
                 , 'front'
                 , 'pagamento'
             );
@@ -321,6 +317,7 @@ class Admin_Controller extends MY_Controller
                         'rules'  => "trim|required",
                         'groups' => 'pagamento',
                     );
+
                     $validacao[] = array(
                         'field'  => "bandeira_cartao",
                         'label'  => "Bandeira",
@@ -368,6 +365,7 @@ class Admin_Controller extends MY_Controller
                         'rules'  => "trim|required",
                         'groups' => 'pagamento',
                     );
+
                     $validacao[] = array(
                         'field'  => "bandeira_cartao_debito",
                         'label'  => "Bandeira",
@@ -428,6 +426,7 @@ class Admin_Controller extends MY_Controller
                 case self::FORMA_PAGAMENTO_FATURADO: //faturado
                     break;
             }
+
             $this->cotacao->setValidate($validacao);
 
             if ($this->cotacao->validate_form('pagamento')) {
@@ -510,7 +509,7 @@ class Admin_Controller extends MY_Controller
         $this->template->load("admin/layouts/{$this->layout}", "admin/venda/aguardando_pagamento", $data);
     }
 
-    public function pagamento_carrinho($novo = 0)
+    public function pagamento_carrinho($novo = 0, $conclui_em_tempo_real = true, $getUrl = '')
     {
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('forma_pagamento_tipo_model', 'forma_pagamento_tipo');
@@ -520,178 +519,316 @@ class Admin_Controller extends MY_Controller
         $this->load->model('forma_pagamento_bandeira_model', 'forma_pagamento_bandeira');
         $this->load->model('pedido_model', 'pedido');
         $this->load->library('form_validation');
-        $pedidos = ($novo == 0) ? $this->pedido->getPedidoCarrinho($this->session->userdata('usuario_id')) : $this->session->userdata('pedido_carrinho');
-        if (!$pedidos) {
-            //Mensagem de erro caso registro não exista
-            $this->session->set_flashdata('fail_msg', 'Carrinho esta vazio.');
 
-            //Redireciona para index
-            redirect("$this->controller_uri/index");
-        }
-        //valor total
-        $valor_total = 0;
-        foreach ($pedidos as $index => $pedido) {
-            $valor_total += $pedido['valor_total'];
-        }
-        //Carrega templates
-        $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
-        $this->template->js(app_assets_url('modulos/venda/pagamento_carrinho/js/pagamento.js', 'admin'));
-        //formas de pagamento
-        $forma_pagamento = array();
-        $tipo_pagamento  = $this->forma_pagamento_tipo->get_all();
-        //Para cada tipo de pagamento
-        foreach ($tipo_pagamento as $index => $tipo) {
-            $forma = $this->produto_pagamento->with_forma_pagamento()
-                ->filter_by_produto_parceiro($pedidos[0]['produto_parceiro_id'])
-                ->filter_by_forma_pagamento_tipo($tipo['forma_pagamento_tipo_id'])
-                ->filter_by_ativo()
-                ->get_all();
+        // Front a consulta deve ser por 
+        if(empty($this->session->userdata('logado')) && $this->template->get('layout') == 'front')
+        {
+            $this->step_login();
 
-            $bandeiras = $this->forma_pagamento_bandeira
-                ->get_many_by(array(
-                    'forma_pagamento_tipo_id' => $tipo['forma_pagamento_tipo_id'],
-                ));
-            if (count($forma) > 0) {
-                foreach ($forma as $index => $item) {
-                    $parcelamento = array();
-                    for ($i = 1; $i <= $item['parcelamento_maximo']; $i++) {
-                        if ($i <= $item['parcelamento_maximo_sem_juros']) {
-                            $parcelamento[$i] = array("Parcelas" => $i, "Valor" => round($valor_total / $i, 2), "Descricao" => "{$i} X " . app_format_currency(round($valor_total / $i)) . " sem juros");
-                            //$parcelamento[$i] = "{$i} X ". app_format_currency($valor_total/$i) . " sem juros";
-                        } else {
-                            //$valor = (( $item['juros_parcela'] / 100 ) * ($valor_total/$i)) + ($valor_total/$i);
-                            $valor            = ($valor_total / (1 - ($item['juros_parcela'] / 100))) / $i;
-                            $parcelamento[$i] = array("Parcelas" => $i, "Valor" => $valor, "Descricao" => "{$i} X " . app_format_currency($valor) . " com juros (" . app_format_currency($item['juros_parcela']) . "%)");
-                            $parcelamento[$i] = "{$i} X " . app_format_currency($valor) . " com juros (" . app_format_currency($item['juros_parcela']) . "%)";
-                            //
-                        }
-                    }
-                    $forma[$index]['parcelamento'] = $parcelamento;
-                }
+        }else
+        {
+            $loginDoc = '';
+            $loginIdUser = 0;
 
-                $forma_pagamento[] = array('tipo' => $tipo, 'pagamento' => $forma, 'bandeiras' => $bandeiras);
+            if ( !empty($this->session->userdata('cnpj_cpf')) )
+            {
+                $loginDoc = $this->session->userdata('cnpj_cpf');
+            } else {
+                $loginIdUser = $this->session->userdata('usuario_id');
             }
 
-        }
+            $pedidos = ($novo == 0) ? $this->pedido->getPedidoCarrinho($loginIdUser, $loginDoc) : $this->session->userdata('pedido_carrinho');
+            // print_pre($pedidos);
+            if (!$pedidos) {
+                //Mensagem de erro caso registro não exista
+                $this->session->set_flashdata('fail_msg', 'Carrinho esta vazio.');
 
-        $data                    = array();
-        $data['pedidos']         = $pedidos;
-        $data['forma_pagamento'] = $forma_pagamento;
-        if ($_POST) {
-            $tipo_forma_pagamento_id = $this->input->post('forma_pagamento_tipo_id');
-
-            $validacoes = array();
-            if ($tipo_forma_pagamento_id == 1) {
-                //cartão de crédito
-                $validacao[] = array(
-                    'field'  => "numero",
-                    'label'  => "Número do Cartão",
-                    'rules'  => "trim|required",
-                    'groups' => 'pagamento',
-                );
-
-                $validacao[] = array(
-                    'field'  => "nome_cartao",
-                    'label'  => "Nome",
-                    'rules'  => "trim|required",
-                    'groups' => 'pagamento',
-                );
-
-                $validacao[] = array(
-                    'field'  => "validade",
-                    'label'  => "Validade",
-                    'rules'  => "trim|required|valid_vencimento_cartao",
-                    'groups' => 'pagamento',
-                );
-
-                $validacao[] = array(
-                    'field'  => "codigo",
-                    'label'  => "Código",
-                    'rules'  => "trim|required",
-                    'groups' => 'pagamento',
-                );
-
-                $validacao[] = array(
-                    'field'  => "bandeira_cartao",
-                    'label'  => "Bandeira",
-                    'rules'  => "trim|required",
-                    'groups' => 'pagamento',
-                );
-
-            } elseif ($tipo_forma_pagamento_id == 6) {
-                //cartão de débito
-
-                $validacao[] = array(
-                    'field'  => "numero_debito",
-                    'label'  => "Número do Cartão",
-                    'rules'  => "trim|required",
-                    'groups' => 'pagamento',
-                );
-
-                $validacao[] = array(
-                    'field'  => "nome_cartao_debito",
-                    'label'  => "Nome",
-                    'rules'  => "trim|required",
-                    'groups' => 'pagamento',
-                );
-
-                $validacao[] = array(
-                    'field'  => "validade_debito",
-                    'label'  => "Validade",
-                    'rules'  => "trim|required|valid_vencimento_cartao",
-                    'groups' => 'pagamento',
-                );
-
-                $validacao[] = array(
-                    'field'  => "codigo_debito",
-                    'label'  => "Código",
-                    'rules'  => "trim|required",
-                    'groups' => 'pagamento',
-                );
-
-                $validacao[] = array(
-                    'field'  => "bandeira_cartao_debito",
-                    'label'  => "Bandeira",
-                    'rules'  => "trim|required",
-                    'groups' => 'pagamento',
-                );
+                //Redireciona para index
+                redirect("$this->controller_uri/index");
             }
-
-            $this->cotacao->setValidate($validacao);
-            if ($this->cotacao->validate_form('pagamento')) {
-                //print_r($_POST);exit;
-                foreach ($pedidos as $index => $pedido) {
-                    $dados               = $_POST;
-                    $dados['cotacao_id'] = $pedido['cotacao_id'];
-                    $this->pedido->updatePedido($pedido['pedido_id'], $dados);
-                    $this->pedido->insDadosPagamento($dados, $pedido['pedido_id']);
-                }
-
-                $this->session->set_userdata("pedido_carrinho", $pedidos);
-                if (($this->input->post('forma_pagamento_tipo_id') == 1) || ($this->input->post('forma_pagamento_tipo_id') == 6)) {
-                    $this->session->set_flashdata('succ_msg', 'Aguardando confirmação do pagamento'); //Mensagem de sucesso
-
-                    redirect("{$this->controller_uri}/pagamento_carrinho_aguardando/");
-
-                } else {
-                    $this->session->set_flashdata('succ_msg', 'Pedido efetuado com sucesso!'); //Mensagem de sucesso
-                    redirect("{$this->controller_uri}/index");
-                }
-
-                /*
-            $this->session->set_flashdata('succ_msg', 'Pedido incluido com sucesso!'); //Mensagem de sucesso
-            if(($this->input->post('forma_pagamento_tipo_id') == 1) || ($this->input->post('forma_pagamento_tipo_id') == 6)){
-            $this->session->set_flashdata('succ_msg', 'Aguardando confirmação do pagamento'); //Mensagem de sucesso
-            redirect("{$this->controller_uri}/seguro_viagem/{$produto_parceiro_id}/5/{$pedido_id}");
+            //valor total
+            $valor_total = 0;
+            foreach ($pedidos as $index => $pedido) {
+                $valor_total += $pedido['valor_total'];
+            }
+            //Carrega templates
+            $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
+            if($this->layout == 'front'){
+                $this->template->js(app_assets_url('modulos/venda/equipamento/front/js/pagamento.js', 'admin'));
             }else{
-            redirect("{$this->controller_uri}/seguro_viagem/{$produto_parceiro_id}/6/{$pedido_id}");
+                $this->template->js(app_assets_url('modulos/venda/pagamento/js/pagamento.js', 'admin'));
             }
 
-             */
+            $produto_parceiro_id = $pedidos[0]['produto_parceiro_id'];
+            $cotacao_id = $pedidos[0]['cotacao_id'];
+            $pedido_id = $pedidos[0]['pedido_id'];
+            $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
+
+            //formas de pagamento
+            $forma_pagamento = array();
+            $tipo_pagamento  = $this->forma_pagamento_tipo->get_all();
+            $exibe_url_acesso_externo = false;
+
+            //Para cada tipo de pagamento
+            foreach ($tipo_pagamento as $index => $tipo) {
+                
+                $forma = $this->produto_pagamento->with_forma_pagamento()
+                    ->filter_by_produto_parceiro($produto_parceiro_id)
+                    ->filter_by_forma_pagamento_tipo($tipo['forma_pagamento_tipo_id'])
+                    ->filter_by_ativo()
+                    ->get_all();
+
+                $bandeiras = $this->forma_pagamento_bandeira
+                    ->get_many_by(array(
+                        'forma_pagamento_tipo_id' => $tipo['forma_pagamento_tipo_id'],
+                    ));
+                
+                if (count($forma) > 0) {
+
+                    // exibe o link para acesso externo se houver configurado os tipos de cartão
+                    if ( !$exibe_url_acesso_externo && in_array($tipo['forma_pagamento_tipo_id'], [$this->config->item('FORMA_PAGAMENTO_CARTAO_CREDITO'), $this->config->item('FORMA_PAGAMENTO_CARTAO_DEBITO')] ) ) {
+                        $exibe_url_acesso_externo = true;
+                    }
+
+                    foreach ($forma as $index => $item) {
+                        $parcelamento = array();
+                        for ($i = 1; $i <= $item['parcelamento_maximo']; $i++) {
+                            if ($i <= $item['parcelamento_maximo_sem_juros']) {
+                                $parcelamento[$i] = array("Parcelas" => $i, "Valor" => round($valor_total / $i, 2), "Descricao" => "{$i} X " . app_format_currency(round($valor_total / $i, 2)) . " sem juros");
+                                //$parcelamento[$i] = "{$i} X ". app_format_currency($valor_total/$i) . " sem juros";
+                            } else {
+                                //$valor = (( $item['juros_parcela'] / 100 ) * ($valor_total/$i)) + ($valor_total/$i);
+                                $valor            = ($valor_total / (1 - ($item['juros_parcela'] / 100))) / $i;
+                                $parcelamento[$i] = array("Parcelas" => $i, "Valor" => $valor, "Descricao" => "{$i} X " . app_format_currency($valor) . " com juros (" . app_format_currency($item['juros_parcela']) . "%)");
+                                //$parcelamento[$i] = "{$i} X ". app_format_currency($valor) . " com juros (" . app_format_currency($item['juros_parcela']) ."%)";
+                            }
+                        }
+                        $forma[$index]['parcelamento'] = $parcelamento;
+                    }
+
+                    $forma_pagamento[] = array('tipo' => $tipo, 'pagamento' => $forma, 'bandeiras' => $bandeiras);
+                }
 
             }
+
+            $data                                  = array();
+            $data['pedidos']                       = $pedidos;
+            $data['cotacao_id']                    = $cotacao_id;
+            $data['pedido_id']                     = $pedido_id;
+            $data['forma_pagamento']               = $forma_pagamento;
+            $data['produto_slug']                  = $cotacao['produto_slug'];
+            $data['cotacao_dados']                 = $cotacao;
+            $data['produto_parceiro_configuracao'] = $this->produto_parceiro_configuracao->get_by(array(
+                'produto_parceiro_id' => $produto_parceiro_id,
+            ));
+            $data['url_pagamento_confirmado'] = "{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/";
+            $data['produto_parceiro_id']      = $produto_parceiro_id;
+            $data['exibe_url_acesso_externo'] = $exibe_url_acesso_externo;
+
+            if ($exibe_url_acesso_externo) {
+                $data['url_acesso_externo'] = $this->auth->generate_page_token(
+                    ''
+                    , $this->urlAcessoExternoAutorizados($cotacao['produto_slug'], $produto_parceiro_id)
+                    , 'front'
+                    , 'pagamento'
+                );
+            }
+
+            // print_pre($_POST);
+            if ($_POST) {
+                $tipo_forma_pagamento_id = $this->input->post('forma_pagamento_tipo_id');
+                $validacoes = array();
+                switch ($tipo_forma_pagamento_id) {
+                    case self::FORMA_PAGAMENTO_CARTAO_CREDITO: //cartão de crédito
+                        $validacao[] = array(
+                            'field'  => "numero",
+                            'label'  => "Número do Cartão",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+
+                        $validacao[] = array(
+                            'field'  => "nome_cartao",
+                            'label'  => "Nome",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+
+                        $validacao[] = array(
+                            'field'  => "validade",
+                            'label'  => "Validade",
+                            'rules'  => "trim|required|valid_vencimento_cartao",
+                            'groups' => 'pagamento',
+                        );
+
+                        $validacao[] = array(
+                            'field'  => "codigo",
+                            'label'  => "Código",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+
+                        $validacao[] = array(
+                            'field'  => "bandeira_cartao",
+                            'label'  => "Bandeira",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+
+                        if (
+                            ($data['produto_parceiro_configuracao']['pagamento_tipo'] == "RECORRENTE") &&
+                            ($data['produto_parceiro_configuracao']['pagmaneto_cobranca'] == 'VENCIMENTO_CARTAO')
+                        ) {
+                            $validacao[] = array(
+                                'field'  => "dia_vencimento",
+                                'label'  => "Dia do vencimento",
+                                'rules'  => "trim|numeric|required",
+                                'groups' => 'pagamento',
+                            );
+                        }
+                        break;
+                    case self::FORMA_PAGAMENTO_CARTAO_DEBITO: //cartão de débito
+                        $validacao[] = array(
+                            'field'  => "numero_debito",
+                            'label'  => "Número do Cartão",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+
+                        $validacao[] = array(
+                            'field'  => "nome_cartao_debito",
+                            'label'  => "Nome",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+
+                        $validacao[] = array(
+                            'field'  => "validade_debito",
+                            'label'  => "Validade",
+                            'rules'  => "trim|required|valid_vencimento_cartao",
+                            'groups' => 'pagamento',
+                        );
+
+                        $validacao[] = array(
+                            'field'  => "codigo_debito",
+                            'label'  => "Código",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+
+                        $validacao[] = array(
+                            'field'  => "bandeira_cartao_debito",
+                            'label'  => "Bandeira",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+                        break;
+                    case self::FORMA_PAGAMENTO_BOLETO: //BOLETO
+                        $validacao[] = array(
+                            'field'  => "sacado_nome",
+                            'label'  => "Nome",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+                        $validacao[] = array(
+                            'field'  => "sacado_documento",
+                            'label'  => "CPF",
+                            'rules'  => "trim|required|validate_cpf",
+                            'groups' => 'pagamento',
+                        );
+                        $validacao[] = array(
+                            'field'  => "sacado_endereco",
+                            'label'  => "Endereço",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+                        $validacao[] = array(
+                            'field'  => "sacado_endereco_num",
+                            'label'  => "Número",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+                        $validacao[] = array(
+                            'field'  => "sacado_endereco_cep",
+                            'label'  => "CEP",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+                        $validacao[] = array(
+                            'field'  => "sacado_endereco_bairro",
+                            'label'  => "Bairro",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+                        $validacao[] = array(
+                            'field'  => "sacado_endereco_cidade",
+                            'label'  => "Cidade",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+                        $validacao[] = array(
+                            'field'  => "sacado_endereco_uf",
+                            'label'  => "Estado",
+                            'rules'  => "trim|required",
+                            'groups' => 'pagamento',
+                        );
+                        break;
+                    case self::FORMA_PAGAMENTO_FATURADO: //faturado
+                        break;
+                }
+
+                $this->cotacao->setValidate($validacao);
+
+                if ($this->cotacao->validate_form('pagamento')) {
+
+                    foreach ($pedidos as $index => $pedido) {
+                        $dados               = $_POST;
+                        $dados['cotacao_id'] = $pedido['cotacao_id'];
+                        $this->pedido->updatePedido($pedido['pedido_id'], $dados);
+                        $this->pedido->insDadosPagamento($dados, $pedido['pedido_id']);
+                    }
+
+                    $this->session->set_userdata("pedido_carrinho", $pedidos);
+
+                    //Se for faturamento, muda status para aguardando faturamento
+                    if ($pedido_id && ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO || $tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_TERCEIROS)) {
+                        $status = $this->pedido->mudaStatus($pedido_id, ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO) ? "aguardando_faturamento" : "pagamento_confirmado");
+
+                        $this->apolice->insertApolice($pedido_id);
+                    }
+                    switch ($this->input->post('forma_pagamento_tipo_id')) {
+                        case self::FORMA_PAGAMENTO_CARTAO_CREDITO:
+                        case self::FORMA_PAGAMENTO_CARTAO_DEBITO:
+                        case self::FORMA_PAGAMENTO_BOLETO:
+
+                            if($getUrl == ''){
+                                $this->session->set_flashdata('succ_msg', 'Aguardando confirmação do pagamento'); //Mensagem de sucesso
+                                // redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/{$pedido_id}");
+                                redirect("{$this->controller_uri}/pagamento_carrinho_aguardando/");
+
+                            }else{
+
+                                $this->session->set_flashdata('succ_msg', 'Pedido incluido com sucesso!'); //Mensagem de sucesso
+                                redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
+                            }
+
+                            break;
+                        default:
+                            $this->session->set_flashdata('succ_msg', 'Pedido incluido com sucesso!'); //Mensagem de sucesso
+                            redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
+                            break;
+                    }
+                }
+            }
+
+            $data['step'] = ($conclui_em_tempo_real) ? 3 : 2;
+            $view = "$this->controller_uri/pagamento_carrinho/pagamento";
+            if($this->layout == 'front'){
+                $view = "admin/venda/equipamento/front/steps/step-three-pagamento";
+            }
+
+            $this->template->load("admin/layouts/{$this->layout}", $view, $data);
         }
-        $this->template->load("admin/layouts/{$this->layout}", "$this->controller_uri/pagamento_carrinho/pagamento", $data);
     }
 
     public function getDataCamposBoleto($data_campo, $plano_id = 0)
@@ -772,5 +909,70 @@ class Admin_Controller extends MY_Controller
         //print_r($data['pedidos']);exit;
 
         $this->template->load("admin/layouts/{$this->layout}", "$this->controller_uri/pagamento_carrinho/aguardando_pagamento", $data);
+    }
+
+    public function urlAcessoExternoAutorizados($produto_slug, $produto_parceiro_id)
+    {
+        return array(
+            current_url(),
+            base_url("{$this->controller_uri}/{$produto_slug}/{$produto_parceiro_id}/5/#"),
+            base_url("{$this->controller_uri}/{$produto_slug}/{$produto_parceiro_id}/6/#"),
+            base_url("admin/gateway/consulta"),
+            base_url("admin/venda/pagamento_carrinho"),
+        );
+    }
+
+    public function step_login($data = [])
+    {
+        $this->load->model('cliente_model', 'cliente');
+
+        $this->template->js(app_assets_url("modulos/venda/equipamento/js/login.js", "admin"));
+        $this->template->js(app_assets_url("core/js/SenhaForte.js", "admin"));
+        $this->template->js(app_assets_url("template/js/libs/popper.min.js", "admin"));
+
+        if ($_POST)
+        {
+            $documento  = $_POST['cnpj_cpf'];
+            $senha      = $_POST['password'];
+            $confSenha  = $_POST['password_confirm'];
+            $sucesso    = true;
+
+            if ( empty($documento) )
+            {
+                $this->session->set_flashdata('fail_msg', 'Informe o Documento (CPF / CNPJ).');
+                $sucesso = false;
+            }
+
+            if ( !app_validate_cpf_cnpj($documento) )
+            {
+                $this->session->set_flashdata('fail_msg', 'O documento informado é inválido.');
+                $sucesso = false;
+            }
+
+            if ( empty($senha) )
+            {
+                $this->session->set_flashdata('fail_msg', 'A senha é obrigatória.');
+                $sucesso = false;
+            }
+
+            if ( $senha != $confSenha )
+            {
+                $this->session->set_flashdata('fail_msg', 'A senha não confere');
+                $sucesso = false;
+            }
+
+            // TODO: Fazer o login considerando o produto
+            // TODO: Quando externo validar se o ID da cotação/pedido pertence ao CPF acessado
+            if ( $sucesso )
+            {
+                // $this->cliente->atualizar($this->input->post('cliente_id'), $_POST);
+                $this->name = ''; // TODO: pegar corretamente o nome do segurado
+                $this->session->set_userdata('logado', true);
+                $this->session->set_userdata('cnpj_cpf', app_clear_number($documento));
+                header("Refresh: 0;");
+            }
+        }
+
+        $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/{$this->layout}/login", $data);
     }
 }

@@ -3,6 +3,11 @@ if($_POST){
     $row = $_POST;
 }
 
+$layout = issetor($layout, '');
+
+// Exibe os meios de pagto se for no link externo ou se estiver habilitado
+$disablePagto = ( $layout != 'front' && empty($produto_parceiro_configuracao['front_habilita_meio_pagamento']) );
+
 ?>
 <div class="section-header">
     <ol class="breadcrumb">
@@ -18,9 +23,11 @@ if($_POST){
             <i class="fa fa-arrow-left"></i> Voltar
         </a>
 
+        <?php if ( !$disablePagto ) { ?>
         <a class="btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
             <i class="fa fa-edit"></i> Efetuar Pagamento
         </a>
+        <?php } ?>
     </div>
 </div>
 
@@ -73,7 +80,20 @@ if($_POST){
                 </div>
             </div>
 
-                <!-- Collapsible Widgets -->
+            <?php
+            $layout = issetor($layout, '');
+
+            $this->load->view('admin/venda/partials/enviar_token_acesso');
+
+            // Exibe os meios de pagto se for no link externo ou se estiver habilitado
+            if ( $disablePagto ) {
+            ?>
+                <div class="alert alert-warning fade in">
+                    <button type="button" class="close" data-dismiss="alert">×</button>
+                    <i class="fa fa-info-circle"></i> Cobrança permitida somente através do Pagamento Externo
+                </div>
+            <?php } else { ?>
+            <!-- Collapsible Widgets -->
             <div class="row">
                 <div class="col-md-12">
 
@@ -114,6 +134,7 @@ if($_POST){
 
                 </div>
             </div>
+            <?php } ?>
         </form>
     </div>
 </div>
@@ -126,8 +147,10 @@ if($_POST){
             <i class="fa fa-arrow-left"></i> Voltar
         </a>
 
+        <?php if ( !$disablePagto ) { ?>
         <a class="btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
             <i class="fa fa-edit"></i> Efetuar Pagamento
         </a>
+        <?php } ?>
     </div>
 </div>
