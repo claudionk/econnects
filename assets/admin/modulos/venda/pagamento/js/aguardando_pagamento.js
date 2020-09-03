@@ -33,7 +33,6 @@ function getStatusPedido(){
         pedido_id: $('#pedido_id').val( )
     }
 
-    debugger;
     var url = $('#url_aguardando_pagamento').val();
     pr += 5;
     if(pr > 100){ pr = 30; }

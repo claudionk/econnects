@@ -266,6 +266,8 @@ class Admin_Controller extends MY_Controller
         $data['produto_slug']                  = $cotacao['produto_slug'];
         $data['cotacao_dados']                 = $cotacao;
         $data["isConfirmaEmail"]               = $this->isConfirmaEmail;
+        $data["valor_total"]                   = $valor_total;
+        $data["produtos_nome"]                 = $cotacao['equipamento_nome'];
         $data['cotacao']                       = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $data['carrossel']                     = $this->session->userdata("carrossel_{$produto_parceiro_id}");
         $data['dados_segurado']                = $this->session->userdata("dados_segurado_{$produto_parceiro_id}");
@@ -548,8 +550,11 @@ class Admin_Controller extends MY_Controller
             }
             //valor total
             $valor_total = 0;
+            $produtos_nome = $virg = '';
             foreach ($pedidos as $index => $pedido) {
                 $valor_total += $pedido['valor_total'];
+                $produtos_nome .= $virg.$pedido['nome'];
+                $virg = ', ';
             }
             //Carrega templates
             $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
@@ -618,6 +623,9 @@ class Admin_Controller extends MY_Controller
             $data['forma_pagamento']               = $forma_pagamento;
             $data['produto_slug']                  = $cotacao['produto_slug'];
             $data['cotacao_dados']                 = $cotacao;
+            $data["isConfirmaEmail"]               = $this->isConfirmaEmail;
+            $data["valor_total"]                   = $valor_total;
+            $data["produtos_nome"]                 = emptyor($produtos_nome, $cotacao['equipamento_nome']);
             $data['produto_parceiro_configuracao'] = $this->produto_parceiro_configuracao->get_by(array(
                 'produto_parceiro_id' => $produto_parceiro_id,
             ));

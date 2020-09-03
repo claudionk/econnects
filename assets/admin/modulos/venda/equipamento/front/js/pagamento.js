@@ -99,15 +99,27 @@ function getStatusPedido(){
             if(result.result == true){
 
                 console.log('return', result);
-                if((result.pedido_id > 0) && (result.pedido_status_id != 4) ){
-                    var url_proximo =$('#url_pagamento_confirmado').val() + result.pedido_id;
-                    $('.btn-pagamento-efetuado').attr('href', url_proximo)
-                    $('.btn-proximo').hide();
-                    $('.btn-pagamento-efetuado').show();
-                    toastr.info('PEDIDO FOI PAGO', "Atenção!");
-                }else{
+                // não gerou pedido
+                if ( !(result.pedido_id > 0) )
+                {
                     setTimeout(getStatusPedido, 2000);
+                    return;
                 }
+
+                //  4 - PAGAMENTO NAO AUTORIZADO
+                // 13 - CARRINHO DE COMPRAS
+                if ( $.inArray( parseInt(result.pedido_status_id), [4, 13]) != -1 )
+                {
+                    setTimeout(getStatusPedido, 2000);
+                    return;
+                }
+
+                var url_proximo =$('#url_pagamento_confirmado').val() + result.pedido_id;
+                $('.btn-pagamento-efetuado').attr('href', url_proximo)
+                $('.btn-proximo').hide();
+                $('.btn-pagamento-efetuado').show();
+                toastr.info('PEDIDO FOI PAGO', "Atenção!");
+
             }else{
                 setTimeout(getStatusPedido, 2000);
             }

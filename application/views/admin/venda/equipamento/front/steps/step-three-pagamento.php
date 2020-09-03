@@ -4,9 +4,9 @@ if ($_POST) {
 }
 $cpfcnpj = app_cpf_to_mask(issetor($cotacao_dados['cnpj_cpf'], ''));
 $nome = issetor($cotacao_dados['nome'], '');
-$valor = app_format_currency(issetor($cotacao_dados['premio_liquido_total'], ''), true);
+$valor = app_format_currency(issetor($valor_total, ''), true);
 $produto = issetor($cotacao_dados['equipamento_nome'], '');
-$nome_seguro = issetor($cotacao_dados['produto_nome'], '');
+$nome_seguro = issetor($produtos_nome, '');
 ?>
 
 <form class="form form-pagamento form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
@@ -24,32 +24,27 @@ $nome_seguro = issetor($cotacao_dados['produto_nome'], '');
         </div>
     </div>
 
-
-
     <!-- Collapsible Widgets -->
     <div class="row">
         <div class="col-md-12">
 
             <?php
             $this->load->view('admin/venda/equipamento/front/step', array('step' => 4, 'produto_parceiro_id' => $produto_parceiro_id, 'title' => 'PAGAMENTO'));
-            ?>
-
-            <?php $this->load->view('admin/venda/partials/enviar_token_acesso'); ?>
+            $this->load->view('admin/venda/partials/enviar_token_acesso'); ?>
 
             <div class="col-md-12 col-sm-12 col-xs-12 icon-login">
                 <i class="fa fa-lock text-primary-dark border-primary" aria-hidden="true"></i>
             </div>
 
-
             <div class="col-md-12">
                 <div id="term-block">
                     <div id="term-block-content" style="border:2px solid #ddd; overflow-y: scroll; background:white;position: relative;width: 100%;scroll-behavior: auto;height: 204px;">
                         <div style="margin:5%">
-                            <div style=""><span>TERMO DE AUTORIZAÇÃO DE COBRANÇA DE PRÊMIO DE SEGURO</span></div>
-                            <div style=""><span>Eu, <?php echo $nome; ?>, inscrito no CPF/MF sob o n <?php echo $cpfcnpj; ?>,</span></div>
-                            <div style=""><span>proponente do seguro <?php echo $nome_seguro; ?>, </span><span>autorizo que o pagamento do prêmio de seguro no valor</span></div>
-                            <div style=""><span>de <?php echo $valor; ?> seja realizado em conjunto com o pagamento do(s)</span></div>
-                            <div style=""><span><?php echo $produto; ?> ora adquirido(s).</span></div>
+                            <p><strong>TERMO DE AUTORIZAÇÃO DE COBRANÇA DE PRÊMIO DE SEGURO</strong></p>
+                            <div style="">
+                                <span>Eu, <?php echo $nome; ?>, inscrito no CPF/MF sob o n <?php echo $cpfcnpj; ?>, proponente do(s) seguro(s) <?php echo $nome_seguro; ?>, autorizo que o pagamento do prêmio de seguro no valor de <?php echo $valor; ?> seja realizado em conjunto com o pagamento do(s) <?php echo $produto; ?> ora adquirido(s).
+                                </span>
+                            </div>
                             <!-- <div style=""><span>(LOCAL), (DATA)</span></div>
                             <div style=""><span>_______________________________</span></div>
                             <div style=""><span>(ASSINATURA DO SEGURADO)</span></div> -->
@@ -94,8 +89,40 @@ $nome_seguro = issetor($cotacao_dados['produto_nome'], '');
                 </div>
             </div>
 
-
             <div id="pagamento_content">
+
+                <?php if ( !empty($pedidos) ) { ?>
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table">
+                            <thead>
+                            <tr style="background-color: #fff; color: #555">
+                                <th width="20%">PEDIDO</th>
+                                <th width="40%">PRODUTO</th>
+                                <th width="20%">VALOR</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <?php $valor_total = 0; ?>
+                            <?php foreach ($pedidos as $pedido) : ?>
+                                <tr>
+                                    <td><?php echo $pedido['codigo']; ?></td>
+                                    <td><?php echo $pedido['nome']; ?></td>
+                                    <td><?php  echo app_format_currency($pedido['valor_total'], false, 2 ); ?></td>
+                                </tr>
+                                <?php $valor_total += $pedido['valor_total']; ?>
+
+                            <?php endforeach; ?>
+                            <tr>
+                                <td class="text-right" colspan="2"><strong>TOTAL: </strong></td>
+                                <td><?php  echo app_format_currency($valor_total, false, 2 ); ?></td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <?php } ?>
 
                 <div class="col-xs-12 select-forma-pagamento">
                     <div class="form-group">

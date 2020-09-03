@@ -8,12 +8,26 @@ $(document).ready(function(){
         if (!$.isFunction($.fn.datepicker)) {
             return;
         }
-
         
     }; */
 
 });
+
+function abreModalDebito(){
+
+
+    $('.box-debito').show();
+
+    $('#modal-debito').modal();
+
+
+
+}
+
 var pr =30;
+var ver_redirect = false;
+var contador = 0;
+
 function getStatusPedido(){
     var data = {
         pedido_id: $('#pedido_id').val()

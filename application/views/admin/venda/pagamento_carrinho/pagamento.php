@@ -81,8 +81,6 @@ $disablePagto = ( $layout != 'front' && empty($produto_parceiro_configuracao['fr
             </div>
 
             <?php
-            $layout = issetor($layout, '');
-
             $this->load->view('admin/venda/partials/enviar_token_acesso');
 
             // Exibe os meios de pagto se for no link externo ou se estiver habilitado
