@@ -1080,7 +1080,8 @@ class Apolice_Model extends MY_Model
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('cobertura_plano_model', 'plano_cobertura');
         $this->load->model('produto_parceiro_termo_model', 'termo');
-
+        $this->load->model('Comissao_gerada_model', 'comissao_gerada');
+        
         $this->load->library('parser');
 
         $data_template = array();
@@ -1095,7 +1096,6 @@ class Apolice_Model extends MY_Model
         $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
         $dados = $dados[0];
 
-
         // Relacionamento corretora
         $data_template['rel_corretora_nome']         = '';
         $data_template['rel_corretora_cnpj']         = '';
@@ -1104,7 +1104,6 @@ class Apolice_Model extends MY_Model
         {
             $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
             $dados_prp = $this->parceiro_relacionamento_produto->filter_by_produto_parceiro($dados['produto_parceiro_id'])->with_parceiro()->filter_by_parceiro_tipo('2')->get_all();
-
             if (!empty($dados_prp)) {
                 $data_template['rel_corretora_nome'] = $dados_prp[0]['parceiro_nome'];
                 $data_template['rel_corretora_cnpj'] = app_cnpj_to_mask($dados_prp[0]['parceiro_cnpj']);
@@ -1144,6 +1143,14 @@ class Apolice_Model extends MY_Model
         $termo = $this->termo->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
         $termo = (isset($termo[0])) ? $termo[0] : array('termo' => '');
 
+        $aComissaoGerada = $this->comissao_gerada->getByParceiroId($apolice['parceiro_id']);
+        if(sizeof($aComissaoGerada)){
+            $comissaoGerada = $aComissaoGerada[0];
+            $data_template["representante_comissao"] = app_format_currency($comissaoGerada["comissao"])."%";
+        }else{
+            $data_template["representante_comissao"] = "";
+        }
+        
         if ($parceiro["parceiro_tipo_id"] == 1) {
             $data_template['representante_nome']      = "&nbsp;";
             $data_template['representante_cnpj']      = "&nbsp;";
@@ -1197,16 +1204,22 @@ class Apolice_Model extends MY_Model
         $coberturas = $this->plano_cobertura->with_cobertura()->filter_by_produto_parceiro_plano($apolice['produto_parceiro_plano_id'])->get_all();
         $coberturasAll = $this->plano_cobertura->getCoberturasApolice($apolice["apolice_id"]);
 
-
-        $equipamento = $this->db->query("SELECT em.nome as marca, ec.nome as categoria, esc.nome as equipamento, ce.equipamento_nome as modelo, ae.imei FROM apolice_equipamento ae
+        $equipamento = $this->db->query("SELECT 
+                                        em.nome as marca, 
+                                        ec.nome as categoria, 
+                                        esc.nome as equipamento, 
+                                        ce.equipamento_nome as modelo, 
+                                        ae.imei 
+                                          FROM apolice_equipamento ae
                                           INNER JOIN apolice a ON (a.apolice_id=ae.apolice_id)
                                           INNER JOIN pedido p ON (p.pedido_id=a.pedido_id)
                                           INNER JOIN cotacao_equipamento ce ON (ce.cotacao_id=p.cotacao_id)
-                                          INNER JOIN vw_Equipamentos_Linhas ec ON (ec.equipamento_categoria_id=ce.equipamento_categoria_id)
-                                          INNER JOIN vw_Equipamentos_Linhas esc ON (esc.equipamento_categoria_id=ce.equipamento_sub_categoria_id)
-                                          INNER JOIN vw_Equipamentos_Marcas em ON (em.equipamento_marca_id = ce.equipamento_marca_id)
+                                          LEFT JOIN vw_Equipamentos_Linhas ec ON (ec.equipamento_categoria_id=ce.equipamento_categoria_id)
+                                          LEFT JOIN vw_Equipamentos_Linhas esc ON (esc.equipamento_categoria_id=ce.equipamento_sub_categoria_id)
+                                          LEFT JOIN vw_Equipamentos_Marcas em ON (em.equipamento_marca_id = ce.equipamento_marca_id)
                                           WHERE a.apolice_id=" . $apolice["apolice_id"])->result_array();
 
+        $data_template['lmi_ge']      = "R$ ".app_format_currency($apolice['nota_fiscal_valor']);
         if (sizeof($equipamento)) {
             $data_template['categoria'] = $equipamento[0]["categoria"];
             $data_template['equipamento'] = $equipamento[0]["equipamento"];
@@ -1223,16 +1236,18 @@ class Apolice_Model extends MY_Model
             $data_template['imei']        = "";
         }
 
+
         $ccount = 0;
+        $data_template["franquia"] = "";
         foreach ($coberturas as $cobertura) {
             $ccount                                                     = $ccount + 1;
             $data_template["cobertura_" . trim($ccount) . "_descricao"] = $cobertura["cobertura_nome"];
             $data_template["lmi_" . trim($ccount)]                      = $cobertura["descricao"];
+            $data_template["franquia"] = $cobertura["franquia"];
         }
 
         $pagamento = $this->pedido->getPedidoPagamento($apolice['pedido_id']);
         $pagamento = $pagamento[0];
-
 
         $data_template['pagamento_tipo_pagamento']      = $pagamento['tipo_pagamento'];
         $data_template['pagamento_bandeira']            = $pagamento['bandeira'];
@@ -1243,11 +1258,12 @@ class Apolice_Model extends MY_Model
         //$capitalizacao = array('numero' => $apolice['num_capitalizacao']);
 
         //dados segurado
-        $data_template['segurado_rg']      = $apolice['rg'];
-        $data_template['segurado_sexo']    = $apolice['sexo'];
-        $data_template['profissao']        = "";
-        $data_template['estado_civil']     = "";
-        $data_template['contato_telefone'] = app_format_telefone($apolice['contato_telefone']);
+        $data_template['segurado_rg']           = $apolice['rg'];
+        $data_template['segurado_sexo']         = $apolice['sexo'];
+        $data_template['profissao']             = "";
+        $data_template['estado_civil']          = "";
+        $data_template['contato_telefone']      = app_format_telefone($apolice['contato_telefone']);
+        $data_template['rg_orgao_expedidor']    = $apolice['rg_orgao_expedidor'];
 
         $data_template['segurado_sexo_masculino'] = " ";
         $data_template['segurado_sexo_feminino']  = " ";
@@ -1258,7 +1274,6 @@ class Apolice_Model extends MY_Model
             $data_template['segurado_sexo']          = "Feminno";
             $data_template['segurado_sexo_feminino'] = "X";
         }
-
 
         $tot = strlen(trim($apolice['cnpj_cpf']));
         if($tot == 11)
