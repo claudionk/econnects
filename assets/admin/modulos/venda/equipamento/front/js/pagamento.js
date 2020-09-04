@@ -80,7 +80,8 @@ function GetCardType(number)
 var ver_redirect = false;
 function getStatusPedido(){
     var data = {
-        cotacao_id: $('#cotacao_id').val()
+        cotacao_id: $('#cotacao_id').val(),
+        pedido_id: $('#pedido_id').val()
     }
 
     var url = $('#url_ver_pedido').val();

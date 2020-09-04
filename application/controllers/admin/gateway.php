@@ -754,14 +754,20 @@ class Gateway extends Admin_Controller
             ->set_output(json_encode($result));
     }
 
-    public function pedido($cotacao_id = 0)
+    public function pedido($cotacao_id = 0, $pedido_id = 0)
     {
 
         $cotacao_id = ($cotacao_id == 0) ? $this->input->post('cotacao_id') : $cotacao_id;
+        $pedido_id = ($pedido_id == 0) ? $this->input->post('pedido_id') : $pedido_id;
 
         $this->load->model('pedido_model', 'cartao');
 
-        $pedido = $this->pedido->get_many_by(array("pedido.cotacao_id" => $cotacao_id));
+        if ( !empty($pedido_id) )
+        {
+            $pedido = $this->pedido->get_many_by(array("pedido.pedido_id" => $pedido_id));
+        } else {
+            $pedido = $this->pedido->get_many_by(array("pedido.cotacao_id" => $cotacao_id));
+        }
 
         $result                     = array();
         $result["result"]           = false;

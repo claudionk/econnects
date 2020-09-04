@@ -286,7 +286,7 @@ class Admin_Controller extends MY_Controller
         $data['produto_parceiro_configuracao'] = $this->produto_parceiro_configuracao->get_by(array(
             'produto_parceiro_id' => $produto_parceiro_id,
         ));
-        $data['url_pagamento_confirmado'] = "{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/";
+        $data['url_pagamento_confirmado'] = "admin/venda_{$cotacao['produto_slug']}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/";
         $data['produto_parceiro_id']      = $produto_parceiro_id;
         $data['exibe_url_acesso_externo'] = $exibe_url_acesso_externo;
 
@@ -474,13 +474,13 @@ class Admin_Controller extends MY_Controller
                         }else{
 
                             $this->session->set_flashdata('succ_msg', 'Pedido incluido com sucesso!'); //Mensagem de sucesso
-                            redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
+                            redirect("admin/venda_{$cotacao['produto_slug']}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
                         }
 
                         break;
                     default:
                         $this->session->set_flashdata('succ_msg', 'Pedido incluido com sucesso!'); //Mensagem de sucesso
-                        redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
+                        redirect("admin/venda_{$cotacao['produto_slug']}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
                         break;
                 }
 
@@ -649,7 +649,7 @@ class Admin_Controller extends MY_Controller
                 $data['produto_parceiro_configuracao'] = $this->produto_parceiro_configuracao->get_by(array(
                     'produto_parceiro_id' => $produto_parceiro_id,
                 ));
-                $data['url_pagamento_confirmado'] = "{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/";
+                $data['url_pagamento_confirmado'] = "admin/venda_{$cotacao['produto_slug']}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/";
                 $data['produto_parceiro_id']      = $produto_parceiro_id;
                 $data['exibe_url_acesso_externo'] = $exibe_url_acesso_externo;
 
@@ -836,13 +836,13 @@ class Admin_Controller extends MY_Controller
                                 }else{
 
                                     $this->session->set_flashdata('succ_msg', 'Pedido incluido com sucesso!'); //Mensagem de sucesso
-                                    redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
+                                    redirect("admin/venda_{$cotacao['produto_slug']}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
                                 }
 
                                 break;
                             default:
                                 $this->session->set_flashdata('succ_msg', 'Pedido incluido com sucesso!'); //Mensagem de sucesso
-                                redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
+                                redirect("admin/venda_{$cotacao['produto_slug']}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
                                 break;
                         }
                     }
@@ -938,10 +938,10 @@ class Admin_Controller extends MY_Controller
                 $cotacao = $this->cotacao->get_cotacao_produto( $pedido['cotacao_id'] );
 
                 if($this->layout == 'front'){
-                    redirect("venda/admin/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido['pedido_id']}?token={$this->token}&layout={$this->layout}&color={$this->color}");
+                    redirect("admin/venda_{$cotacao['produto_slug']}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido['pedido_id']}?token={$this->token}&layout={$this->layout}&color={$this->color}");
                 }
 
-                redirect("venda/admin/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/{$pedido['pedido_id']}");
+                redirect("admin/venda_{$cotacao['produto_slug']}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/{$pedido['pedido_id']}");
             }
         }
 
@@ -956,8 +956,8 @@ class Admin_Controller extends MY_Controller
     {
         return array(
             current_url(),
-            base_url("{$this->controller_uri}/{$produto_slug}/{$produto_parceiro_id}/5/#"),
-            base_url("{$this->controller_uri}/{$produto_slug}/{$produto_parceiro_id}/6/#"),
+            base_url("admin/venda_{$produto_slug}/{$produto_slug}/{$produto_parceiro_id}/5/#"),
+            base_url("admin/venda_{$produto_slug}/{$produto_slug}/{$produto_parceiro_id}/6/#"),
             base_url("admin/gateway/consulta"),
             base_url("admin/venda/pagamento_carrinho"),
         );

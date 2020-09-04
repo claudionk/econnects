@@ -1411,8 +1411,6 @@ class Venda_Equipamento extends Admin_Controller{
         $data["email"] = $_cotacao["email"];
         $data["hasApp"] = $this->hasApp;
 
-
-
         $this->limpa_cotacao($produto_parceiro_id);
 
         $view = "admin/venda/equipamento/certificado";

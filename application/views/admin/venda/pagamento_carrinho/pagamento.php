@@ -39,8 +39,10 @@ $disablePagto = ( $layout != 'front' && empty($produto_parceiro_configuracao['fr
             <!-- Form -->
         <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
             <input type="hidden" name="produto_parceiro_id" value="<?php if (isset($carrossel['produto_parceiro_id'])) echo $carrossel['produto_parceiro_id']; ?>"/>
+            <input type="hidden" name="pedido_id" id="pedido_id" value="<?php if (isset($pedido_id)) echo $pedido_id; ?>"/>
+            <input type="hidden" id="url_ver_pedido"  name="url_aguardando_pagamento" value="<?php echo base_url("admin/gateway/pedido/"); ?>"/>
+            <input type="hidden" id="url_pagamento_confirmado"  name="url_pagamento_confirmado" value="<?php echo  base_url($url_pagamento_confirmado) ?>/"/>
             <!-- Widget -->
-
 
             <div class="row">
                 <div class="col-md-6">
@@ -150,5 +152,9 @@ $disablePagto = ( $layout != 'front' && empty($produto_parceiro_configuracao['fr
             <i class="fa fa-edit"></i> Efetuar Pagamento
         </a>
         <?php } ?>
+
+        <a style="display:none;" class="btn pull-right btn-app btn-success btn-pagamento-efetuado" href="#">
+            <i class="fa fa-arrow-right"></i> Pagamento Efetuado
+        </a>
     </div>
 </div>

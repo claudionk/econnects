@@ -2849,7 +2849,6 @@ Class Pedido_Model extends MY_Model
                 )
             );
 
-
             $this->pedido_cartao->insert($dados_cartao, true);
             $this->pedido_transacao->insStatus($pedido_id, "Aguardando_pagamento");
 
