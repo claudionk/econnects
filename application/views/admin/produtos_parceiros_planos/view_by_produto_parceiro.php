@@ -47,6 +47,7 @@
 
                         <!-- Table -->
                         <input type="hidden" name="url_ordem" id="url_ordem" value="<?php echo  base_url("$current_controller_uri/set_ordem/{$produto_parceiro_id}"); ?>">
+
                         <table id="tabela-ordem" class="table table-hover">
 
                             <!-- Table heading -->
@@ -68,11 +69,12 @@
                             <tr data-id="<?php echo $row[$primary_key];?>" data-ordem="<?php echo $i; ?>">
 
                                 <td><?php echo $row['ordem'];?></td>
-                                <td><?php echo $row['nome'];?></td>
+                                <td id="ppp_id_<?php echo $row[$primary_key]; ?>"><?php echo $row['nome'];?></td>
                                 <td class="center">
+                                    <a data-href="<?php echo base_url("{$current_controller_uri}/keyCreate/{$produto_parceiro_id}/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary" <?php if( empty($row['enableCreateKey'])) { ?> disabled="disabled" <?php } ?> data-toggle="modal" data-target="#modal_gerar_chave" > <i class="fa fa-bolt"></i>  Gerar Chave </a>
+
                                     <div class="btn-group">
-                                        <button type="button" class="btn btn-sm ink-reaction btn-primary">Configurações</button>
-                                        <button type="button" class="btn btn-sm ink-reaction btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i class="fa fa-caret-down"></i></button>
+                                        <button type="button" class="btn btn-sm ink-reaction btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Configurações &nbsp; <i class="fa fa-caret-down"></i></button>
                                         <ul class="dropdown-menu dropdown-menu-right" role="menu">
                                             <?php if( $row['precificacao_tipo_id'] == 1 || $row['precificacao_tipo_id'] == 5 || $row['precificacao_tipo_id'] == 6 ) : ?>
                                                 <li><a href="<?php echo base_url("admin/cobertura_plano/index/{$row[$primary_key]}")?>"> Coberturas </a></li>
@@ -103,6 +105,13 @@
                         </table>
                         <!-- // Table END -->
 
+                        <?php if ( empty($enableSomeCreateKey) ) { ?>
+                            <div class="text-default-light">
+                                <a href="#" class="btn btn-sm" disabled="disabled" > <i class="fa fa-bolt"></i>  Gerar Chave </a>
+                                O botão de gerar chave é exibido disabilitado quando o usuário não possuir permissão para criar Cotação para qualquer Plano
+                            </div>
+                        <?php } ?>
+
                     </div>
                 </div>
                 <!-- // Widget END -->
@@ -111,3 +120,9 @@
     </div>
 </div>
 
+<!-- Modal -->
+<div id="modal_gerar_chave" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content"></div>
+    </div>
+</div>

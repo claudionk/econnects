@@ -172,6 +172,7 @@ Class Produto_Parceiro_Configuracao_Model extends MY_Model
                 'ir_cotacao_salva' => $this->input->post('ir_cotacao_salva'),
                 'conclui_em_tempo_real' => $this->input->post('conclui_em_tempo_real'),
                 'endosso_controle_cliente' => $this->input->post('endosso_controle_cliente'),
+                'gera_num_apolice_cotacao' => $this->input->post('gera_num_apolice_cotacao'),
             );
         }elseif ($tipo == 'comissao'){
             $data = array(

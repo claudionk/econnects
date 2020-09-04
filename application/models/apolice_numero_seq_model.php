@@ -14,10 +14,10 @@ Class Apolice_Numero_Seq_Model extends MY_Model
     protected $update_at_key = 'alteracao';
     protected $create_at_key = 'criacao';
 
-
     //campos para transformação em maiusculo e minusculo
     protected $fields_lowercase = array();
     protected $fields_uppercase = array();
+
     //Dados
     public $validate = array(
 
@@ -27,8 +27,8 @@ Class Apolice_Numero_Seq_Model extends MY_Model
      * Obtem o proximo número
      * @return mixed
      */
-    public function get_proximo_codigo($produto_parceiro_id){
-
+    public function get_proximo_codigo($produto_parceiro_id)
+    {
         $this->_database->select("{$this->_table}.*");
         $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
         $this->_database->where("{$this->_table}.deletado", 0);
@@ -46,13 +46,11 @@ Class Apolice_Numero_Seq_Model extends MY_Model
             $data_seq['sequencia'] = 1;
             $id = $this->insert($data_seq, true);
             $row = $this->get($id);
-
         }
 
         $arr_update = array();
         $arr_update['sequencia'] = $row['sequencia'];
         $this->update($row['apolice_numero_seq_id'], $arr_update, TRUE);
-
 
         return str_pad($arr_update['sequencia'] , 10, '0', STR_PAD_LEFT);
     }
