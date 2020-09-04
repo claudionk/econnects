@@ -18,6 +18,7 @@ class Comunicacao
     private $mensagem;
     private $mensagem_parametros;
     private $cotacao_id;
+    private $url;
 
     public function __construct()
     {
@@ -435,13 +436,14 @@ class Comunicacao
 
         $config['smtp_host'] = $engine['servidor'];
         $config['smtp_port'] = $engine['porta'];
-        $config['smtp_user'] = $engine['usuario'];
-        $config['smtp_pass'] = $engine['senha'];
+        $config['smtp_crypto'] = 'tls';    
+        $config['smtp_timeout'] = '30';
         $config['protocol']  = 'smtp';
-        $config['validate']  = true;
+        //$config['validate']  = true;
         $config['mailtype']  = 'html';
         $config['charset']   = 'utf-8';
         $config['newline']   = "\r\n";
+        $config['wordwrap'] = TRUE;
 
         $this->_ci->load->library('email', $config);
 
@@ -463,7 +465,7 @@ class Comunicacao
         }
 
         $result = $this->_ci->email->send();
-
+        print_r($this->_ci->email->print_debugger());
         //$this->email->attach('/path/to/photo1.jpg');
 
         if ((isset($result)) && ($result === true)) {
@@ -505,6 +507,18 @@ class Comunicacao
                 }
 
                 $paramentros = $this->getMensagemParametros();
+
+                $comunicacao_template_mensagem = $parceiro_comunicacao['comunicacao_template_mensagem'];
+
+                $mathes = array();
+                $pattern = "/{anexo}(.*?){\/anexo}/s";
+                preg_match_all($pattern, $parceiro_comunicacao['comunicacao_template_mensagem'], $matches);
+                if(!empty($matches)){
+                    $aRemove = $matches[0];
+                    $comunicacao_template_mensagem = str_replace($aRemove, "", $comunicacao_template_mensagem);
+                }
+
+                $parceiro_comunicacao['comunicacao_template_mensagem'] = $comunicacao_template_mensagem;
 
                 //print_r($paramentros);print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
                 $anexos = '';
