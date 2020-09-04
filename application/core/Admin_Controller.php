@@ -974,8 +974,8 @@ class Admin_Controller extends MY_Controller
         if ($_POST)
         {
             $documento  = $_POST['cnpj_cpf'];
-            $senha      = $_POST['password'];
-            $confSenha  = $_POST['password_confirm'];
+            // $senha      = $_POST['password'];
+            // $confSenha  = $_POST['password_confirm'];
             $sucesso    = true;
 
             if ( empty($documento) )
