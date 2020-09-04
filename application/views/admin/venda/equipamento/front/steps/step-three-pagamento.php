@@ -4,10 +4,20 @@ if ($_POST) {
 }
 $cpfcnpj = app_cpf_to_mask(issetor($cotacao_dados['cnpj_cpf'], ''));
 $nome = issetor($cotacao_dados['nome'], '');
-$valor = app_format_currency(issetor($valor_total, ''), true);
+$valor = app_format_currency(issetor($valor_total, 0), true);
 $produto = issetor($cotacao_dados['equipamento_nome'], '');
 $nome_seguro = issetor($produtos_nome, '');
-?>
+
+if ( !empty($carrinho_vazio) ): ?>
+    <div class="row">
+        <div class="col-md-6">
+            <h2 class="text-light text-center">Aguardando pagamento<br>
+                <small class="text-primary">O carrinho de compras está vazio</small>
+            </h2>
+        </div>
+    </div>
+<?php 
+else: ?>
 
 <form class="form form-pagamento form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
     <input type="hidden" name="produto_parceiro_id" value="<?php if (isset($produto_parceiro_id)) echo $produto_parceiro_id; ?>" />
@@ -51,6 +61,17 @@ $nome_seguro = issetor($produtos_nome, '');
                         </div>
                     </div>
 
+                    <div id="div-ask-read-term" class="col-xs-11">
+                        <h5 class=" text-justify text-sm-left">
+                            Por favor, leia o texto até o final para habilitar o campo de aceite do termo.
+                        </h5>
+                    </div>
+                    <div class="col-xs-1">
+                        <a href="javascript:void(0)" data-toggle="tooltip" class="tooltip-icon terms" data-placement="left" title="Leia o Termo até o final para habilitar o botão de Aceite do termo">
+                            <i class="fa fa-question-circle" aria-hidden="true"></i>
+                        </a>
+                    </div>
+
                     <div class="col-xs-12">
                         <hr>
                     </div>
@@ -68,23 +89,12 @@ $nome_seguro = issetor($produtos_nome, '');
                         </div>
 
                     <?php endif; ?>
-                    
-                    <div id="div-ask-read-term" class="col-xs-11">
-                        <h5 class=" text-justify text-sm-left">
-                            Por favor, leia o texto até o final para habilitar o campo de aceite do termo.
-                        </h5>
-                    </div>
 
                     <div id="aceite-term-check" class="col-xs-11" style="display:none">
                         <label>
                             <input type="checkbox" id="check_termo" /> Estou de
                             acordo com os termos de uso.
                         </label>
-                    </div>
-                    <div class="col-xs-1">
-                        <a href="javascript:void(0)" data-toggle="tooltip" class="tooltip-icon terms" data-placement="left" title="Leia o Termo até o final para habilitar o botão de Aceite do termo">
-                            <i class="fa fa-question-circle" aria-hidden="true"></i>
-                        </a>
                     </div>
                 </div>
             </div>
@@ -208,3 +218,4 @@ $nome_seguro = issetor($produtos_nome, '');
 
     })
 </script>
+<?php endif; ?>

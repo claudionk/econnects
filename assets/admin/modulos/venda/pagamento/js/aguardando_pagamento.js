@@ -54,7 +54,7 @@ function getStatusPedido(){
             if(result.status_id == 3){
                 $('.box-sucesso').show();
                 $('.box-debito').hide();
-               $('#modal-debito').hide();
+                $('#modal-debito').hide();
                 $( ".close" ).trigger( "click" );
             }
 

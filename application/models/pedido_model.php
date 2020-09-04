@@ -61,10 +61,11 @@ Class Pedido_Model extends MY_Model
 
     function getPedidoCarrinho($usuario_id = null, $cnpj_cpf = ''){
 
-        $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.codigo, pedido.codigo")
+        $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.codigo, pedido.codigo, produto_parceiro.produto_parceiro_id, pedido_status.slug AS pedido_status_slug ")
         ->select("pedido.valor_total, produto_parceiro.nome,  produto_parceiro.produto_parceiro_id")
         ->join("cotacao", "pedido.cotacao_id = cotacao.cotacao_id", 'inner')
         ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
+        ->join("pedido_status", "pedido.pedido_status_id = pedido_status.pedido_status_id", 'inner')
         ->where("pedido.pedido_status_id", 13);
 
         if ( !empty($usuario_id) )

@@ -11,9 +11,6 @@ class Venda_Equipamento extends Admin_Controller{
     const TIPO_CALCULO_BRUTO = 2;
 
     protected $layout = "base";
-    protected $color  = 'default';
-    protected $token;
-    protected $getUrl = '';
 
     public function __construct()
     {
@@ -29,23 +26,6 @@ class Venda_Equipamento extends Admin_Controller{
         $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento');
         $this->load->model('cliente_model', 'cliente');
 
-        //Seta layout
-        $layout = $this->session->userdata("layout");
-        $this->layout = isset($layout) && !empty($layout) ? $layout : 'base';
-
-        if(! empty($this->input->get("token"))){
-            $this->token = $this->input->get("token");
-            $this->getUrl = '?token='.$this->token;
-        }
-        if(! empty($this->input->get("layout"))){
-            $this->layout = $this->input->get("layout");
-            $this->getUrl .= '&layout='.$this->layout;
-        }
-        if(! empty($this->input->get("color"))){
-            $this->color  = $this->input->get("color");
-            $this->getUrl .= '&color='.$this->color;
-        }
-
         $this->template->js(app_assets_url("template/js/libs/cycle2/cycle2.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/cycle2/jquery.cycle2.carousel.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/toastr/toastr.js", "admin"));
@@ -53,11 +33,9 @@ class Venda_Equipamento extends Admin_Controller{
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/toastr/toastr.css", "admin"));
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/wizard/wizard.css", "admin"));
 
-        if(! empty($this->input->get("color"))){
+        if( !empty($this->color)){
             $this->template->css(app_assets_url('modulos/venda/equipamento/css/'.$this->input->get("color").'.css', 'admin'));
         }
-
-        //echo '<pre>', print_r($this->session); exit;
     }
 
     /**
