@@ -990,17 +990,17 @@ class Admin_Controller extends MY_Controller
                 $sucesso = false;
             }
 
-            if ( empty($senha) )
-            {
-                $this->session->set_flashdata('fail_msg', 'A senha é obrigatória.');
-                $sucesso = false;
-            }
+            // if ( empty($senha) )
+            // {
+            //     $this->session->set_flashdata('fail_msg', 'A senha é obrigatória.');
+            //     $sucesso = false;
+            // }
 
-            if ( $senha != $confSenha )
-            {
-                $this->session->set_flashdata('fail_msg', 'A senha não confere');
-                $sucesso = false;
-            }
+            // if ( $senha != $confSenha )
+            // {
+            //     $this->session->set_flashdata('fail_msg', 'A senha não confere');
+            //     $sucesso = false;
+            // }
 
             // TODO: Fazer o login considerando o produto
             // TODO: Quando externo validar se o ID da cotação/pedido pertence ao CPF acessado

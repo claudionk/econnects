@@ -27,7 +27,7 @@
             <input class="form-control inputmask-cpf" autocomplete="off" name="cnpj_cpf" id="cnpj_cpf" type="text" value="<?php echo isset($cnpj_cpf)? $cnpj_cpf : ''; ?>" <?php if (!empty($cnpj_cpf)) { ?> disabled="disabled"<?php } ?> />
         </div>
     </div>
-    <div class="col-md-6 ">
+    <!--div class="col-md-6 ">
         <div class="form-group" style="margin-bottom: 0px;margin-top: 10px;">
             <label class="control-label" for="password"> Senha </label>
             <input class="form-control" type="password" name="password" id="password" required="required" onkeyup="validarSenhaForca()" />
@@ -44,7 +44,7 @@
             <label class="control-label" for="password_confirm"> Confirme sua senha </label>
             <input class="form-control" type="password" name="password_confirm" id="password_confirm" required="required" />
         </div>
-    </div>
+    </div-->
 
     <div class="col-md-6 ">
         <div class="form-group btns">
