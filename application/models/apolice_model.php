@@ -1584,7 +1584,7 @@ class Apolice_Model extends MY_Model
         if ( $etapa == 'cotacao' && empty($configuracao['gera_num_apolice_cotacao']) )
             return NULL;
 
-        // É cotação e NÃO gera apolice nessa etapa
+        // É contratação e gerou apolice na etapa de cotação
         if ( $etapa == 'contratacao' && !empty($configuracao['gera_num_apolice_cotacao']) )
         {
             if ( !empty($cotacao_id) )
@@ -1613,6 +1613,16 @@ class Apolice_Model extends MY_Model
                 $num_apolice = $this->apolice_range->get_proximo_codigo($produto_parceiro_id);
             }
 
+        }
+
+        if ( empty($data_template) && $etapa == 'contratacao' && !empty($cotacao_id) )
+        {
+            $dadNumApol = $this->cotacao->getDadosNumApolice($cotacao_id);
+
+            if ( !empty($dadNumApol) )
+            {
+                $data_template = $dadNumApol[0];
+            }
         }
 
         // Faz o parse das variáveis

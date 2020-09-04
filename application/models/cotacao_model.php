@@ -587,14 +587,14 @@ Class Cotacao_Model extends MY_Model
 
     function getDadosNumApolice($cotacao_id)
     {
-        $this->_database->select("parceiro.slug AS sigla_loja, produto_parceiro.cod_sucursal , produto_parceiro.cod_ramo, produto_parceiro.cod_tpa AS cod_operacao, produto_parceiro_plano.codigo_operadora AS cod_produto, DATE_FORMAT(NOW(), '%y') AS ano_AA, DATE_FORMAT(NOW(), '%Y') AS ano_AAAA, DATE_FORMAT(NOW(), '%m') AS mes_MM");
+        $this->_database->select("parceiro.slug AS sigla_loja, produto_parceiro.cod_sucursal , produto_parceiro.cod_ramo, produto_parceiro.cod_tpa AS cod_operacao, produto_parceiro_plano.codigo_operadora AS cod_produto, DATE_FORMAT(NOW(), '%y') AS ano_AA, DATE_FORMAT(NOW(), '%Y') AS ano_AAAA, DATE_FORMAT(NOW(), '%m') AS mes_MM", FALSE);
         $this->_database->from("{$this->_table} as cotacao");
         $this->_database->join('parceiro', 'parceiro.parceiro_id = cotacao.parceiro_id');
-        $this->_database->join('(
+        $this->_database->join("(
             SELECT cotacao_id, produto_parceiro_id, produto_parceiro_plano_id FROM cotacao_generico WHERE cotacao_id = {$cotacao_id}
             UNION
             SELECT cotacao_id, produto_parceiro_id, produto_parceiro_plano_id FROM cotacao_equipamento WHERE cotacao_id = {$cotacao_id}
-        ) cot_aux ', 'cotacao.cotacao_id = cot_aux.cotacao_id', 'left', FALSE);
+        ) cot_aux ", 'cotacao.cotacao_id = cot_aux.cotacao_id', 'left', FALSE);
         $this->_database->join('produto_parceiro', 'cot_aux.produto_parceiro_id = produto_parceiro.produto_parceiro_id');
         $this->_database->join('produto_parceiro_plano', 'cot_aux.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id');
         $this->_database->where("cotacao.cotacao_id", $cotacao_id);
