@@ -299,6 +299,8 @@ class Apolice_Model extends MY_Model
 
         $this->load->model('produto_parceiro_desconto_model', 'parceiro_desconto');
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
+        $this->load->model('produto_parceiro_comunicacao_model', 'produto_parceiro_comunicacao');
+        $this->load->model('comunicacao_evento_model', 'comunicacao_evento');
 
         $this->load->model("cliente_contato_model", "cliente_contato");
         $this->load->model('cliente_model', 'cliente');
@@ -481,6 +483,38 @@ class Apolice_Model extends MY_Model
 
                 log_message('debug', 'APOLICE DISPARO EMAIL');
                 if (!empty($evento['destinatario_email'])) {
+                    $comunicacaoEvento = $this->comunicacao_evento
+                    ->with_foreign()
+                    ->get_by(array('comunicacao_evento.slug' => "apolice_gerada_email"));
+
+                    if($comunicacaoEvento){
+                            $parceiro_comunicacao = $this->produto_parceiro_comunicacao
+                            ->with_foreign()
+                            ->with_parceiro()
+                            ->get_by(array(
+                                'produto_parceiro_comunicacao.produto_parceiro_id'   => $evento['produto_parceiro_id'],
+                                'produto_parceiro_comunicacao.comunicacao_evento_id' => $comunicacaoEvento['comunicacao_evento_id']
+                                )
+                            );
+                        
+                        if ($parceiro_comunicacao) {
+
+                            $comunicacao_template_mensagem = $parceiro_comunicacao['comunicacao_template_mensagem'];                         
+
+                            $mathes = array();
+                            $pattern = "/{anexo}(.*?){\/anexo}/s";
+                            preg_match_all($pattern, $comunicacao_template_mensagem, $matches);
+                            if(!empty($matches)){
+                                $aAnexos = $matches[1];
+                                foreach($aAnexos as $_anexo){
+                                    if(method_exists($this, $_anexo)){
+                                        $evento['mensagem']['anexos'][] = $this->{$_anexo}($apolice_id, "pdf_file");;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     $comunicacao = new Comunicacao();
                     $comunicacao->setMensagemParametros($evento['mensagem']);
                     $comunicacao->setDestinatario($evento['destinatario_email']);
@@ -1802,6 +1836,182 @@ class Apolice_Model extends MY_Model
         $this->_database->where("{$this->_table}.apolice_id", $apolice_id);
         $this->_database->where("ast.slug", $slug_status);
         return !empty($this->get_all());
+    }
+
+    public function termo($apolice_id, $export = ""){
+        $this->load->model('pedido_model', 'pedido');        
+        $this->load->model('produto_parceiro_termo_model', 'termo');
+        $this->load->library('parser');
+
+        $data_template = array();
+        $apolice = $this->getApolice($apolice_id);
+
+        if (count($apolice) == 0) {
+            $this->session->set_flashdata('fail_msg', 'Apólice não esta liberado'); //Mensagem de sucesso
+            return false;
+        }
+
+        $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
+        $dados = $dados[0];
+        $termo = $this->termo->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
+        $termo = $termo[0];
+
+        // Relacionamento corretora
+        $data_template['rel_corretora_nome']         = '';
+        $data_template['rel_corretora_cnpj']         = '';
+        $data_template['rel_corretora_codigo_susep'] = '';
+        if(isset($dados['produto_parceiro_id']) && !empty($dados['produto_parceiro_id']))
+        {
+            $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
+            $dados_prp = $this->parceiro_relacionamento_produto->filter_by_produto_parceiro($dados['produto_parceiro_id'])->with_parceiro()->filter_by_parceiro_tipo('2')->get_all();
+            if (!empty($dados_prp)) {
+                $data_template['rel_corretora_nome'] = $dados_prp[0]['parceiro_nome'];
+                $data_template['rel_corretora_cnpj'] = app_cnpj_to_mask($dados_prp[0]['parceiro_cnpj']);
+                $data_template['rel_corretora_codigo_susep'] = $dados_prp[0]['parceiro_codigo_susep'];
+            } else {
+                $data_template['rel_corretora_nome'] = '';
+                $data_template['rel_corretora_cnpj'] = '';
+                $data_template['rel_corretora_codigo_susep'] = '';
+            }
+                        
+        }
+
+        $template = $termo['termo'];
+        $template = $this->parser->parse_string($template, $data_template, true);
+
+        if (($export == 'pdf') || ($export == 'pdf_file')) {
+            $this->custom_loader->library('pdf');
+            $this->pdf->setPageOrientation('P');
+
+            $this->pdf->AddPage();
+
+            //$this->pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+
+            $destino_dir = FCPATH . "assets/files/{{$apolice['produto_slug']}}/termo/";
+            if (!file_exists($destino_dir)) {
+                mkdir($destino_dir, 0777, true);
+            }
+            $this->pdf->SetMargins(5, 5, 5);
+            $this->pdf->writeHTML($template, true, false, true, false, '');
+            $destino = ($export == 'pdf') ? 'D' : 'F';
+            $file    = ($export == 'pdf') ? "{$termo['produto_parceiro_termo_id']}.pdf" : "{$destino_dir}{$termo['produto_parceiro_termo_id']}.pdf";
+            if (ob_get_length()) ob_end_clean();
+            $this->pdf->Output($file, $destino);
+            $this->custom_loader->unload_library('pdf');
+            if ($export == 'pdf_file') {
+                return "{$destino_dir}{$termo['produto_parceiro_termo_id']}.pdf";
+            } else {
+                exit;
+            }
+
+        } else {
+            return $template;
+        }
+
+    }
+
+    public function autorizacao_cobranca($apolice_id, $export = ""){
+        $this->load->model('pedido_model', 'pedido');        
+        $this->load->model('produto_parceiro_autorizacao_cobranca_model', 'autorizacao_cobranca');
+        $this->load->library('parser');
+
+        $data_template = array();
+        $apolice = $this->getApolice($apolice_id);
+
+        if (count($apolice) == 0) {
+            $this->session->set_flashdata('fail_msg', 'Apólice não esta liberado'); //Mensagem de sucesso
+            return false;
+        }
+
+        $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
+        $dados = $dados[0];
+        $autorizacao_cobranca = $this->autorizacao_cobranca->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
+        $autorizacao_cobranca = $autorizacao_cobranca[0];
+
+        $data_template['premio_total']   = "R$ " . app_format_currency($apolice['valor_premio_total']);
+
+        $template = $autorizacao_cobranca['autorizacao_cobranca'];
+        $template = $this->parser->parse_string($template, $data_template, true);
+
+        if (($export == 'pdf') || ($export == 'pdf_file')) {
+            $this->custom_loader->library('pdf');
+            $this->pdf->setPageOrientation('P');
+
+            $this->pdf->AddPage();
+
+            //$this->pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+
+            $destino_dir = FCPATH . "assets/files/{{$apolice['produto_slug']}}/autorizacao_cobranca/";
+            if (!file_exists($destino_dir)) {
+                mkdir($destino_dir, 0777, true);
+            }
+            $this->pdf->SetMargins(5, 5, 5);
+            $this->pdf->writeHTML($template, true, false, true, false, '');
+            $destino = ($export == 'pdf') ? 'D' : 'F';
+            $file    = ($export == 'pdf') ? "{$autorizacao_cobranca['produto_parceiro_autorizacao_cobranca_id']}.pdf" : "{$destino_dir}{$autorizacao_cobranca['produto_parceiro_autorizacao_cobranca_id']}.pdf";
+            if (ob_get_length()) ob_end_clean();
+            $this->pdf->Output($file, $destino);
+            $this->custom_loader->unload_library('pdf');
+            if ($export == 'pdf_file') {
+                return "{$destino_dir}{$autorizacao_cobranca['produto_parceiro_autorizacao_cobranca_id']}.pdf";
+            } else {
+                exit;
+            }
+
+        } else {
+            return $template;
+        }
+    }
+
+    public function solicitacao_desistencia($apolice_id, $export = ""){
+        $this->load->model('pedido_model', 'pedido');        
+        $this->load->model('produto_parceiro_solicitacao_desistencia_model', 'solicitacao_desistencia');
+        $this->load->library('parser');
+
+        $data_template = array();
+        $apolice = $this->getApolice($apolice_id);
+
+        if (count($apolice) == 0) {
+            $this->session->set_flashdata('fail_msg', 'Apólice não esta liberado'); //Mensagem de sucesso
+            return false;
+        }
+
+        $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
+        $dados = $dados[0];
+        $solicitacao_desistencia = $this->solicitacao_desistencia->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
+        $solicitacao_desistencia = $solicitacao_desistencia[0];
+
+        $template = $solicitacao_desistencia['solicitacao_desistencia'];
+        $template = $this->parser->parse_string($template, $data_template, true);
+
+        if (($export == 'pdf') || ($export == 'pdf_file')) {
+            $this->custom_loader->library('pdf');
+            $this->pdf->setPageOrientation('P');
+
+            $this->pdf->AddPage();
+
+            //$this->pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+
+            $destino_dir = FCPATH . "assets/files/{{$apolice['produto_slug']}}/solicitacao_desistencia/";
+            if (!file_exists($destino_dir)) {
+                mkdir($destino_dir, 0777, true);
+            }
+            $this->pdf->SetMargins(5, 5, 5);
+            $this->pdf->writeHTML($template, true, false, true, false, '');
+            $destino = ($export == 'pdf') ? 'D' : 'F';
+            $file    = ($export == 'pdf') ? "{$solicitacao_desistencia['produto_parceiro_solicitacao_desistencia_id']}.pdf" : "{$destino_dir}{$solicitacao_desistencia['produto_parceiro_solicitacao_desistencia_id']}.pdf";
+            if (ob_get_length()) ob_end_clean();
+            $this->pdf->Output($file, $destino);
+            $this->custom_loader->unload_library('pdf');
+            if ($export == 'pdf_file') {
+                return "{$destino_dir}{$solicitacao_desistencia['produto_parceiro_solicitacao_desistencia_id']}.pdf";
+            } else {
+                exit;
+            }
+
+        } else {
+            return $template;
+        }
     }
 
 }
