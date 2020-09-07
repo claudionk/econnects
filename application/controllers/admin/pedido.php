@@ -11,7 +11,7 @@ class Pedido extends Admin_Controller
     public function __construct() 
     {
         parent::__construct();
-        
+
         //Carrega informações da página
         $this->template->set('page_title', "Pedidos");
         $this->template->set_breadcrumb("Pedidos", base_url("$this->controller_uri/index"));
@@ -19,7 +19,7 @@ class Pedido extends Admin_Controller
         //Carrega modelos
         $this->load->model('pedido_model', 'current_model');
     }
-    
+
     public function index($offset = 0) //Função padrão (load)
     {
         $this->load->model("pedido_status_model", "pedido_status");
@@ -54,7 +54,6 @@ class Pedido extends Admin_Controller
         $config['total_rows'] =  count($data['rows']);
 
         $this->pagination->initialize($config);
-
 
         $data['pedido_status_list'] = $this->pedido_status
             ->get_all();
@@ -155,7 +154,6 @@ class Pedido extends Admin_Controller
                 // pedido
                 $existe = $this->db->query("select pedido_id from pedido_dados_bancarios where pedido_id = ".$_POST['pedido_id']."")->result();
 
-
                 if(count($existe)>0){
                     // Atualiza o campo deletado
                     $this->db->query("UPDATE pedido_dados_bancarios SET deletado = 1 WHERE pedido_id = ".$_POST['pedido_id']."");
@@ -198,11 +196,9 @@ class Pedido extends Admin_Controller
                 $this->session->set_flashdata('fail_msg', 'Não foi possível salvar o Registro. Reveja os dados informados');
                 redirect("$this->controller_uri/view/{$_POST['pedido_id']}");
             }
-            
-            
+
         }
     }
-
 
  
     /**
@@ -223,7 +219,6 @@ class Pedido extends Admin_Controller
         $this->load->model('forma_pagamento_bandeira_model', 'forma_pagamento_bandeira');
         $this->load->model("pedido_cartao_transacao_model", "pedido_cartao_transacao");
         $this->load->model("capitalizacao_model", "capitalizacao");
-        
 
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
@@ -232,7 +227,7 @@ class Pedido extends Admin_Controller
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Visualizar pedido");
         $this->template->set_breadcrumb('Editar', base_url("$this->controller_uri/index"));
-        
+
         //Carrega dados para a página
         $data = array();
         $data['pedido'] = $this->current_model->with_foreign()->get($id);
@@ -248,7 +243,6 @@ class Pedido extends Admin_Controller
         //$data['pedido_cartao'] = $this->pedido_cartao->decode_cartao($pedido_cartao);
         */
         $data['cartoes'] = $this->pedido_cartao->get_many_by( array( 'pedido_id' => $id ) ) ;
-
 
         foreach ($data['cartoes'] as $index => $cartao)
         {
@@ -313,7 +307,6 @@ class Pedido extends Admin_Controller
                 ->filterByID($data['pedido']['cotacao_id'])
                 ->get_all();
 
-
             foreach ($data['itens'] as $index => $item) {
                 $data['itens'][$index]['cobertura_adicionais'] = array();
                 //   $data['itens'][$index]['cobertura_adicionais'] = $this->cotacao_seguro_viagem_cobertura->with_cobertura()->get_many_by(array(
@@ -322,23 +315,18 @@ class Pedido extends Admin_Controller
             }
         }
 
-        //print_r($data['itens']);exit;
-
         $data['faturas'] = $this->fatura->filterByPedido($id)
                                         ->with_fatura_status()
                                         ->with_pedido()
                                         ->order_by('data_processamento')
                                         ->get_all();
 
-
         foreach ($data['faturas'] as $index => $fatura) {
             $data['faturas'][$index]['parcelas'] = $this->fatura_parcela->with_fatura_status()
                 ->filterByFatura($fatura['fatura_id'])
                 ->order_by('num_parcela')
                 ->get_all();
-
         }
-
 
         $data['apolices'] = $this->apolice->getApolicePedido($id);
 
@@ -350,10 +338,6 @@ class Pedido extends Admin_Controller
 
         $bco = $this->db->query("select banco_id, codigo, nome from banco where deletado = 0 order by nome asc")->result();
         $data['bancos'] = $bco;
-        // echo '<pre>';
-        // print_r($bco);  die;
-
-
         $data['cancelamento'] = ($this->current_model->isPermiteCancelar($id)) ? '1' : '0';
         $data['cancelamento_aprovar'] = ($data['pedido']['pedido_status_id'] == 11) ? '1' : '0';
         $data['upgrade'] = ($this->current_model->isPermiteUpgrade($id)) ? '1' : '0';
@@ -362,15 +346,24 @@ class Pedido extends Admin_Controller
         $data['new_record'] = '0';
         $data['form_action'] =  base_url("$this->controller_uri/view/{$id}");
         $data['apolice_id'] = (isset($data['apolices'][0]['apolice_id'])) ? $data['apolices'][0]['apolice_id'] : '';
+        $data['exibe_url_acesso_externo'] = !empty($data['cancelamento']);
+        $data['exibe_url_acesso_externo_tipo'] = 'cancelamento';
 
+        if (!empty($data['cancelamento']) )
+        {
+            $data['url_acesso_externo'] = $this->auth->generate_page_token(
+                ''
+                , $this->urlAcessoExternoAutorizados($data['produto']['slug'], $data['produto']['produto_parceiro_id'])
+                , 'front'
+                , 'cancelamento'
+            );
+        }
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/view", $data );
     }
 
-
-
-    public  function cancelar($pedido_id){
+    public function cancelar($pedido_id){
         $result = $this->current_model->cancelamento($pedido_id);
 
         if($result['result'] == TRUE)                {
@@ -384,7 +377,7 @@ class Pedido extends Admin_Controller
         }
     }
 
-    public  function cancelar_aprovacao($pedido_id){
+    public function cancelar_aprovacao($pedido_id){
 
         $this->load->model("pedido_transacao_model", "pedido_transacao");
 
@@ -399,7 +392,7 @@ class Pedido extends Admin_Controller
 
     }
 
-    public  function cancelar_aprovar($pedido_id){
+    public function cancelar_aprovar($pedido_id){
 
         $this->load->model("pedido_transacao_model", "pedido_transacao");
 

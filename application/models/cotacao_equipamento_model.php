@@ -633,7 +633,6 @@ Class Cotacao_Equipamento_Model extends MY_Model
                 $plano = $this->produto_parceiro_plano->get($data_cotacao['produto_parceiro_plano_id']);
                 $data_template['cod_produto'] = $plano['codigo_operadora'];
             }
-
             //salva cotacão
             $dt_cotacao = array();
             $dt_cotacao['cliente_id'] = $cliente['cliente_id'];

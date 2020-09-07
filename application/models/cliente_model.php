@@ -644,14 +644,22 @@ class Cliente_Model extends MY_Model
      */
     public function cotacao_insert_update($data = array())
     {
-
         $this->load->model('cliente_contato_model', 'cliente_contato');
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
+
+        $cliente = [];
 
         //verifica se o cliente existe
         if (isset($data['cnpj_cpf'])) {
             $cliente = $this->filterByCPFCNPJ(app_completa_cpf_cnpj($data['cnpj_cpf']))
                 ->get_all();
+            if (!empty($cliente)) {
+                $cliente = $cliente[0];
+            }
+        }
+
+        if (isset($data['cliente_id'])) {
+            $cliente = $this->get($data['cliente_id']);
         }
 
         if (isset($data['produto_parceiro_id']) && empty($data['parceiro_id'])) {
@@ -661,7 +669,6 @@ class Cliente_Model extends MY_Model
             }
         }
 
-        $cliente = isset($cliente) ? $cliente : 0;
         if (count($cliente) == 0) {
 
             //insere novo cliente
@@ -722,8 +729,6 @@ class Cliente_Model extends MY_Model
             $data_contato['contato_tipo_id'] = 2;
             $this->cliente_contato->insert_contato($data_contato);
         } else {
-            //
-            $cliente = $cliente[0];
             $this->atualizar($cliente['cliente_id'], $data);
         }
 

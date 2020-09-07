@@ -73,7 +73,9 @@ if ($layout != "front") { ?>
                         }
                     }
 
-                    $this->load->view('admin/venda/partials/enviar_token_acesso');
+                    // $this->load->view('admin/venda/partials/enviar_token_acesso');
+                    $this->load->view('admin/venda/partials/enviar_token_acesso_link');
+                    $this->load->view('admin/venda/partials/enviar_token_acesso_modal');
 
                     // Exibe os meios de pagto se for no link externo ou se estiver habilitado
                     if ( $disablePagto ) {

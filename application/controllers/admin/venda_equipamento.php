@@ -260,7 +260,6 @@ class Venda_Equipamento extends Admin_Controller{
         //Verifica cotação
         if($cotacao_id > 0)
         {
-
             if($this->cotacao->isCotacaoValida($cotacao_id) == FALSE)
             {
                 $this->session->set_flashdata("fail_msg", "Essa Cotação não é válida");
@@ -296,8 +295,9 @@ class Venda_Equipamento extends Admin_Controller{
             //Verifica válido form
             if ($this->cotacao->validate_form("cotacao"))
             {
-                $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $_POST);
                 $cotacao_id = $this->input->post("cotacao_id");
+                $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $_POST);
+                $this->set_cotacao_session($cotacao_id, $produto_parceiro_id);
                 $cotacao_id = $this->cotacao_equipamento->insert_update($produto_parceiro_id, $cotacao_id);
 
                 redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2/{$cotacao_id}{$this->getUrl}");

@@ -30,7 +30,7 @@ $(function(){
                 if(data.status)
                 {
                     toastr.success("Sucesso ao enviar a comunicação.")
-                    $("#modal_acesso_externo").modal("hide");
+                    $("#modal_trocar_cartao").modal("hide");
                 }
                 else
                 {
