@@ -19,6 +19,7 @@ class Comunicacao
     private $mensagem_parametros;
     private $cotacao_id;
     private $url;
+    public $teste = false;
 
     public function __construct()
     {
@@ -47,6 +48,12 @@ class Comunicacao
             ->get_many_by(array(
                 'comunicacao_status.slug' => "aguardando",
             ));
+
+        if($this->teste == true){
+            $mensagem = $this->_ci->comunicacao_model->with_foreign()->get(3229);
+            $mensagem["mensagem_to"] = "vmarsanati@sissolucoes.com.br";
+            $mensagens = array($mensagem);
+        }            
 
         foreach ($mensagens as $mensagem) {
 
@@ -465,7 +472,10 @@ class Comunicacao
         }
 
         $result = $this->_ci->email->send();
-        print_r($this->_ci->email->print_debugger());
+        if($this->teste == true){
+            print_r($this->_ci->email->print_debugger());
+        }
+        
         //$this->email->attach('/path/to/photo1.jpg');
 
         if ((isset($result)) && ($result === true)) {

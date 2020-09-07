@@ -15,6 +15,7 @@ class anexo extends Admin_Controller {
 
     public function teste($apolice_id){
         $comunicacao = new Comunicacao();
+        $comunicacao->teste = true;
         $comunicacao->enviaCronMensagens();
         exit();
         $pedidoSQL = "select * from apolice WHERE apolice_id = $apolice_id";
