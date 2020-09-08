@@ -12,7 +12,8 @@ class Admin_Controller extends MY_Controller
     protected $color        = 'default';
     protected $whatsapp     = '';
     protected $whatsapp_msg = '';
-    public $name;
+    public $name            = '';
+    public $email           = '';
 
     protected $controller_name;
     protected $controller_uri;
@@ -50,6 +51,10 @@ class Admin_Controller extends MY_Controller
         $this->controller_uri  = "admin/{$this->controller_name}";
 
         $userdata = $this->session->all_userdata();
+
+        if (isset($userdata['email'])) {
+            $this->email = $userdata['email'];
+        }
 
         if (isset($userdata['parceiro_id'])) {
             $this->_setTheme($userdata['parceiro_id']);
@@ -976,6 +981,20 @@ class Admin_Controller extends MY_Controller
 
     public function step_login($data = [])
     {
+        $data = $this->step_login_core($data);
+
+        $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/{$this->layout}/login", $data);
+    }
+
+    public function step_login_cancel($data = [])
+    {
+        $data = $this->step_login_core($data);
+
+        $this->template->load("admin/layouts/{$this->layout}", "admin/pedido/{$this->layout}/login", $data);
+    }
+
+    public function step_login_core($data = [])
+    {
         $this->load->model('cliente_model', 'cliente');
 
         $this->template->js(app_assets_url("modulos/venda/equipamento/js/login.js", "admin"));
@@ -1022,9 +1041,10 @@ class Admin_Controller extends MY_Controller
                 $this->session->set_userdata('logado', true);
                 $this->session->set_userdata('cnpj_cpf', app_clear_number($documento));
                 header("Refresh: 0;");
+                return;
             }
         }
 
-        $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/{$this->layout}/login", $data);
+        return $data;
     }
 }
