@@ -20,7 +20,7 @@ if ($_POST) {
     <div class="row">
         <div class="col-md-12">
 
-            <?php $this->load->view('admin/pedido/front/step', array('step' => 3, 'produto_parceiro_id' => $produto_parceiro_id, 'title' => 'ACEITE')); ?>
+            <?php $this->load->view('admin/pedido/front/step', array('step' => 2, 'produto_parceiro_id' => $produto_parceiro_id, 'title' => 'Cálculo de Restituição')); ?>
 
             <div id="cancelamento_content">
                 <div class="col-md-12">

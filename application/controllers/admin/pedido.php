@@ -245,6 +245,7 @@ class Pedido extends Admin_Controller
         $data['apolice_id'] = issetor($data['apolices'][0]['apolice_id'], '');
         $data['produto_parceiro_id'] = $data['produto']['produto_parceiro_id'];
         $data['bancos'] = $this->banco->orderByName()->get_all();
+        $data['email'] = issetor($data['apolices'][0]['email'], '');
 
         // Front a consulta deve ser por 
         if ($this->template->get('layout') == 'front')
@@ -331,13 +332,12 @@ class Pedido extends Admin_Controller
 	        	}
 
 	        	$view = "$this->controller_uri/front/dados_bancarios";
-	        }
+
 	        // 5- mensagem de sucesso
-	        /*}elseif ($step == 4)
+	        }elseif ($step == 4)
 	        {
-	        	
-	        }*/
-	        //if(empty($this->input->post('check')))
+	        	$view = "$this->controller_uri/front/cancelado";
+	        }
 
 	    }else
         {

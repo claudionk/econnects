@@ -2,12 +2,6 @@
 if ($_POST) {
     $row = $_POST;
 }
-$cpfcnpj = app_cpf_to_mask(issetor($cotacao_dados['cnpj_cpf'], ''));
-$nome = issetor($cotacao_dados['nome'], '');
-$email = issetor($cotacao_dados['email'], '');
-$valor = app_format_currency(issetor($valor_total, 0), true);
-$produto = issetor($cotacao_dados['equipamento_nome'], '');
-$nome_seguro = issetor($produtos_nome, '');
 ?>
 
 <form class="form form-cancelamento form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" >

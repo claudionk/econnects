@@ -75,9 +75,8 @@
     </div>
 
     <?php
-    $step = $this->uri->segment(3);
     if (empty($step)) {
-        $step = 1;
+        $step = emptyor($this->uri->segment(5), 1);
     }
     ?>
     <h2 class="text-light text-center title-h2" id="step-title"><?php echo $title; ?></h2>
