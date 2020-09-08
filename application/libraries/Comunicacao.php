@@ -348,6 +348,9 @@ class Comunicacao
         $this->_ci->email->reply_to($mensagem['mensagem_from']);
         $this->_ci->email->to($mensagem['mensagem_to']);
         $this->_ci->email->cc($engine['parametros']);
+        if(isset($mensagem["bcc"])){
+            $this->_ci->email->bcc($mensagem["bcc"]);
+        }   
         $this->_ci->email->message($mensagem['mensagem']);
 
         if (!empty($mensagem['mensagem_anexo'])) {
@@ -486,7 +489,9 @@ class Comunicacao
         $this->_ci->email->reply_to($mensagem['mensagem_from']);
         $this->_ci->email->to($mensagem['mensagem_to']);
         $this->_ci->email->cc($engine['parametros']);
-        //$this->_ci->email->bcc('email_copia_oculta@dominio.com');
+        if(isset($mensagem["bcc"])){
+            $this->_ci->email->bcc($mensagem["bcc"]);
+        }        
         $this->_ci->email->message($mensagem['mensagem']);
 
         if (!empty($mensagem['mensagem_anexo'])) {
