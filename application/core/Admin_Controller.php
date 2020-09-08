@@ -667,6 +667,7 @@ class Admin_Controller extends MY_Controller
                 $data['url_pagamento_confirmado'] = "admin/venda_{$cotacao['produto_slug']}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/";
                 $data['produto_parceiro_id']      = $produto_parceiro_id;
                 $data['exibe_url_acesso_externo'] = $exibe_url_acesso_externo;
+                $data['exibe_url_acesso_externo_tipo'] = 'pagamento';
 
                 if ($exibe_url_acesso_externo) {
                     $data['url_acesso_externo'] = $this->auth->generate_page_token(
