@@ -20,7 +20,7 @@ if ($_POST) {
     <div class="row">
         <div class="col-md-12">
 
-            <?php $this->load->view('admin/pedido/front/step', array('step' => 3, 'produto_parceiro_id' => $produto_parceiro_id, 'title' => 'DADOS BANCÁRIOS')); ?>
+            <?php $this->load->view('admin/pedido/front/step', array('step' => 4, 'produto_parceiro_id' => $produto_parceiro_id, 'title' => 'DADOS BANCÁRIOS')); ?>
 
             <div class="col-md-12">
                     <?php $this->load->view('admin/pedido/dados_bancarios'); ?>
