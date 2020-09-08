@@ -1171,7 +1171,6 @@ Class Pedido_Model extends MY_Model
         $this->load->model('pedido_transacao_model', 'pedido_transacao');
 
         $calculo = $this->calcula_estorno_cancelamento($pedido_id, $vigente, $define_data);
-
         // caso não tenha conseguido calcular o valor a estornar
         if ( empty($calculo['status']) )
         {
@@ -1179,6 +1178,7 @@ Class Pedido_Model extends MY_Model
         	return $result;
         }
 
+        $comunicacao = new Comunicacao();
         foreach ($calculo['dados'] as $row)
         {
             $apolice = $row['apolices'];
@@ -1205,6 +1205,19 @@ Class Pedido_Model extends MY_Model
             }
 
             $this->apolice_cobertura->geraDadosCancelamento($apolice["apolice_id"], $calculo['valor_estorno_total_liquido'], $apolice["produto_parceiro_plano_id"], $coberturas);
+            
+            $comunicacao->setNomeDestinatario($apolice["nome"]);
+            $comunicacao->setMensagemParametros(array(
+                "nome" => $apolice["nome"] ,
+                'apolices' => "Nome: {$apolice['equipamento_nome']} - Apólice código: {$apolice['apolice_id']}"
+            ));
+
+            $comunicacao->setDestinatario(app_retorna_numeros($apolice['contato_telefone']));
+            $comunicacao->disparaEvento("apolice_cancelada_sms", $apolice["produto_parceiro_id"]);
+
+            $comunicacao->setDestinatario($apolice["email"]);
+            $comunicacao->disparaEvento("apolice_cancelada_email", $apolice["produto_parceiro_id"]);
+
         }
 
         $this->atualizarDadosBancarios($pedido_id, $dados_bancarios);

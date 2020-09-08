@@ -10,18 +10,19 @@ class anexo extends Admin_Controller {
 
     public function __construct() {
         parent::__construct();
-        $this->load->model('apolice_model', 'model');
+        $this->load->model('pedido_model', 'model');
     }
 
     public function teste($apolice_id){
+        $pedidoSQL = "select * from apolice WHERE apolice_id = $apolice_id";
+        $pedido = $this->db->query($pedidoSQL)->row();
+        $this->model->executa_estorno_cancelamento($pedido->pedido_id);
+        exit();
         $comunicacao = new Comunicacao();
         $comunicacao->teste = true;
         $comunicacao->enviaCronMensagens();
         exit();
-        $pedidoSQL = "select * from apolice WHERE apolice_id = $apolice_id";
-        $pedido = $this->db->query($pedidoSQL)->row();
-        $output = $this->model->insertSeguroEquipamento($pedido->pedido_id);
-        print_r($output);
+        
     }
 
 }
