@@ -23,8 +23,9 @@ if ($_POST) {
             <?php $this->load->view('admin/pedido/front/step', array('step' => 3, 'produto_parceiro_id' => $produto_parceiro_id, 'title' => 'DADOS BANCÁRIOS')); ?>
 
             <div class="col-md-12">
-                <?php $this->load->view('admin/pedido/dados_bancarios'); ?>
+                    <?php $this->load->view('admin/pedido/dados_bancarios'); ?>
             </div>
+
             <div class="col-xs-12 btns" >
                 <a class="btn btn-app btn-primary btn-proximo background-primary border-primary" onclick="$('#validateSubmitForm').submit();" >
                     Próximo <i class="fa fa-angle-right" aria-hidden="true"></i>

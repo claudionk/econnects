@@ -322,12 +322,12 @@ class Pedido extends Admin_Controller
 
 		        	$this->session->set_flashdata(empty($result['status']) ? 'fail_msg' : 'succ_msg', $result['message']);
 		        	
-		        	if (empty($result['status']) )
+		        	if ( !empty($result['status']) )
 		        	{
-		        		redirect(current_url());
-		        	} else {
-	        			redirect("{$this->controller_uri}/view/$id/4?token={$this->token}&layout={$this->layout}&color={$this->color}");
+        				redirect("{$this->controller_uri}/view/$id/4?token={$this->token}&layout={$this->layout}&color={$this->color}");
 	        		}
+
+	        		// TODO: preencher os campos quando houver falha ($row)
 	        	}
 
 	        	$view = "$this->controller_uri/front/dados_bancarios";
