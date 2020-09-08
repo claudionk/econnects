@@ -560,9 +560,9 @@
                   <span aria-hidden="true">&times;</span>
                 </button>
               </div>
-              <div class="modal-body">
-                <?php $this->load->view('admin/pedido/dados_bancarios'); ?>
-              </div>
+
+              <?php $this->load->view('admin/pedido/dados_bancarios'); ?>
+
               <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">Sair</button>
                 <button type="submit" class="btn btn-secondary">Confirmar Cancelamento</button>
