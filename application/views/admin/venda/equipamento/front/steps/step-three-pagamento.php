@@ -79,10 +79,9 @@ else: ?>
                     <?php if($isConfirmaEmail == true): ?>
 
                         <div class="col-xs-12">
-                            <h5 class="text-sm-left">Você receberá no e-mail abaixo o Bilhete do Seguro, as Condições Gerais do Seguro e o Termo deAautorização de Cobrança.</h5>
+                            <h5 class="text-sm-left">Você receberá no e-mail abaixo o Bilhete do Seguro, as Condições Gerais do Seguro e o Termo de Autorização de Cobrança.</h5>
                             <input type="email" name="email" class="form-control" value="<?= $cotacao_dados["email"]; ?>">
                         </div>
-                        
 
                         <div class="col-xs-12">
                             <hr>
@@ -92,8 +91,7 @@ else: ?>
 
                     <div id="aceite-term-check" class="col-xs-11" style="display:none">
                         <label>
-                            <input type="checkbox" id="check_termo" /> Estou de
-                            acordo com os termos de uso.
+                            <input type="checkbox" id="check_termo" /> Estou de acordo com os termos de uso.
                         </label>
                     </div>
                 </div>

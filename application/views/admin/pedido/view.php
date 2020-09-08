@@ -474,27 +474,27 @@
 
 <div class="card">
     <div class="card-body">
-        <a href="<?php echo base_url("{$current_controller_uri}/index")?>" class="btn  btn-app btn-primary">
+        <a href="<?php echo base_url("{$current_controller_uri}/index")?>" class="btn btn-app btn-primary">
             <i class="fa fa-arrow-left"></i> Voltar
         </a>
 
         <?php if (isset($upgrade) && $upgrade) : ?>
-            <a href="<?php echo base_url("admin/pedido_upgrade/upgrade/{$pedido_id}")?>" class="btn  btn-app btn-primary">
+            <a href="<?php echo base_url("admin/pedido_upgrade/upgrade/{$pedido_id}")?>" class="btn btn-app btn-primary">
                 <i class="fa fa-arrow-left"></i> Upgrade
             </a>
         <?php endif; ?>
 
         <?php if($cancelamento == 1) : ?>
-            <a id="btnCancelar" href="javascript:void(0)" class="btn  btn-app btn-primary">
+            <a id="btnCancelar" href="javascript:void(0)" class="btn btn-app btn-primary">
                 <i class="fa fa-exclamation-circle"></i> Cancelar
             </a>
-            <a href="<?php echo base_url("{$current_controller_uri}/cancelar_aprovacao/{$pedido_id}")?>" class="btn  btn-app btn-primary">
+            <a href="<?php echo base_url("{$current_controller_uri}/cancelar_aprovacao/{$pedido_id}")?>" class="btn btn-app btn-primary">
                 <i class="fa fa-exclamation-circle"></i> Cancelar (Aprovação)
             </a>
 
         <?php endif; ?>
         <?php if($cancelamento_aprovar == 1) : ?>
-            <a href="<?php echo base_url("{$current_controller_uri}/cancelar_aprovar/{$pedido_id}")?>" class="btn  btn-app btn-primary">
+            <a href="<?php echo base_url("{$current_controller_uri}/cancelar_aprovar/{$pedido_id}")?>" class="btn btn-app btn-primary">
                 <i class="fa fa-exclamation-circle"></i> Aprovar Cancelamento
             </a>
         <?php endif; ?>
@@ -561,7 +561,9 @@
                 </button>
               </div>
 
-              <?php $this->load->view('admin/pedido/dados_bancarios'); ?>
+              <div class="modal-body" style="display: inline-block;">
+                  <?php $this->load->view('admin/pedido/dados_bancarios'); ?>
+              </div>
 
               <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">Sair</button>
