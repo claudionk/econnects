@@ -2936,6 +2936,57 @@ Array
 
   }
 
+  public function envia_comunicacao_url_cancelamento()
+  {
+    //Carrega biblioteca e dispara evento para salvar cotação
+    $this->load->library("Comunicacao");
+    $this->load->library("Response");
+    $this->load->library("Short_url");
+
+    $response = new Response();
+
+    $contato = $this->input->post("contato");
+    $nome = $this->input->post("nome");
+    $url_acesso_externo = $this->input->post("url_acesso_externo");
+    $produto_parceiro_id = $this->input->post("produto_parceiro_id");
+    $tipo = $this->input->post("tipo");
+
+    $short_url = new Short_url();
+    $url_acesso_externo = $short_url::shorter($url_acesso_externo);
+
+    if($url_acesso_externo === FALSE){
+      $response->setMensagem("Não foi possivel fazer o short URL");
+    }else {
+
+
+      if ($contato && $url_acesso_externo && $produto_parceiro_id && $tipo) {
+        $comunicacao = new Comunicacao();
+        $comunicacao->setDestinatario($contato);
+        $comunicacao->setNomeDestinatario($nome);
+        $comunicacao->setMensagemParametros(array(
+          'url' => $url_acesso_externo,
+          'nome' => $nome,
+        ));
+
+        if ($comunicacao->disparaEvento("url_efetuar_cancelamento_{$tipo}", $produto_parceiro_id)) {
+          $response->setStatus(true);
+        } else {
+          $response->setMensagem("Não foi possível efetuar o disparo. Verifique se esta comunicação está ativada no sistema.");
+        }
+
+      } else if (!$contato) {
+        if ($tipo == "email")
+          $response->setMensagem("Insira o e-mail que deverá ser enviado.");
+        else
+          $response->setMensagem("Insira o telefone que deverá ser enviado.");
+      }
+    }
+
+
+
+    echo $response->getJSON();
+  }
+
 }
 
 
