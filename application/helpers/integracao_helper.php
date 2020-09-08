@@ -1347,7 +1347,7 @@ if ( ! function_exists('app_get_api'))
     {
         $CI =& get_instance();
         $apikey = empty($acesso) ? $CI->session->userdata("apikey") : $acesso->apikey;
-        $url = $CI->config->item("URL_sisconnects") ."admin/api/{$service}";
+        $url = base_url() ."admin/api/{$service}";
         $header = ["Content-Type: application/json", "APIKEY: {$apikey}"];
 
         $CI->load->model('integracao_log_detalhe_api_model', 'integracao_log_detalhe_api');

@@ -550,7 +550,7 @@
 
 <!-- DADOS BANCÁRIOS -->
 <div class="modal fade" id="formulario_conta_bancaria" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" >
-    <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" action="<?= $this->config->item('URL_sisconnects'); ?>admin/pedido/adicionar_dados_bancarios" autocomplete="off">
+    <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" action="<?= base_url(); ?>admin/pedido/adicionar_dados_bancarios" autocomplete="off">
         <div class="modal-dialog" role="document">
             <input type="hidden" class="form-control" name="pedido_id" value="<?php echo $pedido_id; ?>">
             <div class="modal-content">
