@@ -32,6 +32,8 @@ class Comunicacao
         $this->_ci->load->model("comunicacao_evento_model", "comunicacao_evento");
         $this->_ci->load->model("comunicacao_engine_configuracao_model", "comunicacao_engine_configuracao");
         $this->_ci->load->model("produto_parceiro_comunicacao_model", "produto_parceiro_comunicacao");
+        $this->_ci->load->model("parceiro_produto_model", "parceiro_produto");
+        $this->_ci->load->model("parceiro_contato_model", "parceiro_contato");
         $this->_ci->load->model("comunicacao_log_model", "comunicacao_log");
 
         $this->setDataEnviar(date('Y-m-d H:i:s'));
@@ -64,6 +66,29 @@ class Comunicacao
             $engine = $this->_ci->comunicacao_engine_configuracao->with_foreign()->get($engine_id);
             if ($engine) {
                 $tipo_engine = $this->_ci->comunicacao_tipo->get($engine['comunicacao_engine_comunicacao_tipo_id']);
+
+                $produto_parceiro_comunicacao_produto_parceiro_id = $mensagem["produto_parceiro_comunicacao_produto_parceiro_id"];
+
+                $aProdutoParceiro = $this->_ci->parceiro_produto->get_many_by(array(
+                    "produto_parceiro_id" => $produto_parceiro_comunicacao_produto_parceiro_id,
+                    "deletado" => 0
+                ));
+
+                if(!empty($aProdutoParceiro)){
+                    $produtoParceiro = $aProdutoParceiro[0];
+                    $parceiroId = $produtoParceiro["parceiro_id"];
+
+                    $aParceiroContato = $this->_ci->parceiro_contato->with_contato()->with_departamento_cargo()->filter_by_parceiro($parceiroId)->get_many_by(array(
+                        "parceiro_contato.deletado" => 0,
+                        "parceiro_contato.parceiro_contato_departamento_id" => 1
+                    ));
+                    
+                    if(!empty($aParceiroContato)){
+                        $parceiroContato = $aParceiroContato[0];
+                        $mensagem["bcc"] = $parceiroContato["contato"];
+                    }
+
+                }      
 
                 // popula os dados adicionais
                 if ( !empty($data) )
