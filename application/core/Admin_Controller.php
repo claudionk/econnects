@@ -197,6 +197,7 @@ class Admin_Controller extends MY_Controller
         $this->load->model('produto_parceiro_pagamento_model', 'produto_pagamento');
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
         $this->load->model('pedido_model', 'pedido');
+        $this->load->model('cliente_contato_model', 'cliente_contato');
 
         //Carrega templates
         $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
@@ -455,6 +456,14 @@ class Admin_Controller extends MY_Controller
 
                 if(isset($_POST["email"])){
                     $this->cotacao_equipamento->updateEmailByCotacaoId($cotacao_id, $_POST["email"]);
+                    $aClienteContato = $this->cliente_contato->with_contato()->get_by_cliente($cotacao["cliente_id"]);
+                    foreach($aClienteContato as $clienteContato){
+                        if($clienteContato["contato"] == $cotacao["email"]){
+                            $clienteContato["contato"] = $_POST["email"];
+                            $this->cliente_contato->update_contato($clienteContato);
+                            break;
+                        }    
+                    }        
                 }
                 
                 //Se for faturamento, muda status para aguardando faturamento
