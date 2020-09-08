@@ -1111,12 +1111,6 @@ class Apolice_Model extends MY_Model
     public function certificado($apolice_id, $export = '')
     {
         $this->load->model('pedido_model', 'pedido');
-        $this->load->model('localidade_model', 'localidade');
-        $this->load->model('parceiro_model', 'parceiro_model');
-        $this->load->model('produto_parceiro_plano_model', 'plano');
-        $this->load->model('cobertura_plano_model', 'plano_cobertura');
-        $this->load->model('produto_parceiro_termo_model', 'termo');
-        $this->load->model('Comissao_gerada_model', 'comissao_gerada');
 
         $data_template = array();
         $template = '';
