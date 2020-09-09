@@ -315,8 +315,11 @@ class Venda_Equipamento extends Admin_Controller{
     {
         //Carrega models necessários
         $this->load->model("produto_parceiro_campo_model", "campo");
+        $this->load->model("produto_parceiro_model", "produto");
         $this->load->model("cotacao_model", "cotacao");
         $this->load->model("localidade_estado_model", "localidade_estado");
+
+        
 
         //Adiciona bibliotecas necessárias
         $this->template->css(app_assets_url("modulos/venda/equipamento/css/select2.css", "admin"));
@@ -328,6 +331,7 @@ class Venda_Equipamento extends Admin_Controller{
         $data["primary_key"] = $this->current_model->primary_key();
         $data["produto_parceiro_id"] = $produto_parceiro_id;
         $data["slug"] = "cotacao";
+        $data["lista_id"] = $this->produto->get($produto_parceiro_id)["lista_id"];
 
         //Verifica cotação
         if($cotacao_id > 0)

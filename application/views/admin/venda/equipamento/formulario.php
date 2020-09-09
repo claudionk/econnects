@@ -1,3 +1,7 @@
+<script>
+    var lista_equipamentos_id = <?=$lista_id?>;
+</script>
+
 <?php if ($layout != "front") { ?>
 <div class="section-header">
     <ol class="breadcrumb">

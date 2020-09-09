@@ -204,6 +204,9 @@ class Equipamento extends Admin_Controller
      */
     public function service($equipamento_id = 0, $marca_id = 0, $categoria_id = 0)
     {
+
+        die("aqui");
+        
         $json = array();
 
         if (empty($equipamento_id)){

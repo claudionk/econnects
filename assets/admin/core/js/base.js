@@ -239,6 +239,7 @@ $(function(){
                 return {
                     q: params.term, // search term
                     page: params.page,
+                    lista_equipamentos_id,
                     categoria_id: ($(".js-categorias-ajax").val() != '') ? $(".js-categorias-ajax").val() : 0,
                     sub_categoria_id: ($(".js-equipamento_sub_categoria_id-ajax").val() != '') ? $(".js-equipamento_sub_categoria_id-ajax").val() : 0,
                     marca_id: ($(".js-equipamento_marca_id-ajax").val() != '') ? $(".js-equipamento_marca_id-ajax").val() : 0

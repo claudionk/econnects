@@ -9,13 +9,14 @@ $(document).ready(function(){
     $(".js-equipamento_id-ajax").select2({
         ajax: {
             //url: "https://api.github.com/search/repositories",
-            url: base_url + "/admin/equipamento/service",
+            url: base_url + "/admin/equipamento/service?lista=",
             dataType: 'json',
             delay: 250,
             data: function (params) {
                 return {
                     q: params.term, // search term
-                    page: params.page
+                    page: params.page,
+                    lista_id: lista_equipamentos_id
                 };
             },
             processResults: function (data, params) {

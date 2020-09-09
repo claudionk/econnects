@@ -33,6 +33,12 @@ Class Produto_Model extends MY_Model
             'groups' => 'default'
         ),
         array(
+            'field' => 'lista_id',
+            'label' => 'Lista de Produtos',
+            'rules' => 'required',
+            'groups' => 'default'
+        ),
+        array(
             'field' => 'slug',
             'label' => 'Slug',
             'rules' => 'required',
@@ -47,7 +53,8 @@ Class Produto_Model extends MY_Model
         $data =  array(
             'nome' => $this->input->post('nome'),
             'produto_ramo_id' => $this->input->post('produto_ramo_id'),
-            'slug' => $this->input->post('slug')
+            'slug' => $this->input->post('slug'),
+            'lista_id' => $this->input->post('lista_id'),
 
         );
         return $data;
