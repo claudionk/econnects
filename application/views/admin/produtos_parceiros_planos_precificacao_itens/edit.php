@@ -49,6 +49,8 @@ if($_POST)
                                 <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
                                     <input type="hidden" name="<?php echo $primary_key ?>" value="<?php if (isset($row[$primary_key])) echo $row[$primary_key]; ?>"/>
                                     <input type="hidden" name="produto_parceiro_plano_id" value="<?php echo $produto_parceiro_plano_id; ?>"/>
+                                    <input type="hidden" name="produto_parceiro_id" id="produto_parceiro_id" value="<?php echo $produto_parceiro_id; ?>"/>
+                                    <input type="hidden" name="lista_id" id="lista_id" value="<?php echo $lista_id; ?>"/>
                                     <!-- Widget -->
                                     <div class="card">
 
@@ -126,24 +128,22 @@ if($_POST)
                                                         </div>
                                                     </div>
 
-
                                                     <?php $field_name = 'inicial';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Início *</label>
-                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( $row[$field_name] , 2 , "," , "") : set_value($field_name); ?>" /></div>
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( (float)$row[$field_name] , 2 , "," , "") : set_value($field_name); ?>" /></div>
                                                     </div>
 
                                                     <?php $field_name = 'final';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Fim *</label>
-                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( $row[$field_name] , 2 , "," , "")  : set_value($field_name); ?>" /></div>
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( (float)$row[$field_name] , 2 , "," , "")  : set_value($field_name); ?>" /></div>
                                                     </div>
-
 
                                                     <?php $field_name = 'valor';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Valor *</label>
-                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( $row[$field_name] , 15 , "," , "")  : set_value($field_name); ?>" /></div>
+                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( (float)$row[$field_name] , 15 , "," , "")  : set_value($field_name); ?>" /></div>
                                                     </div>
 
                                                   <?php 

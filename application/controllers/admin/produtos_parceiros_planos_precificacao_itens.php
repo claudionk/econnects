@@ -15,19 +15,25 @@ class Produtos_Parceiros_Planos_Precificacao_Itens extends Admin_Controller
         //Carrega dados para template
         $this->template->set('page_title', 'Tabela de Preços');
         $this->template->set_breadcrumb('Tabela de Preços', base_url("$this->controller_uri/index"));
-        
+
         //Carrega modelos necessários
         $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'current_model');
     }
 
     private function dadosProdutoPlano($produto_parceiro_plano_id) {
         $this->load->model('produto_parceiro_plano_model', 'parceiro_plano');
+        $this->load->model('produto_parceiro_model', 'produto_parceiro');
+
         $parceiro_plano = $this->parceiro_plano->get($produto_parceiro_plano_id);
+
         //Mensagem de erro
         if (empty($parceiro_plano)) {
             $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
             redirect("admin/parceiros/index");
         }
+
+        $produto_parceiro = $this->produto_parceiro->get($parceiro_plano['produto_parceiro_id']);
+        $parceiro_plano['lista_id'] = $produto_parceiro['lista_id'];
 
         return $parceiro_plano;
     }
@@ -90,6 +96,8 @@ class Produtos_Parceiros_Planos_Precificacao_Itens extends Admin_Controller
         }
 
         $data['produto_parceiro_plano_id'] = $produto_parceiro_plano_id;
+        $data['produto_parceiro_id'] = $parceiro_plano["produto_parceiro_id"];
+        $data['lista_id'] = $parceiro_plano["lista_id"];
         $data['precificacao_tipo_id'] = $parceiro_plano["precificacao_tipo_id"];
         $data['primary_key'] = $this->current_model->primary_key();
         $data['form_action'] =  base_url("$this->controller_uri/add");
@@ -103,7 +111,7 @@ class Produtos_Parceiros_Planos_Precificacao_Itens extends Admin_Controller
                 redirect("$this->controller_uri/index/{$produto_parceiro_plano_id}");
             }
         }
-        
+
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
@@ -128,6 +136,8 @@ class Produtos_Parceiros_Planos_Precificacao_Itens extends Admin_Controller
         // $data['coberturas'] = $this->coberturas->get_all();
         $data['moedas'] = $this->moedas->get_all();
         $data['produto_parceiro_plano_id'] = $produto_parceiro_plano_id;
+        $data['produto_parceiro_id'] = $parceiro_plano["produto_parceiro_id"];
+        $data['lista_id'] = $parceiro_plano["lista_id"];
         $data['precificacao_tipo_id'] = $parceiro_plano["precificacao_tipo_id"];
         $data['row'] =  $this->current_model->get($id); //Carrega Cobertura
         $data['primary_key'] = $this->current_model->primary_key();
@@ -168,6 +178,7 @@ class Produtos_Parceiros_Planos_Precificacao_Itens extends Admin_Controller
         //Carrega dados para o template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
+
     public  function delete($produto_parceiro_plano_id, $id)
     {
         $this->current_model->delete($id);

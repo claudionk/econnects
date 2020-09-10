@@ -77,6 +77,11 @@ Class Produto_Parceiro_Model extends MY_Model
             'label' => 'Código Ramo',
             'groups' => 'default'
         ),
+        array(
+            'field' => 'lista_id',
+            'label' => 'Tabela de Equipamentos',
+            'groups' => 'default'
+        ),
     );
 
     //Get dados
@@ -94,6 +99,7 @@ Class Produto_Parceiro_Model extends MY_Model
             'cod_tpa'           => $this->input->post('cod_tpa'),
             'cod_sucursal'      => isempty($this->input->post('cod_sucursal'), null),
             'cod_ramo'          => isempty($this->input->post('cod_ramo'), null),
+            'lista_id'          => $this->input->post('lista_id'),
         );
         return $data;
     }

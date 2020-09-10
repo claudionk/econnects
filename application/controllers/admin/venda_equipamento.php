@@ -257,6 +257,9 @@ class Venda_Equipamento extends Admin_Controller{
         $data["produto_parceiro_id"] = $produto_parceiro_id;
         $data["slug"] = "cotacao";
 
+        $produto_parceiro = $this->current_model->get($produto_parceiro_id);
+        $data["lista_id"] = $produto_parceiro["lista_id"];
+
         //Verifica cotação
         if($cotacao_id > 0)
         {

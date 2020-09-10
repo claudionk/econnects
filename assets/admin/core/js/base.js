@@ -96,6 +96,8 @@ $(function(){
         allowClear: true
     });
 
+    var lista_id = (typeof $("#lista_id").val() !== 'undefined' && $("#lista_id").val() != '') ? $("#lista_id").val() : 1;
+
     /**
      * Faturas @todo trocar de lugar
      */
@@ -162,7 +164,8 @@ $(function(){
                 return {
                     q: params.term, // search term
                     page: params.page,
-                    categoria_id: ($(".js-categorias-ajax").val() != '') ? $(".js-categorias-ajax").val() : 0
+                    categoria_id: ($(".js-categorias-ajax").val() != '') ? $(".js-categorias-ajax").val() : 0,
+                    lista_id: lista_id
                 };
             },
             processResults: function (data, params)
@@ -201,7 +204,8 @@ $(function(){
                     q: params.term, // search term
                     page: params.page,
                     categoria_pai_id: ($(".js-categorias-ajax").val() != '') ? $(".js-categorias-ajax").val() : 0,
-                    marca_id: ($(".js-equipamento_marca_id-ajax").val() != '') ? $(".js-equipamento_marca_id-ajax").val() : 0
+                    marca_id: ($(".js-equipamento_marca_id-ajax").val() != '') ? $(".js-equipamento_marca_id-ajax").val() : 0,
+                    lista_id: lista_id
                 };
             },
             processResults: function (data, params)
@@ -241,7 +245,8 @@ $(function(){
                     page: params.page,
                     categoria_id: ($(".js-categorias-ajax").val() != '') ? $(".js-categorias-ajax").val() : 0,
                     sub_categoria_id: ($(".js-equipamento_sub_categoria_id-ajax").val() != '') ? $(".js-equipamento_sub_categoria_id-ajax").val() : 0,
-                    marca_id: ($(".js-equipamento_marca_id-ajax").val() != '') ? $(".js-equipamento_marca_id-ajax").val() : 0
+                    marca_id: ($(".js-equipamento_marca_id-ajax").val() != '') ? $(".js-equipamento_marca_id-ajax").val() : 0,
+                    lista_id: lista_id
                 };
             },
             processResults: function (data, params) {

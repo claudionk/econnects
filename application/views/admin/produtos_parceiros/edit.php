@@ -129,10 +129,9 @@ if($_POST)
                                                         </div>
                                                     </div>
 
-
                                                     <?php $field_name = 'seguradora_id';?>
                                                     <div class="form-group">
-                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">PARCEIRO</label>
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Parceiro</label>
                                                         <div class="col-md-8">
                                                             <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
                                                                 <option  value="">Selecione</option>
@@ -147,6 +146,25 @@ if($_POST)
                                                             </select>
                                                         </div>
                                                     </div>
+
+                                                    <?php $field_name = 'lista_id';?>
+                                                    <div class="form-group">
+                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Tabela de Equipamentos</label>
+                                                        <div class="col-md-8">
+                                                            <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
+                                                                <option  value="">Selecione</option>
+                                                                <?php
+
+                                                                foreach($listas as $linha) { ?>
+                                                                    <option  value="<?php echo $linha['lista_id'] ?>"
+                                                                        <?php if(isset($row)){if($row[$field_name] == $linha['lista_id']) {echo " selected ";};}; ?> >
+                                                                        <?php echo $linha['nome']; ?>
+                                                                    </option>
+                                                                <?php }  ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
                                                     <?php $field_name = 'venda_agrupada';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Venda Multi Parceiros *</label>

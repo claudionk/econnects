@@ -434,6 +434,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
         unset( $data_cotacao["parceiro_id"] );
         unset( $data_cotacao["usuario_cotacao_id"] );
         unset( $data_cotacao["url_busca_cliente"] );
+        unset( $data_cotacao["lista_id"] );
 
         if(isset($cotacao['produto_parceiro_plano_id'])){
             $data_cotacao['produto_parceiro_plano_id'] = $cotacao['produto_parceiro_plano_id'];
