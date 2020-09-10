@@ -466,7 +466,6 @@ class Venda_Equipamento extends Admin_Controller{
         $carrossel = $this->session->userdata("carrossel_{$produto_parceiro_id}");
 
         $valido = isset($cotacao) && is_array($cotacao) && count($cotacao) > 0 && isset($carrossel) && is_array($carrossel) && count($carrossel) > 0;
-
         $cotacao_id = ((int)$this->input->post('cotacao_id') > 0) ? (int)$this->input->post('cotacao_id') : $cotacao_id;
 
         if($cotacao_id > 0)
@@ -519,8 +518,11 @@ class Venda_Equipamento extends Admin_Controller{
         }
 
         $data = array();
-
         $data['cotacao_id'] = $cotacao_id;
+
+        $produto_parceiro = $this->current_model->get($produto_parceiro_id);
+        $data["lista_id"] = $produto_parceiro["lista_id"];
+
         $data['campos'] = $this->campo->with_campo()
         ->with_campo_tipo()
         ->filter_by_produto_parceiro($produto_parceiro_id)
@@ -658,12 +660,9 @@ class Venda_Equipamento extends Admin_Controller{
         $this->template->css(app_assets_url('modulos/venda/equipamento/css/carrossel.css', 'admin'));
         $this->template->css(app_assets_url('modulos/venda/equipamento/css/base.css', 'admin'));
 
-
-
         if($cotacao_id > 0){
             $this->comunicacao_track->insert_or_update($cotacao_id);
         }
-
 
         //Dados para template
         $data = array();
@@ -696,7 +695,6 @@ class Venda_Equipamento extends Admin_Controller{
                 $data['configuracao']['comissao'] = $rel['comissao'];
             }
 
-
             $rel_desconto = $this->relacionamento->get_desconto($produto_parceiro_id, $this->session->userdata('parceiro_id'));
             if(count($rel_desconto) > 0){
                 $data['desconto']['data_ini'] = $rel_desconto['desconto_data_ini'];
@@ -705,7 +703,6 @@ class Venda_Equipamento extends Admin_Controller{
             }else{
                 $data['desconto'] = array('habilitado' => 0);
             }
-
         }
 
         $data['parceiro_id'] = $this->session->userdata('parceiro_id');

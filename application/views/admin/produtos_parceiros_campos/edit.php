@@ -138,7 +138,7 @@ if($_POST)
 
                                                             $field_name = 'classe_css';
                                                             $valores = array(
-                                                                'options' => $row[$field_name],
+                                                                'options' => emptyor($row[$field_name], ''),
                                                                 'valor' => 'slug',
                                                             );
 
@@ -177,7 +177,7 @@ if($_POST)
 
                                                             $field_name = 'validacoes';
                                                             $valores = array(
-                                                                'options' => $row[$field_name],
+                                                                'options' => emptyor($row[$field_name], ''),
                                                                 'valor' => 'slug',
                                                             );
 

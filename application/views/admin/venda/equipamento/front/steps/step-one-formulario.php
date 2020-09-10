@@ -4,6 +4,7 @@
         <input type="hidden" name="<?php echo $primary_key ?>" id="<?php echo $primary_key ?>" value="<?php if (isset($produto_parceiro_id)) echo $produto_parceiro_id; ?>"/>
         <input type="hidden" name="cotacao_id" value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
         <input type="hidden" id="url_busca_cliente"  name="url_busca_cliente" value="<?php echo base_url("{$current_controller_uri}/get_cliente"); ?>"/>
+        <input type="hidden" id="lista_id"  name="lista_id" value="<?php echo emptyor($lista_id, 1); ?>"/>
 
         <div class="row">
             <div class="col-md-6">
