@@ -1803,7 +1803,7 @@ class Apolice_Model extends MY_Model
         if(isset($dados['produto_parceiro_id']) && !empty($dados['produto_parceiro_id']))
         {
             $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
-            $dados_prp = $this->parceiro_relacionamento_produto->filter_by_produto_parceiro($dados['produto_parceiro_id'])->with_parceiro()->filter_by_parceiro_tipo('2')->get_all();
+            $dados_prp = $this->parceiro_relacionamento_produto->filter_by_produto_parceiro($dados['produto_parceiro_id'])->with_parceiro()->filter_by_parceiro_tipo('2')->get_all(0, 0, false);
             if (!empty($dados_prp)) {
                 $data_template['rel_corretora_nome'] = $dados_prp[0]['parceiro_nome'];
                 $data_template['rel_corretora_cnpj'] = app_cnpj_to_mask($dados_prp[0]['parceiro_cnpj']);
