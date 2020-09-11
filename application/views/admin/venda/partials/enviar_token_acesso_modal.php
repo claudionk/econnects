@@ -54,8 +54,8 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" id="bt_enviar_email" class="btn btn-primary" data-acao="cancelamento" ><i class="fa fa-mail-forward"></i> Enviar URL por e-mail</button>
-                    <button type="button" id="bt_enviar_sms" class="btn btn-primary" data-acao="cancelamento" ><i class="fa fa-mail-forward"></i> Enviar URL por SMS</button>
+                    <button type="button" id="bt_enviar_email" class="btn btn-primary" data-acao="<?php echo ($exibe_url_acesso_externo_tipo == 'cancelamento') ? 'cancelamento' : 'pagamento' ?>" ><i class="fa fa-mail-forward"></i> Enviar URL por e-mail</button>
+                    <button type="button" id="bt_enviar_sms" class="btn btn-primary" data-acao="<?php echo ($exibe_url_acesso_externo_tipo == 'cancelamento') ? 'cancelamento' : 'pagamento' ?>" ><i class="fa fa-mail-forward"></i> Enviar URL por SMS</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Fechar</button>
                 </div>
 
