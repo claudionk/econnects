@@ -27,13 +27,8 @@ $(document).ready( function(){
     $('#addRule').bind("click", function(){
         var $clone = $('.lineDuplicate:last').clone(true, true).insertAfter(".lineDuplicate:last");
 
-        // TODO: 
-        // 1 - Mudar os nomes dos campos
-
-        $clone.find('.unidade_tempo').attr('name', 'unidade_tempo_[]');
-        $clone.find('.inicial').attr('name', 'inicial_[]');
-        $clone.find('.final').attr('name', 'final_[]');
-        // 2 - Criar a model nova para inserir os registos
-        // 3 - Mudar a model atual para receber os dados como array
+        $clone.find('.unidade_tempo').attr('name', 'unidade_tempo_[]').val('');
+        $clone.find('.inicial').attr('name', 'inicial_[]').val('');
+        $clone.find('.final').attr('name', 'final_[]').val('');
     });
 })

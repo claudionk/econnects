@@ -1,5 +1,5 @@
 <?php
-Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
+Class Produto_Parceiro_Plano_Precificacao_Itens_Config_Model extends MY_Model
 {
     //Dados da tabela e chave primária
     protected $_table = 'produto_parceiro_plano_precificacao_itens_config';
@@ -66,10 +66,9 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         return $this->get($id);
     }
 
-    function filter_by_produto_parceiro_plano_precificacao_itens($produto_parceiro_plano_precificacao_itens_id){
-
-        $this->_database->where("{$this->_table}.produto_parceiro_plano_precificacao_itens", $produto_parceiro_plano_precificacao_itens);
-
+    function filter_by_produto_parceiro_plano_precificacao_itens($produto_parceiro_plano_precificacao_itens_id)
+    {
+        $this->_database->where("{$this->_table}.produto_parceiro_plano_precificacao_itens_id", $produto_parceiro_plano_precificacao_itens_id);
         return $this;
     }
 

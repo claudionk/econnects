@@ -100,44 +100,24 @@ if($_POST)
                                                         </div>
                                                     </div>
 
-                                                    <div class="form-group lineDuplicate" >
-                                                        <?php $field_name = 'unidade_tempo';?>
-                                                        <div class="col-md-2 control-label" for="<?php echo $field_name;?>">Unidade *</div>
-                                                        <div class="col-md-3">
-                                                            <select class="form-control <?php echo $field_name;?>" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
-                                                                <option value="">Selecione</option>
-                                                                <option value="DIA"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'DIA') {echo " selected ";};}; ?> >Dia
-                                                                </option>
-                                                                <option value="MES"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'MES') {echo " selected ";};}; ?> >Mês
-                                                                </option>
-                                                                <option value="ANO"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'ANO') {echo " selected ";};}; ?> >Ano
-                                                                </option>
-                                                                <option value="VALOR"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'VALOR') {echo " selected ";};}; ?> >Valor
-                                                                </option>
-                                                                <option value="IDADE"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'IDADE') {echo " selected ";};}; ?> >Idade
-                                                                </option>
-                                                                <option value="COMISSAO"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'COMISSAO') {echo " selected ";};}; ?> >Comissão
-                                                                </option>
-                                                                <option value="GARANTIA_FABRICANTE"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'GARANTIA_FABRICANTE') {echo " selected ";};}; ?> >Garantia do Fabricante
-                                                                </option>
-                                                            </select>
-                                                        </div>
+                                                    <?php
+                                                    // Campos padroes
+                                                    $this->load->view('admin/produtos_parceiros_planos_precificacao_itens/itens');
 
-                                                        <?php $field_name = 'inicial';?>
-                                                        <div class="col-md-1 control-label" for="<?php echo $field_name;?>">Início *</div>
-                                                        <div class="col-md-2"><input class="form-control <?php echo $field_name;?>" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( (float)$row[$field_name] , 2 , "," , "") : set_value($field_name); ?>" /></div>
+                                                    if (!empty($itens))
+                                                    {
+                                                        foreach ($itens as $key => $value)
+                                                        {
+                                                            // Campos adicionais
+                                                            $this->load->view('admin/produtos_parceiros_planos_precificacao_itens/itens', [
+                                                                'row' => $row,
+                                                                'value' => $value,
+                                                                'aux' => '_[]',
+                                                            ]);
+                                                        }
+                                                    }
+                                                    ?>
 
-                                                        <?php $field_name = 'final';?>
-                                                        <div class="col-md-1 control-label" for="<?php echo $field_name;?>">Fim *</div>
-                                                        <div class="col-md-2"><input class="form-control <?php echo $field_name;?>" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( (float)$row[$field_name] , 2 , "," , "")  : set_value($field_name); ?>" /></div>
-                                                    </div>
                                                     <div class="form-group" >
                                                         <label class="col-md-2 control-label" ></label>
                                                         <div class="col-md-3">

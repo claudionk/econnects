@@ -622,4 +622,41 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         return $this;
     }
 
+    function update_config()
+    {
+        $id = $this->input->post('produto_parceiro_plano_precificacao_itens_id');
+        $data = $this->get_form_data();
+        $this->update($id, $data, TRUE);
+        $this->validItensMultiples($id);
+    }
+
+    function insert_config()
+    {
+        $data = $this->get_form_data();
+        $id = $this->insert($data, TRUE);
+        $this->validItensMultiples($id);
+    }
+
+    function validItensMultiples($id)
+    {
+        // Emissão
+        if ( $this->input->post('unidade_tempo_') )
+        {
+            $this->load->model('produto_parceiro_plano_precificacao_itens_config_model', 'produto_parceiro_plano_itens_config');
+            $this->produto_parceiro_plano_itens_config->remove_itens_config($id);
+
+            foreach ($this->input->post('unidade_tempo_') as $key => $value)
+            {
+                $dt = [
+                    'produto_parceiro_plano_precificacao_itens_id' => $id,
+                    'unidade_tempo' => $value,
+                    'inicial' => app_unformat_currency($this->input->post('inicial_')[$key]),
+                    'final' => app_unformat_currency($this->input->post('final_')[$key]),
+                ];
+
+                $this->produto_parceiro_plano_itens_config->insert($dt, TRUE);
+            }
+        }
+    }
+
 }
