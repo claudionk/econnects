@@ -391,6 +391,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             $data_fim_vigencia     = emptyor($cob['data_fim_vigencia'],     emptyor($cotacao_salva['data_fim_vigencia'],    null) );
             $nota_fiscal_data      = emptyor($cob['nota_fiscal_data'],      emptyor($cotacao_salva['nota_fiscal_data'],     null) );
             $data_ad               = emptyor($cob['data_adesao'],           emptyor($cotacao_salva['data_adesao'],          null) );
+            $garantia_fabricante   = emptyor($cotacao_salva['garantia_fabricante'], 0);
             $data_base             = $data_base_rec;
 
             // se nao foi informada a data base. Se foi, tem que ser o q informou
@@ -486,6 +487,13 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             }
 
             $data_base = explode('-', $data_base);
+
+            // se nao informou a data inicio de vigencia e possui garantia do fabricante
+            if ( (empty($data_inicio_vigencia) || $data_inicio_vigencia == "0000-00-00") && !empty($garantia_fabricante) )
+            {
+                // GF sempre em meses
+                $data_base[1] += $garantia_fabricante;
+            }
 
             if (($produto_parceiro_plano['unidade_tempo'] == 'MES')) {
                 $date_inicio = date('Y-m-d', mktime(0, 0, 0, $data_base[1] + $produto_parceiro_plano['inicio_vigencia'], $data_base[2], $data_base[0]));
