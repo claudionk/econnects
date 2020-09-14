@@ -239,7 +239,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
         $this->load->model('moeda_cambio_model', 'moeda_cambio');
-        $this->load->model('produto_parceiro_plano_precificacao_itens_model', 'produto_parceiro_plano_precificacao_itens');
         $this->load->model('cotacao_saude_faixa_etaria_model', 'faixa_etaria');
 
         $moeda_padrao = $this->moeda->filter_by_moeda_padrao()->get_all();
@@ -288,7 +287,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                                 ->filter_by_tipo_equipamento('TODOS')
                                 ->get_all();
 
-                            $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia);
+                            $calculo = $this->getValorTabelaFixa($valor, 'original', $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia, $garantia_fabricante);
                             $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, $calculo['unidade']);
 
                             $calculo = $calculo['valor'] * $quantidade;
@@ -430,7 +429,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             }
                         }
 
-                        $calculo = $this->getValorTabelaFixa($valor, $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia);
+                        $calculo = $this->getValorTabelaFixa($valor, 'original', $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia, $garantia_fabricante);
 
                         if($calculo) {
                             $calculo = $calculo['valor'];
@@ -548,11 +547,16 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param $equipamento_nome
     * @return mixed|null
     */
-    public function getValorTabelaFixa($valor, $valor_nota = null, $data_nascimento = null, $comissao = null, $data_inicio_vigencia = null, $data_fim_vigencia = null, $garantia_fabricante = 0){
-
+    public function getValorTabelaFixa($valor, $item = 'original', $valor_nota = null, $data_nascimento = null, $comissao = null, $data_inicio_vigencia = null, $data_fim_vigencia = null, $garantia_fabricante = 0)
+    {
         $valores = ['unidade' => 1, 'valor' => null];
         if(count($valor) > 0)
         {
+            if ($item == 'original')
+            {
+                $this->load->model('produto_parceiro_plano_precificacao_itens_config_model', 'produto_parceiro_plano_itens_config');
+            }
+
             foreach ($valor as $vl)
             {
                 $base = '';
@@ -590,22 +594,34 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         break;
                 }
 
-                if (!empty($base) && $base >= $vl['inicial'] && $base <= $vl['final']) {
-                    if ($vl['cobranca'] == 'PORCENTAGEM') {
-                        $valores['valor'] = app_calculo_porcentagem($vl['valor'], $valor_nota);
-                    } else {
-                        $valores['valor'] = $vl['valor'];
+                if (!empty($base) && $base >= $vl['inicial'] && $base <= $vl['final'])
+                {
+                    if ($item == 'original')
+                    {
+                        $configs = $this->produto_parceiro_plano_itens_config->filter_by_produto_parceiro_plano_precificacao_itens($vl['produto_parceiro_plano_precificacao_itens_id'])->get_all();
+
+                        if ( !empty($configs) )
+                        {
+                            $ret = $this->getValorTabelaFixa($configs, 'config', $valor_nota, $data_nascimento, $comissao, $data_inicio_vigencia, $data_fim_vigencia, $garantia_fabricante);
+                            if ( empty($ret) )
+                            {
+                                continue;
+                            }
+                        }
+
+                        if ($vl['cobranca'] == 'PORCENTAGEM') {
+                            $valores['valor'] = app_calculo_porcentagem($vl['valor'], $valor_nota);
+                        } else {
+                            $valores['valor'] = $vl['valor'];
+                        }
                     }
 
                     return $valores;
                 }
-
             }
-
         }
 
         return null;
-
     }
 
     public function get_all_faixa_etaria_by_produto($produto_parceiro_id, $cotacao_id = 0)
