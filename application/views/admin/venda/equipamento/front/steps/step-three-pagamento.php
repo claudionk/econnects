@@ -209,7 +209,6 @@ else: ?>
 
         $('#term-block-content').on('scroll', function() {
             if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) {
-                $('#div-ask-read-term').hide();
                 $('#aceite-term-check').show()
             }
         })

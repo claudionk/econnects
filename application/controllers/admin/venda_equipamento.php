@@ -90,7 +90,7 @@ class Venda_Equipamento extends Admin_Controller{
     public function step_pagto($produto_parceiro_id, $cotacao_id = 0, $pedido_id = 0, $conclui_em_tempo_real = true, $data)
     {
         if(empty($this->session->userdata('logado')) && $this->template->get('layout') == 'front'){
-            $this->step_login($data);
+            $this->step_login($data, $cotacao_id);
 
         }else{
             $this->load->model("pedido_model", "pedido_model");

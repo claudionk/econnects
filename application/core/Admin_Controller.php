@@ -188,7 +188,6 @@ class Admin_Controller extends MY_Controller
 
     public function venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id = 0, $conclui_em_tempo_real = true, $getUrl = '')
     {
-        //error_log("Controller\n", 3, "/var/log/httpd/myapp.log");
         $pedido_id = (int) $pedido_id;
 
         $this->load->model('apolice_model', 'apolice');
@@ -498,9 +497,7 @@ class Admin_Controller extends MY_Controller
                         redirect("admin/venda_{$cotacao['produto_slug']}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
                         break;
                 }
-
             }
-            //error_log("POST: " . print_r($data, true) . "\n", 3, "/var/log/httpd/myapp.log");
         }
 
         $data['step'] = ($conclui_em_tempo_real) ? 3 : 2;
@@ -980,23 +977,25 @@ class Admin_Controller extends MY_Controller
         );
     }
 
-    public function step_login($data = [])
+    public function step_login($data = [], $cotacao_id = 0)
     {
-        $data = $this->step_login_core($data);
+        $data = $this->step_login_core($data, $cotacao_id);
 
         $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/{$this->layout}/login", $data);
     }
 
-    public function step_login_cancel($data = [])
+    public function step_login_cancel($data = [], $cotacao_id = 0, $pedido_id = 0)
     {
-        $data = $this->step_login_core($data);
+        $data = $this->step_login_core($data, $cotacao_id, $pedido_id);
 
         $this->template->load("admin/layouts/{$this->layout}", "admin/pedido/{$this->layout}/login", $data);
     }
 
-    public function step_login_core($data = [])
+    public function step_login_core($data = [], $cotacao_id = 0, $pedido_id = 0)
     {
         $this->load->model('cliente_model', 'cliente');
+        $this->load->model('cotacao_model', 'cotacao');
+        $this->load->model('apolice_model', 'apolice');
 
         $this->template->js(app_assets_url("modulos/venda/equipamento/js/login.js", "admin"));
         $this->template->js(app_assets_url("core/js/SenhaForte.js", "admin"));
@@ -1033,6 +1032,44 @@ class Admin_Controller extends MY_Controller
             //     $sucesso = false;
             // }
 
+            $documento = app_clear_number($documento);
+
+            if ( !empty($cotacao_id))
+            {
+                $registro = $this->cotacao->get_cotacao_produto($cotacao_id);
+
+                if (empty($registro))
+                {
+                    $this->session->set_flashdata('fail_msg', 'Cotação não identificada');
+                    $sucesso = false;
+                } elseif (app_clear_number($registro['cnpj_cpf']) != $documento)
+                {
+                    $this->session->set_flashdata('fail_msg', 'O documento informado é diferente do documento da Cotação.');
+                    $sucesso = false;
+                }
+
+            } elseif ( !empty($pedido_id))
+            {
+                $registro = $this->apolice->getApolicePedido($pedido_id);
+
+                if (empty($registro))
+                {
+                    $this->session->set_flashdata('fail_msg', 'Pedido não identificado');
+                    $sucesso = false;
+                } else
+                {
+                    foreach ($registro as $key => $value)
+                    {
+                        if (app_clear_number($value['cnpj_cpf']) != $documento)
+                        {
+                            $this->session->set_flashdata('fail_msg', 'O documento informado é diferente do documento do Pedido.');
+                            $sucesso = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
             // TODO: Fazer o login considerando o produto
             // TODO: Quando externo validar se o ID da cotação/pedido pertence ao CPF acessado
             if ( $sucesso )
@@ -1040,7 +1077,7 @@ class Admin_Controller extends MY_Controller
                 // $this->cliente->atualizar($this->input->post('cliente_id'), $_POST);
                 $this->name = ''; // TODO: pegar corretamente o nome do segurado
                 $this->session->set_userdata('logado', true);
-                $this->session->set_userdata('cnpj_cpf', app_clear_number($documento));
+                $this->session->set_userdata('cnpj_cpf', $documento);
                 header("Refresh: 0;");
                 return;
             }
