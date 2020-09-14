@@ -13,7 +13,7 @@ if($_POST)
 
         <!-- Widget heading -->
         <div class="card-body">
-            <a href="<?php echo base_url("admin/usuarios_acl_tipos/index")?>" class="btn  btn-app btn-primary">
+            <a href="<?php echo base_url("admin/usuarios_acl_tipos/index/0/{$parceiro_id}")?>" class="btn  btn-app btn-primary">
                 <i class="fa fa-arrow-left"></i> Voltar
             </a>
             <a class="btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">

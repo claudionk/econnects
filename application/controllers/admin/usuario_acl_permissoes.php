@@ -34,6 +34,7 @@ class Usuario_Acl_Permissoes extends Admin_Controller {
         //print_r($data['recursos']);exit;
         $data['current_acl'] = $this->usuario_acl_permissao->get_all_by_tipo($id);
         $data['usuario_acl_tipo_id'] = $id;
+        $data['parceiro_id'] = $row['parceiro_id'];
         $data['row'] = $row;
 
         if($_POST)
@@ -49,7 +50,7 @@ class Usuario_Acl_Permissoes extends Admin_Controller {
                 $this->session->set_flashdata('fail_msg', 'Não foi possível salvar o Registro.');
             }
             //Redireciona para index
-            redirect("admin/usuarios_acl_tipos/index");
+            redirect("admin/usuarios_acl_tipos/index/0/{$row['parceiro_id']}");
 
         }
 
