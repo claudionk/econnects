@@ -1,8 +1,8 @@
 <?php
-Class Equipamento_Model extends MY_Model
+Class Equipamentos_Elegiveis_Model extends MY_Model
 {
     //Dados da tabela e chave primária
-    protected $_table = 'vw_Equipamentos';
+    protected $_table = 'equipamentos_elegiveis';
     protected $primary_key = 'equipamento_id';
 
     //Configurações
@@ -87,7 +87,7 @@ Class Equipamento_Model extends MY_Model
 
     public function whith_linhas() {
         $this->db->select("el.nome as categoria");
-        $this->db->join("vw_Equipamentos_Linhas el", "{$this->_table}.equipamento_sub_categoria_id = el.equipamento_categoria_id", "left");
+        $this->db->join("equipamentos_elegiveis_categoria el", "{$this->_table}.equipamento_sub_categoria_id = el.equipamento_categoria_id", "left");
         return $this;
     }
 
@@ -108,11 +108,12 @@ Class Equipamento_Model extends MY_Model
 
         $equip = $this->_database->query("
             SELECT MATCH(e.nome) against('{$equipamento_tratado}' IN BOOLEAN MODE) as indice, e.equipamento_id, e.equipamento_marca_id, e.equipamento_categoria_id, eCat.nome AS categoria, e.nome, e.ean, e.equipamento_sub_categoria_id
-            FROM {$this->_table} e
-            INNER JOIN vw_Equipamentos_Marcas em on e.equipamento_marca_id = em.equipamento_marca_id
-            INNER JOIN vw_Equipamentos_Linhas el on e.equipamento_categoria_id = el.equipamento_categoria_id
-            LEFT JOIN vw_Equipamentos_Linhas eCat on e.equipamento_sub_categoria_id = eCat.equipamento_categoria_id
-            WHERE MATCH(e.nome) AGAINST('{$equipamento_tratado}' IN BOOLEAN MODE) > 0
+            FROM equipamentos_elegiveis e
+            INNER JOIN equipamentos_elegiveis_marca em on e.equipamento_marca_id = em.equipamento_marca_id
+            INNER JOIN equipamentos_elegiveis_categoria el on e.equipamento_categoria_id = el.equipamento_categoria_id
+            LEFT JOIN equipamentos_elegiveis_categoria eCat on e.equipamento_sub_categoria_id = eCat.equipamento_categoria_id
+            WHERE e.lista_id = $lista_id
+                AND MATCH(e.nome) AGAINST('{$equipamento_tratado}' IN BOOLEAN MODE) > 0
                 {$where}
             ORDER BY 1 DESC
             LIMIT {$limit}
@@ -143,7 +144,7 @@ Class Equipamento_Model extends MY_Model
         $equip = $this->_database->query("
             SELECT e.equipamento_id, e.equipamento_marca_id, e.equipamento_categoria_id, e.nome, e.ean, e.equipamento_sub_categoria_id
             FROM {$this->_table} e
-            INNER JOIN vw_Equipamentos_Marcas em on e.equipamento_marca_id = em.equipamento_marca_id
+            INNER JOIN equipamentos_elegiveis_marca em on e.equipamento_marca_id = em.equipamento_marca_id
             WHERE {$where}
             ORDER BY 1 DESC
         ");

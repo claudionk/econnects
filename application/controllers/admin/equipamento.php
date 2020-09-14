@@ -133,6 +133,7 @@ class Equipamento extends Admin_Controller
     public function service_marcas($marca_id = 0, $categoria_id = 0)
     {
         $this->load->model("equipamento_marca_model", "equipamento_marca");
+        $this->load->model("equipamentos_elegiveis_marca_model", "equipamentos_elegiveis_marca");
 
         $filter       = $this->input->get_post("q");
         $categoria_id = (!empty($categoria_id)) ? $categoria_id : $this->input->get_post("categoria_id");
@@ -140,10 +141,19 @@ class Equipamento extends Admin_Controller
         $lista_id     = emptyor($lista_id, $this->input->get_post("lista_id"));
         $limit        = 30;
 
+        if($lista_id > 1)
+        {
+            $MarcaModel = $this->equipamentos_elegiveis_marca;
+            $nameTableMarca = 'equipamentos_elegiveis_marca'; 
+        } else {
+            $MarcaModel = $this->equipamento_marca;
+            $nameTableMarca = 'vw_Equipamentos_Marcas'; 
+        }
+
         //Se houver categoria
         if($marca_id > 0)
         {
-            $itens = $this->equipamento_marca
+            $itens = $MarcaModel
                 ->with_foreign()
                 ->get($marca_id);
 
@@ -160,7 +170,7 @@ class Equipamento extends Admin_Controller
         }
 
         //Retorna tudo
-        $total = $this->equipamento_marca;
+        $total = $MarcaModel;
 
         if (!empty($categoria_id))
         {
@@ -168,15 +178,15 @@ class Equipamento extends Admin_Controller
         }
 
         if($filter) {
-            $total->_database->where('(vw_Equipamentos_Marcas.nome LIKE "%' . $filter . '%"', NULL, FALSE);
-            $total->_database->or_where('vw_Equipamentos_Marcas.descricao LIKE "%' . $filter . '%")', NULL, FALSE);
+            $total->_database->where('('.$nameTableMarca.'.nome LIKE "%' . $filter . '%"', NULL, FALSE);
+            $total->_database->or_where(''.$nameTableMarca.'.descricao LIKE "%' . $filter . '%")', NULL, FALSE);
         }
 
         $total = $total->with_foreign();
         if($lista_id) $total->_database->join("(SELECT @lista_id:=$lista_id) AS vli", TRUE);
         $total = $total->get_total();
 
-        $data = $this->equipamento_marca;
+        $data = $MarcaModel;
         $data->limit($limit, $limit*($page-1));
 
         if (!empty($categoria_id))
@@ -186,8 +196,8 @@ class Equipamento extends Admin_Controller
 
         if($filter)
         {
-            $data->_database->where('(vw_Equipamentos_Marcas.nome LIKE "%'.$filter.'%"', NULL, FALSE);
-            $data->_database->or_where('vw_Equipamentos_Marcas.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
+            $data->_database->where('('.$nameTableMarca.'.nome LIKE "%'.$filter.'%"', NULL, FALSE);
+            $data->_database->or_where(''.$nameTableMarca.'.descricao LIKE "%'.$filter.'%")', NULL, FALSE);
         }
 
         $data = $data->with_foreign();
@@ -213,12 +223,24 @@ class Equipamento extends Admin_Controller
      */
     public function service($equipamento_id = 0, $marca_id = 0, $categoria_id = 0)
     {
-        $json = array();
+        $this->load->model("equipamentos_elegiveis_model", "equipamentos_elegiveis");
+
+        $json     = array();
+        $lista_id = emptyor(emptyor($lista_id, $this->input->get_post("lista_id")), 1);
+
+        if ($lista_id == 1)
+        {
+            $EqModel = $this->current_model;
+            $nameTableEq = 'vw_Equipamentos'; 
+        } else{
+            $EqModel = $this->equipamentos_elegiveis;
+            $nameTableEq = 'equipamentos_elegiveis'; 
+        }
 
         if (empty($equipamento_id)){
             if (isset($_POST['0'])) {
 
-                $data = $this->current_model->with_foreign()->whith_multiples_ids($_POST)->get_all();
+                $data = $EqModel->with_foreign()->whith_multiples_ids($_POST)->get_all();
                 foreach ($data as $index => $item) {
                     $data[$index]['id'] = $item['equipamento_id'];
                 }
@@ -233,11 +255,10 @@ class Equipamento extends Admin_Controller
                     ->set_output(json_encode($json));
                 return;
             }
-
         }
 
         if($equipamento_id > 0){
-            $itens = $this->current_model->with_foreign()->get($equipamento_id);
+            $itens = $EqModel->with_foreign()->get($equipamento_id);
             $itens['id'] = $equipamento_id;
             $json['total_count'] = 1;
             $json['incomplete_results'] = FALSE;
@@ -252,12 +273,11 @@ class Equipamento extends Admin_Controller
         $marca_id           = (!empty($marca_id)) ? $marca_id : $this->input->get_post("marca_id");
         $categoria_id       = (!empty($categoria_id)) ? $categoria_id : $this->input->get_post("categoria_id");
         $sub_categoria_id   = $this->input->get_post("sub_categoria_id");
-        $lista_id           = emptyor($lista_id, $this->input->get_post("lista_id"));
         $limit              = 30;
         $page               = ($this->input->get_post("page")) ? $this->input->get_post("page") : 1;
 
         //Retorna tudo
-        $data = $this->current_model;
+        $data = $EqModel;
 
         $data->limit($limit, $limit*($page-1));
 
@@ -288,7 +308,7 @@ class Equipamento extends Admin_Controller
         if($lista_id) $data->_database->join("(SELECT @lista_id:=$lista_id) AS vli", TRUE);
         $data = $data->get_all();
 
-        $total = $this->current_model;
+        $total = $EqModel;
 
         if (!empty($marca_id))
         {
