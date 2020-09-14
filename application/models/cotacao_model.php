@@ -259,8 +259,9 @@ Class Cotacao_Model extends MY_Model
      * @return $this
      */
     public function with_cotacao_equipamento_modelo() {
-        $this->_database->select('e.*');
-        $this->_database->join('vw_Equipamentos e', 'cotacao_equipamento.equipamento_id = e.equipamento_id', 'left');
+        $this->_database->select('IFNULL(e.equipamento_sub_categoria_id, ee.equipamento_sub_categoria_id) equipamento_sub_categoria_id, IFNULL(e.equipamento_categoria_id, ee.equipamento_categoria_id) equipamento_categoria_id', false);
+        $this->_database->join('vw_Equipamentos e', "cotacao_equipamento.equipamento_id = e.equipamento_id AND {$this->_table}.lista_id = 1", 'left');
+        $this->_database->join('equipamentos_elegiveis ee', "cotacao_equipamento.equipamento_id = ee.equipamento_id AND {$this->_table}.lista_id = ee.lista_id", 'left');
         return $this;
     }
 
@@ -364,13 +365,18 @@ Class Cotacao_Model extends MY_Model
 
     public function with_cotacao_equipamento_equipamento()
     {
-        $this->_database->select('em.nome as equipamento_marca_nome');
-        $this->_database->select('el.nome as equipamento_categoria_nome');
-        $this->_database->select('esc.nome as equipamento_sub_categoria_nome');
+        $this->_database->select('IFNULL(em.nome, eem.nome) as equipamento_marca_nome', false);
+        $this->_database->select('IFNULL(el.nome, eel.nome) as equipamento_categoria_nome', false);
+        $this->_database->select('IFNULL(esc.nome, eesc.nome) as equipamento_sub_categoria_nome', false);
 
-        $this->_database->join('vw_Equipamentos_Marcas em', 'cotacao_equipamento.equipamento_marca_id = em.equipamento_marca_id', 'left');
-        $this->_database->join('vw_Equipamentos_Linhas el', 'cotacao_equipamento.equipamento_categoria_id = el.equipamento_categoria_id', 'left');
-        $this->_database->join('vw_Equipamentos_Linhas esc', 'cotacao_equipamento.equipamento_sub_categoria_id = esc.equipamento_categoria_id', 'left');
+        $this->_database->join('vw_Equipamentos_Marcas em', "cotacao_equipamento.equipamento_marca_id = em.equipamento_marca_id AND {$this->_table}.lista_id = 1", 'left');
+        $this->_database->join('vw_Equipamentos_Linhas el', "cotacao_equipamento.equipamento_categoria_id = el.equipamento_categoria_id AND {$this->_table}.lista_id = 1", 'left');
+        $this->_database->join('vw_Equipamentos_Linhas esc', "cotacao_equipamento.equipamento_sub_categoria_id = esc.equipamento_categoria_id AND {$this->_table}.lista_id = 1", 'left');
+
+        $this->_database->join('equipamentos_elegiveis_marca eem', "cotacao_equipamento.equipamento_marca_id = eem.equipamento_marca_id AND {$this->_table}.lista_id = eem.lista_id", 'left');
+        $this->_database->join('equipamentos_elegiveis_categoria eel', "cotacao_equipamento.equipamento_categoria_id = eel.equipamento_categoria_id AND {$this->_table}.lista_id = eel.lista_id", 'left');
+        $this->_database->join('equipamentos_elegiveis_categoria eesc', "cotacao_equipamento.equipamento_sub_categoria_id = eesc.equipamento_categoria_id AND {$this->_table}.lista_id = eesc.lista_id", 'left');
+
         return $this;
     }
 
