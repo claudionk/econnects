@@ -984,9 +984,9 @@ class Admin_Controller extends MY_Controller
         $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/{$this->layout}/login", $data);
     }
 
-    public function step_login_cancel($data = [], $cotacao_id = 0, $pedido_id = 0)
+    public function step_login_cancel($data = [], $pedido_id = 0)
     {
-        $data = $this->step_login_core($data, $cotacao_id, $pedido_id);
+        $data = $this->step_login_core($data, 0, $pedido_id);
 
         $this->template->load("admin/layouts/{$this->layout}", "admin/pedido/{$this->layout}/login", $data);
     }

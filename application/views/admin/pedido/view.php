@@ -482,18 +482,21 @@
             <a href="<?php echo base_url("admin/pedido_upgrade/upgrade/{$pedido_id}")?>" class="btn btn-app btn-primary">
                 <i class="fa fa-arrow-left"></i> Upgrade
             </a>
-        <?php endif; ?>
+        <?php endif;
 
-        <?php if($cancelamento == 1) : ?>
+        if ($cancelamento == 1 && !empty($cancelamento_permissao)) : ?>
             <a id="btnCancelar" href="javascript:void(0)" class="btn btn-app btn-primary">
                 <i class="fa fa-exclamation-circle"></i> Cancelar
             </a>
+        <?php endif;
+
+        if ($cancelamento == 1 && !empty($cancelamento_aprovar_permissao)) : ?>
             <a href="<?php echo base_url("{$current_controller_uri}/cancelar_aprovacao/{$pedido_id}")?>" class="btn btn-app btn-primary">
                 <i class="fa fa-exclamation-circle"></i> Cancelar (Aprovação)
             </a>
+        <?php endif;
 
-        <?php endif; ?>
-        <?php if($cancelamento_aprovar == 1) : ?>
+        if($cancelamento_aprovar == 1 && !empty($cancelamento_aprovar_permissao)) : ?>
             <a href="<?php echo base_url("{$current_controller_uri}/cancelar_aprovar/{$pedido_id}")?>" class="btn btn-app btn-primary">
                 <i class="fa fa-exclamation-circle"></i> Aprovar Cancelamento
             </a>

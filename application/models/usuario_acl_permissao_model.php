@@ -145,31 +145,22 @@ Class Usuario_Acl_Permissao_Model extends MY_Model
         return true;
     }
 
-    function verify_permission($usuario_tipo_id, $acao, $recurso){
-
-
-        $this->_database->join('usuario_acl_recurso', $this->_table . '.usuario_acl_recurso_id = usuario_acl_recurso.usuario_acl_recurso_id');
-        $this->_database->join('usuario_acl_acao', $this->_table . '.usuario_acl_acao_id = usuario_acl_acao.usuario_acl_acao_id');
-
+    function verify_permission($usuario_tipo_id, $acao, $recurso)
+    {
+        $this->_database->join('usuario_acl_recurso', $this->_table . '.usuario_acl_recurso_id = usuario_acl_recurso.usuario_acl_recurso_id AND usuario_acl_recurso.deletado = 0');
+        $this->_database->join('usuario_acl_acao', $this->_table . '.usuario_acl_acao_id = usuario_acl_acao.usuario_acl_acao_id AND usuario_acl_acao.deletado = 0');
 
         $this->_database->where("{$this->_table}.usuario_acl_tipo_id", $usuario_tipo_id);
         $this->_database->where('usuario_acl_recurso.controller', $recurso);
         $this->_database->where('usuario_acl_acao.slug', $acao);
         $this->_database->limit(1);
-
         $row = $this->get_all();
-
 
         if ($row) {
             return true;
-
         } else {
             return false;
         }
-
     }
-
-
-
 
 }

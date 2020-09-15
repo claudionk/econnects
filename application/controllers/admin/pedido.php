@@ -221,6 +221,7 @@ class Pedido extends Admin_Controller
     {
         $this->load->model('apolice_model', 'apolice');
         $this->load->model('banco_model', 'banco');
+        $this->load->model('usuario_acl_permissao_model', 'usuario_acl_permissao');
 
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
@@ -236,7 +237,9 @@ class Pedido extends Admin_Controller
         $data['produto'] = $this->current_model->getPedidoProdutoParceiro($id);
         $data['produto'] = $data['produto'][0];
     	$data['cancelamento'] = ($this->current_model->isPermiteCancelar($id)) ? '1' : '0';
+        $data['cancelamento_permissao'] = !empty($this->usuario_acl_permissao->verify_permission($this->session->userdata('usuario_acl_tipo_id'), 'cancelar', 'pedido'));
         $data['cancelamento_aprovar'] = ($data['pedido']['pedido_status_id'] == 11) ? '1' : '0';
+        $data['cancelamento_aprovar_permissao'] = !empty($this->usuario_acl_permissao->verify_permission($this->session->userdata('usuario_acl_tipo_id'), 'cancelar_aprovar', 'pedido'));
         $data['upgrade'] = ($this->current_model->isPermiteUpgrade($id)) ? '1' : '0';
         $data['primary_key'] = $this->current_model->primary_key();
         $data['pedido_id'] = $id;
@@ -253,7 +256,7 @@ class Pedido extends Admin_Controller
 	        // 1- login 
 	        if(empty($this->session->userdata('logado')))
 	        {
-	            $this->step_login_cancel();
+	            $this->step_login_cancel([], $id);
 	            return;
 	        }
 
@@ -368,7 +371,6 @@ class Pedido extends Admin_Controller
             {
                 $data['cartoes'][$index] = $this->pedido_cartao->decode_cartao($cartao);
                 $data['cartoes'][$index]['numero'] = app_format_credit_card($data['cartoes'][$index]['numero']);
-
                 $data['cartoes'][$index]['transacoes'] = $this->pedido_cartao_transacao
                     ->get_many_by(array(
                         'pedido_cartao_id' => $cartao['pedido_cartao_id']
