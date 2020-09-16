@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 /**
  * Class Relatorios
@@ -16,7 +16,7 @@ class Relatorios extends Admin_Controller
         $this->template->js(app_assets_url("modulos/relatorios/vendas/venda.js", "admin"));
 
         //Dados para template
-        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_inicio'] = date("d/m/Y", strtotime("-1 month"));
         $data['data_fim'] = date("d/m/Y");
 
         //Carrega template
@@ -32,7 +32,7 @@ class Relatorios extends Admin_Controller
         $this->template->js(app_assets_url("modulos/relatorios/vendas/mapa_repasse.js", "admin"));
 
         //Dados para template
-        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_inicio'] = date("d/m/Y", strtotime("-1 month"));
         $data['data_fim'] = date("d/m/Y");
 
         //Carrega template
@@ -43,7 +43,7 @@ class Relatorios extends Admin_Controller
     {
         //Dados para template
         $data = array();
-        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_inicio'] = date("d/m/Y", strtotime("-1 month"));
         $data['data_fim'] = date("d/m/Y");
         $data['action'] = $this->uri->segment(2);
         $data['src'] = $this->controller_uri;
@@ -158,7 +158,7 @@ class Relatorios extends Admin_Controller
     {
         //Dados para template
         $data = array();
-        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_inicio'] = date("d/m/Y", strtotime("-1 month"));
         $data['data_fim'] = date("d/m/Y");
         $data['title'] = 'Relatório 01 de Vendas';
         $data['columns'] = [
@@ -181,18 +181,18 @@ class Relatorios extends Admin_Controller
                 $rows = [];
                 foreach ($data['result'] as $row) {
                     $rows[] = [
-                        app_date_mysql_to_mask($row['status_data'], 'd/m/Y'), 
-                        $row['segurado'], 
-                        $row['documento'], 
-                        $row['plano_nome'], 
-                        $row['nome_produto_parceiro'], 
-                        app_format_currency($row['nota_fiscal_valor'], true), 
-                        app_format_currency($row['premio_liquido_total'], true), 
-                        $row['num_apolice'], 
+                        app_date_mysql_to_mask($row['status_data'], 'd/m/Y'),
+                        $row['segurado'],
+                        $row['documento'],
+                        $row['plano_nome'],
+                        $row['nome_produto_parceiro'],
+                        app_format_currency($row['nota_fiscal_valor'], true),
+                        app_format_currency($row['premio_liquido_total'], true),
+                        $row['num_apolice'],
                     ];
                 }
                 //$this->exportExcel($data['columns'], $rows);
-                $this->exportCSV($data['columns'], $rows, 'Relatório 01 de Vendas');                
+                $this->exportCSV($data['columns'], $rows, 'Relatório 01 de Vendas');
             }
 
             //Dados via GET
@@ -208,7 +208,7 @@ class Relatorios extends Admin_Controller
     {
         //Dados para template
         $data = array();
-        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_inicio'] = date("d/m/Y", strtotime("-1 month"));
         $data['data_fim'] = date("d/m/Y");
         $data['title'] = 'Relatório 04 de Vendas';
         $data['columns'] = [
@@ -235,18 +235,18 @@ class Relatorios extends Admin_Controller
                 $rows = [];
                 foreach ($data['result'] as $row) {
                     $rows[] = [
-                        app_date_mysql_to_mask($row['status_data'], 'd/m/Y'), 
-                        $row['segurado'], 
-                        $row['documento'], 
-                        $row['plano_nome'], 
-                        $row['nome_produto_parceiro'], 
-                        app_format_currency($row['nota_fiscal_valor'], true), 
-                        app_format_currency($row['premio_liquido_total'], true), 
-                        $row['num_apolice'], 
-                        $row['nome_fantasia'], 
-                        $row['cnpj'], 
-                        $row['UF'], 
-                        $row['vendedor'], 
+                        app_date_mysql_to_mask($row['status_data'], 'd/m/Y'),
+                        $row['segurado'],
+                        $row['documento'],
+                        $row['plano_nome'],
+                        $row['nome_produto_parceiro'],
+                        app_format_currency($row['nota_fiscal_valor'], true),
+                        app_format_currency($row['premio_liquido_total'], true),
+                        $row['num_apolice'],
+                        $row['nome_fantasia'],
+                        $row['cnpj'],
+                        $row['UF'],
+                        $row['vendedor'],
                     ];
                 }
                 //$this->exportExcel($data['columns'], $rows);
@@ -266,7 +266,7 @@ class Relatorios extends Admin_Controller
     {
         //Dados para template
         $data = array();
-        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_inicio'] = date("d/m/Y", strtotime("-1 month"));
         $data['data_fim'] = date("d/m/Y");
         $data['title'] = 'Relatório 05 de Vendas';
         $data['columns'] = [
@@ -293,18 +293,18 @@ class Relatorios extends Admin_Controller
                 $rows = [];
                 foreach ($data['result'] as $row) {
                     $rows[] = [
-                        app_date_mysql_to_mask($row['status_data'], 'd/m/Y'), 
-                        $row['segurado'], 
-                        $row['documento'], 
-                        $row['plano_nome'], 
-                        $row['nome_produto_parceiro'], 
-                        app_format_currency($row['nota_fiscal_valor'], true), 
-                        app_format_currency($row['premio_liquido_total'], true), 
-                        $row['num_apolice'], 
-                        $row['nome_fantasia'], 
-                        $row['cnpj'], 
-                        $row['UF'], 
-                        app_format_currency($row['comissao_parceiro'], true), 
+                        app_date_mysql_to_mask($row['status_data'], 'd/m/Y'),
+                        $row['segurado'],
+                        $row['documento'],
+                        $row['plano_nome'],
+                        $row['nome_produto_parceiro'],
+                        app_format_currency($row['nota_fiscal_valor'], true),
+                        app_format_currency($row['premio_liquido_total'], true),
+                        $row['num_apolice'],
+                        $row['nome_fantasia'],
+                        $row['cnpj'],
+                        $row['UF'],
+                        app_format_currency($row['comissao_parceiro'], true),
                     ];
                 }
                 //$this->exportExcel($data['columns'], $rows);
@@ -324,7 +324,7 @@ class Relatorios extends Admin_Controller
     {
         //Dados para template
         $data = array();
-        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_inicio'] = date("d/m/Y", strtotime("-1 month"));
         $data['data_fim'] = date("d/m/Y");
         $data['action'] = $this->uri->segment(3);
         $data['src'] = $this->controller_uri;
@@ -368,7 +368,7 @@ class Relatorios extends Admin_Controller
             $data['result'] = $result['data'];
 
             if (!empty($_POST['btnExcel'])) {
-                $this->exportExcelMapaRepasse($data['columns'], $data['result']);               
+                $this->exportExcelMapaRepasse($data['columns'], $data['result']);
             }
 
             //Dados via GET
@@ -377,14 +377,14 @@ class Relatorios extends Admin_Controller
         }
 
         //Carrega template
-        $this->template->load("admin/layouts/base", "{$this->controller_uri}/{$data['action']}" , $data);
+        $this->template->load("admin/layouts/base", "{$this->controller_uri}/{$data['action']}", $data);
     }
 
     public function mapa_repasse()
-    {     
+    {
         //Dados para template
         $data = array();
-        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_inicio'] = date("d/m/Y", strtotime("-1 month"));
         $data['data_fim'] = date("d/m/Y");
         $data['action'] = $this->uri->segment(3);
         $data['src'] = $this->controller_uri;
@@ -428,7 +428,7 @@ class Relatorios extends Admin_Controller
         $data['flag'] = FALSE;
         if ($_POST) {
 
-            $data['title'] = "Relatório de Mapa de Repasse - ( ".$_POST['nomerepresentante']." )";
+            $data['title'] = "Relatório de Mapa de Repasse - ( " . $_POST['nomerepresentante'] . " )";
 
             $data['id_parceiro'] = $_POST['representante'];
             $data['slug'] = $_POST['slug'];
@@ -442,29 +442,27 @@ class Relatorios extends Admin_Controller
 
             if (!empty($_POST['btnExcel'])) {
 
-                if($_POST['layout'] == "mapa_analitico")
-                {
+                if ($_POST['layout'] == "mapa_analitico") {
                     //$this->exportExcelMapaRepasse($data['columns'], $data['result']);
-                    $this->exportCSVMapaRepasse($data['columns'], $data['result']); 
-                } else if($_POST['layout'] == "mapa_sintetico") {
+                    $this->exportCSVMapaRepasse($data['columns'], $data['result']);
+                } else if ($_POST['layout'] == "mapa_sintetico") {
                     $this->exportExcelMapaRepasseSintetico($data['columns'], $data['result']);
-                }                
+                }
             }
 
             //Dados via GET
             $data['data_inicio'] = $this->input->get_post('data_inicio');
-            $data['data_fim'] = $this->input->get_post('data_fim'); 
+            $data['data_fim'] = $this->input->get_post('data_fim');
 
             $data['id_parceiro'] = $_POST['representante'];
             $data['slug'] = $_POST['slug'];
-
         }
 
         $data['combo'] = $this->getParceiro();
 
 
         //Carrega template
-        $this->template->load("admin/layouts/base", "{$this->controller_uri}/{$data['action']}" , $data);
+        $this->template->load("admin/layouts/base", "{$this->controller_uri}/{$data['action']}", $data);
     }
 
 
@@ -479,8 +477,11 @@ class Relatorios extends Admin_Controller
     /**
      * Retorna resultado
      */
-    public function getRelatorio ($ajax = TRUE)
+    public function getRelatorio($ajax = TRUE)
     {
+        ini_set("memory_limit", "-1");
+        set_time_limit(0);
+
         $this->load->model("pedido_model", "pedido");
 
         $resultado = array();
@@ -503,7 +504,7 @@ class Relatorios extends Admin_Controller
     /**
      * Retorna resultado
      */
-    public function getMapaRepasse ($ajax = TRUE, $layout, $parceiro, $slug)
+    public function getMapaRepasse($ajax = TRUE, $layout, $parceiro, $slug)
     {
         $this->load->model("pedido_model", "pedido");
 
@@ -514,7 +515,7 @@ class Relatorios extends Admin_Controller
         $data_inicio = $this->input->get_post('data_inicio');
         $data_fim = $this->input->get_post('data_fim');
 
-        if ($layout=='mapa_analitico') {
+        if ($layout == 'mapa_analitico') {
 
             $resultado['data'] = $this->pedido->extrairRelatorioMapaRepasseAnalitico($data_inicio, $data_fim, $parceiro, $slug);
         } else {
@@ -564,9 +565,9 @@ class Relatorios extends Admin_Controller
         $T_pro_labore = 0;
         $T_valor_comissao = 0;
 
-        foreach ($planos as $key => $desc) { 
+        foreach ($planos as $key => $desc) {
             $find = false;
-            foreach ($result as $row) { 
+            foreach ($result as $row) {
                 if ($row['planos'] == $desc) {
                     $row['desc'] = $desc;
                     $ret[] = $row;
@@ -699,9 +700,9 @@ class Relatorios extends Admin_Controller
         $T_pro_labore_QA = 0;
         $T_valor_comissao_QA = 0;
 
-        foreach ($tpas as $tpa => $desc) { 
+        foreach ($tpas as $tpa => $desc) {
             $find = false;
-            foreach ($result as $row) { 
+            foreach ($result as $row) {
                 if ($row['cod_tpa'] == $tpa) {
                     $row['desc'] = $desc;
                     $ret[] = $row;
@@ -837,30 +838,31 @@ class Relatorios extends Admin_Controller
         return $ret;
     }
 
-    public function exportCSV($columns, $rows = [], $nomeArq) {
+    public function exportCSV($columns, $rows = [], $nomeArq)
+    {
         header('Content-Type: text/html; charset=utf-8');
         header("Pragma: no-cache");
         header("Cache: no-cahce");
-        $filename = app_assets_dir('arquivos', 'uploads') . "relatorio_exp_".date("Y-m-d_H-i-s",time()).".csv";
+        $filename = app_assets_dir('arquivos', 'uploads') . "relatorio_exp_" . date("Y-m-d_H-i-s", time()) . ".csv";
         $fp = fopen($filename, "a+");
         $linha = '';
         $linhaheader = $nomeArq;
-        fwrite($fp, $linhaheader."\n");
+        fwrite($fp, $linhaheader . "\n");
         $linhaheader = '';
         // Cria as colunas
         foreach ($columns as $column) {
             $linhaheader .= $column . ";";
         }
-        fwrite($fp, $linhaheader."\n");
+        fwrite($fp, $linhaheader . "\n");
         // Cria as Linhas
         foreach ($rows as $row) {
             $contC = 0;
             foreach ($columns as $column) {
                 $linha .= $row[$contC] . ";";
                 $contC++;
-            }            
-            fwrite($fp, $linha."\n"); 
-            $linha = '';           
+            }
+            fwrite($fp, $linha . "\n");
+            $linha = '';
         }
         fclose($fp);
         header('Content-Description: File Transfer');
@@ -870,9 +872,10 @@ class Relatorios extends Admin_Controller
         readfile($filename);
         unlink($filename);
         exit();
-    }    
+    }
 
-    public function exportExcel2($columns, $rows = [], $formato = 'XLS') {
+    public function exportExcel2($columns, $rows = [], $formato = 'XLS')
+    {
         $this->load->library('Excel');
         $objPHPExcel = new PHPExcel();
 
@@ -893,7 +896,7 @@ class Relatorios extends Admin_Controller
             $contC++;
         }
 
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:'. $letters[count($columns)-1].'1')->applyFromArray(
+        $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:' . $letters[count($columns) - 1] . '1')->applyFromArray(
             array(
                 'fill' => array(
                     'type' => PHPExcel_Style_Fill::FILL_SOLID,
@@ -901,18 +904,17 @@ class Relatorios extends Admin_Controller
                 )
             )
         );
-    
+
         //print_pre ($rows);
         // Cria as Linhas
         foreach ($rows as $row) {
-           $contR++;
-           $contC = 0;
-            
+            $contR++;
+            $contC = 0;
+
             foreach ($columns as $column) {
-               $objPHPExcel->setActiveSheetIndex(0)->setCellValue($letters[$contC] . $contR, $row[$contC]);
+                $objPHPExcel->setActiveSheetIndex(0)->setCellValue($letters[$contC] . $contR, $row[$contC]);
                 $contC++;
             }
-            
         }
 
         // $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
@@ -920,33 +922,34 @@ class Relatorios extends Admin_Controller
 
         // Redirect output to a client’s web browser (Excel5)
         header('Content-Type: application/vnd.ms-excel');
-        if($formato == 'CSV'){
+        if ($formato == 'CSV') {
             header('Content-Disposition: attachment;filename="relatorio.csv"');
-        }else{
+        } else {
             header('Content-Disposition: attachment;filename="relatorio.xls"');
         }
         header('Cache-Control: max-age=0');
         // If you're serving to IE 9, then the following may be needed
         header('Cache-Control: max-age=1');
         // If you're serving to IE over SSL, then the following may be needed
-        header ('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-        header ('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT'); // always modified
-        header ('Cache-Control: cache, must-revalidate'); // HTTP/1.1
-        header ('Pragma: public'); // HTTP/1.0
-        if($formato == 'CSV'){
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+        header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+        header('Pragma: public'); // HTTP/1.0
+        if ($formato == 'CSV') {
             $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'CSV');
-        }else{
+        } else {
             $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
         }
         $objWriter->save('php://output');
         exit;
     }
 
-    public function exportExcel($columns, $rows = [], $formato = 'XLS') {
+    public function exportExcel($columns, $rows = [], $formato = 'XLS')
+    {
         $this->load->library('Excel');
         $objPHPExcel = new PHPExcel();
         //print_pre ($rows);
-        
+
         $objPHPExcel->getDefaultStyle()->getFont()->setName('Arial')->setSize(12);
 
         $objPHPExcel->setActiveSheetIndex(0)->getStyle('A3:C3')->applyFromArray(
@@ -966,85 +969,85 @@ class Relatorios extends Admin_Controller
         //TITULO DIAS
         $row = 3;
         $col = 3;
-        foreach($rows['dias'] as $data) {
+        foreach ($rows['dias'] as $data) {
             $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col, $row, $data['dia']);
             $col++;
         }
 
         $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, 5, "VENDAS");
         $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(1, 5, "X%");
-        $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(2, 5, emptyor($rows['vendas']['total_venda'],0));
-        
+        $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(2, 5, emptyor($rows['vendas']['total_venda'], 0));
+
         //TOTAL VENDAS POR DIA
         $row = 5;
-        $col = 3;   
-        foreach($rows['dias'] as $data) {
-            $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col, $row, emptyor($rows['vendas']['totais_dia'][$data['dia_format']],0));
+        $col = 3;
+        foreach ($rows['dias'] as $data) {
+            $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col, $row, emptyor($rows['vendas']['totais_dia'][$data['dia_format']], 0));
             $col++;
         }
 
         //TOTAL VENDAS POR PLANO
         $row = 6; //ULTIMO VALOR DE LINHA INSERIDO MANUALMENTE 
-        foreach($rows['planos'] as $plano) {
+        foreach ($rows['planos'] as $plano) {
             $col = 3;
             $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, $row, $plano['nome']);
-            $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(1, $row, emptyor($plano['percentual'],0));
+            $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(1, $row, emptyor($plano['percentual'], 0));
             $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(2, $row, $plano['qtde']);
-            
-            foreach($rows['dias'] as $data) {
-                $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col, $row, emptyor($rows['data']['vendas'][$plano['produto_parceiro_plano_id']][$data['dia_format']],0));
+
+            foreach ($rows['dias'] as $data) {
+                $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col, $row, emptyor($rows['data']['vendas'][$plano['produto_parceiro_plano_id']][$data['dia_format']], 0));
                 $col++;
-                }
-                $row++;
+            }
+            $row++;
         }
 
         //<!-- GRUPOS / STATUS -->
-            $descricao_grupo = '';
-            foreach ($rows['grupos'] as $grupo) {
-                $col = 3;
+        $descricao_grupo = '';
+        foreach ($rows['grupos'] as $grupo) {
+            $col = 3;
 
-                // valida se deve fazer a quebra do grupo
-                if ( $descricao_grupo != $grupo['descricao_grupo'] ) {
-                    $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, $row, " ");
-                    $row++;
-                    $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, $row, $grupo['descricao_grupo']);
-                    $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(1, $row, emptyor($rows['grupos_totais'][$grupo['cliente_evolucao_status_grupo_id']]['percentual'], 0 ).'%');
-                    $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(2, $row, emptyor($rows['grupos_totais'][$grupo['cliente_evolucao_status_grupo_id']]['valor'], 0 ));
-                    
-                    foreach($rows['dias'] as $data) {
-                        $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col, $row, emptyor($rows['grupos_totais'][$grupo['cliente_evolucao_status_grupo_id']][$data['dia_format']], 0));
-                        $col++;
-                    }
-                    $row++;
-                    $descricao_grupo = $grupo['descricao_grupo'];
-                }
+            // valida se deve fazer a quebra do grupo
+            if ($descricao_grupo != $grupo['descricao_grupo']) {
+                $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, $row, " ");
+                $row++;
+                $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, $row, $grupo['descricao_grupo']);
+                $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(1, $row, emptyor($rows['grupos_totais'][$grupo['cliente_evolucao_status_grupo_id']]['percentual'], 0) . '%');
+                $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(2, $row, emptyor($rows['grupos_totais'][$grupo['cliente_evolucao_status_grupo_id']]['valor'], 0));
 
-                $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, $row, $grupo['descricao']);
-                $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(1, $row, emptyor($grupo['percentual'],0).'%');
-                $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(2, $row, emptyor($grupo['qtde']));
-                
-                $col = 3;
-                foreach($rows['dias'] as $data) {
-                    $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col, $row, emptyor($rows['data']['mailing'][$grupo['produto_parceiro_cliente_status_id']][$data['dia_format']], 0));
+                foreach ($rows['dias'] as $data) {
+                    $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col, $row, emptyor($rows['grupos_totais'][$grupo['cliente_evolucao_status_grupo_id']][$data['dia_format']], 0));
                     $col++;
                 }
                 $row++;
+                $descricao_grupo = $grupo['descricao_grupo'];
             }
 
-        
+            $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, $row, $grupo['descricao']);
+            $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(1, $row, emptyor($grupo['percentual'], 0) . '%');
+            $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(2, $row, emptyor($grupo['qtde']));
+
+            $col = 3;
+            foreach ($rows['dias'] as $data) {
+                $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col, $row, emptyor($rows['data']['mailing'][$grupo['produto_parceiro_cliente_status_id']][$data['dia_format']], 0));
+                $col++;
+            }
+            $row++;
+        }
+
+
 
         //print_pre ($rows);
         // Cria as Linhas
         //foreach ($rows as $row) {
-           // $contR++;
-           // $contC = 0;
+        // $contR++;
+        // $contC = 0;
 
-            
-            //foreach ($columns as $column) {
-               // $objPHPExcel->setActiveSheetIndex(0)->setCellValue($letters[$contC] . $contR, $row[$contC]);
-                //$contC++;
-            //}
-            
+
+        //foreach ($columns as $column) {
+        // $objPHPExcel->setActiveSheetIndex(0)->setCellValue($letters[$contC] . $contR, $row[$contC]);
+        //$contC++;
+        //}
+
         //}
 
         // $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
@@ -1052,99 +1055,100 @@ class Relatorios extends Admin_Controller
 
         // Redirect output to a client’s web browser (Excel5)
         header('Content-Type: application/vnd.ms-excel');
-        if($formato == 'CSV'){
+        if ($formato == 'CSV') {
             header('Content-Disposition: attachment;filename="relatorio.csv"');
-        }else{
+        } else {
             header('Content-Disposition: attachment;filename="relatorio.xls"');
         }
         header('Cache-Control: max-age=0');
         // If you're serving to IE 9, then the following may be needed
         header('Cache-Control: max-age=1');
         // If you're serving to IE over SSL, then the following may be needed
-        header ('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-        header ('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT'); // always modified
-        header ('Cache-Control: cache, must-revalidate'); // HTTP/1.1
-        header ('Pragma: public'); // HTTP/1.0
-        if($formato == 'CSV'){
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+        header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+        header('Pragma: public'); // HTTP/1.0
+        if ($formato == 'CSV') {
             $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'CSV');
-        }else{
+        } else {
             $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
         }
         $objWriter->save('php://output');
         exit;
     }
 
-    public function exportCSVMapaRepasse($columns, $rows = []) {
+    public function exportCSVMapaRepasse($columns, $rows = [])
+    {
         header('Content-Type: text/html; charset=utf-8');
         header("Pragma: no-cache");
         header("Cache: no-cahce");
-        $filename = app_assets_dir('arquivos', 'uploads') . "rel_mapa_repasse".date("Y-m-d_H-i-s",time()).".csv";
+        $filename = app_assets_dir('arquivos', 'uploads') . "rel_mapa_repasse" . date("Y-m-d_H-i-s", time()) . ".csv";
         $fp = fopen($filename, "a+");
         $linha = '';
         $linhaheader = 'Relatório de Mapa de Repasse';
-        fwrite($fp, $linhaheader."\n");
+        fwrite($fp, $linhaheader . "\n");
         $linhaheader  = '';
-        $linhaheader .= 'VANESSA'.";";
-        $linhaheader .= 'Representante'.";";
-        $linhaheader .= 'Cobertura'.";";
-        $linhaheader .= 'Tipo Movimento (Emissão ou Cancelamento'.";";
-        $linhaheader .= 'Data do Movimento'.";";
-        $linhaheader .= 'Inicio Vigencia'.";";
-        $linhaheader .= 'Fim Vigencia'.";";
-        $linhaheader .= 'Num Bilhete'.";";
-        $linhaheader .= 'Nome'.";";
-        $linhaheader .= 'CPF'.";";
-        $linhaheader .= 'Equipamento'.";";
-        $linhaheader .= 'Marca'.";";
-        $linhaheader .= 'Modelo'.";";
-        $linhaheader .= 'IMEI'.";";
-        $linhaheader .= 'Produto'.";";
-        $linhaheader .= 'Importancia Segurada'.";";
-        $linhaheader .= 'Forma Pagto'.";";
-        $linhaheader .= 'Num Endosso'.";";
-        $linhaheader .= 'Mês Parcela'.";";
-        $linhaheader .= 'Parcela'.";";
-        $linhaheader .= 'Status Parcela'.";";
-        $linhaheader .= 'Data processamento Cliente/SIS'.";";
-        $linhaheader .= 'Data Cancelamento'.";";
-        $linhaheader .= 'Valor Parcela'.";";
-        $linhaheader .= 'Premio Bruto'.";";
-        $linhaheader .= 'Premio Liquido'.";";
-        $linhaheader .= 'Comissao Representante'.";";
-        $linhaheader .= 'Comissao Corretagem'.";";
-        fwrite($fp, $linhaheader."\n");
+        $linhaheader .= 'VANESSA' . ";";
+        $linhaheader .= 'Representante' . ";";
+        $linhaheader .= 'Cobertura' . ";";
+        $linhaheader .= 'Tipo Movimento (Emissão ou Cancelamento' . ";";
+        $linhaheader .= 'Data do Movimento' . ";";
+        $linhaheader .= 'Inicio Vigencia' . ";";
+        $linhaheader .= 'Fim Vigencia' . ";";
+        $linhaheader .= 'Num Bilhete' . ";";
+        $linhaheader .= 'Nome' . ";";
+        $linhaheader .= 'CPF' . ";";
+        $linhaheader .= 'Equipamento' . ";";
+        $linhaheader .= 'Marca' . ";";
+        $linhaheader .= 'Modelo' . ";";
+        $linhaheader .= 'IMEI' . ";";
+        $linhaheader .= 'Produto' . ";";
+        $linhaheader .= 'Importancia Segurada' . ";";
+        $linhaheader .= 'Forma Pagto' . ";";
+        $linhaheader .= 'Num Endosso' . ";";
+        $linhaheader .= 'Mês Parcela' . ";";
+        $linhaheader .= 'Parcela' . ";";
+        $linhaheader .= 'Status Parcela' . ";";
+        $linhaheader .= 'Data processamento Cliente/SIS' . ";";
+        $linhaheader .= 'Data Cancelamento' . ";";
+        $linhaheader .= 'Valor Parcela' . ";";
+        $linhaheader .= 'Premio Bruto' . ";";
+        $linhaheader .= 'Premio Liquido' . ";";
+        $linhaheader .= 'Comissao Representante' . ";";
+        $linhaheader .= 'Comissao Corretagem' . ";";
+        fwrite($fp, $linhaheader . "\n");
         //Gera as linhas dos registros
         foreach ($rows as $row) {
-            $linha .= $row['plano_nome'].';';
-            $linha .= $row['representante'].';';
-            $linha .= $row['cobertura'].';';
-            $linha .= $row['venda_cancelamento'].';';
-            $linha .= $row['data_emissao'].';';
-            $linha .= $row['ini_vigencia'].';';
-            $linha .= $row['fim_vigencia'].';';
-            $linha .= $row['num_apolice'].';';
-            $linha .= $row['segurado_nome'].';';
-            $linha .= $row['documento'].';';
-            $linha .= $row['equipamento'].';';
-            $linha .= $row['marca'].';';
-            $linha .= $row['modelo'].';';
-            $linha .= $row['imei'].';';
-            $linha .= $row['nome_produto_parceiro'].';';
-            $linha .= $row['importancia_segurada'].';';
-            $linha .= $row['forma_pagto'].';';
-            $linha .= $row['num_endosso'].';';
-            $linha .= $row['vigencia_parcela'].';';
-            $linha .= $row['parcela'].';';
-            $linha .= $row['status_parcela'].';';
-            $linha .= $row['data_processamento_cli_sis'].';';
-            $linha .= $row['data_cancelamento'].';';
-            $linha .= $row['valor_parcela'].';';
-            $linha .= $row['PB'].';';
-            $linha .= $row['PL'].';';
-            $linha .= $row['pro_labore'].';';
-            $linha .= $row['valor_comissao'].';';
-            fwrite($fp, $linha."\n");  
-            $linha = '';          
+            $linha .= $row['plano_nome'] . ';';
+            $linha .= $row['representante'] . ';';
+            $linha .= $row['cobertura'] . ';';
+            $linha .= $row['venda_cancelamento'] . ';';
+            $linha .= $row['data_emissao'] . ';';
+            $linha .= $row['ini_vigencia'] . ';';
+            $linha .= $row['fim_vigencia'] . ';';
+            $linha .= $row['num_apolice'] . ';';
+            $linha .= $row['segurado_nome'] . ';';
+            $linha .= $row['documento'] . ';';
+            $linha .= $row['equipamento'] . ';';
+            $linha .= $row['marca'] . ';';
+            $linha .= $row['modelo'] . ';';
+            $linha .= $row['imei'] . ';';
+            $linha .= $row['nome_produto_parceiro'] . ';';
+            $linha .= $row['importancia_segurada'] . ';';
+            $linha .= $row['forma_pagto'] . ';';
+            $linha .= $row['num_endosso'] . ';';
+            $linha .= $row['vigencia_parcela'] . ';';
+            $linha .= $row['parcela'] . ';';
+            $linha .= $row['status_parcela'] . ';';
+            $linha .= $row['data_processamento_cli_sis'] . ';';
+            $linha .= $row['data_cancelamento'] . ';';
+            $linha .= $row['valor_parcela'] . ';';
+            $linha .= $row['PB'] . ';';
+            $linha .= $row['PL'] . ';';
+            $linha .= $row['pro_labore'] . ';';
+            $linha .= $row['valor_comissao'] . ';';
+            fwrite($fp, $linha . "\n");
+            $linha = '';
         }
         fclose($fp);
         header('Content-Description: File Transfer');
@@ -1156,11 +1160,12 @@ class Relatorios extends Admin_Controller
         exit();
     }
 
-    public function exportExcelMapaRepasse($columns, $rows = []) {
+    public function exportExcelMapaRepasse($columns, $rows = [])
+    {
         $this->load->library('Excel');
         $objPHPExcel = new PHPExcel();
 
-        $letters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+        $letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
         $contC = 0;
         $contR = 1;
 
@@ -1179,10 +1184,10 @@ class Relatorios extends Admin_Controller
                 'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_RIGHT,
             )
         );
-        $objPHPExcel->getDefaultStyle()->getFont()->setName('Arial')->setSize(10);     
+        $objPHPExcel->getDefaultStyle()->getFont()->setName('Arial')->setSize(10);
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A1', 'Relatório de Mapa de Repasse');
         $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:AE1')->applyFromArray($styleCenter);
-    
+
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A3', 'Plano');
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B3', 'Representante');
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C3', 'Cobertura');
@@ -1224,42 +1229,42 @@ class Relatorios extends Admin_Controller
 
         $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:AC1')->applyFromArray($styleCenter);
         $objPHPExcel->setActiveSheetIndex(0)->mergeCells('A1:AC1');
-        $objPHPExcel->getActiveSheet()->getStyle('A1:AC1')->getFont()->setBold( true );
-        $objPHPExcel->getActiveSheet()->getStyle('A3:AC3')->getFont()->setBold( true );
+        $objPHPExcel->getActiveSheet()->getStyle('A1:AC1')->getFont()->setBold(true);
+        $objPHPExcel->getActiveSheet()->getStyle('A3:AC3')->getFont()->setBold(true);
 
         $contR = 4;
         // Cria as Linhas
-        
+
         foreach ($rows as $row) {
             $contRFim = $contR + 1;
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A'. $contR, $row['plano_nome']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, $row['representante']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, $row['cobertura']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, $row['venda_cancelamento']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, $row['data_emissao']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F'. $contR, $row['ini_vigencia']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G'. $contR, $row['fim_vigencia']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H'. $contR, $row['num_apolice']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I'. $contR, $row['segurado_nome']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J'. $contR, $row['documento']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K'. $contR, $row['equipamento']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('L'. $contR, $row['marca']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('M'. $contR, $row['modelo']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('N'. $contR, $row['imei']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('O'. $contR, $row['nome_produto_parceiro']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('P'. $contR, $row['importancia_segurada']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('Q'. $contR, $row['forma_pagto']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('R'. $contR, $row['num_endosso']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('S'. $contR, $row['vigencia_parcela']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('T'. $contR, $row['parcela']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('U'. $contR, $row['status_parcela']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('V'. $contR, $row['data_processamento_cli_sis']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('W'. $contR, $row['data_cancelamento']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('X'. $contR, $row['valor_parcela']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('Y'. $contR, $row['PB']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('Z'. $contR, $row['PL']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AA'. $contR, $row['pro_labore']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AB'. $contR, $row['valor_comissao']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A' . $contR, $row['plano_nome']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B' . $contR, $row['representante']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C' . $contR, $row['cobertura']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D' . $contR, $row['venda_cancelamento']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E' . $contR, $row['data_emissao']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F' . $contR, $row['ini_vigencia']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G' . $contR, $row['fim_vigencia']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H' . $contR, $row['num_apolice']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I' . $contR, $row['segurado_nome']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J' . $contR, $row['documento']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K' . $contR, $row['equipamento']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('L' . $contR, $row['marca']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('M' . $contR, $row['modelo']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('N' . $contR, $row['imei']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('O' . $contR, $row['nome_produto_parceiro']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('P' . $contR, $row['importancia_segurada']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('Q' . $contR, $row['forma_pagto']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('R' . $contR, $row['num_endosso']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('S' . $contR, $row['vigencia_parcela']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('T' . $contR, $row['parcela']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('U' . $contR, $row['status_parcela']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('V' . $contR, $row['data_processamento_cli_sis']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('W' . $contR, $row['data_cancelamento']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('X' . $contR, $row['valor_parcela']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('Y' . $contR, $row['PB']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('Z' . $contR, $row['PL']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AA' . $contR, $row['pro_labore']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('AB' . $contR, $row['valor_comissao']);
             $contR++;
         }
 
@@ -1271,23 +1276,24 @@ class Relatorios extends Admin_Controller
         // If you're serving to IE 9, then the following may be needed
         header('Cache-Control: max-age=1');
         // If you're serving to IE over SSL, then the following may be needed
-        header ('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-        header ('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT'); // always modified
-        header ('Cache-Control: cache, must-revalidate'); // HTTP/1.1
-        header ('Pragma: public'); // HTTP/1.0
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+        header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+        header('Pragma: public'); // HTTP/1.0
         //$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5'); <<<***Exporta para CSV por causa do volume de dados***>>>
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'CSV');
         $objWriter->save('php://output');
         exit;
     }
 
-    public function exportExcelMapaRepasseSintetico($columns, $rows = []) {   
+    public function exportExcelMapaRepasseSintetico($columns, $rows = [])
+    {
 
 
         $this->load->library('Excel');
         $objPHPExcel = new PHPExcel();
 
-        $letters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+        $letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
         $contC = 0;
         $contR = 1;
 
@@ -1309,15 +1315,15 @@ class Relatorios extends Admin_Controller
         $objPHPExcel->getDefaultStyle()->getFont()->setName('Arial')->setSize(10);
         $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:K2')->applyFromArray($styleCenter);
 
-        
+
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A1', '');
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B1', '');
         // $objPHPExcel->setActiveSheetIndex(0)->mergeCells('C1:E1');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C1','VENDAS');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C1', 'VENDAS');
         // $objPHPExcel->setActiveSheetIndex(0)->mergeCells('F1:H1');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D1','CANCELAMENTOS');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D1', 'CANCELAMENTOS');
         // $objPHPExcel->setActiveSheetIndex(0)->mergeCells('I1:K1');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E1','TOTAL');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E1', 'TOTAL');
 
         $objPHPExcel->setActiveSheetIndex(0)->getStyle('C1:E1')->applyFromArray(
             array(
@@ -1328,60 +1334,60 @@ class Relatorios extends Admin_Controller
             )
         );
 
-        $objPHPExcel->getActiveSheet()->getStyle('C1:E1')->getFont()->setBold( true );
-        $objPHPExcel->getActiveSheet()->getStyle('A1:A65536')->getFont()->setBold( true );
+        $objPHPExcel->getActiveSheet()->getStyle('C1:E1')->getFont()->setBold(true);
+        $objPHPExcel->getActiveSheet()->getStyle('A1:A65536')->getFont()->setBold(true);
 
         $contR = 2;
         // Cria as Linhas
         foreach ($rows as $row) {
 
             $contRFim = $contR + 5;
-            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleCenter);
+            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C' . $contR . ':E' . $contR)->applyFromArray($styleCenter);
 
-            $objPHPExcel->setActiveSheetIndex(0)->mergeCells('A'.$contR.':A'.$contRFim)->getStyle('A'.$contR.':A'.$contR)->applyFromArray($styleCenterVertic);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A'. $contR,$row['desc']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Quantidade de Registros');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, $row['V_quantidade']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, $row['C_quantidade']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, $row['V_quantidade'] - $row['C_quantidade']);          
+            $objPHPExcel->setActiveSheetIndex(0)->mergeCells('A' . $contR . ':A' . $contRFim)->getStyle('A' . $contR . ':A' . $contR)->applyFromArray($styleCenterVertic);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A' . $contR, $row['desc']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B' . $contR, 'Quantidade de Registros');
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C' . $contR, $row['V_quantidade']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D' . $contR, $row['C_quantidade']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E' . $contR, $row['V_quantidade'] - $row['C_quantidade']);
             $contR++;
 
-            
-            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Prêmio Bruto');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_PB'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['C_PB'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_PB'] - $row['C_PB'], true));
+
+            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C' . $contR . ':E' . $contR)->applyFromArray($styleRight);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B' . $contR, 'Prêmio Bruto');
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C' . $contR, app_format_currency($row['V_PB'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D' . $contR, app_format_currency($row['C_PB'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E' . $contR, app_format_currency($row['V_PB'] - $row['C_PB'], true));
             $contR++;
 
-            
-            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'IOF');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_IOF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['C_IOF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_IOF'] - $row['C_IOF'], true));
-            $contR++;
-            
-            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Prêmio Líquido');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_PL'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['C_PL'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_PL'] - $row['C_PL'], true));
+
+            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C' . $contR . ':E' . $contR)->applyFromArray($styleRight);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B' . $contR, 'IOF');
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C' . $contR, app_format_currency($row['V_IOF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D' . $contR, app_format_currency($row['C_IOF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E' . $contR, app_format_currency($row['V_IOF'] - $row['C_IOF'], true));
             $contR++;
 
-            
-            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Comissão Representante');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_pro_labore'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['C_pro_labore'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_pro_labore'] - $row['C_pro_labore'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C' . $contR . ':E' . $contR)->applyFromArray($styleRight);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B' . $contR, 'Prêmio Líquido');
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C' . $contR, app_format_currency($row['V_PL'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D' . $contR, app_format_currency($row['C_PL'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E' . $contR, app_format_currency($row['V_PL'] - $row['C_PL'], true));
             $contR++;
 
-            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Comissão de Corretagem');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_valor_comissao'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['C_valor_comissao'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_valor_comissao'] - $row['C_valor_comissao'], true));
+
+            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C' . $contR . ':E' . $contR)->applyFromArray($styleRight);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B' . $contR, 'Comissão Representante');
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C' . $contR, app_format_currency($row['V_pro_labore'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D' . $contR, app_format_currency($row['C_pro_labore'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E' . $contR, app_format_currency($row['V_pro_labore'] - $row['C_pro_labore'], true));
+            $contR++;
+
+            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C' . $contR . ':E' . $contR)->applyFromArray($styleRight);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B' . $contR, 'Comissão de Corretagem');
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C' . $contR, app_format_currency($row['V_valor_comissao'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D' . $contR, app_format_currency($row['C_valor_comissao'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E' . $contR, app_format_currency($row['V_valor_comissao'] - $row['C_valor_comissao'], true));
             $contR++;
         }
 
@@ -1392,20 +1398,21 @@ class Relatorios extends Admin_Controller
         // If you're serving to IE 9, then the following may be needed
         header('Cache-Control: max-age=1');
         // If you're serving to IE over SSL, then the following may be needed
-        header ('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-        header ('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT'); // always modified
-        header ('Cache-Control: cache, must-revalidate'); // HTTP/1.1
-        header ('Pragma: public'); // HTTP/1.0
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+        header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+        header('Pragma: public'); // HTTP/1.0
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
         $objWriter->save('php://output');
         exit;
     }
 
-    public function _exportExcelMapaRepasse($columns, $rows = []) {
+    public function _exportExcelMapaRepasse($columns, $rows = [])
+    {
         $this->load->library('Excel');
         $objPHPExcel = new PHPExcel();
 
-        $letters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+        $letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
         $contC = 0;
         $contR = 1;
 
@@ -1426,27 +1433,27 @@ class Relatorios extends Admin_Controller
         );
         $objPHPExcel->getDefaultStyle()->getFont()->setName('Arial')->setSize(10);
         $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:K2')->applyFromArray($styleCenter);
-        
+
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A1', '');
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B1', '');
         $objPHPExcel->setActiveSheetIndex(0)->mergeCells('C1:E1');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C1','VENDAS');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C1', 'VENDAS');
         $objPHPExcel->setActiveSheetIndex(0)->mergeCells('F1:H1');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F1','CANCELAMENTOS');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F1', 'CANCELAMENTOS');
         $objPHPExcel->setActiveSheetIndex(0)->mergeCells('I1:K1');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I1','TOTAL');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I1', 'TOTAL');
 
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A2', '');
         $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B2', '');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C2','Roubo ou Furto');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D2','Quebra Acidental');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E2','TOTAL');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F2','Roubo ou Furto');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G2','Quebra Acidental');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H2','TOTAL');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I2','Roubo ou Furto');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J2','Quebra Acidental');
-        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K2','TOTAL');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C2', 'Roubo ou Furto');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D2', 'Quebra Acidental');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E2', 'TOTAL');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F2', 'Roubo ou Furto');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G2', 'Quebra Acidental');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H2', 'TOTAL');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I2', 'Roubo ou Furto');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J2', 'Quebra Acidental');
+        $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K2', 'TOTAL');
 
         $objPHPExcel->setActiveSheetIndex(0)->getStyle('A1:K1')->applyFromArray(
             array(
@@ -1461,92 +1468,92 @@ class Relatorios extends Admin_Controller
         // Cria as Linhas
         foreach ($rows as $row) {
             $contRFim = $contR + 5;
-            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':H'.$contR)->applyFromArray($styleCenter);
+            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C' . $contR . ':H' . $contR)->applyFromArray($styleCenter);
 
-            $objPHPExcel->setActiveSheetIndex(0)->mergeCells('A'.$contR.':A'.$contRFim)->getStyle('A'.$contR.':A'.$contR)->applyFromArray($styleCenterVertic);
-            $objPHPExcel->getActiveSheet()->getStyle('A'.$contR)->getAlignment()->setTextRotation(90);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A'. $contR,$row['desc']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Quantidade de Registros');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, $row['V_quantidade_RF']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, $row['V_quantidade_QA']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, $row['V_quantidade_RF'] + $row['V_quantidade_QA']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F'. $contR, $row['C_quantidade_RF']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G'. $contR, $row['C_quantidade_QA']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H'. $contR, $row['C_quantidade_RF'] + $row['C_quantidade_QA']);
+            $objPHPExcel->setActiveSheetIndex(0)->mergeCells('A' . $contR . ':A' . $contRFim)->getStyle('A' . $contR . ':A' . $contR)->applyFromArray($styleCenterVertic);
+            $objPHPExcel->getActiveSheet()->getStyle('A' . $contR)->getAlignment()->setTextRotation(90);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('A' . $contR, $row['desc']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B' . $contR, 'Quantidade de Registros');
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C' . $contR, $row['V_quantidade_RF']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D' . $contR, $row['V_quantidade_QA']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E' . $contR, $row['V_quantidade_RF'] + $row['V_quantidade_QA']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F' . $contR, $row['C_quantidade_RF']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G' . $contR, $row['C_quantidade_QA']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H' . $contR, $row['C_quantidade_RF'] + $row['C_quantidade_QA']);
 
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I'. $contR, $row['V_quantidade_RF'] + $row['C_quantidade_RF']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J'. $contR, $row['V_quantidade_QA'] + $row['C_quantidade_QA']);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K'. $contR, $row['V_quantidade_RF'] + $row['C_quantidade_RF'] + $row['V_quantidade_QA'] + $row['C_quantidade_QA']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I' . $contR, $row['V_quantidade_RF'] + $row['C_quantidade_RF']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J' . $contR, $row['V_quantidade_QA'] + $row['C_quantidade_QA']);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K' . $contR, $row['V_quantidade_RF'] + $row['C_quantidade_RF'] + $row['V_quantidade_QA'] + $row['C_quantidade_QA']);
             $contR++;
 
-            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Prêmio Bruto');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_PB_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['V_PB_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_PB_RF'] + $row['V_PB_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F'. $contR, app_format_currency($row['C_PB_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G'. $contR, app_format_currency($row['C_PB_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H'. $contR, app_format_currency($row['C_PB_RF'] + $row['C_PB_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C' . $contR . ':E' . $contR)->applyFromArray($styleRight);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B' . $contR, 'Prêmio Bruto');
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C' . $contR, app_format_currency($row['V_PB_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D' . $contR, app_format_currency($row['V_PB_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E' . $contR, app_format_currency($row['V_PB_RF'] + $row['V_PB_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F' . $contR, app_format_currency($row['C_PB_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G' . $contR, app_format_currency($row['C_PB_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H' . $contR, app_format_currency($row['C_PB_RF'] + $row['C_PB_QA'], true));
 
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I'. $contR, app_format_currency($row['V_PB_RF'] + $row['C_PB_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J'. $contR, app_format_currency($row['V_PB_QA'] + $row['C_PB_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K'. $contR, app_format_currency($row['V_PB_RF'] + $row['C_PB_RF'] + $row['V_PB_QA'] + $row['C_PB_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I' . $contR, app_format_currency($row['V_PB_RF'] + $row['C_PB_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J' . $contR, app_format_currency($row['V_PB_QA'] + $row['C_PB_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K' . $contR, app_format_currency($row['V_PB_RF'] + $row['C_PB_RF'] + $row['V_PB_QA'] + $row['C_PB_QA'], true));
             $contR++;
 
-            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'IOF');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_IOF_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['V_IOF_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_IOF_RF'] + $row['V_IOF_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F'. $contR, app_format_currency($row['C_IOF_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G'. $contR, app_format_currency($row['C_IOF_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H'. $contR, app_format_currency($row['C_IOF_RF'] + $row['C_IOF_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C' . $contR . ':E' . $contR)->applyFromArray($styleRight);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B' . $contR, 'IOF');
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C' . $contR, app_format_currency($row['V_IOF_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D' . $contR, app_format_currency($row['V_IOF_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E' . $contR, app_format_currency($row['V_IOF_RF'] + $row['V_IOF_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F' . $contR, app_format_currency($row['C_IOF_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G' . $contR, app_format_currency($row['C_IOF_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H' . $contR, app_format_currency($row['C_IOF_RF'] + $row['C_IOF_QA'], true));
 
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I'. $contR, app_format_currency($row['V_IOF_RF'] + $row['C_IOF_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J'. $contR, app_format_currency($row['V_IOF_QA'] + $row['C_IOF_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K'. $contR, app_format_currency($row['V_IOF_RF'] + $row['C_IOF_RF'] + $row['V_IOF_QA'] + $row['C_IOF_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I' . $contR, app_format_currency($row['V_IOF_RF'] + $row['C_IOF_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J' . $contR, app_format_currency($row['V_IOF_QA'] + $row['C_IOF_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K' . $contR, app_format_currency($row['V_IOF_RF'] + $row['C_IOF_RF'] + $row['V_IOF_QA'] + $row['C_IOF_QA'], true));
             $contR++;
 
-            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Prêmio Líquido');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_PL_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['V_PL_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_PL_RF'] + $row['V_PL_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F'. $contR, app_format_currency($row['C_PL_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G'. $contR, app_format_currency($row['C_PL_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H'. $contR, app_format_currency($row['C_PL_RF'] + $row['C_PL_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C' . $contR . ':E' . $contR)->applyFromArray($styleRight);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B' . $contR, 'Prêmio Líquido');
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C' . $contR, app_format_currency($row['V_PL_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D' . $contR, app_format_currency($row['V_PL_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E' . $contR, app_format_currency($row['V_PL_RF'] + $row['V_PL_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F' . $contR, app_format_currency($row['C_PL_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G' . $contR, app_format_currency($row['C_PL_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H' . $contR, app_format_currency($row['C_PL_RF'] + $row['C_PL_QA'], true));
 
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I'. $contR, app_format_currency($row['V_PL_RF'] + $row['C_PL_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J'. $contR, app_format_currency($row['V_PL_QA'] + $row['C_PL_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K'. $contR, app_format_currency($row['V_PL_RF'] + $row['C_PL_RF'] + $row['V_PL_QA'] + $row['C_PL_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I' . $contR, app_format_currency($row['V_PL_RF'] + $row['C_PL_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J' . $contR, app_format_currency($row['V_PL_QA'] + $row['C_PL_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K' . $contR, app_format_currency($row['V_PL_RF'] + $row['C_PL_RF'] + $row['V_PL_QA'] + $row['C_PL_QA'], true));
             $contR++;
 
-            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Pró-labore LASA');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_pro_labore_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['V_pro_labore_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_pro_labore_RF'] + $row['V_pro_labore_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F'. $contR, app_format_currency($row['C_pro_labore_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G'. $contR, app_format_currency($row['C_pro_labore_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H'. $contR, app_format_currency($row['C_pro_labore_RF'] + $row['C_pro_labore_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C' . $contR . ':E' . $contR)->applyFromArray($styleRight);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B' . $contR, 'Pró-labore LASA');
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C' . $contR, app_format_currency($row['V_pro_labore_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D' . $contR, app_format_currency($row['V_pro_labore_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E' . $contR, app_format_currency($row['V_pro_labore_RF'] + $row['V_pro_labore_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F' . $contR, app_format_currency($row['C_pro_labore_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G' . $contR, app_format_currency($row['C_pro_labore_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H' . $contR, app_format_currency($row['C_pro_labore_RF'] + $row['C_pro_labore_QA'], true));
 
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I'. $contR, app_format_currency($row['V_pro_labore_RF'] + $row['C_pro_labore_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J'. $contR, app_format_currency($row['V_pro_labore_QA'] + $row['C_pro_labore_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K'. $contR, app_format_currency($row['V_pro_labore_RF'] + $row['C_pro_labore_RF'] + $row['V_pro_labore_QA'] + $row['C_pro_labore_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I' . $contR, app_format_currency($row['V_pro_labore_RF'] + $row['C_pro_labore_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J' . $contR, app_format_currency($row['V_pro_labore_QA'] + $row['C_pro_labore_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K' . $contR, app_format_currency($row['V_pro_labore_RF'] + $row['C_pro_labore_RF'] + $row['V_pro_labore_QA'] + $row['C_pro_labore_QA'], true));
             $contR++;
 
-            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C'.$contR.':E'.$contR)->applyFromArray($styleRight);
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B'. $contR, 'Comissão de Corretagem');
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C'. $contR, app_format_currency($row['V_valor_comissao_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D'. $contR, app_format_currency($row['V_valor_comissao_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E'. $contR, app_format_currency($row['V_valor_comissao_RF'] + $row['V_valor_comissao_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F'. $contR, app_format_currency($row['C_valor_comissao_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G'. $contR, app_format_currency($row['C_valor_comissao_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H'. $contR, app_format_currency($row['C_valor_comissao_RF'] + $row['C_valor_comissao_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->getStyle('C' . $contR . ':E' . $contR)->applyFromArray($styleRight);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('B' . $contR, 'Comissão de Corretagem');
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('C' . $contR, app_format_currency($row['V_valor_comissao_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('D' . $contR, app_format_currency($row['V_valor_comissao_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('E' . $contR, app_format_currency($row['V_valor_comissao_RF'] + $row['V_valor_comissao_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('F' . $contR, app_format_currency($row['C_valor_comissao_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('G' . $contR, app_format_currency($row['C_valor_comissao_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('H' . $contR, app_format_currency($row['C_valor_comissao_RF'] + $row['C_valor_comissao_QA'], true));
 
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I'. $contR, app_format_currency($row['V_valor_comissao_RF'] + $row['C_valor_comissao_RF'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J'. $contR, app_format_currency($row['V_valor_comissao_QA'] + $row['C_valor_comissao_QA'], true));
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K'. $contR, app_format_currency($row['V_valor_comissao_RF'] + $row['C_valor_comissao_RF'] + $row['V_valor_comissao_QA'] + $row['C_valor_comissao_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('I' . $contR, app_format_currency($row['V_valor_comissao_RF'] + $row['C_valor_comissao_RF'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('J' . $contR, app_format_currency($row['V_valor_comissao_QA'] + $row['C_valor_comissao_QA'], true));
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue('K' . $contR, app_format_currency($row['V_valor_comissao_RF'] + $row['C_valor_comissao_RF'] + $row['V_valor_comissao_QA'] + $row['C_valor_comissao_QA'], true));
             $contR++;
         }
 
@@ -1557,16 +1564,17 @@ class Relatorios extends Admin_Controller
         // If you're serving to IE 9, then the following may be needed
         header('Cache-Control: max-age=1');
         // If you're serving to IE over SSL, then the following may be needed
-        header ('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-        header ('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT'); // always modified
-        header ('Cache-Control: cache, must-revalidate'); // HTTP/1.1
-        header ('Pragma: public'); // HTTP/1.0
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+        header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+        header('Pragma: public'); // HTTP/1.0
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
         $objWriter->save('php://output');
         exit;
     }
 
-    private function loadLibraries() {
+    private function loadLibraries()
+    {
         //Carrega React e Orb (relatórios)
         $this->template->js(app_assets_url("core/js/react.js", "admin"));
         $this->template->js(app_assets_url("core/js/orb.min.js", "admin"));
@@ -1593,21 +1601,20 @@ class Relatorios extends Admin_Controller
         ];
 
         $resultado['planos'] = $this->produto_parceiro_plano
-                ->wtih_plano_habilitado($parceiro_id)
-                ->order_by('nome')
-                ->get_many_by(array('produto_parceiro_id' => $produto_parceiro_id));
+            ->wtih_plano_habilitado($parceiro_id)
+            ->order_by('nome')
+            ->get_many_by(array('produto_parceiro_id' => $produto_parceiro_id));
 
         $resultado['grupos'] = $this->produto_parceiro_cliente_status
-                ->filter_by_produto_parceiro($produto_parceiro_id)
-                ->order_by('descricao_grupo, descricao')
-                ->get_all();
+            ->filter_by_produto_parceiro($produto_parceiro_id)
+            ->order_by('descricao_grupo, descricao')
+            ->get_all();
 
-        for ($i = 0; $i <= $qtdeDias; $i++)
-        {
-            $strtotime = strtotime(app_dateonly_mask_to_mysql($data_inicio). ' + '. $i .' days');
+        for ($i = 0; $i <= $qtdeDias; $i++) {
+            $strtotime = strtotime(app_dateonly_mask_to_mysql($data_inicio) . ' + ' . $i . ' days');
             $dia = date('d/m/Y', $strtotime);
             $dia_format = date('Ymd', $strtotime);
-            $resultado['dias'][] = [ 'dia'=> $dia, 'dia_format' => $dia_format ];
+            $resultado['dias'][] = ['dia' => $dia, 'dia_format' => $dia_format];
 
             // inicia os contadores das vendas diarias por plano
             foreach ($resultado['planos'] as $key => $value) {
@@ -1631,28 +1638,24 @@ class Relatorios extends Admin_Controller
         $resultado['mailing'] = $this->pedido->getRelatorioVendaDireta($data_inicio, $data_fim, $produto_parceiro_id);
         $resultado['vendas'] = $this->pedido->extrairRelatorioVendasDiario($data_inicio, $data_fim, $produto_parceiro_id);
 
-        if ( !empty($resultado['mailing']) )
-        {
+        if (!empty($resultado['mailing'])) {
             $totalGroup = 0;
-            foreach ($resultado['mailing'] as $mailing)
-            {
+            foreach ($resultado['mailing'] as $mailing) {
 
                 $resultado['data']['mailing'][$mailing['produto_parceiro_cliente_status_id']][$mailing['data_format']] += $mailing['qtde'];
 
-                $indexGroup = app_search( $resultado['grupos'], $mailing['produto_parceiro_cliente_status_id'], 'produto_parceiro_cliente_status_id' );
-                if ($indexGroup >= 0)
-                {
+                $indexGroup = app_search($resultado['grupos'], $mailing['produto_parceiro_cliente_status_id'], 'produto_parceiro_cliente_status_id');
+                if ($indexGroup >= 0) {
                     $resultado['grupos'][$indexGroup]['qtde'] += $mailing['qtde'];
                     $resultado['grupos_totais'][$mailing['cliente_evolucao_status_grupo_id']]['valor'] += $mailing['qtde'];
 
-                    if ( !isset($resultado['grupos_totais'][$mailing['cliente_evolucao_status_grupo_id']][$mailing['data_format']]) )
-                    {
+                    if (!isset($resultado['grupos_totais'][$mailing['cliente_evolucao_status_grupo_id']][$mailing['data_format']])) {
                         $resultado['grupos_totais'][$mailing['cliente_evolucao_status_grupo_id']][$mailing['data_format']] = 0;
                     }
 
                     //Total por dia
                     $resultado['grupos_totais'][$mailing['cliente_evolucao_status_grupo_id']][$mailing['data_format']] += $mailing['qtde'];
-                    
+
                     $totalGroup += $mailing['qtde'];
                 }
 
@@ -1663,40 +1666,32 @@ class Relatorios extends Admin_Controller
             // {
             //     $resultado['data']['mailing'][$mailing['produto_parceiro_cliente_status_id']]['valor'] += $mailing['qtde'];
             // }
-            
-            foreach ($resultado['grupos_totais'] as $key => $value)
-            {
+
+            foreach ($resultado['grupos_totais'] as $key => $value) {
                 $resultado['grupos_totais'][$key]['percentual'] = $value['valor'] / $totalGroup * 100;
             }
 
             //Calcula o percentual de cada linha de um grupo
-            foreach ($resultado['grupos'] as $key => $value)
-            {
-                foreach ($resultado['grupos_totais'] as $key2 => $value)    
-                {
-                    if ($resultado['grupos'][$key]['cliente_evolucao_status_grupo_id'] == $resultado['grupos_totais'][$key2]['cliente_evolucao_status_grupo_id'])
-                    {
-                      $resultado['grupos'][$key]['percentual'] = $resultado['grupos'][$key]['qtde']/$resultado['grupos_totais'][$key2]['valor'] *100;  
-                    }       
+            foreach ($resultado['grupos'] as $key => $value) {
+                foreach ($resultado['grupos_totais'] as $key2 => $value) {
+                    if ($resultado['grupos'][$key]['cliente_evolucao_status_grupo_id'] == $resultado['grupos_totais'][$key2]['cliente_evolucao_status_grupo_id']) {
+                        $resultado['grupos'][$key]['percentual'] = $resultado['grupos'][$key]['qtde'] / $resultado['grupos_totais'][$key2]['valor'] * 100;
+                    }
                 }
-            }  
+            }
         }
 
-        if ( !empty($resultado['vendas']) )
-        {
+        if (!empty($resultado['vendas'])) {
             $totalPlan = 0;
-            foreach ($resultado['vendas'] as $venda)
-            {
-                if ( !isset($resultado['vendas']['totais_dia'][$venda['data_format']]) )
-                {
+            foreach ($resultado['vendas'] as $venda) {
+                if (!isset($resultado['vendas']['totais_dia'][$venda['data_format']])) {
                     $resultado['vendas']['totais_dia'][$venda['data_format']] = 0;
                 }
 
                 $resultado['vendas']['totais_dia'][$venda['data_format']] += $venda['qtde'];
                 $resultado['data']['vendas'][$venda['produto_parceiro_plano_id']][$venda['data_format']] += $venda['qtde'];
-                $indexPlan = app_search( $resultado['planos'], $venda['produto_parceiro_plano_id'], 'produto_parceiro_plano_id' );
-                if ($indexPlan >= 0)
-                {
+                $indexPlan = app_search($resultado['planos'], $venda['produto_parceiro_plano_id'], 'produto_parceiro_plano_id');
+                if ($indexPlan >= 0) {
                     $resultado['planos'][$indexPlan]['qtde'] += $venda['qtde'];
                 }
                 $totalPlan += $venda['qtde'];
@@ -1704,8 +1699,7 @@ class Relatorios extends Admin_Controller
 
             $resultado['vendas']['total_venda'] = $totalPlan;
 
-            foreach ($resultado['planos'] as $key => $value)
-            {
+            foreach ($resultado['planos'] as $key => $value) {
                 $resultado['planos'][$key]['percentual'] = $resultado['planos'][$key]['qtde'] / $totalPlan * 100;
             }
         }
@@ -1722,7 +1716,7 @@ class Relatorios extends Admin_Controller
 
         //Dados para template
         $data = array();
-        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_inicio'] = date("d/m/Y", strtotime("-1 month"));
         $data['data_fim'] = date("d/m/Y");
         $data['title'] = 'Relatório 04 de Vendas';
         $data['columns'] = [
@@ -1747,24 +1741,21 @@ class Relatorios extends Admin_Controller
             $data['data_inicio'] = $this->input->get_post('data_inicio');
             $data['data_fim'] = $this->input->get_post('data_fim');
 
-            if ( empty($_POST['produto_parceiro_id']) )
-            {
+            if (empty($_POST['produto_parceiro_id'])) {
                 $this->session->set_flashdata('fail_msg', 'Informe o Produto.');
                 redirect("$this->controller_uri/vendaDireta");
             }
 
-            if ( empty($data['data_inicio']) )
-            {
+            if (empty($data['data_inicio'])) {
                 $this->session->set_flashdata('fail_msg', 'Informe a Data Inicial.');
                 redirect("$this->controller_uri/vendaDireta");
             }
 
-            if ( empty($data['data_fim']) )
-            {
+            if (empty($data['data_fim'])) {
                 $this->session->set_flashdata('fail_msg', 'Informe a Data Final.');
                 redirect("$this->controller_uri/vendaDireta");
             }
-            
+
             $produto_parceiro_id = $_POST['produto_parceiro_id'];
             $result = $this->getRelatorioVendaDireta($parceiro_id, $produto_parceiro_id, $data['data_inicio'], $data['data_fim']);
             // print_pre($result);
@@ -1782,19 +1773,17 @@ class Relatorios extends Admin_Controller
                 foreach ($data['result']['grupos_totais'] as $row) {
                     $rows[] = [
                         //app_date_mysql_to_mask($row['status_data'], 'd/m/Y'), 
-                        $row['valor'], 
-                        $row['percentual'], 
-                        $row['cliente_evolucao_status_grupo_id'], 
+                        $row['valor'],
+                        $row['percentual'],
+                        $row['cliente_evolucao_status_grupo_id'],
                         //app_format_currency($row['nota_fiscal_valor'], true), 
                         //app_format_currency($row['premio_liquido_total'], true), 
-                         
+
                     ];
-                
                 }
-                
+
                 $this->exportExcel($data['columns'], $data['result']);
             }
-
         }
 
         //Carrega template
