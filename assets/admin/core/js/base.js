@@ -37,6 +37,9 @@ $(function(){
         language: 'pt-BR'
     });
 
+    // Datas que não podem ser futuras
+    $('.datepicker.notfuture').datepicker('setEndDate', new Date());
+
     function setFieldInvalid(){
         var validator = $('#validateSubmitForm').validate();
         validator.showErrors({
