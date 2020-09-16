@@ -214,8 +214,9 @@ class Admin_Controller extends MY_Controller
 
         //Retorna cotação
         $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
-        //error_log("Produto: " . print_r($cotacao['produto_slug'], true) . "\n", 3, "/var/log/httpd/myapp.log");
-        switch ($cotacao['produto_slug']) {
+
+        switch ($cotacao['produto_slug'])
+        {
             case "seguro_viagem":
                 $valor_total = $this->cotacao_seguro_viagem->getValorTotal($cotacao_id);
                 break;
@@ -228,9 +229,7 @@ class Admin_Controller extends MY_Controller
             case "seguro_saude":
                 $valor_total = $this->cotacao_generico->getValorTotal($cotacao_id);
                 break;
-
         } 
-        //error_log("Valor Total: " . print_r($valor_total, true) . "\n", 3, "/var/log/httpd/myapp.log");
 
         //formas de pagamento
         $forma_pagamento = array();
@@ -449,33 +448,10 @@ class Admin_Controller extends MY_Controller
 
             $this->cotacao->setValidate($validacao);
 
-            if ($this->cotacao->validate_form('pagamento')) {
+            if ($this->cotacao->validate_form('pagamento'))
+            {
+                $this->finishedPedido($pedido_id, $tipo_forma_pagamento_id, $_POST, $cotacao);
 
-                if ($pedido_id == 0) {
-                    $pedido_id = $this->pedido->insertPedido($_POST);
-                } else {
-                    $this->pedido->updatePedido($pedido_id, $_POST);
-                    $this->pedido->insDadosPagamento($_POST, $pedido_id);
-                }
-
-                if(isset($_POST["email"])){
-                    $this->cotacao_equipamento->updateEmailByCotacaoId($cotacao_id, $_POST["email"]);
-                    $aClienteContato = $this->cliente_contato->with_contato()->get_by_cliente($cotacao["cliente_id"]);
-                    foreach($aClienteContato as $clienteContato){
-                        if($clienteContato["contato"] == $cotacao["email"]){
-                            $clienteContato["contato"] = $_POST["email"];
-                            $this->cliente_contato->update_contato($clienteContato);
-                            break;
-                        }    
-                    }        
-                }
-                
-                //Se for faturamento, muda status para aguardando faturamento
-                if ($pedido_id && ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO || $tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_TERCEIROS)) {
-                    $status = $this->pedido->mudaStatus($pedido_id, ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO) ? "aguardando_faturamento" : "pagamento_confirmado");
-
-                    $this->apolice->insertApolice($pedido_id);
-                }
                 switch ($this->input->post('forma_pagamento_tipo_id')) {
                     case self::FORMA_PAGAMENTO_CARTAO_CREDITO:
                     case self::FORMA_PAGAMENTO_CARTAO_DEBITO:
@@ -586,6 +562,7 @@ class Admin_Controller extends MY_Controller
                 foreach ($pedidos as $index => $pedido) {
                     $valor_total += $pedido['valor_total'];
                     $produtos_nome .= $virg.$pedido['nome'];
+                    $pedidos[$index]['cotacao'] = $this->cotacao->get_cotacao_produto($pedido['cotacao_id']);
                     $virg = ', ';
                 }
 
@@ -600,7 +577,7 @@ class Admin_Controller extends MY_Controller
                 $produto_parceiro_id = $pedidos[0]['produto_parceiro_id'];
                 $cotacao_id = $pedidos[0]['cotacao_id'];
                 $pedido_id = $pedidos[0]['pedido_id'];
-                $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
+                $cotacao = $pedidos[0]['cotacao'];
 
                 //formas de pagamento
                 $forma_pagamento = array();
@@ -819,23 +796,17 @@ class Admin_Controller extends MY_Controller
 
                     $this->cotacao->setValidate($validacao);
 
-                    if ($this->cotacao->validate_form('pagamento')) {
-
-                        foreach ($pedidos as $index => $pedido) {
+                    if ($this->cotacao->validate_form('pagamento'))
+                    {
+                        foreach ($pedidos as $index => $pedido)
+                        {
                             $dados               = $_POST;
                             $dados['cotacao_id'] = $pedido['cotacao_id'];
-                            $this->pedido->updatePedido($pedido['pedido_id'], $dados);
-                            $this->pedido->insDadosPagamento($dados, $pedido['pedido_id']);
+                            $this->finishedPedido($pedido['pedido_id'], $tipo_forma_pagamento_id, $dados, $pedido['cotacao']);
                         }
 
                         $this->session->set_userdata("pedido_carrinho", $pedidos);
 
-                        //Se for faturamento, muda status para aguardando faturamento
-                        if ($pedido_id && ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO || $tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_TERCEIROS)) {
-                            $status = $this->pedido->mudaStatus($pedido_id, ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO) ? "aguardando_faturamento" : "pagamento_confirmado");
-
-                            $this->apolice->insertApolice($pedido_id);
-                        }
                         switch ($this->input->post('forma_pagamento_tipo_id')) {
                             case self::FORMA_PAGAMENTO_CARTAO_CREDITO:
                             case self::FORMA_PAGAMENTO_CARTAO_DEBITO:
@@ -1085,4 +1056,56 @@ class Admin_Controller extends MY_Controller
 
         return $data;
     }
+
+    public function finishedPedido($pedido_id, $tipo_forma_pagamento_id, $dados, $cotacao)
+    {
+        $this->load->model('pedido_model', 'pedido');
+        $this->load->model('apolice_model', 'apolice');
+        $this->load->model('cotacao_model', 'cotacao');
+        $this->load->model('cotacao_generico_model', 'cotacao_generico');
+        $this->load->model('cotacao_seguro_viagem_model', 'cotacao_seguro_viagem');
+        $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento');
+        $this->load->model('cliente_contato_model', 'cliente_contato');
+
+        if ($pedido_id == 0) {
+            $pedido_id = $this->pedido->insertPedido($dados);
+        } else {
+            $this->pedido->updatePedido($pedido_id, $dados);
+            $this->pedido->insDadosPagamento($dados, $pedido_id);
+        }
+
+        switch ($cotacao['produto_slug']) {
+            case "seguro_viagem":
+                $cot_aux = $this->cotacao_seguro_viagem;
+                break;
+            case "equipamento":
+                $cot_aux = $this->cotacao_equipamento;
+                break;
+            case "generico":
+            case "seguro_saude":
+                $cot_aux = $this->cotacao_generico;
+                break;
+        }
+
+        if(isset($dados["email"]))
+        {
+            $cot_aux->updateEmailByCotacaoId($cotacao['cotacao_id'], $dados["email"]);
+            $aClienteContato = $this->cliente_contato->with_contato()->get_by_cliente($cotacao["cliente_id"]);
+            foreach($aClienteContato as $clienteContato){
+                if($clienteContato["contato"] == $cotacao["email"]){
+                    $clienteContato["contato"] = $dados["email"];
+                    $this->cliente_contato->update_contato($clienteContato);
+                    break;
+                }
+            }
+        }
+        
+        //Se for faturamento, muda status para aguardando faturamento
+        if ($pedido_id && ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO || $tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_TERCEIROS)) {
+            $status = $this->pedido->mudaStatus($pedido_id, ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO) ? "aguardando_faturamento" : "pagamento_confirmado");
+
+            $this->apolice->insertApolice($pedido_id);
+        }
+    }
+
 }

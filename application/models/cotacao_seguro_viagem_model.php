@@ -455,10 +455,14 @@ Class Cotacao_Seguro_Viagem_Model extends MY_Model
         return $valor;
     }
 
-
     function get_by_id($id)
     {
         return $this->get_by($this->primary_key, $id);
+    }
+
+    public function updateEmailByCotacaoId($cotacaoId, $email){
+        $SQL = "UPDATE {$this->_table} SET email = '$email' WHERE cotacao_id = $cotacaoId";
+        $this->_database->query($SQL);
     }
 }
 

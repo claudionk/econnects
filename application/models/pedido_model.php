@@ -2777,7 +2777,6 @@ Class Pedido_Model extends MY_Model
                 break;
         }
 
-
         $item['juros_parcela'] = (isset($item['juros_parcela'])) ? $item['juros_parcela'] : 0;
         $item['parcelamento_maximo'] = (isset($item['parcelamento_maximo'])) ? $item['parcelamento_maximo'] : 1;
         $item['parcelamento_maximo_sem_juros'] = (isset($item['parcelamento_maximo_sem_juros'])) ? $item['parcelamento_maximo_sem_juros'] : 1;
@@ -2816,7 +2815,6 @@ Class Pedido_Model extends MY_Model
         $dados_pedido['valor_parcela'], $cotacao['produto_parceiro_id']);
 
         return $pedido_id;
-
     }
 
     public function insDadosPagamento($dados, $pedido_id){
