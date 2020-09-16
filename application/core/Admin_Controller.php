@@ -450,7 +450,7 @@ class Admin_Controller extends MY_Controller
 
             if ($this->cotacao->validate_form('pagamento'))
             {
-                $this->finishedPedido($pedido_id, $tipo_forma_pagamento_id, $_POST, $cotacao);
+                $pedido_id = $this->finishedPedido($pedido_id, $tipo_forma_pagamento_id, $_POST, $cotacao);
 
                 switch ($this->input->post('forma_pagamento_tipo_id')) {
                     case self::FORMA_PAGAMENTO_CARTAO_CREDITO:
@@ -1106,6 +1106,8 @@ class Admin_Controller extends MY_Controller
 
             $this->apolice->insertApolice($pedido_id);
         }
+
+        return $pedido_id;
     }
 
 }
