@@ -199,6 +199,7 @@ class Admin_Controller extends MY_Controller
         $this->load->model('forma_pagamento_bandeira_model', 'forma_pagamento_bandeira');
         $this->load->model('forma_pagamento_model', 'forma_pagamento');
         $this->load->model('produto_parceiro_pagamento_model', 'produto_pagamento');
+        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('cliente_contato_model', 'cliente_contato');
@@ -482,6 +483,17 @@ class Admin_Controller extends MY_Controller
             $view = "admin/venda/equipamento/front/steps/step-three-pagamento";
         }
 
+        $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao["produto_parceiro_plano_id"]);        
+        $data['pedidos'] = array(
+            array(
+                "codigo" => $cotacao["codigo"],
+                "nome" => $data["produtos_nome"],
+                "valor_total" => $data["valor_total"],
+                "inicio_vigencia" => $vigencia["inicio_vigencia"],
+                "fim_vigencia" => $vigencia["fim_vigencia"],
+            )
+        );
+
         $this->template->load("admin/layouts/{$this->layout}", $view, $data);
     }
 
@@ -517,6 +529,7 @@ class Admin_Controller extends MY_Controller
         $this->load->model('forma_pagamento_tipo_model', 'forma_pagamento_tipo');
         $this->load->model('forma_pagamento_model', 'forma_pagamento');
         $this->load->model('produto_parceiro_pagamento_model', 'produto_pagamento');
+        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
         $this->load->model('forma_pagamento_bandeira_model', 'forma_pagamento_bandeira');
         $this->load->model('pedido_model', 'pedido');
@@ -562,7 +575,14 @@ class Admin_Controller extends MY_Controller
                 foreach ($pedidos as $index => $pedido) {
                     $valor_total += $pedido['valor_total'];
                     $produtos_nome .= $virg.$pedido['nome'];
-                    $pedidos[$index]['cotacao'] = $this->cotacao->get_cotacao_produto($pedido['cotacao_id']);
+
+                    $_cotacao = $this->cotacao->get_cotacao_produto($pedido['cotacao_id']);
+
+                    $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($_cotacao["produto_parceiro_plano_id"]);        
+
+                    $pedidos[$index]['cotacao'] = $_cotacao;                    
+                    $pedidos[$index]["inicio_vigencia"] = $vigencia["inicio_vigencia"];
+                    $pedidos[$index]["fim_vigencia"] = $vigencia["fim_vigencia"];
                     $virg = ', ';
                 }
 
@@ -945,6 +965,7 @@ class Admin_Controller extends MY_Controller
             base_url("admin/gateway/consulta"),
             base_url("admin/venda/pagamento_carrinho"),
             base_url("admin/pedido/cancelamento_link"),
+            base_url("admin/venda/termo"),
         );
     }
 

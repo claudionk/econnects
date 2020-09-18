@@ -2987,6 +2987,17 @@ Array
     echo $response->getJSON();
   }
 
+  public function termo($produto_parceiro_id, $export = ''){
+    
+    $this->load->model('apolice_model', 'apolice');
+
+    $result = $this->apolice->termo(null, $export, $produto_parceiro_id);
+    if($result !== FALSE){
+        exit($result);
+    }
+
+  }
+
 }
 
 

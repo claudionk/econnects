@@ -52,7 +52,12 @@ else: ?>
                         <div style="margin:5%">
                             <p><strong>TERMO DE AUTORIZAÇÃO DE COBRANÇA DE PRÊMIO DE SEGURO</strong></p>
                             <div style="">
-                                <span>Eu, <?php echo $nome; ?>, inscrito no CPF/MF sob o n <?php echo $cpfcnpj; ?>, proponente do(s) seguro(s) <?php echo $nome_seguro; ?>, autorizo que o pagamento do prêmio de seguro no valor de <?php echo $valor; ?> seja realizado em conjunto com o pagamento do(s) <?php echo $produto; ?> ora adquirido(s).
+                                <span>
+                                    Eu, <?php echo $nome; ?>, inscrito no CPF/MF sob o n <?php echo $cpfcnpj; ?>, proponente do(s) seguro(s) <?php echo $nome_seguro; ?>, autorizo que o pagamento do prêmio de seguro no valor de <?php echo $valor; ?> seja realizado em conjunto com o pagamento do(s) <?php echo $produto; ?> ora adquirido(s).
+                                    <hr>
+                                    <small>1) O segurado poderá desistir do seguro contratado no prazo de 7 (sete) dias corridos a contar da assinatura da proposta, no caso de contratação por apólice individual, ou da emissão do bilhete, no caso de contratação por bilhete, ou do efetivo pagamento do prêmio, o que ocorrer por último.</small>
+                                    <hr>
+                                    <small>2) No caso de pagamento de prêmio fracionado, considera-se o pagamento da primeira parcela como o efetivo pagamento.</small>
                                 </span>
                             </div>
                             <!-- <div style=""><span>(LOCAL), (DATA)</span></div>
@@ -100,39 +105,50 @@ else: ?>
             <div id="pagamento_content">
 
                 <?php if ( !empty($pedidos) ) { ?>
-                <div class="row">
-                    <div class="col-md-6">
-                        <table class="table">
-                            <thead>
-                            <tr style="background-color: #fff; color: #555">
-                                <th width="20%">PEDIDO</th>
-                                <th width="40%">PRODUTO</th>
-                                <th width="20%">VALOR</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <?php $valor_total = 0; ?>
-                            <?php foreach ($pedidos as $pedido) : ?>
-                                <tr>
-                                    <td><?php echo $pedido['codigo']; ?></td>
-                                    <td><?php echo $pedido['nome']; ?></td>
-                                    <td><?php  echo app_format_currency($pedido['valor_total'], false, 2 ); ?></td>
-                                </tr>
-                                <?php $valor_total += $pedido['valor_total']; ?>
-
-                            <?php endforeach; ?>
-                            <tr>
-                                <td class="text-right" colspan="2"><strong>TOTAL: </strong></td>
-                                <td><?php  echo app_format_currency($valor_total, false, 2 ); ?></td>
-                            </tr>
-
-                            </tbody>
-                        </table>
+                <hr>
+                <?php $valor_total = 0; ?>
+                <?php foreach ($pedidos as $pedido) : ?>
+                    <?php $valor_total += $pedido['valor_total']; ?>
+                    <div class="col-12" style="margin: 4px; box-shadow: 0px 7px 14px rgba(140, 140, 140, 0.45);">
+                        <div class="col-12" style="background-color: #f0f0f0; padding: 0 4px; border-bottom: 1px solid #ddd;">
+                            <b>Pedido:</b> <?= $pedido["codigo"]; ?>
+                        </div>
+                        <div class="col-xs-10" style="background-color: #f4f4f4; padding: 0 4px; border-bottom: 1px solid #ddd;">
+                            <b>Vigência</b><br>
+                            de <?= date("d/m/Y", strtotime($pedido["inicio_vigencia"])); ?> até <?= date("d/m/Y", strtotime($pedido["fim_vigencia"])); ?>
+                        </div>
+                        <div class="col-xs-2" style="background-color: #f4f4f4; padding: 0 4px; border-bottom: 1px solid #ddd;">
+                            <b>Valor</b><br>
+                            <?= app_format_currency($pedido['valor_total'], false, 2 ); ?>
+                        </div>
+                        <div class="col-12" style="background-color: #fff; padding: 0 4px;">
+                            <?= $pedido["nome"]; ?>
+                        </div>
+                        <div class="col-12" style="background-color: #f4f4f4; padding: 0 4px; border-top: 1px solid #ddd;">
+                        
+                            <small><i>Clique <a class="btn-link" target="_blank" href="<?= base_url("{$current_controller_uri}/termo/{$pedido['produto_parceiro_id']}")?>">aqui</a> para as condições gerais do produto</i></small>
+                        </div>
                     </div>
+                    <hr>
+                <?php endforeach; ?>
+                <div class="col-12 text-center">
+                    TOTAL: <?= app_format_currency($valor_total, false, 2 ); ?>
                 </div>
+                <hr>
                 <?php } ?>
-
-                <div class="col-xs-12 select-forma-pagamento">
+                
+                
+                <div class="col-12 text-center">
+                    </small>As condições contratuais/regulamento deste produto protocolizadas pela sociedade/entidade junto à SUSEP – Superintendência de Seguros Privados – Autarquia Federal responsável pela fiscalização, normatização e controle dos mercados de Seguro, previdência complementar aberta, capitalização, resseguro e corretagem de Seguro poderão ser consultadas no endereço eletrônico www.susep.gov.br, de acordo com o número de processo 15414.900534/2014-57 para garantia estendida e 15414.902260/2013-50 para equipamentos portáteis. O registro deste plano na SUSEP não implica, por parte da Autarquia, incentivo ou recomendação à sua comercialização. O Segurado poderá consultar a situação cadastral do seu corretor de seguros, no site da SUSEP. Central de atendimento ao segurado: SAC: 0800 7740 772 (dúvidas, reclamações, sugestões) - 0800 704 2474 (Atendimento para Deficientes Auditivos), Ouvidoria: 0800 704 7099 (segunda à sexta-feira, das 8h30 às 17h).<small>
+                </div>
+                <hr>
+                <div class="col-xs-12">
+                    <label>
+                        <input type="checkbox" id="check_condicoes" /> Li e Concordo com as condições gerais
+                    </label>
+                </div>
+                <hr>
+                <div id="select-forma-pagamento" class="col-xs-12 select-forma-pagamento" style="display:none;">
                     <div class="form-group">
                         <label for="forma_pagamento" class="control-label"> Forma de pagamento </label>
                         <div class="label">
@@ -196,6 +212,13 @@ else: ?>
             $('#step-title').text($('#step-title-original').val());
         }
     }
+
+    function checkCondicoes(){
+        if ($("#check_condicoes:checked").length) {
+            $('#select-forma-pagamento').show();
+        }
+    }
+
     $('document').ready(function() {
         $('#step-title').text('TERMO / ' + $('#step-title').text());
 
@@ -206,6 +229,10 @@ else: ?>
         $('#check_termo').on('click', function() {
             checkTerm();
         })
+
+        $('#check_condicoes').on("click", function(){
+            checkCondicoes();
+        });
 
         $('#term-block-content').on('scroll', function() {
             if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) {

@@ -1604,30 +1604,42 @@ class Apolice_Model extends MY_Model
         return !empty($this->get_all());
     }
 
-    public function termo($apolice_id, $export = "")
+    public function termo($apolice_id, $export = "", $produto_parceiro_id = null)
     {
         $this->load->model('pedido_model', 'pedido');        
         $this->load->model('produto_parceiro_termo_model', 'termo');
 
         $data_template = array();
         $template = '';
-        $apolice = $this->getApolice($apolice_id);
-
-        if (count($apolice) == 0) {
-            $this->session->set_flashdata('fail_msg', 'Apólice não esta liberado'); //Mensagem de sucesso
-            return false;
-        }
-
-        $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
-        $dados = $dados[0];
-        $termo = $this->termo->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
-
-        if ( !empty($termo) )
-        {
-            $termo = $termo[0];
-            if ( !empty($termo['termo']) )
+        if($apolice_id == null){
+            $termo = $this->termo->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
+            if ( !empty($termo) )
             {
-                $template = $this->templates($termo['termo'], $apolice_id, $apolice, $dados);
+                $termo = $termo[0];
+                if ( !empty($termo['termo']) )
+                {
+                    $template = $termo['termo'];
+                }
+            }
+        }else{
+            $apolice = $this->getApolice($apolice_id);
+
+            if (count($apolice) == 0) {
+                $this->session->set_flashdata('fail_msg', 'Apólice não esta liberado'); //Mensagem de sucesso
+                return false;
+            }
+
+            $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
+            $dados = $dados[0];
+            $produtoSlug = $apolice['produto_slug'];
+            $termo = $this->termo->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
+            if ( !empty($termo) )
+            {
+                $termo = $termo[0];
+                if ( !empty($termo['termo']) )
+                {
+                    $template = $this->templates($termo['termo'], $apolice_id, $apolice, $dados);
+                }
             }
         }
 
@@ -1636,7 +1648,7 @@ class Apolice_Model extends MY_Model
             $this->pdf->setPageOrientation('P');
             $this->pdf->AddPage();
 
-            $destino_dir = FCPATH . "assets/files/{{$apolice['produto_slug']}}/termo/";
+            $destino_dir = FCPATH . "assets/files/{{$produtoSlug}}/termo/";
             if (!file_exists($destino_dir)) {
                 mkdir($destino_dir, 0777, true);
             }
@@ -1843,8 +1855,10 @@ class Apolice_Model extends MY_Model
         if(sizeof($aComissaoGerada)){
             $comissaoGerada = $aComissaoGerada[0];
             $data_template["representante_comissao"] = app_format_currency($comissaoGerada["comissao"])."%";
+            $data_template["representante_comissao_valor"] = "R$ ".app_format_currency($comissaoGerada["valor"]);
         }else{
             $data_template["representante_comissao"] = "";
+            $data_template["representante_comissao_valor"] = "";
         }
         
         if ($parceiro["parceiro_tipo_id"] == 1) {

@@ -14,15 +14,7 @@ class anexo extends Admin_Controller {
     }
 
     public function teste($apolice_id){
-        $pedidoSQL = "select * from apolice WHERE apolice_id = $apolice_id";
-        $pedido = $this->db->query($pedidoSQL)->row();
-        $this->model->executa_estorno_cancelamento($pedido->pedido_id);
-        exit();
-        $comunicacao = new Comunicacao();
-        $comunicacao->teste = true;
-        $comunicacao->enviaCronMensagens();
-        exit();
-        
+
     }
 
 }
