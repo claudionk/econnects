@@ -482,15 +482,16 @@ class Admin_Controller extends MY_Controller
         if($this->layout == 'front'){
             $view = "admin/venda/equipamento/front/steps/step-three-pagamento";
         }
-
+        
         $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao["produto_parceiro_plano_id"]);        
         $data['pedidos'] = array(
             array(
                 "codigo" => $cotacao["codigo"],
-                "nome" => $data["produtos_nome"],
+                "nome" => $cotacao["produto_nome"],
                 "valor_total" => $data["valor_total"],
                 "inicio_vigencia" => $vigencia["inicio_vigencia"],
                 "fim_vigencia" => $vigencia["fim_vigencia"],
+                "produto_parceiro_id" => $produto_parceiro_id
             )
         );
 
@@ -966,6 +967,7 @@ class Admin_Controller extends MY_Controller
             base_url("admin/venda/pagamento_carrinho"),
             base_url("admin/pedido/cancelamento_link"),
             base_url("admin/venda/termo"),
+            base_url("admin/venda_equipamento/termo"),
         );
     }
 
@@ -1130,5 +1132,16 @@ class Admin_Controller extends MY_Controller
 
         return $pedido_id;
     }
+
+    public function termo($produto_parceiro_id, $export = ''){
+    
+        $this->load->model('apolice_model', 'apolice');
+    
+        $result = $this->apolice->termo(null, $export, $produto_parceiro_id);
+        if($result !== FALSE){
+            exit($result);
+        }
+    
+      }
 
 }
