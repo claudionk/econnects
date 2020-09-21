@@ -20,7 +20,7 @@
 
     <div class="card-body">
 
-        <p>Selecione uma data inicial e final para resgatar os registros.</p>
+        <p>Selecione uma data inicial e final para resgatsar os registros.</p>
 
         <div class="row">
             <form action="" method="POST">
