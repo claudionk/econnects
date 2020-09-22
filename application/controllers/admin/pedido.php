@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 /**
  * Class Localidade_Países
@@ -8,10 +8,10 @@
  */
 class Pedido extends Admin_Controller
 {
-    public function __construct() 
+    public function __construct()
     {
         parent::__construct();
-        
+
         //Carrega informações da página
         $this->template->set('page_title', "Pedidos");
         $this->template->set_breadcrumb("Pedidos", base_url("$this->controller_uri/index"));
@@ -19,7 +19,7 @@ class Pedido extends Admin_Controller
         //Carrega modelos
         $this->load->model('pedido_model', 'current_model');
     }
-    
+
     public function index($offset = 0) //Função padrão (load)
     {
         $this->load->model("pedido_status_model", "pedido_status");
@@ -27,7 +27,7 @@ class Pedido extends Admin_Controller
 
         //Carrega bibliotecas
         $this->load->library('pagination');
-        
+
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Pedidos");
@@ -38,7 +38,7 @@ class Pedido extends Admin_Controller
         $config['base_url'] = base_url("$this->controller_uri/index");
         $config['uri_segment'] = 4;
         $config['per_page'] = 10;
-        
+
         //Carrega dados para a página
         $data['rows'] = $this->current_model
             ->with_pedido_status()
@@ -68,15 +68,15 @@ class Pedido extends Admin_Controller
 
         $data['primary_key'] = $this->current_model->primary_key();
         $data["pagination_links"] = $this->pagination->create_links();
-        
+
         //Carrega template
-        $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data );
+        $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data);
     }
 
-    public function teste($pedido_id){
+    public function teste($pedido_id)
+    {
 
         $this->current_model->executa_extorno_upgrade($pedido_id);
-
     }
 
     /**
@@ -88,11 +88,9 @@ class Pedido extends Admin_Controller
         $this->load->model("pedido_cartao_model", "pedido_cartao");
 
         //Caso post
-        if($_POST && $id)
-        {
+        if ($_POST && $id) {
             //Valida formulário
-            if($this->pedido_cartao->validate_form())
-            {
+            if ($this->pedido_cartao->validate_form()) {
                 $this->pedido_cartao
                     ->where("pedido_id", "=", $id)
                     ->update_all(array(
@@ -102,13 +100,10 @@ class Pedido extends Admin_Controller
                 //Insere form
                 $update = $this->pedido_cartao->insert_cartao($id, $_POST);
 
-                if($update)
-                {
+                if ($update) {
                     //Caso inserido com sucesso
                     $this->session->set_flashdata('succ_msg', 'Os dados foram salvos corretamente.'); //Mensagem de sucesso
-                }
-                else
-                {
+                } else {
                     //Mensagem de erro
                     $this->session->set_flashdata('fail_msg', 'Não foi possível salvar o Registro.');
                 }
@@ -117,7 +112,6 @@ class Pedido extends Admin_Controller
 
         //Redireciona para index
         redirect("$this->controller_uri/view/{$id}");
-
     }
 
     public function adicionar_dados_bancarios()
@@ -126,23 +120,19 @@ class Pedido extends Admin_Controller
         $this->load->model("pedido_model", "pedido");
 
         //Caso post
-        if($_POST)
-        {
-            if(isset($_POST['cpf_cnpj']))
+        if ($_POST) {
+            if (isset($_POST['cpf_cnpj']))
                 $_POST['cpf_cnpj'] = app_retorna_numeros($_POST['cpf_cnpj']);
 
-            if($_POST['tipofavorecido'] == 'PF')
-            {
-                if(!app_validate_cpf($_POST['cpf_cnpj']))
-                {
+            if ($_POST['tipofavorecido'] == 'PF') {
+                if (!app_validate_cpf($_POST['cpf_cnpj'])) {
                     //Mensagem de erro
                     $this->session->set_flashdata('fail_msg', 'CPF - inválido');
                     redirect("$this->controller_uri/view/{$_POST['pedido_id']}");
                 }
-            } 
-            if($_POST['tipofavorecido'] == 'PJ'){
-                if(!app_validate_cnpj($_POST['cpf_cnpj']))
-                {
+            }
+            if ($_POST['tipofavorecido'] == 'PJ') {
+                if (!app_validate_cnpj($_POST['cpf_cnpj'])) {
                     //Mensagem de erro
                     $this->session->set_flashdata('fail_msg', 'CNPJ - inválido');
                     redirect("$this->controller_uri/view/{$_POST['pedido_id']}");
@@ -150,20 +140,19 @@ class Pedido extends Admin_Controller
             }
 
             //Valida formulário
-            if($this->pedido_dados_bancario->validate_form())
-            {
+            if ($this->pedido_dados_bancario->validate_form()) {
                 // pedido
-                $existe = $this->db->query("select pedido_id from pedido_dados_bancarios where pedido_id = ".$_POST['pedido_id']."")->result();
+                $existe = $this->db->query("select pedido_id from pedido_dados_bancarios where pedido_id = " . $_POST['pedido_id'] . "")->result();
 
 
-                if(count($existe)>0){
+                if (count($existe) > 0) {
                     // Atualiza o campo deletado
-                    $this->db->query("UPDATE pedido_dados_bancarios SET deletado = 1 WHERE pedido_id = ".$_POST['pedido_id']."");
+                    $this->db->query("UPDATE pedido_dados_bancarios SET deletado = 1 WHERE pedido_id = " . $_POST['pedido_id'] . "");
                 }
 
                 // Inserir
-                $sql = "INSERT INTO `pedido_dados_bancarios` (`pedido_id`, `conta_pertence`, `tipo_favorecido`, `tipo_conta`, `nome_favorecido`, `cpf_cnpj`, `banco`,`agencia`,`conta`,`digito`,`deletado` ) VALUES ('".$_POST['pedido_id']."','".$_POST['segurado']."','".$_POST['tipofavorecido']."','".$_POST['tipoconta']."','".$_POST['nome']."','".$_POST['cpf_cnpj']."','".$_POST['banco']."','".$_POST['agencia']."','".$_POST['conta']."','".$_POST['digito']."','0');";
-                if($this->db->query($sql)){
+                $sql = "INSERT INTO `pedido_dados_bancarios` (`pedido_id`, `conta_pertence`, `tipo_favorecido`, `tipo_conta`, `nome_favorecido`, `cpf_cnpj`, `banco`,`agencia`,`conta`,`digito`,`deletado` ) VALUES ('" . $_POST['pedido_id'] . "','" . $_POST['segurado'] . "','" . $_POST['tipofavorecido'] . "','" . $_POST['tipoconta'] . "','" . $_POST['nome'] . "','" . $_POST['cpf_cnpj'] . "','" . $_POST['banco'] . "','" . $_POST['agencia'] . "','" . $_POST['conta'] . "','" . $_POST['digito'] . "','0');";
+                if ($this->db->query($sql)) {
 
                     $arrApolice = [];
                     $arrApolice['conta_terceiro'] = $_POST['segurado'];
@@ -175,36 +164,29 @@ class Pedido extends Admin_Controller
                     $arrApolice['favo_bco_cc']    = $_POST['conta'];
                     $arrApolice['favo_bco_cc_dg'] = $_POST['digito'];
 
-                    $produto_parceiro_cancelamento = $this->pedido->cancelamento( $_POST['pedido_id'], $arrApolice);
+                    $produto_parceiro_cancelamento = $this->pedido->cancelamento($_POST['pedido_id'], $arrApolice);
 
-                    if( isset( $produto_parceiro_cancelamento["result"] ) && $produto_parceiro_cancelamento["result"] == false ) {
+                    if (isset($produto_parceiro_cancelamento["result"]) && $produto_parceiro_cancelamento["result"] == false) {
                         $this->session->set_flashdata('fail_msg', $produto_parceiro_cancelamento["mensagem"]);
                     } else {
                         $this->session->set_flashdata('succ_msg', 'Apólice cancelada com sucesso.');
                     }
-
-                }
-                else
-                {
+                } else {
                     //Mensagem de erro
                     $this->session->set_flashdata('fail_msg', 'Não foi possível salvar o Registro.');
                 }
 
                 redirect("$this->controller_uri/view/{$_POST['pedido_id']}");
-            }
-            else
-            {
+            } else {
                 //Mensagem de erro
                 $this->session->set_flashdata('fail_msg', 'Não foi possível salvar o Registro. Reveja os dados informados');
                 redirect("$this->controller_uri/view/{$_POST['pedido_id']}");
             }
-            
-            
         }
     }
 
 
- 
+
     /**
      * Visualizar pedido
      * @param $id
@@ -223,7 +205,7 @@ class Pedido extends Admin_Controller
         $this->load->model('forma_pagamento_bandeira_model', 'forma_pagamento_bandeira');
         $this->load->model("pedido_cartao_transacao_model", "pedido_cartao_transacao");
         $this->load->model("capitalizacao_model", "capitalizacao");
-        
+        $this->load->model('produto_parceiro_cancelamento_model', 'model_producto_parceiro_cancelamento');
 
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
@@ -232,7 +214,7 @@ class Pedido extends Admin_Controller
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Visualizar pedido");
         $this->template->set_breadcrumb('Editar', base_url("$this->controller_uri/index"));
-        
+
         //Carrega dados para a página
         $data = array();
         $data['pedido'] = $this->current_model->with_foreign()->get($id);
@@ -240,6 +222,7 @@ class Pedido extends Admin_Controller
         $data['produto'] = $data['produto'][0];
         $data['bandeiras'] = $this->forma_pagamento_bandeira->get_all();
         $data['capitalizacoes'] = $this->capitalizacao->get_titulos_pedido($id);
+
         /*
         $pedido_cartao = $this->pedido_cartao
             ->get_by(array(
@@ -247,11 +230,10 @@ class Pedido extends Admin_Controller
             ));
         //$data['pedido_cartao'] = $this->pedido_cartao->decode_cartao($pedido_cartao);
         */
-        $data['cartoes'] = $this->pedido_cartao->get_many_by( array( 'pedido_id' => $id ) ) ;
+        $data['cartoes'] = $this->pedido_cartao->get_many_by(array('pedido_id' => $id));
 
 
-        foreach ($data['cartoes'] as $index => $cartao)
-        {
+        foreach ($data['cartoes'] as $index => $cartao) {
             $data['cartoes'][$index] = $this->pedido_cartao->decode_cartao($cartao);
             $data['cartoes'][$index]['numero'] = app_format_credit_card($data['cartoes'][$index]['numero']);
 
@@ -266,15 +248,14 @@ class Pedido extends Admin_Controller
         ));
 
         //Verifica se registro existe
-        if(!$data['pedido'])
-        {
+        if (!$data['pedido']) {
             //Mensagem de erro caso registro não exista
             $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
             //Redireciona para index
             redirect("$this->controller_uri/index");
         }
 
-        if($data['produto']['slug'] == 'seguro_viagem') {
+        if ($data['produto']['slug'] == 'seguro_viagem') {
             $data['itens'] = $this->cotacao
                 ->with_cotacao_seguro_viagem()
                 ->with_cotacao_seguro_viagem_plano()
@@ -290,7 +271,7 @@ class Pedido extends Admin_Controller
                     'cotacao_seguro_viagem_id' => $item['cotacao_seguro_viagem_id']
                 ));
             }
-        }elseif ($data['produto']['slug'] == 'equipamento') {
+        } elseif ($data['produto']['slug'] == 'equipamento') {
             $data['itens'] = $this->cotacao
                 ->with_cotacao_equipamento()
                 ->with_cotacao_equipamento_produto()
@@ -301,11 +282,11 @@ class Pedido extends Admin_Controller
 
             foreach ($data['itens'] as $index => $item) {
                 $data['itens'][$index]['cobertura_adicionais'] = array();
-             //   $data['itens'][$index]['cobertura_adicionais'] = $this->cotacao_seguro_viagem_cobertura->with_cobertura()->get_many_by(array(
-             //       'cotacao_seguro_viagem_id' => $item['cotacao_seguro_viagem_id']
-             //   ));
+                //   $data['itens'][$index]['cobertura_adicionais'] = $this->cotacao_seguro_viagem_cobertura->with_cobertura()->get_many_by(array(
+                //       'cotacao_seguro_viagem_id' => $item['cotacao_seguro_viagem_id']
+                //   ));
             }
-        }elseif ($data['produto']['slug'] == 'generico') {
+        } elseif ($data['produto']['slug'] == 'generico') {
             $data['itens'] = $this->cotacao
                 ->with_cotacao_generico()
                 ->with_cotacao_generico_produto()
@@ -325,10 +306,10 @@ class Pedido extends Admin_Controller
         //print_r($data['itens']);exit;
 
         $data['faturas'] = $this->fatura->filterByPedido($id)
-                                        ->with_fatura_status()
-                                        ->with_pedido()
-                                        ->order_by('data_processamento')
-                                        ->get_all();
+            ->with_fatura_status()
+            ->with_pedido()
+            ->order_by('data_processamento')
+            ->get_all();
 
 
         foreach ($data['faturas'] as $index => $fatura) {
@@ -336,7 +317,6 @@ class Pedido extends Admin_Controller
                 ->filterByFatura($fatura['fatura_id'])
                 ->order_by('num_parcela')
                 ->get_all();
-
         }
 
 
@@ -345,8 +325,8 @@ class Pedido extends Admin_Controller
         $data['transacoes'] = $this->pedido_transacao
             ->with_foreign()
             ->get_many_by(array(
-            'pedido_id' => $id
-        ));
+                'pedido_id' => $id
+            ));
 
         $bco = $this->db->query("select banco_id, codigo, nome from banco where deletado = 0 order by nome asc")->result();
         $data['bancos'] = $bco;
@@ -363,63 +343,62 @@ class Pedido extends Admin_Controller
         $data['form_action'] =  base_url("$this->controller_uri/view/{$id}");
         $data['apolice_id'] = (isset($data['apolices'][0]['apolice_id'])) ? $data['apolices'][0]['apolice_id'] : '';
 
+        //Array com dados de config do produto 
+        //cancel_via_admin: flag que informa se produto permite cancelamento via admin
+        $row = $this->model_producto_parceiro_cancelamento->filter_by_produto_parceiro($data['produto']['produto_parceiro_id'])->get_all();
+        $data['product_parceiro_cancelamento'] = $row;
 
         //Carrega template
-        $this->template->load("admin/layouts/base", "$this->controller_uri/view", $data );
+        $this->template->load("admin/layouts/base", "$this->controller_uri/view", $data);
     }
 
 
 
-    public  function cancelar($pedido_id){
+    public  function cancelar($pedido_id)
+    {
         $result = $this->current_model->cancelamento($pedido_id);
 
-        if($result['result'] == TRUE)                {
+        if ($result['result'] == TRUE) {
             $this->session->set_flashdata('succ_msg', $result['mensagem']); //Mensagem de sucesso
             redirect($result['redirect']);
-        }
-        else
-        {
+        } else {
             $this->session->set_flashdata('fail_msg', $result['mensagem']);
             redirect($result['redirect']);
         }
     }
 
-    public  function cancelar_aprovacao($pedido_id){
+    public  function cancelar_aprovacao($pedido_id)
+    {
 
         $this->load->model("pedido_transacao_model", "pedido_transacao");
 
-        if($this->current_model->isPermiteCancelar($pedido_id)){
+        if ($this->current_model->isPermiteCancelar($pedido_id)) {
             $this->pedido_transacao->insStatus($pedido_id, 'aprovacao_cancelamento', "AGUARDANDO APROVAÇÃO CANCELAMENTO");
             $this->session->set_flashdata('succ_msg', 'Aguardando Aprovação do cancelamento');
-            redirect( base_url("$this->controller_uri/index"));
-        }else{
+            redirect(base_url("$this->controller_uri/index"));
+        } else {
             $this->session->set_flashdata('fail_msg', 'Nao é permitido cancelar esse pedido');
-            redirect( base_url("$this->controller_uri/view/{$pedido_id}"));
+            redirect(base_url("$this->controller_uri/view/{$pedido_id}"));
         }
-
     }
 
-    public  function cancelar_aprovar($pedido_id){
+    public  function cancelar_aprovar($pedido_id)
+    {
 
         $this->load->model("pedido_transacao_model", "pedido_transacao");
 
         $result = $this->current_model->cancelamento($pedido_id);
 
-        if($result['result'] == TRUE) {
+        if ($result['result'] == TRUE) {
 
             $this->pedido_transacao->insStatus($pedido_id, 'cancelamento_aprovado', "CANCELAMENTO APROVADO");
 
             $this->session->set_flashdata('succ_msg', $result['mensagem']); //Mensagem de sucesso
             redirect($result['redirect']);
-
-        }
-        else
-        {
+        } else {
             $msg = (is_array($result['mensagem'])) ? implode("\n", $result['mensagem']) : $result['mensagem'];
             $this->session->set_flashdata('fail_msg', $msg);
             redirect($result['redirect']);
         }
-
     }
-
 }
