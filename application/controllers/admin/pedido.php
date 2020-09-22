@@ -8,7 +8,7 @@
  */
 class Pedido extends Admin_Controller
 {
-    public function __construct() 
+    public function __construct()
     {
         parent::__construct();
 
@@ -38,7 +38,7 @@ class Pedido extends Admin_Controller
         $config['base_url'] = base_url("$this->controller_uri/index");
         $config['uri_segment'] = 4;
         $config['per_page'] = 10;
-        
+
         //Carrega dados para a página
         $data['rows'] = $this->current_model
             ->with_pedido_status()
@@ -67,15 +67,14 @@ class Pedido extends Admin_Controller
 
         $data['primary_key'] = $this->current_model->primary_key();
         $data["pagination_links"] = $this->pagination->create_links();
-        
+
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/list", $data );
     }
 
-    public function teste($pedido_id){
-
+    public function teste($pedido_id)
+    {
         $this->current_model->executa_extorno_upgrade($pedido_id);
-
     }
 
     /**
@@ -87,10 +86,10 @@ class Pedido extends Admin_Controller
         $this->load->model("pedido_cartao_model", "pedido_cartao");
 
         //Caso post
-        if($_POST && $id)
+        if ($_POST && $id)
         {
             //Valida formulário
-            if($this->pedido_cartao->validate_form())
+            if ($this->pedido_cartao->validate_form())
             {
                 $this->pedido_cartao
                     ->where("pedido_id", "=", $id)
@@ -101,7 +100,7 @@ class Pedido extends Admin_Controller
                 //Insere form
                 $update = $this->pedido_cartao->insert_cartao($id, $_POST);
 
-                if($update)
+                if ($update)
                 {
                     //Caso inserido com sucesso
                     $this->session->set_flashdata('succ_msg', 'Os dados foram salvos corretamente.'); //Mensagem de sucesso
@@ -296,9 +295,7 @@ class Pedido extends Admin_Controller
 	                    $data['fim_vigencia'] = app_date_mysql_to_mask($retorno->dados[0]->apolices->data_fim_vigencia, 'd/m/Y');
 	                    $data['valor_estorno_total'] = app_format_currency($retorno->valor_estorno_total, 2);
 	                    $data['dias_utilizados'] = $retorno->dias_utilizados;
-
 			        }
-
 			    }
 
 	            $view = "$this->controller_uri/front/calculo_cancelamento";
@@ -355,6 +352,7 @@ class Pedido extends Admin_Controller
             $this->load->model('forma_pagamento_bandeira_model', 'forma_pagamento_bandeira');
             $this->load->model("pedido_cartao_transacao_model", "pedido_cartao_transacao");
             $this->load->model("capitalizacao_model", "capitalizacao");
+            $this->load->model('produto_parceiro_cancelamento_model', 'model_producto_parceiro_cancelamento');
 
             $data['bandeiras'] = $this->forma_pagamento_bandeira->get_all();
             $data['capitalizacoes'] = $this->capitalizacao->get_titulos_pedido($id);
@@ -417,9 +415,9 @@ class Pedido extends Admin_Controller
 
                 foreach ($data['itens'] as $index => $item) {
                     $data['itens'][$index]['cobertura_adicionais'] = array();
-                 //   $data['itens'][$index]['cobertura_adicionais'] = $this->cotacao_seguro_viagem_cobertura->with_cobertura()->get_many_by(array(
-                 //       'cotacao_seguro_viagem_id' => $item['cotacao_seguro_viagem_id']
-                 //   ));
+                    //   $data['itens'][$index]['cobertura_adicionais'] = $this->cotacao_seguro_viagem_cobertura->with_cobertura()->get_many_by(array(
+                    //       'cotacao_seguro_viagem_id' => $item['cotacao_seguro_viagem_id']
+                    //   ));
                 }
             }elseif ($data['produto']['slug'] == 'generico') {
                 $data['itens'] = $this->cotacao
@@ -438,10 +436,10 @@ class Pedido extends Admin_Controller
             }
 
             $data['faturas'] = $this->fatura->filterByPedido($id)
-                                            ->with_fatura_status()
-                                            ->with_pedido()
-                                            ->order_by('data_processamento')
-                                            ->get_all();
+                ->with_fatura_status()
+                ->with_pedido()
+                ->order_by('data_processamento')
+                ->get_all();
 
             foreach ($data['faturas'] as $index => $fatura) {
                 $data['faturas'][$index]['parcelas'] = $this->fatura_parcela->with_fatura_status()
@@ -450,12 +448,11 @@ class Pedido extends Admin_Controller
                     ->get_all();
             }
 
-            
             $data['transacoes'] = $this->pedido_transacao
                 ->with_foreign()
                 ->get_many_by(array(
-                'pedido_id' => $id
-            ));
+                    'pedido_id' => $id
+                ));
 
             $data['form_action'] =  base_url("$this->controller_uri/view/{$id}");
             $data['exibe_url_acesso_externo'] = !empty($data['cancelamento']);
@@ -470,6 +467,11 @@ class Pedido extends Admin_Controller
                     , 'cancelamento'
                 );
             }
+
+            //Array com dados de config do produto 
+            //cancel_via_admin: flag que informa se produto permite cancelamento via admin
+            $row = $this->model_producto_parceiro_cancelamento->filter_by_produto_parceiro($data['produto']['produto_parceiro_id'])->get_all();
+            $data['product_parceiro_cancelamento'] = $row;
 
 	        $view = "$this->controller_uri/view";
         }
