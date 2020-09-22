@@ -196,11 +196,48 @@ class Login extends Admin_Controller {
 
     }
 
-    public function aceite_termo()
-    {
+    public function aceite_termo() {
+
+        $login      = $this->session->userdata("email");
         $usuario_id = $this->session->userdata('usuario_id');
 
-        $this->usuario->update_termo($usuario_id);
+        $ajax       = $this->input->post("ajax");
+        $senhaAtual = $this->input->post("senha_atual");
+        $senhaNova  = $this->input->post("senha_nova");
+        
+        if ($ajax) {
+
+            $output = array();
+
+            try {
+                
+                $usuario = $this->usuario->find_login($login, $senhaAtual);
+
+                if (empty($usuario)) {
+                    throw new Exception("Esta não é a sua senha");                
+                }
+    
+                if ($senhaAtual == $senhaNova) {
+                    throw new Exception("A nova senha não pode ser igual a antiga");
+                }
+
+                $output["status"]   = $this->usuario->update_termo($usuario_id, $senhaNova, $ajax);        
+                $output["message"]  = "Termo aceito com sucesso";
+                
+            } catch (Exception $ex) {
+
+                $output["status"]   = false;
+                $output["message"]  = $ex->getMessage();
+
+            }            
+
+            echo json_encode($output);
+
+        } else {
+
+            $this->usuario->update_termo($usuario_id);        
+
+        }
         
     }
 
