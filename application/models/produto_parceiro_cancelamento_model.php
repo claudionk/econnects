@@ -1,5 +1,5 @@
 <?php
-Class Produto_Parceiro_Cancelamento_Model extends MY_Model
+class Produto_Parceiro_Cancelamento_Model extends MY_Model
 {
     //Dados da tabela e chave primária
     protected $_table = 'produto_parceiro_cancelamento';
@@ -17,7 +17,7 @@ Class Produto_Parceiro_Cancelamento_Model extends MY_Model
     //campos para transformação em maiusculo e minusculo
     protected $fields_lowercase = array();
     protected $fields_uppercase = array();
-    
+
     //Dados
     public $validate = array(
         array(
@@ -133,6 +133,12 @@ Class Produto_Parceiro_Cancelamento_Model extends MY_Model
             'label' => 'Indenização',
             'rules' => 'required',
             'groups' => 'default'
+        ),
+        array(
+            'field' => 'cancel_via_admin',
+            'label' => 'cancelar via admin',
+            'rules' => 'required',
+            'groups' => 'default'
         )
     );
 
@@ -161,6 +167,7 @@ Class Produto_Parceiro_Cancelamento_Model extends MY_Model
             'inad_reativacao_calculo' => $this->input->post('inad_reativacao_calculo'),
             'inad_reativacao_valor' => app_unformat_currency($this->input->post('inad_reativacao_valor')),
             'indenizacao_hab' => $this->input->post('indenizacao_hab'),
+            'cancel_via_admin' => $this->input->post('cancel_via_admin'),
         );
         return $data;
     }
@@ -170,12 +177,9 @@ Class Produto_Parceiro_Cancelamento_Model extends MY_Model
     }
 
 
-    function  filter_by_produto_parceiro($produto_parceiro_id){
-
+    function  filter_by_produto_parceiro($produto_parceiro_id)
+    {
         $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
-
         return $this;
     }
-
-
 }
