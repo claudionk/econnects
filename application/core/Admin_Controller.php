@@ -203,6 +203,7 @@ class Admin_Controller extends MY_Controller
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('cliente_contato_model', 'cliente_contato');
+        $this->load->model('produto_parceiro_autorizacao_cobranca_model', 'autorizacao_cobranca');
 
         //Carrega templates
         $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
@@ -495,6 +496,23 @@ class Admin_Controller extends MY_Controller
             )
         );
 
+        $autorizacaoCobranca = $this->autorizacao_cobranca->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
+        if(!empty($autorizacaoCobranca)){
+
+            $html = $data["autorizacao_cobranca"]["autorizacao_cobranca"];
+
+            $data["autorizacao_cobranca"]["autorizacao_cobranca"] = $this->createAutorizacaoCobrancaHTML($html, [
+                "segurado_cnpj_cpf" => $cotacao['cnpj_cpf'],
+                "segurado_nome" => $cotacao['nome'],
+                "data_ini_vigencia" => $vigencia["inicio_vigencia"],
+                "data_fim_vigencia" => $vigencia["fim_vigencia"],
+                "premio_total" => $data["valor_total"],
+                "produto_nome" => $cotacao["produto_nome"]
+            ]);                
+
+        }else{
+            $data["autorizacao_cobranca"] = null;
+        }
         $this->template->load("admin/layouts/{$this->layout}", $view, $data);
     }
 
@@ -534,6 +552,7 @@ class Admin_Controller extends MY_Controller
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
         $this->load->model('forma_pagamento_bandeira_model', 'forma_pagamento_bandeira');
         $this->load->model('pedido_model', 'pedido');
+        $this->load->model('produto_parceiro_autorizacao_cobranca_model', 'autorizacao_cobranca');
         $this->load->library('form_validation');
 
         $data = array();
@@ -855,6 +874,23 @@ class Admin_Controller extends MY_Controller
             }
 
             $data['step'] = ($conclui_em_tempo_real) ? 3 : 2;
+            $autorizacaoCobranca = $this->autorizacao_cobranca->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
+            if(!empty($autorizacaoCobranca)){
+                $data["autorizacao_cobranca"] = $autorizacaoCobranca[0];                
+                $html = $data["autorizacao_cobranca"]["autorizacao_cobranca"];
+
+                $data["autorizacao_cobranca"]["autorizacao_cobranca"] = $this->createAutorizacaoCobrancaHTML($html, [
+                    "segurado_cnpj_cpf" => $cotacao['cnpj_cpf'],
+                    "segurado_nome" => $cotacao['nome'],
+                    "data_ini_vigencia" => $pedidos[0]["inicio_vigencia"],
+                    "data_fim_vigencia" => $pedidos[0]["fim_vigencia"],
+                    "premio_total" => $data["valor_total"],
+                    "produto_nome" => $produtos_nome
+                ]);                
+                
+            }else{
+                $data["autorizacao_cobranca"] = null;
+            }
             $view = "$this->controller_uri/pagamento_carrinho/pagamento";
             if($this->layout == 'front'){
                 $view = "admin/venda/equipamento/front/steps/step-three-pagamento";
@@ -862,6 +898,28 @@ class Admin_Controller extends MY_Controller
 
             $this->template->load("admin/layouts/{$this->layout}", $view, $data);
         }
+    }
+
+    private function createAutorizacaoCobrancaHTML($html, $data){
+        $this->load->library('parser');
+
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $dom->loadHTML($html);
+        $remover = $dom->getElementById("remover");
+        $remover->parentNode->removeChild($remover);
+        $html = $dom->saveHTML(($dom->documentElement));
+
+        $html = $this->parser->parse_string($html, [
+            "segurado_cnpj_cpf" => app_cpf_to_mask(issetor($data['segurado_cnpj_cpf'], '')),
+            "segurado_nome" => issetor($data['segurado_nome'], ''),
+            "data_ini_vigencia" => date("d/m/Y", strtotime($data["data_ini_vigencia"])),
+            "data_fim_vigencia" => date("d/m/Y", strtotime($data["data_fim_vigencia"])),
+            "premio_total" => app_format_currency(issetor($data["premio_total"], 0), true),
+            "produto_nome" => $data["produto_nome"]
+        ], true);
+
+        return $html;
+
     }
 
     public function getDataCamposBoleto($data_campo, $plano_id = 0)

@@ -50,19 +50,7 @@ else: ?>
                 <div id="term-block">
                     <div id="term-block-content" style="border:2px solid #ddd; overflow-y: scroll; background:white;position: relative;width: 100%;scroll-behavior: auto;height: 204px;">
                         <div style="margin:5%">
-                            <p><strong>TERMO DE AUTORIZAÇÃO DE COBRANÇA DE PRÊMIO DE SEGURO</strong></p>
-                            <div style="">
-                                <span>
-                                    Eu, <?php echo $nome; ?>, inscrito no CPF/MF sob o n <?php echo $cpfcnpj; ?>, proponente do(s) seguro(s) <?php echo $nome_seguro; ?>, autorizo que o pagamento do prêmio de seguro no valor de <?php echo $valor; ?> seja realizado em conjunto com o pagamento do(s) <?php echo $produto; ?> ora adquirido(s).
-                                    <hr>
-                                    <small>1) O segurado poderá desistir do seguro contratado no prazo de 7 (sete) dias corridos a contar da assinatura da proposta, no caso de contratação por apólice individual, ou da emissão do bilhete, no caso de contratação por bilhete, ou do efetivo pagamento do prêmio, o que ocorrer por último.</small>
-                                    <hr>
-                                    <small>2) No caso de pagamento de prêmio fracionado, considera-se o pagamento da primeira parcela como o efetivo pagamento.</small>
-                                </span>
-                            </div>
-                            <!-- <div style=""><span>(LOCAL), (DATA)</span></div>
-                            <div style=""><span>_______________________________</span></div>
-                            <div style=""><span>(ASSINATURA DO SEGURADO)</span></div> -->
+                            <?= ($autorizacao_cobranca != null)? $autorizacao_cobranca["autorizacao_cobranca"]: "Erro ao carregar template de autorização de cobrança"; ?>
                         </div>
                     </div>
 

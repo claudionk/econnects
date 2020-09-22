@@ -2032,4 +2032,8 @@ class Apolice_Model extends MY_Model
         return $this->parser->parse_string($template, $data_template, true);
     }
 
+    public function parse_string($template, $data){
+        return $this->parser->parse_string($template, $data, true);
+    }
+
 }
