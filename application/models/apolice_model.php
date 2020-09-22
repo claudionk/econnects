@@ -1887,6 +1887,7 @@ class Apolice_Model extends MY_Model
 
         $data_template['termo']             = $termo['termo'];
         $data_template['assets']            = base_url('assets');
+        $data_template['produto_nome']      = $dados['produto_nome'];
         $data_template['num_apolice']       = $apolice['num_apolice'];
         $data_template['num_certificado']   = $apolice['num_apolice'];
         $data_template['data_ini_vigencia'] = app_date_mysql_to_mask($apolice['data_ini_vigencia'], 'd/m/Y');

@@ -333,6 +333,7 @@ Class Pedido_Model extends MY_Model
                 produto.slug,
                 parceiro.slug as slug_parceiro,
                 produto_parceiro.parceiro_id,
+                produto_parceiro.nome as produto_nome,
                 produto_parceiro_apolice.template as template_apolice,
                 CASE produto.slug 
                     WHEN 'equipamento' THEN cotacao_equipamento.iof
