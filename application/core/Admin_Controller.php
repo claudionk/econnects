@@ -496,23 +496,24 @@ class Admin_Controller extends MY_Controller
             )
         );
 
+        $data["autorizacao_cobranca"] = null;
         $autorizacaoCobranca = $this->autorizacao_cobranca->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
         if(!empty($autorizacaoCobranca)){
 
-            $html = $data["autorizacao_cobranca"]["autorizacao_cobranca"];
+            $html = $autorizacaoCobranca[0]["autorizacao_cobranca"];
 
-            $data["autorizacao_cobranca"]["autorizacao_cobranca"] = $this->createAutorizacaoCobrancaHTML($html, [
-                "segurado_cnpj_cpf" => $cotacao['cnpj_cpf'],
-                "segurado_nome" => $cotacao['nome'],
-                "data_ini_vigencia" => $vigencia["inicio_vigencia"],
-                "data_fim_vigencia" => $vigencia["fim_vigencia"],
-                "premio_total" => $data["valor_total"],
-                "produto_nome" => $cotacao["produto_nome"]
-            ]);                
-
-        }else{
-            $data["autorizacao_cobranca"] = null;
+            if ( !empty($html) ) {
+                $data["autorizacao_cobranca"]["autorizacao_cobranca"] = $this->createAutorizacaoCobrancaHTML($html, [
+                    "segurado_cnpj_cpf" => $cotacao['cnpj_cpf'],
+                    "segurado_nome" => $cotacao['nome'],
+                    "data_ini_vigencia" => $vigencia["inicio_vigencia"],
+                    "data_fim_vigencia" => $vigencia["fim_vigencia"],
+                    "premio_total" => $data["valor_total"],
+                    "produto_nome" => $cotacao["produto_nome"]
+                ]);
+            }
         }
+
         $this->template->load("admin/layouts/{$this->layout}", $view, $data);
     }
 
@@ -902,6 +903,9 @@ class Admin_Controller extends MY_Controller
 
     private function createAutorizacaoCobrancaHTML($html, $data){
         $this->load->library('parser');
+
+        if (empty($html))
+            return '';
 
         $dom = new DOMDocument('1.0', 'UTF-8');
         $dom->loadHTML($html);
