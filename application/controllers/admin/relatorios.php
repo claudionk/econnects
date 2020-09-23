@@ -349,18 +349,18 @@ class Relatorios extends Admin_Controller
             'LMI',
             'Prêmio Líquido',
             'Prêmio Bruto'
-            ];
+        ];
 
         if ($_POST) {
             $result = $this->getRelatorio(FALSE);
             $data['result'] = $result['data'];
-            
+
             if (!empty($_POST['btnExcel'])) {
 
                 $rows = [];
                 foreach ($data['result'] as $row) {
                     $rows[] = [
-                        $row['Representante de Seguros]'],
+                        $row['Representante de Seguros'],
                         $row['Cobertura Comercializada'],
                         $row['num_apolice)'],
                         $row['Número do Bilhete (GBS)'],
