@@ -1454,10 +1454,11 @@ Class Pedido_Model extends MY_Model
         $where = $this->restrictProdutos();
         if (!empty($where)) $this->_database->where($where, NULL, FALSE);
 
+        $whereApol = '';
         if(isset($data_inicio) && !empty($data_inicio))
-            $where .= " AND am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'";
+            $whereApol .= " AND am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'";
         if( isset($data_fim) && !empty($data_fim) )
-               $where .= " AND am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
+            $whereApol .= " AND am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
 
         $this->_database->from($this->_table);
         $this->_database->join("(
@@ -1466,7 +1467,7 @@ Class Pedido_Model extends MY_Model
             JOIN apolice_status ast ON a.apolice_status_id = ast.apolice_status_id
             JOIN apolice_movimentacao am ON a.apolice_id = am.apolice_id AND am.apolice_movimentacao_tipo_id = 1 #para identificar a data de emissão
             WHERE a.deletado = 0
-               {$where}
+               {$whereApol}
         ) as a", "a.pedido_id = {$this->_table}.pedido_id", "join", FALSE);
 
         $this->_database->join("cotacao c", "c.cotacao_id = {$this->_table}.cotacao_id", "inner");
