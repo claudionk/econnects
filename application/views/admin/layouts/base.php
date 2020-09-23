@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="keywords" content="<?php echo $meta_keywords; ?>">
     <meta name="description" content="<?php echo $meta_description; ?>">
+    <meta name="google-site-verification" content="E9ztWkkDYh0MwD_lrG4Bxj29PaqcXhuBO-B4BHU7sBI" />
     <!-- END META -->
 
     <!-- BEGIN STYLESHEETS -->

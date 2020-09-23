@@ -112,7 +112,7 @@ $(function(){
         allowClear: true
     });
 
-    var lista_id = (typeof $("#lista_id").val() !== 'undefined' && $("#lista_id").val() != '') ? $("#lista_id").val() : 1;
+    var lista_id = busca_lista_id();
 
     /**
      * Faturas @todo trocar de lugar
@@ -384,12 +384,12 @@ function busca_cotacao_salva(){
             return;
         }
     });
-
-
-
 }
 
-
+function busca_lista_id()
+{
+    return (typeof $("#lista_id").val() !== 'undefined' && $("#lista_id").val() != '') ? $("#lista_id").val() : 1;
+}
 
 function busca_cliente(){
 
@@ -524,6 +524,7 @@ function populaSelectSubCategoria(id){
     if (!id) return false;
     if ($(".js-equipamento_sub_categoria_id-ajax").val() == id) return false;
 
+    lista_id = busca_lista_id();
     var $data = {}, url='/'+encodeURI(id);
     if (String(id).indexOf(",") >= 0 || String(id).indexOf("'") >= 0) {
         id = id.replace(/'/g, '');
@@ -536,7 +537,7 @@ function populaSelectSubCategoria(id){
         }
     }
     $.ajax({
-        url: base_url + "admin/equipamento/service_categorias"+ url +"/2",
+        url: base_url + "admin/equipamento/service_categorias"+ url +"/2?lista_id="+ lista_id,
         type: "POST",
         async: false,
         data: $data,
