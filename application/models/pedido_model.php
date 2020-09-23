@@ -1454,11 +1454,21 @@ Class Pedido_Model extends MY_Model
         $where = $this->restrictProdutos();
         if (!empty($where)) $this->_database->where($where, NULL, FALSE);
 
-        $this->_database->from($this->_table);
+        if(isset($data_inicio) && !empty($data_inicio))
+            $where .= " AND am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'";
+        if( isset($data_fim) && !empty($data_fim) )
+               $where .= " AND am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
 
-        $this->_database->join("apolice a", "a.pedido_id = {$this->_table}.pedido_id", "inner");
-        $this->_database->join("apolice_status ast", "a.apolice_status_id = ast.apolice_status_id", "inner");
-        $this->_database->join("apolice_movimentacao am", "a.apolice_id = am.apolice_id AND am.apolice_movimentacao_tipo_id = 1", "inner"); // para identificar a data de emissão
+        $this->_database->from($this->_table);
+        $this->_database->join("(
+            SELECT a.apolice_id, a.pedido_id, ast.nome Movimentacao, a.num_apolice
+            FROM apolice a
+            JOIN apolice_status ast ON a.apolice_status_id = ast.apolice_status_id
+            JOIN apolice_movimentacao am ON a.apolice_id = am.apolice_id AND am.apolice_movimentacao_tipo_id = 1 #para identificar a data de emissão
+            WHERE a.deletado = 0
+               {$where}
+        ) as a", "a.pedido_id = {$this->_table}.pedido_id", "join", FALSE);
+
         $this->_database->join("cotacao c", "c.cotacao_id = {$this->_table}.cotacao_id", "inner");
         $this->_database->join("cotacao_status cs", "cs.cotacao_status_id = c.cotacao_status_id", "inner");
         $this->_database->join("pedido_status ps", "ps.pedido_status_id = {$this->_table}.pedido_status_id", "inner");
@@ -1482,10 +1492,12 @@ Class Pedido_Model extends MY_Model
             $this->_database->where("c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}");
         }
 
+        /*
         if(isset($data_inicio) && !empty($data_inicio))
             $this->_database->where("am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
         if( isset($data_fim) && !empty($data_fim) )
             $this->_database->where("am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
+        */
 
         if ( !empty($produto_parceiro_id) )
         {
@@ -1494,7 +1506,7 @@ Class Pedido_Model extends MY_Model
 
         $this->_database->where("cs.slug = 'finalizada'");
         $this->_database->where("{$this->_table}.deletado = 0");
-        $this->_database->where("a.deletado = 0");
+        // $this->_database->where("a.deletado = 0");
         return $this;
     }
 
@@ -1508,7 +1520,7 @@ Class Pedido_Model extends MY_Model
 
         $this->_database->distinct();
         $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.cnpj, p.nome_fantasia,
-        pp.nome as nome_produto_parceiro, pr.nome as nome_produto, ppp.nome as plano_nome, {$this->_table}.valor_parcela, {$this->_table}.codigo, a.num_apolice, le.sigla as UF, u.nome as vendedor, cmg.valor AS comissao_parceiro, ast.nome as Movimentacao ");
+        pp.nome as nome_produto_parceiro, pr.nome as nome_produto, ppp.nome as plano_nome, {$this->_table}.valor_parcela, {$this->_table}.codigo, a.num_apolice, le.sigla as UF, u.nome as vendedor, cmg.valor AS comissao_parceiro, a.Movimentacao ");
 
         $this->_database->select("IF(pr.slug = 'equipamento', ce.premio_liquido, IF(pr.slug = 'seguro_viagem', csv.premio_liquido, cg.premio_liquido)) as premio_liquido", FALSE);
         $this->_database->select("IF(pr.slug = 'equipamento', ce.premio_liquido_total, IF(pr.slug = 'seguro_viagem', csv.premio_liquido_total, cg.premio_liquido_total)) as premio_liquido_total", FALSE);
