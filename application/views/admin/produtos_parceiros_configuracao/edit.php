@@ -199,12 +199,12 @@ if ($_POST) {
                                     <?php $field_name = 'quantidade_cobertura_front';?>
                                     <div class="row">
                                       <label class="col-md-4 control-label" for="<?php echo $field_name; ?>">Quantidade de Coberturas Exibidas (Mobile) *</label>
-                                      <div class="col-md-4"><input class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
+                                      <div class="col-md-4"><input class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : '0'; ?>" /></div>
                                     </div>
                                     <?php $field_name = 'quantidade_cobertura';?>
                                     <div class="row">
                                       <label class="col-md-4 control-label" for="<?php echo $field_name; ?>">Quantidade de Coberturas Exibidas *</label>
-                                      <div class="col-md-4"><input class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : $codigo; ?>" /></div>
+                                      <div class="col-md-4"><input class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : '0'; ?>" /></div>
                                     </div>
 
                                     <?php $field_name = 'apolice_vigencia';?>
@@ -236,21 +236,6 @@ if ($_POST) {
                                       </label>
                                     </div>
 
-                                    <?php $field_name = 'ir_cotacao_salva';?>
-                                      <div class="radio radio-styled">
-                                          <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Ir Para cotação salva após CPF *</label>
-                                          <label class="radio-inline radio-styled radio-primary">
-                                              <input type="radio" id="<?php echo $field_name; ?>_nao" name="<?php echo $field_name; ?>" class="required styled"
-                                                     value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
-                                              <span>Não</span>
-                                          </label>
-                                          <label class="radio-inline radio-styled radio-primary">
-                                              <input type="radio" id="<?php echo $field_name; ?>_sim" name="<?php echo $field_name; ?>" class="required styled"
-                                                     value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
-                                              <span>Sim</span>
-                                          </label>
-                                      </div>
-
                                     <?php $field_name = 'conclui_em_tempo_real';?>
                                     <div class="row">
                                       <label class="col-md-4 control-label" for="<?php echo $field_name; ?>">Efetiva a Apólice em Tempo Real *</label>
@@ -266,8 +251,38 @@ if ($_POST) {
                                       </label>
                                     </div>
 
+                                    <?php $field_name = 'gera_num_apolice_cotacao';?>
+                                    <div class="row">
+                                      <label class="col-md-4 control-label" for="<?php echo $field_name; ?>">Gera o número da Apólice na Cotação *</label>
+                                      <label class="radio-inline radio-styled radio-primary">
+                                        <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                               value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') {echo 'checked="checked"';}?> />
+                                        <span>Sim</span>
+                                      </label>
+                                      <label class="radio-inline radio-styled radio-primary">
+                                        <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
+                                               value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') {echo 'checked="checked"';}?> />
+                                        <span>Não</span>
+                                      </label>
+                                    </div>
+
+                                    <?php $field_name = 'ir_cotacao_salva';?>
+                                      <div class="row">
+                                          <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Ir Para cotação salva após CPF *</label>
+                                          <label class="radio-inline radio-styled radio-primary">
+                                              <input type="radio" id="<?php echo $field_name; ?>_sim" name="<?php echo $field_name; ?>" class="required styled"
+                                                     value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
+                                              <span>Sim</span>
+                                          </label>
+                                          <label class="radio-inline radio-styled radio-primary">
+                                              <input type="radio" id="<?php echo $field_name; ?>_nao" name="<?php echo $field_name; ?>" class="required styled"
+                                                     value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
+                                              <span>Não</span>
+                                          </label>
+                                      </div>
+
                                     <?php $field_name = 'endosso_controle_cliente';?>
-                                    <div class="radio radio-styled">
+                                    <div class="row">
                                       <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Controle de endosso *</label>
                                       <label class="radio-inline radio-styled radio-primary">
                                         <input type="radio" id="radio_endosso" name="<?php echo $field_name; ?>" class="required styled"

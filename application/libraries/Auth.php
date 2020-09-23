@@ -25,7 +25,7 @@ class Auth {
             ->with_foreign()
             ->get_by(array(
                 'usuario_acl_tipo.slug' => 'acesso_token',
-                'parceiro_id' => $parceiro_id,
+                'usuario.parceiro_id' => $parceiro_id,
             ));
 
         if($usuario)

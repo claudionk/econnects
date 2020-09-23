@@ -1,9 +1,9 @@
 
 <!-- Trigger the modal with a button -->
-<button type="button" class="btn btn-info btn-sm pull-right" data-toggle="modal" data-target="#modal_acesso_externo"><i class="fa fa-plus"></i> ADICIONAR CARTÃO DE CRÉDITO</button>
+<button type="button" class="btn btn-info btn-sm pull-right" data-toggle="modal" data-target="#modal_trocar_cartao"><i class="fa fa-plus"></i> ADICIONAR CARTÃO DE CRÉDITO</button>
 
 <!-- Modal -->
-<div id="modal_acesso_externo" class="modal fade" role="dialog">
+<div id="modal_trocar_cartao" class="modal fade" role="dialog">
     <div class="modal-dialog">
 
 

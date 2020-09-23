@@ -132,18 +132,52 @@ if($_POST)
                                                 <!-- Column -->
                                                 <div class="col-md-12">
 
+                                                    
+                                                    <div class="col-md-6">
+                                                        <?php
+
+                                                            $field_name = 'classe_css';
+                                                            $valores = array(
+                                                                'options' => emptyor($row[$field_name], ''),
+                                                                'valor' => 'slug',
+                                                            );
+
+                                                            $campo_classes = array( 
+                                                                array( 
+                                                                    "slug" => "enriquecer", 
+                                                                    "nome" => "Enriquecimento",
+                                                                ),
+                                                                array( 
+                                                                    "slug" => "busca_cliente", 
+                                                                    "nome" => "Buscar Cliente",
+                                                                )
+                                                            );
+
+                                                            echo template_control("select", $field_name . '[]', "Classe", $valores, array(
+                                                            'options' =>  $campo_classes, 
+                                                            'valor' => 'slug',
+                                                            'descricao' => 'nome',
+                                                            'multiple' => true,
+                                                            'class' => 'select2-list',
+                                                        )); 
+
+                                                        ?>
+                                                    </div>
                                                     <div class="col-md-6">
                                                         <?php $field_name = 'opcoes';?>
                                                         <?php echo template_control("text", $field_name, "Opções", $row[$field_name], array(
                                                         )); ?>
                                                     </div>
+                                                </div>
+
+                                                <div class="col-md-12">
 
                                                     <div class="col-md-6">
                                                         <?php
 
                                                             $field_name = 'validacoes';
                                                             $valores = array(
-                                                                'options' => $row[$field_name],
+                                                                'options' => emptyor($row[$field_name], ''),
                                                                 'valor' => 'slug',
                                                             );
 

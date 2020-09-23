@@ -280,6 +280,12 @@ Class Cotacao_Seguro_Viagem_Model extends MY_Model
             'rules' => '',
             'groups' => 'default'
         ),
+        array(
+            'field' => 'garantia_fabricante',
+            'label' => 'garantia_fabricante',
+            'rules' => '',
+            'groups' => 'default'
+        ),
     );
 
     /**
@@ -420,6 +426,7 @@ Class Cotacao_Seguro_Viagem_Model extends MY_Model
         $this->_database->select('cotacao_seguro_viagem_pessoa.cnpj_cpf');
         $this->_database->select('cotacao_seguro_viagem_pessoa.rg');
         $this->_database->select('cotacao_seguro_viagem_pessoa.data_nascimento');
+        $this->_database->select('cotacao_seguro_viagem_pessoa.garantia_fabricante');
         $this->_database->select('cotacao_seguro_viagem_pessoa.endereco_cep');
         $this->_database->select('cotacao_seguro_viagem_pessoa.endereco_logradouro');
         $this->_database->select('cotacao_seguro_viagem_pessoa.endereco_numero');
@@ -448,10 +455,14 @@ Class Cotacao_Seguro_Viagem_Model extends MY_Model
         return $valor;
     }
 
-
     function get_by_id($id)
     {
         return $this->get_by($this->primary_key, $id);
+    }
+
+    public function updateEmailByCotacaoId($cotacaoId, $email){
+        $SQL = "UPDATE {$this->_table} SET email = '$email' WHERE cotacao_id = $cotacaoId";
+        $this->_database->query($SQL);
     }
 }
 

@@ -38,4 +38,9 @@ Class Banco_Model extends MY_Model
     {
         return $this->get_by($this->primary_key, $id);
     }
+
+    function orderByName()
+    {
+        return $this->order_by('nome');
+    }
 }

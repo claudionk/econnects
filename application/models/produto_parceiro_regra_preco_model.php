@@ -111,6 +111,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $desconto                       = $this->desconto->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
         $cotacao_id                     = issetor($params['cotacao_id'], 0);
         $cotacao_aux_id                 = issetor($params['cotacao_aux_id'], 0);
+        $garantia_fabricante            = issetor($params['garantia_fabricante'], 0);
 
         if($cotacao_id) {
             $pedido = $this->pedido->filter_by_cotacao($cotacao_id)->get_all();
@@ -162,6 +163,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $produto_parceiro_plano_id = $cotacao["produto_parceiro_plano_id"];
         $data_inicio_vigencia = emptyor($data_inicio_vigencia, issetor($cotacao['data_inicio_vigencia'], null));
         $data_fim_vigencia = emptyor($data_fim_vigencia, issetor($cotacao['data_fim_vigencia'], null));
+        $garantia_fabricante = emptyor($garantia_fabricante, issetor($cotacao['garantia_fabricante'], 0));
         $servico_produto_id = issetor($cotacao['servico_produto_id'],0);
         $servico_produto = $this->servico_produto->get($servico_produto_id);
         if($servico_produto && $quantidade < $servico_produto['quantidade_minima'])
@@ -262,7 +264,28 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $repasse_comissao = str_pad(number_format((double)$repasse_comissao, 2, '.', ''), 5, "0", STR_PAD_LEFT);
         $comissao_corretor = (isempty($configuracao['comissao_corretor'], 0) - $repasse_comissao);
 
-        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($cotacao_id, $cotacao_aux_id, $valor_fixo, $row['produto_slug'], $produto_parceiro_id, $produto_parceiro_plano_id, $equipamento_marca_id, $equipamento_categoria_id, $cotacao['nota_fiscal_valor'], $quantidade, $cotacao['data_nascimento'], $equipamento_sub_categoria_id, $equipamento_de_para, $servico_produto_id, $data_inicio_vigencia, $data_fim_vigencia, $comissao, $cotacao['data_adesao']);
+        $data_preco = [
+            'cotacao_id' => $cotacao_id,
+            'cotacao_aux_id' => $cotacao_aux_id,
+            'valor_fixo' => $valor_fixo,
+            'produto_slug' => $row['produto_slug'],
+            'produto_parceiro_id' => $produto_parceiro_id,
+            'produto_parceiro_plano_id' => $produto_parceiro_plano_id,
+            'equipamento_marca_id' => $equipamento_marca_id,
+            'equipamento_categoria_id' => $equipamento_categoria_id,
+            'valor_nota' => $cotacao['nota_fiscal_valor'],
+            'quantidade' => $quantidade,
+            'data_nascimento' => $cotacao['data_nascimento'],
+            'equipamento_sub_categoria_id' => $equipamento_sub_categoria_id,
+            'equipamento_de_para' => $equipamento_de_para,
+            'servico_produto_id' => $servico_produto_id,
+            'data_inicio_vigencia' => $data_inicio_vigencia,
+            'data_fim_vigencia' => $data_fim_vigencia,
+            'comissao' => $comissao,
+            'data_adesao' => $cotacao['data_adesao'],
+            'garantia_fabricante' => $cotacao['garantia_fabricante'],
+        ];
+        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($data_preco);
 
         $valores_cobertura_adicional_total = $valores_cobertura_adicional = array();
 

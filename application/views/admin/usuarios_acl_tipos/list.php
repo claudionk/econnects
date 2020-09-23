@@ -18,7 +18,7 @@
                     <!-- Widget heading -->
                     <div class="card-body">
                         <div class="col-md-3">
-                            <a href="<?php echo base_url("$current_controller_uri/add")?>" class="btn btn-app btn-primary">
+                            <a href="<?php echo base_url("$current_controller_uri/add/{$parceiro_id}")?>" class="btn btn-app btn-primary">
                                 <i class="fa  fa-plus"></i> Adicionar
                             </a>
                         </div>
@@ -60,9 +60,9 @@
                                 <td class="center"><?php echo $row[$primary_key];?></td>
                                 <td><?php echo $row['nome'];?></td>
                                 <td class="center">
-                                    <a href="<?php echo base_url("{$current_controller_uri}/edit/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Editar </a>
-                                    <a href="<?php echo base_url("admin/usuario_acl_permissoes/edit/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary"> <i class="fa fa-user"></i> Permissões </a>
-                                    <a href="<?php echo base_url("$current_controller_uri/delete/{$row[$primary_key]}")?>" class="btn btn-sm btn-danger deleteRowButton"> <i class="fa fa-eraser"></i> Excluir </a>
+                                    <a href="<?php echo base_url("{$current_controller_uri}/edit/{$row[$primary_key]}/{$parceiro_id}")?>" ng-disabled="<?php echo $row['disable_button'] ?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Editar </a>
+                                    <a href="<?php echo base_url("admin/usuario_acl_permissoes/edit/{$row[$primary_key]}/{$parceiro_id}")?>" ng-disabled="<?php echo $row['disable_button'] ?>" class="btn btn-sm btn-primary"> <i class="fa fa-user"></i> Permissões </a>
+                                    <a href="<?php echo base_url("$current_controller_uri/delete/{$row[$primary_key]}/{$parceiro_id}")?>" ng-disabled="<?php echo $row['disable_button'] ?>" class="btn btn-sm btn-danger deleteRowButton"> <i class="fa fa-eraser"></i> Excluir </a>
                                 </td>
                             </tr>
                             <?php endforeach;?>

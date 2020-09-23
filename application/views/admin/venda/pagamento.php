@@ -2,15 +2,16 @@
 if($_POST){
     $row = $_POST;
 }
-?>
 
-<?php if ($layout != "front") { ?>
+$layout = issetor($layout, '');
+$disablePagto = ( $layout != 'front' && empty($produto_parceiro_configuracao['front_habilita_meio_pagamento']) );
+
+if ($layout != "front") { ?>
     <div class="section-header">
         <ol class="breadcrumb">
             <li class="active"><?php echo app_recurso_nome(); ?></li>
         </ol>
     </div>
-
 
     <div class="card">
         <div class="card-body">
@@ -23,11 +24,13 @@ if($_POST){
                 <a class="btn  btn-app btn-primary" href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/7/{$cotacao_id}/$pedido_id")?>">
                     <i class="fa fa-cart-plus"></i> Adicionar no carrinho
                 </a>
+            <?php endif;
 
-            <?php endif; ?>
+            if ( !$disablePagto ) { ?>
             <a class="btn pull-right btn-app btn-primary btn-proximo" onclick="$('#validateSubmitForm').submit();">
                 <i class="fa fa-arrow-right"></i> Próximo
             </a>
+            <?php } ?>
         </div>
     </div>
 <?php } ?>
@@ -46,7 +49,6 @@ if($_POST){
             <input type="hidden" id="url_pagamento_confirmado"  name="url_pagamento_confirmado" value="<?php echo  base_url($url_pagamento_confirmado) ?>/"/>
             <!-- Widget -->
 
-
             <div class="row">
                 <div class="col-md-6">
                     <?php $this->load->view('admin/partials/validation_errors'); ?>
@@ -63,7 +65,7 @@ if($_POST){
                     </h2>
 
                     <?php
-                    if((isset($layout)) && ($layout == 'front') && ($context != "pagamento")) {
+                    if( $layout == 'front' && $context != "pagamento" ) {
                         $this->load->view('admin/venda/equipamento/front/step', array('step' => 4, 'produto_parceiro_id' => $carrossel['produto_parceiro_id'] ));
                     }else{
                         if ($context != "pagamento") {
@@ -71,39 +73,52 @@ if($_POST){
                         }
                     }
 
-                    $this->load->view('admin/venda/partials/enviar_token_acesso');
+                    // $this->load->view('admin/venda/partials/enviar_token_acesso');
+                    $this->load->view('admin/venda/partials/enviar_token_acesso_link');
+                    $this->load->view('admin/venda/partials/enviar_token_acesso_modal');
+
+                    // Exibe os meios de pagto se for no link externo ou se estiver habilitado
+                    if ( $disablePagto ) {
                     ?>
+                        <div class="alert alert-warning fade in">
+                            <button type="button" class="close" data-dismiss="alert">×</button>
+                            <i class="fa fa-info-circle"></i> Cobrança permitida somente através do Pagamento Externo
+                        </div>
+
+                    <?php } else { ?>
 
                     <div class="panel-group" id="accordion1">
-                    <?php $in = " in"; ?>
-                    <?php $expanded = " expanded"; ?>
-                    <?php $select = " checked"; ?>
-                        <?php foreach ($forma_pagamento as $index => $forma) : ?>
-                            <!-- Accordion Item -->
-                            <div class="card panel<?php if(isset($row['forma_pagamento_tipo_id'])){if($row['forma_pagamento_tipo_id'] == $forma['tipo']['forma_pagamento_tipo_id']) {echo ' expanded';}} else {if(!isset($row['forma_pagamento_tipo_id'])){ echo $expanded;}} ?>">
-                                <div class="card-head" data-toggle="collapse" data-parent="#accordion1" data-target="#accordion1-<?php echo $forma['tipo']['forma_pagamento_tipo_id']; ?>">
-                                    <header>
-                                        <div class="radio radio-styled">
-                                            <label>
-                                                <input type="radio" name="forma_pagamento_tipo_id" value="<?php echo $forma['tipo']['forma_pagamento_tipo_id']; ?>" <?php if(isset($row['forma_pagamento_tipo_id'])){if($row['forma_pagamento_tipo_id'] == $forma['tipo']['forma_pagamento_tipo_id']) {echo 'checked="checked"';}} else {if(!isset($row['forma_pagamento_tipo_id'])){ echo $select;}} ?> >
-                                                <span><?php  echo $forma['tipo']['nome'];  ?></span>
-                                            </label>
-                                        </div>
-                                    </header>
-                                    <div class="tools">
-                                        <a class="btn btn-icon-toggle"><i class="fa fa-angle-down"></i></a>
+                    <?php 
+                    $in = " in";
+                    $expanded = " expanded";
+                    $select = " checked";
+                    foreach ($forma_pagamento as $index => $forma) : ?>
+                        <!-- Accordion Item -->
+                        <div class="card panel<?php if(isset($row['forma_pagamento_tipo_id'])){if($row['forma_pagamento_tipo_id'] == $forma['tipo']['forma_pagamento_tipo_id']) {echo ' expanded';}} else {if(!isset($row['forma_pagamento_tipo_id'])){ echo $expanded;}} ?>">
+                            <div class="card-head" data-toggle="collapse" data-parent="#accordion1" data-target="#accordion1-<?php echo $forma['tipo']['forma_pagamento_tipo_id']; ?>">
+                                <header>
+                                    <div class="radio radio-styled">
+                                        <label>
+                                            <input type="radio" name="forma_pagamento_tipo_id" value="<?php echo $forma['tipo']['forma_pagamento_tipo_id']; ?>" <?php if(isset($row['forma_pagamento_tipo_id'])){if($row['forma_pagamento_tipo_id'] == $forma['tipo']['forma_pagamento_tipo_id']) {echo 'checked="checked"';}} else {if(!isset($row['forma_pagamento_tipo_id'])){ echo $select;}} ?> >
+                                            <span><?php  echo $forma['tipo']['nome'];  ?></span>
+                                        </label>
                                     </div>
-                                </div>
-                                <div id="accordion1-<?php echo $forma['tipo']['forma_pagamento_tipo_id']; ?>" class="collapse <?php if(isset($row['forma_pagamento_tipo_id'])){if($row['forma_pagamento_tipo_id'] == $forma['tipo']['forma_pagamento_tipo_id']) {echo ' in';}} else {if(!isset($row['forma_pagamento_tipo_id'])){ echo $in;}} ?>">
-                                    <div class="panel-body">
-                                        <?php $this->load->view("admin/venda/pagamento/". $forma['tipo']['slug'], array('forma' => $forma, 'row' => issetor($campos, array())));?>
-                                    </div>
+                                </header>
+                                <div class="tools">
+                                    <a class="btn btn-icon-toggle"><i class="fa fa-angle-down"></i></a>
                                 </div>
                             </div>
+                            <div id="accordion1-<?php echo $forma['tipo']['forma_pagamento_tipo_id']; ?>" class="collapse <?php if(isset($row['forma_pagamento_tipo_id'])){if($row['forma_pagamento_tipo_id'] == $forma['tipo']['forma_pagamento_tipo_id']) {echo ' in';}} else {if(!isset($row['forma_pagamento_tipo_id'])){ echo $in;}} ?>">
+                                <div class="panel-body">
+                                    <?php $this->load->view("admin/venda/pagamento/". $forma['tipo']['slug'], array('forma' => $forma, 'row' => issetor($campos, array())));?>
+                                </div>
+                            </div>
+                        </div>
 
-                            <?php $in = ""; $expanded = ""; $select = "";?>
-                        <?php endforeach;  ?>
+                        <?php $in = ""; $expanded = ""; $select = "";
+                    endforeach; ?>
                     </div>
+                    <?php } ?>
 
                 </div>
             </div>
@@ -111,24 +126,25 @@ if($_POST){
     </div>
 </div>
 
-
 <div class="card">
     <div class="card-body">
         <?php if ($context != "pagamento") { ?>
             <a href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/{$step}/{$cotacao_id}")?>" class="btn  btn-app btn-primary">
                 <i class="fa fa-arrow-left"></i> Voltar
             </a>
-        <?php } ?>
+        <?php }
 
-        <?php if(($produto_parceiro_configuracao['venda_carrinho_compras']) && ($context != "pagamento") ) :?>
+        if(($produto_parceiro_configuracao['venda_carrinho_compras']) && ($context != "pagamento") ) :?>
             <a class="btn  btn-app btn-primary" href="<?php echo base_url("{$current_controller_uri}/{$produto_slug}/{$produto_parceiro_id}/7/{$cotacao_id}/$pedido_id")?>">
                 <i class="fa fa-cart-plus"></i> Adicionar no carrinho
             </a>
-        <?php endif; ?>
+        <?php endif; 
 
+        if ( !$disablePagto ) { ?>
         <a class="btn pull-right btn-app btn-primary btn-proximo" onclick="$('#validateSubmitForm').submit();">
             <i class="fa fa-arrow-right"></i> Próximo
         </a>
+        <?php } ?>
 
         <a style="display:none;" class="btn pull-right btn-app btn-success btn-pagamento-efetuado" href="#">
             <i class="fa fa-arrow-right"></i> Pagamento Efetuado

@@ -59,14 +59,27 @@ Class Pedido_Model extends MY_Model
         ),
     );
 
-    function getPedidoCarrinho($usuario_id){
+    function getPedidoCarrinho($usuario_id = null, $cnpj_cpf = ''){
 
-        $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.codigo, pedido.codigo")
+        $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.codigo, pedido.codigo, produto_parceiro.produto_parceiro_id, pedido_status.slug AS pedido_status_slug ")
         ->select("pedido.valor_total, produto_parceiro.nome,  produto_parceiro.produto_parceiro_id")
         ->join("cotacao", "pedido.cotacao_id = cotacao.cotacao_id", 'inner')
         ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
-        ->where("pedido.pedido_status_id", 13)
-        ->where("pedido.alteracao_usuario_id", $usuario_id);
+        ->join("pedido_status", "pedido.pedido_status_id = pedido_status.pedido_status_id", 'inner')
+        ->where("pedido.pedido_status_id", 13);
+
+        if ( !empty($usuario_id) )
+        {
+            $this->_database->where("pedido.alteracao_usuario_id", $usuario_id);
+        }
+
+        if ( !empty($cnpj_cpf) )
+        {
+            $this->_database->join("cotacao_equipamento", "cotacao.cotacao_id = cotacao_equipamento.cotacao_id", 'left')
+                ->join("cotacao_generico", "cotacao.cotacao_id = cotacao_generico.cotacao_id", 'left')
+                ->join("cotacao_seguro_viagem", "cotacao.cotacao_id = cotacao_seguro_viagem.cotacao_id", 'left')
+                ->where(" IFNULL(cotacao_equipamento.cnpj_cpf, IFNULL(cotacao_generico.cnpj_cpf, cotacao_seguro_viagem.cnpj_cpf)) = '". app_clear_number($cnpj_cpf) ."' ", NULL, FALSE);
+        }
 
         $carrinho = $this->get_all();
         return $carrinho;
@@ -320,6 +333,7 @@ Class Pedido_Model extends MY_Model
                 produto.slug,
                 parceiro.slug as slug_parceiro,
                 produto_parceiro.parceiro_id,
+                produto_parceiro.nome as produto_nome,
                 produto_parceiro_apolice.template as template_apolice,
                 CASE produto.slug 
                     WHEN 'equipamento' THEN cotacao_equipamento.iof
@@ -1158,7 +1172,6 @@ Class Pedido_Model extends MY_Model
         $this->load->model('pedido_transacao_model', 'pedido_transacao');
 
         $calculo = $this->calcula_estorno_cancelamento($pedido_id, $vigente, $define_data);
-
         // caso não tenha conseguido calcular o valor a estornar
         if ( empty($calculo['status']) )
         {
@@ -1166,6 +1179,7 @@ Class Pedido_Model extends MY_Model
         	return $result;
         }
 
+        $comunicacao = new Comunicacao();
         foreach ($calculo['dados'] as $row)
         {
             $apolice = $row['apolices'];
@@ -1192,6 +1206,19 @@ Class Pedido_Model extends MY_Model
             }
 
             $this->apolice_cobertura->geraDadosCancelamento($apolice["apolice_id"], $calculo['valor_estorno_total_liquido'], $apolice["produto_parceiro_plano_id"], $coberturas);
+            
+            $comunicacao->setNomeDestinatario($apolice["nome"]);
+            $comunicacao->setMensagemParametros(array(
+                "nome" => $apolice["nome"] ,
+                'apolices' => "Nome: {$apolice['equipamento_nome']} - Apólice código: {$apolice['apolice_id']}"
+            ));
+
+            $comunicacao->setDestinatario(app_retorna_numeros($apolice['contato_telefone']));
+            $comunicacao->disparaEvento("apolice_cancelada_sms", $apolice["produto_parceiro_id"]);
+
+            $comunicacao->setDestinatario($apolice["email"]);
+            $comunicacao->disparaEvento("apolice_cancelada_email", $apolice["produto_parceiro_id"]);
+
         }
 
         $this->atualizarDadosBancarios($pedido_id, $dados_bancarios);
@@ -2751,7 +2778,6 @@ Class Pedido_Model extends MY_Model
                 break;
         }
 
-
         $item['juros_parcela'] = (isset($item['juros_parcela'])) ? $item['juros_parcela'] : 0;
         $item['parcelamento_maximo'] = (isset($item['parcelamento_maximo'])) ? $item['parcelamento_maximo'] : 1;
         $item['parcelamento_maximo_sem_juros'] = (isset($item['parcelamento_maximo_sem_juros'])) ? $item['parcelamento_maximo_sem_juros'] : 1;
@@ -2790,7 +2816,6 @@ Class Pedido_Model extends MY_Model
         $dados_pedido['valor_parcela'], $cotacao['produto_parceiro_id']);
 
         return $pedido_id;
-
     }
 
     public function insDadosPagamento($dados, $pedido_id){
@@ -2835,7 +2860,6 @@ Class Pedido_Model extends MY_Model
                     'ativo' => 0
                 )
             );
-
 
             $this->pedido_cartao->insert($dados_cartao, true);
             $this->pedido_transacao->insStatus($pedido_id, "Aguardando_pagamento");

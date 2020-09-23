@@ -1,13 +1,13 @@
 <?php
-    if($_POST){
-        $row = $_POST;
-    }
+if ($_POST) {
+    $row = $_POST;
+}
 
-    //echo 'Débito!';
+//echo 'Débito!';
 ?>
 <div class="row forma-pagamento" id="pagamento-debito">
-    <?php if(isset($forma['pagamento'])) : ?>
-    <input type="hidden" name="bandeira_debito" value="<?php echo $forma['pagamento'][0]['produto_parceiro_pagamento_id']; ?>">
+    <?php if (isset($forma['pagamento'])) : ?>
+        <input type="hidden" name="bandeira_debito" value="<?php echo $forma['pagamento'][0]['produto_parceiro_pagamento_id']; ?>">
     <?php endif; ?>
     <div class="col-md-6">
         <div class="col-xs-12 select-forma-pagamento">
@@ -17,9 +17,12 @@
                     <div class="label">
                         <select class="form-control select" id="bandeira_cartao_debito" name="bandeira_cartao_debito">
                             <option value=""></option>
-                            <?php foreach($forma['bandeiras'] as $linha) { ?>
-                                <option name="" value="<?php echo $linha['slug'] ?>"
-                                    <?php if(isset($row['bandeira_cartao_debito'])){if($row['bandeira_cartao_debito'] == $linha['slug']) {echo " selected ";};}; ?> >
+                            <?php foreach ($forma['bandeiras'] as $linha) { ?>
+                                <option name="" value="<?php echo $linha['slug'] ?>" <?php if (isset($row['bandeira_cartao_debito'])) {
+                                                                                            if ($row['bandeira_cartao_debito'] == $linha['slug']) {
+                                                                                                echo " selected ";
+                                                                                            };
+                                                                                        }; ?>>
                                     <?php echo $linha['nome'] ?>
                                 </option>
                             <?php } ?>
@@ -52,23 +55,22 @@
             </div>
             <div class="col-xs-5">
                 <label for="codigo_debito" class="control-label"> CVV </label>
-                <input class="form-control" id="codigo_debito" name="codigo_debito" type="text"  maxlength='3' value="<?php echo isset($row['codigo_debito']) ? $row['codigo_debito'] : set_value('codigo_debito'); ?>" />
+                <input class="form-control" id="codigo_debito" name="codigo_debito" type="text" maxlength='3' value="<?php echo isset($row['codigo_debito']) ? $row['codigo_debito'] : set_value('codigo_debito'); ?>" />
                 <?php echo app_get_form_error('codigo_debito'); ?>
             </div>
             <div class="col-xs-1">
-                <a href="javascript:void(0)" class="tooltip-icon" data-toggle="tooltip" data-placement="left" 
-                    title="C&oacute;digo de seguran&ccedil;a do cart&atilde;o">
+                <a href="javascript:void(0)" class="tooltip-icon" data-toggle="tooltip" data-placement="left" title="C&oacute;digo de seguran&ccedil;a do cart&atilde;o">
                     <i class="fa fa-question-circle" aria-hidden="true"></i>
                 </a>
             </div>
         </div>
     </div>
 
-    
+
 
     <div class="col-xs-12">
         <div class="form-group">
-            <?php if($produto_parceiro_configuracao['pagamento_tipo'] == 'RECORRENTE') { ?>
+            <?php if ($produto_parceiro_configuracao['pagamento_tipo'] == 'RECORRENTE') { ?>
                 <div class="col-xs-12">
                     Esse produto é um pagamento recorrente, no dia do vencimento você receberá uma notificação para efetuar o pagamento.
                 </div>
@@ -76,15 +78,14 @@
         </div>
     </div>
 
-    <div class="col-xs-12" style="margin-bottom: 20px; margin-top: 10px; z-index: 999;">
+    <div class="col-xs-12" style="margin-bottom: 20px; margin-top: 10px; z-index: 999;display: none;">
         <div class="col-xs-11">
             <label>
                 <input type="checkbox" checked="checked" /> Estou de acordo com os termos de uso.
             </label>
         </div>
         <div class="col-xs-1">
-            <a href="javascript:void(0)" data-toggle="tooltip" class="tooltip-icon terms" data-placement="left" 
-            title="Tooltip on left">
+            <a href="javascript:void(0)" data-toggle="tooltip" class="tooltip-icon terms" data-placement="left" title="Tooltip on left">
                 <i class="fa fa-question-circle" aria-hidden="true"></i>
             </a>
         </div>

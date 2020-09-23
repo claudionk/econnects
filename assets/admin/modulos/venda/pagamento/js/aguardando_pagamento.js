@@ -33,7 +33,6 @@ function getStatusPedido(){
         pedido_id: $('#pedido_id').val( )
     }
 
-    debugger;
     var url = $('#url_aguardando_pagamento').val();
     pr += 5;
     if(pr > 100){ pr = 30; }
@@ -55,7 +54,7 @@ function getStatusPedido(){
             if(result.status_id == 3){
                 $('.box-sucesso').show();
                 $('.box-debito').hide();
-               $('#modal-debito').hide();
+                $('#modal-debito').hide();
                 $( ".close" ).trigger( "click" );
             }
 

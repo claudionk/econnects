@@ -9,7 +9,7 @@
 |
 */
 $config['app_assets_dir'] = 'assets';
-$config['app_assets_ver'] = (ENVIRONMENT == 'development') ? date('ymdhis') :  '1.0.0.4';
+$config['app_assets_ver'] = (ENVIRONMENT == 'development') ? date('ymdhis') :  '2.0.0.0';
 
 
 /*

@@ -1171,6 +1171,8 @@ class Venda_Generico extends Admin_Controller
             $cotacao['email'] = $cotacao_salva['email'];
             $cotacao['telefone'] = $cotacao_salva['telefone'];
             $cotacao['data_nascimento'] = app_date_mysql_to_mask($cotacao_salva['data_nascimento'], 'd/m/Y');
+            $cotacao['garantia_fabricante'] = $cotacao_salva['garantia_fabricante'];
+            
             $cotacao['endereco_cep'] = $cotacao_salva['endereco_cep'];
             $cotacao['endereco_logradouro'] = $cotacao_salva['endereco_logradouro'];
             $cotacao['endereco_numero'] = $cotacao_salva['endereco_numero'];

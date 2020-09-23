@@ -26,24 +26,25 @@
             <input type="hidden" name="<?php echo $primary_key ?>" id="<?php echo $primary_key ?>" value="<?php if (isset($produto_parceiro_id)) echo $produto_parceiro_id; ?>"/>
             <input type="hidden" name="cotacao_id" value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
             <input type="hidden" id="url_busca_cliente"  name="url_busca_cliente" value="<?php echo base_url("{$current_controller_uri}/get_cliente"); ?>"/>
+            <input type="hidden" id="lista_id"  name="lista_id" value="<?php echo emptyor($lista_id, 1); ?>"/>
 
-                <div class="row">
-                    <div class="col-md-6">
-                        <?php // $this->load->view('admin/partials/validation_errors');?>
-                        <?php $this->load->view('admin/partials/messages'); ?>
-                    </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <?php // $this->load->view('admin/partials/validation_errors');?>
+                    <?php $this->load->view('admin/partials/messages'); ?>
                 </div>
+            </div>
 
-                <!-- Column -->
-                <div class="col-md-12">
+            <!-- Column -->
+            <div class="col-md-12">
 
-                    <h2 class="text-light text-center"><?php echo app_produto_traducao('Dados iniciais da Cotação', $produto_parceiro_id); ?><br><small class="text-primary"><?php echo app_produto_traducao('Informe os dados pessoais para iniciar a cotação', $produto_parceiro_id); ?></small></h2>
+                <h2 class="text-light text-center"><?php echo app_produto_traducao('Dados iniciais da Cotação', $produto_parceiro_id); ?><br><small class="text-primary"><?php echo app_produto_traducao('Informe os dados pessoais para iniciar a cotação', $produto_parceiro_id); ?></small></h2>
 
-                    <?php $this->load->view('admin/venda/step', array('step' => 1 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id))); ?>
+                <?php $this->load->view('admin/venda/step', array('step' => 1 ,'produto_parceiro_id' =>  issetor($produto_parceiro_id))); ?>
 
-                    <?php $this->load->view('admin/campos_sistema/lista_campos'); ?>
+                <?php $this->load->view('admin/campos_sistema/lista_campos'); ?>
 
-                </div>
+            </div>
 
         </form>
     </div>

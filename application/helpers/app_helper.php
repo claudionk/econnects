@@ -1422,7 +1422,7 @@ function app_print_recursos($recursos)
                     <span>{$recurso['nome']}</span>
                 </label>
             </div>
-
+    
             ".app_print_recurso_filho($recurso)."
         </li>
         ";
@@ -1462,7 +1462,7 @@ function app_print_recurso_filho($recurso)
         foreach ($recurso['filhos'] as $filho) {
             echo "<li class='titulo'>";
 
-            foreach ($recurso['acoes'] as $acao)
+            foreach ($filho['acoes'] as $acao)
             {
                 if($acao['usuario_acl_acao_id'] == 1)
                 {
@@ -1819,10 +1819,10 @@ if ( ! function_exists('soap_curl'))
 
 if ( ! function_exists('app_get_token'))
 {
-    function app_get_token($email = null, $senha = null){
+    function app_get_token($email = null, $senha = null, $validToken = true){
 
         // solicitar outro token quando a API tiver vencida
-        if ( !empty(app_get_userdata("tokenAPIvalid")) && app_get_userdata("tokenAPIvalid") > date("Y-m-d H:i:s"))
+        if ( $validToken && !empty(app_get_userdata("tokenAPIvalid")) && app_get_userdata("tokenAPIvalid") > date("Y-m-d H:i:s"))
             return app_get_userdata("tokenAPI");
 
         $url = '';
@@ -1834,8 +1834,6 @@ if ( ! function_exists('app_get_token'))
             $url = '&forceEmail=1';
 
         $CI =& get_instance();
-
-
 
         $retorno = soap_curl([
             'url' => $CI->config->item('base_url') ."api/acesso?email={$email}&senha={$senha}&url={$url}",
@@ -1958,3 +1956,37 @@ if ( ! function_exists('printable')) {
     }
 }
 
+/**
+ * @description Une os arrays multidimensionais sem duplicar a chave informada
+ * @param $text
+ * @return string
+ */
+if ( ! function_exists('array_merge_recursive_distinct')) {
+    function array_merge_recursive_distinct ( $chave, array $array1, array $array2 )
+    {
+        $merged = $array1;
+
+        foreach ( $array2 as $key => $value )
+        {
+            if ( is_array ( $value ) )
+            {
+                $exists = false;
+                foreach ($array1 as $k => $v)
+                {
+                    if ( isset($merged[$k][$chave]) && $merged[$k][$chave] == $value[$chave])
+                    {
+                        $exists = true;
+                        break;
+                    }
+                }
+
+                if (!$exists)
+                {
+                    $merged[] = $value;
+                }
+            }
+        }
+
+        return $merged;
+    }
+}

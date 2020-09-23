@@ -73,7 +73,10 @@ if($_POST)
                                                     <?php $field_name = 'numero_inicio';?>
                                                     <div class="form-group">
                                                         <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Número Inicio *</label>
-                                                        <div class="col-md-8"><input <?php if($new_record == '0') : echo 'readonly'; endif; ?> class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                        <div class="col-md-8">
+                                                            <input <?php if($new_record == '0') : echo 'readonly'; endif; ?> class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" />
+
+                                                        </div>
                                                     </div>
                                                     <?php $field_name = 'numero_fim';?>
                                                     <div class="form-group">
@@ -113,10 +116,13 @@ if($_POST)
                                                 </div>
                                                 <!-- // Column END -->
 
-
                                             </div>
                                             <!-- // Row END -->
                                             
+                                            <div class="text-default-light">
+                                                <a href="" class="btn" data-toggle="modal" data-target="#modal_vars" id="a_key_create" > <i class="fa fa-info-circle"></i> Como usar variáveis </a>
+                                            </div>
+
                                         </div>
                                     </div>
                                     <!-- // Widget END -->
@@ -150,6 +156,40 @@ if($_POST)
 
             </div>
             <!-- // END col-separator.box -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modal_vars" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Variáveis</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    Para usar as variáveis é preciso seguir as opções abaixo. As variáveis devem estar dentro de chaves {}
+                    <div class="col-md-12">
+                        <ul>
+                            <li><b>{sigla_loja}</b> Refere-se ao campo "URL de acesso" do cadastro de Parceiro</li>
+                            <li><b>{cod_sucursal}</b> "Código Sucursal" do cadastro do produto</li>
+                            <li><b>{cod_ramo}</b> "Código Ramo" do cadastro do produto</li>
+                            <li><b>{cod_operacao}</b> "Código TPA" do cadastro do produto</li>
+                            <li><b>{cod_produto}</b> "Código Parceiro" do cadastro do plano</li>
+                            <li><b>{ano_AA}</b> Ano com 2 digitos no formato AA</li>
+                            <li><b>{ano_AAAA}</b> Ano com 4 digitos no formato AAAA</li>
+                            <li><b>{mes_MM}</b> Mês com 2 digitos no formato MM</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Fechar</button>
+            </div>
         </div>
     </div>
 </div>
