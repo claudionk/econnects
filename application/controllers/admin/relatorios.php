@@ -320,6 +320,83 @@ class Relatorios extends Admin_Controller
         $this->template->load("admin/layouts/base", "$this->controller_uri/vendas5", $data);
     }
 
+    public function vendas6()
+    {
+        //Dados para template
+        $data = array();
+        $data['data_inicio'] = date("d/m/Y",strtotime("-1 month"));
+        $data['data_fim'] = date("d/m/Y");
+        $data['title'] = 'Relatório 06 de Vendas';
+        $data['columns'] = [
+            'Representante de Seguros',
+            'Cobertura Comercializada',
+            'Número do Bilhete (PARCEIRO)',
+            'Número do Bilhete (GBS)',
+            'Codigo da Loja',
+            'Data de Emissão',
+            'inicio_vigencia',
+            'fim_vigencia',
+            'CPF do Segurado',
+            'Data de Nascimento',
+            'Nome do Segurado',
+            'Cidade',
+            'Estado',
+            'CEP',
+            'Logradouro',
+            'Tipo de Equipamento',
+            'Marca',
+            'Modelo (Descrição do Equipamento)',
+            'LMI',
+            'Prêmio Líquido',
+            'Prêmio Bruto'
+            ];
+
+        if ($_POST) {
+            $result = $this->getRelatorio(FALSE);
+            $data['result'] = $result['data'];
+            
+            if (!empty($_POST['btnExcel'])) {
+
+                $rows = [];
+                foreach ($data['result'] as $row) {
+                    $rows[] = [
+                        $row['Representante de Seguros]'],
+                        $row['Cobertura Comercializada'],
+                        $row['num_apolice)'],
+                        $row['Número do Bilhete (GBS)'],
+                        $row['Codigo da Loja'],
+                        $row['Data de Emissão'],
+                        $row['inicio_vigencia'],
+                        $row['fim_vigencia'],
+                        $row['documento'],
+                        $row['Data de Nascimento'],
+                        $row['segurado'],
+                        $row['Cidade'],
+                        $row['Estado'],
+                        $row['CEP'],
+                        $row['Logradouro'],
+                        $row['nome_produto_parceiro'],
+                        $row['Marca'],
+                        $row['Modelo (Descrição do Equipamento)'],
+                        $row['LMI'],
+                        app_format_currency($row['premio_liquido_total'], true),
+                        app_format_currency($row['Premio Bruto'], true)                 
+                    ];
+                }
+                //$this->exportExcel($data['columns'], $rows);
+                $this->exportCSV($data['columns'], $rows, 'Relatório 06 de Vendas');
+            }
+
+            //Dados via GET
+            $data['data_inicio'] = $this->input->get_post('data_inicio');
+            $data['data_fim'] = $this->input->get_post('data_fim');
+        }
+
+        //Carrega template
+        $this->template->load("admin/layouts/base", "$this->controller_uri/vendas6", $data);
+    }
+    
+
     public function _mapa_repasse_lasa()
     {
         //Dados para template
