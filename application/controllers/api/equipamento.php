@@ -174,7 +174,16 @@ class Equipamento extends CI_Controller {
 
         $categoria_id = isempty($GET["equipamento_categoria_id"], null);
         $marca_id     = isempty($GET["equipamento_marca_id"], null);
-        $result = $this->equipamento->get_equipamentos($categoria_id, $marca_id);
+        $lista_id     = isempty($GET["lista_id"], 1);
+
+        if ($lista_id == 1)
+        {
+            $modelInstance = $this->equipamento;
+        } else {
+            $modelInstance = $this->equipamentos_elegiveis;
+        }
+
+        $result = $modelInstance->get_equipamentos($categoria_id, $marca_id);
 
         die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
