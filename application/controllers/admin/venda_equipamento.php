@@ -300,7 +300,7 @@ class Venda_Equipamento extends Admin_Controller{
             {
                 $cotacao_id = $this->input->post("cotacao_id");
                 $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $_POST);
-                $this->set_cotacao_session($cotacao_id, $produto_parceiro_id);
+                $this->set_cotacao_session($cotacao_id, $produto_parceiro_id, '', $_POST);
                 $cotacao_id = $this->cotacao_equipamento->insert_update($produto_parceiro_id, $cotacao_id);
 
                 redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2/{$cotacao_id}{$this->getUrl}");
@@ -1126,7 +1126,7 @@ class Venda_Equipamento extends Admin_Controller{
     * @param $cotacao_id
     * @param $produto_parceiro_id
     */
-    private function set_cotacao_session($cotacao_id, $produto_parceiro_id, $status = '')
+    private function set_cotacao_session($cotacao_id, $produto_parceiro_id, $status = '', $inputData = null)
     {
         $this->load->model("Produto_Parceiro_Plano_Model","produto_parceiro_plano" );
         $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento_model');
@@ -1195,8 +1195,21 @@ class Venda_Equipamento extends Admin_Controller{
             $cotacao['aux_09'] = $cotacao_salva['aux_09'];
             $cotacao['aux_10'] = $cotacao_salva['aux_10'];
 
+            $sessionData = array();
+            if($inputData){
+                foreach($cotacao as $key => $value){
+                    if(isset($inputData[$key])){
+                        $sessionData[$key] = $inputData[$key];
+                    }else{
+                        $sessionData[$key] = $value;
+                    }
+                }
+            }else{
+                $sessionData = $cotacao;
+            }
 
-            $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $cotacao);
+            $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $sessionData);
+            
         }
 
     }
