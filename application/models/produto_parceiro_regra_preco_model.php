@@ -444,14 +444,11 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             'iof' => (float)$iof,
         );
 
-        if (!$api || empty($produto_parceiro_plano_id) )
-        {
-            $result['valores_liquido'] = $valores_liquido;
-            $result['valores_liquido_total'] = $valores_liquido_total;
-            $result['valores_cobertura_adicional'] = $valores_cobertura_adicional;
-            $result['valores_totais_cobertura_adicional'] = $valores_cobertura_adicional_total;
-            $result['valores_bruto'] = $valores_bruto;
-        }
+        $result['valores_liquido'] = $valores_liquido;
+        $result['valores_liquido_total'] = $valores_liquido_total;
+        $result['valores_cobertura_adicional'] = $valores_cobertura_adicional;
+        $result['valores_totais_cobertura_adicional'] = $valores_cobertura_adicional_total;
+        $result['valores_bruto'] = $valores_bruto;
 
         //Salva cotação
         if($cotacao_id)
