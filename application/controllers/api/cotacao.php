@@ -603,6 +603,7 @@ class Cotacao extends CI_Controller {
                 'nota_fiscal_data' => $value['nota_fiscal_data'],
                 'imei' => $value['imei'],
                 'nota_fiscal_valor' => $value['nota_fiscal_valor'],
+                'premio_liquido_total' => $value['premio_liquido_total'],
             ];
         }
 
