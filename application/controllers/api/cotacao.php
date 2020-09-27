@@ -591,6 +591,20 @@ class Cotacao extends CI_Controller {
             ->with_produto_parceiro()
             ->get_all();
 
+        foreach ($cotacao as $key => $value) {
+            $cotacao[$key]['detalhes'] = [
+                'nome' => $value['nome'],
+                'telefone' => $value['telefone'],
+                'equipamento_nome' => $value['equipamento_nome'],
+                'equipamento_id' => $value['equipamento_id'],
+                'equipamento_marca_id' => $value['equipamento_marca_id'],
+                'equipamento_categoria_id' => $value['equipamento_categoria_id'],
+                'nota_fiscal_data' => $value['nota_fiscal_data'],
+                'imei' => $value['imei'],
+                'nota_fiscal_valor' => $value['nota_fiscal_valor'],
+            ];
+        }
+
         ob_clean();
         die( json_encode( ['status' => true, 'itens' => $cotacao], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
