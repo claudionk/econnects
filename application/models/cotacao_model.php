@@ -128,12 +128,9 @@ Class Cotacao_Model extends MY_Model
         return $this;
     }
 
-
     public function filterPesquisa()
     {
-
         $filters = $this->input->get();
-      //  print_r($filters);exit;
 
         if($filters) {
             foreach ($filters as $key => $value) {
@@ -151,8 +148,10 @@ Class Cotacao_Model extends MY_Model
                         case "data_nascimento":
                             $this->_database->where('cliente.data_nascimento', app_dateonly_mask_to_mysql($value));
                             break;
+                        case "telefone":
+                            $this->_database->where("IFNULL(cotacao_generico.telefone, IFNULL(cotacao_equipamento.telefone, cotacao_seguro_viagem.telefone)) = '". app_clear_number($value) ."' ");
+                            break;
                     }
-
 
                 }
             }
@@ -607,6 +606,14 @@ Class Cotacao_Model extends MY_Model
         }
 
         return [];
+    }
+
+    public function with_cotacao_aux()
+    {
+        $this->_database->join('cotacao_generico', 'cotacao.cotacao_id = cotacao_generico.cotacao_id', 'left');
+        $this->_database->join('cotacao_equipamento', 'cotacao.cotacao_id = cotacao_equipamento.cotacao_id', 'left');
+        $this->_database->join('cotacao_seguro_viagem', 'cotacao.cotacao_id = cotacao_seguro_viagem.cotacao_id', 'left');
+        return $this;
     }
 
 }
