@@ -31,7 +31,8 @@ class Pagmax_Model extends MY_Model
         $this->load->model('apolice_model', 'apolice');
     }
 
-    public function realiza_pagamento($pedido_id, $forma_pagamento_tipo_id)
+    public function 
+    ($pedido_id, $forma_pagamento_tipo_id)
     {
 
         log_message('debug', 'INICIO EFETUAR PAGMAX ' . $pedido_id);

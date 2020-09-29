@@ -84,7 +84,6 @@ class Gateway extends Admin_Controller
                 "url"      => isset($Response['url']) ? $Response['url'] : '',
                 "pagmax"   => $Response['response'],
             );
-
         }
 
         $pedido = $this->pedido->get($pedido_id);
@@ -93,7 +92,6 @@ class Gateway extends Admin_Controller
         $this->output
             ->set_content_type('application/json')
             ->set_output(json_encode($result));
-
     }
 
     public function run()
@@ -163,12 +161,10 @@ class Gateway extends Admin_Controller
                         $this->cartao->update($cartao['pedido_cartao_id'], array('ativo' => 0), true);
                         $this->pedido_transacao->insStatus($pedido['pedido_id'], 'pagamento_negado', "Transação não Efetuada");
                         log_message('debug', 'NEGANDO TRANSACAO ');
-
                     } else {
                         log_message('debug', 'EFETUAR PAGAMENTO PAGMAX ' . $cartao['pedido_cartao_id']);
                         $this->pagmax_efetuar_pagamento($cartao['pedido_cartao_id']);
                     }
-
                 }
 
                 log_message('debug', 'UNLOCK NO PEDIDO ' . $pedido['pedido_id']);
@@ -180,7 +176,6 @@ class Gateway extends Admin_Controller
                 $this->pedido->update($pedido['pedido_id'], $dados_pedido, true);
             }
         }
-
     }
 
     public function ins_apolice()
@@ -190,7 +185,6 @@ class Gateway extends Admin_Controller
         foreach ($pedidos as $pedido_id) {
             $this->apolice->insertApolice($pedido_id);
         }
-
     }
 
     /**
@@ -207,8 +201,7 @@ class Gateway extends Admin_Controller
         $Pagmax360->merchantKey = $this->config->item("Pagmax360_merchantKey");
         $Pagmax360->Environment = $this->config->item("Pagmax360_Environment");
 
-        try
-        {
+        try {
             log_message('debug', 'INICIO EFETUAR PAGMAX ' . $pedido_cartao_id);
             $this->load->model('fatura_model', 'fatura');
             $this->load->model('recorrencia_model', 'recorrencia');
@@ -397,7 +390,6 @@ class Gateway extends Admin_Controller
             }
 
             $Json = json_encode($JsonDataRequest);
-
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
         }
@@ -449,15 +441,7 @@ class Gateway extends Admin_Controller
 
                 if (isset($Response->{"Payment"}->{"RecurrentPayment"})) {
                     $this->recorrencia->insert(array(
-                        "pedido_id" => $pedido['pedido_id']
-                        , "Capture" => $Response->{"Payment"}->{"Capture"}
-                        , "Tid" => $Response->{"Payment"}->{"Tid"}
-                        , "ProofOfSale" => $Response->{"Payment"}->{"ProofOfSale"}
-                        , "AuthorizationCode" => $Response->{"Payment"}->{"AuthorizationCode"}
-                        , "ReceivedDate" => $Response->{"Payment"}->{"ReceivedDate"}
-                        , "CapturedDate" => $Response->{"Payment"}->{"CapturedDate"}
-                        , "PaymentId" => $Response->{"Payment"}->{"PaymentId"}
-                        , "RecurrentPaymentId" => $Response->{"Payment"}->{"RecurrentPayment"}->{"RecurrentPaymentId"},
+                        "pedido_id" => $pedido['pedido_id'], "Capture" => $Response->{"Payment"}->{"Capture"}, "Tid" => $Response->{"Payment"}->{"Tid"}, "ProofOfSale" => $Response->{"Payment"}->{"ProofOfSale"}, "AuthorizationCode" => $Response->{"Payment"}->{"AuthorizationCode"}, "ReceivedDate" => $Response->{"Payment"}->{"ReceivedDate"}, "CapturedDate" => $Response->{"Payment"}->{"CapturedDate"}, "PaymentId" => $Response->{"Payment"}->{"PaymentId"}, "RecurrentPaymentId" => $Response->{"Payment"}->{"RecurrentPayment"}->{"RecurrentPaymentId"},
                     ));
                 }
 
@@ -554,7 +538,6 @@ class Gateway extends Admin_Controller
                         $dados_transacao["slug_status"] = 'aguardando_liberacao';
                         break;
                 }
-
             }
         } catch (Exception $e) {
             log_message('debug', 'ERRO CHAMADA WS ', print_r($e, true));
@@ -620,7 +603,6 @@ class Gateway extends Admin_Controller
                             }
 
                             $this->pedido->executa_extorno_upgrade($pedido_antigo['pedido_id']);
-
                         }
                     }
                 } else {
@@ -628,9 +610,7 @@ class Gateway extends Admin_Controller
                     log_message('debug', 'INSERE STATUS PEDIDO - LIBERACAO PAGAMENTO ');
 
                     $erro = true;
-
                 }
-
             } elseif ($dados_transacao['result'] == "REDIRECT") {
 
                 //$dados_transacao['result'] = 'REDIRECT';
@@ -642,7 +622,6 @@ class Gateway extends Admin_Controller
 
                 $this->pedido_transacao->insStatus($pedido['pedido_id'], 'aguardando_pagamento_debito', "TRANSAÇÃO CRIADA COM SUCESSO. AGUARDANDO PAGAMENTO.");
                 log_message('debug', ' INSERE STATUS DO PEDIDO DEBITO');
-
             } else {
                 //log_message('error', 'pagmax: ' . print_r($response, true));
 
@@ -696,7 +675,6 @@ class Gateway extends Admin_Controller
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
         }
-
     }
 
     public function consulta($pedido_id = 0)
@@ -744,7 +722,6 @@ class Gateway extends Admin_Controller
             $result['transacao_message'] = (isset($status['message'])) ? $status['message'] : '';
             $result['transacao_tid']     = (isset($status['tid'])) ? $status['tid'] : '';
             $result['transacao_url']     = (isset($status['url'])) ? $status['url'] : '';
-
         } else {
             $result['mensagem'] = "PEDIDO NÃO ENCONTRADO";
         }
@@ -762,8 +739,7 @@ class Gateway extends Admin_Controller
 
         $this->load->model('pedido_model', 'cartao');
 
-        if ( !empty($pedido_id) )
-        {
+        if (!empty($pedido_id)) {
             $pedido = $this->pedido->get_many_by(array("pedido.pedido_id" => $pedido_id));
         } else {
             $pedido = $this->pedido->get_many_by(array("pedido.cotacao_id" => $cotacao_id));
@@ -780,7 +756,6 @@ class Gateway extends Admin_Controller
             $result["result"]           = true;
             $result["pedido_status_id"] = $pedido["pedido_status_id"];
             $result["pedido_id"]        = $pedido["pedido_id"];
-
         } else {
             $result["mensagem"] = "PEDIDO NÃO ENCONTRADO";
         }
@@ -835,7 +810,6 @@ class Gateway extends Admin_Controller
                 $dados_transacao['estorno_result']  = 'ERRO';
                 $dados_transacao['estorno_message'] = 'Erro Acessando modulo de pagamento';
                 $dados_transacao['estorno_status']  = $e->getMessage();
-
             }
 
             $erro = false;
@@ -851,22 +825,16 @@ class Gateway extends Admin_Controller
 
                         //muda status das faturas
                         $this->fatura->estornoCompletoEfetuado($pedido['pedido_id']);
-
                     }
-
                 } else {
                     $dados_transacao['estorno_message'] = isset($response->message) ? $response->message : '';
                     $dados_transacao['estorno_status']  = isset($response->Status) ? $response->Status : '';
-
                 }
 
                 $this->pedido_cartao_transacao->update($pedido['pedido_cartao_transacao_id'], $dados_transacao, true);
-
             } catch (Exception $e) {
                 throw new Exception($e->getMessage());
             }
-
         }
     }
-
 }

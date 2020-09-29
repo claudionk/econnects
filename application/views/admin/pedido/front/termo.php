@@ -4,7 +4,7 @@ if ($_POST) {
 }
 ?>
 
-<form class="form form-cancelamento form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" >
+<form class="form form-cancelamento form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off">
     <input type="hidden" name="produto_parceiro_id" value="<?php if (isset($produto_parceiro_id)) echo $produto_parceiro_id; ?>" />
     <input type="hidden" name="pedido_id" id="pedido_id" value="<?php if (isset($pedido_id)) echo $pedido_id; ?>" />
 
@@ -44,7 +44,7 @@ if ($_POST) {
                     <hr>
                 </div>
 
-                <?php if($isConfirmaEmail == true): ?>
+                <?php if ($isConfirmaEmail == true) : ?>
 
                     <div class="col-xs-12">
                         <h5 class="text-sm-left">Você receberá no e-mail abaixo o Termo de Solicitação de Desistência do Seguro.</h5>
@@ -78,7 +78,9 @@ if ($_POST) {
     function checkTerm() {
         if ($("#check_termo:checked").length) {
             $('#btnSubmit').show();
-            $("html, body").animate({ scrollTop: $(document).height() }, 500);
+            $("html, body").animate({
+                scrollTop: $(document).height()
+            }, 500);
         }
     }
     $('document').ready(function() {
@@ -88,11 +90,12 @@ if ($_POST) {
             checkTerm();
         });
 
-        $('#term-block-content').on('scroll', function() {
-            if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) {
-                $('#aceite-term-check').show()
-            }
-        })
+        $('#aceite-term-check').show();
+        // $('#term-block-content').on('scroll', function() {
+        //     if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) {
+        //         $('#aceite-term-check').show()
+        //     }
+        // })
 
     })
 </script>
