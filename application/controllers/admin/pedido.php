@@ -27,7 +27,7 @@ class Pedido extends Admin_Controller
 
         //Carrega bibliotecas
         $this->load->library('pagination');
-        
+
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Pedidos");
@@ -48,8 +48,7 @@ class Pedido extends Admin_Controller
             ->filterNotCarrinho()
             ->limit($config['per_page'], $offset)
             ->order_by('pedido.criacao', 'DESC')
-            ->group_by("pedido.pedido_id")
-            ->get_all();
+            ->get_all(0, 0, false);
 
         $config['total_rows'] =  count($data['rows']);
 
