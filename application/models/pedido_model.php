@@ -455,10 +455,9 @@ Class Pedido_Model extends MY_Model
     }
 
     public function with_fatura(){
-
-        $this->_database->where('fatura.deletado', 0);
-        return $this->with_simple_relation('fatura', 'fatura_', 'pedido_id', array('tipo'), 'inner');
-
+        $this->_database->select("fatura.tipo AS fatura_tipo");
+        $this->_database->join("fatura", "fatura.fatura_id = (SELECT MAX(fatura_id) from fatura where pedido_id = pedido.pedido_id and deletado =  0)", "join", FALSE);
+        return $this;
     }
 
     public function with_apolice(){
@@ -1316,14 +1315,14 @@ Class Pedido_Model extends MY_Model
     * @param int $offset
     * @return mixed
     */
-    public function get_all($limit = 0, $offset = 0)
+    public function get_all($limit = 0, $offset = 0, $viewAll = true)
     {
         //Efetua join com cotação
         $this->_database->join("cotacao as cotacao_filtro","cotacao_filtro.cotacao_id = {$this->_table}.cotacao_id");
 
         $this->processa_parceiros_permitidos("cotacao_filtro.parceiro_id");
 
-        return parent::get_all($limit, $offset);
+        return parent::get_all($limit, $offset, $viewAll);
     }
 
     /**
