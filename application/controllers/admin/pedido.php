@@ -40,7 +40,15 @@ class Pedido extends Admin_Controller
         $config['per_page'] = 10;
 
         //Carrega dados para a página
+        $data['primary_key'] = $this->current_model->primary_key();
         $data['rows'] = $this->current_model
+            ->getFileds([
+                "pedido.{$data['primary_key']}",
+                "pedido.pedido_status_id",
+                "pedido.codigo",
+                "pedido.criacao",
+                "pedido.valor_total",
+            ])
             ->with_pedido_status()
             ->with_fatura()
             ->with_cotacao_cliente_contato()
@@ -64,7 +72,6 @@ class Pedido extends Admin_Controller
             array('inadimplencia' => 'inadimplente', 'nome' => "Inadimplente"),
         );
 
-        $data['primary_key'] = $this->current_model->primary_key();
         $data["pagination_links"] = $this->pagination->create_links();
 
         //Carrega template

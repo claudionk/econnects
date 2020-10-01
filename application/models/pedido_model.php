@@ -2820,6 +2820,23 @@ Class Pedido_Model extends MY_Model
         /* verifica se a acl deixa somente ver somente o proprio pedido */
         return in_array( $usuario_acl_tipo_id , array( 2 , 11 ) ) ;
     }
+
+    public function getFileds($fields = [])
+    {
+
+        if (!empty($fields))
+        {
+            $select = '';
+            $virg = '';
+            foreach ($fields as $key => $value) {
+                $select .= $virg.' '.$value.' ';
+                $virg = ',';
+            }
+
+            $this->_database->select($select);
+            return $this;
+        }
+    }
 }
 
 
