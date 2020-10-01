@@ -60,14 +60,14 @@ class Admin_Controller extends MY_Controller
             $this->_setTheme($userdata['parceiro_id']);
         }
 
-        if ( !empty($this->session->userdata('parceiro_id')) ) {
+        if (!empty($this->session->userdata('parceiro_id'))) {
             $this->parceiro_id = $this->session->userdata('parceiro_id');
         }
-        
-        if ( !empty($this->session->userdata('parceiro_pai_id')) ) {
+
+        if (!empty($this->session->userdata('parceiro_pai_id'))) {
             $this->parceiro_pai_id = $this->session->userdata('parceiro_pai_id');
         }
-        
+
         $this->template->set('theme', $this->_theme);
         $this->template->set('theme_logo', $this->_theme_logo);
         $this->template->set('title', $this->_theme_nome);
@@ -80,19 +80,19 @@ class Admin_Controller extends MY_Controller
         $layout = ($this->session->userdata("layout")) ? $this->session->userdata("layout") : 'base';
         $this->layout = isset($layout) && !empty($layout) ? $layout : 'base';
 
-        if(! empty($this->input->get("token"))){
+        if (!empty($this->input->get("token"))) {
             $this->token = $this->input->get("token");
-            $this->getUrl = '?token='.$this->token;
+            $this->getUrl = '?token=' . $this->token;
         }
         if ($this->input->get('layout')) {
             $this->session->set_userdata("layout", $this->input->get('layout'));
             $layout = $this->input->get('layout');
             $this->layout = $layout;
-            $this->getUrl .= '&layout='.$this->layout;
+            $this->getUrl .= '&layout=' . $this->layout;
         }
-        if(! empty($this->input->get("color"))){
+        if (!empty($this->input->get("color"))) {
             $this->color  = $this->input->get("color");
-            $this->getUrl .= '&color='.$this->color;
+            $this->getUrl .= '&color=' . $this->color;
         }
         if ($this->input->get('context')) {
             $this->session->set_userdata("context", $this->input->get('context'));
@@ -177,13 +177,12 @@ class Admin_Controller extends MY_Controller
         $this->_theme_logo = (!empty($parceiro['logo'])) ? app_assets_url("upload/parceiros/{$parceiro['logo']}", 'admin') : app_assets_url('template/img/logo-connects.png', 'admin');
         $this->_theme_nome = (!empty($parceiro['apelido'])) ? $parceiro['apelido'] : $this->_theme_nome;
         $this->whatsapp    = (!empty($parceiro['whatsapp_num'])) ? $parceiro['whatsapp_num'] : '';
-        $this->whatsapp_msg= (!empty($parceiro['whatsapp_msg'])) ? $parceiro['whatsapp_msg'] : '';
+        $this->whatsapp_msg = (!empty($parceiro['whatsapp_msg'])) ? $parceiro['whatsapp_msg'] : '';
         $this->template->set('theme', $this->_theme);
         $this->template->set('theme_logo', $this->_theme_logo);
         $this->template->set('title', $this->_theme_nome);
         $this->template->set('whatsapp', $this->whatsapp);
         $this->template->set('whatsapp_msg', $this->whatsapp_msg);
-
     }
 
     public function venda_pagamento($produto_parceiro_id, $cotacao_id, $pedido_id = 0, $conclui_em_tempo_real = true, $getUrl = '')
@@ -208,17 +207,16 @@ class Admin_Controller extends MY_Controller
         //Carrega templates
         $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
 
-        if($this->layout == 'front'){
+        if ($this->layout == 'front') {
             $this->template->js(app_assets_url('modulos/venda/equipamento/front/js/pagamento.js', 'admin'));
-        }else{
+        } else {
             $this->template->js(app_assets_url('modulos/venda/pagamento/js/pagamento.js', 'admin'));
         }
 
         //Retorna cotação
         $cotacao = $this->cotacao->get_cotacao_produto($cotacao_id);
 
-        switch ($cotacao['produto_slug'])
-        {
+        switch ($cotacao['produto_slug']) {
             case "seguro_viagem":
                 $valor_total = $this->cotacao_seguro_viagem->getValorTotal($cotacao_id);
                 break;
@@ -231,7 +229,7 @@ class Admin_Controller extends MY_Controller
             case "seguro_saude":
                 $valor_total = $this->cotacao_generico->getValorTotal($cotacao_id);
                 break;
-        } 
+        }
 
         //formas de pagamento
         $forma_pagamento = array();
@@ -252,7 +250,7 @@ class Admin_Controller extends MY_Controller
             if (count($forma) > 0) {
 
                 // exibe o link para acesso externo se houver configurado os tipos de cartão
-                if ( !$exibe_url_acesso_externo && in_array($tipo['forma_pagamento_tipo_id'], [$this->config->item('FORMA_PAGAMENTO_CARTAO_CREDITO'), $this->config->item('FORMA_PAGAMENTO_CARTAO_DEBITO')] ) ) {
+                if (!$exibe_url_acesso_externo && in_array($tipo['forma_pagamento_tipo_id'], [$this->config->item('FORMA_PAGAMENTO_CARTAO_CREDITO'), $this->config->item('FORMA_PAGAMENTO_CARTAO_DEBITO')])) {
                     $exibe_url_acesso_externo = true;
                 }
 
@@ -274,7 +272,6 @@ class Admin_Controller extends MY_Controller
 
                 $forma_pagamento[] = array('tipo' => $tipo, 'pagamento' => $forma, 'bandeiras' => $bandeiras);
             }
-
         }
 
         $data                                  = array();
@@ -299,10 +296,10 @@ class Admin_Controller extends MY_Controller
 
         if ($exibe_url_acesso_externo) {
             $data['url_acesso_externo'] = $this->auth->generate_page_token(
-                ''
-                , $this->urlAcessoExternoAutorizados($cotacao['produto_slug'], $produto_parceiro_id)
-                , 'front'
-                , 'pagamento'
+                '',
+                $this->urlAcessoExternoAutorizados($cotacao['produto_slug'], $produto_parceiro_id),
+                'front',
+                'pagamento'
             );
         }
 
@@ -450,8 +447,7 @@ class Admin_Controller extends MY_Controller
 
             $this->cotacao->setValidate($validacao);
 
-            if ($this->cotacao->validate_form('pagamento'))
-            {
+            if ($this->cotacao->validate_form('pagamento')) {
                 $pedido_id = $this->finishedPedido($pedido_id, $tipo_forma_pagamento_id, $_POST, $cotacao);
 
                 switch ($this->input->post('forma_pagamento_tipo_id')) {
@@ -459,11 +455,10 @@ class Admin_Controller extends MY_Controller
                     case self::FORMA_PAGAMENTO_CARTAO_DEBITO:
                     case self::FORMA_PAGAMENTO_BOLETO:
 
-                        if($getUrl == ''){
+                        if ($getUrl == '') {
                             $this->session->set_flashdata('succ_msg', 'Aguardando confirmação do pagamento'); //Mensagem de sucesso
                             redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/{$pedido_id}");
-
-                        }else{
+                        } else {
 
                             $this->session->set_flashdata('succ_msg', 'Pedido incluido com sucesso!'); //Mensagem de sucesso
                             redirect("admin/venda_{$cotacao['produto_slug']}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
@@ -480,11 +475,11 @@ class Admin_Controller extends MY_Controller
 
         $data['step'] = ($conclui_em_tempo_real) ? 3 : 2;
         $view = "admin/venda/pagamento";
-        if($this->layout == 'front'){
+        if ($this->layout == 'front') {
             $view = "admin/venda/equipamento/front/steps/step-three-pagamento";
         }
-        
-        $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao["produto_parceiro_plano_id"]);        
+
+        $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($cotacao["produto_parceiro_plano_id"]);
         $data['pedidos'] = array(
             array(
                 "codigo" => $cotacao["codigo"],
@@ -498,11 +493,11 @@ class Admin_Controller extends MY_Controller
 
         $data["autorizacao_cobranca"] = null;
         $autorizacaoCobranca = $this->autorizacao_cobranca->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
-        if(!empty($autorizacaoCobranca)){
+        if (!empty($autorizacaoCobranca)) {
 
             $html = $autorizacaoCobranca[0]["autorizacao_cobranca"];
 
-            if ( !empty($html) ) {
+            if (!empty($html)) {
                 $data["autorizacao_cobranca"]["autorizacao_cobranca"] = $this->createAutorizacaoCobrancaHTML($html, [
                     "segurado_cnpj_cpf" => $cotacao['cnpj_cpf'],
                     "segurado_nome" => $cotacao['nome'],
@@ -559,35 +554,30 @@ class Admin_Controller extends MY_Controller
         $data = array();
 
         // Front a consulta deve ser por 
-        if(empty($this->session->userdata('logado')) && $this->template->get('layout') == 'front')
-        {
+        if (empty($this->session->userdata('logado')) && $this->template->get('layout') == 'front') {
             $this->step_login();
-
-        }else
-        {
+        } else {
             $loginDoc = '';
             $loginIdUser = 0;
 
-            if ( !empty($this->session->userdata('cnpj_cpf')) )
-            {
+            if (!empty($this->session->userdata('cnpj_cpf'))) {
                 $loginDoc = $this->session->userdata('cnpj_cpf');
             } else {
                 $loginIdUser = $this->session->userdata('usuario_id');
             }
 
             $pedidos = ($novo == 0) ? $this->pedido->getPedidoCarrinho($loginIdUser, $loginDoc) : $this->session->userdata('pedido_carrinho');
-            if ( !$pedidos )
-            {
+
+            if (!$pedidos) {
                 //Mensagem de erro caso registro não exista
                 $this->session->set_flashdata('fail_msg', 'Carrinho esta vazio.');
 
                 //Redireciona para index
-                if ( $this->layout != 'front' ) {
+                if ($this->layout != 'front') {
                     redirect("$this->controller_uri/index");
                 } else {
                     $data['carrinho_vazio'] = true;
                 }
-
             } else {
 
                 //valor total
@@ -595,13 +585,13 @@ class Admin_Controller extends MY_Controller
                 $produtos_nome = $virg = '';
                 foreach ($pedidos as $index => $pedido) {
                     $valor_total += $pedido['valor_total'];
-                    $produtos_nome .= $virg.$pedido['nome'];
+                    $produtos_nome .= $virg . $pedido['nome'];
 
                     $_cotacao = $this->cotacao->get_cotacao_produto($pedido['cotacao_id']);
 
-                    $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($_cotacao["produto_parceiro_plano_id"]);        
+                    $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($_cotacao["produto_parceiro_plano_id"]);
 
-                    $pedidos[$index]['cotacao'] = $_cotacao;                    
+                    $pedidos[$index]['cotacao'] = $_cotacao;
                     $pedidos[$index]["inicio_vigencia"] = $vigencia["inicio_vigencia"];
                     $pedidos[$index]["fim_vigencia"] = $vigencia["fim_vigencia"];
                     $virg = ', ';
@@ -609,9 +599,9 @@ class Admin_Controller extends MY_Controller
 
                 //Carrega templates
                 $this->template->js(app_assets_url('core/js/jquery.card.js', 'admin'));
-                if($this->layout == 'front'){
+                if ($this->layout == 'front') {
                     $this->template->js(app_assets_url('modulos/venda/equipamento/front/js/pagamento.js', 'admin'));
-                }else{
+                } else {
                     $this->template->js(app_assets_url('modulos/venda/pagamento/js/pagamento.js', 'admin'));
                 }
 
@@ -627,7 +617,7 @@ class Admin_Controller extends MY_Controller
 
                 //Para cada tipo de pagamento
                 foreach ($tipo_pagamento as $index => $tipo) {
-                    
+
                     $forma = $this->produto_pagamento->with_forma_pagamento()
                         ->filter_by_produto_parceiro($produto_parceiro_id)
                         ->filter_by_forma_pagamento_tipo($tipo['forma_pagamento_tipo_id'])
@@ -638,11 +628,11 @@ class Admin_Controller extends MY_Controller
                         ->get_many_by(array(
                             'forma_pagamento_tipo_id' => $tipo['forma_pagamento_tipo_id'],
                         ));
-                    
+
                     if (count($forma) > 0) {
 
                         // exibe o link para acesso externo se houver configurado os tipos de cartão
-                        if ( !$exibe_url_acesso_externo && in_array($tipo['forma_pagamento_tipo_id'], [$this->config->item('FORMA_PAGAMENTO_CARTAO_CREDITO'), $this->config->item('FORMA_PAGAMENTO_CARTAO_DEBITO')] ) ) {
+                        if (!$exibe_url_acesso_externo && in_array($tipo['forma_pagamento_tipo_id'], [$this->config->item('FORMA_PAGAMENTO_CARTAO_CREDITO'), $this->config->item('FORMA_PAGAMENTO_CARTAO_DEBITO')])) {
                             $exibe_url_acesso_externo = true;
                         }
 
@@ -664,7 +654,6 @@ class Admin_Controller extends MY_Controller
 
                         $forma_pagamento[] = array('tipo' => $tipo, 'pagamento' => $forma, 'bandeiras' => $bandeiras);
                     }
-
                 }
 
                 $data['pedidos']                       = $pedidos;
@@ -686,10 +675,10 @@ class Admin_Controller extends MY_Controller
 
                 if ($exibe_url_acesso_externo) {
                     $data['url_acesso_externo'] = $this->auth->generate_page_token(
-                        ''
-                        , $this->urlAcessoExternoAutorizados($cotacao['produto_slug'], $produto_parceiro_id)
-                        , 'front'
-                        , 'pagamento'
+                        '',
+                        $this->urlAcessoExternoAutorizados($cotacao['produto_slug'], $produto_parceiro_id),
+                        'front',
+                        'pagamento'
                     );
                 }
 
@@ -837,10 +826,8 @@ class Admin_Controller extends MY_Controller
 
                     $this->cotacao->setValidate($validacao);
 
-                    if ($this->cotacao->validate_form('pagamento'))
-                    {
-                        foreach ($pedidos as $index => $pedido)
-                        {
+                    if ($this->cotacao->validate_form('pagamento')) {
+                        foreach ($pedidos as $index => $pedido) {
                             $dados               = $_POST;
                             $dados['cotacao_id'] = $pedido['cotacao_id'];
                             $this->finishedPedido($pedido['pedido_id'], $tipo_forma_pagamento_id, $dados, $pedido['cotacao']);
@@ -853,12 +840,11 @@ class Admin_Controller extends MY_Controller
                             case self::FORMA_PAGAMENTO_CARTAO_DEBITO:
                             case self::FORMA_PAGAMENTO_BOLETO:
 
-                                if($getUrl == ''){
+                                if ($getUrl == '') {
                                     $this->session->set_flashdata('succ_msg', 'Aguardando confirmação do pagamento'); //Mensagem de sucesso
                                     // redirect("{$this->controller_uri}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/5/{$pedido_id}");
                                     redirect("{$this->controller_uri}/pagamento_carrinho_aguardando/");
-
-                                }else{
+                                } else {
 
                                     $this->session->set_flashdata('succ_msg', 'Pedido incluido com sucesso!'); //Mensagem de sucesso
                                     redirect("admin/venda_{$cotacao['produto_slug']}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido_id}{$getUrl}");
@@ -876,8 +862,8 @@ class Admin_Controller extends MY_Controller
 
             $data['step'] = ($conclui_em_tempo_real) ? 3 : 2;
             $autorizacaoCobranca = $this->autorizacao_cobranca->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
-            if(!empty($autorizacaoCobranca)){
-                $data["autorizacao_cobranca"] = $autorizacaoCobranca[0];                
+            if (!empty($autorizacaoCobranca)) {
+                $data["autorizacao_cobranca"] = $autorizacaoCobranca[0];
                 $html = $data["autorizacao_cobranca"]["autorizacao_cobranca"];
 
                 $data["autorizacao_cobranca"]["autorizacao_cobranca"] = $this->createAutorizacaoCobrancaHTML($html, [
@@ -887,13 +873,12 @@ class Admin_Controller extends MY_Controller
                     "data_fim_vigencia" => $pedidos[0]["fim_vigencia"],
                     "premio_total" => $data["valor_total"],
                     "produto_nome" => $produtos_nome
-                ]);                
-                
-            }else{
+                ]);
+            } else {
                 $data["autorizacao_cobranca"] = null;
             }
             $view = "$this->controller_uri/pagamento_carrinho/pagamento";
-            if($this->layout == 'front'){
+            if ($this->layout == 'front') {
                 $view = "admin/venda/equipamento/front/steps/step-three-pagamento";
             }
 
@@ -901,7 +886,8 @@ class Admin_Controller extends MY_Controller
         }
     }
 
-    private function createAutorizacaoCobrancaHTML($html, $data){
+    private function createAutorizacaoCobrancaHTML($html, $data)
+    {
         $this->load->library('parser');
 
         if (empty($html))
@@ -923,7 +909,6 @@ class Admin_Controller extends MY_Controller
         ], true);
 
         return $html;
-
     }
 
     public function getDataCamposBoleto($data_campo, $plano_id = 0)
@@ -995,16 +980,14 @@ class Admin_Controller extends MY_Controller
         $produto_parceiro_id = null;
         $status = array('pagamento_negado', 'cancelado', 'cancelado_stornado', 'aprovacao_cancelamento', 'cancelamento_aprovado');
 
-        foreach ($pedidos as $pedido)
-        {
+        foreach ($pedidos as $pedido) {
             $ids[] = $pedido['pedido_id'];
             $produto_parceiro_id = $pedido['produto_parceiro_id'];
 
-            if(!in_array($pedido['pedido_status_slug'], $status))
-            {
-                $cotacao = $this->cotacao->get_cotacao_produto( $pedido['cotacao_id'] );
+            if (!in_array($pedido['pedido_status_slug'], $status)) {
+                $cotacao = $this->cotacao->get_cotacao_produto($pedido['cotacao_id']);
 
-                if($this->layout == 'front'){
+                if ($this->layout == 'front') {
                     redirect("admin/venda_{$cotacao['produto_slug']}/{$cotacao['produto_slug']}/{$produto_parceiro_id}/6/{$pedido['pedido_id']}?token={$this->token}&layout={$this->layout}&color={$this->color}");
                 }
 
@@ -1057,21 +1040,18 @@ class Admin_Controller extends MY_Controller
         $this->template->js(app_assets_url("core/js/SenhaForte.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/popper.min.js", "admin"));
 
-        if ($_POST)
-        {
+        if ($_POST) {
             $documento  = $_POST['cnpj_cpf'];
             // $senha      = $_POST['password'];
             // $confSenha  = $_POST['password_confirm'];
             $sucesso    = true;
 
-            if ( empty($documento) )
-            {
+            if (empty($documento)) {
                 $this->session->set_flashdata('fail_msg', 'Informe o Documento (CPF / CNPJ).');
                 $sucesso = false;
             }
 
-            if ( !app_validate_cpf_cnpj($documento) )
-            {
+            if (!app_validate_cpf_cnpj($documento)) {
                 $this->session->set_flashdata('fail_msg', 'O documento informado é inválido.');
                 $sucesso = false;
             }
@@ -1090,34 +1070,25 @@ class Admin_Controller extends MY_Controller
 
             $documento = app_clear_number($documento);
 
-            if ( !empty($cotacao_id))
-            {
+            if (!empty($cotacao_id)) {
                 $registro = $this->cotacao->get_cotacao_produto($cotacao_id);
 
-                if (empty($registro))
-                {
+                if (empty($registro)) {
                     $this->session->set_flashdata('fail_msg', 'Cotação não identificada');
                     $sucesso = false;
-                } elseif (app_clear_number($registro['cnpj_cpf']) != $documento)
-                {
+                } elseif (app_clear_number($registro['cnpj_cpf']) != $documento) {
                     $this->session->set_flashdata('fail_msg', 'O documento informado é diferente do documento da Cotação.');
                     $sucesso = false;
                 }
-
-            } elseif ( !empty($pedido_id))
-            {
+            } elseif (!empty($pedido_id)) {
                 $registro = $this->apolice->getApolicePedido($pedido_id);
 
-                if (empty($registro))
-                {
+                if (empty($registro)) {
                     $this->session->set_flashdata('fail_msg', 'Pedido não identificado');
                     $sucesso = false;
-                } else
-                {
-                    foreach ($registro as $key => $value)
-                    {
-                        if (app_clear_number($value['cnpj_cpf']) != $documento)
-                        {
+                } else {
+                    foreach ($registro as $key => $value) {
+                        if (app_clear_number($value['cnpj_cpf']) != $documento) {
                             $this->session->set_flashdata('fail_msg', 'O documento informado é diferente do documento do Pedido.');
                             $sucesso = false;
                             break;
@@ -1128,8 +1099,7 @@ class Admin_Controller extends MY_Controller
 
             // TODO: Fazer o login considerando o produto
             // TODO: Quando externo validar se o ID da cotação/pedido pertence ao CPF acessado
-            if ( $sucesso )
-            {
+            if ($sucesso) {
                 // $this->cliente->atualizar($this->input->post('cliente_id'), $_POST);
                 $this->name = ''; // TODO: pegar corretamente o nome do segurado
                 $this->session->set_userdata('logado', true);
@@ -1172,19 +1142,18 @@ class Admin_Controller extends MY_Controller
                 break;
         }
 
-        if(isset($dados["email"]))
-        {
+        if (isset($dados["email"])) {
             $cot_aux->updateEmailByCotacaoId($cotacao['cotacao_id'], $dados["email"]);
             $aClienteContato = $this->cliente_contato->with_contato()->get_by_cliente($cotacao["cliente_id"]);
-            foreach($aClienteContato as $clienteContato){
-                if($clienteContato["contato"] == $cotacao["email"]){
+            foreach ($aClienteContato as $clienteContato) {
+                if ($clienteContato["contato"] == $cotacao["email"]) {
                     $clienteContato["contato"] = $dados["email"];
                     $this->cliente_contato->update_contato($clienteContato);
                     break;
                 }
             }
         }
-        
+
         //Se for faturamento, muda status para aguardando faturamento
         if ($pedido_id && ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO || $tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_TERCEIROS)) {
             $status = $this->pedido->mudaStatus($pedido_id, ($tipo_forma_pagamento_id == self::FORMA_PAGAMENTO_FATURADO) ? "aguardando_faturamento" : "pagamento_confirmado");
@@ -1195,15 +1164,14 @@ class Admin_Controller extends MY_Controller
         return $pedido_id;
     }
 
-    public function termo($produto_parceiro_id, $export = ''){
-    
+    public function termo($produto_parceiro_id, $export = '')
+    {
+
         $this->load->model('apolice_model', 'apolice');
-    
+
         $result = $this->apolice->termo(null, $export, $produto_parceiro_id);
-        if($result !== FALSE){
+        if ($result !== FALSE) {
             exit($result);
         }
-    
-      }
-
+    }
 }
