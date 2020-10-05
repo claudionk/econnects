@@ -2134,13 +2134,7 @@ if ( ! function_exists('app_integracao_apolice')) {
     {
         $num_apolice = $dados['registro']['num_apolice'];
         $num_apolice_aux = $dados['registro']['cod_sucursal'] . $dados['registro']['cod_ramo'] . $dados['registro']['cod_tpa'];
-
-        if ($dados['registro']['cod_tpa'] == '048')
-        {
-            $num_apolice_aux .= str_pad(substr($num_apolice, 7, 6), 8, '0', STR_PAD_LEFT);
-        } else {
-            $num_apolice_aux .= str_pad(substr($num_apolice, 7, 8), 8, '0', STR_PAD_LEFT);
-        }
+        $num_apolice_aux .= str_pad(substr($num_apolice, 7, 8), 8, '0', STR_PAD_LEFT);
 
         return $num_apolice_aux;
     }
