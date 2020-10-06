@@ -8,7 +8,7 @@ if($_POST)
     <div class="form-group">
         <label class="control-label" for="<?php echo $field_name;?>"><?php echo $field_label ?></label>
 
-        <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
+        <select class="form-control <?php echo issetor($class) ?>" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
             <option name="" value="">Selecione</option>
 
             <option name="" value="M"

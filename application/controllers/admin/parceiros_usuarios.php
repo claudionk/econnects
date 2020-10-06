@@ -279,6 +279,7 @@ class Parceiros_Usuarios extends Admin_Controller
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
     }
+
     public function edit( $id ) {
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
@@ -286,12 +287,10 @@ class Parceiros_Usuarios extends Admin_Controller
         $this->load->model('banco_model', 'banco');
         $this->load->model('colaborador_cargo_model', 'cargo');
 
-
         //Setar variáveis de informação da página
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Editar Usuários");
         $this->template->set_breadcrumb('Editar', base_url("$this->controller_uri/index"));
-
 
         //Carrega dados para a página
         $data = array();
@@ -337,7 +336,7 @@ class Parceiros_Usuarios extends Admin_Controller
         }
 
         $data['parceiro_id'] = $parceiro_id;
-        $data['niveis'] = $this->niveis->filter_by_parceiro($this->parceiro_id, $this->parceiro_pai_id);
+        $data['niveis'] = $this->niveis->filter_by_parceiro( emptyor($parceiro_id, $this->parceiro_id), $this->parceiro_pai_id );
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );

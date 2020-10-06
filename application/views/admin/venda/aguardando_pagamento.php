@@ -1,4 +1,3 @@
-
 <?php if ($layout != "front") { ?>
 <div class="section-header">
     <ol class="breadcrumb">
@@ -6,7 +5,6 @@
     </ol>
 </div>
 <?php } ?>
-
 
 <!-- col-app -->
 <div class="card">

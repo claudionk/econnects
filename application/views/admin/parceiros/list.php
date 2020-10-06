@@ -56,20 +56,24 @@
                             <!-- Table row -->
                             <?php foreach($rows as $row) :?>
                             <tr>
-
                                 <td><?php echo $row['nome_fantasia'];?></td>
                                 <td><?php echo $row['parceiro_tipo_nome'];?></td>
                                 <td class="center">
                                     <a href="<?php echo base_url("{$current_controller_uri}/edit/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Editar </a>
-                                    <a href="<?php echo base_url("admin/parceiros_usuarios/view/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Usuários </a>
-                                    <a href="<?php echo base_url("admin/produtos_parceiros/view_by_parceiro/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Produtos </a>
-                                    <a href="<?php echo base_url("admin/parceiros_contatos/view/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Contatos </a>
 
-                                    <?php if(verifica_permissao("parceiros_cobranca", "view")) { ?>
-                                        <a href="<?php echo base_url("admin/parceiros_cobranca/view/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Cobrança </a>
-                                    <?php } ?>
-
-                                    <a href="<?php echo base_url("admin/parceiros_planos/edit/{$row[$primary_key]}")?>" class="btn btn-sm btn-primary">  <i class="fa fa-edit"></i>  Planos Habilitados </a>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm ink-reaction btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Configurações &nbsp; <i class="fa fa-caret-down"></i></button>
+                                        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                                            <li><a href="<?php echo base_url("admin/parceiros_usuarios/view/{$row[$primary_key]}")?>"> Usuários </a></li>
+                                            <li><a href="<?php echo base_url("admin/usuarios_acl_tipos/index/0/{$row[$primary_key]}")?>"> Grupo de Acessos </a></li>
+                                            <li><a href="<?php echo base_url("admin/produtos_parceiros/view_by_parceiro/{$row[$primary_key]}")?>"> Produtos </a></li>
+                                            <li><a href="<?php echo base_url("admin/parceiros_contatos/view/{$row[$primary_key]}")?>"> Contatos </a></li>
+                                            <?php if(verifica_permissao("parceiros_cobranca", "view")) { ?>
+                                                <li><a href="<?php echo base_url("admin/parceiros_cobranca/view/{$row[$primary_key]}")?>"> Cobrança </a></li>
+                                            <?php } ?>
+                                            <li><a href="<?php echo base_url("admin/parceiros_planos/edit/{$row[$primary_key]}")?>"> Planos Habilitados </a></li>
+                                        </ul>
+                                    </div>
 
                                     <a href="<?php echo base_url("$current_controller_uri/delete/{$row[$primary_key]}")?>" class="btn btn-sm btn-danger deleteRowButton"> <i class="fa fa-eraser"></i> Excluir </a>
                                 </td>

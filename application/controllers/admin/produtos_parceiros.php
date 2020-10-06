@@ -22,8 +22,8 @@ class Produtos_Parceiros extends Admin_Controller
         $this->load->model('parceiro_model', 'parceiro');
         $this->load->model('produto_model', 'produto');
         $this->load->model('produto_ramo_model', 'produto_ramo');
-
         $this->load->model('parceiro_tipo_model', 'parceiro_tipo');
+        $this->load->model('equipamentos_elegiveis_lista_model', 'equipamentos_elegiveis_lista');
     }
 
     public function view_by_parceiro($parceiro_id, $offset = 0) //Função padrão (load)
@@ -188,6 +188,8 @@ class Produtos_Parceiros extends Admin_Controller
         $data['seguradoras'] = $this->parceiro
             ->filter_by_tipo($this->parceiro_tipo->getIdTipoSeguradora())
             ->get_all();
+
+        $data['listas'] = $this->equipamentos_elegiveis_lista->get_all();
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data);

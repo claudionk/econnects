@@ -836,13 +836,6 @@ if ( ! function_exists('app_integracao_format_file_name_generali_conciliacao')) 
         return date('Ymd') ."_GBS.TXT";
     }
 }
-if ( ! function_exists('app_integracao_format_file_name_bemvinda'))
-{
-    function app_integracao_format_file_name_bemvinda($formato, $dados = array())
-    {
-        return $formato ."-". date('Ymd') .".CSV";
-    }
-}
 if ( ! function_exists('app_integracao_format_file_name_novo_mundo')) {
 
     function app_integracao_format_file_name_novo_mundo($formato, $dados = array())
@@ -1356,7 +1349,7 @@ if ( ! function_exists('app_get_api'))
     {
         $CI =& get_instance();
         $apikey = empty($acesso) ? $CI->session->userdata("apikey") : $acesso->apikey;
-        $url = $CI->config->item("URL_sisconnects") ."admin/api/{$service}";
+        $url = base_url() ."admin/api/{$service}";
         $header = ["Content-Type: application/json", "APIKEY: {$apikey}"];
 
         $CI->load->model('integracao_log_detalhe_api_model', 'integracao_log_detalhe_api');
@@ -3943,4 +3936,81 @@ if ( ! function_exists('app_integracao_88i_define_operacao')) {
         $result->status = true;
         return $result;
     }
+}
+if ( ! function_exists('app_integracao_format_file_name_bemvinda'))
+{
+    function app_integracao_format_file_name_bemvinda($formato, $dados = array())
+    {
+        return $formato ."-". date('Ymdhi') .".CSV";
+    }
+}
+if ( ! function_exists('app_integracao_bemvinda')) {
+    function app_integracao_bemvinda($formato, $dados = array())
+    {
+        $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
+
+        // Emissão
+        if ( $dados['registro']['tipo_transacao'] == 'V' )
+        {
+            $dados['registro']['acao'] = '1';
+        } 
+        // Cancelamento
+        else if ( $dados['registro']['tipo_transacao'] == 'C' )
+        {
+            $dados['registro']['acao'] = '9';
+        } else {
+            $dados['registro']['acao'] = '0';
+        }
+
+        $reg = $dados['registro'];
+
+        $CI =& get_instance();
+        $CI->session->sess_destroy();
+        $CI->session->set_userdata("operacao", "bemvinda");
+
+        if (!empty($formato)) {
+            
+            $geraDados = [
+            	'integracao_log_detalhe_id' => $formato,
+                'tipo_transacao' 		=> $reg['tipo_transacao'],
+                'data_adesao_cancel' 	=> $reg['data_adesao_cancel'],
+                'produto_seg' 		 	=> $reg['produto_seg'],
+                'num_apolice' 		 	=> $reg['numero_apolice'],
+                'cpf' 				 	=> $reg['cpf'],
+                'nome' 				 	=> $reg['nome'],
+                'endereco_logradouro' 	=> $reg['endereco_logradouro'],
+                'endereco_numero' 		=> $reg['endereco_numero'],
+                'endereco_complemento' 	=> $reg['endereco_complemento'],
+                'endereco_bairro' 		=> $reg['endereco_bairro'],
+                'endereco_cidade' 		=> $reg['endereco_cidade'],
+                'uf' 					=> $reg['uf'],
+                'endereco_cep' 			=> $reg['endereco_cep'],
+                'telefone_celular' 		=> $reg['telefone_celular'],
+                'telefone' 				=> $reg['telefone'],
+                'telefone_comercial' 	=> $reg['telefone_comercial'],
+                'email' 				=> $reg['email'],
+                'data_nascimento' 		=> $reg['data_nascimento'],
+                'sexo' 					=> $reg['sexo'],
+                'cpf_vendedor' 			=> $reg['cpf_vendedor'],
+                'nome_vendedor' 		=> $reg['nome_vendedor'],
+                'cnpj' 					=> $reg['cnpj'],
+                'cod_loja' 				=> $reg['cod_loja'],
+                'nome_loja' 			=> $reg['nome_loja'],
+            ];
+
+            // Cancelamento
+            if ( $dados['registro']['acao'] == '9' )
+            {
+                $geraDados['data_cancelamento']         = $dados['registro']['data_adesao_cancel'];
+                $dados['registro']['data_cancelamento'] = $dados['registro']['data_adesao_cancel'];
+            }
+
+            $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
+            $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
+        }
+
+        $response->status = true;
+        return $response;
+    }
+
 }

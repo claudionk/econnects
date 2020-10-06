@@ -430,10 +430,9 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
     }
 
     function filter_by_parceiro_tipo($parceiro_tipo_id){
-        $this->_database->where('parceiro.parceiro_tipo_id', $parceiro_tipo_id);
+        $this->_database->where("{$this->_table}.parceiro_tipo_id", $parceiro_tipo_id);
         return $this;
     }
-
 
     function filter_by_parceiro($parceiro_id){
         $this->_database->where('parceiro_id', $parceiro_id);
@@ -453,7 +452,6 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
                 $arr[] = $relacionamento;
             }
         }
-
     }
 
     public function get_all($limit = 0, $offset = 0, $processa = true, $order_by = null) {

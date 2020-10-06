@@ -231,6 +231,7 @@ class Cotacao extends CI_Controller {
         $desconto_condicional           = issetor( $GET["desconto_condicional"] , 0);
         $comissao_premio                = issetor( $GET["comissao_premio"] , 0);
         $valor_fixo                     = issetor( $GET["valor_fixo"] , null);
+        $garantia_fabricante            = issetor( $GET["garantia_fabricante"] , null);
 
         if( is_null( $produto_parceiro_id ) ) {
             $cotacao = $this->cotacao->get_by_id( $cotacao_id );
@@ -257,6 +258,7 @@ class Cotacao extends CI_Controller {
         $params["desconto_condicional"]         = emptyor($desconto_condicional, $cotacao_aux['desconto_condicional']);
         $params["comissao_premio"]              = emptyor($comissao_premio, $cotacao_aux['comissao_premio']);
         $params["coberturas"]                   = emptyor($coberturas_v, null);
+        $params["garantia_fabricante"]          = emptyor($garantia_fabricante, 0);
 
         if ( !empty($coberturas_opcionais) && is_array($coberturas_opcionais))
         {

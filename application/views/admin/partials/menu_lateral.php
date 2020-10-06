@@ -17,18 +17,13 @@
         <!-- BEGIN MAIN MENU -->
         <ul id="main-menu" class="gui-controls">
 
-
-
             <!-- painel -->
             <?php
                 $arrMenu = array();
                 app_montar_menu($userdata['recursos'],  $arrMenu);
-            
-   
-            
+
                 print(implode("\n", $arrMenu));
             ?>
-
            <!-- END LEVELS -->
 
         </ul><!--end .main-menu -->

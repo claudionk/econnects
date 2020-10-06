@@ -27,9 +27,10 @@
 
         <!-- Form -->
         <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
-            <input type="hidden" name="produto_parceiro_id" value="<?php if (isset($carrossel['produto_parceiro_id'])) echo $carrossel['produto_parceiro_id']; ?>"/>
+            <input type="hidden" name="produto_parceiro_id" id="produto_parceiro_id" value="<?php if (isset($carrossel['produto_parceiro_id'])) echo $carrossel['produto_parceiro_id']; ?>"/>
             <input type="hidden" name="cotacao_id" value="<?php if (isset($cotacao_id)) echo $cotacao_id; ?>"/>
             <input type="hidden" id="url_busca_cliente"  name="url_busca_cliente" value="<?php echo base_url("{$current_controller_uri}/get_cliente"); ?>"/>
+            <input type="hidden" id="lista_id"  name="lista_id" value="<?php echo emptyor($lista_id, 1); ?>"/>
 
             <h2 class="text-light text-center"><?php echo app_produto_traducao('Dados da Contratação', $carrossel['produto_parceiro_id']); ?><br>
                 <small class="text-primary"><?php echo app_produto_traducao('Informe os dados pessoais da contratação', $carrossel['produto_parceiro_id']); ?></small>
@@ -123,7 +124,7 @@
                                                         $data_campo['row'] = $data_row;
                                                         $data_campo['plano_id'] = $plano;
                                                         $data_campo['field_name'] = "plano_{$plano}_{$campo['campo_nome_banco']}";
-                                                        $data_campo['field_label'] = $campo['campo_nome'];
+                                                        $data_campo['field_label'] = issetor($campo["label"], $campo["nome"]);
                                                         $data_campo['list'] = isset($list) ? $list : array();
                                                         $data_campo['tamanho'] = $campo['tamanho'] == 0 ? 6 : $campo['tamanho'];
                                                         $data_campo['class'] = $campo['campo_classes'];
@@ -131,12 +132,9 @@
                                                         $data_campo["class"] .= ' ' . $campo["campo_nome_banco"];
                                                         $data_campo["class"] .= ' ' . implode(" ",explode("|", $campo["classe_css"]));
 
-                                                        ?>
+                                                        $this->load->view('admin/campos_sistema/'. $campo['campo_slug'], $data_campo);
 
-                                                        <?php $this->load->view('admin/campos_sistema/'. $campo['campo_slug'], $data_campo);?>
-
-
-                                                    <?php endforeach; ?>
+                                                    endforeach; ?>
                                                 </div>
                                             </div>
                                         </div>

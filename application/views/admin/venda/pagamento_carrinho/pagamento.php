@@ -3,6 +3,11 @@ if($_POST){
     $row = $_POST;
 }
 
+$layout = issetor($layout, '');
+
+// Exibe os meios de pagto se for no link externo ou se estiver habilitado
+$disablePagto = ( $layout != 'front' && empty($produto_parceiro_configuracao['front_habilita_meio_pagamento']) );
+
 ?>
 <div class="section-header">
     <ol class="breadcrumb">
@@ -18,9 +23,11 @@ if($_POST){
             <i class="fa fa-arrow-left"></i> Voltar
         </a>
 
+        <?php if ( !$disablePagto ) { ?>
         <a class="btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
             <i class="fa fa-edit"></i> Efetuar Pagamento
         </a>
+        <?php } ?>
     </div>
 </div>
 
@@ -32,8 +39,10 @@ if($_POST){
             <!-- Form -->
         <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
             <input type="hidden" name="produto_parceiro_id" value="<?php if (isset($carrossel['produto_parceiro_id'])) echo $carrossel['produto_parceiro_id']; ?>"/>
+            <input type="hidden" name="pedido_id" id="pedido_id" value="<?php if (isset($pedido_id)) echo $pedido_id; ?>"/>
+            <input type="hidden" id="url_ver_pedido"  name="url_aguardando_pagamento" value="<?php echo base_url("admin/gateway/pedido/"); ?>"/>
+            <input type="hidden" id="url_pagamento_confirmado"  name="url_pagamento_confirmado" value="<?php echo  base_url($url_pagamento_confirmado) ?>/"/>
             <!-- Widget -->
-
 
             <div class="row">
                 <div class="col-md-6">
@@ -73,7 +82,18 @@ if($_POST){
                 </div>
             </div>
 
-                <!-- Collapsible Widgets -->
+            <?php
+            $this->load->view('admin/venda/partials/enviar_token_acesso');
+
+            // Exibe os meios de pagto se for no link externo ou se estiver habilitado
+            if ( $disablePagto ) {
+            ?>
+                <div class="alert alert-warning fade in">
+                    <button type="button" class="close" data-dismiss="alert">×</button>
+                    <i class="fa fa-info-circle"></i> Cobrança permitida somente através do Pagamento Externo
+                </div>
+            <?php } else { ?>
+            <!-- Collapsible Widgets -->
             <div class="row">
                 <div class="col-md-12">
 
@@ -114,6 +134,7 @@ if($_POST){
 
                 </div>
             </div>
+            <?php } ?>
         </form>
     </div>
 </div>
@@ -126,8 +147,14 @@ if($_POST){
             <i class="fa fa-arrow-left"></i> Voltar
         </a>
 
+        <?php if ( !$disablePagto ) { ?>
         <a class="btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
             <i class="fa fa-edit"></i> Efetuar Pagamento
+        </a>
+        <?php } ?>
+
+        <a style="display:none;" class="btn pull-right btn-app btn-success btn-pagamento-efetuado" href="#">
+            <i class="fa fa-arrow-right"></i> Pagamento Efetuado
         </a>
     </div>
 </div>

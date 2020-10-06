@@ -49,6 +49,8 @@ if($_POST)
                                 <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off" enctype="multipart/form-data">
                                     <input type="hidden" name="<?php echo $primary_key ?>" value="<?php if (isset($row[$primary_key])) echo $row[$primary_key]; ?>"/>
                                     <input type="hidden" name="produto_parceiro_plano_id" value="<?php echo $produto_parceiro_plano_id; ?>"/>
+                                    <input type="hidden" name="produto_parceiro_id" id="produto_parceiro_id" value="<?php echo $produto_parceiro_id; ?>"/>
+                                    <input type="hidden" name="lista_id" id="lista_id" value="<?php echo $lista_id; ?>"/>
                                     <!-- Widget -->
                                     <div class="card">
 
@@ -64,18 +66,18 @@ if($_POST)
                                             <div class="row innerLR">
 
                                                 <!-- Column -->
-                                                <div class="col-md-6">
+                                                <div class="col-md-12">
 
                                                     <?php $field_name = 'cobranca';?>
                                                     <div class="form-group">
-                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Cobrança *</label>
-                                                        <div class="col-md-8">
+                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Cobrança *</label>
+                                                        <div class="col-md-3">
                                                             <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
-                                                                <option name="" value="">Selecione</option>
-                                                                <option name="" value="VALOR"
+                                                                <option value="">Selecione</option>
+                                                                <option value="VALOR"
                                                                     <?php if(isset($row)){if($row[$field_name] == 'VALOR') {echo " selected ";};}; ?> >Valor
                                                                 </option>
-                                                                <option name="" value="PORCENTAGEM"
+                                                                <option value="PORCENTAGEM"
                                                                     <?php if(isset($row)){if($row[$field_name] == 'PORCENTAGEM') {echo " selected ";};}; ?> >Porcentagem
                                                                 </option>
                                                             </select>
@@ -84,66 +86,51 @@ if($_POST)
 
                                                     <?php $field_name = 'tipo';?>
                                                     <div class="form-group">
-                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Tipo *</label>
-                                                        <div class="col-md-8">
+                                                        <div class="col-md-2 control-label" for="<?php echo $field_name;?>">Tipo *</div>
+                                                        <div class="col-md-3">
                                                             <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
-                                                                <option name="" value="">Selecione</option>
-                                                                <option name="" value="RANGE"
+                                                                <option value="">Selecione</option>
+                                                                <option value="RANGE"
                                                                     <?php if(isset($row)){if($row[$field_name] == 'RANGE') {echo " selected ";};}; ?> >Range
                                                                 </option>
-                                                                <option name="" value="ADICIONAL"
+                                                                <option value="ADICIONAL"
                                                                     <?php if(isset($row)){if($row[$field_name] == 'ADICIONAL') {echo " selected ";};}; ?> >Adicional
                                                                 </option>
                                                             </select>
                                                         </div>
                                                     </div>
 
-                                                    <?php $field_name = 'unidade_tempo';?>
-                                                    <div class="form-group">
-                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Unidade *</label>
-                                                        <div class="col-md-8">
-                                                            <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
-                                                                <option name="" value="">Selecione</option>
-                                                                <option name="" value="DIA"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'DIA') {echo " selected ";};}; ?> >Dia
-                                                                </option>
-                                                                <option name="" value="MES"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'MES') {echo " selected ";};}; ?> >Mês
-                                                                </option>
-                                                                <option name="" value="ANO"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'ANO') {echo " selected ";};}; ?> >Ano
-                                                                </option>
-                                                                <option name="" value="VALOR"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'VALOR') {echo " selected ";};}; ?> >Valor
-                                                                </option>
-                                                                <option name="" value="IDADE"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'IDADE') {echo " selected ";};}; ?> >Idade
-                                                                </option>
-                                                                <option name="" value="COMISSAO"
-                                                                    <?php if(isset($row)){if($row[$field_name] == 'COMISSAO') {echo " selected ";};}; ?> >Comissão
-                                                                </option>
-                                                            </select>
+                                                    <?php
+                                                    // Campos padroes
+                                                    $this->load->view('admin/produtos_parceiros_planos_precificacao_itens/itens');
+
+                                                    if (!empty($itens))
+                                                    {
+                                                        foreach ($itens as $key => $value)
+                                                        {
+                                                            // Campos adicionais
+                                                            $this->load->view('admin/produtos_parceiros_planos_precificacao_itens/itens', [
+                                                                'row' => $row,
+                                                                'value' => $value,
+                                                                'aux' => '_[]',
+                                                            ]);
+                                                        }
+                                                    }
+                                                    ?>
+
+                                                    <div class="form-group" >
+                                                        <label class="col-md-2 control-label" ></label>
+                                                        <div class="col-md-3">
+                                                            <a class="btn btn-app btn-primary btn-flat btn-xs" id="addRule">
+                                                                <i class="fa fa-plus"></i> Adicionar Regra
+                                                            </a>
                                                         </div>
                                                     </div>
 
-
-                                                    <?php $field_name = 'inicial';?>
-                                                    <div class="form-group">
-                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Início *</label>
-                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( $row[$field_name] , 2 , "," , "") : set_value($field_name); ?>" /></div>
-                                                    </div>
-
-                                                    <?php $field_name = 'final';?>
-                                                    <div class="form-group">
-                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Fim *</label>
-                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( $row[$field_name] , 2 , "," , "")  : set_value($field_name); ?>" /></div>
-                                                    </div>
-
-
                                                     <?php $field_name = 'valor';?>
                                                     <div class="form-group">
-                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Valor *</label>
-                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( $row[$field_name] , 15 , "," , "")  : set_value($field_name); ?>" /></div>
+                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Valor *</label>
+                                                        <div class="col-md-3"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? number_format( (float)$row[$field_name] , 15 , "," , "")  : set_value($field_name); ?>" /></div>
                                                     </div>
 
                                                   <?php 
@@ -151,9 +138,9 @@ if($_POST)
 
                                                   $field_name = 'equipamento'; ?>
                                                   <div class="form-group">
-                                                    <label class="col-md-4 control-label" for="<?php echo $field_name;?>"><?= $descTipo ?></label>
+                                                    <label class="col-md-2 control-label" for="<?php echo $field_name;?>"><?= $descTipo ?></label>
 
-                                                    <div class="col-md-8"><select name="<?php echo $field_name;?>[]" data-selected="<?php echo isset($row[$field_name]) ?  $row[$field_name] : ''; ?>" id="js-<?= $descSelect ?>-ajax" class="form-control js-<?= $descSelect ?>-ajax" style="width: 100%;" multiple="multiple">
+                                                    <div class="col-md-6"><select name="<?php echo $field_name;?>[]" data-selected="<?php echo isset($row[$field_name]) ?  $row[$field_name] : ''; ?>" id="jss-<?= $descSelect ?>-ajax" class="form-control js-<?= $descSelect ?>-ajax" style="width: 100%;" multiple="multiple">
                                                       </select>
 
                                                     </div>
@@ -162,8 +149,8 @@ if($_POST)
 
                                                     <?php $field_name = 'equipamento_de_para'; ?>
                                                     <div class="form-group">
-                                                        <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Equipamento DE x PARA</label>
-                                                        <div class="col-md-8"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                        <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Equipamento DE x PARA</label>
+                                                        <div class="col-md-6"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                     </div>
                                                 <?php } ?>
 
@@ -185,7 +172,7 @@ if($_POST)
                                             <a href="<?php echo base_url("{$current_controller_uri}/index/{$produto_parceiro_plano_id}")?>" class="btn  btn-app btn-primary">
                                                 <i class="fa fa-arrow-left"></i> Voltar
                                             </a>
-                                            <a class="btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
+                                            <a class="btn btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
                                                 <i class="fa fa-edit"></i> Salvar
                                             </a>
                                         </div>

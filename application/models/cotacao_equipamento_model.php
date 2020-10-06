@@ -434,6 +434,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
         unset( $data_cotacao["parceiro_id"] );
         unset( $data_cotacao["usuario_cotacao_id"] );
         unset( $data_cotacao["url_busca_cliente"] );
+        unset( $data_cotacao["lista_id"] );
 
         if(isset($cotacao['produto_parceiro_plano_id'])){
             $data_cotacao['produto_parceiro_plano_id'] = $cotacao['produto_parceiro_plano_id'];
@@ -633,7 +634,6 @@ Class Cotacao_Equipamento_Model extends MY_Model
                 $plano = $this->produto_parceiro_plano->get($data_cotacao['produto_parceiro_plano_id']);
                 $data_template['cod_produto'] = $plano['codigo_operadora'];
             }
-
             //salva cotacão
             $dt_cotacao = array();
             $dt_cotacao['cliente_id'] = $cliente['cliente_id'];
@@ -646,6 +646,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
             $dt_cotacao['alteracao_usuario_id'] = $this->session->userdata('usuario_id');
             $dt_cotacao['produto_parceiro_id'] = $produto_parceiro_id;
             $dt_cotacao["usuario_cotacao_id"] = issetor($cotacao["usuario_cotacao_id"], $this->session->userdata('usuario_id'));
+            $dt_cotacao['lista_id'] = $produto_parceiro['lista_id'];
 
             if( isset( $data_cotacao["data_inicio_vigencia"] ) ) {
                 $dt_cotacao["data_inicio_vigencia"] = $data_cotacao["data_inicio_vigencia"];
@@ -760,6 +761,11 @@ Class Cotacao_Equipamento_Model extends MY_Model
       $valor += $item['premio_liquido_total'];
     }
     return $valor;
+  }
+
+  public function updateEmailByCotacaoId($cotacaoId, $email){
+    $SQL = "UPDATE {$this->_table} SET email = '$email' WHERE cotacao_id = $cotacaoId";
+    $this->_database->query($SQL);
   }
 
 }

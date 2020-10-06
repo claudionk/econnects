@@ -192,7 +192,21 @@
 
 
                   <div><?php if(isset($userdata['parceiro_termo'])) { echo $userdata['parceiro_termo']; }; ?></div>
-
+                    <div class="card">
+                      <div class="card-body">
+                        <h4 class="text-center">Para aceitar o termo, é necessário redefinir sua senha</h4>
+                        <p id="aceitar_termo-error" class="text-center text-danger">&nbsp</p>
+                        <div class="form-group">
+                          <input type="password" class="form-control" placeholder="Senha Atual" name="senha_atual" required>
+                        </div>
+                        <div class="form-group">
+                          <input type="password" class="form-control" placeholder="Nova Senha" name="senha_nova" required>
+                        </div>
+                        <div class="form-group">
+                          <input type="password" class="form-control" placeholder="Confirmar Nova Senha" name="confirmar_senha" required>
+                        </div>
+                      </div>
+                    </div>
                 </div>
               </div>
 

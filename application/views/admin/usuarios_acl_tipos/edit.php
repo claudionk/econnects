@@ -20,7 +20,7 @@ if($_POST)
 
                 <!-- Widget heading -->
                 <div class="card-body">
-                    <a href="<?php echo base_url("{$current_controller_uri}/index")?>" class="btn  btn-app btn-primary">
+                    <a href="<?php echo base_url("{$current_controller_uri}/index/0/{$parceiro_id}")?>" class="btn  btn-app btn-primary">
                         <i class="fa fa-arrow-left"></i> Voltar
                     </a>
                     <a class="btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">
@@ -111,7 +111,7 @@ if($_POST)
 
                                         <!-- Widget heading -->
                                         <div class="card-body">
-                                            <a href="<?php echo base_url("{$current_controller_uri}/index")?>" class="btn  btn-app btn-primary">
+                                            <a href="<?php echo base_url("{$current_controller_uri}/index/0/{$parceiro_id}")?>" class="btn  btn-app btn-primary">
                                                 <i class="fa fa-arrow-left"></i> Voltar
                                             </a>
                                             <a class="btn  btn-app btn-primary" onclick="$('#validateSubmitForm').submit();">

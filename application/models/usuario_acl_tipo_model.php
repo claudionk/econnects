@@ -91,9 +91,9 @@ class Usuario_Acl_Tipo_Model extends MY_Model {
                 $i++;
             }
         } else {
-            $ar = $return;
+            $a = $return;
         }
 
-        return $ar;
+        return $a;
     }
 }
