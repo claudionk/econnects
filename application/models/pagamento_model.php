@@ -29,11 +29,9 @@ class Pagamento_Model extends MY_Model
 
     public function run($pedido_id = 0)
     {
-
         $result = [];
         log_message('debug', 'INICIO PAGMAX');
         $pedidos = $this->pedido->getPedidoPagamentoPendente($pedido_id);
-
         log_message('debug', 'BUSCANDO PEDIDOS PENDENTES - ' . count($pedidos));
         foreach ($pedidos as $index => $pedido) {
 
@@ -54,9 +52,8 @@ class Pagamento_Model extends MY_Model
 
                     $this->load->model('pagmax_model', 'pagmax');
                     $result = $this->pagmax->realiza_pagamento($pedido['pedido_id'], $parceiro_pagamento['forma_pagamento_tipo_id']);
-
                 }
-                
+
                 log_message('debug', 'UNLOCK NO PEDIDO ' . $pedido['pedido_id']);
                 $dados_pedido = array('lock' => 0);
                 $this->pedido->update($pedido['pedido_id'], $dados_pedido, true);
@@ -69,5 +66,4 @@ class Pagamento_Model extends MY_Model
 
         return $result;
     }
-
 }

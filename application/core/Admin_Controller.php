@@ -549,6 +549,7 @@ class Admin_Controller extends MY_Controller
         $this->load->model('forma_pagamento_bandeira_model', 'forma_pagamento_bandeira');
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('produto_parceiro_autorizacao_cobranca_model', 'autorizacao_cobranca');
+        $this->load->model('pedido_carrinho_model', 'pedido_carrinho_model');
         $this->load->library('form_validation');
 
         $data = array();
@@ -827,13 +828,20 @@ class Admin_Controller extends MY_Controller
                     $this->cotacao->setValidate($validacao);
 
                     if ($this->cotacao->validate_form('pagamento')) {
+
+                        $pedido_carrinho_id = $this->pedido_carrinho_model->insert([]);
+
                         foreach ($pedidos as $index => $pedido) {
                             $dados               = $_POST;
                             $dados['cotacao_id'] = $pedido['cotacao_id'];
+                            $dados['pedido_carrinho_id']  = $pedido_carrinho_id;
+                            $pedidos[$index]['pedido_carrinho_id'] = $pedido_carrinho_id;
+
                             $this->finishedPedido($pedido['pedido_id'], $tipo_forma_pagamento_id, $dados, $pedido['cotacao']);
                         }
 
                         $this->session->set_userdata("pedido_carrinho", $pedidos);
+                        $this->session->set_userdata("pedido_carrinho_valor_total", $data["valor_total"]);
 
                         switch ($this->input->post('forma_pagamento_tipo_id')) {
                             case self::FORMA_PAGAMENTO_CARTAO_CREDITO:
@@ -877,6 +885,7 @@ class Admin_Controller extends MY_Controller
             } else {
                 $data["autorizacao_cobranca"] = null;
             }
+
             $view = "$this->controller_uri/pagamento_carrinho/pagamento";
             if ($this->layout == 'front') {
                 $view = "admin/venda/equipamento/front/steps/step-three-pagamento";

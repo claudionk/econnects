@@ -1,6 +1,6 @@
-CREATE TABLE `sisconnects`.`pedido_carrinho` (
-  `pedido_carrinho_id` INT NOT NULL AUTO_INCREMENT,
-  `created_at` DATETIME NULL,
-  `updated_at` DATETIME NULL,
-  `deleted_at` DATETIME NULL,
-  PRIMARY KEY (`pedido_carrinho_id`));
+CREATE TABLE `pedido_carrinho` (
+  `pedido_carrinho_id` int(11) NOT NULL AUTO_INCREMENT,
+  `create_at` datetime DEFAULT NULL,
+  `update_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`pedido_carrinho_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

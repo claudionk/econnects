@@ -42,8 +42,7 @@ class Pagmax_Model extends MY_Model
 
         log_message('debug', 'BUSCA PEDIDO ' . $pedido_id);
 
-        try
-        {
+        try {
             $pedido = $this->pedido->get($pedido_id);
 
             $parceiro_pagamento = $this->parceiro_pagamento
@@ -84,7 +83,16 @@ class Pagmax_Model extends MY_Model
             $valor_parcela = $fatura_parcela["valor"];
             $num_parcela   = $pedido["num_parcela"];
             $valor_total   = ($num_parcela > 1) ? ($valor_parcela * $num_parcela) : $pedido["valor_total"];
+
+            //Valor total do carrinho
+            if ($this->session->userdata("pedido_carrinho_valor_total")) {
+                $valor_total = $this->session->userdata("pedido_carrinho_valor_total");
+            }
             $transactionAmount = ($integracao['producao'] == 1) ? (float) $valor_total : 150.00;
+            $transactionAmount = (true == true) ? (float) $valor_total : 150.00;
+
+
+
             $usesandbox = ($integracao['producao'] == 1) ? false : true;
             $isdebit    = ($parceiro_pagamento['forma_pagamento_id'] == $this->config->item("FORMA_PAGAMENTO_CARTAO_DEBITO")) ? true : false;
             $return_url = ($parceiro_pagamento['forma_pagamento_id'] == $this->config->item("FORMA_PAGAMENTO_CARTAO_DEBITO")) ? $this->config->item('base_url') . "/index.php/pagmax360/retorno?pedido_id={$pedido_id}" : "";
@@ -257,10 +265,11 @@ class Pagmax_Model extends MY_Model
             $Json = json_encode($JsonDataRequest);
 
             $result = $this->executa_pagamento($Json, ['pedido_id' => $pedido_id, 'fatura_parcela_id' => $fatura_parcela['fatura_parcela_id'], 'pedido_cartao_id' => $pedido_cartao_id], $dados_transacao, $reg);
-
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
         }
+
+        unset($_SESSION[null]['pedido_carrinho_valor_total']);
 
         return $result;
     }
@@ -300,10 +309,10 @@ class Pagmax_Model extends MY_Model
                 $tipo_mensagem = "msg_erro";
 
                 if (isset($Response["error"]) && isset($Response["error"]["Code"])) {
-                    $msgErro = issetor( $Response["error"]["Message"], "Falha na transacao") ." (Erro " . $Response["error"]["Code"] . ")";
+                    $msgErro = issetor($Response["error"]["Message"], "Falha na transacao") . " (Erro " . $Response["error"]["Code"] . ")";
                 } else {
-                    if ( isset($Response[0]["Code"]) && isset($Response[0]["Message"]) ) {
-                        $msgErro = $Response[0]["Message"] ." (Code " . $Response[0]["Code"] . ")";
+                    if (isset($Response[0]["Code"]) && isset($Response[0]["Message"])) {
+                        $msgErro = $Response[0]["Message"] . " (Code " . $Response[0]["Code"] . ")";
                     } elseif (isset($Response->{"status"})) {
                         $msgErro = $Response->{"message"};
                     } else {
@@ -338,15 +347,7 @@ class Pagmax_Model extends MY_Model
 
                 if (isset($Response->{"Payment"}->{"RecurrentPayment"})) {
                     $this->recorrencia->insert(array(
-                        "pedido_id" => $pedido_id
-                        , "Capture" => $Response->{"Payment"}->{"Capture"}
-                        , "Tid" => $Response->{"Payment"}->{"Tid"}
-                        , "ProofOfSale" => $Response->{"Payment"}->{"ProofOfSale"}
-                        , "AuthorizationCode" => $Response->{"Payment"}->{"AuthorizationCode"}
-                        , "ReceivedDate" => $Response->{"Payment"}->{"ReceivedDate"}
-                        , "CapturedDate" => $Response->{"Payment"}->{"CapturedDate"}
-                        , "PaymentId" => $Response->{"Payment"}->{"PaymentId"}
-                        , "RecurrentPaymentId" => $Response->{"Payment"}->{"RecurrentPayment"}->{"RecurrentPaymentId"},
+                        "pedido_id" => $pedido_id, "Capture" => $Response->{"Payment"}->{"Capture"}, "Tid" => $Response->{"Payment"}->{"Tid"}, "ProofOfSale" => $Response->{"Payment"}->{"ProofOfSale"}, "AuthorizationCode" => $Response->{"Payment"}->{"AuthorizationCode"}, "ReceivedDate" => $Response->{"Payment"}->{"ReceivedDate"}, "CapturedDate" => $Response->{"Payment"}->{"CapturedDate"}, "PaymentId" => $Response->{"Payment"}->{"PaymentId"}, "RecurrentPaymentId" => $Response->{"Payment"}->{"RecurrentPayment"}->{"RecurrentPaymentId"},
                     ));
                 }
 
@@ -446,7 +447,6 @@ class Pagmax_Model extends MY_Model
                         $dados_transacao["slug_status"] = 'aguardando_liberacao';
                         break;
                 }
-
             }
         } catch (Exception $e) {
             log_message('debug', 'ERRO CHAMADA WS ', print_r($e, true));
@@ -510,7 +510,6 @@ class Pagmax_Model extends MY_Model
                             }
 
                             $this->pedido->executa_extorno_upgrade($pedido_antigo['pedido_id']);
-
                         }
                     }
                 } else {
@@ -523,14 +522,11 @@ class Pagmax_Model extends MY_Model
                         'status' => false,
                         'message' => 'Aguardando autorização da Operadora'
                     ];
-
                 }
-
             } elseif ($dados_transacao['result'] == "REDIRECT") {
 
                 $this->pedido_transacao->insStatus($pedido['pedido_id'], 'aguardando_pagamento_debito', "TRANSAÇÃO CRIADA COM SUCESSO. AGUARDANDO PAGAMENTO.");
                 log_message('debug', ' INSERE STATUS DO PEDIDO DEBITO');
-
             } else {
 
                 $cotacao = $this->cotacao->get_cotacao_produto($pedido['cotacao_id']);
@@ -548,7 +544,6 @@ class Pagmax_Model extends MY_Model
                     'status' => false,
                     'message' => 'Transação não Efetuada'
                 ];
-
             }
 
             unset($dados_transacao["slug_status"]);
@@ -565,15 +560,12 @@ class Pagmax_Model extends MY_Model
 
                 $this->transacao->insert($dados_transacao, true);
                 log_message('debug', 'UPDATE NA TRANSCAO ');
-
             }
-
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
         }
 
         $result['response'] = $Response;
         return $result;
-
     }
 }

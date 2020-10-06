@@ -87,7 +87,7 @@ if ($_POST)
     </div>
 <?php endif; ?>
 <script>
-    let payment = {
+    let Payment = {
         pedidoId: null,
         loadPercentage: 0,
 
@@ -112,12 +112,13 @@ if ($_POST)
                     cache: false,
                 })
                 .done(function(result) {
+                    console.log(result)
                     $(".confirm_message").show();
                     $(".load").hide();
 
                 })
-                .fail(function() {
-                    callbackError();
+                .fail(function(result) {
+                    console.log(result)
                 });
         },
         setLoadPercentage: function(loadPercentage) {
@@ -137,8 +138,8 @@ if ($_POST)
     }
 
     $(document).ready(function() {
-        payment.setPedidoId(<?php echo $pedido_id; ?>);
-        payment.execute()
+        Payment.setPedidoId(<?php echo $pedido_id; ?>);
+        Payment.execute()
     })
 </script>
 
