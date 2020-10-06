@@ -2116,19 +2116,25 @@ class Apolice_Model extends MY_Model
         $coberturasAll = $this->plano_cobertura->getCoberturasApolice($apolice["apolice_id"]);
 
         $equipamento = $this->db->query("SELECT 
-                                        em.nome as marca, 
-                                        ec.nome as categoria, 
-                                        esc.nome as equipamento, 
-                                        ce.equipamento_nome as modelo, 
-                                        ae.imei 
-                                          FROM apolice_equipamento ae
-                                          INNER JOIN apolice a ON (a.apolice_id=ae.apolice_id)
-                                          INNER JOIN pedido p ON (p.pedido_id=a.pedido_id)
-                                          INNER JOIN cotacao_equipamento ce ON (ce.cotacao_id=p.cotacao_id)
-                                          LEFT JOIN vw_Equipamentos_Linhas ec ON (ec.equipamento_categoria_id=ce.equipamento_categoria_id)
-                                          LEFT JOIN vw_Equipamentos_Linhas esc ON (esc.equipamento_categoria_id=ce.equipamento_sub_categoria_id)
-                                          LEFT JOIN vw_Equipamentos_Marcas em ON (em.equipamento_marca_id = ce.equipamento_marca_id)
-                                          WHERE a.apolice_id=" . $apolice["apolice_id"])->result_array();
+                IFNULL(em.nome, eem.nome) as marca, 
+                IFNULL(ec.nome, eec.nome) as categoria, 
+                IFNULL(esc.nome, eesc.nome) as equipamento, 
+                ce.equipamento_nome as modelo, 
+                ae.imei 
+                FROM apolice_equipamento ae
+                INNER JOIN apolice a ON (a.apolice_id=ae.apolice_id)
+                INNER JOIN pedido p ON (p.pedido_id=a.pedido_id)
+                INNER JOIN cotacao_equipamento ce ON (ce.cotacao_id=p.cotacao_id)
+                INNER JOIN cotacao c ON (c.cotacao_id=p.cotacao_id)
+                
+                LEFT JOIN vw_Equipamentos_Linhas ec ON c.lista_id = 1 AND ec.equipamento_categoria_id=ce.equipamento_categoria_id
+                LEFT JOIN vw_Equipamentos_Linhas esc ON c.lista_id = 1 AND esc.equipamento_categoria_id=ce.equipamento_sub_categoria_id
+                LEFT JOIN vw_Equipamentos_Marcas em ON c.lista_id = 1 AND em.equipamento_marca_id = ce.equipamento_marca_id
+                
+                LEFT JOIN equipamentos_elegiveis_categoria eec ON c.lista_id = eec.lista_id AND eec.equipamento_categoria_id=ce.equipamento_categoria_id
+                LEFT JOIN equipamentos_elegiveis_categoria eesc ON c.lista_id = eesc.lista_id AND eesc.equipamento_categoria_id=ce.equipamento_sub_categoria_id
+                LEFT JOIN equipamentos_elegiveis_marca eem ON c.lista_id = eem.lista_id AND eem.equipamento_marca_id = ce.equipamento_marca_id
+                WHERE a.apolice_id =" . $apolice["apolice_id"])->result_array();
 
         $data_template['lmi_ge']      = "R$ ".app_format_currency($apolice['nota_fiscal_valor']);
         if (sizeof($equipamento)) {
