@@ -476,10 +476,22 @@ class Pagmax_Model extends MY_Model
                     log_message('debug', 'PAGAMENTO EFETUADO ');
                     $this->fatura->pagamentoCompletoEfetuado($fatura_parcela_id);
                     log_message('debug', 'ATUALIZA FATURA ');
-                    $this->apolice->insertApolice($pedido['pedido_id']);
-                    log_message('debug', 'INSERE APOLICE ');
-                    $this->pedido_transacao->insStatus($pedido['pedido_id'], 'pagamento_confirmado', "$statusMessage [$TID]");
-                    log_message('debug', 'INSERE STATUS PEDIDO OK ');
+
+                    if ($this->session->userdata("pedido_carrinho_valor_total")) {
+                        $sessionPedidosCarrinho = $this->session->userdata("pedido_carrinho");
+
+                        foreach ($sessionPedidosCarrinho as $cart) {
+                            $this->apolice->insertApolice($cart['pedido_id']);
+                            log_message('debug', 'INSERE APOLICE ');
+                            $this->pedido_transacao->insStatus($cart['pedido_id'], 'pagamento_confirmado', "$statusMessage [$TID]");
+                            log_message('debug', 'INSERE STATUS PEDIDO OK ');
+                        }
+                    } else {
+                        $this->apolice->insertApolice($pedido['pedido_id']);
+                        log_message('debug', 'INSERE APOLICE ');
+                        $this->pedido_transacao->insStatus($pedido['pedido_id'], 'pagamento_confirmado', "$statusMessage [$TID]");
+                        log_message('debug', 'INSERE STATUS PEDIDO OK ');
+                    }
 
                     //Retorna pedido e cotação
                     $cotacao = $this->cotacao->get($pedido['cotacao_id']);
