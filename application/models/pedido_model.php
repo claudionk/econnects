@@ -1,6 +1,6 @@
 <?php
 
-Class Pedido_Model extends MY_Model
+class Pedido_Model extends MY_Model
 {
     //Dados da tabela e chave primária
     protected $_table = 'pedido';
@@ -59,64 +59,64 @@ Class Pedido_Model extends MY_Model
         ),
     );
 
-    function getPedidoCarrinho($usuario_id = null, $cnpj_cpf = ''){
+    function getPedidoCarrinho($usuario_id = null, $cnpj_cpf = '')
+    {
 
         $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.codigo, pedido.codigo, produto_parceiro.produto_parceiro_id, pedido_status.slug AS pedido_status_slug ")
-        ->select("pedido.valor_total, produto_parceiro.nome,  produto_parceiro.produto_parceiro_id")
-        ->join("cotacao", "pedido.cotacao_id = cotacao.cotacao_id", 'inner')
-        ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
-        ->join("pedido_status", "pedido.pedido_status_id = pedido_status.pedido_status_id", 'inner')
-        ->where("pedido.pedido_status_id", 13);
+            ->select("pedido.valor_total, produto_parceiro.nome,  produto_parceiro.produto_parceiro_id")
+            ->join("cotacao", "pedido.cotacao_id = cotacao.cotacao_id", 'inner')
+            ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
+            ->join("pedido_status", "pedido.pedido_status_id = pedido_status.pedido_status_id", 'inner')
+            ->where("pedido.pedido_status_id", 13);
 
-        if ( !empty($usuario_id) )
-        {
+        if (!empty($usuario_id)) {
             $this->_database->where("pedido.alteracao_usuario_id", $usuario_id);
         }
 
-        if ( !empty($cnpj_cpf) )
-        {
+        if (!empty($cnpj_cpf)) {
             $this->_database->join("cotacao_equipamento", "cotacao.cotacao_id = cotacao_equipamento.cotacao_id", 'left')
                 ->join("cotacao_generico", "cotacao.cotacao_id = cotacao_generico.cotacao_id", 'left')
                 ->join("cotacao_seguro_viagem", "cotacao.cotacao_id = cotacao_seguro_viagem.cotacao_id", 'left')
-                ->where(" IFNULL(cotacao_equipamento.cnpj_cpf, IFNULL(cotacao_generico.cnpj_cpf, cotacao_seguro_viagem.cnpj_cpf)) = '". app_clear_number($cnpj_cpf) ."' ", NULL, FALSE);
+                ->where(" IFNULL(cotacao_equipamento.cnpj_cpf, IFNULL(cotacao_generico.cnpj_cpf, cotacao_seguro_viagem.cnpj_cpf)) = '" . app_clear_number($cnpj_cpf) . "' ", NULL, FALSE);
         }
 
         $carrinho = $this->get_all();
         return $carrinho;
-
     }
 
-    function getPedidosByID($pedidos){
+    function getPedidosByID($pedidos)
+    {
 
         $this->_database->select("pedido.pedido_id, pedido.pedido_status_id, pedido_status.nome as pedido_status_nome, pedido_status.slug as pedido_status_slug")
-        ->select("pedido.cotacao_id, pedido.codigo, pedido.codigo, pedido.valor_total, produto_parceiro.nome,  produto_parceiro.produto_parceiro_id")
-        ->join("pedido_status", "pedido_status.pedido_status_id = pedido.pedido_status_id", 'inner')
-        ->join("cotacao", "pedido.cotacao_id = cotacao.cotacao_id", 'inner')
-        ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
-        ->where_in("pedido.pedido_id", $pedidos);
+            ->select("pedido.cotacao_id, pedido.codigo, pedido.codigo, pedido.valor_total, produto_parceiro.nome,  produto_parceiro.produto_parceiro_id")
+            ->join("pedido_status", "pedido_status.pedido_status_id = pedido.pedido_status_id", 'inner')
+            ->join("cotacao", "pedido.cotacao_id = cotacao.cotacao_id", 'inner')
+            ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
+            ->where_in("pedido.pedido_id", $pedidos);
 
         $pedidos = $this->get_all();
         return ($pedidos) ? $pedidos : array();
     }
 
-    function getPedidoPagamentoPendente($pedido_id = 0){
+    function getPedidoPagamentoPendente($pedido_id = 0)
+    {
 
         $this->_database->distinct()
-        ->select("pedido.pedido_id, pedido.codigo, pedido.valor_total, pedido.valor_parcela")
-        ->select("pedido.num_parcela, forma_pagamento.nome, forma_pagamento.slug, pedido.produto_parceiro_pagamento_id")
-        ->join("produto_parceiro_pagamento", "pedido.produto_parceiro_pagamento_id = produto_parceiro_pagamento.produto_parceiro_pagamento_id", 'inner')
-        ->join("forma_pagamento", "forma_pagamento.forma_pagamento_id = produto_parceiro_pagamento.forma_pagamento_id and forma_pagamento.slug != 'cobranca_terceiros'", 'inner')
-        ->join("forma_pagamento_tipo", "forma_pagamento_tipo.forma_pagamento_tipo_id = forma_pagamento.forma_pagamento_tipo_id", 'inner')
-        ->join("forma_pagamento_integracao", "forma_pagamento_integracao.forma_pagamento_integracao_id = forma_pagamento_tipo.forma_pagamento_integracao_id", 'inner')
-        ->join("fatura", "fatura.pedido_id = pedido.pedido_id", 'inner')
-        ->join("fatura_parcela", "fatura.fatura_id = fatura_parcela.fatura_id", 'inner')
-        //->where_in("pedido.pedido_status_id", array(2,3,15,4))
-        ->where_in("pedido.pedido_status_id", array(2,14,15,17))
-        ->where_in("pedido.lock", 0)
-        ->where("fatura_parcela.data_vencimento <=", date('y-m-d'))
-        ->where("fatura_parcela.fatura_status_id", 1);
+            ->select("pedido.pedido_id, pedido.codigo, pedido.valor_total, pedido.valor_parcela")
+            ->select("pedido.num_parcela, forma_pagamento.nome, forma_pagamento.slug, pedido.produto_parceiro_pagamento_id")
+            ->join("produto_parceiro_pagamento", "pedido.produto_parceiro_pagamento_id = produto_parceiro_pagamento.produto_parceiro_pagamento_id", 'inner')
+            ->join("forma_pagamento", "forma_pagamento.forma_pagamento_id = produto_parceiro_pagamento.forma_pagamento_id and forma_pagamento.slug != 'cobranca_terceiros'", 'inner')
+            ->join("forma_pagamento_tipo", "forma_pagamento_tipo.forma_pagamento_tipo_id = forma_pagamento.forma_pagamento_tipo_id", 'inner')
+            ->join("forma_pagamento_integracao", "forma_pagamento_integracao.forma_pagamento_integracao_id = forma_pagamento_tipo.forma_pagamento_integracao_id", 'inner')
+            ->join("fatura", "fatura.pedido_id = pedido.pedido_id", 'inner')
+            ->join("fatura_parcela", "fatura.fatura_id = fatura_parcela.fatura_id", 'inner')
+            //->where_in("pedido.pedido_status_id", array(2,3,15,4))
+            ->where_in("pedido.pedido_status_id", array(2, 14, 15, 17))
+            ->where_in("pedido.lock", 0)
+            ->where("fatura_parcela.data_vencimento <=", date('y-m-d'))
+            ->where("fatura_parcela.fatura_status_id", 1);
 
-        if($pedido_id > 0){
+        if ($pedido_id > 0) {
             $this->_database->where_in("pedido.pedido_id", $pedido_id);
         }
 
@@ -124,53 +124,52 @@ Class Pedido_Model extends MY_Model
         //exit($this->_database->last_query());
         //log_message('debug', 'BUSCANDO PEDIDOS PENDENTES QUERY - ' . $this->_database->last_query());
         return ($pedidos) ? $pedidos : array();
-
     }
 
-    function getPedidoPagamentoPendenteDebito($pedido_id = 0){
+    function getPedidoPagamentoPendenteDebito($pedido_id = 0)
+    {
 
 
         $this->_database->select("pedido.pedido_id, pedido.codigo, pedido.valor_total, pedido.valor_parcela")
-        ->select("pedido.num_parcela, forma_pagamento.nome, forma_pagamento.slug")
-        ->join("produto_parceiro_pagamento", "pedido.produto_parceiro_pagamento_id = produto_parceiro_pagamento.produto_parceiro_pagamento_id", 'inner')
-        ->join("forma_pagamento", "forma_pagamento.forma_pagamento_id = produto_parceiro_pagamento.forma_pagamento_id", 'inner')
-        ->join("forma_pagamento_tipo", "forma_pagamento_tipo.forma_pagamento_tipo_id = forma_pagamento.forma_pagamento_tipo_id", 'inner')
-        ->join("forma_pagamento_integracao", "forma_pagamento_integracao.forma_pagamento_integracao_id = forma_pagamento_tipo.forma_pagamento_integracao_id", 'inner')
-        ->where_in("pedido.pedido_status_id", 14)
-        ->where_in("pedido.lock", 0);
+            ->select("pedido.num_parcela, forma_pagamento.nome, forma_pagamento.slug")
+            ->join("produto_parceiro_pagamento", "pedido.produto_parceiro_pagamento_id = produto_parceiro_pagamento.produto_parceiro_pagamento_id", 'inner')
+            ->join("forma_pagamento", "forma_pagamento.forma_pagamento_id = produto_parceiro_pagamento.forma_pagamento_id", 'inner')
+            ->join("forma_pagamento_tipo", "forma_pagamento_tipo.forma_pagamento_tipo_id = forma_pagamento.forma_pagamento_tipo_id", 'inner')
+            ->join("forma_pagamento_integracao", "forma_pagamento_integracao.forma_pagamento_integracao_id = forma_pagamento_tipo.forma_pagamento_integracao_id", 'inner')
+            ->where_in("pedido.pedido_status_id", 14)
+            ->where_in("pedido.lock", 0);
 
-        if($pedido_id > 0){
+        if ($pedido_id > 0) {
             $this->_database->where_in("pedido.pedido_id", $pedido_id);
         }
 
         $pedidos = $this->get_all();
         return ($pedidos) ? $pedidos : array();
-
     }
 
-    function getPedidoCanceladoEstorno($pedido_id = 0){
+    function getPedidoCanceladoEstorno($pedido_id = 0)
+    {
 
         $this->_database->select("pedido.pedido_id, pedido.codigo, pedido.valor_total, pedido.valor_parcela")
-        ->select("pedido.num_parcela, forma_pagamento.nome, forma_pagamento.slug")
-        ->select("pedido_cartao_transacao.tid, pedido_cartao_transacao.pedido_cartao_transacao_id")
-        ->join("produto_parceiro_pagamento", "pedido.produto_parceiro_pagamento_id = produto_parceiro_pagamento.produto_parceiro_pagamento_id", 'inner')
-        ->join("forma_pagamento", "forma_pagamento.forma_pagamento_id = produto_parceiro_pagamento.forma_pagamento_id", 'inner')
-        ->join("forma_pagamento_tipo", "forma_pagamento_tipo.forma_pagamento_tipo_id = forma_pagamento.forma_pagamento_tipo_id", 'inner')
-        ->join("forma_pagamento_integracao", "forma_pagamento_integracao.forma_pagamento_integracao_id = forma_pagamento_tipo.forma_pagamento_integracao_id", 'inner')
-        ->join("pedido_cartao", "pedido.pedido_id = pedido_cartao.pedido_id", 'inner')
-        ->join("pedido_cartao_transacao", "pedido_cartao.pedido_cartao_id = pedido_cartao_transacao.pedido_cartao_id", 'inner')
-        ->where_in("pedido.pedido_status_id", 5)
-        ->where_in("pedido.lock", 0)
-        ->where_in("pedido_cartao_transacao.result", 'OK');
+            ->select("pedido.num_parcela, forma_pagamento.nome, forma_pagamento.slug")
+            ->select("pedido_cartao_transacao.tid, pedido_cartao_transacao.pedido_cartao_transacao_id")
+            ->join("produto_parceiro_pagamento", "pedido.produto_parceiro_pagamento_id = produto_parceiro_pagamento.produto_parceiro_pagamento_id", 'inner')
+            ->join("forma_pagamento", "forma_pagamento.forma_pagamento_id = produto_parceiro_pagamento.forma_pagamento_id", 'inner')
+            ->join("forma_pagamento_tipo", "forma_pagamento_tipo.forma_pagamento_tipo_id = forma_pagamento.forma_pagamento_tipo_id", 'inner')
+            ->join("forma_pagamento_integracao", "forma_pagamento_integracao.forma_pagamento_integracao_id = forma_pagamento_tipo.forma_pagamento_integracao_id", 'inner')
+            ->join("pedido_cartao", "pedido.pedido_id = pedido_cartao.pedido_id", 'inner')
+            ->join("pedido_cartao_transacao", "pedido_cartao.pedido_cartao_id = pedido_cartao_transacao.pedido_cartao_id", 'inner')
+            ->where_in("pedido.pedido_status_id", 5)
+            ->where_in("pedido.lock", 0)
+            ->where_in("pedido_cartao_transacao.result", 'OK');
 
 
-        if($pedido_id > 0){
+        if ($pedido_id > 0) {
             $this->_database->where_in("pedido.pedido_id", $pedido_id);
         }
 
         $pedidos = $this->get_all();
         return ($pedidos) ? $pedidos : array();
-
     }
 
     public function filterPesquisa()
@@ -179,9 +178,8 @@ Class Pedido_Model extends MY_Model
         $filters = $this->input->get();
         //  print_r($filters);exit;
 
-        if($filters) {
-            foreach ($filters as $key => $value)
-            {
+        if ($filters) {
+            foreach ($filters as $key => $value) {
                 if (!empty($value)) {
                     switch ($key) {
                         case "pedido_codigo":
@@ -226,9 +224,8 @@ Class Pedido_Model extends MY_Model
 
     public function filterAPI($param = array())    
     {
-        if($param) {
-            foreach ($param as $key => $value)
-            {
+        if ($param) {
+            foreach ($param as $key => $value) {
                 if (!empty($value)) {
                     switch ($key) {
                         case "apolice_id":
@@ -271,7 +268,8 @@ Class Pedido_Model extends MY_Model
         return $this;
     }
 
-    public function isInadimplente($pedido_id){
+    public function isInadimplente($pedido_id)
+    {
         $this->_database->distinct();
         $this->_database->join("fatura", "fatura.pedido_id = pedido.pedido_id");
         $this->_database->join("fatura_parcela", "fatura_parcela.fatura_id = fatura.fatura_id");
@@ -286,12 +284,11 @@ Class Pedido_Model extends MY_Model
 
         $total = $this->get_total();
 
-        if($total > 0){
+        if ($total > 0) {
             return true;
-        }else{
+        } else {
             return false;
         }
-
     }
 
     public function filterNotCarrinho()
@@ -306,37 +303,38 @@ Class Pedido_Model extends MY_Model
     {
 
         $this->_database->where('cotacao.cliente_id', $cliente_id);
-        $this->_database->where_in('pedido.pedido_status_id', array(2,3,4,5,6,7,8,10,11,12,14,15));
+        $this->_database->where_in('pedido.pedido_status_id', array(2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 14, 15));
 
         return $this;
     }
 
-    public function build_faturamento( $engine = "generico" ) {
-        if( $engine == "seguro_saude" ) {
+    public function build_faturamento($engine = "generico")
+    {
+        if ($engine == "seguro_saude") {
             $engine = "generico";
         }
         $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.produto_parceiro_pagamento_id, pedido.num_parcela, pedido.valor_parcela")
-        ->select("cotacao_{$engine}.*")
-        ->select("cotacao.produto_parceiro_id, produto.slug")
-        ->select("produto_parceiro.parceiro_id")
-        ->select("apolice.*")
-        ->select("apolice_{$engine}.*")
-        ->select("fatura.*")
+            ->select("cotacao_{$engine}.*")
+            ->select("cotacao.produto_parceiro_id, produto.slug")
+            ->select("produto_parceiro.parceiro_id")
+            ->select("apolice.*")
+            ->select("apolice_{$engine}.*")
+            ->select("fatura.*")
 
-        ->join("cotacao", "cotacao.cotacao_id = pedido.cotacao_id", 'inner')
-        ->join("cotacao_{$engine}", "cotacao_{$engine}.cotacao_id = cotacao.cotacao_id", 'inner')
-        ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
-        ->join("produto", "produto.produto_id = produto_parceiro.produto_id", 'inner')
-        ->join("apolice", "apolice.pedido_id = pedido.pedido_id", 'inner')
-        ->join("apolice_{$engine}", "apolice_{$engine}.apolice_id = apolice.apolice_id", 'inner')
-        ->join("fatura", "fatura.pedido_id = pedido.pedido_id", 'inner');
+            ->join("cotacao", "cotacao.cotacao_id = pedido.cotacao_id", 'inner')
+            ->join("cotacao_{$engine}", "cotacao_{$engine}.cotacao_id = cotacao.cotacao_id", 'inner')
+            ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
+            ->join("produto", "produto.produto_id = produto_parceiro.produto_id", 'inner')
+            ->join("apolice", "apolice.pedido_id = pedido.pedido_id", 'inner')
+            ->join("apolice_{$engine}", "apolice_{$engine}.apolice_id = apolice.apolice_id", 'inner')
+            ->join("fatura", "fatura.pedido_id = pedido.pedido_id", 'inner');
         return $this;
-
     }
 
-    function getPedidoProdutoParceiro( $pedido_id = 0 ){
+    function getPedidoProdutoParceiro($pedido_id = 0)
+    {
 
-        $pedidos = $this->db->query( "SELECT
+        $pedidos = $this->db->query("SELECT
                 pedido.pedido_id, 
                 pedido.cotacao_id, 
                 pedido.produto_parceiro_pagamento_id,
@@ -368,8 +366,8 @@ Class Pedido_Model extends MY_Model
             LEFT JOIN cotacao_equipamento ON ( cotacao_equipamento.cotacao_id = cotacao.cotacao_id)
             LEFT JOIN cotacao_generico ON ( cotacao_generico.cotacao_id = cotacao.cotacao_id)
             WHERE
-            pedido.pedido_id IN ($pedido_id) LIMIT 1" )->result_array();
-        if( $pedidos ) {
+            pedido.pedido_id IN ($pedido_id) LIMIT 1")->result_array();
+        if ($pedidos) {
             $pedido = $pedidos;
         } else {
             $pedido = array();
@@ -377,94 +375,95 @@ Class Pedido_Model extends MY_Model
         return $pedido;
 
         $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.produto_parceiro_pagamento_id,pedido.num_parcela, pedido.valor_parcela")
-        ->select("cotacao.produto_parceiro_id, produto.slug")
-        ->select("produto_parceiro.parceiro_id")
-        ->select("produto_parceiro_apolice.template as template_apolice")
-        ->join("cotacao", "cotacao.cotacao_id = pedido.cotacao_id", 'inner')
-        ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
-        ->join("produto", "produto.produto_id = produto_parceiro.produto_id", 'inner')
-        ->join("produto_parceiro_apolice", "produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'left')
-        ->join("cotacao_seguro_viagem", "cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id", 'left')
-        ->join("cotacao_equipamento", "cotacao_equipamento.cotacao_id = cotacao.cotacao_id", 'left')
-        ->join("cotacao_generico", "cotacao_generico.cotacao_id = cotacao.cotacao_id", 'left')
-        ->where_in("pedido.pedido_id", $pedido_id);
+            ->select("cotacao.produto_parceiro_id, produto.slug")
+            ->select("produto_parceiro.parceiro_id")
+            ->select("produto_parceiro_apolice.template as template_apolice")
+            ->join("cotacao", "cotacao.cotacao_id = pedido.cotacao_id", 'inner')
+            ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
+            ->join("produto", "produto.produto_id = produto_parceiro.produto_id", 'inner')
+            ->join("produto_parceiro_apolice", "produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'left')
+            ->join("cotacao_seguro_viagem", "cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id", 'left')
+            ->join("cotacao_equipamento", "cotacao_equipamento.cotacao_id = cotacao.cotacao_id", 'left')
+            ->join("cotacao_generico", "cotacao_generico.cotacao_id = cotacao.cotacao_id", 'left')
+            ->where_in("pedido.pedido_id", $pedido_id);
 
         $pedidos = $this->get_all();
-        if($pedidos){
+        if ($pedidos) {
             $pedido = $pedidos[0];
-            if($pedido['slug'] == 'seguro_viagem'){
+            if ($pedido['slug'] == 'seguro_viagem') {
                 $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.produto_parceiro_pagamento_id,pedido.num_parcela, pedido.valor_parcela")
-                ->select("cotacao.produto_parceiro_id, produto.slug")
-                ->select("cotacao_seguro_viagem.*")
-                ->select("produto_parceiro.parceiro_id")
-                ->select("produto_parceiro_apolice.template as template_apolice")
-                ->join("cotacao", "cotacao.cotacao_id = pedido.cotacao_id", 'inner')
-                ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
-                ->join("produto", "produto.produto_id = produto_parceiro.produto_id", 'inner')
-                ->join("produto_parceiro_apolice", "produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'left')
-                ->join("cotacao_seguro_viagem", "cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id", 'left')
-                ->where_in("pedido.pedido_id", $pedido_id);
+                    ->select("cotacao.produto_parceiro_id, produto.slug")
+                    ->select("cotacao_seguro_viagem.*")
+                    ->select("produto_parceiro.parceiro_id")
+                    ->select("produto_parceiro_apolice.template as template_apolice")
+                    ->join("cotacao", "cotacao.cotacao_id = pedido.cotacao_id", 'inner')
+                    ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
+                    ->join("produto", "produto.produto_id = produto_parceiro.produto_id", 'inner')
+                    ->join("produto_parceiro_apolice", "produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'left')
+                    ->join("cotacao_seguro_viagem", "cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id", 'left')
+                    ->where_in("pedido.pedido_id", $pedido_id);
                 $pedidos = $this->get_all();
-            }elseif ($pedido['slug'] == 'equipamento'){
+            } elseif ($pedido['slug'] == 'equipamento') {
                 $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.produto_parceiro_pagamento_id,pedido.num_parcela, pedido.valor_parcela")
-                ->select("cotacao_equipamento.*")
-                ->select("cotacao.produto_parceiro_id, produto.slug")
-                ->select("produto_parceiro.parceiro_id")
-                ->select("produto_parceiro_apolice.template as template_apolice")
-                ->join("cotacao", "cotacao.cotacao_id = pedido.cotacao_id", 'inner')
-                ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
-                ->join("produto", "produto.produto_id = produto_parceiro.produto_id", 'inner')
-                ->join("produto_parceiro_apolice", "produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'left')
-                ->join("cotacao_equipamento", "cotacao_equipamento.cotacao_id = cotacao.cotacao_id", 'left')
-                ->where_in("pedido.pedido_id", $pedido_id);
+                    ->select("cotacao_equipamento.*")
+                    ->select("cotacao.produto_parceiro_id, produto.slug")
+                    ->select("produto_parceiro.parceiro_id")
+                    ->select("produto_parceiro_apolice.template as template_apolice")
+                    ->join("cotacao", "cotacao.cotacao_id = pedido.cotacao_id", 'inner')
+                    ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
+                    ->join("produto", "produto.produto_id = produto_parceiro.produto_id", 'inner')
+                    ->join("produto_parceiro_apolice", "produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'left')
+                    ->join("cotacao_equipamento", "cotacao_equipamento.cotacao_id = cotacao.cotacao_id", 'left')
+                    ->where_in("pedido.pedido_id", $pedido_id);
                 $pedidos = $this->get_all();
-            }elseif ( $pedido['slug'] == "generico" || $pedido['slug'] == "seguro_saude" ){
+            } elseif ($pedido['slug'] == "generico" || $pedido['slug'] == "seguro_saude") {
                 $this->_database->select("pedido.pedido_id, pedido.cotacao_id, pedido.produto_parceiro_pagamento_id,pedido.num_parcela, pedido.valor_parcela")
-                ->select("cotacao_generico.*")
-                ->select("cotacao.produto_parceiro_id, produto.slug")
-                ->select("produto_parceiro.parceiro_id")
-                ->select("produto_parceiro_apolice.template as template_apolice")
-                ->join("cotacao", "cotacao.cotacao_id = pedido.cotacao_id", 'inner')
-                ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
-                ->join("produto", "produto.produto_id = produto_parceiro.produto_id", 'inner')
-                ->join("produto_parceiro_apolice", "produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'left')
-                ->join("cotacao_generico", "cotacao_generico.cotacao_id = cotacao.cotacao_id", 'left')
-                ->where_in("pedido.pedido_id", $pedido_id);
+                    ->select("cotacao_generico.*")
+                    ->select("cotacao.produto_parceiro_id, produto.slug")
+                    ->select("produto_parceiro.parceiro_id")
+                    ->select("produto_parceiro_apolice.template as template_apolice")
+                    ->join("cotacao", "cotacao.cotacao_id = pedido.cotacao_id", 'inner')
+                    ->join("produto_parceiro", "cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
+                    ->join("produto", "produto.produto_id = produto_parceiro.produto_id", 'inner')
+                    ->join("produto_parceiro_apolice", "produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'left')
+                    ->join("cotacao_generico", "cotacao_generico.cotacao_id = cotacao.cotacao_id", 'left')
+                    ->where_in("pedido.pedido_id", $pedido_id);
                 $pedidos = $this->get_all();
             }
 
             return ($pedidos) ? $pedidos : array();
-
         } else {
             return array();
         }
     }
 
-    public function with_seguro_viagem(){
+    public function with_seguro_viagem()
+    {
 
         $this->_database->select("cotacao_seguro_viagem.*")
-        ->join("cotacao_seguro_viagem", "cotacao_seguro_viagem.cotacao_id = pedido.cotacao_id");
+            ->join("cotacao_seguro_viagem", "cotacao_seguro_viagem.cotacao_id = pedido.cotacao_id");
 
         return $this;
     }
 
-    function getPedidoPagamento($pedido_id = 0){
+    function getPedidoPagamento($pedido_id = 0)
+    {
 
         $this->_database->select("pedido.num_parcela, pedido.valor_parcela, pedido.valor_total")
-        ->select(", forma_pagamento_tipo.nome as tipo_pagamento,  forma_pagamento.nome as bandeira")
-        ->join("produto_parceiro_pagamento", "pedido.produto_parceiro_pagamento_id = produto_parceiro_pagamento.produto_parceiro_pagamento_id", 'inner')
-        ->join("forma_pagamento", "forma_pagamento.forma_pagamento_id = produto_parceiro_pagamento.forma_pagamento_id", 'inner')
-        ->join("forma_pagamento_tipo", "forma_pagamento_tipo.forma_pagamento_tipo_id = forma_pagamento.forma_pagamento_tipo_id", 'inner')
-        ->where_in("pedido.pedido_id", $pedido_id);
+            ->select(", forma_pagamento_tipo.nome as tipo_pagamento,  forma_pagamento.nome as bandeira")
+            ->join("produto_parceiro_pagamento", "pedido.produto_parceiro_pagamento_id = produto_parceiro_pagamento.produto_parceiro_pagamento_id", 'inner')
+            ->join("forma_pagamento", "forma_pagamento.forma_pagamento_id = produto_parceiro_pagamento.forma_pagamento_id", 'inner')
+            ->join("forma_pagamento_tipo", "forma_pagamento_tipo.forma_pagamento_tipo_id = forma_pagamento.forma_pagamento_tipo_id", 'inner')
+            ->where_in("pedido.pedido_id", $pedido_id);
 
         $pedidos = $this->get_all();
         return ($pedidos) ? $pedidos : array();
-
     }
 
-    public function with_pedido_status(){
+    public function with_pedido_status()
+    {
 
-        return $this->with_simple_relation('pedido_status', 'pedido_status_', 'pedido_status_id', array('nome','slug'), 'inner');
+        return $this->with_simple_relation('pedido_status', 'pedido_status_', 'pedido_status_id', array('nome', 'slug'), 'inner');
     }
 
     public function with_fatura(){
@@ -473,14 +472,15 @@ Class Pedido_Model extends MY_Model
         return $this;
     }
 
-    public function with_apolice(){
+    public function with_apolice()
+    {
 
         $this->_database->where('apolice.deletado', 0);
         return $this->with_simple_relation('apolice', 'apolice_', 'pedido_id', array('num_apolice', 'apolice_id'), 'inner');
-
     }
 
-    public function with_cotacao_cliente_contato(){
+    public function with_cotacao_cliente_contato()
+    {
         $this->_database->select("cliente.cliente_id as cod_cliente", false);
         $this->_database->select("cliente.razao_nome, apolice_equipamento.equipamento_nome, em.nomeMarca as marca, ec.nomeLinha as categoria");
         /*
@@ -503,15 +503,17 @@ Class Pedido_Model extends MY_Model
         return $this;
     }
 
-    public function with_produto_parceiro(){
-        $this->_database->select("produto.produto_id, produto.nome as produto");        
+    public function with_produto_parceiro()
+    {
+        $this->_database->select("produto.produto_id, produto.nome as produto");
         $this->_database->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner');
         $this->_database->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner');
         $this->_database->join("produto", "produto_parceiro.produto_id = produto.produto_id", 'inner');        
         return $this;
     }
 
-    public function with_cotacao(){
+    public function with_cotacao()
+    {
         $this->_database->join('cotacao', 'cotacao.cotacao_id = pedido.cotacao_id', 'inner');
         return $this;
     }
@@ -541,7 +543,7 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("produto_parceiro", "produto_parceiro.produto_parceiro_id = cotacao.produto_parceiro_id");
         $this->_database->join("produto_parceiro_plano", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id");
         $this->_database->where("produto_parceiro_plano.passivel_upgrade = 1");
-        $this->_database->where_in("pedido.pedido_status_id", array(3,8));
+        $this->_database->where_in("pedido.pedido_status_id", array(3, 8));
 
         return $this;
     }
@@ -552,14 +554,14 @@ Class Pedido_Model extends MY_Model
         return $this->get_by($this->primary_key, $id);
     }
 
-    function isPermiteCancelar($pedido_id, $define_date = null){
+    function isPermiteCancelar($pedido_id, $define_date = null)
+    {
 
         $this->load->model("apolice_model", "apolice");
 
-        if( ! $define_date ){
+        if (!$define_date) {
             $define_date = date("Y-m-d");
-        } else 
-        {
+        } else {
             $d1 = new DateTime($define_date);
             $define_date = $d1->format('Y-m-d');
         }
@@ -567,10 +569,10 @@ Class Pedido_Model extends MY_Model
         $result = FALSE;
         $pedido = $this->get($pedido_id);
 
-        if($pedido){
-            if (in_array($pedido['pedido_status_id'], [3,8,11,12])) {
+        if ($pedido) {
+            if (in_array($pedido['pedido_status_id'], [3, 8, 11, 12])) {
                 $apolices = $this->apolice->getApolicePedido($pedido_id);
-                if( $apolices ) {
+                if ($apolices) {
                     foreach ($apolices as $apolice) {
                         $fim_vigencia = explode('-', $apolice['data_fim_vigencia']);
                         $fim_vigencia = mktime(0, 0, 0, $fim_vigencia[1], $fim_vigencia[2], $fim_vigencia[0]);
@@ -588,7 +590,8 @@ Class Pedido_Model extends MY_Model
         return $result;
     }
 
-    function isPermiteUpgrade($pedido_id){
+    function isPermiteUpgrade($pedido_id)
+    {
 
         $this->load->model("apolice_model", "apolice");
         $this->load->model("produto_parceiro_plano_model", "produto_parceiro_plano");
@@ -596,9 +599,9 @@ Class Pedido_Model extends MY_Model
         $result = FALSE;
         $pedido = $this->get($pedido_id);
 
-        if($pedido){
+        if ($pedido) {
 
-            if(($pedido['pedido_status_id'] == 3) || ($pedido['pedido_status_id'] == 8)) {
+            if (($pedido['pedido_status_id'] == 3) || ($pedido['pedido_status_id'] == 8)) {
 
                 $apolices = $this->apolice->getApolicePedido($pedido_id);
 
@@ -608,7 +611,7 @@ Class Pedido_Model extends MY_Model
 
                         $plano = $this->produto_parceiro_plano->get($apolice['produto_parceiro_plano_id']);
 
-                        if($plano && $plano['passivel_upgrade'] == 1) {
+                        if ($plano && $plano['passivel_upgrade'] == 1) {
 
                             $fim_vigencia = explode('-', $apolice['data_fim_vigencia']);
                             $fim_vigencia = mktime(0, 0, 0, $fim_vigencia[1], $fim_vigencia[2], $fim_vigencia[0]);
@@ -616,25 +619,22 @@ Class Pedido_Model extends MY_Model
                             if (mktime(0, 0, 0, date('m'), date('d'), date('Y')) < $fim_vigencia) {
                                 $result = TRUE;
                             }
-
                         }
                     }
                 }
             }
-
         }
 
         return $result;
     }
 
-    function criticas_cancelamento($pedido_id, $executar = false, $dados_bancarios = [], $define_date = false ){
-        if( ! $define_date ){
+    function criticas_cancelamento($pedido_id, $executar = false, $dados_bancarios = [], $define_date = false)
+    {
+        if (!$define_date) {
             $define_date = date("Y-m-d H:i:s");
-        } else 
-        {
+        } else {
 
-            if (!app_validate_data_americana($define_date))
-            {
+            if (!app_validate_data_americana($define_date)) {
                 $result['status'] = false;
                 $result['mensagem'] = "A data de cancelamento não é válida [{$define_date}]";
                 return $result;
@@ -642,7 +642,6 @@ Class Pedido_Model extends MY_Model
 
             $d1 = new DateTime($define_date);
             $define_date = $d1->format('Y-m-d H:i:s');
-
         }
 
         $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
@@ -658,20 +657,20 @@ Class Pedido_Model extends MY_Model
         $pedido = $this->get($pedido_id);
 
         //varifica se existe o registro
-        if(!$pedido){
+        if (!$pedido) {
             $result['mensagem'] = 'Não foi possível encontrar o pedido informado.';
             $result['redirect'] = "admin/pedido/index";
             return $result;
         }
 
         //varifica se é permitido cancelar
-        if(!$this->isPermiteCancelar($pedido_id, $define_date)){
+        if (!$this->isPermiteCancelar($pedido_id, $define_date)) {
             $result["mensagem"] = "Não foi possível efetuar o cancelamento desse Pedido/Apólice. Motivo: fora de vigência";
             $result["redirect"] = "admin/pedido/view/{$pedido_id}";
             return $result;
         }
 
-        if ( !empty($this->fatura->filterByPedido($pedido_id)->filterByTipo('ESTORNO')->filterByDeletado(0)->get_all()) ) {
+        if (!empty($this->fatura->filterByPedido($pedido_id)->filterByTipo('ESTORNO')->filterByDeletado(0)->get_all())) {
             $result["mensagem"] = "Não foi possível efetuar o cancelamento desse Pedido/Apólice. Motivo: Apólice já está cancelada";
             $result["redirect"] = "admin/pedido/view/{$pedido_id}";
             return $result;
@@ -680,7 +679,7 @@ Class Pedido_Model extends MY_Model
         //pega as configurações de cancelamento do pedido
         $produto_parceiro = $this->getPedidoProdutoParceiro($pedido_id);
 
-        if(!$produto_parceiro){
+        if (!$produto_parceiro) {
             $result['mensagem'] = 'Não foi possível encontrar o produto relacionado a esse pedido.';
             $result['redirect'] = "admin/pedido/view/{$pedido_id}";
             return $result;
@@ -689,7 +688,7 @@ Class Pedido_Model extends MY_Model
         $produto_parceiro = $produto_parceiro[0];
         $produto_parceiro_cancelamento = $this->cancelamento->filter_by_produto_parceiro($produto_parceiro['produto_parceiro_id'])->get_all();
 
-        if(!$produto_parceiro_cancelamento){
+        if (!$produto_parceiro_cancelamento) {
             $result['mensagem'] = 'Não existe regras de cancelamento configuradas para esse produto';
             $result['redirect'] = "admin/pedido/view/{$pedido_id}";
             return $result;
@@ -698,7 +697,7 @@ Class Pedido_Model extends MY_Model
         $produto_parceiro_cancelamento = $produto_parceiro_cancelamento[0];
         $apolices = $this->apolice->getApolicePedido($pedido_id);
 
-        if(!$apolices){
+        if (!$apolices) {
             $result['mensagem'] = 'Apólice não encontrada';
             $result['redirect'] = "admin/pedido/view/{$pedido_id}";
             return $result;
@@ -706,7 +705,7 @@ Class Pedido_Model extends MY_Model
 
         $apolice = $apolices[0];
 
-        if( $apolice['apolice_status_id'] == 2 ) {
+        if ($apolice['apolice_status_id'] == 2) {
             $result["mensagem"] = "Não foi possível efetuar o cancelamento desse Pedido/Apólice. Motivo: Apólice já está cancelada";
             $result['redirect'] = "admin/pedido/view/{$pedido_id}";
             return $result;
@@ -727,42 +726,36 @@ Class Pedido_Model extends MY_Model
         $data_hoje = explode('-', date('Y-m-d'));
         $data_hoje = mktime(0, 0, 0, $data_hoje[1], $data_hoje[2], $data_hoje[0]);
 
-        list( $current_year, $current_month, $current_day, $current_hour, $current_minute, $current_second ) = preg_split("/[- :]/", $define_date);
-        $hoje = mktime( $current_hour, $current_minute, $current_second, $current_month, $current_day, $current_year );
-        $hoje_mdy = mktime( 0,0,0, $current_month, $current_day, $current_year );
+        list($current_year, $current_month, $current_day, $current_hour, $current_minute, $current_second) = preg_split("/[- :]/", $define_date);
+        $hoje = mktime($current_hour, $current_minute, $current_second, $current_month, $current_day, $current_year);
+        $hoje_mdy = mktime(0, 0, 0, $current_month, $current_day, $current_year);
 
         // valida a data de cancelamento anterior à adesão
-        if ( $hoje_mdy < $adesao )
-        {
+        if ($hoje_mdy < $adesao) {
             $result['mensagem'] = "A data de Cancelamento não pode ser inferior à data de Adesão";
             $result['redirect'] = "admin/pedido/view/{$pedido_id}";
             return $result;
         }
 
         // valida a data de cancelamento posterior à data atual
-        if ( $hoje_mdy > $data_hoje )
-        {
+        if ($hoje_mdy > $data_hoje) {
             $result['mensagem'] = "A data de Cancelamento não pode ser superior à data de Hoje";
             $result['redirect'] = "admin/pedido/view/{$pedido_id}";
             return $result;
         }
-        if ( $hoje_mdy >= $inicio_vigencia && $hoje_mdy <= $fim_vigencia )
-        {
+        if ($hoje_mdy >= $inicio_vigencia && $hoje_mdy <= $fim_vigencia) {
             //Já comeceu a vigencia
-            if($produto_parceiro_cancelamento['seg_depois_hab'] == 0)
-            {
+            if ($produto_parceiro_cancelamento['seg_depois_hab'] == 0) {
                 //não pode executar cancelamento antes do início da vigência
                 $result['mensagem'] = 'Cancelamento não permitido após o início da vigência';
                 $result['redirect'] = "admin/pedido/view/{$pedido_id}";
                 return $result;
-            }else{
+            } else {
                 // pode efetuar o cancelamento depois do início da vigência
-                if($produto_parceiro_cancelamento['seg_depois_dias'] != 0)
-                {
+                if ($produto_parceiro_cancelamento['seg_depois_dias'] != 0) {
                     // verifica a quantidade de dias que pode executar o cancelamento antes do inicio da vigência
-                    $qnt_dias = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), sprintf("%02d/%02d/%04d",(int)$current_day,(int)$current_month,(int)$current_year), 'D');
-                    if($qnt_dias > $produto_parceiro_cancelamento['seg_depois_dias'])
-                    {
+                    $qnt_dias = app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), sprintf("%02d/%02d/%04d", (int)$current_day, (int)$current_month, (int)$current_year), 'D');
+                    if ($qnt_dias > $produto_parceiro_cancelamento['seg_depois_dias']) {
                         //não pode executar cancelamento com limite de dias antes do início da vigência
                         $result['mensagem'] = "Cancelamento só é permitido até {$produto_parceiro_cancelamento['seg_depois_dias']} dia(s) após o início da vigência";
                         $result['redirect'] = "admin/pedido/view/{$pedido_id}";
@@ -772,20 +765,15 @@ Class Pedido_Model extends MY_Model
 
                 $vigencia = TRUE;
             }
-
-        } elseif ( $hoje_mdy < $inicio_vigencia )
-        {
-            if($produto_parceiro_cancelamento['seg_antes_hab'] == 0)
-            {
+        } elseif ($hoje_mdy < $inicio_vigencia) {
+            if ($produto_parceiro_cancelamento['seg_antes_hab'] == 0) {
                 $result['mensagem'] = 'Cancelamento não permitido antes do início da vigência';
                 $result['redirect'] = "admin/pedido/view/{$pedido_id}";
                 return $result;
             } else {
-                if($produto_parceiro_cancelamento['seg_antes_dias'] != 0)
-                {
-                    $qnt_dias = app_date_get_diff_dias( sprintf("%02d/%02d/%04d",(int)$current_day,(int)$current_month,(int)$current_year) , app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), 'D');
-                    if($qnt_dias < $produto_parceiro_cancelamento['seg_antes_dias'])
-                    {
+                if ($produto_parceiro_cancelamento['seg_antes_dias'] != 0) {
+                    $qnt_dias = app_date_get_diff_dias(sprintf("%02d/%02d/%04d", (int)$current_day, (int)$current_month, (int)$current_year), app_dateonly_mysql_to_mask($apolice['data_ini_vigencia']), 'D');
+                    if ($qnt_dias < $produto_parceiro_cancelamento['seg_antes_dias']) {
                         $result['mensagem'] = "Cancelamento só é permitido até {$produto_parceiro_cancelamento['seg_antes_dias']} dia(s) antes do início da vigência";
                         $result['redirect'] = "admin/pedido/view/{$pedido_id}";
                         return $result;
@@ -802,7 +790,7 @@ Class Pedido_Model extends MY_Model
 
         if (!empty($executar)) {
 
-            if($produto_parceiro_cancelamento['indenizacao_hab'] == 1) {
+            if ($produto_parceiro_cancelamento['indenizacao_hab'] == 1) {
                 $valDadosBanc = $this->validaDadosBancarios($dados_bancarios);
                 if (empty($valDadosBanc['status'])) {
                     $result['mensagem'] = $valDadosBanc['mensagem'];
@@ -810,7 +798,6 @@ Class Pedido_Model extends MY_Model
                     return $result;
                 }
             }
-
         }
 
         $result['result'] = TRUE;
@@ -820,11 +807,12 @@ Class Pedido_Model extends MY_Model
         return $result;
     }
 
-    public function validaDadosBancarios($dados_bancarios = []) {
+    public function validaDadosBancarios($dados_bancarios = [])
+    {
         $msg = [];
         $retorno = [
-        'status' => false,
-        'mensagem' => ''
+            'status' => false,
+            'mensagem' => ''
         ];
 
         //Verifica se está válido
@@ -839,10 +827,10 @@ Class Pedido_Model extends MY_Model
 
                 if (empty($dados_bancarios['tipo_conta']))
                     $msg[] = "O campo Tipo de conta é obrigatório. ['corrente': Conta Corrente, 'poupanca': Conta Poupança]";
-                elseif (!in_array($dados_bancarios['tipo_conta'], ['corrente','poupanca']))
+                elseif (!in_array($dados_bancarios['tipo_conta'], ['corrente', 'poupanca']))
                     $msg[] = "O campo Tipo de conta deve ter um dos seguintes valores ['corrente': Conta Corrente, 'poupanca': Conta Poupança]";
 
-                if (!empty($dados_bancarios['conta_terceiro']) && !in_array($dados_bancarios['conta_terceiro'], ['S','T']))
+                if (!empty($dados_bancarios['conta_terceiro']) && !in_array($dados_bancarios['conta_terceiro'], ['S', 'T']))
                     $msg[] = "O campo `Conta bancária Pertence` deve ter um dos seguintes valores ['S': Segurado, 'T': Terceiro]";
 
                 if (empty($dados_bancarios['favo_nome']))
@@ -851,14 +839,14 @@ Class Pedido_Model extends MY_Model
                 if (empty($dados_bancarios['favo_doc']))
                     $msg[] = "O campo Documento do favorecido é obrigatório";
 
-                if ( !app_validate_cpf_cnpj($dados_bancarios['favo_doc']) )
+                if (!app_validate_cpf_cnpj($dados_bancarios['favo_doc']))
                     $msg[] = "O campo Documento deve ser um CPF/CNPJ válido";
 
                 if (strlen(trim($dados_bancarios['favo_bco_num'])) == 0)
                     $msg[] = "O campo Código do Banco do favorecido é obrigatório";
                 elseif (!is_numeric($dados_bancarios['favo_bco_num']))
                     $msg[] = "O campo Código do Banco do favorecido deve ser numérico";
-                elseif ( empty($this->banco->get_by( ['codigo' => $dados_bancarios['favo_bco_num']] ) ) )
+                elseif (empty($this->banco->get_by(['codigo' => $dados_bancarios['favo_bco_num']])))
                     $msg[] = "O campo Código do Banco não é válido";
 
                 if (strlen(trim($dados_bancarios['favo_bco_ag'])) == 0)
@@ -878,9 +866,7 @@ Class Pedido_Model extends MY_Model
 
                 if (!is_numeric($dados_bancarios['favo_bco_cc_dg']))
                     $msg[] = "O campo Dígito da conta deve ser numérico";
-
             }
-
         }
 
         if (empty($msg)) {
@@ -891,8 +877,9 @@ Class Pedido_Model extends MY_Model
         return $retorno;
     }
 
-    function cancelamento($pedido_id, $dados_bancarios = [], $define_date = false, $tipo = 'C', $tipo_motivo = 'C' ){
-        if( ! $define_date ){
+    function cancelamento($pedido_id, $dados_bancarios = [], $define_date = false, $tipo = 'C', $tipo_motivo = 'C')
+    {
+        if (!$define_date) {
             $define_date = date("Y-m-d H:i:s");
         }
 
@@ -901,33 +888,31 @@ Class Pedido_Model extends MY_Model
         $d1 = new DateTime($define_date);
         $define_date = $d1->format('Y-m-d H:i:s');
 
-        if (!empty($criticas['result']))
-        {
+        if (!empty($criticas['result'])) {
             // efetuar o cancelamento
             $result = $this->executa_estorno_cancelamento($pedido_id, $criticas['vigencia'], TRUE, $dados_bancarios, $define_date, $tipo, $tipo_motivo);
-            if ( empty($result['status']) )
-            {
-            	$criticas['result'] = $criticas['status'] = false;
-            	$criticas['mensagem'] = $result['mensagem'];
+            if (empty($result['status'])) {
+                $criticas['result'] = $criticas['status'] = false;
+                $criticas['mensagem'] = $result['mensagem'];
             }
         }
 
-		return $criticas;
+        return $criticas;
     }
 
-    function cancelamento_calculo($pedido_id, $define_date = false )
+    function cancelamento_calculo($pedido_id, $define_date = false)
     {
         $result = [
             'mensagem' => '',
             'status' => false,
-            'valor_estorno_total' => 0, 
+            'valor_estorno_total' => 0,
         ];
 
-        if( ! $define_date ){
+        if (!$define_date) {
             $define_date = date("Y-m-d H:i:s");
         }
 
-        $criticas = $this->criticas_cancelamento($pedido_id,false,[], $define_date);
+        $criticas = $this->criticas_cancelamento($pedido_id, false, [], $define_date);
 
         $d1 = new DateTime($define_date);
         $define_date = $d1->format('Y-m-d H:i:s');
@@ -942,9 +927,9 @@ Class Pedido_Model extends MY_Model
         return $result;
     }
 
-    function calcula_estorno_cancelamento($pedido_id, $vigente = FALSE, $define_date = false )
+    function calcula_estorno_cancelamento($pedido_id, $vigente = FALSE, $define_date = false)
     {
-        if( ! $define_date ){
+        if (!$define_date) {
             $define_date = date("Y-m-d H:i:s");
         }
 
@@ -964,73 +949,68 @@ Class Pedido_Model extends MY_Model
         $produto_parceiro = $produto_parceiro[0];
         $produto_parceiro_cancelamento = $this->cancelamento->filter_by_produto_parceiro($produto_parceiro['produto_parceiro_id'])->get_all();
         $produto_parceiro_cancelamento = $produto_parceiro_cancelamento[0];
-        
-        list( $current_year , $current_month , $current_day , $current_hour , $current_minute, $current_second ) = preg_split("/[- :]/",$define_date);
-        $data_cancelamento = date('Y-m-d H:i:s' , mktime($current_hour , $current_minute, $current_second, $current_month, $current_day , $current_year ) );
+
+        list($current_year, $current_month, $current_day, $current_hour, $current_minute, $current_second) = preg_split("/[- :]/", $define_date);
+        $data_cancelamento = date('Y-m-d H:i:s', mktime($current_hour, $current_minute, $current_second, $current_month, $current_day, $current_year));
 
         $valor_estorno_total = $valor_estorno_total_liquido = 0;
         $retorno = [];
-        $produto = $this->produto_parceiro->with_produto()->get( $produto_parceiro["produto_parceiro_id"] );
+        $produto = $this->produto_parceiro->with_produto()->get($produto_parceiro["produto_parceiro_id"]);
         $devolucao_integral = null;
 
-        foreach ($apolices as $apolice)
-        {
-        	// Recupera todas as coberturas da Apolice
+        foreach ($apolices as $apolice) {
+            // Recupera todas as coberturas da Apolice
             $datasByCob = $this->define_dias_cancelamento($apolice['apolice_id'], $data_cancelamento, null, $apolice, $produto_parceiro_cancelamento);
 
-            if ( empty($datasByCob['itens']) )
+            if (empty($datasByCob['itens']))
                 continue;
 
-        	foreach ($datasByCob['itens'] as $key => $datas)
-        	{
-	            $dias_aderido = $datasByCob['dias_aderido'];
-	            $devolucao_integral = $datas['devolucao_integral'];
-	            $dias_utilizados = $datas['dias_utilizados'];
-	            $dias_total = $datas['dias_total'];
-	            $dias_restantes = $datas['dias_restantes'];
+            foreach ($datasByCob['itens'] as $key => $datas) {
+                $dias_aderido = $datasByCob['dias_aderido'];
+                $devolucao_integral = $datas['devolucao_integral'];
+                $dias_utilizados = $datas['dias_utilizados'];
+                $dias_total = $datas['dias_total'];
+                $dias_restantes = $datas['dias_restantes'];
 
-	            // devolução integral
-	            if ($devolucao_integral) {
-	                $porcento_nao_utilizado = 100;
-	                $valor_premio = $datas['valor_bruto'];
-	            } else {
-	                $valor_premio = $datas['valor_liquido'];
-	                $porcento_nao_utilizado = (($dias_restantes / $dias_total) * 100);
-	            }
+                // devolução integral
+                if ($devolucao_integral) {
+                    $porcento_nao_utilizado = 100;
+                    $valor_premio = $datas['valor_bruto'];
+                } else {
+                    $valor_premio = $datas['valor_liquido'];
+                    $porcento_nao_utilizado = (($dias_restantes / $dias_total) * 100);
+                }
 
-	            $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
-	            
-	            // devolução integral
-	            if ($devolucao_integral) {
-	                $valor_premio_liq = $datas['valor_liquido'];
-	            } else {
-	                $valor_premio_liq = $valor_premio;
-	            }
+                $valor_premio = (($porcento_nao_utilizado / 100) * $valor_premio);
 
-	            if($vigente == FALSE)
-	            {
-	                $calc_antes_depois = $produto_parceiro_cancelamento["seg_antes_calculo"];
-	                $valor_antes_depois = $produto_parceiro_cancelamento["seg_antes_valor"];
-	            }
-	            else
-	            {
-	                $calc_antes_depois = $produto_parceiro_cancelamento["seg_depois_calculo"];
-	                $valor_antes_depois = $produto_parceiro_cancelamento["seg_depois_valor"];
-	            }
+                // devolução integral
+                if ($devolucao_integral) {
+                    $valor_premio_liq = $datas['valor_liquido'];
+                } else {
+                    $valor_premio_liq = $valor_premio;
+                }
 
-	            $valor_estorno = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio);
-	            $valor_estorno_liq = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio_liq);
+                if ($vigente == FALSE) {
+                    $calc_antes_depois = $produto_parceiro_cancelamento["seg_antes_calculo"];
+                    $valor_antes_depois = $produto_parceiro_cancelamento["seg_antes_valor"];
+                } else {
+                    $calc_antes_depois = $produto_parceiro_cancelamento["seg_depois_calculo"];
+                    $valor_antes_depois = $produto_parceiro_cancelamento["seg_depois_valor"];
+                }
+
+                $valor_estorno = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio);
+                $valor_estorno_liq = app_calculo_valor($calc_antes_depois, $valor_antes_depois, $valor_premio_liq);
 
                 $datasByCob['itens'][$key]['valor_restituido'] = $valor_estorno;
                 $datasByCob['itens'][$key]['valor_restituido_liquido'] = $valor_estorno_liq;
-	            $valor_estorno_total += $valor_estorno;
-	            $valor_estorno_total_liquido += $valor_estorno_liq;
-	        }
+                $valor_estorno_total += $valor_estorno;
+                $valor_estorno_total_liquido += $valor_estorno_liq;
+            }
 
             $valor_estorno_total = round($valor_estorno_total, 2);
             $valor_estorno_total_liquido = round($valor_estorno_total_liquido, 2);
 
-            if( $produto ) {
+            if ($produto) {
                 $retorno[] = [
                     'slug' => $produto["produto_slug"],
                     'dados_apolice' => [
@@ -1046,8 +1026,8 @@ Class Pedido_Model extends MY_Model
         return [
             'status' => (!empty($retorno)),
             'mensagem' => (!empty($retorno)) ? 'Cálculo realizado com sucesso' : 'Não foi possível realizar o cálculo para Cancelamento',
-            'valor_estorno_total' => $valor_estorno_total, 
-            'valor_estorno_total_liquido' => $valor_estorno_total_liquido, 
+            'valor_estorno_total' => $valor_estorno_total,
+            'valor_estorno_total_liquido' => $valor_estorno_total_liquido,
             'dias_utilizados' => issetor($dias_utilizados,  0),
             'dias_aderido' => issetor($dias_aderido, 0),
             'devolucao_integral' => $devolucao_integral,
@@ -1055,20 +1035,19 @@ Class Pedido_Model extends MY_Model
         ];
     }
 
-    function define_dias_cancelamento($apolice_id, $data_cancelamento, $cod_cobertura = null, $apolice = [], $produto_parceiro_cancelamento = [] )
+    function define_dias_cancelamento($apolice_id, $data_cancelamento, $cod_cobertura = null, $apolice = [], $produto_parceiro_cancelamento = [])
     {
         $this->load->model("produto_parceiro_cancelamento_model", "cancelamento");
         $this->load->model("apolice_cobertura_model", "apolice_cobertura");
         $this->load->model("apolice_model", "apolice");
 
         // caso não tenha passado os dados da apolice
-        if ( empty($apolice) ) {
+        if (empty($apolice)) {
             $apolice = $this->apolice->get($apolice_id);
         }
 
         //pega as configurações de cancelamento do pedido, caso não tenha passado
-        if ( empty($produto_parceiro_cancelamento) )
-        {
+        if (empty($produto_parceiro_cancelamento)) {
             $produto_parceiro = $this->getPedidoProdutoParceiro($apolice['pedido_id']);
             $produto_parceiro = $produto_parceiro[0];
             $produto_parceiro_cancelamento = $this->cancelamento->filter_by_produto_parceiro($produto_parceiro['produto_parceiro_id'])->get_all();
@@ -1077,105 +1056,97 @@ Class Pedido_Model extends MY_Model
 
         $itens = [];
         $tot_devolucao_integral = true;
-		$tot_dias_utilizados = 0;
-		$tot_dias_total = 0;
-		$tot_dias_restantes = 0;
-		$tot_valor_liquido = 0;
-		$tot_valor_bruto = 0;
+        $tot_dias_utilizados = 0;
+        $tot_dias_total = 0;
+        $tot_dias_restantes = 0;
+        $tot_valor_liquido = 0;
+        $tot_valor_bruto = 0;
         $vig_soma = '';
 
         // Busca todas as coberturas da apolice
         $cob_vig = $this->apolice_cobertura->getValorIOF($apolice_id, $apolice['pedido_id'], 1, $cod_cobertura);
-        if ( !empty($cob_vig) )
-        {
-	        foreach ($cob_vig as $key => $vig)
-	        {
+        if (!empty($cob_vig)) {
+            foreach ($cob_vig as $key => $vig) {
                 $soma_valores = false;
 
-	        	// Caso nao tenha vigência por cobertura, aplica-se a vigência da apólice
-	        	$vig['data_inicio_vigencia'] = emptyor($vig['data_inicio_vigencia']	, $apolice['data_ini_vigencia']);
-	            $vig['data_fim_vigencia']    = emptyor($vig['data_fim_vigencia']	, $apolice['data_fim_vigencia']);
+                // Caso nao tenha vigência por cobertura, aplica-se a vigência da apólice
+                $vig['data_inicio_vigencia'] = emptyor($vig['data_inicio_vigencia'], $apolice['data_ini_vigencia']);
+                $vig['data_fim_vigencia']    = emptyor($vig['data_fim_vigencia'], $apolice['data_fim_vigencia']);
 
                 // caso a vigência seja por cobertura deve se somar os períodos
-                if ( $vig['data_inicio_vigencia'] != $vig_soma )
-                {
+                if ($vig['data_inicio_vigencia'] != $vig_soma) {
                     $soma_valores = true;
                     $vig_soma = $vig['data_inicio_vigencia'];
                 }
 
-	            //FAZ CALCULO DO VALOR PARCIAL
-	            $dias_utilizados = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D"), 0);
+                //FAZ CALCULO DO VALOR PARCIAL
+                $dias_utilizados = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D"), 0);
 
-	            // caso não tenha iniciado a vigência, deve realizar o calculo com 100% nao usada da vigência
-	            if ($dias_utilizados < 0)
-	            {
-	                $dias_utilizados = 0;
-	                $dia_inicio = $vig["data_inicio_vigencia"];
-	            } else {
-	                $dia_inicio = $data_cancelamento;
-	            }
+                // caso não tenha iniciado a vigência, deve realizar o calculo com 100% nao usada da vigência
+                if ($dias_utilizados < 0) {
+                    $dias_utilizados = 0;
+                    $dia_inicio = $vig["data_inicio_vigencia"];
+                } else {
+                    $dia_inicio = $data_cancelamento;
+                }
 
-	            $dias_restantes = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($dia_inicio), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]), "D"), 0);
-	            $dias_aderido = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_adesao"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D"), 0);
-	            $dias_total = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]),  "D"), 0);
-	            $devolucao_integral = ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_aderido <= $produto_parceiro_cancelamento['seg_depois_dias_carencia'] );
+                $dias_restantes = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($dia_inicio), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]), "D"), 0);
+                $dias_aderido = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_adesao"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D"), 0);
+                $dias_total = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]),  "D"), 0);
+                $devolucao_integral = (!empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_aderido <= $produto_parceiro_cancelamento['seg_depois_dias_carencia']);
 
                 // cobertura vigente retorna dados
-                if ($dias_restantes >= 0)
-                {
-    	            // Dados por cobertura
-    	            $itens[$key] = [
-    	            	'devolucao_integral' => $devolucao_integral,
-    		            'dias_utilizados' 	 => $dias_utilizados,
-    		            'dias_total' 		 => $dias_total,
-    		            'dias_restantes' 	 => $dias_restantes,
-    		            'valor_liquido' 	 => $vig['premio_liquido'],
-    		            'valor_bruto' 	 	 => $vig['premio_bruto'],
-    	            ];
-                } else
-                {
+                if ($dias_restantes >= 0) {
+                    // Dados por cobertura
+                    $itens[$key] = [
+                        'devolucao_integral' => $devolucao_integral,
+                        'dias_utilizados'      => $dias_utilizados,
+                        'dias_total'          => $dias_total,
+                        'dias_restantes'      => $dias_restantes,
+                        'valor_liquido'      => $vig['premio_liquido'],
+                        'valor_bruto'           => $vig['premio_bruto'],
+                    ];
+                } else {
                     $devolucao_integral = false;
                 }
 
-	            // Totalizadores
-                if ($soma_valores)
-                {
-    	            $tot_dias_utilizados += $dias_utilizados;
-    	            $tot_dias_total 	 += $dias_total;
-    	            $tot_dias_restantes  += $dias_restantes;
-    	            $tot_valor_liquido 	 += $vig['premio_liquido'];
-    	            $tot_valor_bruto 	 += $vig['premio_bruto'];
+                // Totalizadores
+                if ($soma_valores) {
+                    $tot_dias_utilizados += $dias_utilizados;
+                    $tot_dias_total      += $dias_total;
+                    $tot_dias_restantes  += $dias_restantes;
+                    $tot_valor_liquido      += $vig['premio_liquido'];
+                    $tot_valor_bruto      += $vig['premio_bruto'];
                 }
 
-	            // Caso haja qualquer cobertura com restituição, então a apólice ńão tem devolução integral 
-	            if ( !$devolucao_integral )
-	            {
-	            	$tot_devolucao_integral = false;
-	            }
-	        }
+                // Caso haja qualquer cobertura com restituição, então a apólice ńão tem devolução integral 
+                if (!$devolucao_integral) {
+                    $tot_devolucao_integral = false;
+                }
+            }
         }
 
         return [
-        	'status'			 => !empty($cob_vig),
-        	'devolucao_integral' => $tot_devolucao_integral,
-            'dias_utilizados' 	 => $tot_dias_utilizados,
-            'dias_aderido' 		 => issetor($dias_aderido, 0),
-            'dias_total' 		 => $tot_dias_total,
-            'dias_restantes' 	 => $tot_dias_restantes,
-            'valor_liquido'		 => $tot_valor_liquido,
-            'valor_bruto'		 => $tot_valor_bruto,
-            'itens' 			 => $itens,
+            'status'             => !empty($cob_vig),
+            'devolucao_integral' => $tot_devolucao_integral,
+            'dias_utilizados'      => $tot_dias_utilizados,
+            'dias_aderido'          => issetor($dias_aderido, 0),
+            'dias_total'          => $tot_dias_total,
+            'dias_restantes'      => $tot_dias_restantes,
+            'valor_liquido'         => $tot_valor_liquido,
+            'valor_bruto'         => $tot_valor_bruto,
+            'itens'              => $itens,
         ];
     }
 
-    function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $dados_bancarios = [], $define_data = false, $tipo = 'C', $tipo_motivo = 'C' )
+    function executa_estorno_cancelamento($pedido_id, $vigente = FALSE, $ins_movimentacao = TRUE, $dados_bancarios = [], $define_data = false, $tipo = 'C', $tipo_motivo = 'C')
     {
-    	$result = [
+        $result = [
             'status' => false,
             'mensagem' => '',
         ];
 
-        if( !$define_data ){
+        if (!$define_data) {
             $define_data = date("Y-m-d H:i:s");
         }
 
@@ -1188,20 +1159,18 @@ Class Pedido_Model extends MY_Model
 
         $calculo = $this->calcula_estorno_cancelamento($pedido_id, $vigente, $define_data);
         // caso não tenha conseguido calcular o valor a estornar
-        if ( empty($calculo['status']) )
-        {
-        	$result['mensagem'] = $calculo['mensagem'];
-        	return $result;
+        if (empty($calculo['status'])) {
+            $result['mensagem'] = $calculo['mensagem'];
+            return $result;
         }
 
         $comunicacao = new Comunicacao();
-        foreach ($calculo['dados'] as $row)
-        {
+        foreach ($calculo['dados'] as $row) {
             $apolice = $row['apolices'];
             $dados_apolice = $row['dados_apolice'];
             $coberturas = $row['coberturas'];
 
-            switch( $row['slug'] ) {
+            switch ($row['slug']) {
                 case "seguro_viagem":
                     $this->apolice_seguro_viagem->update($apolice["apolice_seguro_viagem_id"],  $dados_apolice, TRUE);
                     break;
@@ -1215,16 +1184,16 @@ Class Pedido_Model extends MY_Model
 
             $this->apolice->update($apolice["apolice_id"], ['apolice_status_id' => 2], TRUE);
 
-            if($ins_movimentacao) {
+            if ($ins_movimentacao) {
                 $pedido = $this->get($pedido_id);
                 $this->movimentacao->insMovimentacao($tipo, $apolice['apolice_id'], $pedido, NULL, $tipo_motivo);
             }
 
             $this->apolice_cobertura->geraDadosCancelamento($apolice["apolice_id"], $calculo['valor_estorno_total_liquido'], $apolice["produto_parceiro_plano_id"], $coberturas);
-            
+
             $comunicacao->setNomeDestinatario($apolice["nome"]);
             $comunicacao->setMensagemParametros(array(
-                "nome" => $apolice["nome"] ,
+                "nome" => $apolice["nome"],
                 'apolices' => "Nome: {$apolice['equipamento_nome']} - Apólice código: {$apolice['apolice_id']}"
             ));
 
@@ -1233,7 +1202,6 @@ Class Pedido_Model extends MY_Model
 
             $comunicacao->setDestinatario($apolice["email"]);
             $comunicacao->disparaEvento("apolice_cancelada_email", $apolice["produto_parceiro_id"]);
-
         }
 
         $this->atualizarDadosBancarios($pedido_id, $dados_bancarios);
@@ -1244,7 +1212,8 @@ Class Pedido_Model extends MY_Model
         return $result;
     }
 
-    public function atualizarDadosBancarios($pedido_id, $dados_bancarios = []) {
+    public function atualizarDadosBancarios($pedido_id, $dados_bancarios = [])
+    {
 
         if (empty($dados_bancarios))
             return;
@@ -1267,21 +1236,20 @@ Class Pedido_Model extends MY_Model
             $data['favo_bco_cc_dg'] = $dados_bancarios['favo_bco_cc_dg'];
             $data['favo_bco_ag'] = $dados_bancarios['favo_bco_ag'];
 
-            $banco = $this->banco->get_by( ['codigo' => $data['favo_bco_num']] );
+            $banco = $this->banco->get_by(['codigo' => $data['favo_bco_num']]);
 
-            $data['favo_bco_nome'] = !empty($banco['nome'])?$banco['nome']:'';
+            $data['favo_bco_nome'] = !empty($banco['nome']) ? $banco['nome'] : '';
             $data['favo_bco_cc'] .= "-{$data['favo_bco_cc_dg']}";
-
         } else {
             $data['nao_possui_conta_bancaria'] = "N";
         }
 
         //Atualiza dados bancários
         $this->update($pedido_id, $data, TRUE);
-
     }
 
-    function executa_extorno_upgrade($pedido_id){
+    function executa_extorno_upgrade($pedido_id)
+    {
 
         $this->load->model('produto_parceiro_cancelamento_model', 'cancelamento');
         $this->load->model("apolice_model", "apolice");
@@ -1301,7 +1269,7 @@ Class Pedido_Model extends MY_Model
 
         foreach ($apolices as $apolice) {
 
-            if($produto['slug'] == 'seguro_viagem') {
+            if ($produto['slug'] == 'seguro_viagem') {
                 $valor_premio = $apolice['valor_premio_total'];
                 $valor_estorno = $valor_premio;
                 $dados_apolice = array();
@@ -1309,7 +1277,7 @@ Class Pedido_Model extends MY_Model
                 $dados_apolice['valor_estorno'] = $valor_estorno;
                 $valor_estorno_total += $valor_estorno;
                 $this->apolice_seguro_viagem->update($apolice['apolice_seguro_viagem_id'], $dados_apolice, TRUE);
-            }elseif($produto['slug'] == 'equipamento'){
+            } elseif ($produto['slug'] == 'equipamento') {
                 $valor_premio = $apolice['valor_premio_total'];
                 $valor_estorno = $valor_premio;
                 $dados_apolice = array();
@@ -1318,23 +1286,21 @@ Class Pedido_Model extends MY_Model
                 $valor_estorno_total += $valor_estorno;
                 $this->apolice_seguro_viagem->update($apolice['apolice_equipamento_id'], $dados_apolice, TRUE);
             }
-
         }
 
         $this->fatura->insertFaturaEstorno($pedido_id, $valor_estorno_total);
-
     }
 
     /**
-    * Retorna todos permitidos
-    * @param int $limit
-    * @param int $offset
-    * @return mixed
-    */
+     * Retorna todos permitidos
+     * @param int $limit
+     * @param int $offset
+     * @return mixed
+     */
     public function get_all($limit = 0, $offset = 0, $viewAll = true)
     {
         //Efetua join com cotação
-        $this->_database->join("cotacao as cotacao_filtro","cotacao_filtro.cotacao_id = {$this->_table}.cotacao_id");
+        $this->_database->join("cotacao as cotacao_filtro", "cotacao_filtro.cotacao_id = {$this->_table}.cotacao_id");
 
         $this->processa_parceiros_permitidos("cotacao_filtro.parceiro_id");
 
@@ -1342,20 +1308,21 @@ Class Pedido_Model extends MY_Model
     }
 
     /**
-    * Retorna todos
-    * @return mixed
-    */
+     * Retorna todos
+     * @return mixed
+     */
     public function get_total()
     {
         //Efetua join com cotação
-        $this->_database->join("cotacao as cotacao_filtro","cotacao_filtro.cotacao_id = {$this->_table}.cotacao_id");
+        $this->_database->join("cotacao as cotacao_filtro", "cotacao_filtro.cotacao_id = {$this->_table}.cotacao_id");
 
         $this->processa_parceiros_permitidos("cotacao_filtro.parceiro_id");
 
         return parent::get_total(); // TODO: Change the autogenerated stub
     }
 
-    public function getRepresentantes(){
+    public function getRepresentantes()
+    {
 
         $listaIds = '';
         $arrRetorno = [];
@@ -1363,7 +1330,7 @@ Class Pedido_Model extends MY_Model
         if (!empty($this->session->userdata('parceiro_id'))) {
 
             $this->load->model('produto_parceiro_model', 'produto_parceiro');
-            $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento'); 
+            $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
 
             $produtos = $this->produto_parceiro->getProdutosByParceiro($this->session->userdata('parceiro_id'));
 
@@ -1374,17 +1341,16 @@ Class Pedido_Model extends MY_Model
                         $arrParcProds[] = $vl;
                     }
                 }
-            }        
+            }
         }
 
-        if(!empty($arrParcProds))
-        {
+        if (!empty($arrParcProds)) {
             $arrParcProds = array_unique($arrParcProds);
             foreach ($arrParcProds as $l) {
-                $listaIds .= $l.',';
+                $listaIds .= $l . ',';
             }
 
-            if(!empty($listaIds)){
+            if (!empty($listaIds)) {
                 $listaIds = substr($listaIds, 0, -1);
             }
 
@@ -1396,13 +1362,14 @@ Class Pedido_Model extends MY_Model
     }
 
     /* Regra para filtrar apenas o cliente solicitado */
-    private function restrictProdutos(){
+    private function restrictProdutos()
+    {
 
         $return = '';
         if (!empty($this->session->userdata('parceiro_id'))) {
 
             $this->load->model('produto_parceiro_model', 'produto_parceiro');
-            $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento'); 
+            $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
 
             $produtos = $this->produto_parceiro->getProdutosByParceiro($this->session->userdata('parceiro_id'));
 
@@ -1414,7 +1381,7 @@ Class Pedido_Model extends MY_Model
                     $parc_prods = $this->relacionamento->get_parceiros_permitidos($entry['produto_parceiro_id'], $this->session->userdata('parceiro_id'));
                     if (!empty($parc_prods)) {
                         $produto_ids = implode(',', $parc_prods);
-                        $return .= $retAnd . $retOr ."
+                        $return .= $retAnd . $retOr . "
                         ( pp.produto_parceiro_id = {$entry['produto_parceiro_id']} AND c.parceiro_id IN($produto_ids) )
                         ";
                         $retAnd = '';
@@ -1428,13 +1395,14 @@ Class Pedido_Model extends MY_Model
         return $return;
     }
 
-    private function restrictProdutosPorParceiro($parceiro_id){
+    private function restrictProdutosPorParceiro($parceiro_id)
+    {
 
         $return = '';
         if (!empty($parceiro_id)) {
 
             $this->load->model('produto_parceiro_model', 'produto_parceiro');
-            $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento'); 
+            $this->load->model('parceiro_relacionamento_produto_model', 'relacionamento');
 
             $produtos = $this->produto_parceiro->getProdutosByParceiro($parceiro_id);
 
@@ -1446,7 +1414,7 @@ Class Pedido_Model extends MY_Model
                     $parc_prods = $this->relacionamento->get_parceiros_permitidos($entry['produto_parceiro_id'], $parceiro_id);
                     if (!empty($parc_prods)) {
                         $produto_ids = implode(',', $parc_prods);
-                        $return .= $retAnd . $retOr ."
+                        $return .= $retAnd . $retOr . "
                         ( pp.produto_parceiro_id = {$entry['produto_parceiro_id']} AND c.parceiro_id IN($produto_ids) )
                         ";
                         $retAnd = '';
@@ -1461,8 +1429,8 @@ Class Pedido_Model extends MY_Model
     }
 
     /**
-    * Extrai relatório de vendas - CORE
-    */
+     * Extrai relatório de vendas - CORE
+     */
     public function extrairRelatorioVendasCore($data_inicio = null, $data_fim = null, $produto_parceiro_id = null)
     {
 
@@ -1470,10 +1438,10 @@ Class Pedido_Model extends MY_Model
         if (!empty($where)) $this->_database->where($where, NULL, FALSE);
 
         $whereApol = '';
-        if(isset($data_inicio) && !empty($data_inicio))
-            $whereApol .= " AND am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'";
-        if( isset($data_fim) && !empty($data_fim) )
-            $whereApol .= " AND am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
+        if (isset($data_inicio) && !empty($data_inicio))
+            $whereApol .= " AND am.criacao >= '" . app_date_only_numbers_to_mysql($data_inicio) . "'";
+        if (isset($data_fim) && !empty($data_fim))
+            $whereApol .= " AND am.criacao <= '" . app_date_only_numbers_to_mysql($data_fim, FALSE) . "'";
 
         $this->_database->from($this->_table);
         $this->_database->join("(
@@ -1504,7 +1472,7 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("apolice_generico ag", "ag.apolice_id = a.apolice_id and ag.deletado = 0", "left");
 
         // colaborador só visualiza os próprios pedidos
-        if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
+        if ($this->check_acl_sale_order($this->session->userdata('usuario_acl_tipo_id'))) {
             $this->_database->where("c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}");
         }
 
@@ -1515,8 +1483,7 @@ Class Pedido_Model extends MY_Model
             $this->_database->where("am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
         */
 
-        if ( !empty($produto_parceiro_id) )
-        {
+        if (!empty($produto_parceiro_id)) {
             $this->_database->where("pp.produto_parceiro_id = $produto_parceiro_id");
         }
 
@@ -1527,8 +1494,8 @@ Class Pedido_Model extends MY_Model
     }
 
     /**
-    * Extrai relatório de vendas
-    */
+     * Extrai relatório de vendas
+     */
     public function extrairRelatorioVendas($data_inicio = null, $data_fim = null, $produto_parceiro_id = null)
     {
         // Core com a base dos relacionamentos de tabelas
@@ -1572,16 +1539,15 @@ Class Pedido_Model extends MY_Model
         $query = $this->_database->get();
         $resp = [];
         //print_r($this->db->last_query()); exit;
-        if($query->num_rows() > 0)
-        {
+        if ($query->num_rows() > 0) {
             $resp = $query->result_array();
         }
         return $resp;
     }
 
     /**
-    * Extrai relatório de vendas
-    */
+     * Extrai relatório de vendas
+     */
     public function extrairRelatorioVendasDiario($data_inicio, $data_fim, $produto_parceiro_id)
     {
         // Core com a base dos relacionamentos de tabelas
@@ -1591,21 +1557,20 @@ Class Pedido_Model extends MY_Model
         $this->_database->select("SUM( IF(pr.slug = 'equipamento', ae.valor_premio_total, IF(pr.slug = 'seguro_viagem', asv.valor_premio_total, ag.valor_premio_total)) ) as premio_liquido_total", FALSE);
         $this->_database->select("SUM( IF(pr.slug = 'equipamento', ae.pro_labore, IF(pr.slug = 'seguro_viagem', asv.pro_labore, ag.pro_labore)) ) as IOF", FALSE);
         $this->_database->select("DATE_FORMAT(am.criacao,'%Y%m%d') as data_format, DATE_FORMAT(am.criacao,'%d/%m/%Y') as status_data, ppp.nome as plano, ppp.produto_parceiro_plano_id, COUNT(1) qtde", FALSE);
-        $this->_database->group_by( array("DATE_FORMAT(am.criacao,'%Y%m%d')", "DATE_FORMAT(am.criacao,'%d/%m/%Y')", "ppp.nome", "ppp.produto_parceiro_plano_id") );
+        $this->_database->group_by(array("DATE_FORMAT(am.criacao,'%Y%m%d')", "DATE_FORMAT(am.criacao,'%d/%m/%Y')", "ppp.nome", "ppp.produto_parceiro_plano_id"));
 
         $query = $this->_database->get();
         $resp = [];
 
-        if($query->num_rows() > 0)
-        {
+        if ($query->num_rows() > 0) {
             $resp = $query->result_array();
         }
         return $resp;
     }
 
     /**
-    * Extrai relatório de vendas
-    */
+     * Extrai relatório de vendas
+     */
     public function extrairRelatorioProcessamentoVendas($data_inicio = null, $data_fim = null)
     {
 
@@ -1655,32 +1620,30 @@ Class Pedido_Model extends MY_Model
         $this->_database->where("il.integracao_id = 15");
         $this->_database->where("il.deletado = 0");
         //Inclusão de filtro no relatório
-        if(isset($data_inicio) && !empty($data_inicio))
-            $this->_database->where("il.processamento_inicio >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
-        if(isset($data_fim) && !empty($data_fim))
-            $this->_database->where("il.processamento_inicio <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
+        if (isset($data_inicio) && !empty($data_inicio))
+            $this->_database->where("il.processamento_inicio >= '" . app_date_only_numbers_to_mysql($data_inicio) . "'");
+        if (isset($data_fim) && !empty($data_fim))
+            $this->_database->where("il.processamento_inicio <= '" . app_date_only_numbers_to_mysql($data_fim, FALSE) . "'");
 
         $query = $this->_database->get();
         $resp = [];
         //print_r($this->db->last_query()); exit;
-        if($query->num_rows() > 0)
-        {
+        if ($query->num_rows() > 0) {
             $resp = $query->result_array();
         }
         return $resp;
-
     }
-    
+
     /**
-    * Extrai relatório de Mapa de Repasse Analitico
-    */
+     * Extrai relatório de Mapa de Repasse Analitico
+     */
     public function extrairRelatorioMapaRepasseAnalitico($data_inicio = null, $data_fim = null, $_parceiro_id, $slug)
     {
 
         $where = $this->restrictProdutosPorParceiro($_parceiro_id);
 
         if (!empty($where)) $this->_database->where($where, NULL, FALSE);
-        
+
         $this->_database->select("RELAT.*, EQUIP_MARCAS.nome AS marca, EQUIP_LINHAS.nome AS equipamento FROM ( SELECT DISTINCT 
               c.cotacao_status_id AS cotacao_status_id
             , c.parceiro_id AS parceiro_id
@@ -1824,20 +1787,20 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("usuario u", "u.usuario_id = c.usuario_cotacao_id", "left");
 
         // colaborador só visualiza os próprios pedidos
-        if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
+        if ($this->check_acl_sale_order($this->session->userdata('usuario_acl_tipo_id'))) {
             $this->_database->where("c.usuario_cotacao_id", $this->session->userdata('usuario_id'));
         }
 
-        if(isset($data_inicio) && !empty($data_inicio))
-            $this->_database->where("am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
-        if(isset($data_fim) && !empty($data_fim))
-            $this->_database->where("am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
+        if (isset($data_inicio) && !empty($data_inicio))
+            $this->_database->where("am.criacao >= '" . app_date_only_numbers_to_mysql($data_inicio) . "'");
+        if (isset($data_fim) && !empty($data_fim))
+            $this->_database->where("am.criacao <= '" . app_date_only_numbers_to_mysql($data_fim, FALSE) . "'");
 
-        $this->_database->where("parc.slug IN('".$slug."')");
+        $this->_database->where("parc.slug IN('" . $slug . "')");
         $this->_database->where("cs.slug = 'finalizada'");
         $this->_database->where("{$this->_table}.deletado = 0");
         //$this->_database->where("a.deletado = 0");
-        $this->_database->where( "a.deletado = 0 
+        $this->_database->where("a.deletado = 0 
         ) AS RELAT 
         LEFT JOIN (SELECT DISTINCT equipamento_marca_id, nome FROM vw_Equipamentos_Marcas) AS EQUIP_MARCAS ON RELAT.equipamento_marca_id = EQUIP_MARCAS.equipamento_marca_id
         LEFT JOIN (SELECT DISTINCT equipamento_categoria_id, nome FROM vw_Equipamentos_Linhas) AS EQUIP_LINHAS ON RELAT.equipamento_categoria_id = EQUIP_LINHAS.equipamento_categoria_id
@@ -1846,16 +1809,15 @@ Class Pedido_Model extends MY_Model
 
         $resp = [];
 
-        if($query->num_rows() > 0)
-        {
+        if ($query->num_rows() > 0) {
             $resp = $query->result_array();
         }
         return $resp;
-    }    
+    }
 
     /**
-    * Extrai relatório de Mapa de Repasse Analitico
-    */
+     * Extrai relatório de Mapa de Repasse Analitico
+     */
     public function _extrairRelatorioMapaRepasseAnalitico($data_inicio = null, $data_fim = null)
     {
 
@@ -1965,21 +1927,21 @@ Class Pedido_Model extends MY_Model
         $this->_database->join("vw_Equipamentos_Marcas em", "c.lista_id = 1 AND em.equipamento_marca_id = ae.equipamento_marca_id", "left");
 
         $this->_database->join("equipamentos_elegiveis_categoria eec", "c.lista_id = eec.lista_id AND eec.equipamento_categoria_id = ae.equipamento_categoria_id", "left");
-        $this->_database->join("equipamentos_elegiveis_marca eem", "c.lista_id = eem.lista_id AND eem.equipamento_marca_id = ae.equipamento_marca_id", "left");        
+        $this->_database->join("equipamentos_elegiveis_marca eem", "c.lista_id = eem.lista_id AND eem.equipamento_marca_id = ae.equipamento_marca_id", "left");
 
         $this->_database->join("produto_parceiro_plano ppp", "ppp.produto_parceiro_plano_id = ce.produto_parceiro_plano_id", "inner");
         $this->_database->join("localidade_estado le", "le.localidade_estado_id = p.localidade_estado_id", "left");
         $this->_database->join("usuario u", "u.usuario_id = c.usuario_cotacao_id", "left");
 
         // colaborador só visualiza os próprios pedidos
-        if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
+        if ($this->check_acl_sale_order($this->session->userdata('usuario_acl_tipo_id'))) {
             $this->_database->where("c.usuario_cotacao_id", $this->session->userdata('usuario_id'));
         }
 
-        if(isset($data_inicio) && !empty($data_inicio))
-            $this->_database->where("am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
-        if(isset($data_fim) && !empty($data_fim))
-            $this->_database->where("am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
+        if (isset($data_inicio) && !empty($data_inicio))
+            $this->_database->where("am.criacao >= '" . app_date_only_numbers_to_mysql($data_inicio) . "'");
+        if (isset($data_fim) && !empty($data_fim))
+            $this->_database->where("am.criacao <= '" . app_date_only_numbers_to_mysql($data_fim, FALSE) . "'");
 
         $this->_database->where("parc.slug IN('lojasamericanas')");
         $this->_database->where("cs.slug = 'finalizada'");
@@ -1991,17 +1953,15 @@ Class Pedido_Model extends MY_Model
 
         $resp = [];
 
-        if($query->num_rows() > 0)
-        {
+        if ($query->num_rows() > 0) {
             $resp = $query->result_array();
         }
         return $resp;
-
     }
 
     /**
-    * Extrai relatório de Mapa de Repasse Sintetico
-    */
+     * Extrai relatório de Mapa de Repasse Sintetico
+     */
     public function extrairRelatorioMapaRepasseSintetico($data_inicio = null, $data_fim = null, $_parceiro_id, $slug)
     {
         $where = $this->restrictProdutosPorParceiro($_parceiro_id);
@@ -2009,14 +1969,14 @@ Class Pedido_Model extends MY_Model
         if (!empty($where)) $where = " AND {$where}";
 
         // colaborador só visualiza os próprios pedidos
-        if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
+        if ($this->check_acl_sale_order($this->session->userdata('usuario_acl_tipo_id'))) {
             $where .= " AND c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}";
         }
 
-        if(isset($data_inicio) && !empty($data_inicio))
-            $where .= " AND am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'";
-        if(isset($data_fim) && !empty($data_fim))
-            $where .= " AND am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
+        if (isset($data_inicio) && !empty($data_inicio))
+            $where .= " AND am.criacao >= '" . app_date_only_numbers_to_mysql($data_inicio) . "'";
+        if (isset($data_fim) && !empty($data_fim))
+            $where .= " AND am.criacao <= '" . app_date_only_numbers_to_mysql($data_fim, FALSE) . "'";
 
         $query = $this->_database->query("
         SELECT 
@@ -2139,7 +2099,7 @@ Class Pedido_Model extends MY_Model
                                     AND comissao_gerada.deletado = 0
                                     #AND apolice.num_apolice = '784000100101034'
                                     AND `cs`.`slug` = 'finalizada'
-                                    AND `parc`.`slug` IN('". $slug ."')
+                                    AND `parc`.`slug` IN('" . $slug . "')
                                     {$where}
 
                                     GROUP BY apolice.apolice_id, am.apolice_movimentacao_tipo_id
@@ -2217,7 +2177,7 @@ Class Pedido_Model extends MY_Model
                                         AND apolice_cobertura.deletado = 0
                                         #AND apolice.num_apolice = '784000100101034'
                                         AND `cs`.`slug` = 'finalizada'
-                                        AND `parc`.`slug` IN('". $slug ."')
+                                        AND `parc`.`slug` IN('" . $slug . "')
                                         {$where}
 
                                     GROUP BY apolice.apolice_id, am.apolice_movimentacao_tipo_id, rp.regra_preco_id
@@ -2242,7 +2202,7 @@ Class Pedido_Model extends MY_Model
                         AND cobertura_plano.deletado = 0
                         #AND apolice.num_apolice = '784000100101034'
                         AND `cs`.`slug` = 'finalizada'
-                        AND `parc`.`slug` IN('". $slug ."')
+                        AND `parc`.`slug` IN('" . $slug . "')
                         {$where}
 
                     ) as y
@@ -2263,8 +2223,7 @@ Class Pedido_Model extends MY_Model
 
         $resp = [];
 
-        if($query->num_rows() > 0)
-        {
+        if ($query->num_rows() > 0) {
             $resp = $query->result_array();
         }
 
@@ -2278,14 +2237,14 @@ Class Pedido_Model extends MY_Model
         if (!empty($where)) $where = " AND {$where}";
 
         // colaborador só visualiza os próprios pedidos
-        if ( $this->check_acl_sale_order( $this->session->userdata('usuario_acl_tipo_id') ) ) {
+        if ($this->check_acl_sale_order($this->session->userdata('usuario_acl_tipo_id'))) {
             $where .= " AND c.usuario_cotacao_id = {$this->session->userdata('usuario_id')}";
         }
 
-        if(isset($data_inicio) && !empty($data_inicio))
-            $where .= " AND am.criacao >= '". app_date_only_numbers_to_mysql($data_inicio) ."'";
-        if(isset($data_fim) && !empty($data_fim))
-            $where .= " AND am.criacao <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'";
+        if (isset($data_inicio) && !empty($data_inicio))
+            $where .= " AND am.criacao >= '" . app_date_only_numbers_to_mysql($data_inicio) . "'";
+        if (isset($data_fim) && !empty($data_fim))
+            $where .= " AND am.criacao <= '" . app_date_only_numbers_to_mysql($data_fim, FALSE) . "'";
 
         $query = $this->_database->query("
         SELECT 
@@ -2362,7 +2321,7 @@ Class Pedido_Model extends MY_Model
             GROUP BY cta_m.CTA_Ag_Retorno, cta_m.CTA_Retorno_ok, cta_m.CTA_Retorno_erro, cta_m.num_apolice, cta_m.apolice_movimentacao_tipo_id
             ) as cta ON cta.num_apolice = a.num_apolice AND am.apolice_movimentacao_tipo_id = cta.apolice_movimentacao_tipo_id
 
-        WHERE `parc`.`slug` IN('".$slug."')
+        WHERE `parc`.`slug` IN('" . $slug . "')
         AND `cs`.`slug` = 'finalizada'
         {$where}
         ORDER BY pp.cod_tpa
@@ -2372,8 +2331,7 @@ Class Pedido_Model extends MY_Model
 
         $resp = [];
 
-        if($query->num_rows() > 0)
-        {
+        if ($query->num_rows() > 0) {
             $resp = $query->result_array();
         }
         //print_r($this->db->last_query());
@@ -2382,8 +2340,8 @@ Class Pedido_Model extends MY_Model
     }
 
     /**
-    * Extrai relatório de vendas
-    */
+     * Extrai relatório de vendas
+     */
     public function getRelatorioVendaDireta($data_inicio, $data_fim, $produto_parceiro_id)
     {
 
@@ -2405,46 +2363,44 @@ Class Pedido_Model extends MY_Model
 
         $resp = [];
 
-        if($query->num_rows() > 0)
-        {
+        if ($query->num_rows() > 0) {
             $resp = $query->result_array();
         }
         return $resp;
-
     }
 
     /**
-    * Muda status do pedido
-    * @param $id_pedido
-    * @param $status
-    * @return bool
-    */
+     * Muda status do pedido
+     * @param $id_pedido
+     * @param $status
+     * @return bool
+     */
     public function mudaStatus($id_pedido, $status)
     {
         $this->load->model("pedido_status_model", "pedido_status");
 
         $pedidoStatus = $this->pedido_status->get_by(array(
-        'slug' => $status
+            'slug' => $status
         ));
 
-        if($pedidoStatus)
-        {
+        if ($pedidoStatus) {
             $retorno = $this->update($id_pedido, array(
-            'pedido_status_id' => $pedidoStatus['pedido_status_id']
+                'pedido_status_id' => $pedidoStatus['pedido_status_id']
             ), true);
 
-            if($retorno)
+            if ($retorno)
                 return true;
         }
         return false;
     }
 
     /**
-    * Insere pedido
-    * @param $dados
-    * @return mixed
-    */
-    public function insertPedido($dados) {
+     * Insere pedido
+     * @param $dados
+     * @return mixed
+     */
+    public function insertPedido($dados)
+    {
 
         //Carrega models
         $this->load->model("fatura_model", "fatura");
@@ -2465,8 +2421,7 @@ Class Pedido_Model extends MY_Model
             $dados['num_parcela'] = 1;
         }
 
-        if ( !empty($dados["bandeira"]) )
-        {
+        if (!empty($dados["bandeira"])) {
             $item = $this->produto_pagamento->get_by_id($dados["bandeira"]);
         } else {
             $item = $this->produto_pagamento
@@ -2503,27 +2458,26 @@ Class Pedido_Model extends MY_Model
         } */
 
         $parcelamento = array();
-        if( isset( $item['parcelamento_maximo'] ) ) {
+        if (isset($item['parcelamento_maximo'])) {
 
-            if( $item['parcelamento_maximo'] < intval( $dados["num_parcela"] ) && intval($dados["num_parcela"]) > 1) {
-                die( 
-                    json_encode( 
-                        array( 
-                            "success" => false, 
-                            "cotacao_id" => $dados["cotacao_id"], 
-                            "produto_parceiro_id" => $dados["produto_parceiro_id"], 
-                            "forma_pagamento_id" => $dados["forma_pagamento_id"], 
-                            "erros" => "Número máximo de parcelas para esta forma de pagamento é de {$item['parcelamento_maximo']} parcela(s)"
-                        ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES 
-                    ) 
-                );
+            if ($item['parcelamento_maximo'] < intval($dados["num_parcela"]) && intval($dados["num_parcela"]) > 1) {
+                die(json_encode(
+                    array(
+                        "success" => false,
+                        "cotacao_id" => $dados["cotacao_id"],
+                        "produto_parceiro_id" => $dados["produto_parceiro_id"],
+                        "forma_pagamento_id" => $dados["forma_pagamento_id"],
+                        "erros" => "Número máximo de parcelas para esta forma de pagamento é de {$item['parcelamento_maximo']} parcela(s)"
+                    ),
+                    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+                ));
             }
 
-            for($i = 1; $i <= $item['parcelamento_maximo'];$i++){
-                if($i <= $item['parcelamento_maximo_sem_juros']) {
-                    $parcelamento[$i] = $valor_total/$i;
-                }else{
-                    $valor = ($valor_total/(1-($item['juros_parcela']/100)))/$i;
+            for ($i = 1; $i <= $item['parcelamento_maximo']; $i++) {
+                if ($i <= $item['parcelamento_maximo_sem_juros']) {
+                    $parcelamento[$i] = $valor_total / $i;
+                } else {
+                    $valor = ($valor_total / (1 - ($item['juros_parcela'] / 100))) / $i;
                     // $valor = (( $item['juros_parcela'] / 100 ) * ($valor_total/$i)) + ($valor_total/$i);
                     $parcelamento[$i] = $valor;
                 }
@@ -2531,33 +2485,32 @@ Class Pedido_Model extends MY_Model
         }
 
 
-        if( isset( $dados["bandeira"] ) && $dados["bandeira"] != "" ) {
+        if (isset($dados["bandeira"]) && $dados["bandeira"] != "") {
             $dados_bandeira = "_" . $dados['bandeira'];
         } else {
             $dados_bandeira = "_" . $item["produto_parceiro_pagamento_id"];
         }
 
-        if( !isset( $dados["parcelamento{$dados_bandeira}"] ) && isset( $dados["num_parcela"] ) ) {
+        if (!isset($dados["parcelamento{$dados_bandeira}"]) && isset($dados["num_parcela"])) {
             $dados["parcelamento{$dados_bandeira}"] = $dados["num_parcela"];
         }
 
-        if( $dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_DEBITO && intval( $dados["num_parcela"] ) != 1 ) {
-            die( 
-                json_encode( 
-                    array( 
-                        "success" => false, 
-                        "cotacao_id" => $dados["cotacao_id"], 
-                        "produto_parceiro_id" => $dados["produto_parceiro_id"], 
-                        "forma_pagamento_id" => $dados["forma_pagamento_id"], 
-                        "erros" => "Número de parcelas inválido para esta forma de pagamento"
-                    ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES 
-                ) 
-            );
+        if ($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_DEBITO && intval($dados["num_parcela"]) != 1) {
+            die(json_encode(
+                array(
+                    "success" => false,
+                    "cotacao_id" => $dados["cotacao_id"],
+                    "produto_parceiro_id" => $dados["produto_parceiro_id"],
+                    "forma_pagamento_id" => $dados["forma_pagamento_id"],
+                    "erros" => "Número de parcelas inválido para esta forma de pagamento"
+                ),
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+            ));
         }
 
         $dados_pedido = array();
         $dados_pedido["cotacao_id"] = $dados["cotacao_id"];
-        $dados_pedido["produto_parceiro_pagamento_id"] = isset( $item["produto_parceiro_pagamento_id"] ) ? $item["produto_parceiro_pagamento_id"] : "";
+        $dados_pedido["produto_parceiro_pagamento_id"] = isset($item["produto_parceiro_pagamento_id"]) ? $item["produto_parceiro_pagamento_id"] : "";
         $dados_pedido["pedido_status_id"] = 1;
         $dados_pedido["codigo"] = $this->pedido_codigo->get_codigo_pedido_formatado("BE");
         $dados_pedido["status_data"] = date("Y-m-d H:i:s");
@@ -2565,29 +2518,30 @@ Class Pedido_Model extends MY_Model
         $dados_pedido["valor_total"] = $valor_total;
         $dados_pedido["num_parcela"] = $dados["parcelamento{$dados_bandeira}"];
         $is_controle_endosso = $this->apolice->isControleEndossoPeloClienteByProdutoParceiroId($dados["produto_parceiro_id"]);
-        if ( $is_controle_endosso == 1 ) {
+        if ($is_controle_endosso == 1) {
             $dados_pedido["valor_parcela"] =  $valor_total;
         } else {
-            $dados_pedido["valor_parcela"] =  $parcelamento[$dados["parcelamento{$dados_bandeira}"]];            
+            $dados_pedido["valor_parcela"] =  $parcelamento[$dados["parcelamento{$dados_bandeira}"]];
         }
 
-        $pedido_id = $this->insert( $dados_pedido, true );
-        $this->pedido_transacao->insStatus( $pedido_id, "criado" );
+        $dados_pedido["pedido_carrinho_id"] = isset($dados["pedido_carrinho_id"]) ? $dados["pedido_carrinho_id"] : null;
 
-        unset( $dados["parcelamento{$dados_bandeira}"] );
-        if ( isset($dados["bandeira"]) )
-        {
+        $pedido_id = $this->insert($dados_pedido, true);
+        $this->pedido_transacao->insStatus($pedido_id, "criado");
+
+        unset($dados["parcelamento{$dados_bandeira}"]);
+        if (isset($dados["bandeira"])) {
             $dados_bandeira = $dados["bandeira"];
-            unset( $dados["bandeira"] );
+            unset($dados["bandeira"]);
         }
 
-        $this->fatura->insFaturaParcelas( $pedido_id, $dados["cotacao_id"], 1, $valor_total, $dados_pedido["num_parcela"], $dados_pedido["valor_parcela"], $dados["produto_parceiro_id"] );
+        $this->fatura->insFaturaParcelas($pedido_id, $dados["cotacao_id"], 1, $valor_total, $dados_pedido["num_parcela"], $dados_pedido["valor_parcela"], $dados["produto_parceiro_id"]);
         $faturas = $this->fatura->filterByPedido($pedido_id)->get_all();
-        if( $faturas ) {
+        if ($faturas) {
             $faturas = $faturas[0];
             $fatura_id = $faturas["fatura_id"];
-            $fatura_parcela = $this->fatura_parcela->filterByFatura( $fatura_id )->get_all();
-            if( $fatura_parcela ) {
+            $fatura_parcela = $this->fatura_parcela->filterByFatura($fatura_id)->get_all();
+            if ($fatura_parcela) {
                 $fatura_parcela = $fatura_parcela[0];
                 $dados["fatura_parcela_id"] = $fatura_parcela["fatura_parcela_id"];
             }
@@ -2596,15 +2550,15 @@ Class Pedido_Model extends MY_Model
         //die( json_encode( $dados, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
 
         $dados["bandeira"] = $dados_bandeira;
-        $this->insDadosPagamento( $dados, $pedido_id );
+        $this->insDadosPagamento($dados, $pedido_id);
 
-        $this->cotacao->update( $dados["cotacao_id"], array( "cotacao_status_id" => 2 ), true );
+        $this->cotacao->update($dados["cotacao_id"], array("cotacao_status_id" => 2), true);
         //ob_clean();
         return $pedido_id;
-
     }
 
-    public function updatePedido($pedido_id, $dados){
+    public function updatePedido($pedido_id, $dados)
+    {
 
         $this->load->model('fatura_model', 'fatura');
         $this->load->model('fatura_parcela_model', 'fatura_parcela');
@@ -2620,17 +2574,17 @@ Class Pedido_Model extends MY_Model
         $this->load->model('forma_pagamento_model', 'forma_pagamento');
 
         //  $item = $this->produto_pagamento->get_by_id($dados['bandeira']);
-        if($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_CARTAO_CREDITO) {
+        if ($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_CARTAO_CREDITO) {
             $item = $this->produto_pagamento->get_by_id($dados['bandeira']);
-        }elseif($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_CARTAO_DEBITO){
+        } elseif ($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_CARTAO_DEBITO) {
             $item = $this->produto_pagamento->get_by_id($dados['bandeira_debito']);
-        }elseif($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_FATURADO){
+        } elseif ($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_FATURADO) {
             $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_FATURADO)->limit(1)->get_all();
             $item = $item[0];
-        }elseif($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_TERCEIROS){
+        } elseif ($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_TERCEIROS) {
             $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_TERCEIROS)->limit(1)->get_all();
             $item = $item[0];
-        }elseif ($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_BOLETO){
+        } elseif ($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_BOLETO) {
             $item = $this->produto_pagamento->with_forma_pagamento()->filter_by_forma_pagamento_tipo(self::FORMA_PAGAMENTO_BOLETO)->limit(1)->get_all();
             $item = $item[0];
         }
@@ -2652,17 +2606,17 @@ Class Pedido_Model extends MY_Model
         $item['parcelamento_maximo'] = (isset($item['parcelamento_maximo'])) ? $item['parcelamento_maximo'] : 1;
         $item['parcelamento_maximo_sem_juros'] = (isset($item['parcelamento_maximo_sem_juros'])) ? $item['parcelamento_maximo_sem_juros'] : 1;
         $parcelamento = array();
-        for($i = 1; $i <= $item['parcelamento_maximo'];$i++){
-            if($i <= $item['parcelamento_maximo_sem_juros']) {
-                $parcelamento[$i] = $valor_total/$i;
-            }else{
-                $valor = ($valor_total/(1-($item['juros_parcela']/100)))/$i;
+        for ($i = 1; $i <= $item['parcelamento_maximo']; $i++) {
+            if ($i <= $item['parcelamento_maximo_sem_juros']) {
+                $parcelamento[$i] = $valor_total / $i;
+            } else {
+                $valor = ($valor_total / (1 - ($item['juros_parcela'] / 100))) / $i;
                 //$valor = (( $item['juros_parcela'] / 100 ) * ($valor_total/$i)) + ($valor_total/$i);
                 $parcelamento[$i] = $valor;
             }
         }
 
-        if( $dados['bandeira'] != "" ) {
+        if ($dados['bandeira'] != "") {
             $dados_bandeira = "_" . $dados['bandeira'];
         } else {
             $dados_bandeira = "";
@@ -2673,6 +2627,7 @@ Class Pedido_Model extends MY_Model
         $dados_pedido['num_parcela'] = $dados["parcelamento{$dados_bandeira}"];
         $dados_pedido['valor_parcela'] = $parcelamento[$dados["parcelamento{$dados_bandeira}"]];
         $dados_pedido['alteracao_usuario_id'] = $this->session->userdata('usuario_id');
+        $dados_pedido["pedido_carrinho_id"] = isset($dados["pedido_carrinho_id"]) ? $dados["pedido_carrinho_id"] : null;
 
         $this->update($pedido_id,  $dados_pedido, TRUE);
         $this->pedido_transacao->insStatus($pedido_id, 'alteracao');
@@ -2682,13 +2637,21 @@ Class Pedido_Model extends MY_Model
 
         //insere faturamento
         $this->fatura->deleteFaturamento($pedido_id);
-        $this->fatura->insFaturaParcelas($pedido_id, $dados['cotacao_id'], 1, $valor_total, $dados_pedido['num_parcela'],
-        $dados_pedido['valor_parcela'], $cotacao['produto_parceiro_id']);
+        $this->fatura->insFaturaParcelas(
+            $pedido_id,
+            $dados['cotacao_id'],
+            1,
+            $valor_total,
+            $dados_pedido['num_parcela'],
+            $dados_pedido['valor_parcela'],
+            $cotacao['produto_parceiro_id']
+        );
 
         return $pedido_id;
     }
 
-    public function insDadosPagamento($dados, $pedido_id){
+    public function insDadosPagamento($dados, $pedido_id)
+    {
 
         $this->load->model('produto_parceiro_pagamento_model', 'produto_pagamento');
         $this->load->model('forma_pagamento_model', 'forma_pagamento');
@@ -2697,7 +2660,7 @@ Class Pedido_Model extends MY_Model
         $this->load->model('pedido_transacao_model', 'pedido_transacao');
 
         $item = $this->produto_pagamento->get_by_id($dados['bandeira']);
-        if( $item ) {
+        if ($item) {
             $_forma_pagamento_id = issetor($item['forma_pagamento_id'], 0);
         } else {
             $_forma_pagamento_id = issetor($dados['forma_pagamento_id'], 0);
@@ -2705,7 +2668,7 @@ Class Pedido_Model extends MY_Model
 
         $forma_pagamento = $this->forma_pagamento->get_by_id($_forma_pagamento_id);
 
-        if($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_CARTAO_CREDITO){
+        if ($dados['forma_pagamento_tipo_id'] == self::FORMA_PAGAMENTO_CARTAO_CREDITO) {
 
             $this->load->library('encrypt');
 
@@ -2714,27 +2677,27 @@ Class Pedido_Model extends MY_Model
             $dados_cartao['numero'] = $this->encrypt->encode(app_retorna_numeros($dados['numero']));
             $dt = explode('/', $dados['validade']);
             $date = mktime(0, 0, 0, (int)trim($dt[0]), 1, (int)trim($dt[1]));
-            $dados_cartao['validade'] = $this->encrypt->encode(date('Ym',$date));
+            $dados_cartao['validade'] = $this->encrypt->encode(date('Ym', $date));
             $dados_cartao['nome'] = $this->encrypt->encode($dados['nome_cartao']);
             $dados_cartao['codigo'] = $this->encrypt->encode($dados['codigo']);
             $dados_cartao['bandeira'] = $this->encrypt->encode($forma_pagamento['slug']);
             $dados_cartao['bandeira_cartao'] = $this->encrypt->encode($dados['bandeira_cartao']);
 
             //Se possuir, insere
-            if($this->input->post("dia_vencimento"))
+            if ($this->input->post("dia_vencimento"))
                 $dados_cartao['dia_vencimento'] =  $this->encrypt->encode($dados['dia_vencimento']);
 
             $dados_cartao['processado'] = 0;
             $this->pedido_cartao->update_by(
-                array('pedido_id' =>$pedido_id),array(
+                array('pedido_id' => $pedido_id),
+                array(
                     'ativo' => 0
                 )
             );
 
             $this->pedido_cartao->insert($dados_cartao, true);
             $this->pedido_transacao->insStatus($pedido_id, "Aguardando_pagamento");
-
-        }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_DEBITO){
+        } elseif ($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_CARTAO_DEBITO) {
 
             $this->load->library("encrypt");
 
@@ -2743,7 +2706,7 @@ Class Pedido_Model extends MY_Model
             $dados_cartao["numero"] = $this->encrypt->encode(app_retorna_numeros($dados["numero"]));
             $dt = explode("/", $dados["validade"]);
             $date = mktime(0, 0, 0, (int)trim($dt[0]), 1, (int)trim($dt[1]));
-            $dados_cartao["validade"] = $this->encrypt->encode(date("Ym",$date));
+            $dados_cartao["validade"] = $this->encrypt->encode(date("Ym", $date));
             $dados_cartao["nome"] = $this->encrypt->encode($dados["nome_cartao"]);
             $dados_cartao["codigo"] = $this->encrypt->encode($dados["codigo"]);
             $dados_cartao["bandeira"] = $this->encrypt->encode($forma_pagamento["slug"]);
@@ -2758,83 +2721,83 @@ Class Pedido_Model extends MY_Model
 
             $this->pedido_cartao->insert($dados_cartao, true);
             $this->pedido_transacao->insStatus($pedido_id, "Aguardando_pagamento");
-        }elseif($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_BOLETO){
+        } elseif ($dados["forma_pagamento_tipo_id"] == self::FORMA_PAGAMENTO_BOLETO) {
 
-            if( isset( $dados["cotacao_id"] ) ) {
-                unset( $dados["cotacao_id"] );
-            }
-
-            if( isset( $dados["produto_parceiro_id"] ) ) {
-                unset( $dados["produto_parceiro_id"] );
+            if (isset($dados["cotacao_id"])) {
+                unset($dados["cotacao_id"]);
             }
 
-            if( isset( $dados["pedido_id"] ) ) {
-                unset( $dados["pedido_id"] );
+            if (isset($dados["produto_parceiro_id"])) {
+                unset($dados["produto_parceiro_id"]);
             }
 
-            if( isset( $dados["forma_pagamento_id"] ) ) {
-                unset( $dados["forma_pagamento_id"] );
+            if (isset($dados["pedido_id"])) {
+                unset($dados["pedido_id"]);
             }
 
-            if( isset( $dados["forma_pagamento_tipo_id"] ) ) {
-                unset( $dados["forma_pagamento_tipo_id"] );
+            if (isset($dados["forma_pagamento_id"])) {
+                unset($dados["forma_pagamento_id"]);
             }
 
-            if( isset( $dados["num_parcela"] ) ) {
-                unset( $dados["num_parcela"] );
+            if (isset($dados["forma_pagamento_tipo_id"])) {
+                unset($dados["forma_pagamento_tipo_id"]);
             }
-            if( isset( $dados["url_aguardando_pagamento"] ) ) {
-                unset( $dados["url_aguardando_pagamento"] );
+
+            if (isset($dados["num_parcela"])) {
+                unset($dados["num_parcela"]);
             }
-            if( isset( $dados["url_pagamento_confirmado"] ) ) {
-                unset( $dados["url_pagamento_confirmado"] );
+            if (isset($dados["url_aguardando_pagamento"])) {
+                unset($dados["url_aguardando_pagamento"]);
             }
-            if( isset( $dados["bandeira_cartao"] ) ) {
-                unset( $dados["bandeira_cartao"] );
+            if (isset($dados["url_pagamento_confirmado"])) {
+                unset($dados["url_pagamento_confirmado"]);
             }
-            if( isset( $dados["numero"] ) ) {
-                unset( $dados["numero"] );
+            if (isset($dados["bandeira_cartao"])) {
+                unset($dados["bandeira_cartao"]);
             }
-            if( isset( $dados["nome_cartao"] ) ) {
-                unset( $dados["nome_cartao"] );
+            if (isset($dados["numero"])) {
+                unset($dados["numero"]);
             }
-            if( isset( $dados["validade"] ) ) {
-                unset( $dados["validade"] );
+            if (isset($dados["nome_cartao"])) {
+                unset($dados["nome_cartao"]);
             }
-            if( isset( $dados["codigo"] ) ) {
-                unset( $dados["codigo"] );
+            if (isset($dados["validade"])) {
+                unset($dados["validade"]);
             }
-            if( isset( $dados["bandeira_debito"] ) ) {
-                unset( $dados["bandeira_debito"] );
+            if (isset($dados["codigo"])) {
+                unset($dados["codigo"]);
             }
-            if( isset( $dados["bandeira_cartao_debito"] ) ) {
-                unset( $dados["bandeira_cartao_debito"] );
+            if (isset($dados["bandeira_debito"])) {
+                unset($dados["bandeira_debito"]);
             }
-            if( isset( $dados["numero_debito"] ) ) {
-                unset( $dados["numero_debito"] );
+            if (isset($dados["bandeira_cartao_debito"])) {
+                unset($dados["bandeira_cartao_debito"]);
             }
-             if( isset( $dados["nome_cartao_debito"] ) ) {
-                unset( $dados["nome_cartao_debito"] );
+            if (isset($dados["numero_debito"])) {
+                unset($dados["numero_debito"]);
             }
-             if( isset( $dados["validade_debito"] ) ) {
-                unset( $dados["validade_debito"] );
+            if (isset($dados["nome_cartao_debito"])) {
+                unset($dados["nome_cartao_debito"]);
             }
-             if( isset( $dados["codigo_debito"] ) ) {
-                unset( $dados["codigo_debito"] );
+            if (isset($dados["validade_debito"])) {
+                unset($dados["validade_debito"]);
+            }
+            if (isset($dados["codigo_debito"])) {
+                unset($dados["codigo_debito"]);
             }
 
             $dados_boleto = $dados;
 
             $dados_boleto["processado"] = 0;
-            $this->pedido_boleto->insert( $dados_boleto, true );
-            $this->pedido_transacao->insStatus( $pedido_id, "Aguardando_pagamento" );
+            $this->pedido_boleto->insert($dados_boleto, true);
+            $this->pedido_transacao->insStatus($pedido_id, "Aguardando_pagamento");
         }
-
     }
 
-    private function check_acl_sale_order( $usuario_acl_tipo_id = 0 ){
+    private function check_acl_sale_order($usuario_acl_tipo_id = 0)
+    {
         /* verifica se a acl deixa somente ver somente o proprio pedido */
-        return in_array( $usuario_acl_tipo_id , array( 2 , 11 ) ) ;
+        return in_array($usuario_acl_tipo_id, array(2, 11));
     }
 
     public function getFileds($fields = [])
@@ -2854,5 +2817,3 @@ Class Pedido_Model extends MY_Model
         }
     }
 }
-
-
