@@ -210,8 +210,8 @@ Class Comissao_Gerada_Model extends MY_Model {
         return $this;
     }
 
-    public function getByParceiroId($parceiroId){
-        $sql = "SELECT * FROM comissao_gerada WHERE parceiro_id = $parceiroId AND deletado = 0";
+    public function getByParceiroId($pedido_id, $parceiroId){
+        $sql = "SELECT * FROM comissao_gerada WHERE pedido_id = $pedido_id AND parceiro_id = $parceiroId AND deletado = 0";
         $result = $this->_database->query($sql)->result_array();
         return $result;
     }

@@ -1161,7 +1161,7 @@ class Relatorios extends Admin_Controller
         $linhaheader = 'Relatório de Mapa de Repasse';
         fwrite($fp, $linhaheader."\n");
         $linhaheader  = '';
-        $linhaheader .= 'VANESSA'.";";
+        $linhaheader .= 'Plano'.";";
         $linhaheader .= 'Representante'.";";
         $linhaheader .= 'Cobertura'.";";
         $linhaheader .= 'Tipo Movimento (Emissão ou Cancelamento'.";";

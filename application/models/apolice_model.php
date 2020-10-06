@@ -2051,7 +2051,7 @@ class Apolice_Model extends MY_Model
         $termo    = $this->termo->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
         $termo    = (isset($termo[0])) ? $termo[0] : array('termo' => '');
 
-        $aComissaoGerada = $this->comissao_gerada->getByParceiroId($apolice['parceiro_id']);
+        $aComissaoGerada = $this->comissao_gerada->getByParceiroId($apolice["pedido_id"], $apolice['parceiro_id']);
         if(sizeof($aComissaoGerada)){
             $comissaoGerada = $aComissaoGerada[0];
             $data_template["representante_comissao"] = app_format_currency($comissaoGerada["comissao"])."%";
