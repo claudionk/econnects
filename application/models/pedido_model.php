@@ -240,8 +240,8 @@ class Pedido_Model extends MY_Model
                         case "pedido_id":
                             $this->_database->where('pedido.pedido_id', $value);
                             break;
-                        case "parceiro_id":                            
-                            $this->_database->where('produto_parceiro.parceiro_id', $value);
+                        case "parceiro_id":
+                            $this->_database->where('apolice.parceiro_id', $value);
                             break;
                         case "produto_id":
                             $this->_database->where('produto_parceiro.produto_id', $value);
@@ -249,21 +249,20 @@ class Pedido_Model extends MY_Model
                         case "apolice_status":
                             if($value){
                                 $campoData = "data_adesao";
-                                if($value == 1) {                                    
-                                    $this->_database->where('apolice_status.slug', "ativa");                                                                                                
+                                if($value == 1) {
+                                    $this->_database->where('apolice_status.slug', "ativa");
                                 } else if($value == 2){
                                     $campoData = "data_cancelamento";
-                                    $this->_database->where('apolice_status.slug', "cancelada");                                                                                                
-                                }                                      
+                                    $this->_database->where('apolice_status.slug', "cancelada");
+                                }
                                 $data_inicio =  $param["data_inicio"];
                                 $data_fim =  $param["data_fim"];
-                                $this->_database->where('IFNULL(apolice_equipamento.'.$campoData.', IFNULL(apolice_generico.'.$campoData.', apolice_seguro_viagem.'.$campoData.')) BETWEEN "'.$data_inicio.'" AND "'.$data_fim.'"');                                                                                                
-                                
-                            }                            
+                                $this->_database->where('IFNULL(apolice_equipamento.'.$campoData.', IFNULL(apolice_generico.'.$campoData.', apolice_seguro_viagem.'.$campoData.')) BETWEEN "'.$data_inicio.'" AND "'.$data_fim.'"');
+                            }
                         break;
                     }
                 }
-            }            
+            }
         }
         return $this;
     }
@@ -490,7 +489,7 @@ class Pedido_Model extends MY_Model
         */
         $this->_database->join('apolice', 'apolice.pedido_id = pedido.pedido_id AND apolice.deletado = 0', 'inner');
         $this->_database->join('cotacao', 'cotacao.cotacao_id = pedido.cotacao_id', 'inner');
-        $this->_database->join('cliente', 'cliente.cliente_id = cotacao.cliente_id', 'inner');
+        $this->_database->join('cliente', 'cliente.cliente_id = cotacao.cliente_id', 'left');
         $this->_database->join("apolice_equipamento", "apolice_equipamento.apolice_id = apolice.apolice_id", 'left');
         $this->_database->join("apolice_generico", "apolice_generico.apolice_id = apolice.apolice_id", "left");
         $this->_database->join("apolice_seguro_viagem", "apolice_seguro_viagem.apolice_id = apolice.apolice_id", "left");
