@@ -19,7 +19,6 @@ class Comunicacao
     private $mensagem;
     private $mensagem_parametros;
     private $cotacao_id;
-    private $url;
     public $teste = false;
 
     public function __construct()
