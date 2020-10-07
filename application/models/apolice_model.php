@@ -1803,6 +1803,7 @@ class Apolice_Model extends MY_Model
                 $this->db->where("apolice_status.slug = '".$slug."'");                        
             }        
         }
+    }
 
     public function termo($apolice_id, $export = "", $produto_parceiro_id = null)
     {
