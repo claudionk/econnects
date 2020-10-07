@@ -328,6 +328,7 @@ class Relatorios extends Admin_Controller
         $data['data_fim'] = date("d/m/Y");
         $data['title'] = 'Relatório 06 de Vendas';
         $data['columns'] = [
+            'Data da Venda',
             'Representante de Seguros',
             'Cobertura Comercializada',
             'Número do Bilhete (PARCEIRO)',
@@ -360,27 +361,28 @@ class Relatorios extends Admin_Controller
                 $rows = [];
                 foreach ($data['result'] as $row) {
                     $rows[] = [
-                        $row['Representante de Seguros'],
-                        $row['Cobertura Comercializada'],
-                        $row['num_apolice)'],
-                        $row['Número do Bilhete (GBS)'],
-                        $row['Codigo da Loja'],
-                        $row['Data de Emissão'],
-                        $row['inicio_vigencia'],
+                        app_date_mysql_to_mask($row['status_data'], 'd/m/Y'),
+                        $row['nome_fantasia'],
+                        $row['cobertura'],
+                        $row['num_apolice'],
+                        $row['num_apolice_cliente'],
+                        $row['cod_loja'],
+                        $row['data_pedido'],
+                        $row['ini_vigencia'],
                         $row['fim_vigencia'],
                         $row['documento'],
-                        $row['Data de Nascimento'],
+                        $row['data_nascimento'],
                         $row['segurado'],
-                        $row['Cidade'],
-                        $row['Estado'],
-                        $row['CEP'],
-                        $row['Logradouro'],
-                        $row['nome_produto_parceiro'],
-                        $row['Marca'],
-                        $row['Modelo (Descrição do Equipamento)'],
-                        $row['LMI'],
-                        app_format_currency($row['premio_liquido_total'], true),
-                        app_format_currency($row['Premio Bruto'], true)                 
+                        $row['endereco_cidade'],
+                        $row['endereco_estado'],
+                        $row['endereco_cep'],
+                        $row['endereco_logradouro'],
+                        $row['tipo_equipamento'],
+                        $row['marca'],
+                        $row['modelo'],
+                        app_format_currency($row['nota_fiscal_valor'], true),
+                        app_format_currency($row['premio_liquido'], true),
+                        app_format_currency($row['premio_liquido_total'], true)                 
                     ];
                 }
                 //$this->exportExcel($data['columns'], $rows);
