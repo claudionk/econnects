@@ -1444,7 +1444,7 @@ class Pedido_Model extends MY_Model
 
         $this->_database->from($this->_table);
         $this->_database->join("(
-            SELECT a.apolice_id, a.pedido_id, ast.nome Movimentacao, a.num_apolice
+            SELECT a.apolice_id, a.pedido_id, ast.nome Movimentacao, a.num_apolice, a.num_apolice_cliente
             FROM apolice a
             JOIN apolice_status ast ON a.apolice_status_id = ast.apolice_status_id
             JOIN apolice_movimentacao am ON a.apolice_id = am.apolice_id AND am.apolice_movimentacao_tipo_id = 1 #para identificar a data de emissão
@@ -1501,7 +1501,13 @@ class Pedido_Model extends MY_Model
         $this->extrairRelatorioVendasCore($data_inicio, $data_fim, $produto_parceiro_id);
 
         $this->_database->distinct();
-        $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.cnpj, p.nome_fantasia,
+        $this->_database->join("(SELECT DISTINCT equipamento_marca_id, nome FROM vw_Equipamentos_Marcas) AS EQUIP_MARCAS", "ae.equipamento_marca_id = EQUIP_MARCAS.equipamento_marca_id", "left");
+        $this->_database->join("(SELECT DISTINCT equipamento_categoria_id, nome FROM vw_Equipamentos_Linhas) AS EQUIP_LINHAS", "ae.equipamento_categoria_id = EQUIP_LINHAS.equipamento_categoria_id", "left");
+
+
+        //LEFT JOIN (SELECT DISTINCT equipamento_categoria_id, nome FROM vw_Equipamentos_Linhas) AS EQUIP_LINHAS ON RELAT.equipamento_categoria_id = EQUIP_LINHAS.equipamento_categoria_id
+
+        $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.cnpj, p.nome_fantasia, p.nome as representante, a.num_apolice, a.num_apolice_cliente, EQUIP_MARCAS.nome as marca, EQUIP_LINHAS.nome as tipo_equipamento, , ae.equipamento_nome as modelo,
         pp.nome as nome_produto_parceiro, pr.nome as nome_produto, ppp.nome as plano_nome, {$this->_table}.valor_parcela, {$this->_table}.codigo, a.num_apolice, le.sigla as UF, u.nome as vendedor, cmg.valor AS comissao_parceiro, a.Movimentacao ");
 
         $this->_database->select("IF(pr.slug = 'equipamento', ce.premio_liquido, IF(pr.slug = 'seguro_viagem', csv.premio_liquido, cg.premio_liquido)) as premio_liquido", FALSE);
@@ -1511,6 +1517,18 @@ class Pedido_Model extends MY_Model
 
         $this->_database->select("IF(pr.slug = 'equipamento', ce.premio_liquido, IF(pr.slug = 'seguro_viagem', csv.premio_liquido, cg.premio_liquido)) * (IF(pr.slug = 'equipamento', ce.iof, IF(pr.slug = 'seguro_viagem', csv.iof, cg.iof))/100) as IOF", FALSE);
         $this->_database->select("IF(pr.slug = 'equipamento', ae.data_adesao, IF(pr.slug = 'seguro_viagem', asv.data_adesao, ag.data_adesao)) as status_data", FALSE);
+        $this->_database->select("IF(pr.slug = 'equipamento', ae.endereco_logradouro, IF(pr.slug = 'seguro_viagem', asv.endereco_logradouro, ag.endereco_logradouro)) as endereco_logradouro", FALSE);
+        $this->_database->select("IF(pr.slug = 'equipamento', ae.endereco_numero, IF(pr.slug = 'seguro_viagem', asv.endereco_numero, ag.endereco_numero)) as endereco_numero", FALSE);
+        $this->_database->select("IF(pr.slug = 'equipamento', ae.endereco_cidade, IF(pr.slug = 'seguro_viagem', asv.endereco_cidade, ag.endereco_cidade)) as endereco_cidade", FALSE);
+        $this->_database->select("IF(pr.slug = 'equipamento', ae.endereco_estado, IF(pr.slug = 'seguro_viagem', asv.endereco_estado, ag.endereco_estado)) as endereco_estado", FALSE);
+        $this->_database->select("IF(pr.slug = 'equipamento', ae.endereco_cep, IF(pr.slug = 'seguro_viagem', asv.endereco_cep, ag.endereco_cep)) as endereco_cep", FALSE);
+        $this->_database->select("IF(pr.slug = 'equipamento', DATE_FORMAT(ae.data_ini_vigencia, '%d/%m/%Y'), IF(pr.slug = 'seguro_viagem', DATE_FORMAT(asv.data_ini_vigencia, '%d/%m/%Y'), DATE_FORMAT(ag.data_ini_vigencia, '%d/%m/%Y'))) as ini_vigencia", FALSE);
+        $this->_database->select("IF(pr.slug = 'equipamento', DATE_FORMAT(ae.data_fim_vigencia, '%d/%m/%Y'), IF(pr.slug = 'seguro_viagem', DATE_FORMAT(asv.data_fim_vigencia, '%d/%m/%Y'), DATE_FORMAT(ag.data_fim_vigencia, '%d/%m/%Y'))) as fim_vigencia", FALSE);
+        $this->_database->select("DATE_FORMAT({$this->_table}.status_data, '%d/%m/%Y') as data_pedido", FALSE);
+        $this->_database->select("IF(pr.slug = 'equipamento', ae.cod_loja, IF(pr.slug = 'seguro_viagem', asv.cod_loja, ag.cod_loja)) as cod_loja", FALSE);
+
+
+        
 
         $this->_database->select("(SELECT cmg.valor
         FROM comissao_gerada cmg 
@@ -1534,6 +1552,7 @@ class Pedido_Model extends MY_Model
 
         $this->_database->select("IF(pr.slug = 'generico', cg.nome, IF(pr.slug = 'seguro_viagem', csv.nome, ce.nome)) as segurado", FALSE);
         $this->_database->select("IF(pr.slug = 'generico', cg.cnpj_cpf, IF(pr.slug = 'seguro_viagem', csv.cnpj_cpf, ce.cnpj_cpf)) as documento", FALSE);
+        $this->_database->select("IF(pr.slug = 'generico', DATE_FORMAT(cg.data_nascimento,'%d/%m/%Y'), DATE_FORMAT(ce.data_nascimento,'%d/%m/%Y')) as data_nascimento", FALSE);
 
         $query = $this->_database->get();
         $resp = [];
