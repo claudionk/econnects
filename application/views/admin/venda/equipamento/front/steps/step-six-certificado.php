@@ -112,7 +112,7 @@ if ($_POST)
                     cache: false,
                 })
                 .done(function(result) {
-                    console.log(result)
+                    //    console.log(result)
                     $(".confirm_message").show();
                     $(".load").hide();
 
@@ -129,7 +129,7 @@ if ($_POST)
         },
         load: function() {
             this.setLoadPercentage(this.getLoadPercentage() + 1)
-            console.log(this.getLoadPercentage());
+            //console.log(this.getLoadPercentage());
             $('.progress-bar').width(this.getLoadPercentage() + "%");
             if (this.getLoadPercentage() < 100) {
                 setInterval(() => this.load(), 2000)
