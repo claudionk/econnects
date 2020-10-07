@@ -335,8 +335,9 @@ class Relatorios extends Admin_Controller
             'Número do Bilhete (GBS)',
             'Codigo da Loja',
             'Data de Emissão',
-            'inicio_vigencia',
-            'fim_vigencia',
+            'Inicio de Vigencia',
+            'Fim de Vigencia',
+            'Data Cancelamento',
             'CPF do Segurado',
             'Data de Nascimento',
             'Nome do Segurado',
@@ -349,13 +350,13 @@ class Relatorios extends Admin_Controller
             'Modelo (Descrição do Equipamento)',
             'LMI',
             'Prêmio Líquido',
-            'Prêmio Bruto'
+            'Prêmio Bruto',
+            'Valor Restituído'
         ];
 
         if ($_POST) {
             $result = $this->getRelatorio(FALSE);
             $data['result'] = $result['data'];
-
             if (!empty($_POST['btnExcel'])) {
 
                 $rows = [];
@@ -363,13 +364,14 @@ class Relatorios extends Admin_Controller
                     $rows[] = [
                         app_date_mysql_to_mask($row['status_data'], 'd/m/Y'),
                         $row['nome_fantasia'],
-                        $row['cobertura'],
+                        $row['plano_nome'],
                         $row['num_apolice'],
                         $row['num_apolice_cliente'],
                         $row['cod_loja'],
                         $row['data_pedido'],
                         $row['ini_vigencia'],
                         $row['fim_vigencia'],
+                        '',
                         $row['documento'],
                         $row['data_nascimento'],
                         $row['segurado'],
@@ -382,7 +384,8 @@ class Relatorios extends Admin_Controller
                         $row['modelo'],
                         app_format_currency($row['nota_fiscal_valor'], true),
                         app_format_currency($row['premio_liquido'], true),
-                        app_format_currency($row['premio_liquido_total'], true)                 
+                        app_format_currency($row['premio_liquido_total'], true),
+                        ''                
                     ];
                 }
                 //$this->exportExcel($data['columns'], $rows);

@@ -1520,16 +1520,13 @@ Class Pedido_Model extends MY_Model
         $this->extrairRelatorioVendasCore($data_inicio, $data_fim, $produto_parceiro_id);
 
         $this->_database->distinct();
-        $this->_database->join("apolice_cobertura ac", "ac.apolice_id = a.apolice_id", "left");
-        $this->_database->join("cobertura_plano cp", "ac.cobertura_plano_id = cp.cobertura_plano_id", "left");
-        $this->_database->join("cobertura cb", "cb.cobertura_id = cp.cobertura_id", "left");
         $this->_database->join("(SELECT DISTINCT equipamento_marca_id, nome FROM vw_Equipamentos_Marcas) AS EQUIP_MARCAS", "ae.equipamento_marca_id = EQUIP_MARCAS.equipamento_marca_id", "left");
         $this->_database->join("(SELECT DISTINCT equipamento_categoria_id, nome FROM vw_Equipamentos_Linhas) AS EQUIP_LINHAS", "ae.equipamento_categoria_id = EQUIP_LINHAS.equipamento_categoria_id", "left");
 
 
         //LEFT JOIN (SELECT DISTINCT equipamento_categoria_id, nome FROM vw_Equipamentos_Linhas) AS EQUIP_LINHAS ON RELAT.equipamento_categoria_id = EQUIP_LINHAS.equipamento_categoria_id
 
-        $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.cnpj, p.nome_fantasia, p.nome as representante, cb.nome as cobertura, a.num_apolice, a.num_apolice_cliente, EQUIP_MARCAS.nome as marca, EQUIP_LINHAS.nome as tipo_equipamento, , ae.equipamento_nome as modelo,
+        $this->_database->select("{$this->_table}.*, c.*, ps.nome as status, p.cnpj, p.nome_fantasia, p.nome as representante, a.num_apolice, a.num_apolice_cliente, EQUIP_MARCAS.nome as marca, EQUIP_LINHAS.nome as tipo_equipamento, , ae.equipamento_nome as modelo,
         pp.nome as nome_produto_parceiro, pr.nome as nome_produto, ppp.nome as plano_nome, {$this->_table}.valor_parcela, {$this->_table}.codigo, a.num_apolice, le.sigla as UF, u.nome as vendedor, cmg.valor AS comissao_parceiro, a.Movimentacao ");
 
         $this->_database->select("IF(pr.slug = 'equipamento', ce.premio_liquido, IF(pr.slug = 'seguro_viagem', csv.premio_liquido, cg.premio_liquido)) as premio_liquido", FALSE);

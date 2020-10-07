@@ -70,13 +70,14 @@
                             <tr>
                                 <td><?= app_date_mysql_to_mask($row['status_data'], 'd/m/Y') ?></td>
                                 <td><?= $row['nome_fantasia'] ?></td>
-								<td><?= $row['cobertura'] ?></td>
+								<td><?= $row['plano_nome'] ?></td>
 								<td><?= $row['num_apolice'] ?></td>
 								<td><?= $row['num_apolice_cliente'] ?></td>
 								<td><?= $row['cod_loja'] ?></td>
 								<td><?= $row['data_pedido'] ?></td>
 								<td><?= $row['ini_vigencia'] ?></td>
 								<td><?= $row['fim_vigencia'] ?></td>
+                                <td></td>
 								<td><?= $row['documento'] ?></td>
 								<td><?= $row['data_nascimento'] ?></td>
 								<td><?= $row['segurado'] ?></td>
@@ -90,7 +91,7 @@
 								<td><?= app_format_currency($row['nota_fiscal_valor'], true) ?></td>
 								<td><?= app_format_currency($row['premio_liquido'], true) ?></td>
 								<td><?= app_format_currency($row['premio_liquido_total'], true) ?></td>
-								
+								<td></td>
                             </tr>
                             <?php
                         }
