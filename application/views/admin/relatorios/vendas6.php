@@ -69,28 +69,29 @@
                         foreach ($result as $row) { ?>
                             <tr>
                                 <td><?= app_date_mysql_to_mask($row['status_data'], 'd/m/Y') ?></td>
-                                <td><?= $row['Representante de Seguros'] ?></td>
-								<td><?= $row['Cobertura Comercializada'] ?></td>
-								<td><?= $row['num_apolice)'] ?></td>
-								<td><?= $row['Número do Bilhete (GBS)'] ?></td>
-								<td><?= $row['Codigo da Loja'] ?></td>
-								<td><?= $row['Data de Emissão'] ?></td>
-								<td><?= $row['inicio_vigencia'] ?></td>
+                                <td><?= $row['nome_fantasia'] ?></td>
+								<td><?= $row['plano_nome'] ?></td>
+								<td><?= $row['num_apolice'] ?></td>
+								<td><?= $row['num_apolice_cliente'] ?></td>
+								<td><?= $row['cod_loja'] ?></td>
+								<td><?= $row['data_pedido'] ?></td>
+								<td><?= $row['ini_vigencia'] ?></td>
 								<td><?= $row['fim_vigencia'] ?></td>
+                                <td></td>
 								<td><?= $row['documento'] ?></td>
-								<td><?= $row['Data de Nascimento'] ?></td>
+								<td><?= $row['data_nascimento'] ?></td>
 								<td><?= $row['segurado'] ?></td>
-								<td><?= $row['Cidade'] ?></td>
-								<td><?= $row['Estado'] ?></td>
-								<td><?= $row['CEP'] ?></td>
-								<td><?= $row['Logradouro'] ?></td>
-								<td><?= $row['nome_produto_parceiro'] ?></td>
-								<td><?= $row['Marca'] ?></td>
-								<td><?= $row['Modelo (Descrição do Equipamento)'] ?></td>
-								<td><?= $row['LMI'] ?></td>
+								<td><?= $row['endereco_cidade'] ?></td>
+								<td><?= $row['endereco_estado'] ?></td>
+								<td><?= $row['endereco_cep'] ?></td>
+								<td><?= $row['endereco_logradouro']?></td>
+								<td><?= $row['tipo_equipamento'] ?></td>
+								<td><?= $row['marca'] ?></td>
+								<td><?= $row['modelo'] ?></td>
+								<td><?= app_format_currency($row['nota_fiscal_valor'], true) ?></td>
+								<td><?= app_format_currency($row['premio_liquido'], true) ?></td>
 								<td><?= app_format_currency($row['premio_liquido_total'], true) ?></td>
-								<td><?= app_format_currency($row['Premio Bruto'], true) ?></td>
-								
+								<td></td>
                             </tr>
                             <?php
                         }
