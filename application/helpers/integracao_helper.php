@@ -4131,8 +4131,8 @@ if ( ! function_exists('app_integracao_b2w')) {
         // validações iniciais
         $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, true, $acesso);
         if ( $valid->status !== true ) {
-            $response = $valid;
             //B2W deve continuar mesmo que não esteja valido
+            //$response = $valid;
             //return $response;
         }
 
