@@ -182,6 +182,7 @@ Class Integracao_Model extends MY_Model
             'data_ini_mes' => date('Y-m-d', mktime(0, 0, 0, date('m'), 1, date('Y'))),
             'data_fim_mes' => date('Y-m-t', mktime(0, 0, 0, date('m'), 1, date('Y'))),
             'totalRegistros' => 0,
+            'totalCertificados' => 0,
             'totalItens' => 0,
             'campo_chave' => '',
         );
@@ -746,8 +747,11 @@ Class Integracao_Model extends MY_Model
         $registros = $query->result_array();
         $query->next_result();
 
-        $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], count($registros));
-        $arRet = ['file' => '', 'integracao_log_id' => $integracao_log['integracao_log_id'], 'qtde_reg' => count($registros)];
+        $totalCertificados = count($registros);
+        $this->data_template_script['totalCertificados'] = $totalCertificados;
+
+        $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], $totalCertificados);
+        $arRet = ['file' => '', 'integracao_log_id' => $integracao_log['integracao_log_id'], 'qtde_reg' => $totalCertificados];
         $filename = '';
         // Não envia vazio && não retornou nenhum dado para ser enviado
         // if ( empty($integracao['envia_vazio']) && empty($registros) ) {
