@@ -436,7 +436,7 @@ if ( ! function_exists('app_integracao_format_file_name_mapfre_rf')) {
             $num_sequencia = 1;
         }
 
-        $codigo_revendedor = $dados['registro'][0]['tomador_codigo'];
+        $codigo_revendedor = substr($dados['registro'][0]['tomador_codigo'], -7);
         $codigo_produto = str_pad($dados['registro'][0]['codigo_operadora'], 7, '0',STR_PAD_LEFT);
         $data = date('dmY');
         $num_sequencia = str_pad($num_sequencia,5, '0',STR_PAD_LEFT);
