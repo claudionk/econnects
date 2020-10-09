@@ -1911,6 +1911,11 @@ if ( ! function_exists('app_integracao_calcula_premio'))
 {
     function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso = null, $premio_liquido = NULL, $valor_iof = NULL, $valor_fixo = NULL, $qtde = 0, $coberturas = [])
     {
+
+        if($acesso->parceiro == "b2w"){
+            $valor_fixo = $premio_liquido;
+        }
+
         $fields = [
             'cotacao_id' => $cotacao_id,
             'valor_fixo' => $valor_fixo,
@@ -1940,8 +1945,8 @@ if ( ! function_exists('app_integracao_calcula_premio'))
         }
 
         echo "Calculo do Premio: $valor_premio | $premio_bruto | $premio_liquido | $valor_iof | $valor_fixo<br>";
-
-        if ($valor_premio != $premio_bruto) {
+        
+        if ($valor_premio != $premio_bruto && $acesso->parceiro != "b2w") {
             if ($valor_premio >= $premio_bruto-$dif_accept && $valor_premio <= $premio_bruto+$dif_accept) {
                 echo "dif de R$ $dif_accept - $cotacao_id<br>";
 
@@ -4030,7 +4035,7 @@ if ( ! function_exists('app_integracao_b2w')) {
             $geraDados['tipo_transacao']            = $reg['acao'];
             $geraDados['tipo_operacao']             = $reg['acao'];
             $geraDados['ramo']                      = $reg['ramo'];
-            $geraDados['agrupador']                 = $reg['agrupador'];
+            //$geraDados['agrupador']                 = $reg['agrupador'];
             $geraDados['cod_loja']                  = $reg['cod_loja'];
             $geraDados['num_apolice']               = $reg['num_apolice'];
             $geraDados['nota_fiscal_numero']        = $reg['nota_fiscal_numero'];
@@ -4083,20 +4088,21 @@ if ( ! function_exists('app_integracao_b2w')) {
             $geraDados['status_reenvio']            = $reg['status_reenvio'];
             $geraDados['codigo_erro']               = $reg['codigo_erro'];
             $geraDados['dado_financ']               = $reg['dado_financ'];
-            $geraDados['id_garantia_fornecedor']    = $reg['id_garantia_fornecedor'];
-            $geraDados['id_garantia_loja']          = $reg['id_garantia_loja'];
-            $geraDados['num_sorte']                 = $reg['num_sorte'];
-            $geraDados['num_serie_cap']             = $reg['num_serie_cap'];
-            $geraDados['canal_venda']               = $reg['canal_venda'];
-            $geraDados['valor_prolabore']           = $reg['comissao_valor'];
-            $geraDados['perc_prolabore']            = $reg['comissao_premio'];
-            $geraDados['dias_canc_apos_venda']      = $reg['dias_canc_apos_venda'];
-            $geraDados['produto_seg']               = $reg['produto_seg'];
-            $geraDados['cod_faixa_preco']           = $reg['equipamento_de_para'];
+            //$geraDados['id_garantia_fornecedor']    = $reg['id_garantia_fornecedor'];
+            //$geraDados['id_garantia_loja']          = $reg['id_garantia_loja'];
+            //$geraDados['num_sorte']                 = $reg['num_sorte'];
+            //$geraDados['num_serie_cap']             = $reg['num_serie_cap'];
+            //$geraDados['canal_venda']               = $reg['canal_venda'];
+            //$geraDados['valor_prolabore']           = $reg['comissao_valor'];
+            //$geraDados['perc_prolabore']            = $reg['comissao_premio'];
+            //$geraDados['dias_canc_apos_venda']      = $reg['dias_canc_apos_venda'];
+            //$geraDados['produto_seg']               = $reg['produto_seg'];
+            //$geraDados['cod_faixa_preco']           = $reg['equipamento_de_para'];
             $geraDados['numero_seq_lote']           = $reg['numero_seq_lote'];
             $geraDados['arquivo_data']              = $reg['arquivo_data'];
             $geraDados['arquivo_hora']              = $reg['arquivo_hora'];
-            $geraDados['versao_layout']             = $reg['versao_layout'];
+            //$geraDados['versao_layout']             = $reg['versao_layout'];
+            $geraDados['id_departamento_categoria']    = $reg['id_departamento_categoria'];
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
@@ -4104,7 +4110,7 @@ if ( ! function_exists('app_integracao_b2w')) {
         }
 
         // definir operação pelo nome do arquivo ou por integracao?
-        $acesso = app_integracao_novo_mundo_define_operacao($dados['log']['nome_arquivo']);
+        $acesso = app_integracao_b2w_define_operacao($reg);
         if ( empty($acesso->status) ) {
             $response->status = 2;
             $response->msg[] = $acesso->msg;
@@ -4174,5 +4180,56 @@ if ( ! function_exists('app_integracao_b2w')) {
         }
 
         return $response;
+    }
+}
+
+
+if ( ! function_exists('app_integracao_b2w_define_operacao')) {
+    function app_integracao_b2w_define_operacao($inputData)
+    {
+        $produto = $inputData["tipo_produto"];
+        $idDepartamentoCategoria = $inputData["id_departamento_categoria"];
+        
+        if($produto == 1 || $produto == "01" || $produto == "1"){
+            if($idDepartamentoCategoria == 481 || $idDepartamentoCategoria == "481"){
+                $produto_parceiro_id = 128;
+                $produto_parceiro_plano_id = 192;
+            }else{
+                $produto_parceiro_id = 127;
+                $produto_parceiro_plano_id = 193;
+            }
+        }else if ($produto == 2 || $produto == "02" || $produto == "2") {
+            
+            if($idDepartamentoCategoria == 6 || $idDepartamentoCategoria == "006" || $idDepartamentoCategoria == "6"){
+                $produto_parceiro_id = 126;
+                $produto_parceiro_plano_id = 191;
+            }else{
+                $produto_parceiro_id = 125;
+                $produto_parceiro_plano_id = 190;
+            }
+            
+        }
+
+        $result = (object) ['status' => false, 'msg' => []];
+
+        $result->produto = $produto;
+        $result->parceiro_id = 147;
+        $result->produto_parceiro_id = $produto_parceiro_id;
+        $result->produto_parceiro_plano_id = $produto_parceiro_plano_id;
+        $result->email = "b2w@neconnect.com.br";
+
+      
+        // Dados para definição do parceiro, produto e plano
+        $acesso = app_integracao_generali_dados([
+            "email" => $result->email,
+            "parceiro_id" => $result->parceiro_id,
+            "produto_parceiro_id" => $result->produto_parceiro_id,
+            "produto_parceiro_plano_id" => $result->produto_parceiro_plano_id,
+        ]);
+
+        $result->apikey = $acesso->apikey;
+        $result->parceiro = $acesso->parceiro;
+        $result->status = true;
+        return $result;
     }
 }
