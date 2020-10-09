@@ -4132,7 +4132,8 @@ if ( ! function_exists('app_integracao_b2w')) {
         $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, true, $acesso);
         if ( $valid->status !== true ) {
             $response = $valid;
-            return $response;
+            //B2W deve continuar mesmo que não esteja valido
+            //return $response;
         }
 
         // Campos para cotação
