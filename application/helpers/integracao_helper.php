@@ -48,7 +48,7 @@ if ( ! function_exists('app_integracao_get_qnt_registros')) {
     function app_integracao_get_qnt_registros($formato, $dados = array())
     {
         $total = isset($dados['global']['totalCertificados']) ? $dados['global']['totalCertificados'] : 0;
-        return str_pad($total + 2, $dados['item']['tamanho'], $dados['item']['valor_padrao'], STR_PAD_LEFT);
+        return str_pad( $total + 2, $formato, '0', STR_PAD_LEFT);
     }
 }
 
