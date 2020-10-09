@@ -426,7 +426,6 @@ if ( ! function_exists('app_integracao_format_file_name_mapfre_rf')) {
 
     function app_integracao_format_file_name_mapfre_rf($formato, $dados = array())
     {
-
         if(isset($dados['item']['integracao_id'])){
             $CI =& get_instance();
             $CI->load->model('integracao_model');
@@ -437,9 +436,8 @@ if ( ! function_exists('app_integracao_format_file_name_mapfre_rf')) {
             $num_sequencia = 1;
         }
 
-
-        $codigo_revendedor = '0000001';
-        $codigo_produto = '0000001';
+        $codigo_revendedor = $dados['registro'][0]['tomador_codigo'];
+        $codigo_produto = str_pad($dados['registro'][0]['codigo_operadora'], 7, '0',STR_PAD_LEFT);
         $data = date('dmY');
         $num_sequencia = str_pad($num_sequencia,5, '0',STR_PAD_LEFT);
 
