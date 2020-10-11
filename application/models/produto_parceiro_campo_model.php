@@ -400,11 +400,10 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         if ( !is_array($slugsCampos) ) {
             $slugsCampos = [$slugsCampos];
         }
-        
 
         $validacao = [];
         foreach ($slugsCampos as $tipo_slug) {
-        
+
             $result  = array(
                 "status"    => false,
                 "message"   => "Erro na validação dos campos",
@@ -419,7 +418,6 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                 ->filter_by_campo_tipo_slug( $tipo_slug )
                 ->order_by( "ordem", "ASC" )
                 ->get_all();
-
 
             $validacao_ok = true;
             foreach( $campos as $campo ) {
