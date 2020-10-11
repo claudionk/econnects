@@ -1825,11 +1825,11 @@ if ( ! function_exists('app_integracao_valida_regras'))
                                 break;
                         }
                     }
-
                 }
             }
 
-            if (empty($errors)) {
+            // B2W não valida erros
+            if ($acesso->parceiro == "b2w" || empty($errors)) {
 
                 $fields['produto_parceiro_id']          = $dados['produto_parceiro_id'];
                 $fields['produto_parceiro_plano_id']    = $dados['produto_parceiro_plano_id'];

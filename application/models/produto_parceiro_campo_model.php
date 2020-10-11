@@ -483,7 +483,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                             }
                         }
                         if( $campo["campo_nome_banco_equipamento"] == 'cnpj_cpf' ) {
-                            if( !empty($values[$campo["campo_nome_banco_equipamento"]]) && !app_validate_cpf_cnpj( $values[$campo["campo_nome_banco_equipamento"]] ) ) {
+                            if( strpos( $campo["validacoes"], "validate_cpf" ) !== false && !empty($values[$campo["campo_nome_banco_equipamento"]]) && !app_validate_cpf_cnpj( $values[$campo["campo_nome_banco_equipamento"]] ) ) {
                                 $rule_check = "CPF / CNPJ não é válido (". $campo["campo_nome_banco_equipamento"] .")";
                                 $erros[] = $rule_check;
                             }
