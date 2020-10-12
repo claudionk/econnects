@@ -18,9 +18,7 @@ if ( ! function_exists('app_integracao_date')) {
 if ( ! function_exists('app_integracao_get_sequencial')) {
     function app_integracao_get_sequencial($formato, $dados = array())
     {
-
         return str_pad($dados['log']['sequencia'], $dados['item']['tamanho'], $dados['item']['valor_padrao'], STR_PAD_LEFT);
-
     }
 }
 
@@ -462,8 +460,9 @@ if ( ! function_exists('app_integracao_format_file_name_mapfre_ge')) {
             $num_sequencia = 1;
         }
 
+        $reg = emptyor($dados['registro'][0], []);
         $num_produto = "731";
-        $nome_estipulante = "SISSOLUCOESINTEGRADAS";
+        $nome_estipulante = strtoupper(str_replace(' ', '', emptyor($reg['tomador_nome'], '')));
         $data = date('dmY');
         $num_sequencia = str_pad($num_sequencia,4, '0',STR_PAD_LEFT);
 
