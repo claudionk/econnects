@@ -841,7 +841,7 @@ Class Integracao_Model extends MY_Model
 
                 if ( !$unicoRegistro )
                 {
-                    $line = $this->processLine($lay['multiplo'], $lay['dados'], !empty($registros) ? $registros[0] : [], null );
+                    $line = $this->processLine($lay['multiplo'], $lay['dados'], !empty($registros) ? $registros[0] : [], $integracao_log );
                     if (!empty($line)) $linhas[] = $line;
                 }
 
