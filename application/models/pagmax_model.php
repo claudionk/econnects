@@ -305,14 +305,15 @@ class Pagmax_Model extends MY_Model
             $Response = $Pagmax360->createTransaction($Pagmax360->merchantId, $Pagmax360->merchantKey, $Json, $Pagmax360->Environment, $pedido_id);
             $Response = json_decode($Response);
             error_log(print_r($Response, true) . "\n", 3, "/var/log/httpd/myapp.log");
+
             if (isset($Response->{"Code"}) || sizeof($Response) == 0 || (isset($Response->{"status"}) && empty($Response->{"status"}))) {
                 $tipo_mensagem = "msg_erro";
 
-                if (isset($Response["error"]) && isset($Response["error"]["Code"])) {
-                    $msgErro = issetor($Response["error"]["Message"], "Falha na transacao") . " (Erro " . $Response["error"]["Code"] . ")";
+                if (isset($Response->{"error"}) && isset($Response->{"error"}->{"Code"})) {
+                    $msgErro = issetor($Response->{"error"}->{"Message"}, "Falha na transacao") . " (Erro " . $Response->{"error"}->{"Code"} . ")";
                 } else {
-                    if (isset($Response[0]["Code"]) && isset($Response[0]["Message"])) {
-                        $msgErro = $Response[0]["Message"] . " (Code " . $Response[0]["Code"] . ")";
+                    if (isset($Response[0]->{"Code"}) && isset($Response[0]->{"Message"})) {
+                        $msgErro = $Response[0]->{"Message"} . " (Code " . $Response[0]->{"Code"} . ")";
                     } elseif (isset($Response->{"status"})) {
                         $msgErro = $Response->{"message"};
                     } else {
