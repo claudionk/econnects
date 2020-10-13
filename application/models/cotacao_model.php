@@ -128,12 +128,9 @@ Class Cotacao_Model extends MY_Model
         return $this;
     }
 
-
     public function filterPesquisa()
     {
-
         $filters = $this->input->get();
-      //  print_r($filters);exit;
 
         if($filters) {
             foreach ($filters as $key => $value) {
@@ -151,8 +148,10 @@ Class Cotacao_Model extends MY_Model
                         case "data_nascimento":
                             $this->_database->where('cliente.data_nascimento', app_dateonly_mask_to_mysql($value));
                             break;
+                        case "telefone":
+                            $this->_database->where("IFNULL(cotacao_generico.telefone, IFNULL(cotacao_equipamento.telefone, cotacao_seguro_viagem.telefone)) = '". app_clear_number($value) ."' ");
+                            break;
                     }
-
 
                 }
             }
@@ -613,6 +612,26 @@ Class Cotacao_Model extends MY_Model
         }
 
         return [];
+    }
+
+    public function with_cotacao_aux()
+    {
+        $this->_database->select('IFNULL(cotacao_generico.nome, IFNULL(cotacao_equipamento.nome, cotacao_seguro_viagem.nome)) nome, ', FALSE);
+        $this->_database->select('IFNULL(cotacao_generico.telefone, IFNULL(cotacao_equipamento.telefone, cotacao_seguro_viagem.telefone)) telefone, ', FALSE);
+        $this->_database->select('IFNULL(cotacao_generico.ean, IFNULL(cotacao_equipamento.ean, cotacao_seguro_viagem.ean)) ean, ', FALSE);
+        $this->_database->select('IFNULL(cotacao_generico.equipamento_nome, IFNULL(cotacao_equipamento.equipamento_nome, cotacao_seguro_viagem.equipamento_nome)) equipamento_nome, ', FALSE);
+        $this->_database->select('IFNULL(cotacao_generico.equipamento_id, IFNULL(cotacao_equipamento.equipamento_id, cotacao_seguro_viagem.equipamento_id)) equipamento_id, ', FALSE);
+        $this->_database->select('IFNULL(cotacao_generico.equipamento_marca_id, IFNULL(cotacao_equipamento.equipamento_marca_id, cotacao_seguro_viagem.equipamento_marca_id)) equipamento_marca_id, ', FALSE);
+        $this->_database->select('IFNULL(cotacao_generico.equipamento_categoria_id, IFNULL(cotacao_equipamento.equipamento_categoria_id, cotacao_seguro_viagem.equipamento_categoria_id)) equipamento_categoria_id, ', FALSE);
+        $this->_database->select('IFNULL(cotacao_generico.nota_fiscal_data, IFNULL(cotacao_equipamento.nota_fiscal_data, cotacao_seguro_viagem.nota_fiscal_data)) nota_fiscal_data, ', FALSE);
+        $this->_database->select('IFNULL(cotacao_generico.imei, IFNULL(cotacao_equipamento.imei, cotacao_seguro_viagem.imei)) imei, ', FALSE);
+        $this->_database->select('IFNULL(cotacao_generico.nota_fiscal_valor, IFNULL(cotacao_equipamento.nota_fiscal_valor, cotacao_seguro_viagem.nota_fiscal_valor)) nota_fiscal_valor, ', FALSE);
+        $this->_database->select('IFNULL(cotacao_generico.premio_liquido_total, IFNULL(cotacao_equipamento.premio_liquido_total, cotacao_seguro_viagem.premio_liquido_total)) premio_liquido_total, ', FALSE);
+
+        $this->_database->join('cotacao_generico', 'cotacao.cotacao_id = cotacao_generico.cotacao_id', 'left');
+        $this->_database->join('cotacao_equipamento', 'cotacao.cotacao_id = cotacao_equipamento.cotacao_id', 'left');
+        $this->_database->join('cotacao_seguro_viagem', 'cotacao.cotacao_id = cotacao_seguro_viagem.cotacao_id', 'left');
+        return $this;
     }
 
 }
