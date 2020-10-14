@@ -627,6 +627,7 @@ Class Cotacao_Model extends MY_Model
         $this->_database->select('IFNULL(cotacao_generico.imei, IFNULL(cotacao_equipamento.imei, cotacao_seguro_viagem.imei)) imei, ', FALSE);
         $this->_database->select('IFNULL(cotacao_generico.nota_fiscal_valor, IFNULL(cotacao_equipamento.nota_fiscal_valor, cotacao_seguro_viagem.nota_fiscal_valor)) nota_fiscal_valor, ', FALSE);
         $this->_database->select('IFNULL(cotacao_generico.premio_liquido_total, IFNULL(cotacao_equipamento.premio_liquido_total, cotacao_seguro_viagem.premio_liquido_total)) premio_liquido_total, ', FALSE);
+        $this->_database->select('IFNULL(cotacao_generico.produto_parceiro_plano_id, IFNULL(cotacao_equipamento.produto_parceiro_plano_id, cotacao_seguro_viagem.produto_parceiro_plano_id)) produto_parceiro_plano_id, ', FALSE);
 
         $this->_database->join('cotacao_generico', 'cotacao.cotacao_id = cotacao_generico.cotacao_id', 'left');
         $this->_database->join('cotacao_equipamento', 'cotacao.cotacao_id = cotacao_equipamento.cotacao_id', 'left');
