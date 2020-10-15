@@ -56,7 +56,7 @@ Class Integracao_Log_Model extends MY_Model
                                             where integracao_log.integracao_id = $integracao_id
                                               and integracao_log.integracao_log_id in (select max(integracao_log_id) from integracao_log where integracao_log.integracao_id = $integracao_id and integracao_log.deletado = 0)
                                 ")->result_array();
-        $result = (int)$result[0]['seq'] + 1;        
+        $result = (int)$result[0]['seq'] + 1;
         return $result;
     }
 
@@ -64,6 +64,25 @@ Class Integracao_Log_Model extends MY_Model
     {
         $this->_database->where("integracao_log.integracao_id", $integracao_id);
         return $this;
+    }
+
+    function get_file_by_apolice_sequencia($num_apolice, $sequencia)
+    {
+        $result = $this->_database->query("SELECT l.* 
+            FROM integracao i 
+            JOIN integracao_log l ON i.integracao_id = l.integracao_id AND l.deletado = 0 
+            WHERE i.cod_tpa IN(
+                SELECT produto_parceiro.cod_tpa 
+                FROM pedido
+                INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id AND apolice.deletado = 0 AND apolice.num_apolice = '$num_apolice'
+                INNER JOIN cotacao ON cotacao.cotacao_id = pedido.cotacao_id AND cotacao.deletado = 0
+                INNER JOIN produto_parceiro ON produto_parceiro.produto_parceiro_id = cotacao.produto_parceiro_id
+                WHERE pedido.deletado = 0
+            ) 
+            AND i.tipo = 'S'
+            AND l.sequencia = $sequencia
+        ")->result_array();
+        return emptyor($result[0], []);
     }
 
     function filter_by_file($file)

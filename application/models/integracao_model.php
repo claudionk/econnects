@@ -1167,6 +1167,7 @@ Class Integracao_Model extends MY_Model
             $trim = true;
             $pre_result = '';
             $qnt_valor_padrao = $item['tamanho'];
+            $upCase = $item['str_upper'];
 
             if(strlen($item['valor_padrao']) > 0 && $item['qnt_valor_padrao'] > 0){
                 $campo = '';
@@ -1644,7 +1645,7 @@ Class Integracao_Model extends MY_Model
                       , ild.alteracao = NOW()
                       , ild.retorno = '{$mensagem_registro}'  
         ";
-        $query = $this->_database->query($sql);  
+        $query = $this->_database->query($sql);
         //Altera a Log para cada registro processado, uma vez que o nome do arquivo não é mais chave única
         $sql = "SELECT CASE WHEN  REJEITADO = 1 THEN 5
                             WHEN  PENDENTE  = 1 THEN 3
@@ -1677,6 +1678,34 @@ Class Integracao_Model extends MY_Model
         }
         return true;
     }
+
+    function update_log_detalhe_mapfre_b2w($num_apolice, $apolice_status_id, $slug, $status_carga, $status_reenvio = null, $codigo_erro = null)
+    {
+        $sql = "SELECT dd.integracao_log_detalhe_dados_id
+            FROM integracao_log_detalhe_dados dd 
+            JOIN integracao_log_detalhe d ON dd.integracao_log_detalhe_id = d.integracao_log_detalhe_id AND d.deletado = 0
+            JOIN integracao_log l ON d.integracao_log_id = l.integracao_log_id AND l.deletado = 0
+            JOIN integracao i ON l.integracao_id = i.integracao_id AND i.deletado = 0
+            WHERE dd.num_apolice = '$num_apolice' AND dd.tipo_transacao = '$apolice_status_id'
+            AND dd.deletado = 0 AND i.slug = '{$slug}' 
+            ORDER BY l.processamento_fim DESC
+            LIMIT 1";
+            print_pre($sql, false);
+        $query = $this->_database->query($sql);
+        $row = $query->row_array();
+        $integracao_log_detalhe_dados_id = $row['integracao_log_detalhe_dados_id'];
+        if ($integracao_log_detalhe_dados_id > 0){
+            $sql = "
+                UPDATE integracao_log_detalhe_dados
+                SET status_carga = '{$status_carga}', status_reenvio = '{$status_reenvio}', codigo_erro = '{$codigo_erro}', alteracao = NOW()
+                WHERE integracao_log_detalhe_dados_id = {$integracao_log_detalhe_dados_id}
+            ";
+            $query = $this->_database->query($sql);
+        }
+
+        return true;
+    }
+
 }
 
 ob_end_flush();
