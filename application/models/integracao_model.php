@@ -1161,6 +1161,7 @@ Class Integracao_Model extends MY_Model
             $trim = true;
             $pre_result = '';
             $qnt_valor_padrao = $item['tamanho'];
+            $tamanho_dinamico = $item['tamanho_dinamico'];
             $upCase = $item['str_upper'];
 
             if(strlen($item['valor_padrao']) > 0 && $item['qnt_valor_padrao'] > 0){
@@ -1229,13 +1230,17 @@ Class Integracao_Model extends MY_Model
 
             if (!is_null($campo))
             {
+                $rValue = trataRetorno($campo, $upCase, $trim);
         		if($this->tipo_layout=="CSV")
         		{
-                    $pre_result = trataRetorno($campo, $upCase, $trim);
+                    $pre_result = $rValue;
         		}
         		else
         		{
-                    $pre_result .= mb_str_pad(trataRetorno($campo, $upCase, $trim), $qnt_valor_padrao, isvazio($item['valor_padrao'],' '), $item['str_pad']);
+                    if ( !empty($tamanho_dinamico) )
+                        $qnt_valor_padrao = strlen($rValue);
+
+                    $pre_result .= mb_str_pad($rValue, $qnt_valor_padrao, isvazio($item['valor_padrao'],' '), $item['str_pad']);
         		}
             }
 
