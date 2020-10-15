@@ -4327,3 +4327,25 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
         }
     }
 }
+if ( ! function_exists('app_integracao_format_date_s')) {
+    function app_integracao_format_date_s($formato, $dados = array())
+    {
+        $a = explode("|", $formato);
+        $date = preg_replace("/[^0-9]/", "", $dados['registro'][$dados['item']['nome_banco']]);
+        if( isset( $date ) && !empty(trim($date)) && preg_replace('/\D/', '', $date) != '00000000' ){
+            $datecff = date_create_from_format( $a[0], $date );
+            if ($datecff) $date = $datecff->format($a[1]);
+        }
+
+        return $date;
+    }
+
+}
+
+if ( ! function_exists('app_integracao_format_file_name_b2w_ret'))
+{
+    function app_integracao_format_file_name_b2w_ret($formato, $dados = array())
+    {
+        return emptyor($dados['registro'][0]['nome_arquivo'], '');
+    }
+}
