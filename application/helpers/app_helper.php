@@ -1908,7 +1908,7 @@ if ( ! function_exists('trataRetorno'))
         }
 
         $txt = app_remove_especial_caracteres($txt);
-        $txt = preg_replace("/[^ |A-Z|a-z|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
+        $txt = preg_replace("/[^ |A-Z|a-z|@|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
         if ($replaceEspaco)
         {
             $txt = preg_replace("/\s{2,3000}/", " ", $txt);

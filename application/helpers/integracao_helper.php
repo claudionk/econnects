@@ -360,7 +360,7 @@ if ( ! function_exists('app_integracao_format_date_r')) {
         $a = explode("|", $formato);
         $date = preg_replace("/[^0-9]/", "", $dados['valor']);
         if( isset( $date ) && !empty(trim($date)) && preg_replace('/\D/', '', $date) != '00000000' ){
-            $datecff = date_create_from_format( $a[0], $dados['valor'] );
+            $datecff = date_create_from_format( $a[0], $date );
             if ($datecff) $date = $datecff->format($a[1]);
         }
 
@@ -4078,6 +4078,7 @@ if ( ! function_exists('app_integracao_b2w')) {
             $geraDados['data_inicio_vigencia']      = $reg['data_inicio_vigencia'];
             $geraDados['data_fim_vigencia']         = $reg['data_fim_vigencia'];
             $geraDados['ean']                       = $reg['ean'];
+            $geraDados['imei']                      = $reg['imei'];
             $geraDados['nota_fiscal_valor']         = $reg['nota_fiscal_valor'];
             $geraDados['cod_cancelamento']          = $reg['cod_cancelamento'];
             $geraDados['data_cancelamento']         = $reg['data_cancelamento'];
@@ -4098,8 +4099,9 @@ if ( ! function_exists('app_integracao_b2w')) {
             $geraDados['numero_seq_lote']           = $reg['numero_seq_lote'];
             $geraDados['arquivo_data']              = $reg['arquivo_data'];
             $geraDados['arquivo_hora']              = $reg['arquivo_hora'];
+            $geraDados['total_registros']           = $reg['total_registros'];
             //$geraDados['versao_layout']             = $reg['versao_layout'];
-            $geraDados['id_departamento_categoria']    = $reg['id_departamento_categoria'];
+            $geraDados['id_departamento_categoria'] = $reg['id_departamento_categoria'];
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
@@ -4229,5 +4231,99 @@ if ( ! function_exists('app_integracao_b2w_define_operacao')) {
         $result->parceiro = $acesso->parceiro;
         $result->status = true;
         return $result;
+    }
+}
+if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
+{
+    function app_integracao_retorno_mapfre_rf($formato, $dados = array())
+    {
+        $sinistro = false;
+        $pagnet = false; // Ainda não tem um padrão de retorno definido. Desenvolver esta funcionalidade após concluir este desenvolvimento do pagnet
+        $response = (object) ['status' => false, 'msg' => [], 'coderr' => [] ]; 
+
+        if (!isset($dados['log']['nome_arquivo']) || empty($dados['log']['nome_arquivo'])) {
+            $response->msg[] = ['id' => 12, 'msg' => 'Nome do Arquivo inválido', 'slug' => "erro_interno"];
+            return $response;
+        }
+
+        //Remove os caracteres não imprimíveis
+        $dados['registro']['descricao_erro'] = preg_replace( '/[^[:print:]\r\n]/', '?',$dados['registro']['descricao_erro']);
+        $data_processado    = date('d/m/Y', strtotime($dados['registro']['data_processado']));
+        $mensagem_registro  = $dados['registro']['descricao_erro'];
+        $num_apolice        = $dados['registro']['id_log'];
+        $apolice_status_id  = 1;
+        $chave              = $num_apolice . "|". $apolice_status_id;
+        $sequencia_arquivo  = $dados['registro']['sequencia_arquivo'];
+
+        if (empty($chave))
+        {
+            $response->msg[] = ['id' => 12, 'msg' => 'Chave não identificada', 'slug' => "erro_interno"];
+            return $response;
+        }
+
+        $CI =& get_instance();
+        $CI->load->model('integracao_model');
+        $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
+        $CI->load->model('integracao_log_model', 'log');
+
+        //A - Acatado com sucesso (id=[4]), R - Rejeitado (Erro => id=[5]) ou P - Pendente (id=[3])
+        if (!empty($dados['registro']['status']))
+        {
+            // Retorna o codigo e descrição do status de retorno do arquivo 
+            $response->coderr = $dados['registro']['cod_erro']; 
+            if ( !empty($mensagem_registro) )
+            {
+                $response->msg[] = ['id' => 12, 'msg' => $mensagem_registro, 'slug' => "erro_retorno"];
+            }
+
+            $dadosFile = $CI->log->get_file_by_apolice_sequencia($num_apolice, $sequencia_arquivo);
+            if ( empty($dadosFile) )
+            {
+                $response->msg[] = ['id' => 12, 'msg' => 'Arquivo de Remessa não identificado', 'slug' => "erro_retorno"];
+                return $response;
+            }
+
+            $file_registro = $dadosFile['nome_arquivo'];
+
+            if($dados['registro']['status'] == 'A')
+            {
+                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '4', '', $sinistro, $pagnet);
+                $CI->integracao_model->update_log_detalhe_mapfre_b2w($num_apolice, $apolice_status_id, 'b2w-proc-vendas', 'AC', '', '');
+
+                $response->status = true;
+                return $response;
+            }elseif($dados['registro']['status'] == 'R')
+            {
+                // DE x PARA de erros
+                $criticas_B2W = [
+                    [ 'cod' => '021', 'desc' => 'CPF/CNPJ Inválido', 'cod_para' => '28'],
+                    [ 'cod' => '000', 'desc' => 'CEP Invalido', 'cod_para' => '25'],
+                    [ 'cod' => '089', 'desc' => 'Nome Segurado vazio.', 'cod_para' => '12'],
+                    [ 'cod' => '000', 'desc' => 'SOBRENOME DO BENEFICIARIO (APE1_TERCERO) NAO PODE SER NULO', 'cod_para' => '12'],
+                    [ 'cod' => '063', 'desc' => 'Código de operação invalida.', 'cod_para' => '39'],
+                    [ 'cod' => '002', 'desc' => 'Cliente já cadastrado com esse número de matricula.', 'cod_para' => '72'],
+                    [ 'cod' => '002', 'desc' => 'Número de Contrato já enviado em remessas anteriores, causando duplicidade de contrato..', 'cod_para' => '72'],
+                ];
+
+                $status_reenvio = '000';
+                $idxH = app_search($criticas_B2W, $mensagem_registro, 'desc');
+                if ( $idxH >= 0 )
+                {
+                    $status_reenvio = $criticas_B2W[$idxH]['cod_para'];
+                }
+
+                $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '5', $mensagem_registro, $sinistro, $pagnet);
+                $CI->integracao_model->update_log_detalhe_mapfre_b2w($num_apolice, $apolice_status_id, 'b2w-proc-vendas', 'DV', $status_reenvio, $status_reenvio);
+
+                return $response;
+            }else{
+                $response->msg[] = ['id' => 12, 'msg' => 'Status não identificado'];
+                return $response;
+            }
+            return true;
+        }else{
+            $response->msg[] = ['id' => 12, 'msg' => 'Registro sem status definido'];
+            return $response;
+        }
     }
 }
