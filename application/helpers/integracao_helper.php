@@ -4250,10 +4250,24 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
         $dados['registro']['descricao_erro'] = preg_replace( '/[^[:print:]\r\n]/', '?',$dados['registro']['descricao_erro']);
         $data_processado    = date('d/m/Y', strtotime($dados['registro']['data_processado']));
         $mensagem_registro  = $dados['registro']['descricao_erro'];
-        $num_apolice        = $dados['registro']['id_log'];
-        $apolice_status_id  = 1;
+        $num_apolice        = $dados['registro']['num_apolice'];
+        $apolice_status_id  = emptyor($dados['registro']['apolice_status_id'], 1);
         $chave              = $num_apolice . "|". $apolice_status_id;
         $sequencia_arquivo  = $dados['registro']['sequencia_arquivo'];
+        $status             = $dados['registro']['status'];
+
+        $CI =& get_instance();
+        $CI->load->model('integracao_model');
+        $CI->load->model('integracao_log_model', 'log');
+        $CI->load->model('integracao_log_detalhe_model', 'log_det');
+        $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
+
+        if ( empty($num_apolice) || empty($status) )
+        {
+            $CI->log_det->deleteLogDetalhe($formato);
+            $response->status = true;
+            return $response;
+        }
 
         if (empty($chave))
         {
@@ -4261,13 +4275,8 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
             return $response;
         }
 
-        $CI =& get_instance();
-        $CI->load->model('integracao_model');
-        $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
-        $CI->load->model('integracao_log_model', 'log');
-
         //A - Acatado com sucesso (id=[4]), R - Rejeitado (Erro => id=[5]) ou P - Pendente (id=[3])
-        if (!empty($dados['registro']['status']))
+        if (!empty($status))
         {
             // Retorna o codigo e descrição do status de retorno do arquivo 
             $response->coderr = $dados['registro']['cod_erro']; 
@@ -4285,24 +4294,22 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
 
             $file_registro = $dadosFile['nome_arquivo'];
 
-            if($dados['registro']['status'] == 'A')
+            if($status == 'A')
             {
                 $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '4', '', $sinistro, $pagnet);
                 $CI->integracao_model->update_log_detalhe_mapfre_b2w($num_apolice, $apolice_status_id, 'b2w-proc-vendas', 'AC', '', '');
 
                 $response->status = true;
                 return $response;
-            }elseif($dados['registro']['status'] == 'R')
+            }elseif($status == 'R')
             {
                 // DE x PARA de erros
                 $criticas_B2W = [
-                    [ 'cod' => '021', 'desc' => 'CPF/CNPJ Inválido', 'cod_para' => '28'],
-                    [ 'cod' => '000', 'desc' => 'CEP Invalido', 'cod_para' => '25'],
-                    [ 'cod' => '089', 'desc' => 'Nome Segurado vazio.', 'cod_para' => '12'],
-                    [ 'cod' => '000', 'desc' => 'SOBRENOME DO BENEFICIARIO (APE1_TERCERO) NAO PODE SER NULO', 'cod_para' => '12'],
-                    [ 'cod' => '063', 'desc' => 'Código de operação invalida.', 'cod_para' => '39'],
-                    [ 'cod' => '002', 'desc' => 'Cliente já cadastrado com esse número de matricula.', 'cod_para' => '72'],
-                    [ 'cod' => '002', 'desc' => 'Número de Contrato já enviado em remessas anteriores, causando duplicidade de contrato..', 'cod_para' => '72'],
+                    [ 'desc' => 'SOBRENOME DO BENEFICIARIO (APE1_TERCERO) NAO PODE SER NULO', 'cod_para' => '89'],
+                    [ 'desc' => 'N?MERO DO DOCUMENTO INV?LIDO', 'cod_para' => '21' ], 
+                    [ 'desc' => 'insert NULL into ("TRON2000"."B2009005_VCR"."COD_ESTADO")ORA-06512: at', 'cod_para' => '25' ], 
+                    [ 'desc' => 'Erro carga Tronweb', 'cod_para' => '63' ], 
+                    [ 'desc' => 'Apolice j? emitida (5486XXXXXXXXX)', 'cod_para' => '02' ], 
                 ];
 
                 $status_reenvio = '000';

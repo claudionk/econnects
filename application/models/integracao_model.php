@@ -1689,7 +1689,6 @@ Class Integracao_Model extends MY_Model
             AND dd.deletado = 0 AND i.slug = '{$slug}' 
             ORDER BY l.processamento_fim DESC
             LIMIT 1";
-            print_pre($sql, false);
         $query = $this->_database->query($sql);
         $row = $query->row_array();
         $integracao_log_detalhe_dados_id = $row['integracao_log_detalhe_dados_id'];
