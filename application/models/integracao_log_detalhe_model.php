@@ -76,4 +76,9 @@ Class Integracao_Log_Detalhe_Model extends MY_Model
         return ($process) ? $process : array();
     }
 
+    function deleteLogDetalhe($integracao_log_detalhe_id){
+        $this->update($integracao_log_detalhe_id, ['deletado' => 1, 'alteracao' => date('Y-m-d H:i:s')], TRUE);
+        return true;
+    }
+
 }
