@@ -4348,11 +4348,17 @@ if ( ! function_exists('app_integracao_format_date_s')) {
     }
 
 }
-
 if ( ! function_exists('app_integracao_format_file_name_b2w_ret'))
 {
     function app_integracao_format_file_name_b2w_ret($formato, $dados = array())
     {
         return emptyor($dados['registro'][0]['nome_arquivo'], '');
     }
+}
+if ( ! function_exists('app_integracao_format_capitalize')) {
+    function app_integracao_format_capitalize($formato, $dados = array())
+    {
+        return ucwords(strtolower($dados['registro'][$dados['item']['nome_banco']]));
+    }
+
 }
