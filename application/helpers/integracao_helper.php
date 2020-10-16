@@ -4358,7 +4358,7 @@ if ( ! function_exists('app_integracao_format_file_name_b2w_ret'))
 if ( ! function_exists('app_integracao_format_capitalize')) {
     function app_integracao_format_capitalize($formato, $dados = array())
     {
-        return ucwords(strtolower($dados['registro'][$dados['item']['nome_banco']]));
+        return ucwords(strtolower(app_remove_especial_caracteres($dados['registro'][$dados['item']['nome_banco']])));
     }
 
 }
