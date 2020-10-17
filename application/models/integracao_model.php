@@ -338,8 +338,7 @@ Class Integracao_Model extends MY_Model
                 $file = $this->getFileName($result, $layout_filename);
             }
 
-            //$result_file = $this->getFile($result, $file);
-            $result_file["file"] = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/324/E/GE00021984-envio.txt";
+            $result_file = $this->getFile($result, $file);
             $result_process = [];
             if ( !empty($result_file['file']) )
             {
