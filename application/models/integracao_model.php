@@ -338,7 +338,8 @@ Class Integracao_Model extends MY_Model
                 $file = $this->getFileName($result, $layout_filename);
             }
 
-            $result_file = $this->getFile($result, $file);
+            //$result_file = $this->getFile($result, $file);
+            $result_file["file"] = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/324/E/GE00021984-envio.txt";
             $result_process = [];
             if ( !empty($result_file['file']) )
             {
@@ -880,7 +881,7 @@ Class Integracao_Model extends MY_Model
         return $arRet;
     }
 
-    private function processFileIntegracao($integracao = array(), $file){
+    private function processFileIntegracao($integracao = array(), $file){        
         $this->load->model('integracao_log_model', 'integracao_log');
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
         $this->load->model('integracao_layout_model', 'integracao_layout');
