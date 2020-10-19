@@ -4026,6 +4026,7 @@ if ( ! function_exists('app_integracao_b2w')) {
         $CI->session->set_userdata("operacao", "b2w");
         $reg = $dados['registro'];
 
+        $integracao_log_detalhe_dados_id = 0;
         if (!empty($formato)) 
         {
             $geraDados['tipo_produto']              = $reg['tipo_produto'];
@@ -4106,7 +4107,7 @@ if ( ! function_exists('app_integracao_b2w')) {
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
-            $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
+            $integracao_log_detalhe_dados_id = $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
         }
 
         // definir operação pelo nome do arquivo ou por integracao?
@@ -4131,9 +4132,21 @@ if ( ! function_exists('app_integracao_b2w')) {
         // validações iniciais
         $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, true, $acesso);
         if ( $valid->status !== true ) {
-            //B2W deve continuar mesmo que não esteja valido
-            //$response = $valid;
-            //return $response;
+            $aCodError = [
+                2   => "021",
+                16  => "002",
+                8   => "007",
+                17  => "061"
+            ];
+            if(isset($aCodError[$valid->id])){
+                $codError = $aCodError[$valid->id];
+                if($integracao_log_detalhe_dados_id > 0){
+                    $CI->load->model("integracao_model", "integracao");
+                    $CI->integracao->executeUpdate_update_log_detalhe_mapfre_b2w("DV", $codError, $codError, $integracao_log_detalhe_dados_id);
+                }
+                $response = $valid;
+                return $response;
+            }
         }
 
         // Campos para cotação
