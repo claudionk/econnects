@@ -4110,7 +4110,7 @@ if ( ! function_exists('app_integracao_b2w')) {
         }
 
         // definir operação pelo nome do arquivo ou por integracao?
-        $acesso = app_integracao_b2w_define_operacao($reg);
+        $acesso = app_integracao_b2w_define_operacao($dados["log"]["nome_arquivo"], $reg);
         if ( empty($acesso->status) ) {
             $response->status = 2;
             $response->msg[] = $acesso->msg;
@@ -4186,25 +4186,45 @@ if ( ! function_exists('app_integracao_b2w')) {
 
 
 if ( ! function_exists('app_integracao_b2w_define_operacao')) {
-    function app_integracao_b2w_define_operacao($inputData)
+    function app_integracao_b2w_define_operacao($nomeArquivo, $inputData)
     {
+
+        $aNomeArquivo   = str_split($nomeArquivo);
+        $siglaDoServico = $aNomeArquivo[0].$aNomeArquivo[1]; //Códgo da cobertura (ex: GE[Garantia Extendida]; RF[Roubo e Furto])
+        $seguradora     = $aNomeArquivo[2].$aNomeArquivo[3]; //Código da seguradora (ex: MP[Mapfre])
+        $fluxoDeCompra  = $aNomeArquivo[4].$aNomeArquivo[5]; //10: Fluxo; 00: Avulso
+        $codigoDaMarca  = $aNomeArquivo[6].$aNomeArquivo[7]; //01: Shoptime; 02: Americanas; 03: Submarino; 07 Soubarato
+
+        $aParceiro = [
+            "01" => ["parceiro_id" => 149, "email" => "b2w.americanas@neconnect.com.br"],
+            "02" => ["parceiro_id" => 150, "email" => "b2w.shoptime@neconnect.com.br"],
+            "03" => ["parceiro_id" => 151, "email" => "b2w.submarino@neconnect.com.br"],
+            "08" => ["parceiro_id" => 152, "email" => "b2w.soubarato@neconnect.com.br"]
+        ];
+
+        $parceiro    = $aParceiro[$codigoDaMarca];
+        $parceiro_id = $parceiro["parceiro_id"];
+        $email       = $parceiro["email"];
+
         $produto = $inputData["tipo_produto"];
         $idDepartamentoCategoria = $inputData["id_departamento_categoria"];
         
-        if($produto == 1 || $produto == "01" || $produto == "1"){
-            if($idDepartamentoCategoria == 481 || $idDepartamentoCategoria == "481"){
+        if ($produto == 1 || $produto == "01" || $produto == "1") {
+
+            if ($idDepartamentoCategoria == 481 || $idDepartamentoCategoria == "481") {
                 $produto_parceiro_id = 128;
                 $produto_parceiro_plano_id = 192;
-            }else{
+            } else {
                 $produto_parceiro_id = 127;
                 $produto_parceiro_plano_id = 193;
             }
-        }else if ($produto == 2 || $produto == "02" || $produto == "2") {
+
+        } else if ($produto == 2 || $produto == "02" || $produto == "2") {
             
-            if($idDepartamentoCategoria == 6 || $idDepartamentoCategoria == "006" || $idDepartamentoCategoria == "6"){
+            if ($idDepartamentoCategoria == 6 || $idDepartamentoCategoria == "006" || $idDepartamentoCategoria == "6") {
                 $produto_parceiro_id = 126;
                 $produto_parceiro_plano_id = 191;
-            }else{
+            } else {
                 $produto_parceiro_id = 125;
                 $produto_parceiro_plano_id = 190;
             }
@@ -4214,11 +4234,10 @@ if ( ! function_exists('app_integracao_b2w_define_operacao')) {
         $result = (object) ['status' => false, 'msg' => []];
 
         $result->produto = $produto;
-        $result->parceiro_id = 147;
+        $result->parceiro_id = $parceiro_id;
         $result->produto_parceiro_id = $produto_parceiro_id;
         $result->produto_parceiro_plano_id = $produto_parceiro_plano_id;
-        $result->email = "b2w@neconnect.com.br";
-
+        $result->email = $email;
       
         // Dados para definição do parceiro, produto e plano
         $acesso = app_integracao_generali_dados([
