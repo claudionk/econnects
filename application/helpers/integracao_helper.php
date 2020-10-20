@@ -4138,14 +4138,15 @@ if ( ! function_exists('app_integracao_b2w')) {
                 8   => "007",
                 17  => "061"
             ];
-            if(isset($aCodError[$valid->id])){
-                $codError = $aCodError[$valid->id];
+
+            $returnValid = $valid->msg[0];
+            if(isset($aCodError[$returnValid['id']])){
+                $codError = $aCodError[$returnValid['id']];
                 if($integracao_log_detalhe_dados_id > 0){
                     $CI->load->model("integracao_model", "integracao");
                     $CI->integracao->executeUpdate_update_log_detalhe_mapfre_b2w("DV", $codError, $codError, $integracao_log_detalhe_dados_id);
                 }
-                $response = $valid;
-                return $response;
+                return $valid;
             }
         }
 
@@ -4209,10 +4210,10 @@ if ( ! function_exists('app_integracao_b2w_define_operacao')) {
         $codigoDaMarca  = $aNomeArquivo[6].$aNomeArquivo[7]; //01: Shoptime; 02: Americanas; 03: Submarino; 07 Soubarato
 
         $aParceiro = [
-            "01" => ["parceiro_id" => 149, "email" => "b2w.americanas@neconnect.com.br"],
-            "02" => ["parceiro_id" => 150, "email" => "b2w.shoptime@neconnect.com.br"],
+            "01" => ["parceiro_id" => 150, "email" => "b2w.shoptime@neconnect.com.br"],
+            "02" => ["parceiro_id" => 149, "email" => "b2w.americanas@neconnect.com.br"],
             "03" => ["parceiro_id" => 151, "email" => "b2w.submarino@neconnect.com.br"],
-            "08" => ["parceiro_id" => 152, "email" => "b2w.soubarato@neconnect.com.br"]
+            "07" => ["parceiro_id" => 152, "email" => "b2w.soubarato@neconnect.com.br"]
         ];
 
         $parceiro    = $aParceiro[$codigoDaMarca];
