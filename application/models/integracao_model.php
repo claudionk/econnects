@@ -1703,7 +1703,7 @@ Class Integracao_Model extends MY_Model
         $sql = "
         UPDATE integracao_log_detalhe_dados
         SET status_carga = '{$status_carga}', status_reenvio = '{$status_reenvio}', codigo_erro = '{$codigo_erro}', alteracao = NOW()
-        WHERE integracao_log_detalhe_dados_id = {$integracao_log_detalhe_dados_id} AND status_carga <> ''
+        WHERE integracao_log_detalhe_dados_id = {$integracao_log_detalhe_dados_id} AND status_carga = ''
     ";
         $query = $this->_database->query($sql);
     }
