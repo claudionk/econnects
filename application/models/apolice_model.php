@@ -475,7 +475,7 @@ class Apolice_Model extends MY_Model
             if (isset($cliente_contato) && isset($pedido['produto_parceiro_id'])) {
 
                 log_message('debug', 'APOLICE 5');
-                $evento['destinatario_email']    = isset($cliente_contato['email']) ? $cliente_contato['email'] : '';
+                $evento['destinatario_email']    = !emptyor($cliente_contato['email'], emptyor($cotacao_salvas[0]['email'], ''));
                 $evento['produto_parceiro_id']   = $pedido['produto_parceiro_id'];
                 $evento['mensagem']['nome']      = isset($cliente_contato['nome']) ? $cliente_contato['nome'] : '';
                 $evento['destinatario_telefone'] = isset($cliente_contato['celular']) ? $cliente_contato['celular'] : '';
@@ -483,7 +483,6 @@ class Apolice_Model extends MY_Model
                 /**
                  * Dispara email
                  */
-
                 log_message('debug', 'APOLICE DISPARO EMAIL');
                 if (!empty($evento['destinatario_email'])) {
                     $comunicacaoEvento = $this->comunicacao_evento
@@ -1850,7 +1849,7 @@ class Apolice_Model extends MY_Model
             }
         }
 
-        if (($export == 'pdf') || ($export == 'pdf_file')) {
+        if ( !empty($template) && ($export == 'pdf' || $export == 'pdf_file') ) {
             $this->custom_loader->library('pdf');
             $this->pdf->setPageOrientation('P');
             $this->pdf->AddPage();
@@ -1904,7 +1903,7 @@ class Apolice_Model extends MY_Model
             }
         }
 
-        if (($export == 'pdf') || ($export == 'pdf_file')) {
+        if ( !empty($template) && ($export == 'pdf' || $export == 'pdf_file') ) {
             $this->custom_loader->library('pdf');
             $this->pdf->setPageOrientation('P');
             $this->pdf->AddPage();
@@ -1958,7 +1957,7 @@ class Apolice_Model extends MY_Model
             }
         }
 
-        if (($export == 'pdf') || ($export == 'pdf_file')) {
+        if ( !empty($template) && ($export == 'pdf' || $export == 'pdf_file') ) {
             $this->custom_loader->library('pdf');
             $this->pdf->setPageOrientation('P');
             $this->pdf->AddPage();
