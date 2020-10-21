@@ -828,7 +828,7 @@ class Pagamento extends CI_Controller
             }
 
             if ($pedido_id == 0 || $pedido_id == "") {
-                $result = $this->db->query("SELECT * FROM pedido WHERE cotacao_id=$cotacao_id")->result_array();
+                $result = $this->db->query("SELECT * FROM pedido WHERE cotacao_id=$cotacao_id AND deletado=0")->result_array();
                 if (sizeof($result) > 0) {
                     die(
                         json_encode(
