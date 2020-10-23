@@ -472,7 +472,7 @@ class Apolice_Model extends MY_Model
             if (isset($cliente_contato) && isset($pedido['produto_parceiro_id'])) {
 
                 log_message('debug', 'APOLICE 5');
-                $evento['destinatario_email']    = !emptyor($cliente_contato['email'], emptyor($cotacao_salvas[0]['email'], ''));
+                $evento['destinatario_email']    = emptyor($cliente_contato['email'], emptyor($cotacao_salvas[0]['email'], ''));
                 $evento['produto_parceiro_id']   = $pedido['produto_parceiro_id'];
                 $evento['mensagem']['nome']      = isset($cliente_contato['nome']) ? $cliente_contato['nome'] : '';
                 $evento['destinatario_telefone'] = isset($cliente_contato['celular']) ? $cliente_contato['celular'] : '';
