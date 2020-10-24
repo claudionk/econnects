@@ -888,8 +888,9 @@ if ( ! function_exists('app_integracao_sequencia_mapfre_rf')) {
 }
 if ( ! function_exists('app_integracao_generali_dados')) {
 
-    function app_integracao_generali_dados($data = [])
+    function app_integracao_generali_dados($data = [], $chave_produto_parceiro_plano_id = null)
     {
+
         $operacao = app_get_userdata("operacao");
 
         if ( !empty($data) )
@@ -897,11 +898,26 @@ if ( ! function_exists('app_integracao_generali_dados')) {
             $dados = (object)$data;
 
         } elseif ( $operacao == 'lasa') {
+            if(empty($chave_produto_parceiro_plano_id)){
+                $produto_parceiro_plano_id = 49;
+            }
+            else{
+                if (in_array($chave_produto_parceiro_plano_id, array('ELCEL', 'CECEL'))) {
+                    $produto_parceiro_plano_id = 187;
+                }
+                elseif (in_array($chave_produto_parceiro_plano_id, array('ELTBT'))) {
+                    $produto_parceiro_plano_id = 188;
+                }
+                elseif (in_array($chave_produto_parceiro_plano_id,array('ELCPN'))) {
+                    $produto_parceiro_plano_id = 189;
+                }
+            }
+
             $dados = (object)[
                 "email" => "lasa@econnects.com.br",
                 "parceiro_id" => 30,
                 "produto_parceiro_id" => 57,
-                "produto_parceiro_plano_id" => 49,
+                "produto_parceiro_plano_id" => $produto_parceiro_plano_id ,
             ];
         } elseif ( $operacao == 'bidu') {
             $dados = (object)[
@@ -913,7 +929,6 @@ if ( ! function_exists('app_integracao_generali_dados')) {
                 "plano_slug" => 'nosso_plano_hapvida',
             ];
         }
-
         $CI =& get_instance();
         $CI->session->set_userdata("email", $dados->email); // importante setar o e-mail antes de recuperar a apikey
         $dados->apikey = app_get_token($dados->email);
@@ -1186,6 +1201,8 @@ if ( ! function_exists('app_integracao_rastrecall_sms')) {
 if ( ! function_exists('app_integracao_enriquecimento')) {
     function app_integracao_enriquecimento($formato, $dados = array())
     {
+        //print_r($dados['registro']);
+        //exit();
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
 
         $CI =& get_instance();
@@ -1280,7 +1297,9 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             }
         }
 
-        $acesso = app_integracao_generali_dados();
+        $chave_produto_parceiro_plano_id = substr($dados['registro']['plano_garantech'],0,5);
+
+        $acesso = app_integracao_generali_dados([],$chave_produto_parceiro_plano_id);
         $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
         $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
         $eanErro = true;
