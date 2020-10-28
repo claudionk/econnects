@@ -338,23 +338,29 @@ Class Integracao_Model extends MY_Model
                 $file = $this->getFileName($result, $layout_filename);
             }
 
-            $result_file = $this->getFile($result, $file);
-            $result_process = [];
-            if ( !empty($result_file['file']) )
-            {
-                $result_process = $this->processFileIntegracao($result, $result_file['file']);
+            //Array com os arquivos que precisam ser integrados (ainda não foram integrados)
+            $aResultFile = $this->getFile($result, $file);
+            foreach($aResultFile as $resultFile){
+
+                $result_process = [];
+
+                if ( !empty($resultFile['file']) ) {
+                    $result_process = $this->processFileIntegracao($result, $resultFile['file']);
+                }
+    
+                //execute after execute
+                if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
+                    call_user_func($result['after_execute'], null, array('item' => $result, 'registro' => $resultFile, 'log' => $result_process, 'valor' => null));
+                }
+    
             }
+
 
             $dados_integracao = array();
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
             $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');
             $dados_integracao['status'] = 'A';
             $this->update($result['integracao_id'], $dados_integracao, TRUE);
-
-            //execute after execute
-            if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
-                call_user_func($result['after_execute'], null, array('item' => $result, 'registro' => $result_file, 'log' => $result_process, 'valor' => null));
-            }
 
         }
 
@@ -560,12 +566,8 @@ Class Integracao_Model extends MY_Model
 
         $this->load->model('integracao_log_model', 'integracao_log');
 
-        $result = array(
-            'file' => '',
-            'fileget' => '',
-        );
+        $aOutput = array();
 
-        $file_processar = '';
         if($list) {
             foreach ($list as $index => $item) {
                 if ( strpos($item, ".") === FALSE )
@@ -589,29 +591,23 @@ Class Integracao_Model extends MY_Model
                     ->get_total();
 
                 if ((int)$total == 0) {
-                    $file_processar = $item;
-                    break;
+                    $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+                    if(!file_exists($diretorio)){
+                        mkdir($diretorio, 0777, true);
+                    }
+        
+                    $fileget = basename($item);
+                    if($obj->download($item, "{$diretorio}/{$fileget}", 'binary')){
+                        $aOutput[] = array(
+                            'file' => "{$diretorio}/{$fileget}",
+                            'fileget' => $fileget,
+                        );
+                    }
                 }
             }
         }
 
-        if(!empty($file_processar)){
-            $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
-            if(!file_exists($diretorio)){
-                mkdir($diretorio, 0777, true);
-            }
-
-            $fileget = basename($file_processar);
-            if($obj->download($file_processar, "{$diretorio}/{$fileget}", 'binary')){
-                $result = array(
-                    'file' => "{$diretorio}/{$fileget}",
-                    'fileget' => $fileget,
-                );
-            }
-
-        }
-
-        return $result;
+        return $aOutput;
     }
 
     private function sendFileFTP($integracao = array(), $file){
