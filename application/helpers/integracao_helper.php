@@ -4163,7 +4163,7 @@ if ( ! function_exists('app_integracao_b2w')) {
                 }else{
                     $equipamentoElegivelCategoria = $aEquipamentoElegivelCategoria;
                 }
-                $reg['modelo'] = $equipamentoElegivelCategoria["nome"];
+                $dados["registro"]['modelo'] = $equipamentoElegivelCategoria["nome"];
             }
             
 
