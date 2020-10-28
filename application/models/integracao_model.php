@@ -344,7 +344,7 @@ Class Integracao_Model extends MY_Model
 
                 $result_process = [];
 
-                if ( !empty($result_file['file']) ) {
+                if ( !empty($resultFile['file']) ) {
                     $result_process = $this->processFileIntegracao($result, $resultFile['file']);
                 }
     
