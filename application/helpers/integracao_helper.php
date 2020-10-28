@@ -4203,7 +4203,7 @@ if ( ! function_exists('app_integracao_b2w')) {
         //O nome deve ser completo, ou seja, devem haverer pelo menos dois nomes separados por espaço
         $mixedEnriqueceCPF = false;
         $aNome = explode(" ", $dados["registro"]['nome']);
-        if(sizeof($aNome) == 2){
+        if(sizeof($aNome) < 2){
             $mixedEnriqueceCPF = array("nome");
         }
 
