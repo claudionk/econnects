@@ -4204,6 +4204,7 @@ if ( ! function_exists('app_integracao_b2w')) {
         $mixedEnriqueceCPF = false;
         $aNome = explode(" ", $dados["registro"]['nome']);
         if(sizeof($aNome) < 2){
+            $dados["registro"]['nome'] = "";
             $mixedEnriqueceCPF = array("nome");
         }
 
