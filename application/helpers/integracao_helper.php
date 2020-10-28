@@ -1643,77 +1643,95 @@ if ( ! function_exists('app_integracao_valida_regras'))
             {
                 $enriquecido = app_get_api("enriqueceCPF/$cpf/". $dados['produto_parceiro_id'], 'GET', [], $acesso);
 
+                $aCampos_enriqueceCPF = (is_array($enriqueceCPF)) ? $enriqueceCPF : array (
+                    "nome", "sexo", "data_nascimento", "endereco", "contatos"
+                );
+
                 if (!empty($enriquecido['status'])){
+
                     $enriquecido = $enriquecido['response'];
 
-                    $dados['nome'] = emptyor($dados['nome'], $enriquecido->nome);
-                    $dados['sexo'] = emptyor($dados['sexo'], $enriquecido->sexo);
-                    $dados['data_nascimento'] = emptyor($dados['data_nascimento'], $enriquecido->data_nascimento);
-
-                    // Endereço
-                    $ExtraEnderecos = $enriquecido->endereco;
-                    if( sizeof( $ExtraEnderecos ) ) {
-                        $rank=1000;
-                        $index=0;
-
-                        foreach ($ExtraEnderecos as $end) {
-                            $rank = ($end->ranking <= $rank) ? $index : $rank;
-                            $index++;
-                        }
-
-                        $dados['endereco_logradouro'] = emptyor($dados['endereco_logradouro'], $ExtraEnderecos[$rank]->{"endereco"});
-                        $dados['endereco_numero'] = emptyor($dados['endereco_numero'], $ExtraEnderecos[$rank]->{"endereco_numero"});
-                        $dados['complemento'] = emptyor($dados['complemento'], $ExtraEnderecos[$rank]->{"endereco_complemento"});
-                        $dados['endereco_bairro'] = emptyor($dados['endereco_bairro'], $ExtraEnderecos[$rank]->{"endereco_bairro"});
-                        $dados['endereco_cidade'] = emptyor($dados['endereco_cidade'], $ExtraEnderecos[$rank]->{"endereco_cidade"});
-                        $dados['endereco_estado'] = emptyor($dados['endereco_estado'], $ExtraEnderecos[$rank]->{"endereco_uf"});
-                        $dados['endereco_cep'] = emptyor($dados['endereco_cep'], str_replace("-", "", $ExtraEnderecos[$rank]->{"endereco_cep"}));
-                        $dados['pais'] = "BRASIL";
+                    if(in_array("nome", $aCampos_enriqueceCPF)){
+                        $dados['nome'] = emptyor($dados['nome'], $enriquecido->nome);
                     }
 
-                    $ExtraContatos = $enriquecido->contato;
-                    if( sizeof( $ExtraContatos ) ) {
-                        $rankTel=$rankCel=$rankEmail=1000;
-                        $index=0;
+                    if(in_array("sexo", $aCampos_enriqueceCPF)){
+                        $dados['sexo'] = emptyor($dados['sexo'], $enriquecido->sexo);
+                    }
 
-                        // Valida o ranking
-                        foreach ($ExtraContatos as $cont) {
-                            switch ($cont->contato_tipo_id) {
-                                // Telefone Residencial
-                                case 3:
-                                    $rankTel = ($cont->ranking <= $rankTel) ? $index : $rankTel;
-                                    break;
-                                
-                                // Celular
-                                case 2:
-                                    $rankCel = ($cont->ranking <= $rankCel) ? $index : $rankCel;
-                                    break;
+                    if(in_array("data_nascimento", $aCampos_enriqueceCPF)){
+                        $dados['data_nascimento'] = emptyor($dados['data_nascimento'], $enriquecido->data_nascimento);
+                    }                    
 
-                                // Email
-                                case 1:
-                                    $rankEmail = ($cont->ranking <= $rankEmail) ? $index : $rankEmail;
-                                    break;
+                    if(in_array("endereco", $aCampos_enriqueceCPF)){
+                        // Endereço
+                        $ExtraEnderecos = $enriquecido->endereco;
+                        if( sizeof( $ExtraEnderecos ) ) {
+                            $rank=1000;
+                            $index=0;
+
+                            foreach ($ExtraEnderecos as $end) {
+                                $rank = ($end->ranking <= $rank) ? $index : $rank;
+                                $index++;
                             }
-                            $index++;
-                        }
 
-                        // Telefone Residencial
-                        if ($rankTel != 1000) {
-                            $dados['ddd_residencial'] = left($ExtraContatos[$rankTel]->contato,2);
-                            $dados['telefone_residencial'] = trim(right($ExtraContatos[$rankTel]->contato, strlen($ExtraContatos[$rankTel]->contato)-2));
-                            $dados['telefone'] = trim($ExtraContatos[$rankTel]->contato);
+                            $dados['endereco_logradouro'] = emptyor($dados['endereco_logradouro'], $ExtraEnderecos[$rank]->{"endereco"});
+                            $dados['endereco_numero'] = emptyor($dados['endereco_numero'], $ExtraEnderecos[$rank]->{"endereco_numero"});
+                            $dados['complemento'] = emptyor($dados['complemento'], $ExtraEnderecos[$rank]->{"endereco_complemento"});
+                            $dados['endereco_bairro'] = emptyor($dados['endereco_bairro'], $ExtraEnderecos[$rank]->{"endereco_bairro"});
+                            $dados['endereco_cidade'] = emptyor($dados['endereco_cidade'], $ExtraEnderecos[$rank]->{"endereco_cidade"});
+                            $dados['endereco_estado'] = emptyor($dados['endereco_estado'], $ExtraEnderecos[$rank]->{"endereco_uf"});
+                            $dados['endereco_cep'] = emptyor($dados['endereco_cep'], str_replace("-", "", $ExtraEnderecos[$rank]->{"endereco_cep"}));
+                            $dados['pais'] = "BRASIL";
                         }
-
-                        // Celular
-                        if ($rankCel != 1000) {
-                            $dados['ddd_celular'] = left($ExtraContatos[$rankCel]->contato,2);
-                            $dados['telefone_celular'] = trim(right($ExtraContatos[$rankCel]->contato, strlen($ExtraContatos[$rankCel]->contato)-2));
-                        }
-
-                        // Email
-                        if ($rankEmail != 1000)
-                            $dados['email'] = $ExtraContatos[$rankEmail]->contato;
                     }
+                    
+                    if(in_array("contatos", $aCampos_enriqueceCPF)){
+                        $ExtraContatos = $enriquecido->contato;
+                        if( sizeof( $ExtraContatos ) ) {
+                            $rankTel=$rankCel=$rankEmail=1000;
+                            $index=0;
+    
+                            // Valida o ranking
+                            foreach ($ExtraContatos as $cont) {
+                                switch ($cont->contato_tipo_id) {
+                                    // Telefone Residencial
+                                    case 3:
+                                        $rankTel = ($cont->ranking <= $rankTel) ? $index : $rankTel;
+                                        break;
+                                    
+                                    // Celular
+                                    case 2:
+                                        $rankCel = ($cont->ranking <= $rankCel) ? $index : $rankCel;
+                                        break;
+    
+                                    // Email
+                                    case 1:
+                                        $rankEmail = ($cont->ranking <= $rankEmail) ? $index : $rankEmail;
+                                        break;
+                                }
+                                $index++;
+                            }
+    
+                            // Telefone Residencial
+                            if ($rankTel != 1000) {
+                                $dados['ddd_residencial'] = left($ExtraContatos[$rankTel]->contato,2);
+                                $dados['telefone_residencial'] = trim(right($ExtraContatos[$rankTel]->contato, strlen($ExtraContatos[$rankTel]->contato)-2));
+                                $dados['telefone'] = trim($ExtraContatos[$rankTel]->contato);
+                            }
+    
+                            // Celular
+                            if ($rankCel != 1000) {
+                                $dados['ddd_celular'] = left($ExtraContatos[$rankCel]->contato,2);
+                                $dados['telefone_celular'] = trim(right($ExtraContatos[$rankCel]->contato, strlen($ExtraContatos[$rankCel]->contato)-2));
+                            }
+    
+                            // Email
+                            if ($rankEmail != 1000)
+                                $dados['email'] = $ExtraContatos[$rankEmail]->contato;
+                        }
+                    }
+                    
                 } // if (!empty($enriquecido['status']))
 
                 // Regras DE/PARA
@@ -4126,8 +4144,30 @@ if ( ! function_exists('app_integracao_b2w')) {
         $dados['registro']['produto_parceiro_id']       = $acesso->produto_parceiro_id;
         $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
         $dados['registro']['data_adesao']               = $dados['registro']['data_adesao_cancel'];
+        $dados["registro"]['nome']                      = preg_replace('/\s+/', " ", $dados["registro"]['nome']); //Remover espaços duplos (Regra para nome do segurado splicitada pela MAPFRE)
         $eanErro = true;
         $eanErroMsg = "";
+
+        if(empty($reg['modelo'])){
+            
+            $CI->load->model("equipamentos_elegiveis_categoria_model", "equipamentos_elegiveis_categoria");
+            
+            $integracaoFilter = new stdClass();
+            $integracaoFilter->lista_id = 4;
+            $integracaoFilter->codigo = $reg['id_departamento_categoria'];
+
+            $aEquipamentoElegivelCategoria = $CI->equipamentos_elegiveis_categoria->getIntegracao($integracaoFilter);
+            if(!empty($aEquipamentoElegivelCategoria)){
+                if(is_array($aEquipamentoElegivelCategoria)){
+                    $equipamentoElegivelCategoria = $aEquipamentoElegivelCategoria[0];
+                }else{
+                    $equipamentoElegivelCategoria = $aEquipamentoElegivelCategoria;
+                }
+                $reg['modelo'] = $equipamentoElegivelCategoria["nome"];
+            }
+            
+
+        }
 
         // validações iniciais
         $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, true, $acesso);
@@ -4159,8 +4199,16 @@ if ( ! function_exists('app_integracao_b2w')) {
 
         $camposCotacao = $camposCotacao['response'];
 
+        //Trecho que define se o nome do segurado será enriquecido pelo CPF no método 'app_integracao_valida_regras'
+        //O nome deve ser completo, ou seja, devem haverer pelo menos dois nomes separados por espaço
+        $mixedEnriqueceCPF = false;
+        $aNome = explode(" ", $dados["registro"]['nome']);
+        if(sizeof($aNome) == 2){
+            $mixedEnriqueceCPF = array("nome");
+        }
+
         // Validar Regras
-        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, false, $acesso);
+        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, $mixedEnriqueceCPF, $acesso);
         // echo "<pre>";print_r($validaRegra);echo "</pre>";die();
 
         if (!empty($validaRegra->status)) {
