@@ -161,7 +161,7 @@ class Comunicacao
             "from"         => $engine['servidor'],
         );
 
-        $anexos = explode("|", $mensagem['mensagem_anexo']);
+        $anexos = explode("|", trim($mensagem['mensagem_anexo'], "|"));
 
         //Cliente
         $client = new Services_Twilio($config['accountId'], $config['accountToken']);
@@ -356,7 +356,9 @@ class Comunicacao
         if (!empty($mensagem['mensagem_anexo'])) {
             $anexos = explode('|', $mensagem['mensagem_anexo']);
             foreach ($anexos as $anexo) {
-                $this->_ci->email->attach($anexo);
+                if(!empty($anexo)){
+                    $this->_ci->email->attach($anexo);
+                }                
             }
         }
 
@@ -406,7 +408,9 @@ class Comunicacao
         if (!empty($mensagem['mensagem_anexo'])) {
             $anexos = explode('|', $mensagem['mensagem_anexo']);
             foreach ($anexos as $anexo) {
-                $files[basename($anexo)] = file_get_contents($anexo);
+                if(!empty($anexo)){
+                    $files[basename($anexo)] = file_get_contents($anexo);
+                }                
             }
         }
         $email = array(
@@ -497,7 +501,10 @@ class Comunicacao
         if (!empty($mensagem['mensagem_anexo'])) {
             $anexos = explode('|', $mensagem['mensagem_anexo']);
             foreach ($anexos as $anexo) {
-                $this->_ci->email->attach($anexo);
+                if(!empty($anexo)){
+                    $this->_ci->email->attach($anexo);
+                }
+                
             }
         }
 
@@ -563,7 +570,7 @@ class Comunicacao
                 //print_r($paramentros);print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
                 $anexos = '';
                 if (isset($paramentros['anexos']) && is_array($paramentros['anexos'])) {
-                    $anexos = implode('|', $paramentros['anexos']);
+                    $anexos = trim(implode('|', $paramentros['anexos']), "|");
                 }
                 $dados = array(
                     'produto_parceiro_comunicacao_id' => $parceiro_comunicacao['produto_parceiro_comunicacao_id'],
