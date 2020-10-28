@@ -77,4 +77,17 @@ Class Equipamentos_Elegiveis_Categoria_Model extends MY_Model
         return $this;
     }
 
+    public function getIntegracao($filter){
+        $filter = (object) $filter;
+        $lista_id = $filter->lista_id;
+        $codigo = $filter->codigo;
+
+        $aEquipamentosElegiveisCategoria = $this->get_by([
+            "lista_id" => $lista_id,
+            "codigo" => $codigo
+        ]);
+
+        return $aEquipamentosElegiveisCategoria;
+    }
+
 }
