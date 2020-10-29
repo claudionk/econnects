@@ -1675,14 +1675,17 @@ if ( ! function_exists('app_integracao_valida_regras'))
                                 $index++;
                             }
 
-                            $dados['endereco_logradouro'] = emptyor($dados['endereco_logradouro'], $ExtraEnderecos[$rank]->{"endereco"});
-                            $dados['endereco_numero'] = emptyor($dados['endereco_numero'], $ExtraEnderecos[$rank]->{"endereco_numero"});
-                            $dados['complemento'] = emptyor($dados['complemento'], $ExtraEnderecos[$rank]->{"endereco_complemento"});
-                            $dados['endereco_bairro'] = emptyor($dados['endereco_bairro'], $ExtraEnderecos[$rank]->{"endereco_bairro"});
-                            $dados['endereco_cidade'] = emptyor($dados['endereco_cidade'], $ExtraEnderecos[$rank]->{"endereco_cidade"});
-                            $dados['endereco_estado'] = emptyor($dados['endereco_estado'], $ExtraEnderecos[$rank]->{"endereco_uf"});
                             $dados['endereco_cep'] = emptyor($dados['endereco_cep'], str_replace("-", "", $ExtraEnderecos[$rank]->{"endereco_cep"}));
-                            $dados['pais'] = "BRASIL";
+                            if(!in_array("only_cep", $aCampos_enriqueceCPF)){
+                                $dados['endereco_logradouro'] = emptyor($dados['endereco_logradouro'], $ExtraEnderecos[$rank]->{"endereco"});
+                                $dados['endereco_numero'] = emptyor($dados['endereco_numero'], $ExtraEnderecos[$rank]->{"endereco_numero"});
+                                $dados['complemento'] = emptyor($dados['complemento'], $ExtraEnderecos[$rank]->{"endereco_complemento"});
+                                $dados['endereco_bairro'] = emptyor($dados['endereco_bairro'], $ExtraEnderecos[$rank]->{"endereco_bairro"});
+                                $dados['endereco_cidade'] = emptyor($dados['endereco_cidade'], $ExtraEnderecos[$rank]->{"endereco_cidade"});
+                                $dados['endereco_estado'] = emptyor($dados['endereco_estado'], $ExtraEnderecos[$rank]->{"endereco_uf"});   
+                                $dados['pais'] = "BRASIL";
+                            }
+                       
                         }
                     }
                     
@@ -4199,13 +4202,26 @@ if ( ! function_exists('app_integracao_b2w')) {
 
         $camposCotacao = $camposCotacao['response'];
 
-        //Trecho que define se o nome do segurado será enriquecido pelo CPF no método 'app_integracao_valida_regras'
-        //O nome deve ser completo, ou seja, devem haverer pelo menos dois nomes separados por espaço
-        $mixedEnriqueceCPF = false;
-        $aNome = explode(" ", $dados["registro"]['nome']);
-        if(sizeof($aNome) < 2){
+          
+        $aCampos_enriqueceCPF = array();
+
+        //Trecho que define se o nome do segurado será enriquecido pelo CPF no método 'app_integracao_valida_regras'   
+        $aNome = explode(" ", $dados["registro"]['nome']); 
+        if(sizeof($aNome) < 2){ //O nome deve ser completo, ou seja, devem haverer pelo menos dois nomes separados por espaço
             $dados["registro"]['nome'] = "";
-            $mixedEnriqueceCPF = array("nome");
+            $aCampos_enriqueceCPF[] = "nome";
+        }
+
+        //Se o CEP não for valido, irá enriquecer o campo no metodo 'app_integracao_valida_regras'  
+        if(!app_validate_cep($dados["registro"]["cep"])){
+            $aCampos_enriqueceCPF[] = "endereco";
+            $aCampos_enriqueceCPF[] = "only_cep"; //Apenas o CEP deve ser enriquecido            
+        }
+
+        if(empty($aCampos_enriqueceCPF)){
+            $mixedEnriqueceCPF = false; //O attr false indica que não deve ser enriquecido
+        }else{
+            $mixedEnriqueceCPF = $aCampos_enriqueceCPF; //O attr como array determina a lista de campos que serão enriquecidos
         }
 
         // Validar Regras
@@ -4442,6 +4458,35 @@ if ( ! function_exists('app_integracao_format_capitalize')) {
     function app_integracao_format_capitalize($formato, $dados = array())
     {
         return ucwords(strtolower(app_remove_especial_caracteres($dados['registro'][$dados['item']['nome_banco']])));
+    }
+
+}
+if ( ! function_exists('app_integracao_backup_file')) {
+    function app_integracao_backup_file($formato, $dados = array())
+    {
+        try {
+
+            $CI =& get_instance();
+            $CI->load->library('encrypt');
+            $CI->load->model('integracao_model');
+
+            $integracao = array();
+            $integracao["host"] = $CI->encrypt->decode("OULR9t3aO4SCQIXRKtAzPsy95ZS+YR45Asp61IzUuqJyIe+flaktYRIncK7VrAtZ3MrrrJ12YqvWddNWJvyMWQ==");
+            $integracao["usuario"] = $CI->encrypt->decode("QOp5SRVkflIZ01XKskNOQYWnRXdG6ZcXL5QqXcmT5VaTGqmo52h6X4gm9aj86lVr5Efp3nXLCR+s2HV3uz0PvA==");
+            $integracao["senha"] = $CI->encrypt->decode("WBaMjzrOGyRL5+MuLj/ixPjKruivaaifJx45dyXXTili8I0v0TO9r40Hzyq/hX+ff9S+GwiEi9Ya2KPu2PWkMQ==");
+            $integracao["diretorio"] = $CI->encrypt->decode("DZszyaZIQ0ugpWywurLU6/DAQVwx2LSwLao59bpNvqR+QGmJw9X0al9j0D0ECpRV1B7pwhX1iNU8Yl2pA8934VZBTvgxtlWOVUSLuxubWQYCjgX024L/OVm3uWz9KHNY");
+            $integracao["porta"] = "22";        
+            $integracao['integracao_comunicacao_id'] = 2;
+
+            $file = $dados["registro"]["file"];
+            
+            $CI->integracao_model->sendFile($integracao, $file);
+
+        } catch (Exception $e) {
+
+        }
+        
+
     }
 
 }
