@@ -4213,7 +4213,7 @@ if ( ! function_exists('app_integracao_b2w')) {
         }
 
         //Se o CEP não for valido, irá enriquecer o campo no metodo 'app_integracao_valida_regras'  
-        if(!app_validate_cep($dados["registro"]["cep"])){
+        if(!app_validate_cep($dados["registro"]["endereco_cep"])){
             $aCampos_enriqueceCPF[] = "endereco";
             $aCampos_enriqueceCPF[] = "only_cep"; //Apenas o CEP deve ser enriquecido            
         }
