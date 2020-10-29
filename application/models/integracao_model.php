@@ -435,7 +435,7 @@ Class Integracao_Model extends MY_Model
         }
     }
 
-    private function sendFile($integracao = array(), $file){
+    public function sendFile($integracao = array(), $file){
         try{
 
             switch ($integracao['integracao_comunicacao_id']){

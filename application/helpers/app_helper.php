@@ -1639,8 +1639,9 @@ function app_validate_cep($cep){
     if(strlen($cep) != 8)
         return false;
 
-    if($cep == '00000000')
+    if (preg_match('/^(.)\1*$/', $cep)) {
         return false;
+    }
 
     return true;
 }
