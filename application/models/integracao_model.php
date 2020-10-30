@@ -1636,6 +1636,7 @@ Class Integracao_Model extends MY_Model
                     AND ild.deletado = 0
                     AND ild.integracao_log_status_id <> '{$integracao_log_status_id}'
                     AND ild.chave = '{$chave}'
+                    JOIN integracao i ON i.integracao_id = il.integracao_id AND i.tipo = 'S'
                     SET ild.integracao_log_status_id = '{$integracao_log_status_id}'
                       , ild.alteracao = NOW()
                       , ild.retorno = '{$mensagem_registro}'  
@@ -1657,6 +1658,8 @@ Class Integracao_Model extends MY_Model
                              AND il.deletado = 0
                              AND il.nome_arquivo = '{$file_registro}'
                              AND ild.deletado = 0
+                             JOIN integracao i ON i.integracao_id = il.integracao_id AND i.tipo = 'S'
+
                          ) VALIDACAO
                 ";
         $query = $this->_database->query($sql);
