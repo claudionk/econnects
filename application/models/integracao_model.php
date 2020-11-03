@@ -620,9 +620,12 @@ Class Integracao_Model extends MY_Model
         $config['port'] = $integracao['porta'];
         $config['debug']    = TRUE;
         $filename = basename($file);
-        $this->ftp->connect($config);
-        $this->ftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
-        $this->ftp->close();
+        $connectedFTP = $this->ftp->connect($config);
+        if ($connectedFTP)
+        {
+            $this->ftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
+            $this->ftp->close();
+        }
     }
 
     private function sendFileSFTP($integracao = array(), $file){
@@ -635,9 +638,12 @@ Class Integracao_Model extends MY_Model
         $config['port'] = $integracao['porta'];
         $config['debug']    = TRUE;
         $filename = basename($file);
-        $this->sftp->connect($config);
-        $this->sftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
-        $this->sftp->close();
+        $connectedSFTP = $this->sftp->connect($config);
+        if ($connectedSFTP)
+        {
+            $this->sftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
+            $this->sftp->close();
+        }
     }
 
     private function processLine($multiplo, $layout, $registro, $integracao_log, $integracao_log_detalhe_id = null, $integracao = null) {
@@ -1641,6 +1647,7 @@ Class Integracao_Model extends MY_Model
                     AND ild.deletado = 0
                     AND ild.integracao_log_status_id <> '{$integracao_log_status_id}'
                     AND ild.chave = '{$chave}'
+                    JOIN integracao i ON i.integracao_id = il.integracao_id AND i.tipo = 'S'
                     SET ild.integracao_log_status_id = '{$integracao_log_status_id}'
                       , ild.alteracao = NOW()
                       , ild.retorno = '{$mensagem_registro}'  
@@ -1662,6 +1669,8 @@ Class Integracao_Model extends MY_Model
                              AND il.deletado = 0
                              AND il.nome_arquivo = '{$file_registro}'
                              AND ild.deletado = 0
+                             JOIN integracao i ON i.integracao_id = il.integracao_id AND i.tipo = 'S'
+
                          ) VALIDACAO
                 ";
         $query = $this->_database->query($sql);

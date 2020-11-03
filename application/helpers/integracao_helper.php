@@ -4403,14 +4403,7 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
                 $response->msg[] = ['id' => 12, 'msg' => $mensagem_registro, 'slug' => "erro_retorno"];
             }
 
-            $dadosFile = $CI->log_m->get_file_by_apolice_sequencia($num_apolice, $sequencia_arquivo);
-            if ( empty($dadosFile) )
-            {
-                $response->msg[] = ['id' => 12, 'msg' => 'Arquivo de Remessa não identificado', 'slug' => "erro_retorno"];
-                return $response;
-            }
-
-            $file_registro = $dadosFile['nome_arquivo'];
+            $file_registro = $dados["log"]["nome_arquivo"];
 
             if($status == 'A')
             {
@@ -4425,12 +4418,13 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
                 $criticas_B2W = [
                     [ 'desc' => 'SOBRENOME DO BENEFICIARIO (APE1_TERCERO) NAO PODE SER NULO', 'cod_para' => '89'],
                     [ 'desc' => 'N?MERO DO DOCUMENTO INV?LIDO', 'cod_para' => '21' ], 
-                    [ 'desc' => 'insert NULL into ("TRON2000"."B2009005_VCR"."COD_ESTADO")ORA-06512: at', 'cod_para' => '25' ], 
+                    [ 'desc' => 'cannot insert NULL into ("TRON2000"."B2009005_VCR"."COD_ESTADO")ORA-06512: at', 'cod_para' => '25' ], 
+                    [ 'desc' => 'CEP RESIDENCIAL NAO CADASTRADO', 'cod_para' => '25' ],
                     [ 'desc' => 'Erro carga Tronweb', 'cod_para' => '63' ], 
                     [ 'desc' => 'Apolice j? emitida (5486XXXXXXXXX)', 'cod_para' => '02' ], 
                 ];
 
-                $status_reenvio = '000';
+                $status_reenvio = '00';
                 $idxH = app_search($criticas_B2W, $mensagem_registro, 'desc');
                 if ( $idxH >= 0 )
                 {
