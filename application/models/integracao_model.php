@@ -909,11 +909,17 @@ Class Integracao_Model extends MY_Model
             ->filter_by_tipo('D2')
             ->order_by('ordem')
             ->get_all();
+        if(empty($layout_detail_solucaoTemporaria_336)){
+            $layout_detail_solucaoTemporaria_336 = array();
+        }
 
         $layout_detail_solucaoTemporaria_334 = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
             ->filter_by_tipo('97')
             ->order_by('ordem')
             ->get_all();
+        if(empty($layout_detail_solucaoTemporaria_334)){
+            $layout_detail_solucaoTemporaria_334 = array();
+        }
 
         $layout_trailler = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
             ->filter_by_tipo('T')
@@ -922,9 +928,7 @@ Class Integracao_Model extends MY_Model
 
         $fh = fopen($file, 'r');
 
-        if(empty($layout_detail_solucaoTemporaria_mapfre)){
-            $layout_detail_solucaoTemporaria_mapfre = array();
-        }
+        
 
         $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], count(file($file)), basename($file));
 
