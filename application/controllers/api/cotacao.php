@@ -89,8 +89,9 @@ class Cotacao extends CI_Controller {
                 die( json_encode( array( "status" => false, "message" => "Campo cotacao_id é obrigatório no método PUT" ) ) );
             }
             $cotacao_id = $POST["cotacao_id"];
-            } else {
-                if( isset( $POST["cotacao_id"] ) ) {
+        } else {
+            
+            if( isset( $POST["cotacao_id"] ) ) {
                 unset( $POST["cotacao_id"] );
             }
         }
