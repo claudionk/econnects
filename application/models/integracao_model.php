@@ -620,9 +620,12 @@ Class Integracao_Model extends MY_Model
         $config['port'] = $integracao['porta'];
         $config['debug']    = TRUE;
         $filename = basename($file);
-        $this->ftp->connect($config);
-        $this->ftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
-        $this->ftp->close();
+        $connectedFTP = $this->ftp->connect($config);
+        if ($connectedFTP)
+        {
+            $this->ftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
+            $this->ftp->close();
+        }
     }
 
     private function sendFileSFTP($integracao = array(), $file){
@@ -635,9 +638,12 @@ Class Integracao_Model extends MY_Model
         $config['port'] = $integracao['porta'];
         $config['debug']    = TRUE;
         $filename = basename($file);
-        $this->sftp->connect($config);
-        $this->sftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
-        $this->sftp->close();
+        $connectedSFTP = $this->sftp->connect($config);
+        if ($connectedSFTP)
+        {
+            $this->sftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
+            $this->sftp->close();
+        }
     }
 
     private function processLine($multiplo, $layout, $registro, $integracao_log, $integracao_log_detalhe_id = null, $integracao = null) {
