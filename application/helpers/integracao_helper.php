@@ -4346,6 +4346,7 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
         $num_apolice        = $dados['registro']['num_apolice'];
         $apolice_status_id  = emptyor($dados['registro']['apolice_status_id'], 1);
         $chave              = $num_apolice . "|". $apolice_status_id;
+        $tipo_operacao      = ($apolice_status_id==1) ? '9' : '1';
         $sequencia_arquivo  = $dados['registro']['sequencia_arquivo'];
         $status             = $dados['registro']['status'];
 
@@ -4383,7 +4384,7 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
             if($status == 'A')
             {
                 $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '4', '', $sinistro, $pagnet);
-                $CI->integracao_model->update_log_detalhe_mapfre_b2w($num_apolice, $apolice_status_id, 'b2w-proc-vendas', 'AC', '', '');
+                $CI->integracao_model->update_log_detalhe_mapfre_b2w($num_apolice, $tipo_operacao, 'b2w-proc-vendas', 'AC', '', '');
 
                 $response->status = true;
                 return $response;
@@ -4407,7 +4408,7 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
                 }
 
                 $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '5', $mensagem_registro, $sinistro, $pagnet);
-                $CI->integracao_model->update_log_detalhe_mapfre_b2w($num_apolice, $apolice_status_id, 'b2w-proc-vendas', 'DV', $status_reenvio, $status_reenvio);
+                $CI->integracao_model->update_log_detalhe_mapfre_b2w($num_apolice, $tipo_operacao, 'b2w-proc-vendas', 'DV', $status_reenvio, $status_reenvio);
 
                 return $response;
             }else{
