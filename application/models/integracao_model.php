@@ -360,7 +360,6 @@ Class Integracao_Model extends MY_Model
     
             }
 
-
             $dados_integracao = array();
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
             $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');
@@ -928,8 +927,6 @@ Class Integracao_Model extends MY_Model
 
         $fh = fopen($file, 'r');
 
-        
-
         $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], count(file($file)), basename($file));
 
         $header = array();
@@ -964,7 +961,7 @@ Class Integracao_Model extends MY_Model
 
                     $detail[] = $sub_detail;
                     $num_registro++;
-                }elseif(substr($linhas,($layout_detail_solucaoTemporaria_336[0]['inicio'])-1,$layout_detail_solucaoTemporaria_336[0]['tamanho']) == $layout_detail_solucaoTemporaria_336[0]['valor_padrao']){
+                }elseif( !empty($layout_detail_solucaoTemporaria_336) && substr($linhas,($layout_detail_solucaoTemporaria_336[0]['inicio'])-1,$layout_detail_solucaoTemporaria_336[0]['tamanho']) == $layout_detail_solucaoTemporaria_336[0]['valor_padrao'] ){
                     $sub_detail = array();
                     foreach ($layout_detail_solucaoTemporaria_336 as $idxd => $item_d) {
                         $sub_detail[] = array(
@@ -977,7 +974,7 @@ Class Integracao_Model extends MY_Model
                     $detail[] = $sub_detail;
                     $num_registro++;
                     
-                }elseif(substr($linhas,($layout_detail_solucaoTemporaria_334[0]['inicio'])-1,$layout_detail_solucaoTemporaria_334[0]['tamanho']) == $layout_detail_solucaoTemporaria_334[0]['valor_padrao']){
+                }elseif(!empty($layout_detail_solucaoTemporaria_334) && substr($linhas,($layout_detail_solucaoTemporaria_334[0]['inicio'])-1,$layout_detail_solucaoTemporaria_334[0]['tamanho']) == $layout_detail_solucaoTemporaria_334[0]['valor_padrao']){
                     $sub_detail = array();
                     foreach ($layout_detail_solucaoTemporaria_334 as $idxd => $item_d) {
                         $sub_detail[] = array(
