@@ -4371,7 +4371,7 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
         $num_apolice        = $dados['registro']['num_apolice'];
         $apolice_status_id  = emptyor($dados['registro']['apolice_status_id'], 1);
         $chave              = $num_apolice . "|". $apolice_status_id;
-        $tipo_operacao      = ($apolice_status_id==1) ? '9' : '1';
+        $tipo_operacao      = ($apolice_status_id=='2') ? '9' : '1';
         $sequencia_arquivo  = $dados['registro']['sequencia_arquivo'];
         $status             = $dados['registro']['status'];
 
