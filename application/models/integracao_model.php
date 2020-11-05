@@ -340,6 +340,11 @@ Class Integracao_Model extends MY_Model
 
             //Array com os arquivos que precisam ser integrados (ainda não foram integrados)
             $aResultFile = $this->getFile($result, $file);
+            /*$aResultFile = array(
+                array(
+                    "file" => "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/336/R/731B2WDIGITAL301020200076.TXT"
+                )
+            );*/
             foreach($aResultFile as $resultFile){
 
                 $result_process = [];
@@ -354,7 +359,6 @@ Class Integracao_Model extends MY_Model
                 }
     
             }
-
 
             $dados_integracao = array();
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
@@ -905,6 +909,22 @@ Class Integracao_Model extends MY_Model
             ->order_by('ordem')
             ->get_all();
 
+        $layout_detail_solucaoTemporaria_336 = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
+            ->filter_by_tipo('D2')
+            ->order_by('ordem')
+            ->get_all();
+        if(empty($layout_detail_solucaoTemporaria_336)){
+            $layout_detail_solucaoTemporaria_336 = array();
+        }
+
+        $layout_detail_solucaoTemporaria_334 = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
+            ->filter_by_tipo('97')
+            ->order_by('ordem')
+            ->get_all();
+        if(empty($layout_detail_solucaoTemporaria_334)){
+            $layout_detail_solucaoTemporaria_334 = array();
+        }
+
         $layout_trailler = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
             ->filter_by_tipo('T')
             ->order_by('ordem')
@@ -947,7 +967,33 @@ Class Integracao_Model extends MY_Model
 
                     $detail[] = $sub_detail;
                     $num_registro++;
-                } elseif (substr($linhas, ($layout_trailler[0]['inicio']) - 1, $layout_trailler[0]['tamanho']) == $layout_trailler[0]['valor_padrao']) {
+                }elseif( !empty($layout_detail_solucaoTemporaria_336) && substr($linhas,($layout_detail_solucaoTemporaria_336[0]['inicio'])-1,$layout_detail_solucaoTemporaria_336[0]['tamanho']) == $layout_detail_solucaoTemporaria_336[0]['valor_padrao'] ){
+                    $sub_detail = array();
+                    foreach ($layout_detail_solucaoTemporaria_336 as $idxd => $item_d) {
+                        $sub_detail[] = array(
+                            'layout' => $item_d,
+                            'valor' => substr($linhas,($item_d['inicio'])-1,$item_d['tamanho']),
+                            'linha' => $linhas,
+                        );
+                    }
+
+                    $detail[] = $sub_detail;
+                    $num_registro++;
+                    
+                }elseif(!empty($layout_detail_solucaoTemporaria_334) && substr($linhas,($layout_detail_solucaoTemporaria_334[0]['inicio'])-1,$layout_detail_solucaoTemporaria_334[0]['tamanho']) == $layout_detail_solucaoTemporaria_334[0]['valor_padrao']){
+                    $sub_detail = array();
+                    foreach ($layout_detail_solucaoTemporaria_334 as $idxd => $item_d) {
+                        $sub_detail[] = array(
+                            'layout' => $item_d,
+                            'valor' => substr($linhas,($item_d['inicio'])-1,$item_d['tamanho']),
+                            'linha' => $linhas,
+                        );
+                    }
+
+                    $detail[] = $sub_detail;
+                    $num_registro++;
+                    
+                }elseif(substr($linhas,($layout_trailler[0]['inicio'])-1,$layout_trailler[0]['tamanho']) == $layout_trailler[0]['valor_padrao']){
                     foreach ($layout_trailler as $idxt => $item_t) {
                         $trailler[] = array(
                             'layout' => $item_t,
