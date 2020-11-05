@@ -1734,19 +1734,21 @@ Class Integracao_Model extends MY_Model
         return true;
     }
 
-    function update_log_detalhe_mapfre_b2w($num_apolice, $apolice_status_id, $slug, $status_carga, $status_reenvio = null, $codigo_erro = null)
+    function update_log_detalhe_mapfre_b2w($num_apolice, $tipo_operacao, $slug, $status_carga, $status_reenvio = null, $codigo_erro = null)
     {
         $sql = "SELECT dd.integracao_log_detalhe_dados_id
             FROM integracao_log_detalhe_dados dd 
             JOIN integracao_log_detalhe d ON dd.integracao_log_detalhe_id = d.integracao_log_detalhe_id AND d.deletado = 0
             JOIN integracao_log l ON d.integracao_log_id = l.integracao_log_id AND l.deletado = 0
             JOIN integracao i ON l.integracao_id = i.integracao_id AND i.deletado = 0
-            WHERE dd.num_apolice = '$num_apolice' AND dd.tipo_transacao = '$apolice_status_id'
+            WHERE dd.num_apolice = '$num_apolice' AND dd.tipo_operacao = '$tipo_operacao'
             AND dd.deletado = 0 AND i.slug = '{$slug}' 
             ORDER BY l.processamento_fim DESC
             LIMIT 1";
         $query = $this->_database->query($sql);
         $row = $query->row_array();
+        if (!$row) return false;
+
         $integracao_log_detalhe_dados_id = $row['integracao_log_detalhe_dados_id'];
         if ($integracao_log_detalhe_dados_id > 0){
             $this->executeUpdate_update_log_detalhe_mapfre_b2w($status_carga, $status_reenvio, $codigo_erro, $integracao_log_detalhe_dados_id);
