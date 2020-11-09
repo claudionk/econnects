@@ -338,11 +338,26 @@ Class Integracao_Model extends MY_Model
                 $file = $this->getFileName($result, $layout_filename);
             }
 
-            $result_file = $this->getFile($result, $file);
-            $result_process = [];
-            if ( !empty($result_file['file']) )
-            {
-                $result_process = $this->processFileIntegracao($result, $result_file['file']);
+            //Array com os arquivos que precisam ser integrados (ainda não foram integrados)
+            $aResultFile = $this->getFile($result, $file);
+            /*$aResultFile = array(
+                array(
+                    "file" => "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/336/R/731B2WDIGITAL301020200076.TXT"
+                )
+            );*/
+            foreach($aResultFile as $resultFile){
+
+                $result_process = [];
+
+                if ( !empty($resultFile['file']) ) {
+                    $result_process = $this->processFileIntegracao($result, $resultFile['file']);
+                }
+    
+                //execute after execute
+                if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
+                    call_user_func($result['after_execute'], null, array('item' => $result, 'registro' => $resultFile, 'log' => $result_process, 'valor' => null));
+                }
+    
             }
 
             $dados_integracao = array();
@@ -350,11 +365,6 @@ Class Integracao_Model extends MY_Model
             $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');
             $dados_integracao['status'] = 'A';
             $this->update($result['integracao_id'], $dados_integracao, TRUE);
-
-            //execute after execute
-            if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
-                call_user_func($result['after_execute'], null, array('item' => $result, 'registro' => $result_file, 'log' => $result_process, 'valor' => null));
-            }
 
         }
 
@@ -429,7 +439,7 @@ Class Integracao_Model extends MY_Model
         }
     }
 
-    private function sendFile($integracao = array(), $file){
+    public function sendFile($integracao = array(), $file){
         try{
 
             switch ($integracao['integracao_comunicacao_id']){
@@ -560,12 +570,8 @@ Class Integracao_Model extends MY_Model
 
         $this->load->model('integracao_log_model', 'integracao_log');
 
-        $result = array(
-            'file' => '',
-            'fileget' => '',
-        );
+        $aOutput = array();
 
-        $file_processar = '';
         if($list) {
             foreach ($list as $index => $item) {
                 if ( strpos($item, ".") === FALSE )
@@ -589,29 +595,23 @@ Class Integracao_Model extends MY_Model
                     ->get_total();
 
                 if ((int)$total == 0) {
-                    $file_processar = $item;
-                    break;
+                    $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+                    if(!file_exists($diretorio)){
+                        mkdir($diretorio, 0777, true);
+                    }
+        
+                    $fileget = basename($item);
+                    if($obj->download($item, "{$diretorio}/{$fileget}", 'binary')){
+                        $aOutput[] = array(
+                            'file' => "{$diretorio}/{$fileget}",
+                            'fileget' => $fileget,
+                        );
+                    }
                 }
             }
         }
 
-        if(!empty($file_processar)){
-            $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
-            if(!file_exists($diretorio)){
-                mkdir($diretorio, 0777, true);
-            }
-
-            $fileget = basename($file_processar);
-            if($obj->download($file_processar, "{$diretorio}/{$fileget}", 'binary')){
-                $result = array(
-                    'file' => "{$diretorio}/{$fileget}",
-                    'fileget' => $fileget,
-                );
-            }
-
-        }
-
-        return $result;
+        return $aOutput;
     }
 
     private function sendFileFTP($integracao = array(), $file){
@@ -624,9 +624,12 @@ Class Integracao_Model extends MY_Model
         $config['port'] = $integracao['porta'];
         $config['debug']    = TRUE;
         $filename = basename($file);
-        $this->ftp->connect($config);
-        $this->ftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
-        $this->ftp->close();
+        $connectedFTP = $this->ftp->connect($config);
+        if ($connectedFTP)
+        {
+            $this->ftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
+            $this->ftp->close();
+        }
     }
 
     private function sendFileSFTP($integracao = array(), $file){
@@ -639,9 +642,12 @@ Class Integracao_Model extends MY_Model
         $config['port'] = $integracao['porta'];
         $config['debug']    = TRUE;
         $filename = basename($file);
-        $this->sftp->connect($config);
-        $this->sftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
-        $this->sftp->close();
+        $connectedSFTP = $this->sftp->connect($config);
+        if ($connectedSFTP)
+        {
+            $this->sftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
+            $this->sftp->close();
+        }
     }
 
     private function processLine($multiplo, $layout, $registro, $integracao_log, $integracao_log_detalhe_id = null, $integracao = null) {
@@ -898,6 +904,22 @@ Class Integracao_Model extends MY_Model
             ->order_by('ordem')
             ->get_all();
 
+        $layout_detail_solucaoTemporaria_336 = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
+            ->filter_by_tipo('D2')
+            ->order_by('ordem')
+            ->get_all();
+        if(empty($layout_detail_solucaoTemporaria_336)){
+            $layout_detail_solucaoTemporaria_336 = array();
+        }
+
+        $layout_detail_solucaoTemporaria_334 = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
+            ->filter_by_tipo('97')
+            ->order_by('ordem')
+            ->get_all();
+        if(empty($layout_detail_solucaoTemporaria_334)){
+            $layout_detail_solucaoTemporaria_334 = array();
+        }
+
         $layout_trailler = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
             ->filter_by_tipo('T')
             ->order_by('ordem')
@@ -939,6 +961,32 @@ Class Integracao_Model extends MY_Model
 
                     $detail[] = $sub_detail;
                     $num_registro++;
+                }elseif( !empty($layout_detail_solucaoTemporaria_336) && substr($linhas,($layout_detail_solucaoTemporaria_336[0]['inicio'])-1,$layout_detail_solucaoTemporaria_336[0]['tamanho']) == $layout_detail_solucaoTemporaria_336[0]['valor_padrao'] ){
+                    $sub_detail = array();
+                    foreach ($layout_detail_solucaoTemporaria_336 as $idxd => $item_d) {
+                        $sub_detail[] = array(
+                            'layout' => $item_d,
+                            'valor' => substr($linhas,($item_d['inicio'])-1,$item_d['tamanho']),
+                            'linha' => $linhas,
+                        );
+                    }
+
+                    $detail[] = $sub_detail;
+                    $num_registro++;
+                    
+                }elseif(!empty($layout_detail_solucaoTemporaria_334) && substr($linhas,($layout_detail_solucaoTemporaria_334[0]['inicio'])-1,$layout_detail_solucaoTemporaria_334[0]['tamanho']) == $layout_detail_solucaoTemporaria_334[0]['valor_padrao']){
+                    $sub_detail = array();
+                    foreach ($layout_detail_solucaoTemporaria_334 as $idxd => $item_d) {
+                        $sub_detail[] = array(
+                            'layout' => $item_d,
+                            'valor' => substr($linhas,($item_d['inicio'])-1,$item_d['tamanho']),
+                            'linha' => $linhas,
+                        );
+                    }
+
+                    $detail[] = $sub_detail;
+                    $num_registro++;
+                    
                 }elseif(substr($linhas,($layout_trailler[0]['inicio'])-1,$layout_trailler[0]['tamanho']) == $layout_trailler[0]['valor_padrao']){
                     foreach ($layout_trailler as $idxt => $item_t) {
                         $trailler[] = array(
@@ -1640,6 +1688,7 @@ Class Integracao_Model extends MY_Model
                     AND ild.deletado = 0
                     AND ild.integracao_log_status_id <> '{$integracao_log_status_id}'
                     AND ild.chave = '{$chave}'
+                    JOIN integracao i ON i.integracao_id = il.integracao_id AND i.tipo = 'S'
                     SET ild.integracao_log_status_id = '{$integracao_log_status_id}'
                       , ild.alteracao = NOW()
                       , ild.retorno = '{$mensagem_registro}'  
@@ -1661,6 +1710,8 @@ Class Integracao_Model extends MY_Model
                              AND il.deletado = 0
                              AND il.nome_arquivo = '{$file_registro}'
                              AND ild.deletado = 0
+                             JOIN integracao i ON i.integracao_id = il.integracao_id AND i.tipo = 'S'
+
                          ) VALIDACAO
                 ";
         $query = $this->_database->query($sql);
@@ -1678,19 +1729,21 @@ Class Integracao_Model extends MY_Model
         return true;
     }
 
-    function update_log_detalhe_mapfre_b2w($num_apolice, $apolice_status_id, $slug, $status_carga, $status_reenvio = null, $codigo_erro = null)
+    function update_log_detalhe_mapfre_b2w($num_apolice, $tipo_operacao, $slug, $status_carga, $status_reenvio = null, $codigo_erro = null)
     {
         $sql = "SELECT dd.integracao_log_detalhe_dados_id
             FROM integracao_log_detalhe_dados dd 
             JOIN integracao_log_detalhe d ON dd.integracao_log_detalhe_id = d.integracao_log_detalhe_id AND d.deletado = 0
             JOIN integracao_log l ON d.integracao_log_id = l.integracao_log_id AND l.deletado = 0
             JOIN integracao i ON l.integracao_id = i.integracao_id AND i.deletado = 0
-            WHERE dd.num_apolice = '$num_apolice' AND dd.tipo_transacao = '$apolice_status_id'
+            WHERE dd.num_apolice = '$num_apolice' AND dd.tipo_operacao = '$tipo_operacao'
             AND dd.deletado = 0 AND i.slug = '{$slug}' 
             ORDER BY l.processamento_fim DESC
             LIMIT 1";
         $query = $this->_database->query($sql);
         $row = $query->row_array();
+        if (!$row) return false;
+
         $integracao_log_detalhe_dados_id = $row['integracao_log_detalhe_dados_id'];
         if ($integracao_log_detalhe_dados_id > 0){
             $this->executeUpdate_update_log_detalhe_mapfre_b2w($status_carga, $status_reenvio, $codigo_erro, $integracao_log_detalhe_dados_id);

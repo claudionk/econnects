@@ -1662,77 +1662,98 @@ if ( ! function_exists('app_integracao_valida_regras'))
             {
                 $enriquecido = app_get_api("enriqueceCPF/$cpf/". $dados['produto_parceiro_id'], 'GET', [], $acesso);
 
+                $aCampos_enriqueceCPF = (is_array($enriqueceCPF)) ? $enriqueceCPF : array (
+                    "nome", "sexo", "data_nascimento", "endereco", "contatos"
+                );
+
                 if (!empty($enriquecido['status'])){
+
                     $enriquecido = $enriquecido['response'];
 
-                    $dados['nome'] = emptyor($dados['nome'], $enriquecido->nome);
-                    $dados['sexo'] = emptyor($dados['sexo'], $enriquecido->sexo);
-                    $dados['data_nascimento'] = emptyor($dados['data_nascimento'], $enriquecido->data_nascimento);
-
-                    // Endereço
-                    $ExtraEnderecos = $enriquecido->endereco;
-                    if( sizeof( $ExtraEnderecos ) ) {
-                        $rank=1000;
-                        $index=0;
-
-                        foreach ($ExtraEnderecos as $end) {
-                            $rank = ($end->ranking <= $rank) ? $index : $rank;
-                            $index++;
-                        }
-
-                        $dados['endereco_logradouro'] = emptyor($dados['endereco_logradouro'], $ExtraEnderecos[$rank]->{"endereco"});
-                        $dados['endereco_numero'] = emptyor($dados['endereco_numero'], $ExtraEnderecos[$rank]->{"endereco_numero"});
-                        $dados['complemento'] = emptyor($dados['complemento'], $ExtraEnderecos[$rank]->{"endereco_complemento"});
-                        $dados['endereco_bairro'] = emptyor($dados['endereco_bairro'], $ExtraEnderecos[$rank]->{"endereco_bairro"});
-                        $dados['endereco_cidade'] = emptyor($dados['endereco_cidade'], $ExtraEnderecos[$rank]->{"endereco_cidade"});
-                        $dados['endereco_estado'] = emptyor($dados['endereco_estado'], $ExtraEnderecos[$rank]->{"endereco_uf"});
-                        $dados['endereco_cep'] = emptyor($dados['endereco_cep'], str_replace("-", "", $ExtraEnderecos[$rank]->{"endereco_cep"}));
-                        $dados['pais'] = "BRASIL";
+                    if(in_array("nome", $aCampos_enriqueceCPF)){
+                        $dados['nome'] = emptyor($dados['nome'], $enriquecido->nome);
                     }
 
-                    $ExtraContatos = $enriquecido->contato;
-                    if( sizeof( $ExtraContatos ) ) {
-                        $rankTel=$rankCel=$rankEmail=1000;
-                        $index=0;
+                    if(in_array("sexo", $aCampos_enriqueceCPF)){
+                        $dados['sexo'] = emptyor($dados['sexo'], $enriquecido->sexo);
+                    }
 
-                        // Valida o ranking
-                        foreach ($ExtraContatos as $cont) {
-                            switch ($cont->contato_tipo_id) {
-                                // Telefone Residencial
-                                case 3:
-                                    $rankTel = ($cont->ranking <= $rankTel) ? $index : $rankTel;
-                                    break;
-                                
-                                // Celular
-                                case 2:
-                                    $rankCel = ($cont->ranking <= $rankCel) ? $index : $rankCel;
-                                    break;
+                    if(in_array("data_nascimento", $aCampos_enriqueceCPF)){
+                        $dados['data_nascimento'] = emptyor($dados['data_nascimento'], $enriquecido->data_nascimento);
+                    }                    
 
-                                // Email
-                                case 1:
-                                    $rankEmail = ($cont->ranking <= $rankEmail) ? $index : $rankEmail;
-                                    break;
+                    if(in_array("endereco", $aCampos_enriqueceCPF)){
+                        // Endereço
+                        $ExtraEnderecos = $enriquecido->endereco;
+                        if( sizeof( $ExtraEnderecos ) ) {
+                            $rank=1000;
+                            $index=0;
+
+                            foreach ($ExtraEnderecos as $end) {
+                                $rank = ($end->ranking <= $rank) ? $index : $rank;
+                                $index++;
                             }
-                            $index++;
-                        }
 
-                        // Telefone Residencial
-                        if ($rankTel != 1000) {
-                            $dados['ddd_residencial'] = left($ExtraContatos[$rankTel]->contato,2);
-                            $dados['telefone_residencial'] = trim(right($ExtraContatos[$rankTel]->contato, strlen($ExtraContatos[$rankTel]->contato)-2));
-                            $dados['telefone'] = trim($ExtraContatos[$rankTel]->contato);
+                            $dados['endereco_cep'] = emptyor($dados['endereco_cep'], str_replace("-", "", $ExtraEnderecos[$rank]->{"endereco_cep"}));
+                            if(!in_array("only_cep", $aCampos_enriqueceCPF)){
+                                $dados['endereco_logradouro'] = emptyor($dados['endereco_logradouro'], $ExtraEnderecos[$rank]->{"endereco"});
+                                $dados['endereco_numero'] = emptyor($dados['endereco_numero'], $ExtraEnderecos[$rank]->{"endereco_numero"});
+                                $dados['complemento'] = emptyor($dados['complemento'], $ExtraEnderecos[$rank]->{"endereco_complemento"});
+                                $dados['endereco_bairro'] = emptyor($dados['endereco_bairro'], $ExtraEnderecos[$rank]->{"endereco_bairro"});
+                                $dados['endereco_cidade'] = emptyor($dados['endereco_cidade'], $ExtraEnderecos[$rank]->{"endereco_cidade"});
+                                $dados['endereco_estado'] = emptyor($dados['endereco_estado'], $ExtraEnderecos[$rank]->{"endereco_uf"});   
+                                $dados['pais'] = "BRASIL";
+                            }
+                       
                         }
-
-                        // Celular
-                        if ($rankCel != 1000) {
-                            $dados['ddd_celular'] = left($ExtraContatos[$rankCel]->contato,2);
-                            $dados['telefone_celular'] = trim(right($ExtraContatos[$rankCel]->contato, strlen($ExtraContatos[$rankCel]->contato)-2));
-                        }
-
-                        // Email
-                        if ($rankEmail != 1000)
-                            $dados['email'] = $ExtraContatos[$rankEmail]->contato;
                     }
+                    
+                    if(in_array("contatos", $aCampos_enriqueceCPF)){
+                        $ExtraContatos = $enriquecido->contato;
+                        if( sizeof( $ExtraContatos ) ) {
+                            $rankTel=$rankCel=$rankEmail=1000;
+                            $index=0;
+    
+                            // Valida o ranking
+                            foreach ($ExtraContatos as $cont) {
+                                switch ($cont->contato_tipo_id) {
+                                    // Telefone Residencial
+                                    case 3:
+                                        $rankTel = ($cont->ranking <= $rankTel) ? $index : $rankTel;
+                                        break;
+                                    
+                                    // Celular
+                                    case 2:
+                                        $rankCel = ($cont->ranking <= $rankCel) ? $index : $rankCel;
+                                        break;
+    
+                                    // Email
+                                    case 1:
+                                        $rankEmail = ($cont->ranking <= $rankEmail) ? $index : $rankEmail;
+                                        break;
+                                }
+                                $index++;
+                            }
+    
+                            // Telefone Residencial
+                            if ($rankTel != 1000) {
+                                $dados['ddd_residencial'] = left($ExtraContatos[$rankTel]->contato,2);
+                                $dados['telefone_residencial'] = trim(right($ExtraContatos[$rankTel]->contato, strlen($ExtraContatos[$rankTel]->contato)-2));
+                                $dados['telefone'] = trim($ExtraContatos[$rankTel]->contato);
+                            }
+    
+                            // Celular
+                            if ($rankCel != 1000) {
+                                $dados['ddd_celular'] = left($ExtraContatos[$rankCel]->contato,2);
+                                $dados['telefone_celular'] = trim(right($ExtraContatos[$rankCel]->contato, strlen($ExtraContatos[$rankCel]->contato)-2));
+                            }
+    
+                            // Email
+                            if ($rankEmail != 1000)
+                                $dados['email'] = $ExtraContatos[$rankEmail]->contato;
+                        }
+                    }
+                    
                 } // if (!empty($enriquecido['status']))
 
                 // Regras DE/PARA
@@ -4139,8 +4160,30 @@ if ( ! function_exists('app_integracao_b2w')) {
         $dados['registro']['produto_parceiro_id']       = $acesso->produto_parceiro_id;
         $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
         $dados['registro']['data_adesao']               = $dados['registro']['data_adesao_cancel'];
+        $dados["registro"]['nome']                      = preg_replace('/\s+/', " ", $dados["registro"]['nome']); //Remover espaços duplos (Regra para nome do segurado splicitada pela MAPFRE)
         $eanErro = true;
         $eanErroMsg = "";
+
+        if(empty($reg['modelo'])){
+            
+            $CI->load->model("equipamentos_elegiveis_categoria_model", "equipamentos_elegiveis_categoria");
+            
+            $integracaoFilter = new stdClass();
+            $integracaoFilter->lista_id = 4;
+            $integracaoFilter->codigo = $reg['id_departamento_categoria'];
+
+            $aEquipamentoElegivelCategoria = $CI->equipamentos_elegiveis_categoria->getIntegracao($integracaoFilter);
+            if(!empty($aEquipamentoElegivelCategoria)){
+                if(is_array($aEquipamentoElegivelCategoria)){
+                    $equipamentoElegivelCategoria = $aEquipamentoElegivelCategoria[0];
+                }else{
+                    $equipamentoElegivelCategoria = $aEquipamentoElegivelCategoria;
+                }
+                $dados["registro"]['modelo'] = $equipamentoElegivelCategoria["nome"];
+            }
+            
+
+        }
 
         // validações iniciais
         $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, true, $acesso);
@@ -4172,8 +4215,30 @@ if ( ! function_exists('app_integracao_b2w')) {
 
         $camposCotacao = $camposCotacao['response'];
 
+          
+        $aCampos_enriqueceCPF = array();
+
+        //Trecho que define se o nome do segurado será enriquecido pelo CPF no método 'app_integracao_valida_regras'   
+        $aNome = explode(" ", $dados["registro"]['nome']); 
+        if(sizeof($aNome) < 2){ //O nome deve ser completo, ou seja, devem haverer pelo menos dois nomes separados por espaço
+            $dados["registro"]['nome'] = "";
+            $aCampos_enriqueceCPF[] = "nome";
+        }
+
+        //Se o CEP não for valido, irá enriquecer o campo no metodo 'app_integracao_valida_regras'  
+        if(!app_validate_cep($dados["registro"]["endereco_cep"])){
+            $aCampos_enriqueceCPF[] = "endereco";
+            $aCampos_enriqueceCPF[] = "only_cep"; //Apenas o CEP deve ser enriquecido            
+        }
+
+        if(empty($aCampos_enriqueceCPF)){
+            $mixedEnriqueceCPF = false; //O attr false indica que não deve ser enriquecido
+        }else{
+            $mixedEnriqueceCPF = $aCampos_enriqueceCPF; //O attr como array determina a lista de campos que serão enriquecidos
+        }
+
         // Validar Regras
-        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, false, $acesso);
+        $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, $mixedEnriqueceCPF, $acesso);
         // echo "<pre>";print_r($validaRegra);echo "</pre>";die();
 
         if (!empty($validaRegra->status)) {
@@ -4300,6 +4365,7 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
         $num_apolice        = $dados['registro']['num_apolice'];
         $apolice_status_id  = emptyor($dados['registro']['apolice_status_id'], 1);
         $chave              = $num_apolice . "|". $apolice_status_id;
+        $tipo_operacao      = ($apolice_status_id=='2') ? '9' : '1';
         $sequencia_arquivo  = $dados['registro']['sequencia_arquivo'];
         $status             = $dados['registro']['status'];
 
@@ -4332,19 +4398,12 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
                 $response->msg[] = ['id' => 12, 'msg' => $mensagem_registro, 'slug' => "erro_retorno"];
             }
 
-            $dadosFile = $CI->log_m->get_file_by_apolice_sequencia($num_apolice, $sequencia_arquivo);
-            if ( empty($dadosFile) )
-            {
-                $response->msg[] = ['id' => 12, 'msg' => 'Arquivo de Remessa não identificado', 'slug' => "erro_retorno"];
-                return $response;
-            }
-
-            $file_registro = $dadosFile['nome_arquivo'];
+            $file_registro = $dados["log"]["nome_arquivo"];
 
             if($status == 'A')
             {
                 $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '4', '', $sinistro, $pagnet);
-                $CI->integracao_model->update_log_detalhe_mapfre_b2w($num_apolice, $apolice_status_id, 'b2w-proc-vendas', 'AC', '', '');
+                $CI->integracao_model->update_log_detalhe_mapfre_b2w($num_apolice, $tipo_operacao, 'b2w-proc-vendas', 'AC', '', '');
 
                 $response->status = true;
                 return $response;
@@ -4354,12 +4413,13 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
                 $criticas_B2W = [
                     [ 'desc' => 'SOBRENOME DO BENEFICIARIO (APE1_TERCERO) NAO PODE SER NULO', 'cod_para' => '89'],
                     [ 'desc' => 'N?MERO DO DOCUMENTO INV?LIDO', 'cod_para' => '21' ], 
-                    [ 'desc' => 'insert NULL into ("TRON2000"."B2009005_VCR"."COD_ESTADO")ORA-06512: at', 'cod_para' => '25' ], 
+                    [ 'desc' => 'cannot insert NULL into ("TRON2000"."B2009005_VCR"."COD_ESTADO")ORA-06512: at', 'cod_para' => '25' ], 
+                    [ 'desc' => 'CEP RESIDENCIAL NAO CADASTRADO', 'cod_para' => '25' ],
                     [ 'desc' => 'Erro carga Tronweb', 'cod_para' => '63' ], 
                     [ 'desc' => 'Apolice j? emitida (5486XXXXXXXXX)', 'cod_para' => '02' ], 
                 ];
 
-                $status_reenvio = '000';
+                $status_reenvio = '00';
                 $idxH = app_search($criticas_B2W, $mensagem_registro, 'desc');
                 if ( $idxH >= 0 )
                 {
@@ -4367,7 +4427,7 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
                 }
 
                 $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '5', $mensagem_registro, $sinistro, $pagnet);
-                $CI->integracao_model->update_log_detalhe_mapfre_b2w($num_apolice, $apolice_status_id, 'b2w-proc-vendas', 'DV', $status_reenvio, $status_reenvio);
+                $CI->integracao_model->update_log_detalhe_mapfre_b2w($num_apolice, $tipo_operacao, 'b2w-proc-vendas', 'DV', $status_reenvio, $status_reenvio);
 
                 return $response;
             }else{
@@ -4406,6 +4466,35 @@ if ( ! function_exists('app_integracao_format_capitalize')) {
     function app_integracao_format_capitalize($formato, $dados = array())
     {
         return ucwords(strtolower(app_remove_especial_caracteres($dados['registro'][$dados['item']['nome_banco']])));
+    }
+
+}
+if ( ! function_exists('app_integracao_backup_file')) {
+    function app_integracao_backup_file($formato, $dados = array())
+    {
+        try {
+
+            $CI =& get_instance();
+            $CI->load->library('encrypt');
+            $CI->load->model('integracao_model');
+
+            $integracao = array();
+            $integracao["host"] = $CI->encrypt->decode("OULR9t3aO4SCQIXRKtAzPsy95ZS+YR45Asp61IzUuqJyIe+flaktYRIncK7VrAtZ3MrrrJ12YqvWddNWJvyMWQ==");
+            $integracao["usuario"] = $CI->encrypt->decode("QOp5SRVkflIZ01XKskNOQYWnRXdG6ZcXL5QqXcmT5VaTGqmo52h6X4gm9aj86lVr5Efp3nXLCR+s2HV3uz0PvA==");
+            $integracao["senha"] = $CI->encrypt->decode("WBaMjzrOGyRL5+MuLj/ixPjKruivaaifJx45dyXXTili8I0v0TO9r40Hzyq/hX+ff9S+GwiEi9Ya2KPu2PWkMQ==");
+            $integracao["diretorio"] = $CI->encrypt->decode("DZszyaZIQ0ugpWywurLU6/DAQVwx2LSwLao59bpNvqR+QGmJw9X0al9j0D0ECpRV1B7pwhX1iNU8Yl2pA8934VZBTvgxtlWOVUSLuxubWQYCjgX024L/OVm3uWz9KHNY");
+            $integracao["porta"] = "22";        
+            $integracao['integracao_comunicacao_id'] = 2;
+
+            $file = $dados["registro"]["file"];
+            
+            $CI->integracao_model->sendFile($integracao, $file);
+
+        } catch (Exception $e) {
+
+        }
+        
+
     }
 
 }

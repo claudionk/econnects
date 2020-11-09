@@ -30,6 +30,7 @@ class Emissao extends CI_Controller {
     public $meio_pagto_slug;
     public $campos_meios_pagto;
     public $numero_sorte;
+    public $numero_serie;
     public $comissao_premio;
     public $coberturas_opcionais;
     public $parcelas;
@@ -73,9 +74,13 @@ class Emissao extends CI_Controller {
 
         $POST = json_decode( file_get_contents( "php://input" ), true );
 
-        if(!empty($POST))
+        // Validação dos dados
+        if (empty($POST))
         {
-            // Validação dos dados
+            die(json_encode(array("status"=>false,"message"=>"Parametros não informados"),JSON_UNESCAPED_UNICODE));
+
+        } else
+        {
             // if(empty($POST['produto_slug'])){
             //     die(json_encode(array("status"=>false,"message"=>"Atributo 'produto_slug' não informado"),JSON_UNESCAPED_UNICODE));
             // }
@@ -94,8 +99,6 @@ class Emissao extends CI_Controller {
             /*if(empty($POST['meio_pagto_slug'])){
                 die(json_encode(array("status"=>false,"message"=>"meio_pagto_slug não informado"),JSON_UNESCAPED_UNICODE));
             }*/
-        } else {
-            die(json_encode(array("status"=>false,"message"=>"Parametros não informados"),JSON_UNESCAPED_UNICODE));
         }
 
         $this->equipamento_nome     = '';
@@ -110,6 +113,7 @@ class Emissao extends CI_Controller {
         $this->campos_meios_pagto   = (!isset($POST['meiopagamento']['campos'])) ? [] : $POST['meiopagamento']['campos'];
         $this->parcelas             = (!isset($POST['meiopagamento']['parcelas'])) ? null : $POST['meiopagamento']['parcelas'];
         $this->numero_sorte         = (!isset($POST['numero_sorte'])) ? null : $POST['numero_sorte'];
+        $this->numero_serie         = (!isset($POST['numero_serie'])) ? null : $POST['numero_serie'];
 
         $this->etapas('cotacao', $POST);
     }
@@ -163,6 +167,7 @@ class Emissao extends CI_Controller {
                 if ( $this->numero_sorte )
                 {
                     $arrOptions['numero_sorte'] =  $this->numero_sorte;
+                    $arrOptions['num_proposta_capitalizacao'] =  $this->numero_serie;
                 }
 
                 if(count($parametros['campos'][0]) > 0)
