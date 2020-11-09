@@ -2447,12 +2447,12 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
         $CI->session->set_userdata("operacao", "novomundo");
         $reg = $dados['registro'];
 
+        if($dados['registro']['comissao_premio'] < 0){
+            $dados['registro']['comissao_premio'] = 0.01;
+        }
+
         if (!empty($formato)) 
         {
-            if($reg['comissao_premio'] < 0){
-                $reg['comissao_premio'] = 0.01;
-            }
-
             $geraDados['tipo_produto']              = $reg['tipo_produto'];
             $geraDados['tipo_transacao']            = $reg['acao'];
             $geraDados['tipo_operacao']             = $reg['acao'];
