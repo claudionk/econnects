@@ -544,12 +544,16 @@ Class Integracao_Model extends MY_Model
         $config['username'] = $integracao['usuario'];
         $config['password'] = $integracao['senha'];
         $config['port']     = $integracao['porta'];
-        $config['debug']    = TRUE;
+        //$config['debug']    = TRUE;
 
-        $this->ftp->connect($config);
-        $list = $this->ftp->list_files("{$integracao['diretorio']}");
-        $result = $this->getFileTransferProtocol($this->ftp, $list, $integracao, $file);
-        $this->ftp->close();
+        $result = null;
+        $connectedFTP = $this->ftp->connect($config);
+        if ($connectedFTP)
+        {
+            $list = $this->ftp->list_files("{$integracao['diretorio']}");
+            $result = $this->getFileTransferProtocol($this->ftp, $list, $integracao, $file);
+            $this->ftp->close();
+        }
 
         return $result;
     }
@@ -562,14 +566,19 @@ Class Integracao_Model extends MY_Model
         $config['username'] = $integracao['usuario'];
         $config['password'] = $integracao['senha'];
         $config['port']     = $integracao['porta'];
-        $config['debug']    = TRUE;
+        //$config['debug']    = TRUE;
 
-        $this->sftp->connect($config);
-        $list = $this->sftp->list_files("{$integracao['diretorio']}");
-        $result = $this->getFileTransferProtocol($this->sftp, $list, $integracao, $file);
-        $this->sftp->close();
+        $result = null;
+        $connectedFTP = $this->sftp->connect($config);
+        if ($connectedFTP)
+        {
+            $list = $this->sftp->list_files("{$integracao['diretorio']}");
+            $result = $this->getFileTransferProtocol($this->sftp, $list, $integracao, $file);
+            $this->sftp->close();
+        }
 
         return $result;
+
     }
 
     private function getFileTransferProtocol($obj, $list, $integracao = array(), $file){
@@ -628,7 +637,7 @@ Class Integracao_Model extends MY_Model
         $config['username'] = $integracao['usuario'];
         $config['password'] = $integracao['senha'];
         $config['port'] = $integracao['porta'];
-        $config['debug']    = TRUE;
+        //$config['debug']    = TRUE;
         $filename = basename($file);
         $connectedFTP = $this->ftp->connect($config);
         if ($connectedFTP)
@@ -646,7 +655,7 @@ Class Integracao_Model extends MY_Model
         $config['username'] = $integracao['usuario'];
         $config['password'] = $integracao['senha'];
         $config['port'] = $integracao['porta'];
-        $config['debug']    = TRUE;
+        //$config['debug']    = TRUE;
         $filename = basename($file);
         $connectedSFTP = $this->sftp->connect($config);
         if ($connectedSFTP)
