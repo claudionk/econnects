@@ -1698,7 +1698,7 @@ class Apolice_Model extends MY_Model
             }
         }
 
-        if (($export == 'pdf') || ($export == 'pdf_file')) {
+        if (($export == 'pdf' || $export == 'pdf_file') && !empty($template)) {
             $this->custom_loader->library('pdf');
             $this->pdf->setPageOrientation('P');
             $this->pdf->AddPage();
