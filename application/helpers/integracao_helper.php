@@ -4160,7 +4160,7 @@ if ( ! function_exists('app_integracao_b2w')) {
                 }else{
                     $equipamentoElegivelCategoria = $aEquipamentoElegivelCategoria;
                 }
-                $dados["registro"]['modelo'] = $equipamentoElegivelCategoria["nome"];
+                $dados["registro"]['modelo'] = utf8_encode($equipamentoElegivelCategoria["nome"]);
             }
             
 
