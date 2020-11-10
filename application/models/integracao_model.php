@@ -27,6 +27,7 @@ Class Integracao_Model extends MY_Model
     private $tipo_layout="";
     private $layout_separador=";";
 
+    private $desconsiderarIntegracao = false; //Usado para identificar algum possivel erro durante o processo para salvar o log como deletado e com erro
 
     //Dados
     public $validate = array(
@@ -417,6 +418,12 @@ Class Integracao_Model extends MY_Model
             $dados_log['quantidade_registros'] = $result_file['qtde_reg'];
             $dados_log['integracao_log_status_id'] = $integracao_log_status_id;
 
+            //Caso tenha ocorrido algum erro nos processos anteriores, sera definido "deletado = 1" para desconsiderar a integração, e "integracao_log_status_id = 5" para indentificar como "erro"
+            if($this->desconsiderarIntegracao == true){
+                $dados_log["deletado"] = 1; 
+                $dados_log['integracao_log_status_id'] = 5;
+            }
+
             $this->integracao_log->update($result_file['integracao_log_id'], $dados_log, TRUE);
             unset($dados_log['quantidade_registros']);
 
@@ -542,11 +549,12 @@ Class Integracao_Model extends MY_Model
 
         $result = null;
         $connectedFTP = $this->ftp->connect($config);
-        if ($connectedFTP)
-        {
+        if ($connectedFTP) {
             $list = $this->ftp->list_files("{$integracao['diretorio']}");
             $result = $this->getFileTransferProtocol($this->ftp, $list, $integracao, $file);
             $this->ftp->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
         }
 
         return $result;
@@ -564,11 +572,12 @@ Class Integracao_Model extends MY_Model
 
         $result = null;
         $connectedFTP = $this->sftp->connect($config);
-        if ($connectedFTP)
-        {
+        if ($connectedFTP) {
             $list = $this->sftp->list_files("{$integracao['diretorio']}");
             $result = $this->getFileTransferProtocol($this->sftp, $list, $integracao, $file);
             $this->sftp->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
         }
 
         return $result;
@@ -1198,6 +1207,12 @@ Class Integracao_Model extends MY_Model
         $dados_log = array();
         $dados_log['processamento_fim'] = date('Y-m-d H:i:s');
         $dados_log['integracao_log_status_id'] = 4;
+
+        //Caso tenha ocorrido algum erro nos processos anteriores, sera definido "deletado = 1" para desconsiderar a integração, e "integracao_log_status_id = 5" para indentificar como "erro"
+        if($this->desconsiderarIntegracao == true){
+            $dados_log["deletado"] = 1; 
+            $dados_log['integracao_log_status_id'] = 5;
+        }
 
         $this->integracao_log->update($integracao_log['integracao_log_id'], $dados_log, TRUE);
 
