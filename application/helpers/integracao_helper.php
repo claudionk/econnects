@@ -1880,7 +1880,11 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $fields['equipamento_categoria_id']     = isempty($dados['equipamento_categoria_id'], null);
                 $fields['equipamento_sub_categoria_id'] = isempty($dados['equipamento_sub_categoria_id'], null);
                 $fields['equipamento_de_para']          = isempty($dados['equipamento_de_para'], null);
-                $fields['comissao_premio']              = isempty($dados['comissao_premio'], null);
+                if($acesso->parceiro == "novomundo" && !empty($dados['comissao_premio']) && $dados['comissao_premio'] < 0){
+                    $fields['comissao_premio']          = 0.01;
+                } else{
+                    $fields['comissao_premio']          = isempty($dados['comissao_premio'], null);
+                }
                 $fields['data_inicio_vigencia']         = isempty($dados['data_inicio_vigencia'], null);
                 $fields['data_fim_vigencia']            = isempty($dados['data_fim_vigencia'], null);
                 $fields['numero_sorte']                 = isempty($dados['num_sorte'], null);
@@ -1918,8 +1922,12 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $cotacao_id = $cotacao->cotacao_id;
                 $response->cotacao_id = $cotacao_id;
 
+                if($acesso->parceiro == "novomundo" && !empty($dados['comissao_premio'])){
+                    $comissao_premio = isempty($dados['comissao_premio'], null);
+                }
+
                 // Cálculo do prêmio
-                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0), NULL, 0, $fields['coberturas'] );
+                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0), NULL, 0, $fields['coberturas'], $comissao_premio);
                 if (empty($calcPremio['status'])){
                     $response->errors[] = ['id' => -1, 'msg' => $calcPremio['response'], 'slug' => "calcula_premio"];
                     return $response;
@@ -1948,7 +1956,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
 }
 if ( ! function_exists('app_integracao_calcula_premio'))
 {
-    function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso = null, $premio_liquido = NULL, $valor_iof = NULL, $valor_fixo = NULL, $qtde = 0, $coberturas = [])
+    function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso = null, $premio_liquido = NULL, $valor_iof = NULL, $valor_fixo = NULL, $qtde = 0, $coberturas = [], $comissao_premio = null)
     {
 
         if($acesso->parceiro == "b2w"){
@@ -1961,6 +1969,10 @@ if ( ! function_exists('app_integracao_calcula_premio'))
             'coberturas' => $coberturas,
         ];
 
+        if(!empty($comissao_premio)){
+            $fields['comissao_premio'] = $comissao_premio;
+        }
+        
         // Cálculo do prêmio
         $calcPremio = app_get_api("calculo_premio", "POST", json_encode($fields), $acesso);
         if (empty($calcPremio['status'])){
@@ -1968,6 +1980,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
         }
 
         $calcPremio = $calcPremio['response'];
+
         $valor_premio = $calcPremio->premio_liquido_total;
         $premioValid = true;
         $aceitaPorcentagem = false;
@@ -2471,10 +2484,6 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
         $CI->session->sess_destroy();
         $CI->session->set_userdata("operacao", "novomundo");
         $reg = $dados['registro'];
-
-        if($dados['registro']['comissao_premio'] < 0){
-            $dados['registro']['comissao_premio'] = 0.01;
-        }
 
         if (!empty($formato)) 
         {
