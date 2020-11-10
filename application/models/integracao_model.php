@@ -643,10 +643,11 @@ Class Integracao_Model extends MY_Model
         //$config['debug']    = TRUE;
         $filename = basename($file);
         $connectedFTP = $this->ftp->connect($config);
-        if ($connectedFTP)
-        {
+        if ($connectedFTP) {
             $this->ftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
             $this->ftp->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
         }
     }
 
@@ -661,10 +662,11 @@ Class Integracao_Model extends MY_Model
         //$config['debug']    = TRUE;
         $filename = basename($file);
         $connectedSFTP = $this->sftp->connect($config);
-        if ($connectedSFTP)
-        {
+        if ($connectedSFTP) {
             $this->sftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
             $this->sftp->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
         }
     }
 
