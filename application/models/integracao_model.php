@@ -418,20 +418,25 @@ Class Integracao_Model extends MY_Model
             $dados_log['quantidade_registros'] = $result_file['qtde_reg'];
             $dados_log['integracao_log_status_id'] = $integracao_log_status_id;
 
-            //Caso tenha ocorrido algum erro nos processos anteriores, sera definido "deletado = 1" para desconsiderar a integração, e "integracao_log_status_id = 5" para indentificar como "erro"
-            if($this->desconsiderarIntegracao == true){
-                $dados_log["deletado"] = 1; 
-                $dados_log['integracao_log_status_id'] = 5;
+            //Faz o update do LOG apenas se ele foi gerado, quando o log não é gravado o valor é: [int: 0] (Alguemas integrações podem setar para não gravar log em determinadas circunstancias [Exemplo: Quando não vier registros])
+            if($result_file['integracao_log_id']){ 
+
+                //Caso tenha ocorrido algum erro nos processos anteriores, sera definido "deletado = 1" para desconsiderar a integração, e "integracao_log_status_id = 5" para indentificar como "erro"
+                if($this->desconsiderarIntegracao == true){
+                    $dados_log["deletado"] = 1; 
+                    $dados_log['integracao_log_status_id'] = 5;
+                }
+
+                $this->integracao_log->update($result_file['integracao_log_id'], $dados_log, TRUE);
+
+                $this->integracao_log_detalhe->update_by(
+                    array('integracao_log_id' => $result_file['integracao_log_id']), array(
+                        'integracao_log_status_id' => $integracao_log_status_id
+                    )
+                );
             }
 
-            $this->integracao_log->update($result_file['integracao_log_id'], $dados_log, TRUE);
             unset($dados_log['quantidade_registros']);
-
-            $this->integracao_log_detalhe->update_by(
-                array('integracao_log_id' => $result_file['integracao_log_id']), array(
-                    'integracao_log_status_id' => $integracao_log_status_id
-                )
-            );
 
             $dados_integracao = array();
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']); 
@@ -766,13 +771,26 @@ Class Integracao_Model extends MY_Model
         $integracao['script_sql'] = $this->parser->parse_string($integracao['script_sql'], $this->data_template_script, TRUE);
         $query = $this->_database->query($integracao['script_sql']);
         $registros = $query->result_array();
+
+        $bSalvaLog = true;
+        if(isset($integracao["salva_log_vazio"])){ //Verificação de isset caso o desenvolvimento do novo campo 'salva_log_vazio" vá para produção anter de adicionar a coluna no banco de dados
+            if(empty($registros) && $integracao["salva_log_vazio"] == 0){ //
+                $bSalvaLog = false;
+            }
+        }
+        
         $query->next_result();
 
         $totalCertificados = count($registros);
         $this->data_template_script['totalCertificados'] = $totalCertificados;
 
-        $integracao_log =  $this->integracao_log->insLog($integracao['integracao_id'], $totalCertificados);
-        $arRet = ['file' => '', 'integracao_log_id' => $integracao_log['integracao_log_id'], 'qtde_reg' => $totalCertificados];
+        $arRet = ['file' => '', 'integracao_log_id' => 0, 'qtde_reg' => 0];
+        if($bSalvaLog){
+            $integracao_log             = $this->integracao_log->insLog($integracao['integracao_id'], $totalCertificados);
+            $arRet['qtde_reg']          = $totalCertificados;
+            $arRet['integracao_log_id'] = $integracao_log['integracao_log_id'];
+        }
+
         $filename = '';
         // Não envia vazio && não retornou nenhum dado para ser enviado
         // if ( empty($integracao['envia_vazio']) && empty($registros) ) {
