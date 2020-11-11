@@ -151,6 +151,10 @@ Class Comissao_Gerada_Model extends MY_Model {
 
         $comissao_venda =  ($comissao_premio/100) * $premio_liquido_total;
 
+        if(($parceiro['parceiro_id'] == 72 || $parceiro['parceiro_id'] == 76) && $comissao_venda < 0){
+            $comissao_venda = 0.01;
+        }
+
         $data_comissao = array();
         $data_comissao['comissao_classe_id']    = $comissao_classe['comissao_classe_id'];
         $data_comissao['pedido_id']             = $item['pedido_id'];
