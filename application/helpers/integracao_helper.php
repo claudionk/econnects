@@ -4189,6 +4189,7 @@ if ( ! function_exists('app_integracao_b2w')) {
         $isDuplicidadeFilter->num_apolice = $num_apolice;
         $isDuplicidadeFilter->integracao_log_detalhe_dados_id = $integracao_log_detalhe_dados_id;
         $isDuplicidadeFilter->slug = "b2w-proc-vendas";
+        $isDuplicidadeFilter->tipo_operacao = 1;
         $isDuplicidade = $CI->integracao->isDuplicidade($isDuplicidadeFilter);
 
         if($isDuplicidade){
@@ -4226,7 +4227,16 @@ if ( ! function_exists('app_integracao_b2w')) {
 
         }
 
-
+        // Só faz a emissão caso as regras sejam válidas e não tenha encontrado nenhuma apolice
+        if($dados["registro"]["acao"] == 1){
+            $CI->load->model("apolice_model", "apolice");
+            $apolice = $CI->apolice->getApoliceByNumero($num_apolice, $acesso->parceiro_id);
+            if(!empty($apolice)){
+                $response->status = true;
+                return $response;
+            }    
+        }
+        
         // Campos para cotação
         $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id, 'GET', [], $acesso);
         if (empty($camposCotacao['status'])){
@@ -4255,17 +4265,12 @@ if ( ! function_exists('app_integracao_b2w')) {
             $mixedEnriqueceCPF = false; //O attr false indica que não deve ser enriquecido
         }else{
             $mixedEnriqueceCPF = $aCampos_enriqueceCPF; //O attr como array determina a lista de campos que serão enriquecidos
-        }
-
-        // Validar Regras
-
-        $CI->load->model("apolice_model", "apolice");
-        $apolice = $CI->apolice->getApoliceByNumero($num_apolice, $acesso->parceiro_id);
+        }        
         
         $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, $mixedEnriqueceCPF, $acesso);
         // echo "<pre>";print_r($validaRegra);echo "</pre>";die();
 
-        if (!empty($validaRegra->status) && empty($apolice)) {// Só faz a emissão caso as regras sejam válidas e não tenha encontrado nenhuma apolice
+        if (!empty($validaRegra->status)) {
 
             $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
             $dados['registro']['fields'] = $validaRegra->fields;
