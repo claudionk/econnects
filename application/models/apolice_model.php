@@ -1552,15 +1552,10 @@ class Apolice_Model extends MY_Model
         $num_apolice_cliente = '';
 
         if (!empty($dadosPP)) {
-            // LASA RF+QA NOVOS && QUERO QUERO
-            if ($dadosPP['cod_tpa'] == '007' || $dadosPP['cod_tpa'] == '048') {
+            // LASA RF+QA NOVOS
+            if ($dadosPP['cod_tpa'] == '007') {
                 $num_apolice_aux = $dadosPP['cod_sucursal'] . $dadosPP['cod_ramo'] . $dadosPP['cod_tpa'];
-
-                if ($dadosPP['cod_tpa'] == '048') {
-                    $num_apolice_aux .= str_pad(substr($dadosPP['num_apolice'], 7, 6), 8, '0', STR_PAD_LEFT);
-                } else {
-                    $num_apolice_aux .= str_pad(substr($dadosPP['num_apolice'], 7, 8), 8, '0', STR_PAD_LEFT);
-                }
+                $num_apolice_aux .= str_pad(substr($dadosPP['num_apolice'], 7, 8), 8, '0', STR_PAD_LEFT);
                 $num_apolice_cliente = $num_apolice_aux;
             } else {
                 $num_apolice_cliente = $dadosPP['num_apolice'];
