@@ -4153,7 +4153,7 @@ if ( ! function_exists('app_integracao_b2w')) {
         $eanErro = true;
         $eanErroMsg = "";
 
-        if(empty($reg['modelo'])){
+        if(empty($reg['equipamento_nome'])){
             
             $CI->load->model("equipamentos_elegiveis_categoria_model", "equipamentos_elegiveis_categoria");
             
@@ -4168,7 +4168,7 @@ if ( ! function_exists('app_integracao_b2w')) {
                 }else{
                     $equipamentoElegivelCategoria = $aEquipamentoElegivelCategoria;
                 }
-                $dados["registro"]['modelo'] = $equipamentoElegivelCategoria["nome"];
+                $dados["registro"]['equipamento_nome'] = $equipamentoElegivelCategoria["nome"];
             }
             
 
