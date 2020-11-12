@@ -2706,7 +2706,7 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
     }
 }
 if ( ! function_exists('app_integracao_inicio')) {
-    function app_integracao_inicio($parceiro_id, $num_apolice = '', $cpf = '', $ean = '', &$dados = array(), $enriqueEquipamento = true, $acesso = null)
+    function app_integracao_inicio($parceiro_id, $num_apolice = '', $cpf = '', $ean = '', &$dados = array(), $enriqueEquipamento = true, $acesso = null, $aIgnore = array())
     {
         $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
 
@@ -2731,11 +2731,13 @@ if ( ! function_exists('app_integracao_inicio')) {
         // Emissão
         if ($reg['acao'] == '1') {
 
-            if (!empty($apolice)) {
-                $response->status = 2;
-                $response->msg[] = ['id' => 16, 'msg' => "Apólice já emitida [{$num_apolice}]", 'slug' => "emissao"];
-                return $response;
-            }
+            if(!in_array("duplicidade", $aIgnore)){
+                if (!empty($apolice)) {
+                    $response->status = 2;
+                    $response->msg[] = ['id' => 16, 'msg' => "Apólice já emitida [{$num_apolice}]", 'slug' => "emissao"];
+                    return $response;
+                }
+            }            
 
             if ( !app_validate_cpf_cnpj($cpf) ) {
                 $response->msg[] = ['id' =>  2, 'msg' => "Campo CPF/CNPJ deve ser um documento válido [{$cpf}]", 'slug' => 'cnpj_cpf'];
@@ -4145,7 +4147,7 @@ if ( ! function_exists('app_integracao_b2w')) {
         $eanErro = true;
         $eanErroMsg = "";
 
-        if(empty($reg['modelo'])){
+        if(empty($reg['equipamento_nome'])){
             
             $CI->load->model("equipamentos_elegiveis_categoria_model", "equipamentos_elegiveis_categoria");
             
@@ -4160,33 +4162,75 @@ if ( ! function_exists('app_integracao_b2w')) {
                 }else{
                     $equipamentoElegivelCategoria = $aEquipamentoElegivelCategoria;
                 }
-                $dados["registro"]['modelo'] = utf8_encode($equipamentoElegivelCategoria["nome"]);
+                $dados["registro"]['equipamento_nome'] = utf8_encode($equipamentoElegivelCategoria["nome"]);
             }
             
 
         }
 
         // validações iniciais
-        $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, true, $acesso);
-        if ( $valid->status !== true ) {
-            $aCodError = [
-                2   => "021",
-                16  => "002",
-                8   => "007",
-                17  => "061"
-            ];
+        $valid = new stdClass();
+        $valid->status = true;
+        $aCodError = [
+            2   => "21",
+            16  => "02",
+            8   => "07",
+            17  => "61"
+        ];
 
-            $returnValid = $valid->msg[0];
-            if(isset($aCodError[$returnValid['id']])){
-                $codError = $aCodError[$returnValid['id']];
-                if($integracao_log_detalhe_dados_id > 0){
-                    $CI->load->model("integracao_model", "integracao");
-                    $CI->integracao->executeUpdate_update_log_detalhe_mapfre_b2w("DV", $codError, $codError, $integracao_log_detalhe_dados_id);
-                }
-                return $valid;
-            }
+        //As regras para verificar duplicidade de apolice para a B2W não são as genéricas dentro do método "app_integracao_inicio"
+        $isDuplicidadeFilter = new stdClass();
+        $isDuplicidadeFilter->num_apolice = $num_apolice;
+        $isDuplicidadeFilter->integracao_log_detalhe_dados_id = $integracao_log_detalhe_dados_id;
+        $isDuplicidadeFilter->slug = "b2w-proc-vendas";
+        $isDuplicidadeFilter->tipo_operacao = 1;
+        $isDuplicidade = $CI->integracao->isDuplicidade($isDuplicidadeFilter);
+
+        if($isDuplicidade){
+
+            $valid->status = 2;
+            $valid->msg[] = ['id' => 16, 'msg' => "Apólice já emitida [{$num_apolice}]", 'slug' => "emissao"];
+
+        } else {
+
+            $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, true, $acesso, [
+                "duplicidade"
+            ]);
+
         }
 
+        if ( $valid->status !== true ) {                
+    
+            $returnValid = $valid->msg[0];
+            
+            if(isset($aCodError[$returnValid['id']])){
+                
+                if($integracao_log_detalhe_dados_id > 0){
+
+                    $returnValid_id = $returnValid['id'];
+                    $codError = $aCodError[$returnValid_id];
+
+                    $CI->load->model("integracao_model", "integracao");
+                    $CI->integracao->executeUpdate_update_log_detalhe_mapfre_b2w("DV", $codError, $codError, $integracao_log_detalhe_dados_id);
+
+                }
+
+                return $valid;
+
+            }
+
+        }
+
+        // Só faz a emissão caso as regras sejam válidas e não tenha encontrado nenhuma apolice
+        if($dados["registro"]["acao"] == 1){
+            $CI->load->model("apolice_model", "apolice");
+            $apolice = $CI->apolice->getApoliceByNumero($num_apolice, $acesso->parceiro_id);
+            if(!empty($apolice)){
+                $response->status = true;
+                return $response;
+            }    
+        }
+        
         // Campos para cotação
         $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id, 'GET', [], $acesso);
         if (empty($camposCotacao['status'])){
@@ -4195,7 +4239,6 @@ if ( ! function_exists('app_integracao_b2w')) {
         }
 
         $camposCotacao = $camposCotacao['response'];
-
           
         $aCampos_enriqueceCPF = array();
 
@@ -4216,15 +4259,16 @@ if ( ! function_exists('app_integracao_b2w')) {
             $mixedEnriqueceCPF = false; //O attr false indica que não deve ser enriquecido
         }else{
             $mixedEnriqueceCPF = $aCampos_enriqueceCPF; //O attr como array determina a lista de campos que serão enriquecidos
-        }
-
-        // Validar Regras
+        }        
+        
         $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, $mixedEnriqueceCPF, $acesso);
         // echo "<pre>";print_r($validaRegra);echo "</pre>";die();
 
         if (!empty($validaRegra->status)) {
+
             $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
             $dados['registro']['fields'] = $validaRegra->fields;
+
             $emissao = app_integracao_emissao($formato, $dados, $acesso);
 
             if (empty($emissao->status)) {
@@ -4243,7 +4287,8 @@ if ( ! function_exists('app_integracao_b2w')) {
 
             } else {
                 $response->status = true;
-            }
+            }            
+            
 
         } else {
             if (!empty($response->msg)) {
