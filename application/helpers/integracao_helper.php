@@ -4177,7 +4177,7 @@ if ( ! function_exists('app_integracao_b2w')) {
         $isDuplicidadeFilter->num_apolice = $num_apolice;
         $isDuplicidadeFilter->integracao_log_detalhe_dados_id = $integracao_log_detalhe_dados_id;
         $isDuplicidadeFilter->slug = "b2w-proc-vendas";
-        $isDuplicidadeFilter->tipo_operacao = 1;
+        $isDuplicidadeFilter->tipo_operacao = $dados["registro"]['acao'];
         $isDuplicidade = $CI->integracao->isDuplicidade($isDuplicidadeFilter);
 
         if($isDuplicidade){
