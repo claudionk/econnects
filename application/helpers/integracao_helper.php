@@ -4155,16 +4155,10 @@ if ( ! function_exists('app_integracao_b2w')) {
             $integracaoFilter->lista_id = 4;
             $integracaoFilter->codigo = $reg['id_departamento_categoria'];
 
-            $aEquipamentoElegivelCategoria = $CI->equipamentos_elegiveis_categoria->getIntegracao($integracaoFilter);
-            if(!empty($aEquipamentoElegivelCategoria)){
-                if(is_array($aEquipamentoElegivelCategoria)){
-                    $equipamentoElegivelCategoria = $aEquipamentoElegivelCategoria[0];
-                }else{
-                    $equipamentoElegivelCategoria = $aEquipamentoElegivelCategoria;
-                }
+            $equipamentoElegivelCategoria = $CI->equipamentos_elegiveis_categoria->getIntegracao($integracaoFilter);
+            if(!empty($equipamentoElegivelCategoria)){
                 $dados["registro"]['equipamento_nome'] = utf8_encode($equipamentoElegivelCategoria["nome"]);
-            }
-            
+            }            
 
         }
 
