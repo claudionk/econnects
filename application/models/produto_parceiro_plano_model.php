@@ -547,6 +547,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                 'inicio_vigencia' => $date_inicio,
                 'fim_vigencia'    => $date_fim,
                 'dias'            => app_date_get_diff_mysql($date_inicio, $date_fim, 'D'),
+                'meses'           => app_date_get_diff_mysql($date_inicio, $date_fim, 'M'),
                 'data_adesao'     => $data_adesao,
             ];
 
@@ -556,6 +557,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             'inicio_vigencia' => $result[0]['inicio_vigencia'],
             'fim_vigencia'    => $result[0]['fim_vigencia'],
             'dias'            => $result[0]['dias'],
+            'meses'           => $result[0]['meses'],
             'data_adesao'     => $result[0]['data_adesao'],
             'coberturas'      => $result,    
         );
