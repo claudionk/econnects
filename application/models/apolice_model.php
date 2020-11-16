@@ -225,8 +225,9 @@ class Apolice_Model extends MY_Model
 
     public function concluiApolice($pedido, $apolice_id, $produto_parceiro_plano_id)
     {
-        $this->load->model('apolice_cobertura_model', 'apolice_cobertura');
+        $this->load->model('apolice_cobertura_model', 'apolice_cobertura');        
         $this->load->model('apolice_movimentacao_model', 'movimentacao');
+        $this->load->model('comissao_gerada_model', 'comissao_gerada');
 
         $pedido_id = $pedido['pedido_id'];
         $produto_parceiro_id = $pedido['produto_parceiro_id'];
@@ -241,6 +242,9 @@ class Apolice_Model extends MY_Model
 
         // Dados da Movimentação e Endosso
         $this->movimentacao->insMovimentacao('A', $apolice_id, $pedido);
+
+        //Gerar comissão (Ação incluida no processo de concluir apolice para evitar uso da Cron que estava sobrepondo as requisições)
+        $this->comissao_gerada->gerar_comissao_parceiro_relacionamento($pedido_id);
 
     }
 
