@@ -80,11 +80,16 @@ Class Comissao_Gerada_Model extends MY_Model {
 
     }
 
-    public function gerar_comissao_parceiro_relacionamento(){
+    public function gerar_comissao_parceiro_relacionamento($pedido_id = null){
 
         //busca vendas que não foram contabilziadas ainda
         $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
         $this->load->model('comissao_classe_model', 'comissao_classe');
+
+        $sql_pedido_id = "";
+        if($pedido_id){
+            $sql_pedido_id = "AND comissao_gerada.pedido_id = $pedido_id";
+        }
 
         $sql = "SELECT 
                 cotacao.cotacao_id,
@@ -108,6 +113,7 @@ Class Comissao_Gerada_Model extends MY_Model {
             INNER JOIN parceiro ON parceiro_relacionamento_produto.parceiro_id = parceiro.parceiro_id
             LEFT JOIN comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.deletado = 0 
             WHERE pedido.pedido_status_id IN (3,8,5) 
+                $sql_pedido_id
                 AND cotacao.deletado = 0
                 AND pedido.deletado = 0
                 AND comissao_gerada.pedido_id IS NULL
