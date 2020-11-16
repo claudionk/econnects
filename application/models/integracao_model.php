@@ -1811,13 +1811,14 @@ Class Integracao_Model extends MY_Model
         $num_apolice = $isDuplicidade->num_apolice;
         $integracao_log_detalhe_dados_id = $isDuplicidade->integracao_log_detalhe_dados_id;
         $slug = $isDuplicidade->slug;
+        $tipo_operacao = $isDuplicidade->tipo_operacao;
 
         $SQL = "SELECT dd.* 
         FROM integracao i
         INNER JOIN integracao_log l ON i.integracao_id = l.integracao_id AND l.deletado = 0
         INNER JOIN integracao_log_detalhe d ON l.integracao_log_id = d.integracao_log_id AND d.deletado = 0
         INNER JOIN integracao_log_detalhe_dados dd ON d.integracao_log_detalhe_id = dd.integracao_log_detalhe_id AND dd.deletado = 0
-        WHERE dd.num_apolice = '$num_apolice' AND dd.tipo_transacao = '1' and i.slug = '$slug' 
+        WHERE dd.num_apolice = '$num_apolice' AND dd.tipo_operacao = '$tipo_operacao' and i.slug = '$slug' 
         AND dd.integracao_log_detalhe_dados_id <> $integracao_log_detalhe_dados_id
         AND dd.status_carga IN('','AC');";
 

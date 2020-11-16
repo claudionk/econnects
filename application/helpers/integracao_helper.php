@@ -4041,6 +4041,11 @@ if ( ! function_exists('app_integracao_b2w')) {
         $CI =& get_instance();
         $CI->session->sess_destroy();
         $CI->session->set_userdata("operacao", "b2w");
+        $CI->load->model("integracao_model", "integracao");
+        $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
+        $CI->load->model("equipamentos_elegiveis_categoria_model", "equipamentos_elegiveis_categoria");
+        $CI->load->model("apolice_model", "apolice");
+
         $reg = $dados['registro'];
 
         $integracao_log_detalhe_dados_id = 0;
@@ -4123,7 +4128,6 @@ if ( ! function_exists('app_integracao_b2w')) {
             $geraDados['id_departamento_categoria'] = $reg['id_departamento_categoria'];
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
-            $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
             $integracao_log_detalhe_dados_id = $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
         }
 
@@ -4149,22 +4153,14 @@ if ( ! function_exists('app_integracao_b2w')) {
 
         if(empty($reg['equipamento_nome'])){
             
-            $CI->load->model("equipamentos_elegiveis_categoria_model", "equipamentos_elegiveis_categoria");
-            
             $integracaoFilter = new stdClass();
             $integracaoFilter->lista_id = 4;
             $integracaoFilter->codigo = $reg['id_departamento_categoria'];
 
-            $aEquipamentoElegivelCategoria = $CI->equipamentos_elegiveis_categoria->getIntegracao($integracaoFilter);
-            if(!empty($aEquipamentoElegivelCategoria)){
-                if(is_array($aEquipamentoElegivelCategoria)){
-                    $equipamentoElegivelCategoria = $aEquipamentoElegivelCategoria[0];
-                }else{
-                    $equipamentoElegivelCategoria = $aEquipamentoElegivelCategoria;
-                }
+            $equipamentoElegivelCategoria = $CI->equipamentos_elegiveis_categoria->getIntegracao($integracaoFilter);
+            if(!empty($equipamentoElegivelCategoria)){
                 $dados["registro"]['equipamento_nome'] = utf8_encode($equipamentoElegivelCategoria["nome"]);
-            }
-            
+            }            
 
         }
 
@@ -4183,7 +4179,7 @@ if ( ! function_exists('app_integracao_b2w')) {
         $isDuplicidadeFilter->num_apolice = $num_apolice;
         $isDuplicidadeFilter->integracao_log_detalhe_dados_id = $integracao_log_detalhe_dados_id;
         $isDuplicidadeFilter->slug = "b2w-proc-vendas";
-        $isDuplicidadeFilter->tipo_operacao = 1;
+        $isDuplicidadeFilter->tipo_operacao = $dados["registro"]['acao'];
         $isDuplicidade = $CI->integracao->isDuplicidade($isDuplicidadeFilter);
 
         if($isDuplicidade){
@@ -4210,7 +4206,6 @@ if ( ! function_exists('app_integracao_b2w')) {
                     $returnValid_id = $returnValid['id'];
                     $codError = $aCodError[$returnValid_id];
 
-                    $CI->load->model("integracao_model", "integracao");
                     $CI->integracao->executeUpdate_update_log_detalhe_mapfre_b2w("DV", $codError, $codError, $integracao_log_detalhe_dados_id);
 
                 }
@@ -4223,7 +4218,6 @@ if ( ! function_exists('app_integracao_b2w')) {
 
         // Só faz a emissão caso as regras sejam válidas e não tenha encontrado nenhuma apolice
         if($dados["registro"]["acao"] == 1){
-            $CI->load->model("apolice_model", "apolice");
             $apolice = $CI->apolice->getApoliceByNumero($num_apolice, $acesso->parceiro_id);
             if(!empty($apolice)){
                 $response->status = true;
