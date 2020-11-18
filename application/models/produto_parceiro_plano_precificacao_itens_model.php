@@ -156,8 +156,14 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         return $this;
     }
 
-    function filter_by_equipamento_de_para($equipamento_de_para){
+    function filter_by_equipamento_de_para($equipamento_de_para, $equipamento = null){
         $this->_database->where("{$this->_table}.equipamento_de_para", "{$equipamento_de_para}");
+
+        if (!empty($equipamento))
+        {
+            $this->_database->where("IF({$this->_table}.equipamento = '', 1, {$this->_table}.equipamento LIKE \"%'{$equipamento}'%\"");
+        }
+
         return $this;
     }
 
@@ -407,14 +413,14 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             $query = $this
                                 ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
                                 ->filter_by_faixa( $valor_nota )
-                                ->filter_by_tipo_equipamento("EQUIPAMENTO");
+                                ->filter_by_tipo_equipamento("EQUIPAMENTO")
+                                ->filter_by_vigencia_equipamento($data_adesao);
 
                             // Caso tenha um DE x PARA
                             if ( !empty($equipamento_de_para) ) {
 
                                 $valor = $query
-                                    ->filter_by_equipamento_de_para($equipamento_de_para)
-                                    ->filter_by_vigencia_equipamento($data_adesao)                                        
+                                    ->filter_by_equipamento_de_para($equipamento_de_para, $eqSubCatId)
                                     ->get_all();
 
                             } else {

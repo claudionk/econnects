@@ -88,7 +88,7 @@ Class Comissao_Gerada_Model extends MY_Model {
 
         $sql_pedido_id = "";
         if($pedido_id){
-            $sql_pedido_id = "AND comissao_gerada.pedido_id = $pedido_id";
+            $sql_pedido_id = "AND pedido.pedido_id = $pedido_id";
         }
 
         $sql = "SELECT 
