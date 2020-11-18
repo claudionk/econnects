@@ -1898,7 +1898,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $response->cotacao_id = $cotacao_id;
 
                 // Cálculo do prêmio
-                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0), NULL, 0, $fields['coberturas'] );
+                $calcPremio = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0), NULL, 0, $fields['coberturas']);
                 if (empty($calcPremio['status'])){
                     $response->errors[] = ['id' => -1, 'msg' => $calcPremio['response'], 'slug' => "calcula_premio"];
                     return $response;
@@ -1938,8 +1938,8 @@ if ( ! function_exists('app_integracao_calcula_premio'))
             'cotacao_id' => $cotacao_id,
             'valor_fixo' => $valor_fixo,
             'coberturas' => $coberturas,
-        ];
-
+        ];  
+        
         // Cálculo do prêmio
         $calcPremio = app_get_api("calculo_premio", "POST", json_encode($fields), $acesso);
         if (empty($calcPremio['status'])){
@@ -1947,6 +1947,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
         }
 
         $calcPremio = $calcPremio['response'];
+
         $valor_premio = $calcPremio->premio_liquido_total;
         $premioValid = true;
         $aceitaPorcentagem = false;
