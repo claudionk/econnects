@@ -551,7 +551,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         return $result;
     }
 
-    public function calculo_planox( $params = array(), $api = false ) {
+    public function calculo_plano_multiple( $params = array(), $api = false ) {
         if (empty($params)) {
             $params = $_POST;
         }
@@ -784,7 +784,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             return $result;
         }
 
-        $valores_liquido = $planoActual = $aFilter = array();
+        $aFilter = array();
 
         $arrPlanos = $this->plano
             ->distinct()
@@ -823,40 +823,37 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         * FAZ O CÁLCULO DO PLANO
         */
         $desconto_condicional_valor = 0;
-        foreach( $arrPlanos as $plano ) {
-
-            if ($plano['produto_parceiro_plano_id'] == $produto_parceiro_plano_id) {
-                $planoActual = $plano;
-            }
-
-            // if ( !$api || empty($produto_parceiro_plano_id) || $plano['produto_parceiro_plano_id'] == $produto_parceiro_plano_id){
+        foreach( $arrPlanos as $plano )
+        {
             if ( !empty($valor_fixo) )
             {
                 $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor_fixo;
             } 
             else 
             {
-                switch ((int)$configuracao['calculo_tipo_id']) {
-                    case self::TIPO_CALCULO_NET:
-                        $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
-                        $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
-                        $valor = ($valor/(1-($markup/100)));
-                        $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
-                        $valor -= $desconto_condicional_valor;
-                        $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
-                        break;
-                    case self::TIPO_CALCULO_BRUTO:
-                        $valor = $valores_bruto[$plano['produto_parceiro_plano_id']];
-                        $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
-                        $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
-                        $valor -= $desconto_condicional_valor;
-                        $valores_liquido[$plano['produto_parceiro_plano_id']] = $valor;
-                        break;
-                    default:
-                        break;
+                foreach ($valores_bruto[$plano['produto_parceiro_plano_id']] as $k => $v)
+                {
+                    switch ((int)$configuracao['calculo_tipo_id']) {
+                        case self::TIPO_CALCULO_NET:
+                            $valor = $v['valor_base'];
+                            $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
+                            $valor = ($valor/(1-($markup/100)));
+                            $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
+                            $valor -= $desconto_condicional_valor;
+                            $valores_bruto[$plano['produto_parceiro_plano_id']][$k]['valor_liquido'] = $valor;
+                            break;
+                        case self::TIPO_CALCULO_BRUTO:
+                            $valor = $v['valor_base'];
+                            $valor += (isset($valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']])) ? $valores_cobertura_adicional_total[$plano['produto_parceiro_plano_id']] : 0;
+                            $desconto_condicional_valor = ($desconto_condicional/100) * $valor;
+                            $valor -= $desconto_condicional_valor;
+                            $valores_bruto[$plano['produto_parceiro_plano_id']][$k]['valor_liquido'] = $valor;
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
-            // }
         }
 
         // busca a cobertura
@@ -865,170 +862,96 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             ->get_all();
 
         $iof = 0;
-        $valores_liquido_total = array();
-        foreach ($valores_liquido as $key => $value)
+        foreach ($valores_bruto as $plano_id => $v)
         {
-            $valores_liquido_total[$key] = $value;
-            $valores_liquido_total_cobertura[$key] = 0;
-            $valores_liquido_total_round[$key] = 0;
-            $iof_calculado = false;
+            // tratamento para o indice da quantidade q não é um array
+            if($plano_id == 'quantidade') continue;
 
-            // Tratando se tem IOF - default para todas as coberturas
-            $r = $this->plano_cobertura->with_prod_parc_iof($key)->get_all();
-            foreach ($r as $regra)
+            foreach ($v as $key => $value)
             {
-                $iof_calculado = true;
+                $valores_bruto[$plano_id][$key]['valor_bruto'] = $value['valor_liquido'];
+                $valores_liquido_total_cobertura[$plano_id] = 0;
+                $valores_liquido_total_round[$plano_id] = 0;
+                $iof_calculado = false;
 
-                // trunca o valor do IOF por cobertura
-                $iofPerc = ($regra['iof']/100) * ($regra['custo'] * $valores_bruto['quantidade']);
-                $valores_liquido_total_cobertura[$key] += truncate($iofPerc, 2);
-                $valores_liquido_total_round[$key] += $iofPerc;
-                $iof = $regra['iof'];
-            }
-
-            if ($iof_calculado)
-            {
-                // arredonda a soma to IOF do bilhete
-                $valores_liquido_total_cobertura[$key] = round($valores_liquido_total_cobertura[$key], 2);
-                $valores_liquido_total_round[$key] = round($valores_liquido_total_round[$key], 2);
-
-                // Caso o IOF calculado sobre o prêmio da apólice/bilhete seja = 0,00
-                if ($valores_liquido_total_cobertura[$key] == 0)
+                // Tratando se tem IOF - default para todas as coberturas
+                $r = $this->plano_cobertura->with_prod_parc_iof($plano_id)->get_all();
+                foreach ($r as $regra)
                 {
-                    // deve-se atribuir à cobertura de maior peso na formação do prêmio o valor de 0,01, propagando o mesmo valor para o IOF da apólice;
-                    $valores_liquido_total_cobertura[$key] = 0.01;
-                } elseif ($valores_liquido_total_cobertura[$key] != $valores_liquido_total_round[$key])
-                {
-                    $valores_liquido_total_cobertura[$key] += $valores_liquido_total_round[$key] - $valores_liquido_total_cobertura[$key];
+                    $iof_calculado = true;
+
+                    // trunca o valor do IOF por cobertura
+                    $iofPerc = ($regra['iof']/100) * ($regra['custo'] * $valores_bruto['quantidade']);
+                    $valores_liquido_total_cobertura[$plano_id] += truncate($iofPerc, 2);
+                    $valores_liquido_total_round[$plano_id] += $iofPerc;
+                    $iof = $regra['iof'];
                 }
 
-                $valores_liquido_total[$key] += $valores_liquido_total_cobertura[$key];
-                $valores_liquido_total[$key] -= $desconto_upgrade;
-            }
-
-            foreach ($regra_preco as $regra)
-            {
-                if( $iof_calculado && strtoupper($regra["regra_preco_nome"]) == "IOF" )
+                if ($iof_calculado)
                 {
-                    continue;
+                    // arredonda a soma to IOF do bilhete
+                    $valores_liquido_total_cobertura[$plano_id] = round($valores_liquido_total_cobertura[$plano_id], 2);
+                    $valores_liquido_total_round[$plano_id] = round($valores_liquido_total_round[$plano_id], 2);
+
+                    // Caso o IOF calculado sobre o prêmio da apólice/bilhete seja = 0,00
+                    if ($valores_liquido_total_cobertura[$plano_id] == 0)
+                    {
+                        // deve-se atribuir à cobertura de maior peso na formação do prêmio o valor de 0,01, propagando o mesmo valor para o IOF da apólice;
+                        $valores_liquido_total_cobertura[$plano_id] = 0.01;
+                    } elseif ($valores_liquido_total_cobertura[$plano_id] != $valores_liquido_total_round[$plano_id])
+                    {
+                        $valores_liquido_total_cobertura[$plano_id] += $valores_liquido_total_round[$plano_id] - $valores_liquido_total_cobertura[$plano_id];
+                    }
+
+                    $valores_bruto[$plano_id][$key]['valor_bruto'] += $valores_liquido_total_cobertura[$plano_id];
+                    $valores_bruto[$plano_id][$key]['valor_bruto'] -= $desconto_upgrade;
                 }
 
-                $valores_liquido_total[$key] += (($regra['parametros']/100) * $value);
-                $valores_liquido_total[$key] -= $desconto_upgrade;
-
-                if( strtoupper($regra["regra_preco_nome"]) == "IOF" )
+                foreach ($regra_preco as $regra)
                 {
-                    $iof = $regra['parametros'];
+                    if( $iof_calculado && strtoupper($regra["regra_preco_nome"]) == "IOF" )
+                    {
+                        continue;
+                    }
+
+                    $valores_bruto[$plano_id][$key]['valor_bruto'] += (($regra['parametros']/100) * $value['valor_liquido']);
+                    $valores_bruto[$plano_id][$key]['valor_bruto'] -= $desconto_upgrade;
+
+                    if( strtoupper($regra["regra_preco_nome"]) == "IOF" )
+                    {
+                        $iof = $regra['parametros'];
+                    }
                 }
             }
         }
 
-        if ( isset($valores_liquido) )
+        $aReturn = [];
+        foreach ($valores_bruto as $k => $v)
         {
-            foreach ($valores_liquido as $key => $value)
-            {
-                $valores_liquido[$key] = trim($valores_liquido[$key]);
-            }
-        }
+            // tratamento para o indice da quantidade q não é um array
+            if($k == 'quantidade') continue;
 
-        if ( isset($valores_liquido_total) )
-        {
-            foreach ($valores_liquido_total as $key => $value)
+            foreach ($v as $key => $value)
             {
-                $valores_liquido_total[$key] = trim($valores_liquido_total[$key]);
+                $valores_bruto[$k][$key]['valor_liquido'] = (float)number_format((float)($valores_bruto[$k][$key]['valor_liquido']), 2, '.' , '');
+                $valores_bruto[$k][$key]['valor_bruto'] = (float)number_format((float)($valores_bruto[$k][$key]['valor_bruto']), 2, '.' , '');
             }
+
+            $aReturn[] = [
+                'produto_parceiro_plano_id' => $k,
+                'valores' => $valores_bruto[$k],
+            ];
         }
 
         //Resultado
         $result  = array(
             'status' => $sucess,
             'mensagem' => 'Cálculo realizado com sucesso',
-            'produto_parceiro_id' => $produto_parceiro_id,
-            'repasse_comissao' => $repasse_comissao,
-            'comissao' => $comissao,
-            'comissao_corretor' => $comissao_corretor,
-            'desconto_upgrade' => $desconto_upgrade,
-            'desconto_condicional_valor' => $desconto_condicional_valor,
-            'premio_liquido' => number_format((float)$valores_liquido[$produto_parceiro_plano_id], 2, '.' , ''),
-            'premio_liquido_total' => number_format((float)$valores_liquido_total[$produto_parceiro_plano_id], 2, '.' , ''),
+            'produto_parceiro_id' => (int)$produto_parceiro_id,
+            'importancia_segurada' => (float)$cotacao["nota_fiscal_valor"],
             'iof' => (float)$iof,
+            'planos' => $aReturn,
         );
-
-        $result['valores_liquido'] = $valores_liquido;
-        $result['valores_liquido_total'] = $valores_liquido_total;
-        $result['valores_cobertura_adicional'] = $valores_cobertura_adicional;
-        $result['valores_totais_cobertura_adicional'] = $valores_cobertura_adicional_total;
-        $result['valores_bruto'] = $valores_bruto;
-
-        //Salva cotação
-        if($cotacao_id)
-        {
-            if($row['produto_slug'] == 'seguro_viagem')
-            {
-                $cotacao_salva = $this->cotacao->with_cotacao_seguro_viagem();
-                if ( !empty($cotacao_aux_id) )
-                {
-                    $cotacao_salva = $cotacao_salva->filter_by_cotacao_seguro_viagem_id($cotacao_aux_id);
-                }
-
-            }elseif($row['produto_slug'] == 'equipamento')
-            {
-                $cotacao_salva = $this->cotacao->with_cotacao_equipamento();
-                if ( !empty($cotacao_aux_id) )
-                {
-                    $cotacao_salva = $cotacao_salva->filter_by_cotacao_equipamento_id($cotacao_aux_id);
-                }
-            }elseif( $row["produto_slug"] == "generico" || $row["produto_slug"] == "seguro_saude" )
-            {
-                $cotacao_salva = $this->cotacao->with_cotacao_generico();
-                if ( !empty($cotacao_aux_id) )
-                {
-                    $cotacao_salva = $cotacao_salva->filter_by_cotacao_generico_id($cotacao_aux_id);
-                }
-            }
-
-            $cotacao_salva = $cotacao_salva
-                ->filterByID($cotacao_id)
-                ->get_all();
-
-            $cotacao_salva = $cotacao_salva[0];
-            $coberturas = [];
-            $cotacao_eqp = [];
-            $cotacao_eqp['repasse_comissao'] = $repasse_comissao;
-            $cotacao_eqp['comissao_corretor'] = $comissao_corretor;
-            $cotacao_eqp['desconto_condicional'] = $desconto_condicional;
-            $cotacao_eqp['desconto_condicional_valor'] = $desconto_condicional_valor;
-            $cotacao_eqp['premio_liquido'] = round($valores_liquido[$planoActual['produto_parceiro_plano_id']], 2);
-            $cotacao_eqp['premio_liquido_total'] = round($valores_liquido_total[$planoActual['produto_parceiro_plano_id']], 2);
-            $cotacao_eqp['iof'] = $iof;
-
-            if (!empty($produto_parceiro_plano_id))
-            {
-                if($row['produto_slug'] == 'seguro_viagem'){
-                    $cotacaoUpdate = $this->cotacao_seguro_viagem;
-                    $cotacao_item_id = $cotacao_salva['cotacao_seguro_viagem_id'];
-                }elseif($row['produto_slug'] == 'equipamento') {
-                    $cotacaoUpdate = $this->cotacao_equipamento;
-                    $cotacao_item_id = $cotacao_salva['cotacao_equipamento_id'];
-                }elseif( $row["produto_slug"] == "generico" || $row["produto_slug"] == "seguro_saude" ) {
-                    $cotacaoUpdate = $this->cotacao_generico;
-                    $cotacao_item_id = $cotacao_salva['cotacao_generico_id'];
-                }
-
-                $cotacaoUpdate->update($cotacao_item_id, $cotacao_eqp, TRUE);
-            }
-
-            // Só gera os dados de cobertura quando calcular todo o plano
-            if ( empty($cotacao_aux_id) )
-            {
-                $coberturas = $this->cotacao_cobertura->geraCotacaoCobertura($cotacao_id, $produto_parceiro_id, $produto_parceiro_plano_id, $cotacao["nota_fiscal_valor"], $cotacao_eqp['premio_liquido'], $pCoberturas);
-            }
-
-            $result["importancia_segurada"] = $cotacao["nota_fiscal_valor"];
-            $result["coberturas"] = $coberturas;
-
-            error_log( "Cotação: " . print_r( $cotacao_salva, true ) . "\n", 3, "/var/log/httpd/myapp.log" );
-        }
 
         return $result;
     }

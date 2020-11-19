@@ -287,7 +287,21 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                                 ->filter_by_tipo_equipamento('TODOS')
                                 ->get_all();
 
-                            $calculo = $this->getValorTabelaFixa($valor, 'original', $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia, $garantia_fabricante);
+                            $dataTabelaFixa = new stdClass();
+                            $dataTabelaFixa->valor = $valor;
+                            $dataTabelaFixa->item = 'original';
+                            $dataTabelaFixa->resultado = 'exato';
+                            $dataTabelaFixa->valor_nota = $valor_nota;
+                            $dataTabelaFixa->data_nascimento = $data_nascimento;
+                            $dataTabelaFixa->comissao = $comissao;
+                            $dataTabelaFixa->data_inicio_vigencia = $data_inicio_vigencia;
+                            $dataTabelaFixa->data_fim_vigencia = $data_fim_vigencia;
+                            $dataTabelaFixa->garantia_fabricante = $garantia_fabricante;
+                            $dataTabelaFixa->aIgnore = ['VIGENCIA'];
+                            $dataTabelaFixa->produto_parceiro_plano_id = $produto_parceiro_plano_id;
+                            $dataTabelaFixa->getVigencia = $getVigencia;
+
+                            $calculo = $this->getValorTabelaFixa($dataTabelaFixa);
                             $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, $calculo['unidade']);
 
                             $calculo = $calculo['valor'] * $quantidade;
@@ -524,7 +538,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
             $arrPlanos = $this->plano->order_by('produto_parceiro_plano.ordem', 'asc')->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
         }
 
-        $valores = array();
+        $valores = $valoresMulti = array();
 
         foreach ($arrPlanos as $plano)
         {
@@ -566,7 +580,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             $dataTabelaFixa->getVigencia = $getVigencia;
 
                             $calculo = $this->getValorTabelaFixa($dataTabelaFixa);
-                            print_pre([$produto_parceiro_plano_id, $calculo]);
 
                             if ( !isset($calculo[0]) )
                             {
@@ -578,7 +591,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                                 $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, $calculo[$k]['unidade']);
                                 $calculo[$k]['valor'] = $calculo[$k]['valor'] * $quantidade;
                             }
-                            
 
                         } elseif( $produto_slug == 'generico' ) {
 
@@ -615,20 +627,17 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         {
                             foreach ($calculo as $k => $v)
                             {
-                                $valores[] = [
-                                    'produto_parceiro_plano_id' => $produto_parceiro_plano_id,
-                                    'valores' => [
-                                        'unidade' => $v['dados']['unidade_tempo'],
-                                        'inicio' => $v['dados']['inicial'],
-                                        'fim' => $v['dados']['final'],
-                                        'valor_liquido' => ($moeda_padrao['moeda_id'] != $plano['moeda_id']) ? $this->moeda_cambio->getValor($plano['moeda_id'], $v['valor']) : $v['valor'],
-                                        'valor_bruto' => 0,
-                                    ]
+                                $valoresMulti[$produto_parceiro_plano_id][] = [
+                                    'unidade' => $v['dados']['unidade_tempo'],
+                                    'inicio' => (float)$v['dados']['inicial'],
+                                    'fim' => (float)$v['dados']['final'],
+                                    'valor_base' => ($moeda_padrao['moeda_id'] != $plano['moeda_id']) ? $this->moeda_cambio->getValor($plano['moeda_id'], $v['valor']) : $v['valor'],
+                                    'valor_liquido' => 0,
+                                    'valor_bruto' => 0,
                                 ];
                             }
                         }
 
-                        print_pre([$calculo, $valores]);
                         break;
                     case $this->config->item("PRECO_TIPO_COBERTURA"):
 
@@ -727,7 +736,21 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             }
                         }
 
-                        $calculo = $this->getValorTabelaFixa($valor, 'original', $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia, $garantia_fabricante);
+                        $dataTabelaFixa = new stdClass();
+                        $dataTabelaFixa->valor = $valor;
+                        $dataTabelaFixa->item = 'original';
+                        $dataTabelaFixa->resultado = 'todos';
+                        $dataTabelaFixa->valor_nota = $valor_nota;
+                        $dataTabelaFixa->data_nascimento = $data_nascimento;
+                        $dataTabelaFixa->comissao = $comissao;
+                        $dataTabelaFixa->data_inicio_vigencia = $data_inicio_vigencia;
+                        $dataTabelaFixa->data_fim_vigencia = $data_fim_vigencia;
+                        $dataTabelaFixa->garantia_fabricante = $garantia_fabricante;
+                        $dataTabelaFixa->aIgnore = ['VIGENCIA'];
+                        $dataTabelaFixa->produto_parceiro_plano_id = $produto_parceiro_plano_id;
+                        $dataTabelaFixa->getVigencia = $getVigencia;
+
+                        $calculo = $this->getValorTabelaFixa($dataTabelaFixa);
 
                         if($calculo) {
                             $calculo = $calculo['valor'];
@@ -760,8 +783,26 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
             }
         }
 
+        // merge preservando os indices
+        $valores = array_replace($valores, $valoresMulti);
+
         if ( !empty($valores))
         {
+            // cria um padrão de retorno
+            foreach ($valores as $key => $value) {
+                if ( !is_array($value))
+                {
+                    $valores[$key] = [[
+                        'unidade' => 'NAO_APLICAVEL',
+                        'inicio' => 0,
+                        'fim' => 0,
+                        'valor_base' => $value,
+                        'valor_liquido' => 0,
+                        'valor_bruto' => 0,
+                    ]];
+                }
+            }
+
             $valores['quantidade'] = $quantidade;
         }
 
