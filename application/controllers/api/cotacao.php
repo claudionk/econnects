@@ -193,6 +193,14 @@ class Cotacao extends CI_Controller {
     }
 
     public function calculo() {
+        $this->calculoCotacao(false);
+    }
+
+    public function calculoMultiple() {
+        $this->calculoCotacao(true);
+    }
+
+    private function calculoCotacao($multipleResult = false) {
         if( $_SERVER["REQUEST_METHOD"] !== "GET" && $_SERVER["REQUEST_METHOD"] !== "POST") {
             ob_clean();
             die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
@@ -252,7 +260,7 @@ class Cotacao extends CI_Controller {
         $params["equipamento_marca_id"]         = emptyor($equipamento_marca_id, $cotacao_aux['equipamento_marca_id']);
         $params["equipamento_categoria_id"]     = emptyor($equipamento_categoria_id, $cotacao_aux['equipamento_categoria_id']);
         $params["equipamento_sub_categoria_id"] = emptyor($equipamento_sub_categoria_id, $cotacao_aux['equipamento_sub_categoria_id']);
-        $params["equipamento_de_para"]          = emptyor($$equipamento_de_para, $cotacao_aux['equipamento_de_para']);
+        $params["equipamento_de_para"]          = emptyor($equipamento_de_para, $cotacao_aux['equipamento_de_para']);
         $params["quantidade"]                   = $quantidade;
         $params["valor_fixo"]                   = $valor_fixo;
         $params["repasse_comissao"]             = emptyor($repasse_comissao, $cotacao_aux['repasse_comissao']);
@@ -274,7 +282,10 @@ class Cotacao extends CI_Controller {
             }
         }
 
-        $result = $this->regra_preco->calculo_plano( $params, true );
+        if (!$multipleResult)
+            $result = $this->regra_preco->calculo_plano( $params, true );
+        else 
+            $result = $this->regra_preco->calculo_plano_multiple( $params, true );
 
         ob_clean();
         die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
