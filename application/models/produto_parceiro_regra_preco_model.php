@@ -765,7 +765,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             'data_adesao' => $cotacao['data_adesao'],
             'garantia_fabricante' => $cotacao['garantia_fabricante'],
         ];
-        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlanox($data_preco);
+        $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlanoMulti($data_preco);
 
         $valores_cobertura_adicional_total = $valores_cobertura_adicional = array();
 

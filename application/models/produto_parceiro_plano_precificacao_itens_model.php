@@ -491,7 +491,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     * @param int $num_passageiro
     * @return array
     */
-    public function getValoresPlanox( $data_preco )
+    public function getValoresPlanoMulti( $data_preco )
     {
         $produto_slug = $data_preco['produto_slug'];
         $produto_parceiro_id = $data_preco['produto_parceiro_id'];
