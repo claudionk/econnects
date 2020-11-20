@@ -4404,22 +4404,67 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
             return $response;
         }
 
-        //Remove os caracteres não imprimíveis
-        $dados['registro']['descricao_erro'] = preg_replace( '/[^[:print:]\r\n]/', '?',$dados['registro']['descricao_erro']);
-        $data_processado    = date('d/m/Y', strtotime($dados['registro']['data_processado']));
-        $mensagem_registro  = $dados['registro']['descricao_erro'];
-        $num_apolice        = $dados['registro']['num_apolice'];
-        $apolice_status_id  = emptyor($dados['registro']['apolice_status_id'], 1);
-        $chave              = $num_apolice . "|". $apolice_status_id;
-        $tipo_operacao      = ($apolice_status_id=='2') ? '9' : '1';
-        $sequencia_arquivo  = $dados['registro']['sequencia_arquivo'];
-        $status             = $dados['registro']['status'];
-
         $CI =& get_instance();
         $CI->load->model('integracao_model');
         $CI->load->model('integracao_log_model', 'log_m');
         $CI->load->model('integracao_log_detalhe_model', 'log_det');
         $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
+
+        //Remove os caracteres não imprimíveis
+        $dados['registro']['descricao_erro'] = preg_replace( '/[^[:print:]\r\n]/', '?',$dados['registro']['descricao_erro']);
+        $data_processado    = date('d/m/Y', strtotime($dados['registro']['data_processado']));
+        $mensagem_registro  = $dados['registro']['descricao_erro'];
+        $num_apolice        = $dados['registro']['num_apolice'];
+        $status             = $dados['registro']['status'];
+        $sequencia_arquivo  = $dados['registro']['sequencia_arquivo'];
+        $nome_arquivo       = $dados['log']['nome_arquivo'];
+        $num_row            = $dados['registro']['num_row'];
+        $integracao_id      = $dados['log']['integracao_id'];
+
+        if ($integracao_id == 334) {
+
+            $referenciarEnvioByRetornoFilter = new stdClass();
+            $referenciarEnvioByRetornoFilter->sequencia_arquivo = $sequencia_arquivo;
+            $referenciarEnvioByRetornoFilter->nome_arquivo      = $nome_arquivo;
+            $referenciarEnvioByRetornoFilter->num_row           = $num_row;
+            $referenciarEnvioByRetorno =  $CI->integracao_model->referenciarSaidaByRetornoMapfreRF($referenciarEnvioByRetornoFilter);
+
+            if ($referenciarEnvioByRetorno) {
+
+                $s_chaveEnvio = $referenciarEnvioByRetorno["chave"];
+                $a_chaveEnvio = explode("|", $s_chaveEnvio);
+
+                if (isset($a_chaveEnvio[1])) {
+
+                    $apolice_status_id = $a_chaveEnvio[1];    
+
+                } else {
+
+                    $response->msg[] = ['id' => 12, 'msg' => 'apolice_status_id/tipo_operacao não definida na chave do envio', 'slug' => "erro_interno"];
+                    return $response;
+
+                }
+                
+
+            } else {
+
+                $response->msg[] = ['id' => 12, 'msg' => 'Referencia não encontrada para retorno MAPFRE RF', 'slug' => "erro_interno"];
+                return $response;
+
+            }
+
+        } else {
+
+            $apolice_status_id  = emptyor($dados['registro']['apolice_status_id'], 1);
+
+        }       
+
+        $tipo_operacao      = ($apolice_status_id=='2') ? '9' : '1';
+        $chave              = $num_apolice . "|". $apolice_status_id;
+
+        if ($integracao_id == 334) {
+            $CI->log_det->update($formato, array("chave" => $chave), TRUE);
+        }
 
         if ( empty($num_apolice) || empty($status) )
         {

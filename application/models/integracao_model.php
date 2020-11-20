@@ -343,7 +343,7 @@ Class Integracao_Model extends MY_Model
             $aResultFile = $this->getFile($result, $file);
             /*$aResultFile = array(
                 array(
-                    "file" => "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/336/R/731B2WDIGITAL301020200076.TXT"
+                    "file" => "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/334/R/077657400007700511202000328.TXT"
                 )
             );*/
             foreach($aResultFile as $resultFile){
@@ -1830,6 +1830,40 @@ Class Integracao_Model extends MY_Model
         $query = $this->_database->query($SQL);
         
         return ($query->num_rows() > 0);
+    }
+
+    function referenciarSaidaByRetornoMapfreRF($referenciarEnvioByRetornoFilter){
+
+        $referenciarEnvioByRetornoFilter    = (object) $referenciarEnvioByRetornoFilter;
+        $sequencia_arquivo                  = $referenciarEnvioByRetornoFilter->sequencia_arquivo; //Sequencia do arquivo que sera buscado    
+        $nome_arquivo                       = $referenciarEnvioByRetornoFilter->nome_arquivo; //Nome do arquivo que será buscado
+        $num_row                            = $referenciarEnvioByRetornoFilter->num_row; //Número da linha do registro no arquivo que será buscado
+
+        $SQL = "SELECT 
+            * 
+        FROM 
+            integracao_log_detalhe AS ild
+        INNER JOIN
+            integracao_log AS il
+            ON il.integracao_log_id = ild.integracao_log_id
+            AND il.deletado = 0
+            AND il.integracao_id = 7 #Integração de saída referente ao retetorno de RF da Mapfre
+            AND il.integracao_id <> 334 #Integracao de retorno de RF da mapfre
+            AND il.sequencia = '$sequencia_arquivo' #O retorno possui uma referência da sequencia do arquivo de saída
+            AND il.nome_arquivo = '$nome_arquivo'  #Os nomes dos arquivos são sempre iguais na saída e no retorno
+        WHERE 1 = 1
+            AND ild.deletado = 0
+            AND ild.num_linha = '$num_row' #O retorno possui uma referencia do número do registro da saída
+        ";
+
+        $query = $this->_database->query($SQL);
+        if ($query->num_rows() > 0){
+            $row = $query->row_array();
+            return $row;
+        }
+        
+        return null;
+        
     }
 
 }
