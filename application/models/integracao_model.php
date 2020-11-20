@@ -343,7 +343,7 @@ Class Integracao_Model extends MY_Model
             $aResultFile = $this->getFile($result, $file);
             /*$aResultFile = array(
                 array(
-                    "file" => "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/336/R/731B2WDIGITAL301020200076.TXT"
+                    "file" => "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/334/R/077657400007700511202000328.TXT"
                 )
             );*/
             foreach($aResultFile as $resultFile){

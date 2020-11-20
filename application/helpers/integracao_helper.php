@@ -4437,6 +4437,10 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
         $tipo_operacao      = ($apolice_status_id=='2') ? '9' : '1';
         $chave              = $num_apolice . "|". $apolice_status_id;
 
+        if ($integracao_id == 334) {
+            $CI->log_det->update($formato, array("chave" => $chave), TRUE);
+        }
+
         if ( empty($num_apolice) || empty($status) )
         {
             $CI->log_det->deleteLogDetalhe($formato);
