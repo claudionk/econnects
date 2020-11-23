@@ -340,12 +340,34 @@ Class Integracao_Model extends MY_Model
             }
 
             //Array com os arquivos que precisam ser integrados (ainda não foram integrados)
-            $aResultFile = $this->getFile($result, $file);
-            /*$aResultFile = array(
-                array(
-                    "file" => "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/336/R/731B2WDIGITAL301020200076.TXT"
-                )
-            );*/
+
+            if (isset($_GET["fileName"])) {
+
+                $_fileName  = $_GET["fileName"];
+                $_tipo      = $_GET["tipo"];
+                $_filePath  = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/$integracao_id/$_tipo/$_fileName";
+
+                if (file_exists($_filePath)) {
+
+                    $aResultFile = array(
+                        array(
+                            "file" => $_filePath
+                        )
+                    );  
+
+                } else {
+
+                    $aResultFile = array();
+
+                }
+
+            } else {
+
+                $aResultFile = $this->getFile($result, $file);
+
+            }
+            
+            /**/
             foreach($aResultFile as $resultFile){
 
                 $result_process = [];
