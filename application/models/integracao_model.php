@@ -339,8 +339,7 @@ Class Integracao_Model extends MY_Model
                 $file = $this->getFileName($result, $layout_filename);
             }
 
-            //Array com os arquivos que precisam ser integrados (ainda não foram integrados)
-
+            //Integrar arquivo especifico
             if (isset($_GET["fileName"])) {
 
                 $_fileName  = $_GET["fileName"];
@@ -363,6 +362,7 @@ Class Integracao_Model extends MY_Model
 
             } else {
 
+                //Array com os arquivos que precisam ser integrados (ainda não foram integrados)
                 $aResultFile = $this->getFile($result, $file);
 
             }
