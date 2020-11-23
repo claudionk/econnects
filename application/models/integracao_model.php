@@ -344,7 +344,7 @@ Class Integracao_Model extends MY_Model
 
                 $_fileName  = $_GET["fileName"];
                 $_tipo      = $_GET["tipo"];
-                $_filePath  = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/$integracao_id/$_tipo/$_fileName";
+                $_filePath  = "/var/www/webroot/ROOT/assets/uploads/integracao/$integracao_id/$_tipo/$_fileName";
 
                 if (file_exists($_filePath)) {
 
