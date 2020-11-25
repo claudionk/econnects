@@ -339,13 +339,34 @@ Class Integracao_Model extends MY_Model
                 $file = $this->getFileName($result, $layout_filename);
             }
 
-            //Array com os arquivos que precisam ser integrados (ainda não foram integrados)
-            $aResultFile = $this->getFile($result, $file);
-            /*$aResultFile = array(
-                array(
-                    "file" => "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/334/R/077657400007700511202000328.TXT"
-                )
-            );*/
+            //Integrar arquivo especifico
+            if (isset($_GET["fileName"])) {
+
+                $_fileName  = $_GET["fileName"];
+                $_tipo      = $_GET["tipo"];
+                $_filePath  = "/var/www/webroot/ROOT/assets/uploads/integracao/$integracao_id/$_tipo/$_fileName";
+
+                if (file_exists($_filePath)) {
+
+                    $aResultFile = array(
+                        array(
+                            "file" => $_filePath
+                        )
+                    );  
+
+                } else {
+
+                    $aResultFile = array();
+
+                }
+
+            } else {
+
+                //Array com os arquivos que precisam ser integrados (ainda não foram integrados)
+                $aResultFile = $this->getFile($result, $file);
+
+            }
+            
             foreach($aResultFile as $resultFile){
 
                 $result_process = [];
@@ -1824,6 +1845,7 @@ Class Integracao_Model extends MY_Model
         INNER JOIN integracao_log_detalhe d ON l.integracao_log_id = d.integracao_log_id AND d.deletado = 0
         INNER JOIN integracao_log_detalhe_dados dd ON d.integracao_log_detalhe_id = dd.integracao_log_detalhe_id AND dd.deletado = 0
         WHERE dd.num_apolice = '$num_apolice' AND dd.tipo_operacao = '$tipo_operacao' and i.slug = '$slug' 
+        AND d.integracao_log_status_id = 4
         AND dd.integracao_log_detalhe_dados_id <> $integracao_log_detalhe_dados_id
         AND dd.status_carga IN('','AC');";
 
