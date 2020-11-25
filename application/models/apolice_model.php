@@ -1814,9 +1814,11 @@ class Apolice_Model extends MY_Model
         }
 
         // Relacionamento corretora
-        $data_template['rel_corretora_nome']         = '';
-        $data_template['rel_corretora_cnpj']         = '';
-        $data_template['rel_corretora_codigo_susep'] = '';
+        $data_template['rel_corretora_nome']           = '';
+        $data_template['rel_corretora_cnpj']           = '';
+        $data_template['rel_corretora_codigo_susep']   = '';
+        $data_template['rel_corretora_comissao']       = '';
+        $data_template['rel_corretora_comissao_valor'] = '';
         if(isset($dados['produto_parceiro_id']) && !empty($dados['produto_parceiro_id']))
         {
             $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
@@ -1829,6 +1831,16 @@ class Apolice_Model extends MY_Model
                 $data_template['rel_corretora_nome'] = '';
                 $data_template['rel_corretora_cnpj'] = '';
                 $data_template['rel_corretora_codigo_susep'] = '';
+            }
+
+            $aComissaoCorretor = $this->comissao_gerada->getByParceiroId($apolice["pedido_id"], $dados_prp[0]['parceiro_id']);
+            if(sizeof($aComissaoCorretor)){
+                $comissaoCorretor = $aComissaoCorretor[0];
+                $data_template["rel_corretora_comissao"] = app_format_currency($comissaoCorretor["comissao"])."%";
+                $data_template["rel_corretora_comissao_valor"] = "R$ ".app_format_currency($comissaoCorretor["valor"]);
+            }else{
+                $data_template["rel_corretora_comissao"] = "";
+                $data_template["rel_corretora_comissao_valor"] = "";
             }
         }
 
