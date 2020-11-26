@@ -4584,8 +4584,17 @@ if ( ! function_exists('app_integracao_backup_file')) {
         } catch (Exception $e) {
 
         }
-        
-
     }
-
+}
+if ( ! function_exists('app_integracao_apolice_status_id'))
+{
+    function app_integracao_apolice_status_id($formato, $dados = array())
+    {
+        $apolice_status_id = 0;
+        if (isset($dados['valor']))
+        {
+            $apolice_status_id = ($dados['valor'] == '98') ? 1 : 2;
+        }
+        return $apolice_status_id;
+    }
 }
