@@ -267,6 +267,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         {
             $valor_cobertura_plano = 0;
             $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
+            $getVigencia = $this->plano->getInicioFimVigencia($produto_parceiro_plano_id);
 
             if ( !empty($valor_fixo) )
             {
@@ -297,7 +298,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             $dataTabelaFixa->data_inicio_vigencia = $data_inicio_vigencia;
                             $dataTabelaFixa->data_fim_vigencia = $data_fim_vigencia;
                             $dataTabelaFixa->garantia_fabricante = $garantia_fabricante;
-                            $dataTabelaFixa->aIgnore = ['VIGENCIA'];
+                            $dataTabelaFixa->aIgnore = [];
                             $dataTabelaFixa->produto_parceiro_plano_id = $produto_parceiro_plano_id;
                             $dataTabelaFixa->getVigencia = $getVigencia;
 
@@ -954,6 +955,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                 }
 
                 $valide = false;
+                $range = ($base >= $vl['inicial'] && $base <= $vl['final']);
 
                 // identificou algum valor recebido
                 if (!empty($base))
@@ -961,25 +963,18 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                     // solicitou ignorar filtro DE x PARA
                     if (!empty($aIgnore) && in_array($vl['unidade_tempo'], $aIgnore))
                     {
-                        // Não passou filtro de vigencia
-                        if ( empty($vigencia_mes))
-                        {
-                            $valide = true;
-                        } 
-                        // Passou a vigência e o valor final está dentro do solicitado
-                        elseif ($vl['final'] <= $base)
+                        // Não passou filtro de vigencia, deverá exibir todos
+                        if ( $vl['unidade_tempo'] == 'VIGENCIA' && empty($vigencia_mes))
                         {
                             $valide = true;
                         }
-
-                    // não pediu para ignorar e por isso valida o range
-                    } elseif ($base >= $vl['inicial'] && $base <= $vl['final'])
-                    {
-                        $valide = true;
                     }
+
+                    if (!$valide && $range)
+                        $valide = true;
                 }
 
-                // print_pre([$vl['unidade_tempo'], $vigencia_mes, $base, $aIgnore, $vl], false);
+                //print_pre([$vl['unidade_tempo'], $valide, $base, $aIgnore, $vl], false);
                 if ($valide)
                 {
                     $valores['dados'] = $vl;
