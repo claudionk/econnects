@@ -590,7 +590,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                             foreach ($calculo as $k => $v)
                             {
-                                print_pre($calculo[$k]);
                                 $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, $calculo[$k]['unidade']);
                                 $calculo[$k]['valor'] = $calculo[$k]['valor'] * $quantidade;
                             }
@@ -954,13 +953,35 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         break;
                 }
 
-                // print_pre([$vl['unidade_tempo'], $vigencia_mes, $base, $aIgnore, $vl]);
-                if (!empty($base) && 
-                    (
-                        ($base >= $vl['inicial'] && $base <= $vl['final']) ||
-                        (!empty($aIgnore) && in_array($vl['unidade_tempo'], $aIgnore))
-                    )
-                ) {
+                $valide = false;
+
+                // identificou algum valor recebido
+                if (!empty($base))
+                {
+                    // solicitou ignorar filtro DE x PARA
+                    if (!empty($aIgnore) && in_array($vl['unidade_tempo'], $aIgnore))
+                    {
+                        // Não passou filtro de vigencia
+                        if ( empty($vigencia_mes))
+                        {
+                            $valide = true;
+                        } 
+                        // Passou a vigência e o valor final está dentro do solicitado
+                        elseif ($vl['final'] <= $base)
+                        {
+                            $valide = true;
+                        }
+
+                    // não pediu para ignorar e por isso valida o range
+                    } elseif ($base >= $vl['inicial'] && $base <= $vl['final'])
+                    {
+                        $valide = true;
+                    }
+                }
+
+                // print_pre([$vl['unidade_tempo'], $vigencia_mes, $base, $aIgnore, $vl], false);
+                if ($valide)
+                {
                     $valores['dados'] = $vl;
 
                     if ($item == 'original')
