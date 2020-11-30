@@ -523,6 +523,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         $comissao = emptyor($data_preco['comissao'], NULL);
         $data_adesao = emptyor($data_preco['data_adesao'], NULL);
         $garantia_fabricante = emptyor($data_preco['garantia_fabricante'], 0);
+        $vigencia_mes = emptyor($data_preco['vigencia_mes'], 0);
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
@@ -586,6 +587,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             $dataTabelaFixa->data_inicio_vigencia = $data_inicio_vigencia;
                             $dataTabelaFixa->data_fim_vigencia = $data_fim_vigencia;
                             $dataTabelaFixa->garantia_fabricante = $garantia_fabricante;
+                            $dataTabelaFixa->vigencia_mes = $vigencia_mes;
                             $dataTabelaFixa->aIgnore = ['VIGENCIA'];
                             $dataTabelaFixa->produto_parceiro_plano_id = $produto_parceiro_plano_id;
                             $dataTabelaFixa->getVigencia = $getVigencia;
@@ -757,6 +759,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         $dataTabelaFixa->data_inicio_vigencia = $data_inicio_vigencia;
                         $dataTabelaFixa->data_fim_vigencia = $data_fim_vigencia;
                         $dataTabelaFixa->garantia_fabricante = $garantia_fabricante;
+                        $dataTabelaFixa->vigencia_mes = $vigencia_mes;
                         $dataTabelaFixa->aIgnore = ['VIGENCIA'];
                         $dataTabelaFixa->produto_parceiro_plano_id = $produto_parceiro_plano_id;
                         $dataTabelaFixa->getVigencia = $getVigencia;
@@ -907,6 +910,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         $data_inicio_vigencia = emptyor($dataTabelaFixa->data_inicio_vigencia, null);
         $data_fim_vigencia = emptyor($dataTabelaFixa->data_fim_vigencia, null);
         $garantia_fabricante = emptyor($dataTabelaFixa->garantia_fabricante, null);
+        $vigencia_mes = emptyor($dataTabelaFixa->vigencia_mes, null);
         $aIgnore = emptyor($dataTabelaFixa->aIgnore, []);
         $getVigencia = emptyor($dataTabelaFixa->getVigencia, []);
 
@@ -955,18 +959,40 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         $valores['unidade'] = 'F';
                         break;
                     case 'VIGENCIA':
-                        $base = emptyor($getVigencia['meses'], 0);
+                        $base = emptyor($vigencia_mes, emptyor($getVigencia['meses'], 0), 0);
                         $valores['unidade'] = 'G';
                         break;
                 }
 
-                //print_pre([$base, $aIgnore, $vl]);
-                if (!empty($base) && 
-                    (
-                        ($base >= $vl['inicial'] && $base <= $vl['final']) ||
-                        (!empty($aIgnore) && in_array($vl['unidade_tempo'], $aIgnore))
-                    )
-                ) {
+                $valide = false;
+
+                // identificou algum valor recebido
+                if (!empty($base))
+                {
+                    // solicitou ignorar filtro DE x PARA
+                    if (!empty($aIgnore) && in_array($vl['unidade_tempo'], $aIgnore))
+                    {
+                        // Não passou filtro de vigencia
+                        if ( empty($vigencia_mes))
+                        {
+                            $valide = true;
+                        } 
+                        // Passou a vigência e o valor final está dentro do solicitado
+                        elseif ($vl['final'] <= $base)
+                        {
+                            $valide = true;
+                        }
+
+                    // não pediu para ignorar e por isso valida o range
+                    } elseif ($base >= $vl['inicial'] && $base <= $vl['final'])
+                    {
+                        $valide = true;
+                    }
+                }
+
+                // print_pre([$vl['unidade_tempo'], $vigencia_mes, $base, $aIgnore, $vl], false);
+                if ($valide)
+                {
                     $valores['dados'] = $vl;
 
                     if ($item == 'original')
