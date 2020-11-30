@@ -1329,12 +1329,20 @@ class Apolice_Model extends MY_Model
 
     public function search_apolice_produto_parceiro_plano_id($num_apolice, $produto_parceiro_plano_id)
     {
-        $sql = "
-            SELECT apolice_id
-            FROM apolice
-            WHERE num_apolice = '{$num_apolice}' and produto_parceiro_plano_id = '{$produto_parceiro_plano_id}'
-            AND deletado = 0
-            LIMIT 1
+        $sql = "SELECT a.apolice_id
+            FROM apolice a
+            join produto_parceiro_plano ppp on a.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
+            join produto_parceiro pp on ppp.produto_parceiro_id = pp.produto_parceiro_id and pp.deletado = 0
+            WHERE 1
+            and a.num_apolice = '{$num_apolice}'
+            and pp.parceiro_id IN(
+                select ppx.parceiro_id
+                from produto_parceiro_plano pppx
+                join produto_parceiro ppx on pppx.produto_parceiro_id = ppx.produto_parceiro_id and ppx.deletado = 0
+                where pppx.produto_parceiro_plano_id = {$produto_parceiro_plano_id} and pppx.deletado = 0
+            )
+            AND a.deletado = 0
+            LIMIT 1;
         ";
         return (int) $this->_database->query($sql)->num_rows() == 1;
     }
