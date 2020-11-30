@@ -594,6 +594,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $cotacao_id                     = issetor($params['cotacao_id'], 0);
         $cotacao_aux_id                 = issetor($params['cotacao_aux_id'], 0);
         $garantia_fabricante            = issetor($params['garantia_fabricante'], 0);
+        $vigencia_mes                   = issetor($params['vigencia_mes'], null);
 
         if($cotacao_id) {
             $pedido = $this->pedido->filter_by_cotacao($cotacao_id)->get_all();
@@ -764,6 +765,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             'comissao' => $comissao,
             'data_adesao' => $cotacao['data_adesao'],
             'garantia_fabricante' => $cotacao['garantia_fabricante'],
+            'vigencia_mes' => $vigencia_mes,
         ];
         $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlanoMulti($data_preco);
 

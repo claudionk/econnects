@@ -512,6 +512,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         $comissao = emptyor($data_preco['comissao'], NULL);
         $data_adesao = emptyor($data_preco['data_adesao'], NULL);
         $garantia_fabricante = emptyor($data_preco['garantia_fabricante'], 0);
+        $vigencia_mes = emptyor($data_preco['vigencia_mes'], 0);
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
@@ -575,6 +576,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             $dataTabelaFixa->data_inicio_vigencia = $data_inicio_vigencia;
                             $dataTabelaFixa->data_fim_vigencia = $data_fim_vigencia;
                             $dataTabelaFixa->garantia_fabricante = $garantia_fabricante;
+                            $dataTabelaFixa->vigencia_mes = $vigencia_mes;
                             $dataTabelaFixa->aIgnore = ['VIGENCIA'];
                             $dataTabelaFixa->produto_parceiro_plano_id = $produto_parceiro_plano_id;
                             $dataTabelaFixa->getVigencia = $getVigencia;
@@ -588,6 +590,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                             foreach ($calculo as $k => $v)
                             {
+                                print_pre($calculo[$k]);
                                 $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, $calculo[$k]['unidade']);
                                 $calculo[$k]['valor'] = $calculo[$k]['valor'] * $quantidade;
                             }
@@ -746,6 +749,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         $dataTabelaFixa->data_inicio_vigencia = $data_inicio_vigencia;
                         $dataTabelaFixa->data_fim_vigencia = $data_fim_vigencia;
                         $dataTabelaFixa->garantia_fabricante = $garantia_fabricante;
+                        $dataTabelaFixa->vigencia_mes = $vigencia_mes;
                         $dataTabelaFixa->aIgnore = ['VIGENCIA'];
                         $dataTabelaFixa->produto_parceiro_plano_id = $produto_parceiro_plano_id;
                         $dataTabelaFixa->getVigencia = $getVigencia;
@@ -896,6 +900,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         $data_inicio_vigencia = emptyor($dataTabelaFixa->data_inicio_vigencia, null);
         $data_fim_vigencia = emptyor($dataTabelaFixa->data_fim_vigencia, null);
         $garantia_fabricante = emptyor($dataTabelaFixa->garantia_fabricante, null);
+        $vigencia_mes = emptyor($dataTabelaFixa->vigencia_mes, null);
         $aIgnore = emptyor($dataTabelaFixa->aIgnore, []);
         $getVigencia = emptyor($dataTabelaFixa->getVigencia, []);
 
@@ -944,12 +949,12 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         $valores['unidade'] = 'F';
                         break;
                     case 'VIGENCIA':
-                        $base = emptyor($getVigencia['meses'], 0);
+                        $base = emptyor($vigencia_mes, emptyor($getVigencia['meses'], 0), 0);
                         $valores['unidade'] = 'G';
                         break;
                 }
 
-                //print_pre([$base, $aIgnore, $vl]);
+                // print_pre([$vl['unidade_tempo'], $vigencia_mes, $base, $aIgnore, $vl]);
                 if (!empty($base) && 
                     (
                         ($base >= $vl['inicial'] && $base <= $vl['final']) ||

@@ -240,6 +240,7 @@ class Cotacao extends CI_Controller {
         $comissao_premio                = issetor( $GET["comissao_premio"] , 0);
         $valor_fixo                     = issetor( $GET["valor_fixo"] , null);
         $garantia_fabricante            = issetor( $GET["garantia_fabricante"] , null);
+        $vigencia_mes                   = issetor( $GET["vigencia_mes"] , null);
 
         if( is_null( $produto_parceiro_id ) ) {
             $cotacao = $this->cotacao->get_by_id( $cotacao_id );
@@ -267,6 +268,7 @@ class Cotacao extends CI_Controller {
         $params["comissao_premio"]              = emptyor($comissao_premio, $cotacao_aux['comissao_premio']);
         $params["coberturas"]                   = emptyor($coberturas_v, null);
         $params["garantia_fabricante"]          = emptyor($garantia_fabricante, 0);
+        $params["vigencia_mes"]                 = emptyor($vigencia_mes, null);
 
         if ( !empty($coberturas_opcionais) && is_array($coberturas_opcionais))
         {
