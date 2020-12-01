@@ -1929,7 +1929,7 @@ class Apolice_Model extends MY_Model
         $data_template['cnpj_parceiro'] = app_cnpj_to_mask($parceiro['cnpj']);
 
         $plano      = $this->plano->get($apolice['produto_parceiro_plano_id']);
-        $coberturas = $this->plano_cobertura->with_cobertura()->filter_by_produto_parceiro_plano($apolice['produto_parceiro_plano_id'])->get_all();
+        $coberturas = $this->plano_cobertura->with_cobertura(["nome", "slug"])->filter_by_produto_parceiro_plano($apolice['produto_parceiro_plano_id'])->get_all();
         $coberturasAll = $this->plano_cobertura->getCoberturasApolice($apolice["apolice_id"]);
 
         $equipamento = $this->db->query("SELECT 
@@ -1937,6 +1937,7 @@ class Apolice_Model extends MY_Model
                 IFNULL(ec.nome, eec.nome) as categoria, 
                 IFNULL(esc.nome, eesc.nome) as equipamento, 
                 ce.equipamento_nome as modelo, 
+                ae.numero_sorte,
                 ae.imei 
                 FROM apolice_equipamento ae
                 INNER JOIN apolice a ON (a.apolice_id=ae.apolice_id)
@@ -1955,28 +1956,34 @@ class Apolice_Model extends MY_Model
 
         $data_template['lmi_ge']      = "R$ ".app_format_currency($apolice['nota_fiscal_valor']);
         if (sizeof($equipamento)) {
-            $data_template['categoria'] = $equipamento[0]["categoria"];
-            $data_template['equipamento'] = $equipamento[0]["equipamento"];
-            $data_template['modelo']      = $equipamento[0]["modelo"];
-            $data_template['marca']       = $equipamento[0]["marca"];
-            $data_template['imei']        = $equipamento[0]["imei"];
-            $data_template['lmi_roubo']   = app_format_currency($apolice['nota_fiscal_valor']);
-            $data_template['lmi_furto']   = app_format_currency($apolice['nota_fiscal_valor']);
-            $data_template['lmi_quebra']  = app_format_currency($apolice['nota_fiscal_valor']);
+            $data_template['categoria']     = $equipamento[0]["categoria"];
+            $data_template['equipamento']   = $equipamento[0]["equipamento"];
+            $data_template['modelo']        = $equipamento[0]["modelo"];
+            $data_template['marca']         = $equipamento[0]["marca"];
+            $data_template['imei']          = $equipamento[0]["imei"];
+            $data_template['numero_sorte']  = $equipamento[0]["numero_sorte"];
+            $data_template['lmi_roubo']     = app_format_currency($apolice['nota_fiscal_valor']);
+            $data_template['lmi_furto']     = app_format_currency($apolice['nota_fiscal_valor']);
+            $data_template['lmi_quebra']    = app_format_currency($apolice['nota_fiscal_valor']);
         } else {
-            $data_template['equipamento'] = "";
-            $data_template['modelo']      = "";
-            $data_template['marca']       = "";
-            $data_template['imei']        = "";
+            $data_template['equipamento']   = "";
+            $data_template['modelo']        = "";
+            $data_template['marca']         = "";
+            $data_template['imei']          = "";
+            $data_template['numero_sorte']  = "";
         }
 
         $ccount = 0;
         $data_template["franquia"] = "";
+        $data_template["sorteio_valor"] = "";
         foreach ($coberturas as $cobertura) {
             $ccount                                                     = $ccount + 1;
             $data_template["cobertura_" . trim($ccount) . "_descricao"] = $cobertura["cobertura_nome"];
             $data_template["lmi_" . trim($ccount)]                      = $cobertura["descricao"];
             $data_template["franquia"] = $cobertura["franquia"];
+            if($cobertura["cobertura_slug"] == "capitalizacao_nro_sorte"){
+                $data_template["sorteio_valor"] = $cobertura["valor"];
+            }
         }
 
         $pagamento = $this->pedido->getPedidoPagamento($apolice['pedido_id']);
@@ -2033,6 +2040,12 @@ class Apolice_Model extends MY_Model
         if ( !empty($dados['template_coberturas']) )
         {
             $viewseguro = emptyor($dados['template_coberturas'], '');    
+            if(!empty($viewseguro)){
+                $dadosPP = $this->getProdutoParceiro($apolice_id);
+                $parceiro_slug = $dadosPP["slug"];
+                $viewseguro = $parceiro_slug."/".$viewseguro;
+            }
+            
         } else {
             if($dados['slug_parceiro'] == 'tem')
             {
