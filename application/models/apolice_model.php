@@ -2243,13 +2243,17 @@ class Apolice_Model extends MY_Model
 
         $data_template['segurado'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/dados_segurado", array('segurado' => $apolice), true);
 
-        $viewseguro = 'dados_seguro';
-        if($dados['slug_parceiro'] == 'tem')
+        if ( !empty($dados['template_coberturas']) )
         {
-            $viewseguro = 'dados_seguro_tem';
-        } else
-        {
-            $viewseguro = 'dados_seguro_cobertura';
+            $viewseguro = emptyor($dados['template_coberturas'], '');    
+        } else {
+            if($dados['slug_parceiro'] == 'tem')
+            {
+                $viewseguro = 'dados_seguro_tem';
+            } else
+            {
+                $viewseguro = 'dados_seguro_cobertura';
+            }
         }
 
         $data_template['seguro']   = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/{$viewseguro}", array(
