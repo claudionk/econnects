@@ -2032,28 +2032,23 @@ class Apolice_Model extends MY_Model
         $data_template['rel_corretora_codigo_susep']   = '';
         $data_template['rel_corretora_comissao']       = '';
         $data_template['rel_corretora_comissao_valor'] = '';
+
         if(isset($dados['produto_parceiro_id']) && !empty($dados['produto_parceiro_id']))
         {
             $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
             $dados_prp = $this->parceiro_relacionamento_produto->filter_by_produto_parceiro($dados['produto_parceiro_id'])->with_parceiro()->filter_by_parceiro_tipo('2')->get_all(0, 0, false);
+
             if (!empty($dados_prp)) {
                 $data_template['rel_corretora_nome'] = $dados_prp[0]['parceiro_nome'];
                 $data_template['rel_corretora_cnpj'] = app_cnpj_to_mask($dados_prp[0]['parceiro_cnpj']);
                 $data_template['rel_corretora_codigo_susep'] = $dados_prp[0]['parceiro_codigo_susep'];
-            } else {
-                $data_template['rel_corretora_nome'] = '';
-                $data_template['rel_corretora_cnpj'] = '';
-                $data_template['rel_corretora_codigo_susep'] = '';
-            }
 
-            $aComissaoCorretor = $this->comissao_gerada->getByParceiroId($apolice["pedido_id"], $dados_prp[0]['parceiro_id']);
-            if(sizeof($aComissaoCorretor)){
-                $comissaoCorretor = $aComissaoCorretor[0];
-                $data_template["rel_corretora_comissao"] = app_format_currency($comissaoCorretor["comissao"])."%";
-                $data_template["rel_corretora_comissao_valor"] = "R$ ".app_format_currency($comissaoCorretor["valor"]);
-            }else{
-                $data_template["rel_corretora_comissao"] = "";
-                $data_template["rel_corretora_comissao_valor"] = "";
+                $aComissaoCorretor = $this->comissao_gerada->getByParceiroId($apolice["pedido_id"], $dados_prp[0]['parceiro_id']);
+                if(sizeof($aComissaoCorretor)){
+                    $comissaoCorretor = $aComissaoCorretor[0];
+                    $data_template["rel_corretora_comissao"] = app_format_currency($comissaoCorretor["comissao"])."%";
+                    $data_template["rel_corretora_comissao_valor"] = "R$ ".app_format_currency($comissaoCorretor["valor"]);
+                }
             }
         }
 
