@@ -387,6 +387,10 @@ Class Integracao_Model extends MY_Model
     
             }
 
+            if (!empty($result["after_run"])&& (function_exists($result['after_run']))){
+                call_user_func($result['after_run'], null, array('item' => $result, 'a_registro' => $aResultFile));
+            }
+
             $dados_integracao = array();
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
             $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');

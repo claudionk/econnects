@@ -115,4 +115,27 @@ Class Integracao_Log_Model extends MY_Model
         return $result;
     }
 
+    function isArquivoProcessado($isArquivoProcessado){
+
+        $isArquivoProcessado        = (object) $isArquivoProcessado;
+        $integracao_log_status_id   = $isArquivoProcessado->integracao_log_status_id;
+        $integracao_id              = $isArquivoProcessado->integracao_id;
+        $nome_arquivo               = $isArquivoProcessado->nome_arquivo;
+
+        $SQL = "SELECT 
+            integracao_log_id 
+        FROM 
+            integracao_log AS il
+        WHERE 
+            il.deletado = 0             
+            AND il.processamento_fim IS NOT NULL
+            AND il.integracao_log_status_id = $integracao_log_status_id
+            AND il.integracao_id = $integracao_id
+            AND il.nome_arquivo = '$nome_arquivo'";
+
+        $query = $this->_database->query($SQL);
+        return ($query->num_rows() > 0);
+
+    }
+
 }
