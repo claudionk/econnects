@@ -4500,8 +4500,6 @@ if ( ! function_exists('app_integracao_backup_file')) {
             $CI->load->model('integracao_model');
             $CI->load->model('integracao_log_model');
 
-            $isErro = false;
-
             if(!$CI->integracao_model->isDesconsiderarIntegracao()) { //Só executa o processo de backup caso não haja erro na integração
 
                 $integracaoMAPFRE = array();
@@ -4519,36 +4517,10 @@ if ( ! function_exists('app_integracao_backup_file')) {
 
                     $CI->integracao_model->deleteFile($dados["item"], $file);
 
-                    if($CI->integracao_model->isDesconsiderarIntegracao()) {
-
-                        $isErro = true;
-
-                    } 
-
-                } else {
-
-                    $isErro = true;
-
                 }
 
-            } else {
-
-                $isErro = true;
-                
             }
 
-            //Se houve erro no processo de backup, a integração será excluida
-            if ($isErro) {
-
-                if($dados['registro']['integracao_log_id']){ 
-
-                    $dados_log = array();
-                    $dados_log["deletado"] = 1; 
-                    $CI->integracao_log_model->update($dados['registro']['integracao_log_id'], $dados_log, TRUE);
-
-                }     
-
-            }
 
         } catch (Exception $e) {
 
