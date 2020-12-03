@@ -189,6 +189,10 @@ Class Integracao_Model extends MY_Model
         );
     }
 
+    public function isDesconsiderarIntegracao(){
+        return $this->desconsiderarIntegracao;
+    }
+
     //Get dados
     public function get_form_data($just_check = false)
     {
@@ -382,6 +386,10 @@ Class Integracao_Model extends MY_Model
     
             }
 
+            if (!empty($result["after_run"])&& (function_exists($result['after_run']))){
+                call_user_func($result['after_run'], null, array('item' => $result, 'a_registro' => $aResultFile));
+            }
+
             $dados_integracao = array();
             $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
             $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');
@@ -521,6 +529,29 @@ Class Integracao_Model extends MY_Model
 
         }catch (Exception $e) {
 	  	    echo "getFile::Exception " . print_r($e, true) . "\n";
+        }
+    }
+
+    public function deleteFile($integracao = array(), $file){
+        try{
+
+            switch ($integracao['integracao_comunicacao_id']){
+
+                case 1:
+                    $this->deleteFileFTP($integracao, $file);
+                    break;
+
+                case 2:
+                    $this->deleteFileSFTP($integracao, $file);
+                    break;
+
+                case 3:
+
+                    break;
+            }
+
+        }catch (Exception $e) {
+
         }
     }
 
@@ -694,6 +725,45 @@ Class Integracao_Model extends MY_Model
         } else {
             $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
         }
+    }
+
+    private function deleteFileFTP($integracao = array(), $file){
+
+        $this->load->library('ftp');
+
+        $config['hostname'] = $integracao['host'];
+        $config['username'] = $integracao['usuario'];
+        $config['password'] = $integracao['senha'];
+        $config['port'] = $integracao['porta'];
+        //$config['debug']    = TRUE;
+        $filename = basename($file);
+        $connectedFTP = $this->ftp->connect($config);
+        if ($connectedFTP) {
+            $this->ftp->delete_file("{$integracao['diretorio']}{$filename}");
+            $this->ftp->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
+        }
+    }
+
+    private function deleteFileSFTP($integracao = array(), $file) {
+
+        $this->load->library('sftp');
+
+        $config['hostname'] = $integracao['host'];
+        $config['username'] = $integracao['usuario'];
+        $config['password'] = $integracao['senha'];
+        $config['port'] = $integracao['porta'];
+        //$config['debug']    = TRUE;
+        $filename = basename($file);
+        $connectedSFTP = $this->sftp->connect($config);
+        if ($connectedSFTP) {
+            $this->sftp->delete_file("{$integracao['diretorio']}{$filename}");
+            $this->sftp->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
+        }
+
     }
 
     private function processLine($multiplo, $layout, $registro, $integracao_log, $integracao_log_detalhe_id = null, $integracao = null) {

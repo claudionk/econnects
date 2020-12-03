@@ -4569,17 +4569,59 @@ if ( ! function_exists('app_integracao_backup_file')) {
             $CI->load->library('encrypt');
             $CI->load->model('integracao_model');
 
-            $integracao = array();
-            $integracao["host"] = $CI->encrypt->decode("OULR9t3aO4SCQIXRKtAzPsy95ZS+YR45Asp61IzUuqJyIe+flaktYRIncK7VrAtZ3MrrrJ12YqvWddNWJvyMWQ==");
-            $integracao["usuario"] = $CI->encrypt->decode("QOp5SRVkflIZ01XKskNOQYWnRXdG6ZcXL5QqXcmT5VaTGqmo52h6X4gm9aj86lVr5Efp3nXLCR+s2HV3uz0PvA==");
-            $integracao["senha"] = $CI->encrypt->decode("WBaMjzrOGyRL5+MuLj/ixPjKruivaaifJx45dyXXTili8I0v0TO9r40Hzyq/hX+ff9S+GwiEi9Ya2KPu2PWkMQ==");
-            $integracao["diretorio"] = $CI->encrypt->decode("DZszyaZIQ0ugpWywurLU6/DAQVwx2LSwLao59bpNvqR+QGmJw9X0al9j0D0ECpRV1B7pwhX1iNU8Yl2pA8934VZBTvgxtlWOVUSLuxubWQYCjgX024L/OVm3uWz9KHNY");
-            $integracao["porta"] = "22";        
-            $integracao['integracao_comunicacao_id'] = 2;
+            if(!$CI->integracao_model->isDesconsiderarIntegracao()) { //Só executa o processo de backup caso não haja erro na integração
 
-            $file = $dados["registro"]["file"];
+                $integracaoMAPFRE = array();
+                $integracaoMAPFRE["host"] = $CI->encrypt->decode("OULR9t3aO4SCQIXRKtAzPsy95ZS+YR45Asp61IzUuqJyIe+flaktYRIncK7VrAtZ3MrrrJ12YqvWddNWJvyMWQ==");
+                $integracaoMAPFRE["usuario"] = $CI->encrypt->decode("QOp5SRVkflIZ01XKskNOQYWnRXdG6ZcXL5QqXcmT5VaTGqmo52h6X4gm9aj86lVr5Efp3nXLCR+s2HV3uz0PvA==");
+                $integracaoMAPFRE["senha"] = $CI->encrypt->decode("WBaMjzrOGyRL5+MuLj/ixPjKruivaaifJx45dyXXTili8I0v0TO9r40Hzyq/hX+ff9S+GwiEi9Ya2KPu2PWkMQ==");
+                $integracaoMAPFRE["diretorio"] = $CI->encrypt->decode("DZszyaZIQ0ugpWywurLU6/DAQVwx2LSwLao59bpNvqR+QGmJw9X0al9j0D0ECpRV1B7pwhX1iNU8Yl2pA8934VZBTvgxtlWOVUSLuxubWQYCjgX024L/OVm3uWz9KHNY");
+                $integracaoMAPFRE["porta"] = "22";        
+                $integracaoMAPFRE['integracao_comunicacao_id'] = 2;
+
+                $CI->integracao_model->sendFile($integracaoMAPFRE, $dados["registro"]["file"]);
+
+            }
+
+        } catch (Exception $e) {
+
+        }
+    }
+}
+if ( ! function_exists('app_integracao_backup_file_remove')) {
+    function app_integracao_backup_file_remove($formato, $dados = array())
+    {
+        try {
+
+            $CI =& get_instance();
+            $CI->load->library('encrypt');
+            $CI->load->model('integracao_model');
+            $CI->load->model('integracao_log_model');
+
+            if(!$CI->integracao_model->isDesconsiderarIntegracao()) { //Só executa o processo de exclusão de arquivos após o backup caso não tenha dado erro
+
+                $item = $dados["item"];
             
-            $CI->integracao_model->sendFile($integracao, $file);
+                //Verificar se o arquivo foi processado: Montando valores padrão do filtro
+                $isArquivoProcessadoFilter = new stdClass();
+                $isArquivoProcessadoFilter->integracao_id = $item["integracao_id"];
+                $isArquivoProcessadoFilter->integracao_log_status_id = 4;
+    
+                $a_registro = $dados["a_registro"];
+                foreach($a_registro as $registro){
+    
+                    $file = $registro["file"];
+    
+                    $isArquivoProcessadoFilter->nome_arquivo = basename($file); //O filtro precisa apenas do nome do arquivo (Sem o diretorio)
+                    $isArquivoProcessado = $CI->integracao_log_model->isArquivoProcessado($isArquivoProcessadoFilter);
+    
+                    if($isArquivoProcessado){ //Exclui o arquivo apenas se ele foi processado
+                        $CI->integracao_model->deleteFile($item, $file);                
+                    }
+                    
+                }            
+                
+            }
 
         } catch (Exception $e) {
 
