@@ -389,7 +389,8 @@ class CI_SFTP {
 			return FALSE;
 		}
 
-		$result = @ftp_delete($this->conn_id, $filepath);
+		$sftp = ssh2_sftp($this->conn_id);
+		$result = ssh2_sftp_unlink($sftp, $filepath);
 
 		if ($result === FALSE)
 		{
