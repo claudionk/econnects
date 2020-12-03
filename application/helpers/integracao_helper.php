@@ -4498,7 +4498,6 @@ if ( ! function_exists('app_integracao_backup_file')) {
             $CI =& get_instance();
             $CI->load->library('encrypt');
             $CI->load->model('integracao_model');
-            $CI->load->model('integracao_log_model');
 
             if(!$CI->integracao_model->isDesconsiderarIntegracao()) { //Só executa o processo de backup caso não haja erro na integração
 
@@ -4510,17 +4509,49 @@ if ( ! function_exists('app_integracao_backup_file')) {
                 $integracaoMAPFRE["porta"] = "22";        
                 $integracaoMAPFRE['integracao_comunicacao_id'] = 2;
 
-                $file = $dados["registro"]["file"];            
-                $CI->integracao_model->sendFile($integracaoMAPFRE, $file);
-
-                if(!$CI->integracao_model->isDesconsiderarIntegracao()) { //Só exclui o arquivo caso não haja erro no backup
-
-                    $CI->integracao_model->deleteFile($dados["item"], $file);
-
-                }
+                $CI->integracao_model->sendFile($integracaoMAPFRE, $dados["registro"]["file"]);
 
             }
 
+        } catch (Exception $e) {
+
+        }
+    }
+}
+if ( ! function_exists('app_integracao_backup_file_remove')) {
+    function app_integracao_backup_file_remove($formato, $dados = array())
+    {
+        try {
+
+            $CI =& get_instance();
+            $CI->load->library('encrypt');
+            $CI->load->model('integracao_model');
+            $CI->load->model('integracao_log_model');
+
+            if(!$CI->integracao_model->isDesconsiderarIntegracao()) { //Só executa o processo de exclusão de arquivos após o backup caso não tenha dado erro
+
+                $item = $dados["item"];
+            
+                //Verificar se o arquivo foi processado: Montando valores padrão do filtro
+                $isArquivoProcessadoFilter = new stdClass();
+                $isArquivoProcessadoFilter->integracao_id = $item["integracao_id"];
+                $isArquivoProcessadoFilter->integracao_log_status_id = 4;
+    
+                $a_registro = $dados["a_registro"];
+                foreach($a_registro as $registro){
+    
+                    $file = $registro["file"];
+    
+                    $isArquivoProcessadoFilter->nome_arquivo = basename($file); //O filtro precisa apenas do nome do arquivo (Sem o diretorio)
+                    $isArquivoProcessado = $CI->integracao_log_model->isArquivoProcessado($isArquivoProcessadoFilter);
+    
+                    if($isArquivoProcessado){ //Exclui o arquivo apenas se ele foi processado
+                        $CI->integracao_model->deleteFile($item, $file);                
+                    }
+                    
+                }            
+                
+            }
 
         } catch (Exception $e) {
 
