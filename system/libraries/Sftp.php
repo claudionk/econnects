@@ -390,7 +390,7 @@ class CI_SFTP {
 		}
 
 		$sftp = ssh2_sftp($this->conn_id);
-		$result = ssh2_sftp_unlink($sftp, $filepath);
+		$result = @ssh2_sftp_unlink($sftp, $filepath);
 
 		if ($result === FALSE)
 		{
