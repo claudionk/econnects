@@ -1285,6 +1285,9 @@ Class Integracao_Model extends MY_Model
                             foreach ($msgDetCampo as $er) {
                                 $ErroID = !empty($er['id']) ? $er['id'] : -1;
                                 $ErroMSG = !empty($er['msg']) ? $er['msg'] : $er;
+                                if(is_array($ErroMSG) || is_object($ErroMSG)){
+                                    $ErroMSG = json_encode($ErroMSG);
+                                }
                                 $ErroSLUG = !empty($er['slug']) ? $er['slug'] : "";
                                 $this->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, $ErroID, $ErroMSG, $ErroSLUG);
                             }
