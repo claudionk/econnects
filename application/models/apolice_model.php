@@ -2123,6 +2123,9 @@ class Apolice_Model extends MY_Model
         $data_template['data_pedido']   = app_date_mysql_to_mask($apolice['data_adesao'], 'd/m/Y');
         $data_template['data_adesao']   = app_date_mysql_to_mask($apolice['data_adesao'], 'd/m/Y');
 
+        $data_template["data_ini_garantia_fornecedor"]  = $data_template['data_adesao'];
+        $data_template["data_fim_garantia_fornecedor"]  = date('d/m/Y', strtotime('-1 days', strtotime($apolice['data_ini_vigencia'])));
+
         $data_template['premio_liquido'] = "R$ " . app_format_currency($apolice['valor_premio_net']);
         $data_template['premio_total']   = "R$ " . app_format_currency($apolice['valor_premio_total']);
         $data_template['valor_iof']      = "R$ " . app_format_currency($apolice['valor_premio_total'] - $apolice['valor_premio_net']);
