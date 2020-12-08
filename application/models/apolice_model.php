@@ -2035,12 +2035,13 @@ class Apolice_Model extends MY_Model
 
         $data_template['segurado'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/dados_segurado", array('segurado' => $apolice), true);
 
+        $dadosPP = $this->getProdutoParceiro($apolice_id);                
+        $parceiro_slug = $dadosPP["slug"];
+
         if ( !empty($dados['template_coberturas']) )
         {
             $viewseguro = emptyor($dados['template_coberturas'], '');    
             if(!empty($viewseguro)){
-                $dadosPP = $this->getProdutoParceiro($apolice_id);
-                $parceiro_slug = $dadosPP["slug"];
                 $viewseguro = $parceiro_slug."/".$viewseguro;
             }
             
@@ -2054,6 +2055,11 @@ class Apolice_Model extends MY_Model
             }
         }
 
+        $dados["template_coberturas2"] = "";
+        if($parceiro_slug == "generali" && $viewseguro == "residencial"){
+            $dados["template_coberturas2"] = "residencial2";
+        }
+    
         $data_template['seguro']   = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/{$viewseguro}", array(
             'plano'          => $plano,
             'coberturas'     => $coberturas,
