@@ -444,9 +444,23 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             }
                         }
 
-                        $calculo = $this->getValorTabelaFixa($valor, 'original', $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia, $garantia_fabricante);
+                        $dataTabelaFixa = new stdClass();
+                        $dataTabelaFixa->valor = $valor;
+                        $dataTabelaFixa->item = 'original';
+                        $dataTabelaFixa->resultado = 'exato';
+                        $dataTabelaFixa->valor_nota = $valor_nota;
+                        $dataTabelaFixa->data_nascimento = $data_nascimento;
+                        $dataTabelaFixa->comissao = $comissao;
+                        $dataTabelaFixa->data_inicio_vigencia = $data_inicio_vigencia;
+                        $dataTabelaFixa->data_fim_vigencia = $data_fim_vigencia;
+                        $dataTabelaFixa->garantia_fabricante = $garantia_fabricante;
+                        $dataTabelaFixa->aIgnore = [];
+                        $dataTabelaFixa->produto_parceiro_plano_id = $produto_parceiro_plano_id;
+                        $dataTabelaFixa->getVigencia = $getVigencia;
 
-                        if($calculo) {
+                        $calculo = $this->getValorTabelaFixa($dataTabelaFixa);
+                        if($calculo)
+                        {
                             $calculo = $calculo['valor'];
                             $valores[$produto_parceiro_plano_id] = $calculo;
 
