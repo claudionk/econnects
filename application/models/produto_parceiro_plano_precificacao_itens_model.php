@@ -161,7 +161,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
         if (!empty($equipamento))
         {
-            $this->_database->where("IF({$this->_table}.equipamento = '', 1, {$this->_table}.equipamento LIKE \"%'{$equipamento}'%\"");
+            $this->_database->where("IF({$this->_table}.equipamento = '', 1, {$this->_table}.equipamento LIKE \"%'{$equipamento}'%\")");
         }
 
         return $this;
