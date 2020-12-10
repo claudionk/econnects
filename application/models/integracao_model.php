@@ -1762,7 +1762,7 @@ Class Integracao_Model extends MY_Model
 		    switch($status)
 		    {
 			    case "TROCA REALIZADA":
-                    $retorno = $SoapCurl->getAPI("atendimento/EncerrarExpediente", "PUT", json_encode( [ "idMotivoEncerramento" => 6, "idExpediente" => $id_exp, "voucherUsado" => true, "dataTroca" => $data_troca, "valorTroca" => $valor_troca] ), 900);
+                    $retorno = $SoapCurl->getAPI("voucher/atualizar_voucher", "POST", json_encode( [ "idMotivoEncerramento" => 6, "idExpediente" => $id_exp, "dataFinalizacaoIndenizacao" => $data_troca, "valorTroca" => $valor_troca] ), 900);
 				    return $retorno;
 			    break;
 			    case "CANCELADA":
