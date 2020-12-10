@@ -15,7 +15,7 @@
                             <?php if($cobertura["assistencia"] == 0): ?>
                                 <tr>
                                     <td class="table-cell-field"><b><?= $cobertura['cobertura_nome']; ?></b></td>
-                                    <td class="table-cell-field td-last">R$<?= app_format_currency($cobertura['premio_liquido_total']); ?></td>
+                                    <td class="table-cell-field td-last">R$ <?= app_format_currency($cobertura['premio_liquido_total']); ?></td>
                                 </tr>
                             <?php endif; ?>
                         <?php endforeach; ?>								
@@ -36,7 +36,7 @@
                             <?php if($cobertura["assistencia"] == 1): ?>
                                 <tr>
                                     <td class="table-cell-field"><b><?= $cobertura['cobertura_nome']; ?></b></td>
-                                    <td class="table-cell-field td-last">R$<?= app_format_currency($cobertura['premio_liquido_total']); ?></td>
+                                    <td class="table-cell-field td-last">R$ <?= app_format_currency($cobertura['premio_liquido_total']); ?></td>
                                 </tr>
                             <?php endif; ?>
                         <?php endforeach; ?>								

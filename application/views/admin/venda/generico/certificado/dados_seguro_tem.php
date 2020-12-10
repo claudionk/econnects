@@ -17,8 +17,8 @@
         <tr>
             <td><?php echo ($i+1) . " - " . $cobertura['cobertura_nome']; ?></td>
             <td><?php echo (empty($cobertura['diarias'])) ? 'NÃO HÁ' : 'ATÉ '.$cobertura['diarias'].' DIÁRIAS'; ?></td>
-            <td>R$<?php echo app_format_currency($cobertura['importancia_segurada']); ?></td>
-            <td>R$<?php echo app_format_currency($premio); ?></td>
+            <td>R$ <?php echo app_format_currency($cobertura['importancia_segurada']); ?></td>
+            <td>R$ <?php echo app_format_currency($premio); ?></td>
             <td><?= isempty($cobertura['franquia'], 'Não Há'); ?></td>
             <td><?= isempty($cobertura['carencia'], 'Não Há'); ?></td>
         </tr>
@@ -26,7 +26,7 @@
 
     <tr>
         <td colspan="3">Prêmio Total (com IOF): </td>
-        <td>R$<?php echo app_format_currency($premio_total) ?></td>
+        <td>R$ <?php echo app_format_currency($premio_total) ?></td>
         <td colspan="2"></td>
     </tr>
 
