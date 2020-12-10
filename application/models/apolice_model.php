@@ -2187,13 +2187,14 @@ class Apolice_Model extends MY_Model
         $ccount = 0;
         $data_template["franquia"] = "";
         $data_template["sorteio_valor"] = "";
+
         foreach ($coberturas as $cobertura) {
-            $ccount                                                     = $ccount + 1;
+            $ccount = $ccount + 1;
             $data_template["cobertura_" . trim($ccount) . "_descricao"] = $cobertura["cobertura_nome"];
             $data_template["lmi_" . trim($ccount)]                      = $cobertura["descricao"];
             $data_template["franquia"] = $cobertura["franquia"];
             if($cobertura["cobertura_slug"] == "capitalizacao_nro_sorte"){
-                $data_template["sorteio_valor"] = $cobertura["valor"];
+                $data_template["sorteio_valor"] = $cobertura["preco"];
             }
         }
 
@@ -2252,7 +2253,7 @@ class Apolice_Model extends MY_Model
         {
             $viewseguro = emptyor($dados['template_coberturas'], '');    
             if(!empty($viewseguro)){
-                $dadosPP = $this->getProdutoParceiro($apolice_id);
+                $dadosPP = $this->getProdutoParceiro($apolice_id);                
                 $parceiro_slug = $dadosPP["slug"];
                 $viewseguro = $parceiro_slug."/".$viewseguro;
             }
@@ -2277,6 +2278,14 @@ class Apolice_Model extends MY_Model
             'pagamento'  => $pagamento,
             'dados'      => $dados),
             true);
+
+        $data_template["seguro2"] = "";
+        if($viewseguro == "generali/residencial"){
+            $data_template["seguro2"] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/generali/residencial2", array(
+                'coberturas_all' => $coberturasAll
+                ),
+                true);
+        }
 
         $data_template['premio']    = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/premio", array('premio_liquido' => $apolice['valor_premio_net'], 'premio_total' => $apolice['valor_premio_total']), true);
         $data_template['pagamento'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/pagamento", array('pagamento' => $pagamento), true);
