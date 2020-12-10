@@ -43,13 +43,13 @@
             <p class="p8 ft11"><?= $cobertura['cobertura_nome']; ?></p>
             </td>
             <td class="tr9 td32">
-            <p class="p11 ft6">R$<?= app_format_currency($cobertura['importancia_segurada']); ?></p>
+            <p class="p11 ft6">R$ <?= app_format_currency($cobertura['importancia_segurada']); ?></p>
             </td>
             <td class="tr9 td33">
             <p class="p12 ft13"><?= isempty($cobertura['franquia'], 'Não Há'); ?></p>
             </td>
             <td class="tr9 td34">
-            <p class="p13 ft13">R$<?= app_format_currency($premio); ?></p>
+            <p class="p13 ft13">R$ <?= app_format_currency($premio); ?></p>
             </td>
         </tr>
         <?php } ?>

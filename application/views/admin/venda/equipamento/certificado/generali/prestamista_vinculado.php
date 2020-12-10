@@ -10,10 +10,10 @@
         <?php foreach ($coberturas_all as $i => $cobertura) : ?>
             <tr>
                 <td class="table-cell-field"><b><?= $cobertura['cobertura_nome']; ?></b></td>
-                <td class="table-cell-field">R$<?= app_format_currency($cobertura['importancia_segurada']); ?></td>
+                <td class="table-cell-field">R$ <?= app_format_currency($cobertura['importancia_segurada']); ?></td>
                 <td class="table-cell-field"><?= isempty($cobertura['franquia'], 'Não Há'); ?></td>
                 <td class="table-cell-field"><?= isempty($cobertura['carencia'], 'Não Há'); ?></td>
-                <td class="table-cell-field td-last">R$<?= app_format_currency($cobertura['premio_liquido_total']); ?></td>
+                <td class="table-cell-field td-last">R$ <?= app_format_currency($cobertura['premio_liquido_total']); ?></td>
             </tr>
         <?php endforeach; ?>
     </tbody>

@@ -16,10 +16,10 @@
         ?>
         <tr>
             <td><?= $cobertura['cobertura_nome']; ?></td>
-            <td>R$<?= app_format_currency($cobertura['importancia_segurada']); ?></td>
+            <td>R$ <?= app_format_currency($cobertura['importancia_segurada']); ?></td>
             <td><?= isempty($cobertura['franquia'], 'Não Há'); ?></td>
             <td><?= isempty($cobertura['carencia'], 'Não Há'); ?></td>
-            <td>R$<?= app_format_currency($premio); ?></td>
+            <td>R$ <?= app_format_currency($premio); ?></td>
         </tr>
     <?php } ?>
     <tr>
