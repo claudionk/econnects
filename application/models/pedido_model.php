@@ -183,13 +183,13 @@ class Pedido_Model extends MY_Model
                 if (!empty($value)) {
                     switch ($key) {
                         case "pedido_codigo":
-                            $this->_database->like('pedido.codigo', $value);
+                            $this->_database->where('pedido.codigo', $value);
                             break;
                         case "razao_nome":
                             $this->_database->like('cliente.razao_nome', $value);
                             break;
                         case "cnpj_cpf":
-                            $this->_database->like('cliente.cnpj_cpf', $value);
+                            $this->_database->where('cliente.cnpj_cpf', app_clear_number($value));
                             break;
                         case "data_nascimento":
                             $this->_database->where('cliente.data_nascimento', app_dateonly_mask_to_mysql($value));
