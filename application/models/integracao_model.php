@@ -2001,7 +2001,7 @@ Class Integracao_Model extends MY_Model
         $config['port']     = $integracao['porta'];
         //$config['debug']    = TRUE;
 
-        $privatekey         = app_assets_dir('files', 'privatekey') . "{$integracao['parceiro_id']}.pem";
+        $privatekey         = app_assets_dir('privatekey', 'files') . "{$integracao['parceiro_id']}.pem";
         if(file_exists($privatekey)){
             $config['privatekey'] = $privatekey;
         }
