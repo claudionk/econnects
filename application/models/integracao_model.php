@@ -290,6 +290,59 @@ Class Integracao_Model extends MY_Model
         }
     }
 
+    public function run_teste($integracao_id){
+        echo "run_r($integracao_id)\n";
+
+        // remove memory limit
+        $limit = ini_get('memory_limit');
+        ini_set('memory_limit', -1);
+        set_time_limit(999999);
+        ini_set('max_execution_time', 999999);
+
+        $this->load->model('integracao_log_model', 'integracao_log');
+        $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
+        $this->load->model('integracao_log_detalhe_campo_model', 'integracao_log_detalhe_campo');
+        $this->load->model('integracao_layout_model', 'integracao_layout');
+
+        $this->_database->select('integracao.*');
+        $this->_database->where("integracao.integracao_id", $integracao_id);
+        $this->_database->where("integracao.status", 'A');
+        $this->_database->where("integracao.deletado", 0);
+        $this->_database->where("integracao.habilitado", 1);
+        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s')); 
+
+        try
+    	{
+            $result = $this->get_all();
+    	}
+    	catch (Exception $e) 
+    	{
+    		echo "e=" . $e;
+    	}
+
+        if($result){
+            $result = $result[0];
+            $layout_filename = $this->integracao_layout->filter_by_integracao($result['integracao_id'])
+            ->filter_by_tipo('F')
+            ->order_by('ordem')
+            ->get_all();
+
+            $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
+
+            if(empty($file))
+            {
+                $file = $this->getFileName($result, $layout_filename);
+            }
+
+            $aResultFile = $this->getFile($result, $file);
+
+            print_r($aResultFile);
+        }
+
+        // reset memory limit
+        ini_set('memory_limit', ($limit==-1) ? "128MB" : $limit);
+    }
+
     public function run_r($integracao_id){
         echo "run_r($integracao_id)\n";
 
@@ -598,11 +651,7 @@ Class Integracao_Model extends MY_Model
 
         $this->load->library('ftp');
 
-        $config['hostname'] = $integracao['host'];
-        $config['username'] = $integracao['usuario'];
-        $config['password'] = $integracao['senha'];
-        $config['port']     = $integracao['porta'];
-        //$config['debug']    = TRUE;
+        $config = self::createConfigFTP($integracao);        
 
         $result = null;
         $connectedFTP = $this->ftp->connect($config);
@@ -621,11 +670,7 @@ Class Integracao_Model extends MY_Model
 
         $this->load->library('sftp');
 
-        $config['hostname'] = $integracao['host'];
-        $config['username'] = $integracao['usuario'];
-        $config['password'] = $integracao['senha'];
-        $config['port']     = $integracao['porta'];
-        //$config['debug']    = TRUE;
+        $config = self::createConfigFTP($integracao); 
 
         $result = null;
         $connectedFTP = $this->sftp->connect($config);
@@ -693,11 +738,8 @@ Class Integracao_Model extends MY_Model
 
         $this->load->library('ftp');
 
-        $config['hostname'] = $integracao['host'];
-        $config['username'] = $integracao['usuario'];
-        $config['password'] = $integracao['senha'];
-        $config['port'] = $integracao['porta'];
-        //$config['debug']    = TRUE;
+        $config = self::createConfigFTP($integracao); 
+
         $filename = basename($file);
         $connectedFTP = $this->ftp->connect($config);
         if ($connectedFTP) {
@@ -712,11 +754,8 @@ Class Integracao_Model extends MY_Model
 
         $this->load->library('sftp');
 
-        $config['hostname'] = $integracao['host'];
-        $config['username'] = $integracao['usuario'];
-        $config['password'] = $integracao['senha'];
-        $config['port'] = $integracao['porta'];
-        //$config['debug']    = TRUE;
+        $config = self::createConfigFTP($integracao); 
+
         $filename = basename($file);
         $connectedSFTP = $this->sftp->connect($config);
         if ($connectedSFTP) {
@@ -731,11 +770,8 @@ Class Integracao_Model extends MY_Model
 
         $this->load->library('ftp');
 
-        $config['hostname'] = $integracao['host'];
-        $config['username'] = $integracao['usuario'];
-        $config['password'] = $integracao['senha'];
-        $config['port'] = $integracao['porta'];
-        //$config['debug']    = TRUE;
+        $config = self::createConfigFTP($integracao); 
+
         $filename = basename($file);
         $connectedFTP = $this->ftp->connect($config);
         if ($connectedFTP) {
@@ -750,11 +786,8 @@ Class Integracao_Model extends MY_Model
 
         $this->load->library('sftp');
 
-        $config['hostname'] = $integracao['host'];
-        $config['username'] = $integracao['usuario'];
-        $config['password'] = $integracao['senha'];
-        $config['port'] = $integracao['porta'];
-        //$config['debug']    = TRUE;
+        $config = self::createConfigFTP($integracao); 
+
         $filename = basename($file);
         $connectedSFTP = $this->sftp->connect($config);
         if ($connectedSFTP) {
@@ -1927,6 +1960,7 @@ Class Integracao_Model extends MY_Model
         return ($query->num_rows() > 0);
     }
 
+
     function referenciarSaidaByRetornoMapfreRF($referenciarEnvioByRetornoFilter){
 
         $referenciarEnvioByRetornoFilter    = (object) $referenciarEnvioByRetornoFilter;
@@ -1958,7 +1992,22 @@ Class Integracao_Model extends MY_Model
         }
         
         return null;
+    }
+
+    private static function createConfigFTP($integracao){
+        $config['hostname'] = $integracao['host'];
+        $config['username'] = $integracao['usuario'];
+        $config['password'] = $integracao['senha'];
+        $config['port']     = $integracao['porta'];
+        //$config['debug']    = TRUE;
+
+        $privatekey         = app_assets_dir('files', 'privatekey') . "{$integracao['parceiro_id']}.pem";
+        if(file_exists($privatekey)){
+            $config['privatekey'] = $privatekey;
+        }
         
+        return $config;
+
     }
 
 }
