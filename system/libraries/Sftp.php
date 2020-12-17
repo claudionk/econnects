@@ -33,7 +33,7 @@ class CI_SFTP {
 	var $passive	= TRUE;
 	var $debug		= FALSE;
 	var $conn_id	= FALSE;
-	var $privatekey	= null;
+	var $privatekey	= '';
 
 
 	/**
@@ -121,8 +121,8 @@ class CI_SFTP {
 	 */
 	function _login()
 	{
-		if ($this->privatekey) {
-			return @ssh2_auth_pubkey_file($this->conn_id, $this->username, null, $this->privatekey, $this->password);
+		if ($this->privatekey != '') {
+			return @ssh2_auth_pubkey_file($this->conn_id, $this->username, $this->privatekey.".pub", $this->privatekey, $this->password);
 		} else {
 			return @ssh2_auth_password($this->conn_id, $this->username, $this->password);
 		}
