@@ -8,7 +8,7 @@
  */
 class Implantacoes extends Admin_Controller
 {
-    private $parceiro_id;
+    #private $parceiro_id;
 
     public function __construct()
     {
