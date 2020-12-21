@@ -903,7 +903,7 @@ if ( ! function_exists('app_integracao_generali_dados')) {
             }
             else{
                 if (in_array($chave_produto_parceiro_plano_id, array('ELCEL', 'CECEL'))) {
-                    $produto_parceiro_plano_id = 187;
+                    $produto_parceiro_plano_id = 49;
                 }
                 elseif (in_array($chave_produto_parceiro_plano_id, array('ELTBT'))) {
                     $produto_parceiro_plano_id = 188;
