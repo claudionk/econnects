@@ -1583,7 +1583,12 @@ Class Integracao_Model extends MY_Model
                 INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
                 INNER JOIN sissolucoes1.sis_exp_sinistro es ON es.id_exp = ec.id_exp
                 INNER JOIN sissolucoes1.sis_exp e ON ec.id_exp = e.id_exp
-                SET e.id_sinistro = IF(IFNULL(e.id_sinistro,'') <> '', e.id_sinistro, ec.id_sinistro_generali), e.data_id_sinistro = IFNULL(e.data_id_sinistro, NOW()), es.usado = 'S'
+                LEFT JOIN sissolucoes1.sis_exp ex ON e.id_exp_orig_clone = ex.id_exp
+                SET e.id_sinistro = IF(IFNULL(e.id_sinistro,'') <> '', e.id_sinistro, ec.id_sinistro_generali)
+                    , ex.id_sinistro = IF(IFNULL(ex.id_sinistro,'') <> '', ex.id_sinistro, ec.id_sinistro_generali)
+                    , e.data_id_sinistro = IFNULL(e.data_id_sinistro, NOW())
+                    , ex.data_id_sinistro = IFNULL(ex.data_id_sinistro, NOW())
+                    , es.usado = 'S'
                 WHERE 1 {$where} {$whereItem}
                 AND il.deletado = 0
                 AND ild.integracao_log_status_id = 4
