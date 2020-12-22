@@ -1628,8 +1628,7 @@ if ( ! function_exists('app_integracao_valida_regras'))
                     $dados["data_inicio_vigencia"] = $d1->format('Y-m-d');
 
                     // Período de Vigência: 12 meses
-                    $diff = $now->diff($d1);
-                    if ($d2 < date("Y-m-d", strtotime("-1 year"))) {
+                    if (app_date_get_diff($dados["data_adesao"], $dados["nota_fiscal_data"], 'M') > 12) {
                         $errors[] = ['id' => 5, 'msg' => "Campo DATA VENDA OU CANCELAMENTO deve ser inferior ou igual à 12 meses", 'slug' => "data_inicio_vigencia"];
                     }
                 }

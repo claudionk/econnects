@@ -402,6 +402,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             $query = $this
                                 ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
                                 ->filter_by_faixa( $valor_nota )
+                                ->filter_by_vigencia_equipamento($data_adesao)
                                 ->filter_by_tipo_equipamento("EQUIPAMENTO");
 
                             // Caso tenha um DE x PARA
@@ -409,7 +410,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
                                 $valor = $query
                                     ->filter_by_equipamento_de_para($equipamento_de_para)
-                                    ->filter_by_vigencia_equipamento($data_adesao)                                        
                                     ->get_all();
 
                             } else {
