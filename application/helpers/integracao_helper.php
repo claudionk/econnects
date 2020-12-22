@@ -898,17 +898,19 @@ if ( ! function_exists('app_integracao_generali_dados')) {
             $dados = (object)$data;
 
         } elseif ( $operacao == 'lasa') {
+            // Este campo enviado pela LASA é um composto de várias informações e dentre ela a CATEGORIA
+            // Esse campo tem tamanho 13. Ele é formato pelo tipo do plano + categoria + 4 digitos (random) + cod do pacote (TR ou RN) + o sufixo (RF para roubou ou furto e LS para GE).
             if(empty($chave_produto_parceiro_plano_id)){
                 $produto_parceiro_plano_id = 49;
             }
             else{
-                if (in_array($chave_produto_parceiro_plano_id, array('ELCEL', 'CECEL'))) {
+                if (in_array($chave_produto_parceiro_plano_id, array('CEL'))) {
                     $produto_parceiro_plano_id = 49;
                 }
-                elseif (in_array($chave_produto_parceiro_plano_id, array('ELTBT'))) {
+                elseif (in_array($chave_produto_parceiro_plano_id, array('TBT'))) {
                     $produto_parceiro_plano_id = 188;
                 }
-                elseif (in_array($chave_produto_parceiro_plano_id,array('ELCPN'))) {
+                elseif (in_array($chave_produto_parceiro_plano_id,array('CPN'))) {
                     $produto_parceiro_plano_id = 189;
                 }
             }
