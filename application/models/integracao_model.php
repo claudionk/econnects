@@ -1571,7 +1571,7 @@ Class Integracao_Model extends MY_Model
                 AND il.deletado = 0
                 AND ild.integracao_log_status_id = 4
                 AND ehc.`status` = 'P'
-                AND IF(ehc.tipo_expediente = 'AJU', 1, ehcx.id_exp IS NULL)
+                AND IF(ehc.tipo_expediente IN('AJU','ENC','REA'), 1, ehcx.id_exp IS NULL)
             ";
             $query = $this->_database->query($sql);
 
@@ -1636,7 +1636,7 @@ Class Integracao_Model extends MY_Model
                 WHERE 1 {$where}
                 AND il.deletado = 0
                 AND ehc.`status` = 'P'
-                AND IF(ehc.tipo_expediente = 'AJU', 1, ehcx.id_exp IS NULL)
+                AND IF(ehc.tipo_expediente IN('AJU','ENC','REA'), 1, ehcx.id_exp IS NULL)
                 AND ild.chave LIKE '{$chave}%'
             ";
             $query = $this->_database->query($sql);
