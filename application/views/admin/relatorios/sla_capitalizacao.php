@@ -19,12 +19,9 @@
 
     <div class="card-body">
 
-        <p>Selecione uma data de processamento.</p>
-
         <div class="row">
             <?php echo $filters; ?>
         </div>
-
         <div class="row">
             <div class="col-md-12 table-responsive">
                 <table class="table table-striped">
@@ -38,9 +35,3 @@
         </div>
     </div>
 </div>
-<script>
-    $(document).ready(function() {
-
-        getReportBody("/admin/relatorios/sla_capitalizacao");
-    });
-</script>

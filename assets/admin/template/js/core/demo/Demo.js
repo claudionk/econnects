@@ -258,7 +258,6 @@
 }(this.materialadmin, jQuery)); // pass in (namespace, jQuery):
 
 function getReportBody(url) {
-	console.log('olhaaa ');
 	filters = document.querySelectorAll('[data-filter]');
 	data_filter = { 'data_filter': true };
 
@@ -270,6 +269,7 @@ function getReportBody(url) {
 		data: data_filter,
 		url: url,
 		success: function (result) {
+			$('tbody').html('');
 			$('tbody').append(result)
 		}
 	});
