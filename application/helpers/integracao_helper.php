@@ -4504,6 +4504,13 @@ if ( ! function_exists('app_integracao_format_capitalize')) {
 if ( ! function_exists('app_integracao_backup_file')) {
     function app_integracao_backup_file($formato, $dados = array())
     {
+
+        $item = $dados["item"];
+
+        if($item["ambiente"] == "H"){
+            return true;
+        }
+
         try {
 
             $CI =& get_instance();
@@ -4532,6 +4539,13 @@ if ( ! function_exists('app_integracao_backup_file')) {
 if ( ! function_exists('app_integracao_backup_file_remove')) {
     function app_integracao_backup_file_remove($formato, $dados = array())
     {
+        
+        $item = $dados["item"];
+
+        if($item["ambiente"] == "H"){
+            return true;
+        }
+
         try {
 
             $CI =& get_instance();
@@ -4539,9 +4553,8 @@ if ( ! function_exists('app_integracao_backup_file_remove')) {
             $CI->load->model('integracao_model');
             $CI->load->model('integracao_log_model');
 
-            if(!$CI->integracao_model->isDesconsiderarIntegracao()) { //Só executa o processo de exclusão de arquivos após o backup caso não tenha dado erro
+            if(!$CI->integracao_model->isDesconsiderarIntegracao()) { //Só executa o processo de exclusão de arquivos após o backup caso não tenha dado erro        
 
-                $item = $dados["item"];
             
                 //Verificar se o arquivo foi processado: Montando valores padrão do filtro
                 $isArquivoProcessadoFilter = new stdClass();
