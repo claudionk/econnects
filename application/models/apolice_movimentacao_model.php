@@ -44,13 +44,8 @@ class Apolice_Movimentacao_Model extends MY_Model
 
             $pedido_id                     = $pedido['pedido_id'];
             $produto_parceiro_pagamento_id = $pedido['produto_parceiro_pagamento_id'];
-           
-            //Se tipo for cancelamento
-            if($tipo['apolice_movimentacao_tipo_id'] == '2'){
-                $parcelas_validas = $this->apolice_endosso->parcelasValidas($apolice_id,$pedido_id, null);
-            }
 
-            $this->apolice_endosso->insEndosso($tipo_slug, $tipo['apolice_movimentacao_tipo_id'], $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela, NULL, $tipo_motivo, $parcelas_validas);
+            $this->apolice_endosso->insEndosso($tipo_slug, $tipo['apolice_movimentacao_tipo_id'], $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela, NULL, $tipo_motivo);
 
             // $this->apolice_chave->insChave($pedido_id, $apolice_id);
 

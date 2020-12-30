@@ -283,7 +283,7 @@ Class Apolice_Endosso_Model extends MY_Model
         return $endosso;
     }
 
-    public function parcelasValidas($apolice_id, $pedido_id, $valor_estorno = null){
+    public function parcelasValidas($apolice_id, $pedido_id = null, $valor_estorno = null){
         
         if($valor_estorno == null){
             $apolice = $this->apolice->getApolice($apolice_id);
@@ -291,7 +291,9 @@ Class Apolice_Endosso_Model extends MY_Model
         }
 
         $this->_database->where('apolice_id', $apolice_id);
-        $this->_database->where('pedido_id', $pedido_id);
+        if(!empty($pedido_id)){
+            $this->_database->where('pedido_id', $pedido_id);
+        }
         $this->_database->where('apolice_movimentacao_tipo_id', 1);
         $this->_database->where('deletado', 0);
         $this->_database->order_by('parcela', 'DESC');
@@ -300,7 +302,7 @@ Class Apolice_Endosso_Model extends MY_Model
         $valor_estornar = $valor_estorno;
         $dados_mov = array();
         foreach ($result as $i => $r){
-            if($valor_estornar > 0 AND $r['parcela'] <> 0){
+            if($valor_estornar > 0 && $r['parcela'] <> 0){
                 $dados_mov[$i] = array(
                     'parcela'   => $r['parcela'],
                     'status'    => true
@@ -319,7 +321,7 @@ Class Apolice_Endosso_Model extends MY_Model
         
     }
 
-    public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null, $tipo_motivo = null, $parcelas_validas = null)
+    public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null, $tipo_motivo = null)
     {
         try
         {
@@ -359,7 +361,6 @@ Class Apolice_Endosso_Model extends MY_Model
                 'apolice'            => $apolice,
                 'dados_endosso'      => $dados_end,
                 'dados_cobertura'    => $cob_vig,
-                'parcelas_validas'   => $parcelas_validas,
             ];
 
             return $this->insEndossoCore($dados);
@@ -546,15 +547,15 @@ Class Apolice_Endosso_Model extends MY_Model
                         // Parcelado
                         if ( $tipo_pagto == 2 )
                         {
+                            $parcelas_validas = $this->parcelasValidas($apolice_id,null, null);
+
                             // *NAO* gera dados para enviar caso o vencimento seja anterior ao cancelamento
                             if ( !empty($dias_utilizados))
                             {
-                                if(!empty($dados['parcelas_validas'])){
-                                    foreach ($dados['parcelas_validas'] as $pv){
-                                        if($dados_end['parcela'] == $pv['parcela'] && empty($pv['status'])){
-                                            $geraDadosEndosso = false;
-                                        }                                    
-                                    }
+                                foreach ($parcelas_validas as $pv){
+                                    if($dados_end['parcela'] == $pv['parcela'] && empty($pv['status'])){
+                                        $geraDadosEndosso = false;
+                                    }                                    
                                 }
                             } 
                             elseif ($vcto_inferior_cancel) {
