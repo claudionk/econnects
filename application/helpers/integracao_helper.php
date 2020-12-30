@@ -2600,6 +2600,9 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
 
         $camposCotacao = $camposCotacao['response'];
 
+        // Regra para ignorar o percentual recebido e identificar através da realização do cálculo
+        $reg['comissao_premio'] = $reg['comissao_valor'] / $reg['premio_liquido'];
+
         // Validar Regras
         $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, false, $acesso);
         // echo "<pre>";print_r($validaRegra);echo "</pre>";die();
