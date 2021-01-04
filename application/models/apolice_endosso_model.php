@@ -549,6 +549,11 @@ Class Apolice_Endosso_Model extends MY_Model
                         {
                             $parcelas_validas = $this->parcelasValidas($apolice_id,null, null);
 
+                            if ($vcto_inferior_cancel) {
+                                // possui restituição parcial
+                                $parcelaRestituicao = true;
+                            }
+
                             // *NAO* gera dados para enviar caso o vencimento seja anterior ao cancelamento
                             if ( !empty($dias_utilizados))
                             {
@@ -557,10 +562,6 @@ Class Apolice_Endosso_Model extends MY_Model
                                         $geraDadosEndosso = false;
                                     }                                    
                                 }
-                            } 
-                            elseif ($vcto_inferior_cancel) {
-                                // possui restituição parcial
-                                $parcelaRestituicao = true;
                             }
                         }
                     }
