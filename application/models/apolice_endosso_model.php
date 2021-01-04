@@ -560,7 +560,7 @@ Class Apolice_Endosso_Model extends MY_Model
                                 foreach ($parcelas_validas as $pv){
                                     if($dados_end['parcela'] == $pv['parcela'] && empty($pv['status'])){
                                         $geraDadosEndosso = false;
-                                    }                                    
+                                    }
                                 }
                             }
                         }
