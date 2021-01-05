@@ -181,9 +181,10 @@ class Apolice extends CI_Controller {
                 }
                 $apolice_id = $PUT["apolice_id"];
                 $num_apolice = $PUT["num_apolice"];
+                $num_apolice_cliente = !empty($PUT["num_apolice_cliente"])? $PUT["num_apolice_cliente"]: null;
 
                 // atualiza o numero do bilhete
-                $ret = $this->apolice->updateBilhete( $apolice_id, $num_apolice );
+                $ret = $this->apolice->updateBilhete( $apolice_id, $num_apolice, $num_apolice_cliente);
                 die( json_encode( $ret, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
             } else {
                 die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
@@ -214,23 +215,41 @@ class Apolice extends CI_Controller {
             $POST = $this->getDados();
         }
 
-        $apolice_id = null;
-        if( isset( $POST["apolice_id"] ) ) {
-            $apolice_id = $POST["apolice_id"];
-            $params["apolice_id"] = $apolice_id;
-        } else {
-            die( json_encode( array( "status" => false, "message" => "Campo apolice_id é obrigatório" ) ) );
-        }
-
         $this->load->model("pedido_model", "pedido");
+        $this->load->model("apolice_model", "apolice");
 
-        $pedido = $this->pedido->with_apolice()->filter_by_apolice($apolice_id)->get_all();
+        try {
 
-        if(!$pedido) {
-            die( json_encode( array( "status" => false, "message" => "Apólice não encontrada" ) ) );
+            $apolice_id = null;
+
+            if (isset($POST["apolice_id"])) {
+                $apolice_id = $POST["apolice_id"];
+            } else if (isset($POST["num_apolice"])) {
+
+                $apolice = $this->apolice->get_by(array("num_apolice" => $POST["num_apolice"], "deletado" => 0));
+                
+                if (!empty($apolice)) {
+                    $apolice_id = $apolice["apolice_id"];
+                } else {
+                    throw new Exception("Apólice não encontrada para o num_apolice: ".$POST["num_apolice"]);
+                }
+                
+            } else {
+                throw new Exception("É obrigatório um dos campos: apolice_id ou num_apolice");
+            }
+
+            $pedido = $this->pedido->with_apolice()->filter_by_apolice($apolice_id)->get_all();
+            if(!$pedido) {
+                throw new Exception("Apólice não encontrada");                
+            }
+
+            return [ 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
+
+        } catch (Exception $ex) {
+            die( json_encode( array( "status" => false, "message" => $ex->getMessage() ) ) );
         }
 
-        return [ 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
+        
     }
 
     public function cancelar() {
