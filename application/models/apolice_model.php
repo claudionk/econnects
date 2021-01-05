@@ -248,7 +248,7 @@ class Apolice_Model extends MY_Model
 
     }
 
-    public function updateBilhete( $apolice_id, $num_apolice ) {
+    public function updateBilhete( $apolice_id, $num_apolice, $num_apolice_cliente = null ) {
         // retorna os dados da apólice
         $result = $this->get($apolice_id);
 
@@ -273,12 +273,17 @@ class Apolice_Model extends MY_Model
         // Define o número da apólice do cliente
         $dados_bilhete                        = $this->defineDadosBilhete($result['produto_parceiro_plano_id']);
         $dados_apolice['num_apolice']         = $num_apolice;
-        $dados_apolice['num_apolice_cliente'] = $this->defineNumApoliceCliente([
-            'cod_tpa'       => $dados_bilhete['cod_tpa'],
-            'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
-            'cod_ramo'      => $dados_bilhete['cod_ramo'],
-            'num_apolice'   => $dados_apolice['num_apolice'],
-        ]);
+
+        if (empty($num_apolice_cliente)) {
+            $dados_apolice['num_apolice_cliente'] = $this->defineNumApoliceCliente([
+                'cod_tpa'       => $dados_bilhete['cod_tpa'],
+                'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
+                'cod_ramo'      => $dados_bilhete['cod_ramo'],
+                'num_apolice'   => $dados_apolice['num_apolice'],
+            ]);
+        } else {
+            $dados_apolice['num_apolice_cliente'] = $num_apolice_cliente;
+        }        
 
         // Atualiza o numero da apólice
         $this->update($apolice_id, $dados_apolice, true);
@@ -967,7 +972,7 @@ class Apolice_Model extends MY_Model
 
         $pedido = $this->pedido->getPedidoProdutoParceiro($pedido_id);
 
-        $this->_database->select("apolice.apolice_id, apolice.pedido_id, apolice.num_apolice")
+        $this->_database->select("apolice.apolice_id, apolice.pedido_id, apolice.num_apolice, apolice.num_apolice_cliente")
             ->select("apolice.produto_parceiro_plano_id, apolice.apolice_status_id, apolice_status.nome as apolice_status_nome")
             ->select("apolice_status.slug as apolice_status_slug")
             ->select("produto_parceiro_plano.produto_parceiro_id")
