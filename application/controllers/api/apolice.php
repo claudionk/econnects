@@ -323,15 +323,15 @@ class Apolice extends CI_Controller {
         
     }
 
+    private function __validarDadosEntrada($POST = []){
+        return $this->validarDadosEntrada($POST);
+    }
+
     public function cancelar() {
         
         $this->checkKey();
 
-        $validacao = $this->apolice->validarDadosEntrada($this->getDados());
-        if ( empty($validacao['status']) ) {
-            die( json_encode( $validacao ) );
-        }
-
+        $validacao = $this->__validarDadosEntrada();
         $pedido_id = $validacao['pedido_id'];
         $dados_bancarios = !empty($validacao['dados']['dados_bancarios']) ? $validacao['dados']['dados_bancarios'] : [];
         $define_date = !empty($validacao['dados']["define_date"]) ? $validacao['dados']["define_date"] : date("Y-m-d H:i:s") ;
@@ -351,10 +351,7 @@ class Apolice extends CI_Controller {
     public function calculoCancelar() {
         $this->checkKey();
 
-        $validacao = $this->apolice->validarDadosEntrada($this->getDados());
-        if ( empty($validacao['status']) ) {
-            die( json_encode( $validacao ) );
-        }
+        $validacao = $this->__validarDadosEntrada();
 
         $pedido_id = $validacao['pedido_id'];
         $define_date = !empty($validacao['dados']["define_date"]) ? $validacao['dados']["define_date"] : date("Y-m-d H:i:s") ;
