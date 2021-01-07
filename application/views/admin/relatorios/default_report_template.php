@@ -14,7 +14,7 @@
 <div class="card">
 
     <div class="card-head style-primary">
-        <header>Relatório SLA Capitalização</header>
+        <header><?php echo $title; ?></header>
     </div>
 
     <div class="card-body">

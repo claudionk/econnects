@@ -1877,7 +1877,7 @@ class Relatorios extends Admin_Controller
             $td = 'th';
         }
 
-        if (is_array($data[0][1])) {
+        if (isset($data[0][1]) && is_array($data[0][1])) {
             $data = $data[0];
         }
         foreach ($data as $row) {
@@ -1937,17 +1937,19 @@ class Relatorios extends Admin_Controller
         $class = isset($data['class']) ? $data['class'] : '';
         $label = isset($data['label']) ? $this->htmlLabel($data['label']) : '';
         $js  = isset($data['js']) ? $data['js'] : '';
+        $extra = '';
         if ($type == 'date') {
             $type = 'text';
-            $class .= " inputmask-date ";
-            $placeholder = !isset($placeholder) ? $placeholder : '__/__/____';
+            $class .= " ";
+            $placeholder = !isset($placeholder) ? $placeholder : '__/____';
+            $extra .= " maxlength='7' ";
         }
         $defaultClass = 'form-control';
         if (($type == 'button') || ($type == 'input')) {
             $defaultClass = "btn btn-primary";
         }
         $html = $label;
-        $html .= "<input data-filter=true class=' " . $defaultClass . $class . "' placeholder='" . $placeholder . "' id='" . $id . "' name='" . $name . "' type='" . $type . "' value='" . $value . "' " . $js . " />";
+        $html .= "<input data-filter=true class=' " . $defaultClass . $class . "' placeholder='" . $placeholder . "' id='" . $id . "' name='" . $name . "' type='" . $type . "' value='" . $value . "' " . $js . " " . $extra . "/>";
         return $html;
     }
 
@@ -1976,7 +1978,49 @@ class Relatorios extends Admin_Controller
         return $html;
     }
 
-    public function sla_capitalizacao()
+    public function periodoFieldHTML()
+    {
+        return [
+            'input' => [
+                'type' => 'date',
+                'name' => 'periodo',
+                'id' => 'periodo',
+                'label' => ['for' => 'periodo', 'description' => 'Selecione o Periodo'],
+            ]
+        ];
+    }
+
+    public function operacaoFieldHTML()
+    {
+        return [
+            'selectbox' => [
+                'style' => 'inline',
+                'name' => 'operacao',
+                'id' => 'operacao',
+                'label' => ['for' => 'operacao', 'description' => 'Operação'],
+                'option' => [
+                    ['', 'valor'],
+                    ['valor1', 'descricao1'],
+                    ['valor2', 'descricao2'],
+                ]
+            ]
+        ];
+    }
+
+    public function getReportButtonHTML($reportControllerMethod)
+    {
+        return [
+            'input' => [
+                'type' => 'button',
+                'name' => 'consulte',
+                'id' => 'consulte',
+                'value' => 'buscar',
+                'js' => "onclick='getReportBody(\"" . $reportControllerMethod . "\")'",
+            ]
+        ];
+    }
+
+    public function slaCapitalizacao()
     {
         $this->load->model("Integracao_Comunicacao_Model", "comunicacao_model");
 
@@ -1988,43 +2032,13 @@ class Relatorios extends Admin_Controller
             $data['tbody'] = $this->list_to_html([$header], true);
             $data['title'] = "Relatório SLA de Capitalização";
             $filters = [
-                0 => [
-                    'input' => [
-                        'type' => 'date',
-                        'name' => 'periodo',
-                        'id' => 'periodo',
-                        'label' => ['for' => 'periodo', 'description' => 'Selecione o Periodo'],
-                    ]
-                ],
-                1 => [
-                    'selectbox' => [
-                        'style' => 'inline',
-                        'name' => 'operacao',
-                        'id' => 'operacao',
-                        'label' => ['for' => 'operacao', 'description' => 'Operação'],
-                        'option' => [
-                            ['', 'valor'],
-                            ['valor1', 'descricao1'],
-                            ['valor2', 'descricao2'],
-                        ]
-                    ]
-                ],
-                2 => [
-                    'input' => [
-                        'type' => 'button',
-                        'name' => 'consulte',
-                        'id' => 'consulte',
-                        'value' => 'buscar',
-                        'js' => "onclick='getReportBody(\"/admin/relatorios/sla_capitalizacao\")'",
-                    ]
-                ],
+                $this->periodoFieldHTML(),
+                $this->getReportButtonHTML('/admin/relatorios/slaCapitalizacao'),
 
             ];
-
-
             $data['filters'] = $this->filter_html($filters);
             //Carrega template
-            $this->template->load("admin/layouts/base", "$this->controller_uri/sla_capitalizacao", $data);
+            $this->template->load("admin/layouts/base", "$this->controller_uri/default_report_template.php", $data);
         } else {
 
             $filters = $_POST;
@@ -2032,7 +2046,140 @@ class Relatorios extends Admin_Controller
             $data[] = $this->comunicacao_model->getDataReport(
                 'slaCapitalizacao',
                 [
-                    'operacao' => $_POST['operacao'],
+                    'periodo' => $_POST['periodo']
+                ],
+                false
+            );
+            echo $this->list_to_html($data);
+        }
+    }
+
+    public function slaEmissaoCancelamento()
+    {
+        $this->load->model("Integracao_Comunicacao_Model", "comunicacao_model");
+
+        if (!$_POST) {
+            //Carrega React e Orb (relatórios)
+            $this->loadLibraries();
+            $data = [];
+            $header = $this->comunicacao_model->getDataReport('slaEmissaoCancelamento', '', true);
+            $data['tbody'] = $this->list_to_html([$header], true);
+            $data['title'] = "Relatório SLA de Emissão e Cancelamento";
+            $filters = [
+                $this->periodoFieldHTML(),
+                $this->getReportButtonHTML('/admin/relatorios/slaEmissaoCancelamento'),
+
+            ];
+            $data['filters'] = $this->filter_html($filters);
+            //Carrega template
+            $this->template->load("admin/layouts/base", "$this->controller_uri/default_report_template.php", $data);
+        } else {
+
+            $filters = $_POST;
+            $data = array();
+            $data[] = $this->comunicacao_model->getDataReport(
+                'slaCapitalizacao',
+                [
+                    'periodo' => $_POST['periodo']
+                ],
+                false
+            );
+            echo $this->list_to_html($data);
+        }
+    }
+
+    public function slaEmissaoCancelamentoRejeicaoBilhete()
+    {
+        $this->load->model("Integracao_Comunicacao_Model", "comunicacao_model");
+
+        if (!$_POST) {
+            //Carrega React e Orb (relatórios)
+            $this->loadLibraries();
+            $data = [];
+            $header = $this->comunicacao_model->getDataReport('slaEmissaoCancelamentoRejeicaoBilhete', '', true);
+            $data['tbody'] = $this->list_to_html([$header], true);
+            $data['title'] = "Relatório SLA Emissão Cancelamento e Rejeição Bilhete";
+            $filters = [
+                $this->periodoFieldHTML(),
+                $this->getReportButtonHTML('/admin/relatorios/slaEmissaoCancelamento'),
+
+            ];
+            $data['filters'] = $this->filter_html($filters);
+            //Carrega template
+            $this->template->load("admin/layouts/base", "$this->controller_uri/default_report_template.php", $data);
+        } else {
+
+            $filters = $_POST;
+            $data = array();
+            $data[] = $this->comunicacao_model->getDataReport(
+                'slaCapitalizacao',
+                [
+                    'periodo' => $_POST['periodo']
+                ],
+                false
+            );
+            echo $this->list_to_html($data);
+        }
+    }
+
+    public function sla_emissao_e_cancelamento_rejeicao()
+    {
+        $this->load->model("Integracao_Comunicacao_Model", "comunicacao_model");
+        if (!$_POST) {
+            //Carrega React e Orb (relatórios)
+            $this->loadLibraries();
+            $data = [];
+            $header = $this->comunicacao_model->getDataReport('slaEmissaoCancelamentoRejeicao', '', true);
+            $data['tbody'] = $this->list_to_html([$header], true);
+            $data['title'] = "Relatório SLA de Emissão e Cancelamento Rejeição";
+            $filters = [
+                $this->periodoFieldHTML(),
+                $this->getReportButtonHTML('/admin/relatorios/slaEmissaoCancelamento'),
+
+            ];
+            $data['filters'] = $this->filter_html($filters);
+            //Carrega template
+            $this->template->load("admin/layouts/base", "$this->controller_uri/default_report_template.php", $data);
+        } else {
+
+            $filters = $_POST;
+            $data = array();
+            $data[] = $this->comunicacao_model->getDataReport(
+                'slaCapitalizacao',
+                [
+                    'periodo' => $_POST['periodo']
+                ],
+                false
+            );
+            echo $this->list_to_html($data);
+        }
+    }
+
+    public function slaBaixaComissao()
+    {
+        $this->load->model("Integracao_Comunicacao_Model", "comunicacao_model");
+        if (!$_POST) {
+            //Carrega React e Orb (relatórios)
+            $this->loadLibraries();
+            $data = [];
+            $header = $this->comunicacao_model->getDataReport('slaBaixaComissao', '', true);
+            $data['tbody'] = $this->list_to_html([$header], true);
+            $data['title'] = "Relatório SLA Baixa Comissão";
+            $filters = [
+                $this->periodoFieldHTML(),
+                $this->getReportButtonHTML('/admin/relatorios/slaEmissaoCancelamento'),
+
+            ];
+            $data['filters'] = $this->filter_html($filters);
+            //Carrega template
+            $this->template->load("admin/layouts/base", "$this->controller_uri/default_report_template.php", $data);
+        } else {
+
+            $filters = $_POST;
+            $data = array();
+            $data[] = $this->comunicacao_model->getDataReport(
+                'slaCapitalizacao',
+                [
                     'periodo' => $_POST['periodo']
                 ],
                 false
