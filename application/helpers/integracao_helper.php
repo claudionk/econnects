@@ -4529,11 +4529,11 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
                         if($cod_tpa == null && $apolice_mae != null){
 
                             switch($apolice_mae){
-                                case "5486900000395":
+                                case "1658900000195":
                                     $cod_tpa = "004";
                                     break;
-                                case "5486900000495":
-                                    $cod_tpa = "003";
+                                case "1658900000295":
+                                    $cod_tpa = "005";
                                     break;
                                 default:
                                     throw new Exception('"apolice_mae" não associada a um "cod_tpa" ['.$apolice_mae.']');                                    
