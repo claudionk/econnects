@@ -4461,7 +4461,7 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
     
                         }
     
-                        if ($cod_tpa == null) {
+                        if ($cod_tpa != null) {
                             $aApolice = $CI->apolice_model->filter_by_numApolice($num_apolice, $cod_tpa)->get_all();                           
                             if (!empty($aApolice)){
                                 $apolice = $aApolice[0];
