@@ -4406,6 +4406,7 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
         $CI->load->model('integracao_log_model', 'log_m');
         $CI->load->model('integracao_log_detalhe_model', 'log_det');
         $CI->load->model('integracao_log_detalhe_erro_model', 'log_erro');
+        $CI->load->model("apolice_model");
 
         if ( empty($num_apolice) || empty($status) )
         {
@@ -4436,6 +4437,52 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
             {
                 $CI->integracao_model->update_log_detalhe_cta($file_registro, $chave, '4', '', $sinistro, $pagnet);
                 $CI->integracao_model->update_log_detalhe_mapfre_b2w($num_apolice, $tipo_operacao, 'b2w-proc-vendas', 'AC', '', '');
+
+                $num_apolice_cliente = (!empty($dados['registro']['num_apolice_cliente'])) ? $dados['registro']['num_apolice_cliente']: null;
+                $cod_tpa = (!empty($dados["log"]["integracao"]) && !empty($dados["log"]["integracao"]["cod_tpa"])) ? $dados["log"]["integracao"]["cod_tpa"]: null;
+                $apolice_mae = (!empty($dados["registro"]["apolice_mae"]))? !empty($dados["registro"]["apolice_mae"]): null;
+
+                if($num_apolice_cliente){
+
+                    try {
+
+                        if($cod_tpa == null && $apolice_mae != null){
+
+                            switch($apolice_mae){
+                                case "1658900000195":
+                                    $cod_tpa = "004";
+                                    break;
+                                case "1658900000295":
+                                    $cod_tpa = "005";
+                                    break;
+                                default:
+                                    throw new Exception('"apolice_mae" não associada a um "cod_tpa" ['.$apolice_mae.']');                                    
+                            }
+    
+                        }
+    
+                        if ($cod_tpa != null) {
+                            $aApolice = $CI->apolice_model->filter_by_numApolice($num_apolice, $cod_tpa)->get_all();                           
+                            if (!empty($aApolice)){
+                                $apolice = $aApolice[0];
+                            } else {
+                                throw new Exception("Apólice não encontrada [$num_apolice, $cod_tpa]");                                
+                            }
+                        } else {
+                            $apolice = $CI->apolice_model->get_by(array("num_apolice" => $num_apolice, "deletado" => 0));
+                            if(empty($apolice)){
+                                throw new Exception("Apólice não encontrada [$num_apolice]");                                
+                            }
+                        }                 
+                        
+                        $CI->apolice_model->updateBilhete($apolice["apolice_id"], $num_apolice, $num_apolice_cliente);
+
+                    } catch (Exception $ex) {
+                        $response->msg[] = ['id' => 12, 'msg' => $ex->getMessage(), 'slug' => "erro_num_apolice_cliente"];
+                        return $response;
+                    }
+
+                }
 
                 $response->status = true;
                 return $response;
