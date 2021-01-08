@@ -4450,9 +4450,11 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
 
                             switch($apolice_mae){
                                 case "1658900000195":
+                                case "5486900000395":
                                     $cod_tpa = "004";
                                     break;
                                 case "1658900000295":
+                                case "5486900000495":
                                     $cod_tpa = "005";
                                     break;
                                 default:
