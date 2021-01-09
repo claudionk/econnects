@@ -2952,11 +2952,12 @@ if ( ! function_exists('app_integracao_quero_quero')) {
             if(empty($apolice)){
                 $apoliceCliente = $CI->apolice->getApoliceByNumeroCliente($num_apolice, $acesso->parceiro_id);
                 if(!empty($apoliceCliente)){
-                    //print_pre($apoliceCliente);
                     $num_apolice = $apoliceCliente[0]['num_apolice'];
                 }
             }
         }
+
+        $dados['registro']['num_apolice'] = $num_apolice;
 
         // validações iniciais
         $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, false, $acesso);
