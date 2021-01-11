@@ -1332,6 +1332,15 @@ class Apolice_Model extends MY_Model
         return $this->get_all();
     }
 
+    public function getApoliceByNumeroCliente($num_apolice, $parceiro_id)
+    {
+        $this->_database->select("apolice.apolice_id, apolice.apolice_status_id, apolice_status.nome")
+            ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
+            ->where("apolice.num_apolice_cliente", $num_apolice)
+            ->where("apolice.parceiro_id", $parceiro_id);
+        return $this->get_all();
+    }
+
     public function search_apolice_produto_parceiro_plano_id($num_apolice, $produto_parceiro_plano_id)
     {
         $sql = "SELECT a.apolice_id
