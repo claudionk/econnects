@@ -2963,7 +2963,7 @@ if ( ! function_exists('app_integracao_quero_quero')) {
                     );
 
                     #update num_apolice no log_detalhe_campo
-                    $CI->integracao_log_detalhe->update_by(
+                    $CI->integracao_log_detalhe_dados->update_by(
                         array('integracao_log_detalhe_id' => $dLogDetalhe),
                         array('num_apolice' => $num_apolice)
                     );
