@@ -2941,7 +2941,7 @@ if ( ! function_exists('app_integracao_quero_quero')) {
             $geraDados['integracao_log_detalhe_id'] = $formato;
 
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
-            $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
+            $dLogDetalhe = $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
 
             // remove para realizar o cálculo do prêmio sem multiplicar por 12 meses
             $dados['registro']['data_fim_vigencia'] = null;
@@ -2981,11 +2981,17 @@ if ( ! function_exists('app_integracao_quero_quero')) {
                 $apoliceCliente = $CI->apolice->getApoliceByNumeroCliente($num_apolice, $acesso->parceiro_id);
                 if(!empty($apoliceCliente)){
                     $num_apolice = $apoliceCliente[0]['num_apolice'];
+
+                    $dados['registro']['num_apolice'] = $num_apolice;
+                    #update num_apolice no log_detalhe
+                    $CI->load->model("integracao_log_detalhe_model", "integracao_log_detalhe");
+                    $CI->integracao_log_detalhe->update_by(
+                        array('integracao_log_detalhe_id' => $formato),
+                        array('chave' => $num_apolice)
+                    );
                 }
             }
         }
-
-        $dados['registro']['num_apolice'] = $num_apolice;
 
         // validações iniciais
         $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, false, $acesso);
