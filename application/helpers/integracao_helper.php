@@ -1299,7 +1299,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             }
         }
 
-        $chave_produto_parceiro_plano_id = substr($dados['registro']['plano_garantech'],0,5);
+        $chave_produto_parceiro_plano_id = substr($dados['registro']['plano_garantech'],2,3);
 
         $acesso = app_integracao_generali_dados([],$chave_produto_parceiro_plano_id);
         $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
@@ -4554,9 +4554,11 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
 
                             switch($apolice_mae){
                                 case "1658900000195":
+                                case "5486900000395":
                                     $cod_tpa = "004";
                                     break;
                                 case "1658900000295":
+                                case "5486900000495":
                                     $cod_tpa = "005";
                                     break;
                                 default:
