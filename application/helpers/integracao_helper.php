@@ -2990,6 +2990,12 @@ if ( ! function_exists('app_integracao_quero_quero')) {
                         array('integracao_log_detalhe_id' => $formato),
                         array('chave' => $num_apolice)
                     );
+
+                    #update num_apolice no log_detalhe_campo
+                    $CI->integracao_log_detalhe->update_by(
+                        array('integracao_log_detalhe_id' => $dLogDetalhe),
+                        array('num_apolice' => $num_apolice)
+                    );
                 }
             }
         }
