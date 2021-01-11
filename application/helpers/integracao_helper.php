@@ -904,13 +904,13 @@ if ( ! function_exists('app_integracao_generali_dados')) {
                 $produto_parceiro_plano_id = 49;
             }
             else{
-                if (in_array($chave_produto_parceiro_plano_id, array('CEL'))) {
+                if (strpos($chave_produto_parceiro_plano_id, 'CEL') !== FALSE) {
                     $produto_parceiro_plano_id = 49;
                 }
-                elseif (in_array($chave_produto_parceiro_plano_id, array('TBT'))) {
+                elseif (strpos($chave_produto_parceiro_plano_id, 'TBT') !== FALSE) {
                     $produto_parceiro_plano_id = 188;
                 }
-                elseif (in_array($chave_produto_parceiro_plano_id,array('CPN'))) {
+                elseif (strpos($chave_produto_parceiro_plano_id, 'CPN') !== FALSE) {
                     $produto_parceiro_plano_id = 189;
                 }
             }
@@ -1248,6 +1248,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             $geraDados['nota_fiscal_numero']        = $dados['registro']['nota_fiscal_numero'];
             $geraDados['num_parcela']               = $dados['registro']['num_parcela'];
             $geraDados['nota_fiscal_valor']         = $dados['registro']['nota_fiscal_valor'];
+            $geraDados['codigo_plano']              = $dados['registro']['plano_garantech'];
 
             // Cancelamento
             if ( $dados['registro']['acao'] == '9' )
@@ -1297,7 +1298,7 @@ if ( ! function_exists('app_integracao_enriquecimento')) {
             }
         }
 
-        $chave_produto_parceiro_plano_id = substr($dados['registro']['plano_garantech'],2,3);
+        $chave_produto_parceiro_plano_id = $dados['registro']['plano_garantech'];
 
         $acesso = app_integracao_generali_dados([],$chave_produto_parceiro_plano_id);
         $dados['registro']['produto_parceiro_id'] = $acesso->produto_parceiro_id;
