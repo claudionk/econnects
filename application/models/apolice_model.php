@@ -1561,12 +1561,6 @@ class Apolice_Model extends MY_Model
         return null;
     }
 
-    function defineApoliceCliente($apolice_id) {
-        $dadosPP = $this->getProdutoParceiro($apolice_id);
-        $dadosPP['num_apolice'] = $this->defineNumApoliceCliente($dadosPP);
-        return $dadosPP;
-    }
-
     /**
      * Valida o número da apólice do Cliente DE / PARA
      * @param array $dadosPP (códigos do CTA)
