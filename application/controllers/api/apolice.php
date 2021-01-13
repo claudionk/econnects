@@ -62,9 +62,24 @@ class Apolice extends CI_Controller {
                 $resposta = [];
 
                 foreach ($pedidos as $pedido) {
+                    
                     //Monta resposta da apólice
                     $apolice = $this->apolice->getApolicePedido( $pedido["pedido_id"] );
                     $apolice[0]["inadimplente"] = ($this->pedido->isInadimplente( $pedido["pedido_id"] ) === false ) ? 0 : 1;
+
+                    $data_template = array();
+
+                    $this->load->model('Comissao_gerada_model', 'comissao_gerada');
+
+                    $aComissaoGerada = $this->comissao_gerada->getByParceiroId($pedido["pedido_id"], $apolice[0]['parceiro_id']);
+                    if(sizeof($aComissaoGerada)){
+                        $comissaoGerada = $aComissaoGerada[0];
+                        $data_template["representante_comissao"] = app_format_currency($comissaoGerada["comissao"])."%";
+                        $data_template["representante_comissao_valor"] = "R$ ".app_format_currency($comissaoGerada["valor"]);
+                    }else{
+                        $data_template["representante_comissao"] = "";
+                        $data_template["representante_comissao_valor"] = "";
+                    }
 
                     $faturas = $this->fatura->filterByPedido($pedido["pedido_id"])
                     ->with_fatura_status()
@@ -79,10 +94,12 @@ class Apolice extends CI_Controller {
                             ->get_all();
                     }
 
+                    $pedido["comissao"] = $data_template;
+
                     $resposta[] = array(
                         "apolice" => api_retira_timestamps($apolice),
                         "faturas" => api_retira_timestamps($faturas),
-                        "pedido" => api_retira_timestamps($pedido),
+                        "pedido" => api_retira_timestamps($pedido)
                     );
                 }
 
