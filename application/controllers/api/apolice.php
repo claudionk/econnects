@@ -67,18 +67,19 @@ class Apolice extends CI_Controller {
                     $apolice = $this->apolice->getApolicePedido( $pedido["pedido_id"] );
                     $apolice[0]["inadimplente"] = ($this->pedido->isInadimplente( $pedido["pedido_id"] ) === false ) ? 0 : 1;
 
-                    $data_template = array();
+                    $data_template[] = array();
 
                     $this->load->model('Comissao_gerada_model', 'comissao_gerada');
 
-                    $aComissaoGerada = $this->comissao_gerada->getByParceiroId($pedido["pedido_id"], $apolice[0]['parceiro_id']);
+                    $aComissaoGerada = $this->comissao_gerada->getByParceiroId($pedido["pedido_id"], null, array('3','2'));
+                    //return $this->db->last_query();
+                   // exit();
                     if(sizeof($aComissaoGerada)){
-                        $comissaoGerada = $aComissaoGerada[0];
-                        $data_template["representante_comissao"] = app_format_currency($comissaoGerada["comissao"])."%";
-                        $data_template["representante_comissao_valor"] = "R$ ".app_format_currency($comissaoGerada["valor"]);
-                    }else{
-                        $data_template["representante_comissao"] = "";
-                        $data_template["representante_comissao_valor"] = "";
+                        foreach ($aComissaoGerada as $iComissaoGerada => $vComissaoGerada) {
+                            $data_template[$iComissaoGerada]["tipo_comissao"] = $vComissaoGerada["parceiro_tipo_id"];
+                            $data_template[$iComissaoGerada]["perc_comissao"] = $vComissaoGerada["comissao"];
+                            $data_template[$iComissaoGerada]["valor_comissao"] = $vComissaoGerada["valor"];
+                        }
                     }
 
                     $faturas = $this->fatura->filterByPedido($pedido["pedido_id"])
