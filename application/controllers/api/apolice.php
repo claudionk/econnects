@@ -123,13 +123,35 @@ class Apolice extends CI_Controller {
                     $this->load->model('Comissao_gerada_model', 'comissao_gerada');
 
                     $aComissaoGerada = $this->comissao_gerada->getByParceiroId($pedido["pedido_id"], null, array('3','2'));
-                    //return $this->db->last_query();
-                   // exit();
+                    
                     if(sizeof($aComissaoGerada)){
+                        $nome_parceiro_tipo_id = "";
                         foreach ($aComissaoGerada as $iComissaoGerada => $vComissaoGerada) {
-                            $data_template[$iComissaoGerada]["tipo_comissao"] = $vComissaoGerada["parceiro_tipo_id"];
-                            $data_template[$iComissaoGerada]["perc_comissao"] = $vComissaoGerada["comissao"];
-                            $data_template[$iComissaoGerada]["valor_comissao"] = $vComissaoGerada["valor"];
+                            if($vComissaoGerada["parceiro_tipo_id"] == 1){
+                                $nome_parceiro_tipo_id = "SEGURADORA";
+                            }
+                            elseif($vComissaoGerada["parceiro_tipo_id"] == 2){
+                                $nome_parceiro_tipo_id = "CORRETORA";
+                            }
+                            elseif($vComissaoGerada["parceiro_tipo_id"] == 3){
+                                $nome_parceiro_tipo_id = "REPRESENTANTE";
+                            }
+                            elseif($vComissaoGerada["parceiro_tipo_id"] == 4){
+                                $nome_parceiro_tipo_id = "PONTO DE VENDA";
+                            }
+                            elseif($vComissaoGerada["parceiro_tipo_id"] == 5){
+                                $nome_parceiro_tipo_id = "ADMINISTRADORA DE BENEFICIOS";
+                            }
+                            elseif($vComissaoGerada["parceiro_tipo_id"] == 6){
+                                $nome_parceiro_tipo_id = "ASSISTÊNCIA EMERGENCIAL";
+                            }
+                            elseif($vComissaoGerada["parceiro_tipo_id"] == 7){
+                                $nome_parceiro_tipo_id = "CAPITALIZAÇÃO";
+                            }
+                            $data_template[$iComissaoGerada]["tipo"] = $vComissaoGerada["parceiro_tipo_id"];
+                            $data_template[$iComissaoGerada]["nome"] = $nome_parceiro_tipo_id;
+                            $data_template[$iComissaoGerada]["perc"] = $vComissaoGerada["comissao"];
+                            $data_template[$iComissaoGerada]["valor"] = $vComissaoGerada["valor"];
                         }
                     }
 
