@@ -124,36 +124,18 @@ class Apolice extends CI_Controller {
 
                     $aComissaoGerada = $this->comissao_gerada->getByParceiroId($pedido["pedido_id"], null, array('3','2'));
                     
-                    if(sizeof($aComissaoGerada)){
-                        $nome_parceiro_tipo_id = "";
-                        foreach ($aComissaoGerada as $iComissaoGerada => $vComissaoGerada) {
-                            if($vComissaoGerada["parceiro_tipo_id"] == 1){
-                                $nome_parceiro_tipo_id = "SEGURADORA";
-                            }
-                            elseif($vComissaoGerada["parceiro_tipo_id"] == 2){
-                                $nome_parceiro_tipo_id = "CORRETORA";
-                            }
-                            elseif($vComissaoGerada["parceiro_tipo_id"] == 3){
-                                $nome_parceiro_tipo_id = "REPRESENTANTE";
-                            }
-                            elseif($vComissaoGerada["parceiro_tipo_id"] == 4){
-                                $nome_parceiro_tipo_id = "PONTO DE VENDA";
-                            }
-                            elseif($vComissaoGerada["parceiro_tipo_id"] == 5){
-                                $nome_parceiro_tipo_id = "ADMINISTRADORA DE BENEFICIOS";
-                            }
-                            elseif($vComissaoGerada["parceiro_tipo_id"] == 6){
-                                $nome_parceiro_tipo_id = "ASSISTÊNCIA EMERGENCIAL";
-                            }
-                            elseif($vComissaoGerada["parceiro_tipo_id"] == 7){
-                                $nome_parceiro_tipo_id = "CAPITALIZAÇÃO";
-                            }
+                    if(sizeof($aComissaoGerada))
+                    {
+                        foreach ($aComissaoGerada as $iComissaoGerada => $vComissaoGerada)
+                        {
                             $data_template[$iComissaoGerada]["tipo"] = $vComissaoGerada["parceiro_tipo_id"];
-                            $data_template[$iComissaoGerada]["nome"] = $nome_parceiro_tipo_id;
+                            $data_template[$iComissaoGerada]["nome"] = strtoupper($vComissaoGerada["tipo_parceiro"]);
                             $data_template[$iComissaoGerada]["percentual"] = number_format((float)$vComissaoGerada["comissao"], 4, '.' , '');
                             $data_template[$iComissaoGerada]["valor"] = number_format((float)$vComissaoGerada["valor"], 2, '.' , '');
                         }
                     }
+
+                    $pedido["comissao"] = $data_template;
 
                     $faturas = $this->fatura->filterByPedido($pedido["pedido_id"])
                     ->with_fatura_status()
@@ -161,14 +143,13 @@ class Apolice extends CI_Controller {
                     ->order_by("data_processamento")
                     ->get_all();
 
-                    foreach ($faturas as $index => $fatura) {
+                    foreach ($faturas as $index => $fatura)
+                    {
                         $faturas[$index]["parcelas"] = $this->fatura_parcela->with_fatura_status()
                             ->filterByFatura($fatura["fatura_id"])
                             ->order_by("num_parcela")
                             ->get_all();
                     }
-
-                    $pedido["comissao"] = $data_template;
 
                     $resposta[] = array(
                         "apolice" => api_retira_timestamps($apolice),
