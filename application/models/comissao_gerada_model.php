@@ -226,7 +226,7 @@ Class Comissao_Gerada_Model extends MY_Model {
 
     public function getByParceiroId($pedido_id, $parceiroId = null, $tipo = [])
     {
-        $this->db->select("parceiro_tipo.nome AS tipo_parceiro");
+        $this->db->select("parceiro_tipo.nome AS tipo_parceiro, parceiro_tipo.codigo_interno AS tipo_parceiro_slug, ");
         $this->db->join("parceiro_tipo", "parceiro_tipo.parceiro_tipo_id = {$this->_table}.parceiro_tipo_id", "join");
         $this->db->where("{$this->_table}.pedido_id", $pedido_id);
         if(!empty($parceiroId)){
