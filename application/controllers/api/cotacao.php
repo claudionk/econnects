@@ -382,6 +382,7 @@ class Cotacao extends CI_Controller {
         $this->load->model( "apolice_model", "apolice" );
         $this->load->model( "localidade_estado_model", "localidade_estado" );
         $this->load->model( "capitalizacao_model", "capitalizacao" );
+        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
 
         //$parceiro_id = issetor($params['parceiro_id'], 0);
         $produto_parceiro_id = issetor($params['produto_parceiro_id'], 0);
@@ -389,6 +390,42 @@ class Cotacao extends CI_Controller {
         $repasse_comissao = $params["repasse_comissao"];
         $desconto_condicional= $params["desconto_condicional"];
         $cotacao_id = issetor($params['cotacao_id'], 0);
+
+        $rProdutoPlanoParceiro = $this->produto_parceiro_plano->coreSelectPlanosProdutoParceiro($produto_parceiro_id, $produto_parceiro_plano_id)->get_all();
+        if(!empty($rProdutoPlanoParceiro[0]['idade_minima']) || !empty($rProdutoPlanoParceiro[0]['idade_maxima'])){
+            $diffAgeLimit = app_date_get_diff_dias(app_dateonly_mysql_to_mask($params["data_nascimento"]), app_dateonly_mysql_to_mask($params["data_adesao"]), 'Y');
+
+            $MinAgeBlock = $rProdutoPlanoParceiro[0]['idade_minima'];
+            $MaxAgeBlock = $rProdutoPlanoParceiro[0]['idade_maxima'];
+            
+            if(!empty($MinAgeBlock) && !empty($MaxAgeBlock)){
+                if($MinAgeBlock >= $diffAgeLimit || $MaxAgeBlock <= $diffAgeLimit){
+                    $result  = array(
+                        'status' => false,
+                        'mensagem' => 'O beneficiário deve ter entre '.$MinAgeBlock.' e '.$MaxAgeBlock.' anos.',
+                    );
+                    return $result;
+                }
+            }
+            elseif(!empty($MinAgeBlock)){
+                if($MinAgeBlock >= $diffAgeLimit){
+                    $result  = array(
+                        'status' => false,
+                        'mensagem' => 'O beneficiário deve ter no mínimo '.$MinAgeBlock.' anos.',
+                    );
+                    return $result;
+                }
+            }
+            elseif(!empty($MaxAgeBlock)){
+                if($MaxAgeBlock <= $diffAgeLimit){
+                    $result  = array(
+                        'status' => false,
+                        'mensagem' => 'O beneficiário deve ter no máximo '.$MaxAgeBlock.' anos.',
+                    );
+                    return $result;
+                }
+            }
+        }
 
         $result  = array(
             'status' => false,
