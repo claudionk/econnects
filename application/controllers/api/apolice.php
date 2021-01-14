@@ -99,8 +99,8 @@ class Apolice extends CI_Controller {
                             }
                             $data_template[$iComissaoGerada]["tipo"] = $vComissaoGerada["parceiro_tipo_id"];
                             $data_template[$iComissaoGerada]["nome"] = $nome_parceiro_tipo_id;
-                            $data_template[$iComissaoGerada]["perc"] = $vComissaoGerada["comissao"];
-                            $data_template[$iComissaoGerada]["valor"] = $vComissaoGerada["valor"];
+                            $data_template[$iComissaoGerada]["percentual"] = number_format((float)$vComissaoGerada["comissao"], 4, '.' , '');
+                            $data_template[$iComissaoGerada]["valor"] = number_format((float)$vComissaoGerada["valor"], 2, '.' , '');
                         }
                     }
 
