@@ -441,6 +441,7 @@ class Venda_Equipamento extends Admin_Controller
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('localidade_estado_model', 'localidade_estado');
         $this->load->model('capitalizacao_model', 'capitalizacao');
+        $this->load->model('produto_parceiro_plano_model', 'plano');
 
         //Carrega JS para template
         $this->template->css(app_assets_url('modulos/venda/equipamento/css/select2.css', 'admin'));
@@ -499,6 +500,13 @@ class Venda_Equipamento extends Admin_Controller
         if (empty($capitalizacao['status'])) {
             $this->session->set_flashdata('fail_msg', $capitalizacao["message"]);
             redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/3/{$cotacao_id}");
+        }
+
+        // valida Data de Nascimento
+        $validaDataNascimento = $this->plano->valida_data_nascimento($produto_parceiro_id, $cotacao_salva['produto_parceiro_plano_id'], $cotacao['data_nascimento'], $cotacao['nota_fiscal_data']);
+        if ( empty($validaDataNascimento['status']) ) {
+            $this->session->set_flashdata('fail_msg', $validaDataNascimento["mensagem"]);
+            redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/1/{$cotacao_id}");
         }
 
         $data = array();
