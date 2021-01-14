@@ -378,40 +378,9 @@ class Cotacao extends CI_Controller {
         $desconto_condicional= $params["desconto_condicional"];
         $cotacao_id = issetor($params['cotacao_id'], 0);
 
-        $rProdutoPlanoParceiro = $this->produto_parceiro_plano->coreSelectPlanosProdutoParceiro($produto_parceiro_id, $produto_parceiro_plano_id)->get_all();
-        if(!empty($rProdutoPlanoParceiro[0]['idade_minima']) || !empty($rProdutoPlanoParceiro[0]['idade_maxima'])){
-            $diffAgeLimit = app_date_get_diff_dias(app_dateonly_mysql_to_mask($params["data_nascimento"]), app_dateonly_mysql_to_mask($params["data_adesao"]), 'Y');
-
-            $MinAgeBlock = $rProdutoPlanoParceiro[0]['idade_minima'];
-            $MaxAgeBlock = $rProdutoPlanoParceiro[0]['idade_maxima'];
-            
-            if(!empty($MinAgeBlock) && !empty($MaxAgeBlock)){
-                if($MinAgeBlock >= $diffAgeLimit || $MaxAgeBlock <= $diffAgeLimit){
-                    $result  = array(
-                        'status' => false,
-                        'mensagem' => 'O beneficiário deve ter entre '.$MinAgeBlock.' e '.$MaxAgeBlock.' anos.',
-                    );
-                    return $result;
-                }
-            }
-            elseif(!empty($MinAgeBlock)){
-                if($MinAgeBlock >= $diffAgeLimit){
-                    $result  = array(
-                        'status' => false,
-                        'mensagem' => 'O beneficiário deve ter no mínimo '.$MinAgeBlock.' anos.',
-                    );
-                    return $result;
-                }
-            }
-            elseif(!empty($MaxAgeBlock)){
-                if($MaxAgeBlock <= $diffAgeLimit){
-                    $result  = array(
-                        'status' => false,
-                        'mensagem' => 'O beneficiário deve ter no máximo '.$MaxAgeBlock.' anos.',
-                    );
-                    return $result;
-                }
-            }
+        $validaDataNascimento = $this->produto_parceiro_plano->valida_data_nascimento($produto_parceiro_id, $produto_parceiro_plano_id, $params["data_nascimento"], $params["data_adesao"]);
+        if (empty($validaDataNascimento['status'])) {
+            return $validaDataNascimento;
         }
 
         $result  = array(
