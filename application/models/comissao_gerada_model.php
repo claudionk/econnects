@@ -217,21 +217,25 @@ Class Comissao_Gerada_Model extends MY_Model {
         $this->with_simple_relation_foreign('pedido', 'pedido_', 'pedido_id', 'pedido_id', $fields );
         return $this;
     }
+
     function with_parceiro($fields = array('nome_fantasia'))
     {
         $this->with_simple_relation_foreign('parceiro', 'parceiro_', 'parceiro_id', 'parceiro_id', $fields );
         return $this;
     }
 
-    public function getByParceiroId($pedido_id, $parceiroId = null, $tipo = []){
-        $this->db->where('pedido_id', $pedido_id);
+    public function getByParceiroId($pedido_id, $parceiroId = null, $tipo = [])
+    {
+        $this->db->select("parceiro_tipo.nome AS tipo_parceiro");
+        $this->db->join("parceiro_tipo", "parceiro_tipo.parceiro_tipo_id = {$this->_table}.parceiro_tipo_id", "join");
+        $this->db->where("{$this->_table}.pedido_id", $pedido_id);
         if(!empty($parceiroId)){
-            $this->db->where('parceiro_id', $parceiroId);
+            $this->db->where("{$this->_table}.parceiro_id", $parceiroId);
         }
         if(!empty($tipo)){
-            $this->db->where_in('parceiro_tipo_id', $tipo);
+            $this->db->where_in("{$this->_table}.parceiro_tipo_id", $tipo);
         }
-        $this->db->where('deletado', 0);
+        $this->db->where("{$this->_table}.deletado", 0);
         return $this->get_all();
     }
 
