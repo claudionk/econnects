@@ -128,8 +128,9 @@ class Apolice extends CI_Controller {
                     {
                         foreach ($aComissaoGerada as $iComissaoGerada => $vComissaoGerada)
                         {
-                            $data_template[$iComissaoGerada]["tipo"] = $vComissaoGerada["parceiro_tipo_id"];
+                            $data_template[$iComissaoGerada]["tipo_id"] = $vComissaoGerada["parceiro_tipo_id"];
                             $data_template[$iComissaoGerada]["nome"] = strtoupper($vComissaoGerada["tipo_parceiro"]);
+                            $data_template[$iComissaoGerada]["slug"] = $vComissaoGerada["tipo_parceiro_slug"];
                             $data_template[$iComissaoGerada]["percentual"] = number_format((float)$vComissaoGerada["comissao"], 4, '.' , '');
                             $data_template[$iComissaoGerada]["valor"] = number_format((float)$vComissaoGerada["valor"], 2, '.' , '');
                         }
