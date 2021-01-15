@@ -514,13 +514,6 @@ class Venda_Generico extends Admin_Controller
             redirect("{$this->controller_uri}/generico/{$produto_parceiro_id}/3/{$cotacao_id}");
         }
 
-        // valida Data de Nascimento
-        $validaDataNascimento = $this->plano->valida_data_nascimento($produto_parceiro_id, $cotacao_salva['produto_parceiro_plano_id'], $cotacao['data_nascimento'], $cotacao['nota_fiscal_data']);
-        if ( empty($validaDataNascimento['status']) ) {
-            $this->session->set_flashdata('fail_msg', $validaDataNascimento["mensagem"]);
-            redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/1/{$cotacao_id}");
-        }
-
         $data = array();
         $data['cotacao_id'] = $cotacao_id;
         $data['campos'] = $this->campo->with_campo()
@@ -564,6 +557,15 @@ class Venda_Generico extends Admin_Controller
                     $dados_cotacao['step'] = 4;
 
                     $this->campo->setDadosCampos($produto_parceiro_id, 'generico',  'dados_segurado', $plano, $dados_cotacao);
+
+                    // valida Data de Nascimento
+                    $dDataNascimento = !empty($dados_cotacao['data_nascimento']) ? $dados_cotacao['data_nascimento'] : $cotacao_salva['data_nascimento'];
+                    $dNotaFiscalData = !empty($dados_cotacao['nota_fiscal_data']) ? $dados_cotacao['nota_fiscal_data'] : $cotacao_salva['nota_fiscal_data'];
+                    $validaDataNascimento = $this->plano->valida_data_nascimento($produto_parceiro_id, $cotacao_salva['produto_parceiro_plano_id'], $dDataNascimento, $dNotaFiscalData);
+                    if ( empty($validaDataNascimento['status']) ) {
+                        $this->session->set_flashdata('fail_msg', $validaDataNascimento["mensagem"]);
+                        redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/3/{$cotacao_id}");
+                    }
 
                     if( isset( $_POST["data_inicio_vigencia"] ) ) {
                         $_POST["data_inicio_vigencia"] = app_dateonly_mask_to_mysql($_POST["data_inicio_vigencia"]);
