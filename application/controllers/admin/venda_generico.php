@@ -559,8 +559,8 @@ class Venda_Generico extends Admin_Controller
                     $this->campo->setDadosCampos($produto_parceiro_id, 'generico',  'dados_segurado', $plano, $dados_cotacao);
 
                     // valida Data de Nascimento
-                    $dDataNascimento = !empty($dados_cotacao['data_nascimento']) ? $dados_cotacao['data_nascimento'] : $cotacao_salva['data_nascimento'];
-                    $dNotaFiscalData = !empty($dados_cotacao['nota_fiscal_data']) ? $dados_cotacao['nota_fiscal_data'] : $cotacao_salva['nota_fiscal_data'];
+                    $dDataNascimento = (!empty($dados_cotacao['data_nascimento']) && $dados_cotacao['data_nascimento'] != '0000-00-00') ? $dados_cotacao['data_nascimento'] : $cotacao_salva['data_nascimento'];
+                    $dNotaFiscalData = (!empty($dados_cotacao['nota_fiscal_data']) && $dados_cotacao['data_nascimento'] != '0000-00-00') ? $dados_cotacao['nota_fiscal_data'] : $cotacao_salva['nota_fiscal_data'];
                     $validaDataNascimento = $this->plano->valida_data_nascimento($produto_parceiro_id, $cotacao_salva['produto_parceiro_plano_id'], $dDataNascimento, $dNotaFiscalData);
                     if ( empty($validaDataNascimento['status']) ) {
                         $this->session->set_flashdata('fail_msg', $validaDataNascimento["mensagem"]);
