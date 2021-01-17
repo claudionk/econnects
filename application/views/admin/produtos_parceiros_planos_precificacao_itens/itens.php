@@ -37,6 +37,9 @@
             <option value="GARANTIA_FABRICANTE"
                 <?php if($val == 'GARANTIA_FABRICANTE') {echo " selected ";} ?> >Garantia do Fabricante
             </option>
+            <option value="VIGENCIA"
+                <?php if($val == 'VIGENCIA') {echo " selected ";} ?> >Vigência
+            </option>
         </select>
     </div>
 

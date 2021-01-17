@@ -232,7 +232,6 @@ class Apolice extends CI_Controller {
 
     public function validarDadosEntrada($POST = [])
     {
-
         if (empty($POST)) {
             $POST = $this->getDados();
         }
@@ -589,5 +588,38 @@ class Apolice extends CI_Controller {
         );
     }
 
-}
+    public function getBilhete($apolice_id = null)
+    {
+        $this->checkKey();
 
+        if( !isset( $apolice_id ) ) {
+            die( json_encode( array( "status" => false, "message" => "Campo apolice_id é obrigatório" ) ) );
+        }
+
+        $apolice = $this->apolice->getApolice($apolice_id);
+        if( empty($apolice) )
+        {
+            die( json_encode( array(
+                "status" => false,
+                "message" => "Apólice não identificada",
+            ) ) );
+        }
+
+        $pdf_base64 = $this->apolice->certificado($apolice_id, 'pdf_file');
+        if($pdf_base64 !== FALSE)
+        {
+            $pdf_base64_handler = fopen($pdf_base64,'r');
+            $pdf_content = fread($pdf_base64_handler,filesize($pdf_base64));
+            fclose($pdf_base64_handler);
+
+            die( json_encode( array( 
+                "status" => true, 
+                "message" => "Apólice cancelada com sucesso",
+                "pdf" => base64_encode($pdf_content),
+            ) ) );
+        }
+
+        die( json_encode( array( "status" => false, "message" => "Não foi possível exportar o bilhete" ) ) );
+    }
+
+}

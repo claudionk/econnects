@@ -417,11 +417,6 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                     }
                 }
 
-                if ( !empty($data_fim_vigencia) && $data_fim_vigencia != "0000-00-00")
-                {
-                    $date_fim_vig = $data_fim_vigencia;
-                }
-
                 if ($config)
                 {
                     switch ($config["apolice_vigencia"])
@@ -486,6 +481,11 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                 $data_adesao = $data_ad;
             }
 
+            if ( !empty($data_fim_vigencia) && $data_fim_vigencia != "0000-00-00")
+            {
+                $date_fim_vig = $data_fim_vigencia;
+            }
+
             $data_base = explode('-', $data_base);
 
             // se nao informou a data inicio de vigencia e possui garantia do fabricante
@@ -547,6 +547,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                 'inicio_vigencia' => $date_inicio,
                 'fim_vigencia'    => $date_fim,
                 'dias'            => app_date_get_diff_mysql($date_inicio, $date_fim, 'D'),
+                'meses'           => app_date_get_diff_mysql($date_inicio, $date_fim, 'M'),
                 'data_adesao'     => $data_adesao,
             ];
 
@@ -556,6 +557,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             'inicio_vigencia' => $result[0]['inicio_vigencia'],
             'fim_vigencia'    => $result[0]['fim_vigencia'],
             'dias'            => $result[0]['dias'],
+            'meses'           => $result[0]['meses'],
             'data_adesao'     => $result[0]['data_adesao'],
             'coberturas'      => $result,    
         );
