@@ -235,6 +235,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         $comissao = emptyor($data_preco['comissao'], NULL);
         $data_adesao = emptyor($data_preco['data_adesao'], NULL);
         $garantia_fabricante = emptyor($data_preco['garantia_fabricante'], 0);
+        $cotacao = emptyor($data_preco['cotacao'], NULL);
 
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
@@ -267,7 +268,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         {
             $valor_cobertura_plano = 0;
             $produto_parceiro_plano_id = $plano["produto_parceiro_plano_id"];
-            $getVigencia = $this->plano->getInicioFimVigencia($produto_parceiro_plano_id);
+            $getVigencia = $this->plano->getInicioFimVigencia($produto_parceiro_plano_id, $data_inicio_vigencia, $cotacao);
 
             if ( !empty($valor_fixo) )
             {
@@ -282,7 +283,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         $calculo = [];
 
                         if( $produto_slug == 'equipamento' ) {
-
+                            
                             $valor = $this
                                 ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
                                 ->filter_by_tipo_equipamento('TODOS')
