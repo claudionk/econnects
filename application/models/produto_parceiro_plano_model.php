@@ -417,11 +417,6 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                     }
                 }
 
-                if ( !empty($data_fim_vigencia) && $data_fim_vigencia != "0000-00-00")
-                {
-                    $date_fim_vig = $data_fim_vigencia;
-                }
-
                 if ($config)
                 {
                     switch ($config["apolice_vigencia"])
@@ -484,6 +479,11 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             // a adesão deve ser sempre o que foi enviado
             if (!empty($data_ad) && $data_ad != "0000-00-00") {
                 $data_adesao = $data_ad;
+            }
+
+            if ( !empty($data_fim_vigencia) && $data_fim_vigencia != "0000-00-00")
+            {
+                $date_fim_vig = $data_fim_vigencia;
             }
 
             $data_base = explode('-', $data_base);
