@@ -283,6 +283,44 @@ Class Apolice_Endosso_Model extends MY_Model
         return $endosso;
     }
 
+    public function parcelasValidas($apolice_id, $pedido_id = null, $valor_estorno = null){
+        
+        if($valor_estorno == null){
+            $apolice = $this->apolice->getApolice($apolice_id);
+            $valor_estorno = $apolice['valor_estorno'];
+        }
+
+        $this->_database->where('apolice_id', $apolice_id);
+        if(!empty($pedido_id)){
+            $this->_database->where('pedido_id', $pedido_id);
+        }
+        $this->_database->where('apolice_movimentacao_tipo_id', 1);
+        $this->_database->where('deletado', 0);
+        $this->_database->order_by('parcela', 'DESC');
+        $result = $this->get_all();
+
+        $valor_estornar = $valor_estorno;
+        $dados_mov = array();
+        foreach ($result as $i => $r){
+            if($valor_estornar > 0 && $r['parcela'] <> 0){
+                $dados_mov[$i] = array(
+                    'parcela'   => $r['parcela'],
+                    'status'    => true
+                );
+                $valor_estornar = $valor_estornar -  $r['valor'];
+            }
+            else{
+                $dados_mov[$i] = array(
+                    'parcela'   => $r['parcela'],
+                    'status'    => false
+                );
+            }
+        }
+
+        return $dados_mov;
+        
+    }
+
     public function insEndosso($tipo, $apolice_movimentacao_tipo_id, $pedido_id, $apolice_id, $produto_parceiro_pagamento_id, $parcela = null, $valor = null, $tipo_motivo = null)
     {
         try
@@ -474,7 +512,7 @@ Class Apolice_Endosso_Model extends MY_Model
                     $dt_ini_vig = $dados_end['data_inicio_vigencia'];
                 }
                 $result = $this->lastParcela($apolice_id, $dados_end['parcela'], $ap_mov_tip_id, $dt_ini_vig );
-
+                
                 $dados_end['data_fim_vigencia']     = $result['data_fim_vigencia'];
                 $dados_end['valor']                 = $result['valor'];
                 $dados_end['id_transacao_canc']     = $result['id_transacao'];
@@ -509,14 +547,21 @@ Class Apolice_Endosso_Model extends MY_Model
                         // Parcelado
                         if ( $tipo_pagto == 2 )
                         {
-                            // *NAO* gera dados para enviar caso o vencimento seja anterior ao cancelamento
-                            if ( !empty($dias_utilizados) && $vcto_inferior_entre_cancel )
-                            {
-                                $geraDadosEndosso = false;
-                            } 
-                            elseif ($vcto_inferior_cancel) {
+                            $parcelas_validas = $this->parcelasValidas($apolice_id,null, null);
+
+                            if ($vcto_inferior_cancel) {
                                 // possui restituição parcial
                                 $parcelaRestituicao = true;
+                            }
+
+                            // *NAO* gera dados para enviar caso o vencimento seja anterior ao cancelamento
+                            if ( !empty($dias_utilizados))
+                            {
+                                foreach ($parcelas_validas as $pv){
+                                    if($dados_end['parcela'] == $pv['parcela'] && empty($pv['status'])){
+                                        $geraDadosEndosso = false;
+                                    }
+                                }
                             }
                         }
                     }
