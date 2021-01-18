@@ -118,13 +118,13 @@
 	// =========================================================================
 	// COLOR SWITCHER
 	// =========================================================================
-	
+
 	p._handleThemeSwitch = function (e) {
 		e.preventDefault();
 		var newTheme = $(e.currentTarget).attr('href');
 		this.switchTheme(newTheme);
 	};
-	
+
 	p.switchTheme = function (theme) {
 		$('link').each(function () {
 			var href = $(this).attr('href');
@@ -136,25 +136,25 @@
 	// =========================================================================
 	// CHAT MESSAGE
 	// =========================================================================
-	
+
 	p._initChatMessage = function (e) {
 		var o = this;
 		$('#sidebarChatMessage').keydown(function (e) {
 			o._handleChatMessage(e);
 		});
 	};
-	
+
 	p._handleChatMessage = function (e) {
 		var input = $(e.currentTarget);
-		
+
 		// Detect enter
 		if (e.keyCode === 13) {
 			e.preventDefault();
-			
+
 			// Get chat message
 			var demoTime = new Date().getHours() + ':' + new Date().getMinutes();
 			var demoImage = $('.list-chats li img').attr('src');
-			
+
 			// Create html
 			var html = '';
 			html += '<li>';
@@ -167,16 +167,16 @@
 			html += '	</div>';
 			html += '</li>';
 			var $new = $(html).hide();
-			
+
 			// Add to chat list
 			$('.list-chats').prepend($new);
-			
+
 			// Animate new inserts
 			$new.show('fast');
-			
+
 			// Reset chat input
 			input.val('').trigger('autosize.resize');
-			
+
 			// Refresh for correct scroller size
 			$('.offcanvas').trigger('refresh');
 		}
@@ -185,11 +185,11 @@
 	// =========================================================================
 	// INVERSE UI TOGGLERS
 	// =========================================================================
-	
+
 	p._initInversedTogglers = function () {
 		var o = this;
 
-		
+
 		$('input[name="menubarInversed"]').on('change', function (e) {
 			o._handleMenubarInversed(e);
 		});
@@ -197,9 +197,9 @@
 			o._handleHeaderInversed(e);
 		});
 	};
-	
+
 	p._handleMenubarInversed = function (e) {
-		if($(e.currentTarget).val() === '1') {
+		if ($(e.currentTarget).val() === '1') {
 			$('#menubar').addClass('menubar-inverse');
 		}
 		else {
@@ -207,14 +207,14 @@
 		}
 	};
 	p._handleHeaderInversed = function (e) {
-		if($(e.currentTarget).val() === '1') {
+		if ($(e.currentTarget).val() === '1') {
 			$('#header').addClass('header-inverse');
 		}
 		else {
 			$('#header').removeClass('header-inverse');
 		}
 	};
-	
+
 	// =========================================================================
 	// BUTTON STATES (LOADING)
 	// =========================================================================
@@ -234,7 +234,7 @@
 	// =========================================================================
 
 	p._initIconSearch = function () {
-		if($('#iconsearch').length === 0) {
+		if ($('#iconsearch').length === 0) {
 			return;
 		}
 
@@ -252,7 +252,25 @@
 			});
 		});
 	};
-		
+
 	// =========================================================================
 	namespace.Demo = new Demo;
 }(this.materialadmin, jQuery)); // pass in (namespace, jQuery):
+
+function getReportBody(url) {
+	filters = document.querySelectorAll('[data-filter]');
+	data_filter = { 'data_filter': true };
+
+	for (i = 0; i < filters.length; i++) {
+		data_filter[filters[i].name] = filters[i].value;
+	}
+	$.ajax({
+		type: "POST",
+		data: data_filter,
+		url: url,
+		success: function (result) {
+			$('tbody').html('');
+			$('tbody').append(result)
+		}
+	});
+}

@@ -437,7 +437,7 @@ if ( ! function_exists('app_integracao_format_file_name_mapfre_rf')) {
         $codigo_revendedor = substr($dados['registro'][0]['tomador_codigo'], -7);
         $codigo_produto = str_pad($dados['registro'][0]['codigo_operadora'], 7, '0',STR_PAD_LEFT);
         $data = date('dmY');
-        $num_sequencia = str_pad($num_sequencia,5, '0',STR_PAD_LEFT);
+        $num_sequencia = substr(str_pad($num_sequencia,5, '0',STR_PAD_LEFT), -5);
 
         $file = "{$codigo_revendedor}{$codigo_produto}{$data}{$num_sequencia}.TXT";
         return  $file;
@@ -464,7 +464,7 @@ if ( ! function_exists('app_integracao_format_file_name_mapfre_ge')) {
         $num_produto = "731";
         $nome_estipulante = strtoupper(str_replace(' ', '', emptyor($reg['tomador_nome'], '')));
         $data = date('dmY');
-        $num_sequencia = str_pad($num_sequencia,4, '0',STR_PAD_LEFT);
+        $num_sequencia = substr(str_pad($num_sequencia,4, '0',STR_PAD_LEFT), -4);
 
         $file = "{$num_produto}{$nome_estipulante}{$data}{$num_sequencia}.TXT";
         return  $file;
@@ -2573,11 +2573,12 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
         $cpf            = $reg['cpf'];
         $ean            = $reg['ean'];
 
+        $eanErro = true;
+        $eanErroMsg = "";
         $dados['registro']['produto_parceiro_id']       = $acesso->produto_parceiro_id;
         $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
         $dados['registro']['data_adesao']               = $dados['registro']['data_adesao_cancel'];
-        $eanErro = true;
-        $eanErroMsg = "";
+        $dados['registro']['comissao_premio']           = $reg['comissao_valor'] / $reg['premio_liquido'] * 100; // Regra para ignorar o percentual recebido e identificar através da realização do cálculo
 
         // validações iniciais
         $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, true, $acesso);
