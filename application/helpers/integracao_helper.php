@@ -2573,11 +2573,12 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
         $cpf            = $reg['cpf'];
         $ean            = $reg['ean'];
 
+        $eanErro = true;
+        $eanErroMsg = "";
         $dados['registro']['produto_parceiro_id']       = $acesso->produto_parceiro_id;
         $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
         $dados['registro']['data_adesao']               = $dados['registro']['data_adesao_cancel'];
-        $eanErro = true;
-        $eanErroMsg = "";
+        $dados['registro']['comissao_premio']           = $reg['comissao_valor'] / $reg['premio_liquido'] * 100; // Regra para ignorar o percentual recebido e identificar através da realização do cálculo
 
         // validações iniciais
         $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, true, $acesso);

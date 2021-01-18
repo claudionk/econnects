@@ -244,7 +244,7 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
                 $linha = $this->get( $row["pai_id"] );
                 if( $linha ) {
                     $row = $linha;
-                    $soma += $this->define_comissao_rep($produto_parceiro_id, $row['comissao'], $row['comissao_tipo'], $comissao_cotacao);
+                    $soma += $this->define_comissao_rep($produto_parceiro_id, $row['comissao'], $row['comissao_tipo'], $comissao_cotacao, $row['parceiro_tipo_id']);
                 } else {
                     $row["pai_id"] = 0;
                 }
@@ -254,15 +254,20 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
         } else {
             return 0;
         }
-
     }
 
-    public function define_comissao_rep($produto_parceiro_id, $comissao, $comissao_tipo = 0, $comissao_cot = 0)
+    public function define_comissao_rep($produto_parceiro_id, $comissao, $comissao_tipo = 0, $comissao_cot = 0, $parceiro_tipo_id = null)
     {
         // Se a comissão for variável
-        if ($comissao_tipo != 0) {
+        if ($comissao_tipo != 0)
+        {
             // se precisar retirar a comissão do corretor
-            $comissao = $comissao_cot - (($comissao_tipo == 1) ? $this->get_comissao_corretor($produto_parceiro_id) : 0);
+            if ($comissao_tipo == 2 && $parceiro_tipo_id == 2)
+            {
+                $comissao = 0;
+            } else {
+                $comissao = $comissao_cot - (($comissao_tipo == 1) ? $this->get_comissao_corretor($produto_parceiro_id) : 0);
+            }
         }
 
         return $comissao;
