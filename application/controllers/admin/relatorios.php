@@ -1872,25 +1872,41 @@ class Relatorios extends Admin_Controller
     public function list_to_html($data, $header = false)
     {
         $html = "";
-        $td = 'td';
-        if ($header) {
-            $td = 'th';
+        if ($data) {
+            $td = 'td';
+            if ($header) {
+                $td = 'th';
+            }
+
+            if (isset($data[0][1]) && is_array($data[0][1])) {
+                $data = $data[0];
+            }
+            foreach ($data as $row) {
+                $html .= "<tr>";
+                if (is_array($row)) {
+                    foreach ($row as $col) {
+                        $html .= "<" . $td . ">" . $col . "</" . $td . ">";
+                    }
+                }
+                $html .= "</tr>";
+            }
         }
 
-        if (isset($data[0][1]) && is_array($data[0][1])) {
-            $data = $data[0];
-        }
-        foreach ($data as $row) {
-            $html .= "<tr>";
-            if (is_array($row)) {
-                foreach ($row as $col) {
-                    $html .= "<" . $td . ">" . $col . "</" . $td . ">";
-                }
-            }
-            $html .= "</tr>";
-        }
         return $html;
     }
+
+    public function htmlInfoIcon($data)
+    {
+        return "<div class='fs-3 mb-3 icon_info' title='" . $data['title'] . "'>
+                    <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-info-circle' viewBox='0 0 16 16'>
+                        <path d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'></path>
+                        <path d='M8.93 6.588l-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z'></path>
+                    </svg>
+                    <div class='info_data' style='background-color: rgb(101 158 216);color: rgb(230 229 229);text-align: center;width: auto;display: none;'>" . $data['title'] . "</div>
+                </div>";
+    }
+
+
 
     public function htmlLabel($data)
     {
@@ -1962,6 +1978,10 @@ class Relatorios extends Admin_Controller
                 break;
             case 'selectbox':
                 $html .= $this->htmlSelectBox($data['selectbox']);
+                break;
+            case 'icone_info':
+                $html .= $this->htmlInfoIcon($data['icone_info']);
+                break;
         }
         return $html;
     }
@@ -1976,6 +1996,15 @@ class Relatorios extends Admin_Controller
         }
 
         return $html;
+    }
+
+    public function infoIconeHTML($title = '')
+    {
+        return [
+            'icone_info' => [
+                'title' => $title,
+            ]
+        ];
     }
 
     public function periodoFieldHTML()
@@ -2033,6 +2062,8 @@ class Relatorios extends Admin_Controller
             $data['title'] = "Relatório SLA de Capitalização";
             $filters = [
                 $this->periodoFieldHTML(),
+
+                $this->infoIconeHTML('Periodo De algo'),
                 $this->getReportButtonHTML('/admin/relatorios/slaCapitalizacao'),
 
             ];
@@ -2063,10 +2094,13 @@ class Relatorios extends Admin_Controller
             $this->loadLibraries();
             $data = [];
             $header = $this->comunicacao_model->getDataReport('slaEmissaoCancelamento', '', true);
+            print_r($header);
+            die();
             $data['tbody'] = $this->list_to_html([$header], true);
             $data['title'] = "Relatório SLA de Emissão e Cancelamento";
             $filters = [
                 $this->periodoFieldHTML(),
+
                 $this->getReportButtonHTML('/admin/relatorios/slaEmissaoCancelamento'),
 
             ];
@@ -2078,7 +2112,7 @@ class Relatorios extends Admin_Controller
             $filters = $_POST;
             $data = array();
             $data[] = $this->comunicacao_model->getDataReport(
-                'slaCapitalizacao',
+                'slaEmissaoCancelamento',
                 [
                     'periodo' => $_POST['periodo']
                 ],
@@ -2101,6 +2135,7 @@ class Relatorios extends Admin_Controller
             $data['title'] = "Relatório SLA Emissão Cancelamento e Rejeição Bilhete";
             $filters = [
                 $this->periodoFieldHTML(),
+
                 $this->getReportButtonHTML('/admin/relatorios/slaEmissaoCancelamento'),
 
             ];
@@ -2112,7 +2147,7 @@ class Relatorios extends Admin_Controller
             $filters = $_POST;
             $data = array();
             $data[] = $this->comunicacao_model->getDataReport(
-                'slaCapitalizacao',
+                'slaEmissaoCancelamentoRejeicaoBilhete',
                 [
                     'periodo' => $_POST['periodo']
                 ],
@@ -2134,6 +2169,7 @@ class Relatorios extends Admin_Controller
             $data['title'] = "Relatório SLA de Emissão e Cancelamento Rejeição";
             $filters = [
                 $this->periodoFieldHTML(),
+
                 $this->getReportButtonHTML('/admin/relatorios/slaEmissaoCancelamento'),
 
             ];
@@ -2145,7 +2181,7 @@ class Relatorios extends Admin_Controller
             $filters = $_POST;
             $data = array();
             $data[] = $this->comunicacao_model->getDataReport(
-                'slaCapitalizacao',
+                'slaEmissaoCancelamentoRejeicao',
                 [
                     'periodo' => $_POST['periodo']
                 ],
@@ -2167,6 +2203,7 @@ class Relatorios extends Admin_Controller
             $data['title'] = "Relatório SLA Baixa Comissão";
             $filters = [
                 $this->periodoFieldHTML(),
+
                 $this->getReportButtonHTML('/admin/relatorios/slaEmissaoCancelamento'),
 
             ];
@@ -2178,7 +2215,7 @@ class Relatorios extends Admin_Controller
             $filters = $_POST;
             $data = array();
             $data[] = $this->comunicacao_model->getDataReport(
-                'slaCapitalizacao',
+                'slaBaixaComissao',
                 [
                     'periodo' => $_POST['periodo']
                 ],
