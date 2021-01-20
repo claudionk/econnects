@@ -267,12 +267,11 @@ class Comunicacao_model extends MY_Model
     if (isset($parameters['periodo']) && $parameters['periodo']) {
       $where .= " and periodo = '" . $parameters['periodo'] . "'";
     }
-    echo $sql =
+    return
       "SELECT l.integracao_log_id ID, SUBSTRING_INDEX(SUBSTRING_INDEX(l.nome_arquivo, '.', 2), '.', -1) OPERACAO, CONCAT('<a href=\'/var/www/webroot/ROOT/assets/uploads/integracao/',  i.integracao_id,'/', i.tipo,'/', l.nome_arquivo, '\' download>', l.nome_arquivo, '</a>')  ARQUIVO, l.quantidade_registros `QUANTIDADE DE REGISTROS`, DATE_FORMAT(l.processamento_fim, '%d/%m/%Y') `DATA DO PROCESSAMENTO`
       FROM integracao i
       INNER JOIN integracao_log l ON i.integracao_id = l.integracao_id AND l.deletado = 0 AND l.processamento_fim IS NOT NULL AND l.nome_arquivo NOT LIKE '%SINISTRO%' AND l.nome_arquivo NOT LIKE '%COBRANCA%'
       WHERE i.tipo = 'R' AND i.slug_group = 'retorno-seguradora' AND i.deletado = 0 " . $where . " ";
-    return $sql;
   }
 
   public function slaEmissaoCancelamentoRejeicao($parameters)
