@@ -274,7 +274,7 @@ class Comunicacao_model extends MY_Model
       WHERE i.tipo = 'R' AND i.slug_group = 'retorno-seguradora' AND i.deletado = 0 " . $where . " ";
   }
 
-  public function slaEmissaoCancelamentoRejeicao($parameters)
+  public function slaEmissaoCancelamentoRejeicaoBilhete($parameters)
   {
     $where = ' ';
     if (isset($parameters['operacao']) && $parameters['operacao']) {
@@ -305,7 +305,7 @@ class Comunicacao_model extends MY_Model
       LEFT JOIN cta_movimentacao cta ON a.apolice_id = cta.apolice_id AND cta.apolice_movimentacao_tipo_id = x.apolice_movimentacao_tipo_id " . $where . " ";
   }
 
-  public function slaEmissaoCancelamentoRejeicaoBilhete($parameters)
+  public function slaEmissaoCancelamentoRejeicao($parameters)
   {
     $where = ' ';
     if (isset($parameters['operacao']) && $parameters['operacao']) {
