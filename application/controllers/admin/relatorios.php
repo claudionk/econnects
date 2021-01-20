@@ -2062,10 +2062,8 @@ class Relatorios extends Admin_Controller
             $data['title'] = "Relatório SLA de Capitalização";
             $filters = [
                 $this->periodoFieldHTML(),
-
                 $this->infoIconeHTML('Periodo De algo'),
-                $this->getReportButtonHTML('/admin/relatorios/slaCapitalizacao'),
-
+                $this->getReportButtonHTML('/'.$this->controller_uri.'/'.$this->uri->segment(3)),
             ];
             $data['filters'] = $this->filter_html($filters);
             //Carrega template
@@ -2098,9 +2096,7 @@ class Relatorios extends Admin_Controller
             $data['title'] = "Relatório SLA de Emissão e Cancelamento";
             $filters = [
                 $this->periodoFieldHTML(),
-
-                $this->getReportButtonHTML('/admin/relatorios/slaEmissaoCancelamento'),
-
+                $this->getReportButtonHTML('/'.$this->controller_uri.'/'.$this->uri->segment(3)),
             ];
             $data['filters'] = $this->filter_html($filters);
             //Carrega template
@@ -2120,7 +2116,7 @@ class Relatorios extends Admin_Controller
         }
     }
 
-    public function slaEmissaoCancelamentoRejeicaoBilhete()
+    public function slaEmissaoCancelamentoRejeicao()
     {
         $this->load->model("Integracao_Comunicacao_Model", "comunicacao_model");
 
@@ -2128,14 +2124,12 @@ class Relatorios extends Admin_Controller
             //Carrega React e Orb (relatórios)
             $this->loadLibraries();
             $data = [];
-            $header = $this->comunicacao_model->getDataReport('slaEmissaoCancelamentoRejeicaoBilhete', '', true);
+            $header = $this->comunicacao_model->getDataReport('slaEmissaoCancelamentoRejeicao', '', true);
             $data['tbody'] = $this->list_to_html([$header], true);
             $data['title'] = "Relatório SLA Emissão Cancelamento e Rejeição Bilhete";
             $filters = [
                 $this->periodoFieldHTML(),
-
-                $this->getReportButtonHTML('/admin/relatorios/slaEmissaoCancelamento'),
-
+                $this->getReportButtonHTML('/'.$this->controller_uri.'/'.$this->uri->segment(3)),
             ];
             $data['filters'] = $this->filter_html($filters);
             //Carrega template
@@ -2145,7 +2139,7 @@ class Relatorios extends Admin_Controller
             $filters = $_POST;
             $data = array();
             $data[] = $this->comunicacao_model->getDataReport(
-                'slaEmissaoCancelamentoRejeicaoBilhete',
+                'slaEmissaoCancelamentoRejeicao',
                 [
                     'periodo' => $_POST['periodo']
                 ],
@@ -2167,9 +2161,7 @@ class Relatorios extends Admin_Controller
             $data['title'] = "Relatório SLA de Emissão e Cancelamento Rejeição";
             $filters = [
                 $this->periodoFieldHTML(),
-
-                $this->getReportButtonHTML('/admin/relatorios/slaEmissaoCancelamento'),
-
+                $this->getReportButtonHTML('/'.$this->controller_uri.'/'.$this->uri->segment(3)),
             ];
             $data['filters'] = $this->filter_html($filters);
             //Carrega template
@@ -2201,9 +2193,7 @@ class Relatorios extends Admin_Controller
             $data['title'] = "Relatório SLA Baixa Comissão";
             $filters = [
                 $this->periodoFieldHTML(),
-
-                $this->getReportButtonHTML('/admin/relatorios/slaEmissaoCancelamento'),
-
+                $this->getReportButtonHTML('/'.$this->controller_uri.'/'.$this->uri->segment(3)),
             ];
             $data['filters'] = $this->filter_html($filters);
             //Carrega template
