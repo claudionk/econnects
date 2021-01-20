@@ -255,6 +255,30 @@
 
 	// =========================================================================
 	namespace.Demo = new Demo;
+
+
+
+	$('.icon_info').click(function () {
+		$('.info_data').show();
+		setTimeout(() => {
+			$('.info_data').hide();
+		}, 1500);
+	})
+
+	$('#periodo').keydown(function () {
+		if ($('#periodo').val().length == 2) {
+			$('#periodo').val($('#periodo').val() + '/')
+		}
+	})
+
+	$("#periodo").keypress(function (e) {
+		//if the letter is not digit then display error and don't type anything
+		if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
+			return false;
+		}
+	});
+
+
 }(this.materialadmin, jQuery)); // pass in (namespace, jQuery):
 
 function getReportBody(url) {
@@ -269,8 +293,12 @@ function getReportBody(url) {
 		data: data_filter,
 		url: url,
 		success: function (result) {
+			if (result == '<tr></tr>') {
+				result = "<tr><td colspan='99' style='color:red'>Não encontrado</tr>"
+			}
 			$('tbody').html('');
 			$('tbody').append(result)
 		}
 	});
 }
+
