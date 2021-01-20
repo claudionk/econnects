@@ -2094,8 +2094,6 @@ class Relatorios extends Admin_Controller
             $this->loadLibraries();
             $data = [];
             $header = $this->comunicacao_model->getDataReport('slaEmissaoCancelamento', '', true);
-            print_r($header);
-            die();
             $data['tbody'] = $this->list_to_html([$header], true);
             $data['title'] = "Relatório SLA de Emissão e Cancelamento";
             $filters = [
