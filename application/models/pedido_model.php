@@ -335,6 +335,7 @@ Class Pedido_Model extends MY_Model
                 produto_parceiro.parceiro_id,
                 produto_parceiro.nome as produto_nome,
                 produto_parceiro_apolice.template as template_apolice,
+                produto_parceiro_apolice.template_coberturas,
                 CASE produto.slug 
                     WHEN 'equipamento' THEN cotacao_equipamento.iof
                     WHEN 'generico' THEN cotacao_generico.iof

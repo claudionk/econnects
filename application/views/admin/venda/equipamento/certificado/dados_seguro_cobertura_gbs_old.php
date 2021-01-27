@@ -24,7 +24,7 @@
     <?php } ?>
     <tr>
         <td colspan="4" align="right">Prêmio Total: </td>
-        <td>R$ <?php echo app_format_currency($premio_total) ?></td>
+        <td>R$<?php echo app_format_currency($premio_total) ?></td>
     </tr>
     </tbody>
 

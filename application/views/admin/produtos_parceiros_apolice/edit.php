@@ -94,6 +94,22 @@ if($_POST)
                                                                                 <div class="col-md-10"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
                                                                             </div>
 
+                                                                            <?php $field_name = 'template_coberturas';?>
+                                                                            <div class="form-group">
+                                                                                <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Template Coberturas</label>
+                                                                                <div class="col-md-10">
+                                                                                    <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>">
+                                                                                        <option name="" value="">Selecione</option>
+                                                                                        <?php
+                                                                                        foreach($template_coberturas as $k => $v) { ?>
+                                                                                            <option name="" value="<?php echo $k ?>"
+                                                                                                <?php if(isset($row)){if($row[$field_name] == $k) {echo " selected ";};}; ?> ><?php echo $v; ?>
+                                                                                            </option>
+                                                                                        <?php }  ?>
+                                                                                    </select>
+                                                                                </div>
+                                                                            </div>
+
                                                                             <?php $field_name = 'template';?>
                                                                             <div class="form-group">
                                                                                 <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Conteúdo</label>

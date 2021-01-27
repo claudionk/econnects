@@ -246,12 +246,15 @@ Class Cobertura_Plano_Model extends MY_Model {
         SELECT 
         cobertura_plano.cod_cobertura,
         cobertura.nome as cobertura_nome,
+        cobertura.slug as cobertura_slug,
         cobertura_plano.usar_iof,
         IF(rp.regra_preco_id IS NOT NULL, IFNULL(pprp.parametros,0), IF(cobertura_plano.usar_iof > 0, apolice_cobertura.iof, IFNULL(pprp.parametros,0))) as iof,
         cobertura_plano.diarias,
         cobertura_plano.carencia,
         cobertura_plano.franquia,
         apolice_cobertura.valor AS premio_liquido,
+        apolice_cobertura.data_inicio_vigencia,
+        apolice_cobertura.data_fim_vigencia,
         IFNULL( IFNULL(apolice_equipamento.nota_fiscal_valor, apolice_generico.nota_fiscal_valor), cobertura_plano.preco) AS importancia_segurada
 
        , IF(
@@ -267,7 +270,7 @@ Class Cobertura_Plano_Model extends MY_Model {
                 #add a diferenca do IOF total à cobertura de +valor
                 + IF( menor.apolice_cobertura_id = apolice_cobertura.apolice_cobertura_id, menor.valor-menor.valor_t, 0)
         ) AS valor_iof
-
+        ,IF(produto_parceiro.parceiro_id <> cobertura_plano.parceiro_id, 1, 0) AS assistencia
         FROM pedido
         INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id
         INNER JOIN produto_parceiro_plano ON apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id
