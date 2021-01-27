@@ -2036,13 +2036,17 @@ class Apolice_Model extends MY_Model
 
         $data_template['segurado'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/dados_segurado", array('segurado' => $apolice), true);
 
+        $viewvigencia = "";
         if ( !empty($dados['template_coberturas']) )
         {
-            $viewseguro = emptyor($dados['template_coberturas'], '');    
+            
+            $viewseguro = emptyor($dados['template_coberturas'], '');                
             if(!empty($viewseguro)){
                 $dadosPP = $this->getProdutoParceiro($apolice_id);                
                 $parceiro_slug = $dadosPP["slug"];
-                $viewseguro = $parceiro_slug."/".$viewseguro;
+                $seguroFilename = $viewseguro;
+                $viewseguro = $parceiro_slug."/".$seguroFilename;
+                $viewvigencia = $parceiro_slug."/vigencia/".$seguroFilename;
             }
             
         } else {
@@ -2073,7 +2077,37 @@ class Apolice_Model extends MY_Model
                 ),
                 true);
         }
+        //var_dump($coberturasAll);
+        //exit();
 
+        if(isset($coberturasAll) && !empty($viewvigencia)){            
+
+            $_coberturaAll = $coberturasAll[0];
+            if($_coberturaAll["data_inicio_vigencia"]){                                
+                
+                $vigenciaContent = $coberturasAll;
+                $isVigenciaLista = true;
+
+            }else{
+                
+                $vigenciaContent = array();
+                $vigenciaContent["data_inicio_vigencia"] = $data_template['data_ini_vigencia'];
+                $vigenciaContent["data_fim_vigencia"] = $data_template['data_fim_vigencia'];                
+                $isVigenciaLista = false;
+
+            }   
+            
+            $data_template["vigencia"] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/$viewvigencia", array(
+                'content' => $vigenciaContent,
+                'isLista' => $isVigenciaLista
+                ),
+                true);
+        
+        }
+
+
+        
+      
         $data_template['premio']    = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/premio", array('premio_liquido' => $apolice['valor_premio_net'], 'premio_total' => $apolice['valor_premio_total']), true);
         $data_template['pagamento'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/pagamento", array('pagamento' => $pagamento), true);
 
