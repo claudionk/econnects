@@ -253,6 +253,8 @@ Class Cobertura_Plano_Model extends MY_Model {
         cobertura_plano.carencia,
         cobertura_plano.franquia,
         apolice_cobertura.valor AS premio_liquido,
+        apolice_cobertura.data_inicio_vigencia,
+        apolice_cobertura.data_fim_vigencia,
         IFNULL( IFNULL(apolice_equipamento.nota_fiscal_valor, apolice_generico.nota_fiscal_valor), cobertura_plano.preco) AS importancia_segurada
 
        , IF(
