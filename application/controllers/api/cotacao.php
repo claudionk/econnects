@@ -369,6 +369,7 @@ class Cotacao extends CI_Controller {
         $this->load->model( "apolice_model", "apolice" );
         $this->load->model( "localidade_estado_model", "localidade_estado" );
         $this->load->model( "capitalizacao_model", "capitalizacao" );
+        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
 
         //$parceiro_id = issetor($params['parceiro_id'], 0);
         $produto_parceiro_id = issetor($params['produto_parceiro_id'], 0);
@@ -376,6 +377,11 @@ class Cotacao extends CI_Controller {
         $repasse_comissao = $params["repasse_comissao"];
         $desconto_condicional= $params["desconto_condicional"];
         $cotacao_id = issetor($params['cotacao_id'], 0);
+
+        $validaDataNascimento = $this->produto_parceiro_plano->valida_data_nascimento($produto_parceiro_id, $produto_parceiro_plano_id, $params["data_nascimento"], $params["data_adesao"]);
+        if (empty($validaDataNascimento['status'])) {
+            return $validaDataNascimento;
+        }
 
         $result  = array(
             'status' => false,

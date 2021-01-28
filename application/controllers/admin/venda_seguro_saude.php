@@ -418,6 +418,7 @@ class Venda_Seguro_Saude extends Admin_Controller
         $this->load->model('localidade_estado_model', 'localidade_estado');
         $this->load->model('capitalizacao_model', 'capitalizacao');
         $this->load->model('cotacao_saude_faixa_etaria_model', 'faixa_etaria');
+        $this->load->model('produto_parceiro_plano_model', 'plano');
 
         //Carrega JS para template
         $this->template->css(app_assets_url('modulos/venda/seguro_saude/css/select2.css', 'admin'));
@@ -544,6 +545,16 @@ class Venda_Seguro_Saude extends Admin_Controller
                     $dados_cotacao['step'] = 4;
 
                     $this->campo->setDadosCampos($produto_parceiro_id, 'generico', 'dados_segurado', $plano, $dados_cotacao);
+
+                    // valida Data de Nascimento
+                    $dDataNascimento = (!empty($dados_cotacao['data_nascimento']) && $dados_cotacao['data_nascimento'] != '0000-00-00') ? $dados_cotacao['data_nascimento'] : $cotacao_salva['data_nascimento'];
+                    $dNotaFiscalData = (!empty($dados_cotacao['nota_fiscal_data']) && $dados_cotacao['data_nascimento'] != '0000-00-00') ? $dados_cotacao['nota_fiscal_data'] : $cotacao_salva['nota_fiscal_data'];
+                    $validaDataNascimento = $this->plano->valida_data_nascimento($produto_parceiro_id, $cotacao_salva['produto_parceiro_plano_id'], $dDataNascimento, $dNotaFiscalData);
+                    if ( empty($validaDataNascimento['status']) ) {
+                        $this->session->set_flashdata('fail_msg', $validaDataNascimento["mensagem"]);
+                        redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/3/{$cotacao_id}");
+                    }
+                    
                     $this->cotacao_generico->update($cotacao_salva['cotacao_generico_id'], $dados_cotacao, TRUE);
 
                     // Se tem algum beneficiário

@@ -686,6 +686,47 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         return null;
     }
 
+    public function valida_data_nascimento($produto_parceiro_id, $produto_parceiro_plano_id, $data_nascimento, $data_adesao)
+    {
+        $result['status'] = true;
+        $result['mensagem'] = 'OK';
+
+        $rProdutoPlanoParceiro = $this->coreSelectPlanosProdutoParceiro($produto_parceiro_id, $produto_parceiro_plano_id)->get_all();
+        if(!empty($rProdutoPlanoParceiro[0]['idade_minima']) || !empty($rProdutoPlanoParceiro[0]['idade_maxima'])){
+            $diffAgeLimit = app_date_get_diff_dias(app_dateonly_mysql_to_mask($data_nascimento), app_dateonly_mysql_to_mask($data_adesao), 'Y');
+
+            $MinAgeBlock = $rProdutoPlanoParceiro[0]['idade_minima'];
+            $MaxAgeBlock = $rProdutoPlanoParceiro[0]['idade_maxima'];
+            
+            if(!empty($MinAgeBlock) && !empty($MaxAgeBlock)){
+                if($diffAgeLimit < $MinAgeBlock || $diffAgeLimit > $MaxAgeBlock){
+                    $result  = array(
+                        'status' => false,
+                        'mensagem' => 'O beneficiário deve ter entre '.$MinAgeBlock.' e '.$MaxAgeBlock.' anos.',
+                    );
+                }
+            }
+            elseif(!empty($MinAgeBlock)){
+                if($diffAgeLimit < $MinAgeBlock){
+                    $result  = array(
+                        'status' => false,
+                        'mensagem' => 'O beneficiário deve ter no mínimo '.$MinAgeBlock.' anos.',
+                    );
+                }
+            }
+            elseif(!empty($MaxAgeBlock)){
+                if($diffAgeLimit > $MaxAgeBlock){
+                    $result  = array(
+                        'status' => false,
+                        'mensagem' => 'O beneficiário deve ter no máximo '.$MaxAgeBlock.' anos.',
+                    );
+                }
+            }
+        }
+
+        return $result;
+    }
+
     public function PlanosHabilitados($parceiro_id, $produto_parceiro_id, $slug_plano = null)
     {
         $this->load->model( "produto_parceiro_plano_destino_model", "produto_parceiro_plano_destino" );
