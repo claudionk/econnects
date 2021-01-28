@@ -1,5 +1,5 @@
 
-<table cellpadding="2" cellspacing="0" class="container">
+<table cellpadding="0" cellspacing="0" style="width: 100%;">
     <thead>
     </thead>
     <tbody>
