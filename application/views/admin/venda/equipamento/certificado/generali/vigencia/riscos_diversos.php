@@ -1,23 +1,5 @@
 
 <table class="container" cellpadding="2" cellspacing="0">
-									<thead></thead><tbody>
-										<tr valign="top">
-											<td class="table-title" colspan="3">VIGÊNCIA DAS COBERTURAS DO SEGURO</td>
-										</tr>
-										<tr style="background-color: #e2e2e2;">
-											<td class="table-cell-field"><b>Extensão de Garantia Original</b></td>
-											<td class="table-cell-field">In&iacute;cio &agrave;s 24h do dia {data_ini_vigencia}</td>
-											<td class="table-cell-field td-last">Fim &agrave;s 24h do dia {data_fim_vigencia}</td>
-										</tr>        
-										<tr style="background-color: #e2e2e2;">
-											<td class="table-cell-field"><b>Danos Eletricos</b></td>
-											<td class="table-cell-field">In&iacute;cio &agrave;s 24h do dia {data_ini_vigencia}</td>
-											<td class="table-cell-field td-last">Fim &agrave;s 24h do dia {data_fim_vigencia}</td>
-										</tr>        
-									</tbody>
-								</table>				
-
-<table class="container" cellpadding="2" cellspacing="0">
     <thead></thead><tbody>
         <tr valign="top">
             <td class="table-title" colspan="<?= ($isLista)? "3" : "2"; ?>"><?= ($isLista)? "VIG&Ecirc;NCIA DAS COBERTURAS DO SEGURO" : "VIG&Ecirc;NCIA DO SEGURO"; ?></td>
