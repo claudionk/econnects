@@ -1,10 +1,8 @@
 
-<table cellpadding="0" cellspacing="0" style="width: 100%;">
-    <thead>
-    </thead>
-    <tbody>
+<table class="container" cellpadding="2" cellspacing="0">
+    <thead></thead><tbody>
         <tr valign="top">
-            <td class="table-title" colspan="<?= ($isLista)? "3" : "2"; ?>"><?= ($isLista)? "VIG&Ecirc;NCIA DAS COBERTURAS DO SEGURO" : "VIG&Ecirc;NCIA DO SEGURO"; ?></td>
+            <td class="table-title" colspan="<?= ($isLista)? "3" : "2"; ?>"><?= ($isLista)? "VIG&Ecirc;NCIA DAS COBERTURAS DO SEGUROs" : "VIG&Ecirc;NCIA DO SEGURO"; ?></td>
         </tr>
         
             <?php if($isLista):?>
