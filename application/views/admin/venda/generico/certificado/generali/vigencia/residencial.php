@@ -22,12 +22,6 @@
                     <td class="table-cell-field">In&iacute;cio &agrave;s 24h do dia <?= $content["data_inicio_vigencia"]; ?></td>
                     <td class="table-cell-field td-last">Fim &agrave;s 24h do dia <?= $content["data_fim_vigencia"]; ?></td>
                 </tr>
-            <?php endif; ?>          
-            
-            <tr>
-                <td class="table-cell-field td-last" colspan="2" height="6">O parcelamento do pr&ecirc;mio &eacute; financiado pela Representante, que o repassa na integralidade e &agrave; vista para a Seguradora. Para parcelamentos em mais de 5 parcelas h&aacute; incid&ecirc;ncia de juros, que n&atilde;o s&atilde;o repassados &agrave; Seguradora.</td>
-            </tr>
-        
-        
+            <?php endif; ?>                
     </tbody>
 </table>
