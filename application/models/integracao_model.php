@@ -1619,9 +1619,9 @@ Class Integracao_Model extends MY_Model
                 UPDATE integracao_log il
                 INNER JOIN integracao i ON il.integracao_id = i.integracao_id 
                 INNER JOIN integracao_log_detalhe ild ON il.integracao_log_id = ild.integracao_log_id 
-                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(ild.chave, LOCATE('|', ild.chave)-1)
-                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
-                LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_exp = ehcx.id_exp AND ehcx.tipo_expediente = ehc.tipo_expediente AND ehcx.status = 'C'
+                INNER JOIN sissolucoes1.sis_exp_sinistro ec ON ec.id_sinistro = SUBSTRING_INDEX(ild.chave, '|', 1)
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_sinistro = ehc.id_sinistro AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
+                LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_sinistro = ehcx.id_sinistro AND ehcx.tipo_expediente = ehc.tipo_expediente AND ehcx.status = 'C'                
                 SET ehc.data_retorno = NOW(), ehc.`status` = 'C'
                 WHERE 1 {$where} {$whereItem}
                 AND il.deletado = 0
@@ -1635,8 +1635,8 @@ Class Integracao_Model extends MY_Model
                 UPDATE integracao_log il
                 INNER JOIN integracao i ON il.integracao_id = i.integracao_id 
                 INNER JOIN integracao_log_detalhe ild ON il.integracao_log_id = ild.integracao_log_id 
-                INNER JOIN sissolucoes1.sis_exp_complemento ec ON ec.id_sinistro_generali = LEFT(ild.chave, LOCATE('|', ild.chave)-1)
-                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_exp = ehc.id_exp AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
+                INNER JOIN sissolucoes1.sis_exp_sinistro ec ON ec.id_sinistro = SUBSTRING_INDEX(ild.chave, '|', 1)
+                INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_sinistro = ehc.id_sinistro AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
                 INNER JOIN sissolucoes1.sis_exp_sinistro es ON es.id_exp = ec.id_exp
                 INNER JOIN sissolucoes1.sis_exp e ON ec.id_exp = e.id_exp
                 LEFT JOIN sissolucoes1.sis_exp ex ON e.id_exp_orig_clone = ex.id_exp
@@ -2005,11 +2005,15 @@ Class Integracao_Model extends MY_Model
         $config['port']     = $integracao['porta'];
         //$config['debug']    = TRUE;
 
-        $privatekey         = app_assets_dir('privatekey', 'files') . "{$integracao['parceiro_id']}.pem";
+        /*$privatekey         = app_assets_dir('privatekey', 'files') . "{$integracao['parceiro_id']}.pem";
         if(file_exists($privatekey)){
             $config['privatekey'] = $privatekey;
+        }*/
+        if(!empty($integracao['privatekey_filename'])){
+            $privatekey             = app_assets_dir('privatekey', 'files') . $integracao['privatekey_filename'];
+            $config['privatekey']   = $privatekey;
         }
-        
+
         return $config;
 
     }
