@@ -29,7 +29,7 @@
                     <thead>
                         <?php echo $tbody ?>
                         <tr id="loading_icon" style="display:none">
-                            <td colspan="23" style="text-align:center">
+                            <td colspan="23" style="text-align:center">''
                                 <img src="/assets/loading.gif" alt="">
                             </td>
                         </tr>
