@@ -20,6 +20,7 @@
     <div class="card-body">
 
         <div class="row">
+            <button onclick="exportTableToCSV('relatorio.csv')">Exportar CSV</button>
             <?php echo $filters; ?>
         </div>
         <div class="row">
@@ -27,6 +28,12 @@
                 <table class="table table-striped">
                     <thead>
                         <?php echo $tbody ?>
+                        <tr id="loading_icon" style="display:none">
+                            <td colspan="23" style="text-align:center">
+                                <img src="/assets/loading.gif" alt="">
+                            </td>
+                        </tr>
+
                     </thead>
                     <tbody>
                     </tbody>
