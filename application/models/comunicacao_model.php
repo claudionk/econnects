@@ -262,29 +262,33 @@ class Comunicacao_model extends MY_Model
   {
     $where = ' ';
     if (isset($parameters['operacao']) && $parameters['operacao']) {
-      $where .= " and operacao = '" . $parameters['operacao'] . "'";
+      $where .= " and SUBSTRING_INDEX(SUBSTRING_INDEX(l.nome_arquivo, '.', 2), '.', -1) = '" . $parameters['operacao'] . "'";
     }
     if (isset($parameters['periodo']) && $parameters['periodo']) {
-      $where .= " and periodo = '" . $parameters['periodo'] . "'";
+      $where .= " and DATE_FORMAT(l.processamento_fim, '%m/%Y') = '" . $parameters['periodo'] . "'";
     }
     return
-      "SELECT l.integracao_log_id ID, SUBSTRING_INDEX(SUBSTRING_INDEX(l.nome_arquivo, '.', 2), '.', -1) OPERACAO, CONCAT('<a href=\'/assets/uploads/integracao/',  i.integracao_id,'/', i.tipo,'/', l.nome_arquivo, '\' download>', l.nome_arquivo, '</a>')  ARQUIVO, l.quantidade_registros `QUANTIDADE DE REGISTROS`, DATE_FORMAT(l.processamento_fim, '%d/%m/%Y') `DATA DO PROCESSAMENTO`
+      "SELECT l.integracao_log_id ID, DATE_FORMAT(l.processamento_fim, '%m/%Y') PERIODO, SUBSTRING_INDEX(SUBSTRING_INDEX(l.nome_arquivo, '.', 2), '.', -1) OPERACAO, CONCAT('<a href=\'/assets/uploads/integracao/',  i.integracao_id,'/', i.tipo,'/', l.nome_arquivo, '\' download>', l.nome_arquivo, '</a>')  ARQUIVO, l.quantidade_registros `QUANTIDADE DE REGISTROS`, DATE_FORMAT(l.processamento_fim, '%d/%m/%Y') `DATA DO PROCESSAMENTO`
       FROM integracao i
       INNER JOIN integracao_log l ON i.integracao_id = l.integracao_id AND l.deletado = 0 AND l.processamento_fim IS NOT NULL AND l.nome_arquivo NOT LIKE '%SINISTRO%' AND l.nome_arquivo NOT LIKE '%COBRANCA%'
       WHERE i.tipo = 'R' AND i.slug_group = 'retorno-seguradora' AND i.deletado = 0 " . $where . " ";
   }
 
-  public function slaEmissaoCancelamentoRejeicao($parameters)
+  public function slaEmissaoCancelamentoRejeicaoBilhete($parameters)
   {
     $where = ' ';
+    $where__ = ' ';
     if (isset($parameters['operacao']) && $parameters['operacao']) {
-      $where .= " and operacao = '" . $parameters['operacao'] . "'";
+      $where .= " and SUBSTRING_INDEX(SUBSTRING_INDEX(l.nome_arquivo, '.', 2), '.', -1) = '" . $parameters['operacao'] . "'";
     }
     if (isset($parameters['periodo']) && $parameters['periodo']) {
-      $where .= " and periodo = '" . $parameters['periodo'] . "'";
+      $where .= " and DATE_FORMAT(d.criacao, '%m/%Y') = '" . $parameters['periodo'] . "'";
+    }
+    if (isset($parameters['integracao_log_id']) && $parameters['integracao_log_id']) {
+      $where__ .= " and l.integracao_log_id = '" . $parameters['integracao_log_id'] . "'";
     }
     return
-      "SELECT d.integracao_log_detalhe_id ID, SUBSTRING_INDEX(SUBSTRING_INDEX(l.nome_arquivo, '.', 2), '.', -1) OPERACAO, a.num_apolice_cliente BILHETE, x.movimento MOVIMENTO, d.criacao `DATA DA CRÍTICA`, cta.CTA_Retorno_ok `DATA DA RESOLUÇÃO`
+      "SELECT d.integracao_log_detalhe_id ID, DATE_FORMAT(d.criacao, '%m/%Y') PERIODO, SUBSTRING_INDEX(SUBSTRING_INDEX(l.nome_arquivo, '.', 2), '.', -1) OPERACAO, a.num_apolice_cliente BILHETE, x.movimento MOVIMENTO, d.criacao `DATA DA CRÍTICA`, cta.CTA_Retorno_ok `DATA DA RESOLUÇÃO`
       FROM (
       SELECT substring_index(d.chave, '|', 1) num_apolice, substring_index(d.chave, '|', -1) apolice_movimentacao_tipo_id, IF(substring_index(d.chave, '|', -1) = '1', 'EMISSAO', 'CANCELAMENTO') movimento, MIN(d.integracao_log_detalhe_id) integracao_log_detalhe_id
       FROM integracao i
@@ -296,6 +300,7 @@ class Comunicacao_model extends MY_Model
       WHERE i.tipo = 'R' AND i.slug_group = 'retorno-seguradora' and i.deletado = 0
       AND d.integracao_log_status_id = 5
           #and d.integracao_log_detalhe_id = 7637484
+        {$where__}
           GROUP BY d.chave, IF(substring_index(d.chave, '|', -1) = '1', 'EMISSAO', 'CANCELAMENTO')
       ) x
       INNER JOIN integracao_log_detalhe d ON x.integracao_log_detalhe_id = d.integracao_log_detalhe_id
@@ -305,17 +310,17 @@ class Comunicacao_model extends MY_Model
       LEFT JOIN cta_movimentacao cta ON a.apolice_id = cta.apolice_id AND cta.apolice_movimentacao_tipo_id = x.apolice_movimentacao_tipo_id " . $where . " ";
   }
 
-  public function slaEmissaoCancelamentoRejeicaoBilhete($parameters)
+  public function slaEmissaoCancelamentoRejeicao($parameters)
   {
     $where = ' ';
     if (isset($parameters['operacao']) && $parameters['operacao']) {
-      $where .= " and operacao = '" . $parameters['operacao'] . "'";
+      $where .= " and SUBSTRING_INDEX(SUBSTRING_INDEX(l.nome_arquivo, '.', 2), '.', -1) = '" . $parameters['operacao'] . "'";
     }
     if (isset($parameters['periodo']) && $parameters['periodo']) {
-      $where .= " and periodo = '" . $parameters['periodo'] . "'";
+      $where .= " and DATE_FORMAT(l.processamento_fim, '%m/%Y') = '" . $parameters['periodo'] . "'";
     }
     return
-      "SELECT l.integracao_log_id ID, SUBSTRING_INDEX(SUBSTRING_INDEX(l.nome_arquivo, '.', 2), '.', -1) OPERACAO, CONCAT('<a href=\'/assets/uploads/integracao/',  i.integracao_id,'/', i.tipo,'/', l.nome_arquivo, '\' download>', l.nome_arquivo, '</a>')  ARQUIVO, l.quantidade_registros `QUANTIDADE DE REGISTROS`, DATE_FORMAT(l.processamento_fim, '%d/%m/%Y') `DATA DO PROCESSAMENTO`
+      "SELECT l.integracao_log_id ID, DATE_FORMAT(l.processamento_fim, '%m/%Y') PERIODO, SUBSTRING_INDEX(SUBSTRING_INDEX(l.nome_arquivo, '.', 2), '.', -1) OPERACAO, CONCAT('<a href=\'/assets/uploads/integracao/',  i.integracao_id,'/', i.tipo,'/', l.nome_arquivo, '\' download>', l.nome_arquivo, '</a>')  ARQUIVO, l.quantidade_registros `QUANTIDADE DE REGISTROS`, DATE_FORMAT(l.processamento_fim, '%d/%m/%Y') `DATA DO PROCESSAMENTO`
       FROM integracao i
       INNER JOIN integracao_log l ON i.integracao_id = l.integracao_id AND l.deletado = 0 AND l.processamento_fim IS NOT NULL AND l.nome_arquivo LIKE '%COBRANCA%'
       WHERE i.tipo = 'R' AND i.slug_group = 'retorno-seguradora' AND i.deletado = 0 " . $where . " ";
@@ -328,7 +333,7 @@ class Comunicacao_model extends MY_Model
       $where .= " and operacao = '" . $parameters['operacao'] . "'";
     }
     if (isset($parameters['periodo']) && $parameters['periodo']) {
-      $where .= " and periodo = '" . $parameters['periodo'] . "'";
+      $where .= " and DATE_FORMAT(DATE_ADD(l.processamento_fim, interval -1 MONTH), '%m/%Y') = '" . $parameters['periodo'] . "'";
     }
     return
       "SELECT l.integracao_log_id ID, DATE_FORMAT(DATE_ADD(l.processamento_fim, interval -1 MONTH), '%m/%Y') PERIODO, i.nome OPERACAO, CONCAT('<a href=\'/assets/uploads/integracao/',  i.integracao_id,'/', i.tipo,'/', l.nome_arquivo, '\' download>', l.nome_arquivo, '</a>')  ARQUIVO, l.quantidade_registros `QUANTIDADE DE REGISTROS`, DATE_FORMAT(l.processamento_fim, '%d/%m/%Y') `DATA DO PROCESSAMENTO`
