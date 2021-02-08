@@ -1959,7 +1959,6 @@ class Apolice_Model extends MY_Model
             $data_template['modelo']        = $equipamento[0]["modelo"];
             $data_template['marca']         = $equipamento[0]["marca"];
             $data_template['imei']          = $equipamento[0]["imei"];
-            $data_template['numero_sorte']  = $equipamento[0]["numero_sorte"];
             $data_template['lmi_roubo']     = app_format_currency($apolice['nota_fiscal_valor']);
             $data_template['lmi_furto']     = app_format_currency($apolice['nota_fiscal_valor']);
             $data_template['lmi_quebra']    = app_format_currency($apolice['nota_fiscal_valor']);
@@ -1967,23 +1966,26 @@ class Apolice_Model extends MY_Model
             $data_template['equipamento']   = "";
             $data_template['modelo']        = "";
             $data_template['marca']         = "";
-            $data_template['imei']          = "";
-            $data_template['numero_sorte']  = "";
+            $data_template['imei']          = "";            
         }
 
         $ccount = 0;
         $data_template["franquia"] = "";
         $data_template["sorteio_valor"] = "";
+        $data_template['numero_sorte']  = $apolice["numero_sorte"];
+
 
         foreach ($coberturas as $cobertura) {
             $ccount = $ccount + 1;
             $data_template["cobertura_" . trim($ccount) . "_descricao"] = $cobertura["cobertura_nome"];
             $data_template["lmi_" . trim($ccount)]                      = $cobertura["descricao"];
             $data_template["franquia"] = $cobertura["franquia"];
-            if($cobertura["cobertura_slug"] == "capitalizacao_nro_sorte"){
-                $data_template["sorteio_valor"] = $cobertura["preco"];
+            if(in_array($cobertura["cobertura_slug"], array("capitalizacao_nro_sorte", "sorteio_mensal"))){
+                $data_template["sorteio_valor"] = "R$ ".app_format_currency($cobertura["importancia_segurada"]);
             }
         }
+
+    
 
         $pagamento = $this->pedido->getPedidoPagamento($apolice['pedido_id']);
         $pagamento = $pagamento[0];
@@ -2077,8 +2079,6 @@ class Apolice_Model extends MY_Model
                 ),
                 true);
         }
-        //var_dump($coberturasAll);
-        //exit();
 
         if(isset($coberturasAll) && !empty($viewvigencia)){            
 
