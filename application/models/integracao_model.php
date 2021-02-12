@@ -1635,7 +1635,7 @@ Class Integracao_Model extends MY_Model
                 INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_sinistro = ehc.id_sinistro AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
                 INNER JOIN sissolucoes1.sis_exp_sinistro es ON es.id_exp = ec.id_exp
                 INNER JOIN sissolucoes1.sis_exp e ON ec.id_exp = e.id_exp
-                LEFT JOIN sissolucoes1.sis_exp ex ON e.id_exp_orig_clone = ex.id_exp
+                LEFT JOIN sissolucoes1.sis_exp ex ON e.id_exp_orig_clone = ex.id_exp AND e.id_exp_orig_clone <> 0
                 SET e.id_sinistro = IF(IFNULL(e.id_sinistro,'') <> '', e.id_sinistro, ec.id_sinistro)
                     , ex.id_sinistro = IF(IFNULL(ex.id_sinistro,'') <> '', ex.id_sinistro, ec.id_sinistro)
                     , e.data_id_sinistro = IFNULL(e.data_id_sinistro, NOW())
