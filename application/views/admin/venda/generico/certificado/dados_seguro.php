@@ -16,14 +16,14 @@
             ?>
             <tr>
                 <td><?php echo ($i+1) . " - " . $cobertura['cobertura_nome']; ?></td>
-                <td>R$<?php echo app_format_currency($cobertura['preco']); ?></td>
-                <td>R$<?php echo app_format_currency($premio); ?></td>
+                <td>R$ <?php echo app_format_currency($cobertura['preco']); ?></td>
+                <td>R$ <?php echo app_format_currency($premio); ?></td>
             </tr>
         <?php } ?>
 
         <tr>
             <td colspan="2">Prêmio Total</td>
-            <td>R$<?php echo app_format_currency($premio_total) ?></td>
+            <td>R$ <?php echo app_format_currency($premio_total) ?></td>
         </tr>
 
     </table>

@@ -1830,21 +1830,28 @@ class Apolice_Model extends MY_Model
         }
 
         // Relacionamento corretora
-        $data_template['rel_corretora_nome']         = '';
-        $data_template['rel_corretora_cnpj']         = '';
-        $data_template['rel_corretora_codigo_susep'] = '';
+        $data_template['rel_corretora_nome']           = '';
+        $data_template['rel_corretora_cnpj']           = '';
+        $data_template['rel_corretora_codigo_susep']   = '';
+        $data_template['rel_corretora_comissao']       = '';
+        $data_template['rel_corretora_comissao_valor'] = '';
+
         if(isset($dados['produto_parceiro_id']) && !empty($dados['produto_parceiro_id']))
         {
             $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
             $dados_prp = $this->parceiro_relacionamento_produto->filter_by_produto_parceiro($dados['produto_parceiro_id'])->with_parceiro()->filter_by_parceiro_tipo('2')->get_all(0, 0, false);
+
             if (!empty($dados_prp)) {
                 $data_template['rel_corretora_nome'] = $dados_prp[0]['parceiro_nome'];
                 $data_template['rel_corretora_cnpj'] = app_cnpj_to_mask($dados_prp[0]['parceiro_cnpj']);
                 $data_template['rel_corretora_codigo_susep'] = $dados_prp[0]['parceiro_codigo_susep'];
-            } else {
-                $data_template['rel_corretora_nome'] = '';
-                $data_template['rel_corretora_cnpj'] = '';
-                $data_template['rel_corretora_codigo_susep'] = '';
+
+                $aComissaoCorretor = $this->comissao_gerada->getByParceiroId($apolice["pedido_id"], $dados_prp[0]['parceiro_id']);
+                if(sizeof($aComissaoCorretor)){
+                    $comissaoCorretor = $aComissaoCorretor[0];
+                    $data_template["rel_corretora_comissao"] = app_format_currency($comissaoCorretor["comissao"])."%";
+                    $data_template["rel_corretora_comissao_valor"] = "R$ ".app_format_currency($comissaoCorretor["valor"]);
+                }
             }
         }
 
@@ -1919,6 +1926,9 @@ class Apolice_Model extends MY_Model
         $data_template['data_pedido']   = app_date_mysql_to_mask($apolice['data_adesao'], 'd/m/Y');
         $data_template['data_adesao']   = app_date_mysql_to_mask($apolice['data_adesao'], 'd/m/Y');
 
+        $data_template["data_ini_garantia_fornecedor"]  = $data_template['data_adesao'];
+        $data_template["data_fim_garantia_fornecedor"]  = date('d/m/Y', strtotime('-1 days', strtotime($apolice['data_ini_vigencia'])));
+
         $data_template['premio_liquido'] = "R$ " . app_format_currency($apolice['valor_premio_net']);
         $data_template['premio_total']   = "R$ " . app_format_currency($apolice['valor_premio_total']);
         $data_template['valor_iof']      = "R$ " . app_format_currency($apolice['valor_premio_total'] - $apolice['valor_premio_net']);
@@ -1933,7 +1943,7 @@ class Apolice_Model extends MY_Model
         $data_template['cnpj_parceiro'] = app_cnpj_to_mask($parceiro['cnpj']);
 
         $plano      = $this->plano->get($apolice['produto_parceiro_plano_id']);
-        $coberturas = $this->plano_cobertura->with_cobertura()->filter_by_produto_parceiro_plano($apolice['produto_parceiro_plano_id'])->get_all();
+        $coberturas = $this->plano_cobertura->with_cobertura(["nome", "slug"])->filter_by_produto_parceiro_plano($apolice['produto_parceiro_plano_id'])->get_all();
         $coberturasAll = $this->plano_cobertura->getCoberturasApolice($apolice["apolice_id"]);
 
         $equipamento = $this->db->query("SELECT 
@@ -1941,6 +1951,7 @@ class Apolice_Model extends MY_Model
                 IFNULL(ec.nome, eec.nome) as categoria, 
                 IFNULL(esc.nome, eesc.nome) as equipamento, 
                 ce.equipamento_nome as modelo, 
+                ae.numero_sorte,
                 ae.imei 
                 FROM apolice_equipamento ae
                 INNER JOIN apolice a ON (a.apolice_id=ae.apolice_id)
@@ -1959,29 +1970,38 @@ class Apolice_Model extends MY_Model
 
         $data_template['lmi_ge']      = "R$ ".app_format_currency($apolice['nota_fiscal_valor']);
         if (sizeof($equipamento)) {
-            $data_template['categoria'] = $equipamento[0]["categoria"];
-            $data_template['equipamento'] = $equipamento[0]["equipamento"];
-            $data_template['modelo']      = $equipamento[0]["modelo"];
-            $data_template['marca']       = $equipamento[0]["marca"];
-            $data_template['imei']        = $equipamento[0]["imei"];
-            $data_template['lmi_roubo']   = app_format_currency($apolice['nota_fiscal_valor']);
-            $data_template['lmi_furto']   = app_format_currency($apolice['nota_fiscal_valor']);
-            $data_template['lmi_quebra']  = app_format_currency($apolice['nota_fiscal_valor']);
+            $data_template['categoria']     = $equipamento[0]["categoria"];
+            $data_template['equipamento']   = $equipamento[0]["equipamento"];
+            $data_template['modelo']        = $equipamento[0]["modelo"];
+            $data_template['marca']         = $equipamento[0]["marca"];
+            $data_template['imei']          = $equipamento[0]["imei"];
+            $data_template['lmi_roubo']     = app_format_currency($apolice['nota_fiscal_valor']);
+            $data_template['lmi_furto']     = app_format_currency($apolice['nota_fiscal_valor']);
+            $data_template['lmi_quebra']    = app_format_currency($apolice['nota_fiscal_valor']);
         } else {
-            $data_template['equipamento'] = "";
-            $data_template['modelo']      = "";
-            $data_template['marca']       = "";
-            $data_template['imei']        = "";
+            $data_template['equipamento']   = "";
+            $data_template['modelo']        = "";
+            $data_template['marca']         = "";
+            $data_template['imei']          = "";            
         }
 
         $ccount = 0;
         $data_template["franquia"] = "";
+        $data_template["sorteio_valor"] = "";
+        $data_template['numero_sorte']  = $apolice["numero_sorte"];
+
+
         foreach ($coberturas as $cobertura) {
-            $ccount                                                     = $ccount + 1;
+            $ccount = $ccount + 1;
             $data_template["cobertura_" . trim($ccount) . "_descricao"] = $cobertura["cobertura_nome"];
             $data_template["lmi_" . trim($ccount)]                      = $cobertura["descricao"];
             $data_template["franquia"] = $cobertura["franquia"];
+            if(in_array($cobertura["cobertura_slug"], array("capitalizacao_nro_sorte", "sorteio_mensal"))){
+                $data_template["sorteio_valor"] = "R$ ".app_format_currency($cobertura["importancia_segurada"]);
+            }
         }
+
+    
 
         $pagamento = $this->pedido->getPedidoPagamento($apolice['pedido_id']);
         $pagamento = $pagamento[0];
@@ -2034,13 +2054,27 @@ class Apolice_Model extends MY_Model
 
         $data_template['segurado'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/dados_segurado", array('segurado' => $apolice), true);
 
-        $viewseguro = 'dados_seguro';
-        if($dados['slug_parceiro'] == 'tem')
+        $viewvigencia = "";
+        if ( !empty($dados['template_coberturas']) )
         {
-            $viewseguro = 'dados_seguro_tem';
-        } else
-        {
-            $viewseguro = 'dados_seguro_cobertura';
+            
+            $viewseguro = emptyor($dados['template_coberturas'], '');                
+            if(!empty($viewseguro)){
+                $dadosPP = $this->getProdutoParceiro($apolice_id);                
+                $parceiro_slug = $dadosPP["slug"];
+                $seguroFilename = $viewseguro;
+                $viewseguro = $parceiro_slug."/".$seguroFilename;
+                $viewvigencia = $parceiro_slug."/vigencia/".$seguroFilename;
+            }
+            
+        } else {
+            if($dados['slug_parceiro'] == 'tem')
+            {
+                $viewseguro = 'dados_seguro_tem';
+            } else
+            {
+                $viewseguro = 'dados_seguro_cobertura';
+            }
         }
 
         $data_template['seguro']   = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/{$viewseguro}", array(
@@ -2054,6 +2088,42 @@ class Apolice_Model extends MY_Model
             'dados'      => $dados),
             true);
 
+        $data_template["seguro2"] = "";
+        if($viewseguro == "generali/residencial"){
+            $data_template["seguro2"] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/generali/residencial2", array(
+                'coberturas_all' => $coberturasAll
+                ),
+                true);
+        }
+
+        if(isset($coberturasAll) && !empty($viewvigencia)){            
+
+            $_coberturaAll = $coberturasAll[0];
+            if($_coberturaAll["data_inicio_vigencia"]){                                
+                
+                $vigenciaContent = $coberturasAll;
+                $isVigenciaLista = true;
+
+            }else{
+                
+                $vigenciaContent = array();
+                $vigenciaContent["data_inicio_vigencia"] = $data_template['data_ini_vigencia'];
+                $vigenciaContent["data_fim_vigencia"] = $data_template['data_fim_vigencia'];                
+                $isVigenciaLista = false;
+
+            }   
+            
+            $data_template["vigencia"] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/$viewvigencia", array(
+                'content' => $vigenciaContent,
+                'isLista' => $isVigenciaLista
+                ),
+                true);
+        
+        }
+
+
+        
+      
         $data_template['premio']    = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/premio", array('premio_liquido' => $apolice['valor_premio_net'], 'premio_total' => $apolice['valor_premio_total']), true);
         $data_template['pagamento'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/pagamento", array('pagamento' => $pagamento), true);
 
