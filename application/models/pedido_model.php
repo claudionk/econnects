@@ -251,6 +251,10 @@ Class Pedido_Model extends MY_Model
                         case "produto_id":
                             $this->_database->where('produto_parceiro.produto_id', $value);
                             break;
+                        case "days_ago":
+                            //$this->_database->where("pedido.criacao >= DATE_SUB(NOW(),INTERVAL 1 DAY)", NULL, FALSE);
+                            $this->_database->where('pedido.criacao > DATE_SUB(CURDATE(),INTERVAL 1 DAY)');
+                            break;
                     }
                 }
             }
