@@ -192,7 +192,7 @@ div#url_venda_online {
 .form-login-label{
     color: #1fec7a;
     text-align: center;
-    font-size: 28px !important;    
+    font-size: 16px !important;    
     margin-top: 5px;
     pointer-events: none;
     position: absolute;
@@ -224,8 +224,14 @@ div#url_venda_online {
   }
 
   #form-login-esqueceu_a_senha{
-    font-size: 18px;
+    font-size: 16px;
     padding: 10px;
+  }
+
+  #form-login-mensagem{
+    color: #eb1414;
+    text-align: center;
+    font-size: 16px !important;    
   }
 
   #form-login-submit {
@@ -234,7 +240,7 @@ div#url_venda_online {
     border-radius: 18px !important;
     color: #1fec7a;
     width: 100%;
-    font-size: 28px !important;    
+    font-size: 16px !important;    
     transition: all 0.16s ease-out;
   }
 
