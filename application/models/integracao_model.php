@@ -290,57 +290,6 @@ Class Integracao_Model extends MY_Model
         }
     }
 
-    public function run_teste($integracao_id){
-        echo "run_r($integracao_id)\n";
-
-        // remove memory limit
-        $limit = ini_get('memory_limit');
-        ini_set('memory_limit', -1);
-        set_time_limit(999999);
-        ini_set('max_execution_time', 999999);
-
-        $this->load->model('integracao_log_model', 'integracao_log');
-        $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
-        $this->load->model('integracao_log_detalhe_campo_model', 'integracao_log_detalhe_campo');
-        $this->load->model('integracao_layout_model', 'integracao_layout');
-
-        $this->_database->select('integracao.*');
-        $this->_database->where("integracao.integracao_id", $integracao_id);
-        $this->_database->where("integracao.status", 'A');
-        $this->_database->where("integracao.deletado", 0);
-        $this->_database->where("integracao.habilitado", 1);
-        $this->_database->where("integracao.proxima_execucao <= ", date('Y-m-d H:i:s'));
-
-    	try
-    	{
-            $result = $this->get_all();
-    	}
-    	catch (Exception $e) 
-    	{
-    		echo "e=" . $e;
-        }
-
-        $result = $result[0];
-
-        $layout_filename = $this->integracao_layout->filter_by_integracao($result['integracao_id'])
-        ->filter_by_tipo('F')
-        ->order_by('ordem')
-        ->get_all();
-
-        $file = (isset($layout_filename[0]['valor_padrao'])) ? $layout_filename[0]['valor_padrao'] : '';
-
-        if(empty($file))
-        {
-            $file = $this->getFileName($result, $layout_filename);
-        }
-
-        $_fileName  = $_GET["fileName"];
-        $_tipo      = $_GET["tipo"];
-        $_filePath  = "/var/www/webroot/ROOT/econnects/assets/uploads/integracao/$integracao_id/$_tipo/$_fileName";
-        $result_process = $this->processFileIntegracao($result, $_filePath);
-
-    }
-
     public function run_r($integracao_id){
         echo "run_r($integracao_id)\n";
 
@@ -1639,7 +1588,7 @@ Class Integracao_Model extends MY_Model
                 INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_sinistro = ehc.id_sinistro AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
                 INNER JOIN sissolucoes1.sis_exp_sinistro es ON es.id_exp = ec.id_exp
                 INNER JOIN sissolucoes1.sis_exp e ON ec.id_exp = e.id_exp
-                LEFT JOIN sissolucoes1.sis_exp ex ON e.id_exp_orig_clone = ex.id_exp
+                LEFT JOIN sissolucoes1.sis_exp ex ON e.id_exp_orig_clone = ex.id_exp AND e.id_exp_orig_clone <> 0
                 SET e.id_sinistro = IF(IFNULL(e.id_sinistro,'') <> '', e.id_sinistro, ec.id_sinistro)
                     , ex.id_sinistro = IF(IFNULL(ex.id_sinistro,'') <> '', ex.id_sinistro, ec.id_sinistro)
                     , e.data_id_sinistro = IFNULL(e.data_id_sinistro, NOW())
@@ -1999,16 +1948,17 @@ Class Integracao_Model extends MY_Model
     }
 
     private static function createConfigFTP($integracao){
-        $config['hostname'] = $integracao['host'];
-        $config['username'] = $integracao['usuario'];
-        $config['password'] = $integracao['senha'];
-        $config['port']     = $integracao['porta'];
+        $config['hostname']   = $integracao['host'];
+        $config['username']   = $integracao['usuario'];
+        $config['password']   = $integracao['senha'];
+        $config['port']       = $integracao['porta'];       
         //$config['debug']    = TRUE;
 
-        /*$privatekey         = app_assets_dir('privatekey', 'files') . "{$integracao['parceiro_id']}.pem";
-        if(file_exists($privatekey)){
-            $config['privatekey'] = $privatekey;
-        }*/
+        /* privatekey = '' para usar as lib's de FTP e SFTP mais de uma vez na mesma requisição:
+         - As lib's de FTP e SFTP não limpam as propriedades quando são reinicializadas, apenas substituem as novas que foram enviadas (caso sejam enviadas); */        
+        $config['privatekey'] = ''; 
+    
+
         if(!empty($integracao['privatekey_filename'])){
             $privatekey             = app_assets_dir('privatekey', 'files') . $integracao['privatekey_filename'];
             $config['privatekey']   = $privatekey;
