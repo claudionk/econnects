@@ -260,6 +260,9 @@ class Pedido_Model extends MY_Model
                                 $this->_database->where('IFNULL(apolice_equipamento.'.$campoData.', IFNULL(apolice_generico.'.$campoData.', apolice_seguro_viagem.'.$campoData.')) BETWEEN "'.$data_inicio.'" AND "'.$data_fim.'"');
                             }
                         break;
+                        case "days_ago":
+                            $this->_database->where('(select criacao from apolice_movimentacao am where am.apolice_id = apolice.apolice_id order by criacao desc limit 1) > DATE_SUB(CURDATE(),INTERVAL '.$value.' DAY)');
+                            break;
                     }
                 }
             }
@@ -2836,3 +2839,4 @@ class Pedido_Model extends MY_Model
         }
     }
 }
+

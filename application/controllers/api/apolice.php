@@ -101,9 +101,14 @@ class Apolice extends CI_Controller {
         die( json_encode( $this->retornaProdutoApolices($_POST), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
+<<<<<<< HEAD
     public function retornaApolices($GET = []) {                
         $pedidos = $this->filtraPedidos($GET);                        
         
+=======
+    public function retornaApolices($GET = []) {
+        $pedidos = $this->filtraPedidos($GET);
+>>>>>>> 6b02a172cd69b790eb985bc03b646c28c8ccaf29
         if (!empty($pedidos['status'])) {
       
 
@@ -112,7 +117,6 @@ class Apolice extends CI_Controller {
             if($pedidos) {
                 $resposta = [];
                 foreach ($pedidos as $pedido) {
-                    
                     //Monta resposta da apólice
                     $apolice = $this->apolice->getApolicePedido($pedido["pedido_id"]);
                     $apolice[0]["inadimplente"] = ($this->pedido->isInadimplente( $pedido["pedido_id"] ) === false ) ? 0 : 1;
@@ -226,6 +230,11 @@ class Apolice extends CI_Controller {
             if( isset( $GET["data_inicio"] ) ) {
                 $data_inicio = $GET["data_inicio"];
             }
+          
+          	$days_ago = null;
+            if( isset( $GET["days_ago"] ) ) {
+                $days_ago = $GET["days_ago"];
+            }
     
             $retorno = null;
             $params = array();
@@ -238,8 +247,9 @@ class Apolice extends CI_Controller {
             $params["apolice_status"] = $apolice_status;
             $params["data_inicio"] = $data_inicio;
             $params["data_fim"] = $data_fim;
+          	$params["days_ago"] = $days_ago;
     
-            if($apolice_id || $num_apolice || $documento || $pedido_id || $apolice_status) {            
+            if($apolice_id || $num_apolice || $documento || $pedido_id || $apolice_status || $days_ago) {            
                 $pedidos = $this->pedido
                 ->with_pedido_status()
                 // ->with_apolice()
@@ -255,6 +265,36 @@ class Apolice extends CI_Controller {
             
         }catch(Exception $ex){
             $retorno = array( "status" => false, "message" => $ex->getMessage());
+=======
+        $days_ago = null;
+        if( isset( $GET["days_ago"] ) ) {
+            $days_ago = $GET["days_ago"];
+        }
+
+        $retorno = null;
+        $params = array();
+        $params["apolice_id"] = $apolice_id;
+        $params["num_apolice"] = $num_apolice;
+        $params["documento"] = $documento;
+        $params["pedido_id"] = $pedido_id;
+        $params["parceiro_id"] = $parceiro_id;
+        $params["produto_id"] = $produto_id;
+        $params["days_ago"] = $days_ago;
+
+        if($apolice_id || $num_apolice || $documento || $pedido_id || $days_ago ) {
+            $pedidos = $this->pedido
+            ->with_pedido_status()
+            // ->with_apolice()
+            ->with_cotacao_cliente_contato()
+            ->with_produto_parceiro()
+            // ->with_fatura()
+            ->filterNotCarrinho()
+            ->filterAPI($params);           
+
+            $retorno = array("status" => true, "pedidos" => $pedidos);
+        } else {
+            $retorno = array( "status" => false, "message" => "Parâmetros inválidos" );
+>>>>>>> 6b02a172cd69b790eb985bc03b646c28c8ccaf29
         }
         return $retorno;
     }
@@ -550,3 +590,4 @@ class Apolice extends CI_Controller {
     }
 
 }
+
