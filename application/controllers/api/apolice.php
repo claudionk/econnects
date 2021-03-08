@@ -54,7 +54,6 @@ class Apolice extends CI_Controller {
 
     public function retornaApolices($GET = []) {
         $pedidos = $this->filtraPedidos($GET);
-
         if (!empty($pedidos['status'])) {
 
             $pedidos = $pedidos['pedidos']->get_all();
@@ -62,7 +61,6 @@ class Apolice extends CI_Controller {
                 $resposta = [];
 
                 foreach ($pedidos as $pedido) {
-                    
                     //Monta resposta da apólice
                     $apolice = $this->apolice->getApolicePedido( $pedido["pedido_id"] );
                     $apolice[0]["inadimplente"] = ($this->pedido->isInadimplente( $pedido["pedido_id"] ) === false ) ? 0 : 1;
@@ -160,6 +158,11 @@ class Apolice extends CI_Controller {
             $produto_id = $GET["produto_id"];
         }
 
+        $days_ago = null;
+        if( isset( $GET["days_ago"] ) ) {
+            $days_ago = $GET["days_ago"];
+        }
+
         $retorno = null;
         $params = array();
         $params["apolice_id"] = $apolice_id;
@@ -168,8 +171,9 @@ class Apolice extends CI_Controller {
         $params["pedido_id"] = $pedido_id;
         $params["parceiro_id"] = $parceiro_id;
         $params["produto_id"] = $produto_id;
+        $params["days_ago"] = $days_ago;
 
-        if($apolice_id || $num_apolice || $documento || $pedido_id ) {
+        if($apolice_id || $num_apolice || $documento || $pedido_id || $days_ago ) {
             $pedidos = $this->pedido
             ->with_pedido_status()
             // ->with_apolice()
@@ -177,7 +181,7 @@ class Apolice extends CI_Controller {
             ->with_produto_parceiro()
             // ->with_fatura()
             ->filterNotCarrinho()
-            ->filterAPI($params);            
+            ->filterAPI($params);           
 
             $retorno = array("status" => true, "pedidos" => $pedidos);
         } else {
