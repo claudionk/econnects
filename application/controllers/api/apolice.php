@@ -265,36 +265,6 @@ class Apolice extends CI_Controller {
             
         }catch(Exception $ex){
             $retorno = array( "status" => false, "message" => $ex->getMessage());
-=======
-        $days_ago = null;
-        if( isset( $GET["days_ago"] ) ) {
-            $days_ago = $GET["days_ago"];
-        }
-
-        $retorno = null;
-        $params = array();
-        $params["apolice_id"] = $apolice_id;
-        $params["num_apolice"] = $num_apolice;
-        $params["documento"] = $documento;
-        $params["pedido_id"] = $pedido_id;
-        $params["parceiro_id"] = $parceiro_id;
-        $params["produto_id"] = $produto_id;
-        $params["days_ago"] = $days_ago;
-
-        if($apolice_id || $num_apolice || $documento || $pedido_id || $days_ago ) {
-            $pedidos = $this->pedido
-            ->with_pedido_status()
-            // ->with_apolice()
-            ->with_cotacao_cliente_contato()
-            ->with_produto_parceiro()
-            // ->with_fatura()
-            ->filterNotCarrinho()
-            ->filterAPI($params);           
-
-            $retorno = array("status" => true, "pedidos" => $pedidos);
-        } else {
-            $retorno = array( "status" => false, "message" => "Parâmetros inválidos" );
->>>>>>> 6b02a172cd69b790eb985bc03b646c28c8ccaf29
         }
         return $retorno;
     }
