@@ -101,14 +101,9 @@ class Apolice extends CI_Controller {
         die( json_encode( $this->retornaProdutoApolices($_POST), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
-<<<<<<< HEAD
     public function retornaApolices($GET = []) {                
         $pedidos = $this->filtraPedidos($GET);                        
         
-=======
-    public function retornaApolices($GET = []) {
-        $pedidos = $this->filtraPedidos($GET);
->>>>>>> 6b02a172cd69b790eb985bc03b646c28c8ccaf29
         if (!empty($pedidos['status'])) {
       
 
@@ -560,4 +555,5 @@ class Apolice extends CI_Controller {
     }
 
 }
+
 
