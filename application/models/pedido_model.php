@@ -252,8 +252,7 @@ Class Pedido_Model extends MY_Model
                             $this->_database->where('produto_parceiro.produto_id', $value);
                             break;
                         case "days_ago":
-                            //$this->_database->where("pedido.criacao >= DATE_SUB(NOW(),INTERVAL 1 DAY)", NULL, FALSE);
-                            $this->_database->where('pedido.criacao > DATE_SUB(CURDATE(),INTERVAL 1 DAY)');
+                            $this->_database->where('(select criacao from apolice_movimentacao am where am.apolice_id = apolice.apolice_id order by criacao desc limit 1) > DATE_SUB(CURDATE(),INTERVAL '.$value.' DAY)');
                             break;
                     }
                 }
