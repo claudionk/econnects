@@ -179,11 +179,6 @@ class Cron extends Admin_Controller
         $this->integracao->run_r($integracao_id);
     }
 
-    public function integracao_teste($integracao_id)
-    {
-        $this->integracao->run_teste($integracao_id);
-    }
-
     public function integracao_s($integracao_id)
     {
         $this->integracao->run_s($integracao_id);
