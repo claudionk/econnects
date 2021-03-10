@@ -57,6 +57,7 @@ class Apolice extends CI_Controller {
         if (!empty($pedidos['status'])) {
 
             $pedidos = $pedidos['pedidos']->get_all();
+            
             if($pedidos) {
                 $resposta = [];
 
@@ -159,8 +160,8 @@ class Apolice extends CI_Controller {
         }
 
         $days_ago = null;
-        if( isset( $GET["days_ago"] ) ) {
-            $days_ago = $GET["days_ago"];
+        if( isset( $GET["dias_atras"] ) ) {
+            $days_ago = $GET["dias_atras"];
         }
 
         $retorno = null;
@@ -171,7 +172,7 @@ class Apolice extends CI_Controller {
         $params["pedido_id"] = $pedido_id;
         $params["parceiro_id"] = $parceiro_id;
         $params["produto_id"] = $produto_id;
-        $params["days_ago"] = $days_ago;
+        $params["days_ago"] = $days_ago;    
 
         if($apolice_id || $num_apolice || $documento || $pedido_id || $days_ago ) {
             $pedidos = $this->pedido
