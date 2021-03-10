@@ -58,7 +58,6 @@ class Apolice extends CI_Controller {
 
             $pedidos = $pedidos['pedidos']->get_all();
             
-            //return array( "status" => false, "message" => $this->db->last_query() );
             if($pedidos) {
                 $resposta = [];
 
