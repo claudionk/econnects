@@ -53,11 +53,22 @@ class Apolice extends CI_Controller {
     }
 
     public function retornaApolices($GET = []) {
-        $pedidos = $this->filtraPedidos($GET);
-        if (!empty($pedidos['status'])) {
 
-            $pedidos = $pedidos['pedidos']->get_all();
-            
+        $pedidos = $this->filtraPedidos($GET);
+
+        if (!empty($pedidos['status'])) {
+            if(!empty($GET["dias_atras"])){
+                $limit = (int)$GET["limit"];
+                $offset = $limit * (int)$GET['page'];
+                if($limit > 1000){
+                    return array( "status" => false, "message" => "Limite máximo de paginação: 1000" );
+                }
+                $pedidos = $pedidos['pedidos']->limit($limit, $offset)->get_all();
+            }
+            else{
+                $pedidos = $pedidos['pedidos']->get_all();
+            }
+
             if($pedidos) {
                 $resposta = [];
 
