@@ -253,7 +253,6 @@ Class Pedido_Model extends MY_Model
                             break;
                         case "days_ago":
                             $this->_database->where('(select criacao from apolice_movimentacao am where am.apolice_id = apolice.apolice_id order by criacao desc limit 1) > DATE_SUB(CURDATE(),INTERVAL '.$value.' DAY)');
-                            //$this->_database->limit(3);
                             break;
                     }
                 }
