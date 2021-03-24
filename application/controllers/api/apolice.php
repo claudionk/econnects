@@ -101,13 +101,22 @@ class Apolice extends CI_Controller {
         die( json_encode( $this->retornaProdutoApolices($_POST), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
-    public function retornaApolices($GET = []) {                
-        $pedidos = $this->filtraPedidos($GET);                        
-        
+    public function retornaApolices($GET = []) {
+        $pedidos = $this->filtraPedidos($GET);
+
         if (!empty($pedidos['status'])) {
-      
-            $pedidos = $pedidos['pedidos']->get_all();
-            
+            if(!empty($GET["dias_atras"])){
+                $limit = (int)$GET["limit"];
+                $offset = $limit * (int)$GET['page'];
+                if($limit > 1000){
+                    return array( "status" => false, "message" => "Limite máximo de paginação: 1000" );
+                }
+                $pedidos = $pedidos['pedidos']->limit($limit, $offset)->get_all();
+            }
+            else{
+                $pedidos = $pedidos['pedidos']->get_all();
+            }
+          
             if($pedidos) {
                 $resposta = [];
                 foreach ($pedidos as $pedido) {
@@ -553,6 +562,7 @@ class Apolice extends CI_Controller {
     }
 
 }
+
 
 
 
