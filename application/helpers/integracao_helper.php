@@ -907,6 +907,9 @@ if ( ! function_exists('app_integracao_generali_dados')) {
                 if (strpos($chave_produto_parceiro_plano_id, 'CEL') !== FALSE) {
                     $produto_parceiro_plano_id = 49;
                 }
+                elseif (strpos($chave_produto_parceiro_plano_id, 'CUP') !== FALSE) {
+                    $produto_parceiro_plano_id = 49;
+                }
                 elseif (strpos($chave_produto_parceiro_plano_id, 'TBT') !== FALSE) {
                     $produto_parceiro_plano_id = 188;
                 }
