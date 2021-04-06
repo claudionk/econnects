@@ -5,6 +5,17 @@
             alert('Informe a Data');
             return false;
         }
+        if (document.frmOpcao.representante.value == ''){
+            alert('Informe o representante');
+            return false;
+        }
+        else
+        {
+            var _slug = document.frmOpcao.representante.value;
+            $('#getslug').val($("select[name='representante'] option:selected").attr("slug"));
+            $('#getSelecionado').val($("select[name='representante'] option:selected").text());
+            return true;
+        }
     }
 </script>
 
@@ -27,13 +38,30 @@
         <header><?= $title ?></header>
     </div>
 
-    <div class="card-body">
-
-        <div class="row">
-            <p>Selecione uma data inicial e final para resgatar os registros.</p>
-        </div>
+    <div class="card-body">        
 
         <form name="frmOpcao" action="" method="POST" onSubmit="return validaFiltroData()">
+         
+         <div class="row">
+            <p>Selecione um representante.</p>
+            <div class="col-md-12 form-group">
+                <select class="form-control" name="representante">
+                    <option value="">Informe o representante</option>
+                    <?php 
+                    foreach ($combo as $k => $v) {
+                        $selected = (!empty($_POST['representante']) && $_POST['representante'] == $v['parceiro_id']) ? 'selected="selected"' : "";
+
+                        echo "<option slug=".$v['slug']." value=".$v['parceiro_id']." {$selected}>".$v['nome']."</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+         </div>
+
+         <div class="row">
+            <p>Selecione uma data inicial e final para resgatar os registros.</p>
+         </div>
+
          <div class="row">
             
             <?php $field_name = "data_inicio"; $field_label = "Data inicial: " ?>
