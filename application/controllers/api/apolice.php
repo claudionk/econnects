@@ -73,16 +73,15 @@ class Apolice extends CI_Controller {
                 $resposta = [];
 
                 foreach ($pedidos as $pedido) {
+
                     //Monta resposta da apólice
                     $apolice = $this->apolice->getApolicePedido( $pedido["pedido_id"] );
                     $apolice[0]["inadimplente"] = ($this->pedido->isInadimplente( $pedido["pedido_id"] ) === false ) ? 0 : 1;
 
-                    $data_template[] = array();
-
                     $this->load->model('Comissao_gerada_model', 'comissao_gerada');
 
                     $aComissaoGerada = $this->comissao_gerada->getByParceiroId($pedido["pedido_id"], null, array('3','2'));
-                    
+
                     if(sizeof($aComissaoGerada))
                     {
                         foreach ($aComissaoGerada as $iComissaoGerada => $vComissaoGerada)
@@ -93,9 +92,9 @@ class Apolice extends CI_Controller {
                             $data_template[$iComissaoGerada]["percentual"] = number_format((float)$vComissaoGerada["comissao"], 4, '.' , '');
                             $data_template[$iComissaoGerada]["valor"] = number_format((float)$vComissaoGerada["valor"], 2, '.' , '');
                         }
-                    }
 
-                    $pedido["comissao"] = $data_template;
+                        $pedido["comissao"] = $data_template;
+                    }
 
                     $faturas = $this->fatura->filterByPedido($pedido["pedido_id"])
                     ->with_fatura_status()
