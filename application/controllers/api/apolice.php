@@ -58,9 +58,9 @@ class Apolice extends CI_Controller {
 
         if (!empty($pedidos['status'])) {
 
-            $limit = (int)$GET["limit"];
-            if ( !empty($limit) )
+            if ( !empty($GET["limit"]) )
             {
+                $limit = (int)$GET["limit"];
                 if($limit > 1000){
                     return array( "status" => false, "message" => "Limite máximo de paginação: 1000" );
                 }
