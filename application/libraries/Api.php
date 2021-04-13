@@ -23,12 +23,12 @@ class Api {
 		$this->_ci = & get_instance();
 		log_message('debug', 'cURL Class Initialized');
 
-		$this->url = $this->_ci->config->item("URL_sisconnects") ."api/";
+		$this->url = $this->_ci->config->item("base_url") ."api/";
         $this->stop = false;
 	}
 
-	public function execute($url, $method = 'GET', $fields = [], $email = null, $senha = null){
-        $APIKEY = ( isset( $_SERVER["HTTP_APIKEY"] ) ) ? $_SERVER["HTTP_APIKEY"] : app_get_token($email, $senha);
+	public function execute($url, $method = 'GET', $fields = [], $email = null, $senha = null, $validToken = true){
+        $APIKEY = ( isset( $_SERVER["HTTP_APIKEY"] ) ) ? $_SERVER["HTTP_APIKEY"] : app_get_token($email, $senha, $validToken);
 
         $retorno = soap_curl([
             'url' => $url,
@@ -55,18 +55,34 @@ class Api {
             print_r($retornoJson);
         }
 
-        if (isset($retornoJson->status) && empty($retornoJson->status)) {
+        $sucesso = (isset($retornoJson->status) && empty($retornoJson->status));
+        if (!$sucesso) {
+            $sucesso = (isset($retornoJson->success) && empty($retornoJson->success));
+        }
+
+        if ($sucesso) {
             if(isset($retornoJson->message))
                 $messagem = $retornoJson->message;
-            else
-                $messagem = $retornoJson->mensagem;
+            else {
+                if(isset($retornoJson->mensagem))
+                    $messagem = $retornoJson->mensagem;
+                else
+                    $messagem = $retornoJson->erros;
+            }
 
-            header('X-Error-Message: '. $messagem, true, 500);
+            if (!is_array($messagem))
+                header('X-Error-Message: '. $messagem, true, 500);
+            else {
+                $messagem = implode("\n", $messagem);
+                header('X-Error-Message: Falha no Processamento', true, 500);
+            }
+
             $retorno["response"] = $messagem;
-            if (isset($retornoJson->erros)) {
+            if (isset($retornoJson->erros) || isset($retornoJson->errors)) {
                 $retorno["response"] = [
+                    'status' => false,
                     'mensagem' => $messagem,
-                    'erros' => $retornoJson->erros
+                    'erros' => isset($retornoJson->erros) ? $retornoJson->erros : $retornoJson->errors
                 ];
             }
         }
@@ -74,7 +90,7 @@ class Api {
         return $retorno["response"];
     }
 
-	private function extractEmail($json){
+    private function extractEmail($json){
         $email = null;
 
         $json = json_decode($json);
@@ -88,7 +104,7 @@ class Api {
     }
 
     public function equipamento($ean, $email = null){
-        $retorno = $this->execute($this->_ci->url."equipamento?ean=". $ean);
+        $retorno = $this->execute($this->url."equipamento?ean=". $ean);
 
         $this->_ci->output
             ->set_content_type('application/json')
@@ -99,7 +115,7 @@ class Api {
     public function email($email){
         $email = urldecode($email);
         $result = false;
-        $retorno = $this->_ci->execute($this->_ci->url."info/email?email=". $email ."&remetente=ti@sissolucoes.com.br");
+        $retorno = $this->execute($this->url."info/email?email=". $email ."&remetente=ti@sissolucoes.com.br");
 
         if (!empty($retorno)) {
             $response = json_decode($retorno);
@@ -113,7 +129,7 @@ class Api {
     }
 
     public function enriqueceCPF($cpf, $produto_parceiro_id){
-        $retorno = $this->_ci->execute($this->_ci->url."info?doc={$cpf}&produto_parceiro_id={$produto_parceiro_id}");
+        $retorno = $this->execute($this->url."info?doc={$cpf}&produto_parceiro_id={$produto_parceiro_id}");
 
         $this->_ci->output
             ->set_content_type('application/json')
@@ -122,7 +138,7 @@ class Api {
     }
 
     public function enriqueceEAN($ean){
-        $retorno = $this->_ci->execute($this->_ci->url."equipamento?ean=$ean");
+        $retorno = $this->execute($this->url."equipamento?ean=$ean");
 
         $this->_ci->output
             ->set_content_type('application/json')
@@ -131,13 +147,13 @@ class Api {
     }
 
     public function enriqueceModelo(){
-        // $this->_ci->stop=true;
+        // $this->stop=true;
         $json = file_get_contents( "php://input" );
-        $trat = $this->_ci->extractEmail($json);
+        $trat = $this->extractEmail($json);
         $json = $trat->json;
         $email = $trat->email;
 
-        $retorno = $this->_ci->execute($this->_ci->url."equipamento/modelo", 'POST', $json, $email);
+        $retorno = $this->execute($this->url."equipamento/modelo", 'POST', $json, $email);
 
         $this->_ci->output
             ->set_content_type('application/json')
@@ -146,7 +162,7 @@ class Api {
     }
 
     public function cotacao_campos($produto_parceiro_id){
-        $retorno = $this->_ci->execute($this->_ci->url."campos?produto_parceiro_id=$produto_parceiro_id");
+        $retorno = $this->execute($this->url."campos?produto_parceiro_id=$produto_parceiro_id");
 
         $this->_ci->output
             ->set_content_type('application/json')
@@ -155,13 +171,13 @@ class Api {
     }
 
     public function insereCotacao(){
-        // $this->_ci->stop=true;
+        // $this->stop=true;
         $json = file_get_contents( "php://input" );
-        $trat = $this->_ci->extractEmail($json);
+        $trat = $this->extractEmail($json);
         $json = $trat->json;
         $email = $trat->email;
 
-        $retorno = $this->_ci->execute($this->_ci->url."cotacao", 'POST', $json, $email);
+        $retorno = $this->execute($this->url."cotacao", 'POST', $json, $email);
 
         $this->_ci->output
             ->set_content_type('application/json')
@@ -170,13 +186,13 @@ class Api {
     }
 
     public function cotacao_contratar(){
-        // $this->_ci->stop=true;
+        // $this->stop=true;
         $json = file_get_contents( "php://input" );
-        $trat = $this->_ci->extractEmail($json);
+        $trat = $this->extractEmail($json);
         $json = $trat->json;
         $email = $trat->email;
 
-        $retorno = $this->_ci->execute($this->_ci->url."cotacao/contratar", 'POST', $json, $email);
+        $retorno = $this->execute($this->url."cotacao/contratar", 'POST', $json, $email);
 
         $this->_ci->output
             ->set_content_type('application/json')
@@ -185,7 +201,7 @@ class Api {
     }
 
     public function forma_pagamento_cotacao($cotacao_id){
-        $retorno = $this->_ci->execute($this->_ci->url."pagamento/forma_pagamento_cotacao?cotacao_id=$cotacao_id");
+        $retorno = $this->execute($this->url."pagamento/forma_pagamento_cotacao?cotacao_id=$cotacao_id");
 
         $this->_ci->output
             ->set_content_type('application/json')
@@ -194,7 +210,7 @@ class Api {
     }
 
     public function pagamento_campos($forma_pagamento_id){
-        $retorno = $this->_ci->execute($this->_ci->url."pagamento/campos?forma_pagamento_id=$forma_pagamento_id");
+        $retorno = $this->execute($this->url."pagamento/campos?forma_pagamento_id=$forma_pagamento_id");
 
         $this->_ci->output
             ->set_content_type('application/json')
@@ -204,10 +220,10 @@ class Api {
 
     public function pagamento_pagar(){
         $json = file_get_contents( "php://input" );
-        $trat = $this->_ci->extractEmail($json);
+        $trat = $this->extractEmail($json);
         $json = $trat->json;
         $email = $trat->email;
-        $retorno = $this->_ci->execute($this->_ci->url."pagamento/pagar", "POST", $json, $email);
+        $retorno = $this->execute($this->url."pagamento/pagar", "POST", $json, $email);
 
         $this->_ci->output
             ->set_content_type('application/json')
@@ -215,8 +231,12 @@ class Api {
         return;
     }
 
-    public function calculo_premio($cotacao_id){
-        $retorno = $this->_ci->execute($this->_ci->url."cotacao/calculo?cotacao_id=$cotacao_id");
+    public function calculo_premio(){
+        $json = file_get_contents( "php://input" );
+        $trat = $this->extractEmail($json);
+        $json = $trat->json;
+        $email = $trat->email;
+        $retorno = $this->execute($this->url."cotacao/calculo", 'POST', $json, $email);
 
         $this->_ci->output
             ->set_content_type('application/json')
@@ -226,10 +246,10 @@ class Api {
 
     public function apolice(){
         $json = file_get_contents( "php://input" );
-        $trat = $this->_ci->extractEmail($json);
+        $trat = $this->extractEmail($json);
         $json = $trat->json;
         $email = $trat->email;
-        $retorno = $this->_ci->execute($this->_ci->url."apolice", "PUT", $json, $email);
+        $retorno = $this->execute($this->url."apolice", "PUT", $json, $email);
 
         $this->_ci->output
             ->set_content_type('application/json')
@@ -238,12 +258,41 @@ class Api {
     }
 
     public function cancelar(){
-        // $this->_ci->stop=true;
+        // $this->stop=true;
         $json = file_get_contents( "php://input" );
-        $trat = $this->_ci->extractEmail($json);
+        $trat = $this->extractEmail($json);
         $json = $trat->json;
         $email = $trat->email;
-        $retorno = $this->_ci->execute($this->_ci->url."apolice/cancelar", 'POST', $json, $email);
+        $retorno = $this->execute($this->url."apolice/cancelar", 'POST', $json, $email);
+
+        $this->_ci->output
+            ->set_content_type('application/json')
+            ->set_output($retorno);
+        return;
+    }
+
+    public function cliente(){
+        $json = file_get_contents( "php://input" );
+        $trat = $this->extractEmail($json);
+        $json = $trat->json;
+        $email = $trat->email;
+
+        $retorno = $this->execute($this->url."cliente", 'POST', $json, $email);
+
+        $this->_ci->output
+            ->set_content_type('application/json')
+            ->set_output($retorno);
+        return;
+    }
+
+    public function emissao(){
+        // $this->stop=true;
+        $json = file_get_contents( "php://input" );
+        $trat = $this->extractEmail($json);
+        $json = $trat->json;
+        $email = $trat->email;
+
+        $retorno = $this->execute($this->url."emissao", 'POST', $json, $email);
 
         $this->_ci->output
             ->set_content_type('application/json')

@@ -23,12 +23,14 @@ class Emissao extends CI_Controller {
 
     public $campos_estrutura;
     public $valor_premio_bruto;
+    public $premio_liquido;
     public $forma_pagamento_id;
     public $produto_parceiro_pagamento_id;
 
     public $meio_pagto_slug;
     public $campos_meios_pagto;
     public $numero_sorte;
+    public $numero_serie;
     public $comissao_premio;
     public $coberturas_opcionais;
     public $parcelas;
@@ -72,9 +74,13 @@ class Emissao extends CI_Controller {
 
         $POST = json_decode( file_get_contents( "php://input" ), true );
 
-        if(!empty($POST))
+        // Validação dos dados
+        if (empty($POST))
         {
-            // Validação dos dados
+            die(json_encode(array("status"=>false,"message"=>"Parametros não informados"),JSON_UNESCAPED_UNICODE));
+
+        } else
+        {
             // if(empty($POST['produto_slug'])){
             //     die(json_encode(array("status"=>false,"message"=>"Atributo 'produto_slug' não informado"),JSON_UNESCAPED_UNICODE));
             // }
@@ -93,8 +99,6 @@ class Emissao extends CI_Controller {
             /*if(empty($POST['meio_pagto_slug'])){
                 die(json_encode(array("status"=>false,"message"=>"meio_pagto_slug não informado"),JSON_UNESCAPED_UNICODE));
             }*/
-        } else {
-            die(json_encode(array("status"=>false,"message"=>"Parametros não informados"),JSON_UNESCAPED_UNICODE));
         }
 
         $this->equipamento_nome     = '';
@@ -102,12 +106,14 @@ class Emissao extends CI_Controller {
         $this->ean                  = '';
         $this->num_apolice          = (!isset($POST['num_apolice'])) ? false : $POST['num_apolice'];
         $this->valor_premio_bruto   = (!isset($POST['valor_premio_bruto'])) ? 0 : $POST['valor_premio_bruto'];
+        $this->premio_liquido       = (!isset($POST['valor_premio_liquido'])) ? 0 : $POST['valor_premio_liquido'];
         $this->comissao_premio      = (empty($POST['comissao'])) ? 0 : $POST['comissao'];
         $this->coberturas_opcionais = (!isset($POST['coberturas_opcionais'])) ? '' : $POST['coberturas_opcionais'];
         $this->meio_pagto_slug      = (!isset($POST['meiopagamento']['meio_pagto_slug'])) ? '' : $POST['meiopagamento']['meio_pagto_slug'];
         $this->campos_meios_pagto   = (!isset($POST['meiopagamento']['campos'])) ? [] : $POST['meiopagamento']['campos'];
         $this->parcelas             = (!isset($POST['meiopagamento']['parcelas'])) ? null : $POST['meiopagamento']['parcelas'];
         $this->numero_sorte         = (!isset($POST['numero_sorte'])) ? null : $POST['numero_sorte'];
+        $this->numero_serie         = (!isset($POST['numero_serie'])) ? null : $POST['numero_serie'];
 
         $this->etapas('cotacao', $POST);
     }
@@ -161,6 +167,7 @@ class Emissao extends CI_Controller {
                 if ( $this->numero_sorte )
                 {
                     $arrOptions['numero_sorte'] =  $this->numero_sorte;
+                    $arrOptions['num_proposta_capitalizacao'] =  $this->numero_serie;
                 }
 
                 if(count($parametros['campos'][0]) > 0)
@@ -336,10 +343,15 @@ class Emissao extends CI_Controller {
             case 'calculocotacao':
 
                 // Validar o valor passado se diferente alertar e abortar
-                $url = base_url() ."api/cotacao/calculo?cotacao_id=".$this->cotacao_id;
+                $url = base_url() ."api/cotacao/calculo";
+                $fields = [
+                    'cotacao_id' => $this->cotacao_id,
+                    'valor_fixo' => emptyor($this->premio_liquido, NULL),
+                    'coberturas' => emptyor($this->campos_estrutura['coberturas'], []),
+                ];
 
                 $obj = new Api();
-                $r = $obj->execute($url, 'GET');
+                $r = $obj->execute($url, 'POST', json_encode($fields));
 
                 if(!empty($r))
                 {
@@ -411,11 +423,14 @@ class Emissao extends CI_Controller {
                     {
                         $retorno = convert_objeto_to_array($r);
                         $flag = false;
-                        foreach ($retorno as $vl) {
-                            if($vl->tipo->slug == $this->meio_pagto_slug) {
-                                $this->produto_parceiro_pagamento_id = $vl->pagamento[0]->produto_parceiro_pagamento_id;
-                                $this->forma_pagamento_id = $vl->pagamento[0]->forma_pagamento_id;
-                                $flag = true;
+                        if (!empty($retorno) && is_array($retorno))
+                        {
+                            foreach ($retorno as $vl) {
+                                if($vl->tipo->slug == $this->meio_pagto_slug) {
+                                    $this->produto_parceiro_pagamento_id = $vl->pagamento[0]->produto_parceiro_pagamento_id;
+                                    $this->forma_pagamento_id = $vl->pagamento[0]->forma_pagamento_id;
+                                    $flag = true;
+                                }
                             }
                         }
                         if(!$flag) {

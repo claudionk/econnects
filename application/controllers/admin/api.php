@@ -15,8 +15,8 @@ class Api extends Site_Controller
         $this->stop = false;
     }
     
-    public function execute($url, $method = 'GET', $fields = [], $email = null, $senha = null){
-        $APIKEY = ( isset( $_SERVER["HTTP_APIKEY"] ) ) ? $_SERVER["HTTP_APIKEY"] : app_get_token($email, $senha);
+    public function execute($url, $method = 'GET', $fields = [], $email = null, $senha = null, $validToken = true){
+        $APIKEY = ( isset( $_SERVER["HTTP_APIKEY"] ) ) ? $_SERVER["HTTP_APIKEY"] : app_get_token($email, $senha, $validToken);
 
         $retorno = soap_curl([
             'url' => $url,
@@ -219,9 +219,12 @@ class Api extends Site_Controller
         return;
     }
 
-    public function calculo_premio($cotacao_id, $valor_fixo = null){
-        $retorno = $this->execute($this->url."cotacao/calculo?cotacao_id=$cotacao_id&valor_fixo=$valor_fixo");
-        // echo '<pre>'; echo $this->url."cotacao/calculo?cotacao_id=$cotacao_id&valor_fixo=$valor_fixo"; print_r(json_decode($retorno)); die();
+    public function calculo_premio(){
+        $json = file_get_contents( "php://input" );
+        $trat = $this->extractEmail($json);
+        $json = $trat->json;
+        $email = $trat->email;
+        $retorno = $this->execute($this->url."cotacao/calculo", 'POST', $json, $email);
 
         $this->output
             ->set_content_type('application/json')
@@ -255,4 +258,34 @@ class Api extends Site_Controller
             ->set_output($retorno);
         return;
     }
+
+    public function cliente(){
+        $json = file_get_contents( "php://input" );
+        $trat = $this->extractEmail($json);
+        $json = $trat->json;
+        $email = $trat->email;
+
+        $retorno = $this->execute($this->url."cliente", 'POST', $json, $email);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output($retorno);
+        return;
+    }
+
+    public function emissao(){
+        // $this->stop=true;
+        $json = file_get_contents( "php://input" );
+        $trat = $this->extractEmail($json);
+        $json = $trat->json;
+        $email = $trat->email;
+
+        $retorno = $this->execute($this->url."emissao", 'POST', $json, $email);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output($retorno);
+        return;
+    }
+
 }

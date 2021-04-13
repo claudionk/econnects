@@ -580,7 +580,7 @@ $(function(){
             var quantidade = $('#quantidade').val().split(';');
             var valor_total = $('#valor_total').val().split(';');
             console.log(nome);
-            if (parseFloat(valor_total[i]) == 0) {
+            if (parseFloat(valor_total[i].replace(",", ".")) == 0) {
                 toastr.error("Tabela de Preço não configurada para o Plano "+ nome[i], "Atenção!");
             } else {
 

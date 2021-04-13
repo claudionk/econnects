@@ -244,7 +244,7 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
                 $linha = $this->get( $row["pai_id"] );
                 if( $linha ) {
                     $row = $linha;
-                    $soma += $this->define_comissao_rep($produto_parceiro_id, $row['comissao'], $row['comissao_tipo'], $comissao_cotacao);
+                    $soma += $this->define_comissao_rep($produto_parceiro_id, $row['comissao'], $row['comissao_tipo'], $comissao_cotacao, $row['parceiro_tipo_id']);
                 } else {
                     $row["pai_id"] = 0;
                 }
@@ -254,59 +254,83 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
         } else {
             return 0;
         }
-
     }
 
-    public function define_comissao_rep($produto_parceiro_id, $comissao, $comissao_tipo = 0, $comissao_cot = 0)
+    public function define_comissao_rep($produto_parceiro_id, $comissao, $comissao_tipo = 0, $comissao_cot = 0, $parceiro_tipo_id = null)
     {
         // Se a comissão for variável
-        if ($comissao_tipo != 0) {
+        if ($comissao_tipo != 0)
+        {
             // se precisar retirar a comissão do corretor
-            $comissao = $comissao_cot - (($comissao_tipo == 1) ? $this->get_comissao_corretor($produto_parceiro_id) : 0);
+            if ($comissao_tipo == 2 && $parceiro_tipo_id == 2)
+            {
+                $comissao = 0;
+            } else {
+                $comissao = $comissao_cot - (($comissao_tipo == 1) ? $this->get_comissao_corretor($produto_parceiro_id) : 0);
+            }
         }
 
         return $comissao;
     }
 
-    public function get_todas_comissoes($produto_parceiro_id, $parceiro_relacionamento_produto_id = 0, $parceiro_id = 0){
+    public function get_todas_comissoes($produto_parceiro_id, $parceiro_relacionamento_produto_id = 0, $parceiro_id = 0, $pai_id_new = 0)
+    {
         $this->soma = 0;
         $this->somatoria = [];
+
         $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
         $this->_database->where("comissao_tipo", 0);
-
         $rows = $this->get_all(0, 0, true, 'ASC');
 
-        if(!empty($rows)){
+        if(!empty($rows))
+        {
             $oArray = [];
             $parceiro_id_pai = 0;
 
-            foreach ($rows as $row) {
+            foreach ($rows as $row)
+            {
                 // echo "id = ".$row["parceiro_relacionamento_produto_id"] ." - ". $row['parceiro_id'] ." - ". $row['pai_id'] ."<br>";
 
-                if ( $row['pai_id'] == 0 ){
-
+                if ( $row['pai_id'] == 0 )
+                {
                     $parceiro_id_pai = $row['parceiro_id'];
                     $oArray = [
                         $parceiro_id_pai => [
-                            "comissao" => $row['comissao']
+                            "comissao" => $row['comissao'],
                         ]
                     ];
 
                 } else {
+
+                    // se está na mesma hierarquia (irmao)
+                    if ( !empty($pai_id_new) && $pai_id_new == $row['pai_id'])
+                    {
+                        // não considera na soma
+                        continue;
+                    }
 
                     $result = $this
                         ->filter_by_pai($row["parceiro_relacionamento_produto_id"])
                         ->filter_by_produto_parceiro($produto_parceiro_id)
                         ->get_all();
 
-                    if ( !empty($result) ) {
+                    if ( !empty($result) )
+                    {
                         $oArray[$parceiro_id_pai][$row['parceiro_id']] = [
                             'comissao' => $row['comissao'],
                         ];
 
-                        foreach ($result as $r) {
+                        foreach ($result as $r)
+                        {
+                            // se está na mesma hierarquia (irmao)
+                            if ( !empty($pai_id_new) && $pai_id_new == $r['pai_id'])
+                            {
+                                // não considera na soma
+                                continue;
+                            }
+
                             $oArray[$parceiro_id_pai][$row['parceiro_id']][$r['parceiro_id']] = [
-                                "comissao" => $r['comissao']
+                                "comissao" => $r['comissao'],
                             ];
                         }
                     }
@@ -411,10 +435,9 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
     }
 
     function filter_by_parceiro_tipo($parceiro_tipo_id){
-        $this->_database->where('parceiro.parceiro_tipo_id', $parceiro_tipo_id);
+        $this->_database->where("{$this->_table}.parceiro_tipo_id", $parceiro_tipo_id);
         return $this;
     }
-
 
     function filter_by_parceiro($parceiro_id){
         $this->_database->where('parceiro_id', $parceiro_id);
@@ -434,7 +457,6 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
                 $arr[] = $relacionamento;
             }
         }
-
     }
 
     public function get_all($limit = 0, $offset = 0, $processa = true, $order_by = null) {

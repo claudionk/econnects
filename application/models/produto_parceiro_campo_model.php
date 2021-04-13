@@ -55,6 +55,11 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
             'groups' => 'default'
         ),
         array(
+            'field' => 'classe_css',
+            'label' => 'Classe',
+            'groups' => 'default'
+        ),
+        array(
             'field' => 'ordem',
             'label' => 'Ordem',
             'groups' => 'default'
@@ -74,6 +79,11 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         if(isset($data['validacoes']) && is_array($data['validacoes']))
         {
             $data['validacoes'] = implode("|", $data['validacoes']);
+        }
+
+        if(isset($data['classe_css']) && is_array($data['classe_css']))
+        {
+            $data['classe_css'] = implode("|", $data['classe_css']);
         }
 
         return $data;
@@ -138,6 +148,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
 
         return $this;
     }
+    
 
     function coreSelecCampoProdutoParceiro($produto_parceiro_id, $campo_tipo_id){
         $this->_database->select("{$this->_table}.campo_id");
@@ -145,6 +156,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         $this->_database->select("{$this->_table}.tamanho");
         $this->_database->select("{$this->_table}.opcoes");
         $this->_database->select("{$this->_table}.validacoes");
+        $this->_database->select("{$this->_table}.classe_css");
         $this->_database->select("campo.nome");
         $this->_database->select("CASE produto.slug 
             WHEN 'equipamento' THEN
@@ -193,10 +205,11 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
      * @param $slug
      * @param $plano
      * @param $dados
+     * @param $cont
      * @return mixed
      */
-    public function setDadosCampos($produto_parceiro_id, $produto, $slug, $plano, &$dados){
-
+    public function setDadosCampos($produto_parceiro_id, $produto, $slug, $plano, &$dados, $cont = null, $field = 'default', $in = [])
+    {
         $campos = $this->with_campo()
             ->with_campo_tipo()
             ->filter_by_produto_parceiro($produto_parceiro_id)
@@ -204,13 +217,21 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
             ->order_by("ordem", "asc")
             ->get_all();
 
-        if($campos){
+        // auxiliar no nome do campo para diferenciar dependente/passageiro
+        $aux = !empty($cont) ? "_{$cont}" : "";
 
-            foreach ($campos as $index => $campo) {
-
-                if($this->input->post("plano_{$plano}_{$campo['campo_nome_banco']}")){
-                    $value = $this->input->post("plano_{$plano}_{$campo['campo_nome_banco']}");
-
+        if($campos)
+        {
+            foreach ($campos as $index => $campo)
+            {
+                // $value = ($field == 'default') ? $this->input->post("plano_{$plano}{$aux}_{$campo['campo_nome_banco']}") : $this->input->post("{$campo['campo_nome_banco']}");
+                if ($field == 'default') {
+                    $value = $this->input->post("plano_{$plano}{$aux}_{$campo['campo_nome_banco']}");
+                } else {
+                    $value = $in[$campo['campo_nome_banco']];
+                }
+                if( $value )
+                {
                     if($campo['campo_nome_banco'] == 'nota_fiscal_valor'){
                         if( strpos( $value, "," ) !== false || strpos( $value, "_" ) !== false )
                             $value = app_unformat_currency($value);
@@ -228,6 +249,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                     if(($campo['campo_function_salvar']) && (function_exists($campo['campo_function_salvar']))){
                         $value = call_user_func($campo['campo_function_salvar'], $value);
                     }
+
                     if(!empty($campo["campo_nome_banco_{$produto}"])) {
                         $dados[$campo["campo_nome_banco_{$produto}"]] = $value;
                     }
@@ -276,6 +298,50 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                             'label' => "{$campo['campo_nome']}",
                             'rules' => "trim|required|check_password_confirm[plano_{$plano}_{$campo['campo_nome_banco']}]",
                             'groups' => $slug
+                        );
+                    }
+                }
+            }
+        }
+        return $validacoes;
+
+    }
+
+    /**
+     * @param $produto_parceiro_id
+     * @param $slug
+     * @param $plano
+     * @param $adicionais
+     * @param $texto_view
+     * @return array
+     */
+    public function setValidacoesCamposAdicionais($produto_parceiro_id, $slug, $planos, $adicionais = array(), $texto_view = '' ){
+        $campos = $this->with_campo()
+            ->with_campo_tipo()
+            ->filter_by_produto_parceiro($produto_parceiro_id)
+            ->filter_by_campo_tipo_slug($slug)
+            ->filter_by_validacoes()
+            ->order_by("ordem", "asc")
+            ->get_all();
+
+        $validacoes = array();
+        $planos = explode(';', $planos);
+
+        if(($campos) && ($planos)){
+            foreach ($planos as $index => $plano) {
+                for ($cont = 2; $cont <= $adicionais[$index]; $cont++ ) {
+                    foreach ($campos as $campo) {
+                        $validacao = $campo['validacoes'];
+                        if(strpos($campo['validacoes'], 'matches') !== FALSE){
+                            $validacao = str_replace('matches[password]', '', $validacao);
+                            $validacao = str_replace('||', '|', $validacao);
+                        }
+
+                        $validacoes[] = array(
+                            'field' => "plano_{$plano}_{$cont}_{$campo['campo_nome_banco']}",
+                            'label' => "{$texto_view} {$cont} - {$campo['campo_nome']}",
+                            'rules' => $validacao,
+                            'groups' => "dados_segurado",
                         );
                     }
                 }
@@ -337,7 +403,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
 
         $validacao = [];
         foreach ($slugsCampos as $tipo_slug) {
-        
+
             $result  = array(
                 "status"    => false,
                 "message"   => "Erro na validação dos campos",
@@ -377,10 +443,13 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                 } else {
                     if( isset($values[$campo["campo_nome_banco_equipamento"]]) && $values[$campo["campo_nome_banco_equipamento"]] != "0000-00-00" && !is_null( $values[$campo["campo_nome_banco_equipamento"]] )  ) {
                         if( strpos( $campo["validacoes"], "validate_data" ) !== false ) {
-                            $valida_data = date_parse_from_format("Y-m-d", $values[$campo["campo_nome_banco_equipamento"]]);
-                            if( !checkdate( $valida_data["month"], $valida_data["day"], $valida_data["year"] ) ) {
-                                $rule_check = "Data inválida (". $campo["campo_nome_banco_equipamento"] .")";
-                                $erros[] = $rule_check;
+                            if ( !empty($values[$campo["campo_nome_banco_equipamento"]]) )
+                            {
+                                $valida_data = date_parse_from_format("Y-m-d", $values[$campo["campo_nome_banco_equipamento"]]);
+                                if( !checkdate( $valida_data["month"], $valida_data["day"], $valida_data["year"] ) ) {
+                                    $rule_check = "Data inválida (". $campo["campo_nome_banco_equipamento"] .")";
+                                    $erros[] = $rule_check;
+                                }
                             }
                         }
                         if( strpos( $campo["validacoes"], "validate_email" ) !== false ) {
@@ -412,7 +481,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                             }
                         }
                         if( $campo["campo_nome_banco_equipamento"] == 'cnpj_cpf' ) {
-                            if( !empty($values[$campo["campo_nome_banco_equipamento"]]) && !app_validate_cpf_cnpj( $values[$campo["campo_nome_banco_equipamento"]] ) ) {
+                            if( strpos( $campo["validacoes"], "validate_cpf" ) !== false && !empty($values[$campo["campo_nome_banco_equipamento"]]) && !app_validate_cpf_cnpj( $values[$campo["campo_nome_banco_equipamento"]] ) ) {
                                 $rule_check = "CPF / CNPJ não é válido (". $campo["campo_nome_banco_equipamento"] .")";
                                 $erros[] = $rule_check;
                             }
@@ -447,6 +516,35 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
 
         return $result;
 
+    }
+
+    public function getCamposProduto($produto_parceiro_id, $slug)
+    {
+        $api_key = app_get_token();
+        $campos = array();
+
+        $Url = $this->config->item('base_url') ."api/campos?produto_parceiro_id={$produto_parceiro_id}&slug={$slug}";
+
+        $myCurl = curl_init();
+        curl_setopt( $myCurl, CURLOPT_URL, $Url );
+        curl_setopt( $myCurl, CURLOPT_FRESH_CONNECT, 1 );
+        curl_setopt( $myCurl, CURLOPT_POST, 0 );
+        curl_setopt( $myCurl, CURLOPT_VERBOSE, 0);
+        curl_setopt( $myCurl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt( $myCurl, CURLOPT_HTTPHEADER, array( "Content-Type: application/json", "apikey: $api_key" ) );
+        curl_setopt( $myCurl, CURLOPT_TIMEOUT, 15 );
+        curl_setopt( $myCurl, CURLOPT_CONNECTTIMEOUT, 15 );
+        $Response = curl_exec( $myCurl );
+        curl_close( $myCurl );
+
+        $Response = json_decode( $Response, true );
+        if ( isset($Response[0]) )
+        {
+            $Response = $Response[0];
+            $campos = $Response["campos"];
+        }
+
+        return [ 'campos' => $campos, 'token' => $api_key ];
     }
 
 }

@@ -107,6 +107,12 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             'groups' => 'default',
         ),
         array(
+            'field'  => 'qtd_min_vida',
+            'label'  => 'Mínimo de Vidas',
+            'rules'  => '',
+            'groups' => 'default',
+        ),
+        array(
             'field'  => 'idade_minima',
             'label'  => 'Idade Mínima',
             'rules'  => '',
@@ -118,7 +124,39 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             'rules'  => '',
             'groups' => 'default',
         ),
+        array(
+            'field'  => 'capitalizacao_id',
+            'label'  => 'Capitalização',
+            'groups' => 'default',
+        ),
     );
+
+    //Get dados
+    public function get_form_data($just_check = false)
+    {
+        //Dados
+        $data =  array(
+            'nome'                  => $this->input->post('nome'),
+            'descricao'             => $this->input->post('descricao'),
+            'slug_plano'            => $this->input->post('slug_plano'),
+            'codigo_operadora'      => $this->input->post('codigo_operadora'),
+            'produto_parceiro_id'   => $this->input->post('produto_parceiro_id'),
+            'precificacao_tipo_id'  => $this->input->post('precificacao_tipo_id'),
+            'moeda_id'              => $this->input->post('moeda_id'),
+            'unidade_tempo'         => $this->input->post('unidade_tempo'),
+            'limite_vigencia'       => isempty($this->input->post('limite_vigencia'), NULL),
+            'possui_limite_tempo'   => isempty($this->input->post('possui_limite_tempo'), 0),
+            'unidade_limite_tempo'  => $this->input->post('unidade_limite_tempo'),
+            'limite_tempo'          => isempty($this->input->post('limite_tempo'), 0),
+            'passivel_upgrade'      => isempty($this->input->post('passivel_upgrade'), NULL),
+            'ordem'                 => isempty($this->input->post('ordem'), 0),
+            'qtd_min_vida'          => isempty($this->input->post('qtd_min_vida'), 0),
+            'idade_minima'          => isempty($this->input->post('idade_minima'), 0),
+            'idade_maxima'          => isempty($this->input->post('idade_maxima'), 0),
+            'capitalizacao_id'      => isempty($this->input->post('capitalizacao_id'), NULL),
+        );
+        return $data;
+    }
 
     /**
      * Busca planos com esta destino
@@ -187,6 +225,30 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         return $this;
     }
 
+    public function with_capitalizacao()
+    {
+        $this->_database->select("capitalizacao.nome as capitalizacao_nome, 
+            capitalizacao.tipo_qnt_sorteio as capitalizacao_tipo_qnt_sorteio, 
+            capitalizacao.qnt_sorteio as capitalizacao_qnt_sorteio, 
+            capitalizacao.dia_corte as capitalizacao_dia_corte, 
+            capitalizacao.qtde_titulos_por_compra as capitalizacao_qtde_titulos_por_compra, 
+            capitalizacao.valor_sorteio as capitalizacao_valor_sorteio, 
+            capitalizacao.valor_custo_titulo as capitalizacao_valor_custo_titulo, 
+            capitalizacao.serie as capitalizacao_serie, 
+            capitalizacao.responsavel_num_sorte as capitalizacao_responsavel_num_sorte, 
+            capitalizacao.responsavel_num_sorte_distribuicao as capitalizacao_responsavel_num_sorte_distribuicao");
+        $this->_database->join("capitalizacao", "capitalizacao.capitalizacao_id = {$this->_table}.capitalizacao_id");
+        return $this;
+    }
+
+    public function filter_by_capitalizacao_ativa()
+    {
+        $this->_database->where("capitalizacao.data_inicio <", date('Y-m-d H:i:s'));
+        $this->_database->where("capitalizacao.data_fim >", date('Y-m-d H:i:s'));
+        $this->_database->where("capitalizacao.ativo", 1);
+        return $this;
+    }
+
     public function wtih_plano_habilitado($parceiro_id)
     {
         // $this->load->model('produto_parceiro_model', 'produto_parceiro');
@@ -226,6 +288,24 @@ class Produto_Parceiro_Plano_Model extends MY_Model
     {
         $this->_database->where('slug_plano', $slug);
         return $this;
+    }
+
+    public function get_qtd_min_vida($produto_parceiro_id, $produto_parceiro_plano_id)
+    {
+        if (!is_null($produto_parceiro_id)) {
+            $this->_database->where("{$this->_table}.produto_parceiro_id", $produto_parceiro_id);
+        }
+        if (!is_null($produto_parceiro_plano_id)) {
+            $this->_database->where("{$this->_table}.produto_parceiro_plano_id", $produto_parceiro_plano_id);
+        }
+        $this->_database->where("{$this->_table}.qtd_min_vida >", 0);
+        $result = $this->get_all();
+
+        if ( !empty($result) )
+        {
+            return $result[0]['qtd_min_vida'];
+        }
+        return 1;
     }
 
     public function coreSelectPlanosProdutoParceiro($produto_parceiro_id, $produto_parceiro_plano_id = null)
@@ -269,9 +349,8 @@ class Produto_Parceiro_Plano_Model extends MY_Model
      * @param $data_base
      */
 
-    public function getInicioFimVigencia($produto_parceiro_plano_id, $data_base = null, $cotacao_salva = null)
+    public function getInicioFimVigencia($produto_parceiro_plano_id, $data_base_rec = null, $cotacao_salva = null, $coberturas = [])
     {
-
         $produto_parceiro_plano = $this->get($produto_parceiro_plano_id);
 
         $config = $this->with_produto_parceiro_configuracao($produto_parceiro_plano_id)->get_all();
@@ -282,6 +361,13 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         $apolice_vigencia_regra = false;
         $data_adesao = null;
         $date_fim_vig = null;
+        $result = [];
+
+        // Validação para que o retorno seja sempre por cobertura
+        if ( empty($coberturas) )
+        {
+            $coberturas[] = [ 'data_base_rec' => $data_base_rec];
+        }
 
         /*
         Definição da Data Base
@@ -299,35 +385,41 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         FALSE   -  FALSE    - HJ 
         */
 
-        // se nao fo informada a data base. Se foi, tem que ser o q informou
-        if (empty($data_base))
+        foreach ($coberturas as $cob)
         {
-            if (!empty($cotacao_salva))
+            $data_inicio_vigencia  = emptyor($cob['data_inicio_vigencia'],  emptyor($cotacao_salva['data_inicio_vigencia'], null) );
+            $data_fim_vigencia     = emptyor($cob['data_fim_vigencia'],     emptyor($cotacao_salva['data_fim_vigencia'],    null) );
+            $nota_fiscal_data      = emptyor($cob['nota_fiscal_data'],      emptyor($cotacao_salva['nota_fiscal_data'],     null) );
+            $data_ad               = emptyor($cob['data_adesao'],           emptyor($cotacao_salva['data_adesao'],          null) );
+            $garantia_fabricante   = emptyor($cotacao_salva['garantia_fabricante'], 0);
+            $data_base             = $data_base_rec;
+
+            // se nao foi informada a data base. Se foi, tem que ser o q informou
+            if (empty($data_base))
             {
                 // trecho para manter o que foi enviado
-
-                if ($cotacao_salva["data_inicio_vigencia"] != "" && $cotacao_salva["data_inicio_vigencia"] != "0000-00-00")
+                if ( !empty($data_inicio_vigencia) && $data_inicio_vigencia != "0000-00-00")
                 {
-                    $data_base = $data_adesao = $cotacao_salva["data_inicio_vigencia"];
+                    $data_base = $data_adesao = $data_inicio_vigencia;
                     $apolice_vigencia_regra = false;
                 } else {
                     $apolice_vigencia_regra = true;
                 }
 
-                if ($cotacao_salva["nota_fiscal_data"] != "" && $cotacao_salva["nota_fiscal_data"] != "0000-00-00")
+                if ( !empty($nota_fiscal_data) && $nota_fiscal_data != "0000-00-00")
                 {
-                    $data_adesao = $cotacao_salva["nota_fiscal_data"];
+                    $data_adesao = $nota_fiscal_data;
 
                     // se nao definiu com o inicio da vignecia, que é prioridade
                     if (empty($data_base))
                     {
-                        $data_base = $cotacao_salva["nota_fiscal_data"];
+                        $data_base = $nota_fiscal_data;
                     }
                 }
 
-                if ($cotacao_salva["data_fim_vigencia"] != "" && $cotacao_salva["data_fim_vigencia"] != "0000-00-00")
+                if ( !empty($data_fim_vigencia) && $data_fim_vigencia != "0000-00-00")
                 {
-                    $date_fim_vig = $cotacao_salva["data_fim_vigencia"];
+                    $date_fim_vig = $data_fim_vigencia;
                 }
 
                 if ($config)
@@ -342,8 +434,8 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                         case "N": //Data da Nota Fiscal
                             $apolice_vigencia_regra = true;
 
-                            if ($cotacao_salva["nota_fiscal_data"] != "") {
-                                $data_base = $data_adesao = $cotacao_salva["nota_fiscal_data"];
+                            if ( !empty($nota_fiscal_data) && $nota_fiscal_data != "0000-00-00" ) {
+                                $data_base = $data_adesao = $nota_fiscal_data;
                             }
                             break;
 
@@ -359,99 +451,113 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                         $data_base = date("Y-m-d");
                     }
 
-                    if ($apolice_vigencia_regra)
-                    {
-                        switch ($config["apolice_vigencia_regra"])
-                        {
-                            case 'M':
-                                $d1 = new DateTime($data_base);
-                                $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
-                                $data_base = $d1->format('Y-m-d');
-                                break;
-                            default:
-                                break;
-                        }
-                    }
+                    // comentado pois a vigência deve ser a mesa da adesao
+                    // if ($apolice_vigencia_regra)
+                    // {
+                    //     switch ($config["apolice_vigencia_regra"])
+                    //     {
+                    //         case 'M':
+                    //             $d1 = new DateTime($data_base);
+                    //             $d1->add(new DateInterval('P1D')); // Início de Vigência: A partir das 24h do dia em que o produto foi adquirido
+                    //             $data_base = $d1->format('Y-m-d');
+                    //             break;
+                    //         default:
+                    //             break;
+                    //     }
+                    // }
+                }
+
+                // se depois de todas as validações, ainda não conseguiu definir a data base
+                if ( empty($data_base) )
+                {
+                    $data_base = date("Y-m-d");
                 }
 
             }
 
-            // se depois de todas as validações, ainda não conseguiu definir a data base
-            if ( empty($data_base) )
+            // se depois de todas as validações, ainda não conseguiu definir a data de adesão
+            if ( empty($data_adesao) )
             {
-                $data_base = date("Y-m-d");
+                $data_adesao = $data_base;
             }
 
-        }
-
-        // se depois de todas as validações, ainda não conseguiu definir a data de adesão
-        if ( empty($data_adesao) )
-        {
-            $data_adesao = $data_base;
-        }
-
-        // a adesão deve ser sempre o que foi enviado
-        if (!empty($cotacao_salva))
-        {
-            if (!empty($cotacao_salva["data_adesao"]) && $cotacao_salva["data_adesao"] != "0000-00-00") {
-                $data_adesao = $cotacao_salva["data_adesao"];
+            // a adesão deve ser sempre o que foi enviado
+            if (!empty($data_ad) && $data_ad != "0000-00-00") {
+                $data_adesao = $data_ad;
             }
-        }
 
-        $data_base = explode('-', $data_base);
+            $data_base = explode('-', $data_base);
 
-        if (($produto_parceiro_plano['unidade_tempo'] == 'MES')) {
-            $date_inicio = date('Y-m-d', mktime(0, 0, 0, $data_base[1] + $produto_parceiro_plano['inicio_vigencia'], $data_base[2], $data_base[0]));
-            $data_base2  = explode('-', $date_inicio);
-            $date_fim    = date('Y-m-d', mktime(0, 0, 0, $data_base2[1] + $produto_parceiro_plano['limite_vigencia'], $data_base2[2], $data_base2[0]));
-        } elseif ($produto_parceiro_plano['unidade_tempo'] == 'MES_A') {
+            // se nao informou a data inicio de vigencia e possui garantia do fabricante
+            if ( (empty($data_inicio_vigencia) || $data_inicio_vigencia == "0000-00-00") && !empty($garantia_fabricante) )
+            {
+                // GF sempre em meses
+                $data_base[1] += $garantia_fabricante;
+            }
 
-            // Adiciona os meses no INICIO da vigência
-            $d1 = new DateTime($data_base[2]."-".$data_base[1]."-".$data_base[0]);
-            $ini = (int)$produto_parceiro_plano['inicio_vigencia'];
-            $d1->add(new DateInterval("P{$ini}M"));
-            $date_inicio = $d1->format('Y-m-d');
-            $m = $d1->format('m');
+            if (($produto_parceiro_plano['unidade_tempo'] == 'MES')) {
+                $date_inicio = date('Y-m-d', mktime(0, 0, 0, $data_base[1] + $produto_parceiro_plano['inicio_vigencia'], $data_base[2], $data_base[0]));
+                $data_base2  = explode('-', $date_inicio);
+                $date_fim    = date('Y-m-d', mktime(0, 0, 0, $data_base2[1] + $produto_parceiro_plano['limite_vigencia'], $data_base2[2], $data_base2[0]));
+            } elseif ($produto_parceiro_plano['unidade_tempo'] == 'MES_A') {
 
-            // Adiciona os meses na FIM da vigência
-            $fim = (int)$produto_parceiro_plano['limite_vigencia'];
-            $date_fim = $d2 = $d1;
-            $d2->add(new DateInterval("P{$fim}M"));
-            $rem = 0;
+                // Adiciona os meses no INICIO da vigência
+                $d1 = new DateTime($data_base[2]."-".$data_base[1]."-".$data_base[0]);
+                $ini = (int)$produto_parceiro_plano['inicio_vigencia'];
+                $d1->add(new DateInterval("P{$ini}M"));
+                $date_inicio = $d1->format('Y-m-d');
+                $m = $d1->format('m');
 
-            // valida FEVEREIRO, onde o PHP add os meses com visão de dias
-            if ($d2->format('m') - $m != $fim) {
-                // volta para o último dia do mês
-                $rem = $d2->format('d');
-                $d2 = $d2->sub(new DateInterval("P{$rem}D"));
+                // Adiciona os meses na FIM da vigência
+                $fim = (int)$produto_parceiro_plano['limite_vigencia'];
+                $date_fim = $d2 = $d1;
+                $d2->add(new DateInterval("P{$fim}M"));
+                $rem = 0;
+
+                // valida FEVEREIRO, onde o PHP add os meses com visão de dias
+                if ($d2->format('m') - $m != $fim) {
+                    // volta para o último dia do mês
+                    $rem = $d2->format('d');
+                    $d2 = $d2->sub(new DateInterval("P{$rem}D"));
+                } else {
+                    // retira um dia (-1 dia)
+                    $date_fim = $d2->sub(new DateInterval("P1D"));
+                }
+
+                $date_fim = $date_fim->format('Y-m-d');
+
+            } elseif ($produto_parceiro_plano['unidade_tempo'] == 'ANO') {
+                $date_inicio = date('Y-m-d', mktime(0, 0, 0, $data_base[1], $data_base[2], $data_base[0] + $produto_parceiro_plano['inicio_vigencia']));
+                $data_base2  = explode('-', $date_inicio);
+                $date_fim    = date('Y-m-d', mktime(0, 0, 0, $data_base2[1], $data_base2[2], $data_base2[0] + $produto_parceiro_plano['limite_vigencia']));
             } else {
-                // retira um dia (-1 dia)
-                $date_fim = $d2->sub(new DateInterval("P1D"));
+                $date_inicio = date('Y-m-d', mktime(0, 0, 0, $data_base[1], $data_base[2] + $produto_parceiro_plano['inicio_vigencia'], $data_base[0]));
+                $data_base2  = explode('-', $date_inicio);
+                $date_fim    = date('Y-m-d', mktime(0, 0, 0, $data_base2[1], $data_base2[2] + $produto_parceiro_plano['limite_vigencia'], $data_base2[0]));
             }
 
-            $date_fim = $date_fim->format('Y-m-d');
+            // caso tenha uma data fim específica
+            if ( !empty($date_fim_vig) )
+            {
+                $date_fim = $date_fim_vig;
+            }
 
-        } elseif ($produto_parceiro_plano['unidade_tempo'] == 'ANO') {
-            $date_inicio = date('Y-m-d', mktime(0, 0, 0, $data_base[1], $data_base[2], $data_base[0] + $produto_parceiro_plano['inicio_vigencia']));
-            $data_base2  = explode('-', $date_inicio);
-            $date_fim    = date('Y-m-d', mktime(0, 0, 0, $data_base2[1], $data_base2[2], $data_base2[0] + $produto_parceiro_plano['limite_vigencia']));
-        } else {
-            $date_inicio = date('Y-m-d', mktime(0, 0, 0, $data_base[1], $data_base[2] + $produto_parceiro_plano['inicio_vigencia'], $data_base[0]));
-            $data_base2  = explode('-', $date_inicio);
-            $date_fim    = date('Y-m-d', mktime(0, 0, 0, $data_base2[1], $data_base2[2] + $produto_parceiro_plano['limite_vigencia'], $data_base2[0]));
-        }
+            // gera o resultado de cada cobertura
+            $result[] = [
+                'inicio_vigencia' => $date_inicio,
+                'fim_vigencia'    => $date_fim,
+                'dias'            => app_date_get_diff_mysql($date_inicio, $date_fim, 'D'),
+                'data_adesao'     => $data_adesao,
+            ];
 
-        // caso tenha uma data fim específica
-        if ( !empty($date_fim_vig) )
-        {
-            $date_fim = $date_fim_vig;
         }
 
         return array(
-            'inicio_vigencia' => $date_inicio,
-            'fim_vigencia'    => $date_fim,
-            'dias'            => app_date_get_diff_mysql($date_inicio, $date_fim, 'D'),
-            'data_adesao'     => $data_adesao,
+            'inicio_vigencia' => $result[0]['inicio_vigencia'],
+            'fim_vigencia'    => $result[0]['fim_vigencia'],
+            'dias'            => $result[0]['dias'],
+            'data_adesao'     => $result[0]['data_adesao'],
+            'coberturas'      => $result,    
         );
     }
 
@@ -459,6 +565,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
     {
 
         $date_inicio = $data_base;
+        $date_fim = null;
 
         $config = $this->with_produto_parceiro_configuracao($produto_parceiro_plano_id)->get_all();
         if ($config) {
@@ -540,7 +647,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         );
     }
 
-    public function verifica_tempo_limite_de_uso($produto_parceiro_id, $produto_parceiro_plano_id, $data)
+    public function verifica_tempo_limite_de_uso($produto_parceiro_id, $produto_parceiro_plano_id, $data, $data_inicio = NULL)
     {
 
         $result = $this->coreSelectPlanosProdutoParceiro($produto_parceiro_id, $produto_parceiro_plano_id)->get_all();
@@ -565,7 +672,8 @@ class Produto_Parceiro_Plano_Model extends MY_Model
                         break;
                 }
 
-                $d = app_date_get_diff($data, date('Y-m-d'), $base);
+                $data_inicio = emptyor($data_inicio, date('Y-m-d'));
+                $d = app_date_get_diff($data, $data_inicio, $base);
 
                 if ($d > $result['limite_tempo']) {
                     return "O plano {$result['nome']} requer que o Equipamento tenha um prazo máximo de uso de {$result['limite_tempo']} {$desc}";
@@ -576,6 +684,82 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         }
 
         return null;
+    }
+
+    public function valida_data_nascimento($produto_parceiro_id, $produto_parceiro_plano_id, $data_nascimento, $data_adesao)
+    {
+        $result['status'] = true;
+        $result['mensagem'] = 'OK';
+
+        $rProdutoPlanoParceiro = $this->coreSelectPlanosProdutoParceiro($produto_parceiro_id, $produto_parceiro_plano_id)->get_all();
+        if(!empty($rProdutoPlanoParceiro[0]['idade_minima']) || !empty($rProdutoPlanoParceiro[0]['idade_maxima'])){
+            $diffAgeLimit = app_date_get_diff_dias(app_dateonly_mysql_to_mask($data_nascimento), app_dateonly_mysql_to_mask($data_adesao), 'Y');
+
+            $MinAgeBlock = $rProdutoPlanoParceiro[0]['idade_minima'];
+            $MaxAgeBlock = $rProdutoPlanoParceiro[0]['idade_maxima'];
+            
+            if(!empty($MinAgeBlock) && !empty($MaxAgeBlock)){
+                if($diffAgeLimit < $MinAgeBlock || $diffAgeLimit > $MaxAgeBlock){
+                    $result  = array(
+                        'status' => false,
+                        'mensagem' => 'O beneficiário deve ter entre '.$MinAgeBlock.' e '.$MaxAgeBlock.' anos.',
+                    );
+                }
+            }
+            elseif(!empty($MinAgeBlock)){
+                if($diffAgeLimit < $MinAgeBlock){
+                    $result  = array(
+                        'status' => false,
+                        'mensagem' => 'O beneficiário deve ter no mínimo '.$MinAgeBlock.' anos.',
+                    );
+                }
+            }
+            elseif(!empty($MaxAgeBlock)){
+                if($diffAgeLimit > $MaxAgeBlock){
+                    $result  = array(
+                        'status' => false,
+                        'mensagem' => 'O beneficiário deve ter no máximo '.$MaxAgeBlock.' anos.',
+                    );
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    public function PlanosHabilitados($parceiro_id, $produto_parceiro_id, $slug_plano = null)
+    {
+        $this->load->model( "produto_parceiro_plano_destino_model", "produto_parceiro_plano_destino" );
+        $this->load->model( "produto_parceiro_plano_origem_model", "produto_parceiro_plano_origem" );
+
+        $planos = $this
+            ->wtih_plano_habilitado($parceiro_id)
+            ->coreSelectPlanosProdutoParceiro($produto_parceiro_id);
+
+        if ( !empty($slug_plano) )
+        {
+            $planos = $planos->filter_by_slug($slug_plano);
+        }
+
+        $planos = $planos->get_all_select();
+
+        $i = 0; 
+        foreach ($planos as $plano)
+        {
+            $origens = $this->produto_parceiro_plano_origem->coreSelectLocalidadeProdutoParceiro($plano["produto_parceiro_plano_id"])->get_all_select();
+            if( $origens )
+            {
+                $planos[$i]["origens"] = $origens;
+            }
+            $destinos = $this->produto_parceiro_plano_destino->coreSelectLocalidadeProdutoParceiro($plano["produto_parceiro_plano_id"])->get_all_select();
+            if( $destinos )
+            {
+                $planos[$i]["destinos"] = $destinos;
+            }
+            $i++;
+        }
+
+        return $planos;
     }
 
 }

@@ -80,11 +80,16 @@ Class Comissao_Gerada_Model extends MY_Model {
 
     }
 
-    public function gerar_comissao_parceiro_relacionamento(){
+    public function gerar_comissao_parceiro_relacionamento($pedido_id = null){
 
         //busca vendas que não foram contabilziadas ainda
         $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
         $this->load->model('comissao_classe_model', 'comissao_classe');
+
+        $sql_pedido_id = "";
+        if($pedido_id){
+            $sql_pedido_id = "AND pedido.pedido_id = $pedido_id";
+        }
 
         $sql = "SELECT 
                 cotacao.cotacao_id,
@@ -108,6 +113,7 @@ Class Comissao_Gerada_Model extends MY_Model {
             INNER JOIN parceiro ON parceiro_relacionamento_produto.parceiro_id = parceiro.parceiro_id
             LEFT JOIN comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.deletado = 0 
             WHERE pedido.pedido_status_id IN (3,8,5) 
+                $sql_pedido_id
                 AND cotacao.deletado = 0
                 AND pedido.deletado = 0
                 AND comissao_gerada.pedido_id IS NULL
@@ -150,6 +156,13 @@ Class Comissao_Gerada_Model extends MY_Model {
         }
 
         $comissao_venda =  ($comissao_premio/100) * $premio_liquido_total;
+
+        if(($parceiro['parceiro_id'] == 72 || $parceiro['parceiro_id'] == 76)){
+            if(!empty($item['comissao_premio']) && $item['comissao_premio'] < 0){
+                $comissao_venda = 0.010;
+                $comissao_premio = 0.000;
+            }
+        }
 
         $data_comissao = array();
         $data_comissao['comissao_classe_id']    = $comissao_classe['comissao_classe_id'];
@@ -204,10 +217,26 @@ Class Comissao_Gerada_Model extends MY_Model {
         $this->with_simple_relation_foreign('pedido', 'pedido_', 'pedido_id', 'pedido_id', $fields );
         return $this;
     }
+
     function with_parceiro($fields = array('nome_fantasia'))
     {
         $this->with_simple_relation_foreign('parceiro', 'parceiro_', 'parceiro_id', 'parceiro_id', $fields );
         return $this;
+    }
+
+    public function getByParceiroId($pedido_id, $parceiroId = null, $tipo = [])
+    {
+        $this->db->select("parceiro_tipo.nome AS tipo_parceiro, parceiro_tipo.codigo_interno AS tipo_parceiro_slug, ");
+        $this->db->join("parceiro_tipo", "parceiro_tipo.parceiro_tipo_id = {$this->_table}.parceiro_tipo_id", "join");
+        $this->db->where("{$this->_table}.pedido_id", $pedido_id);
+        if(!empty($parceiroId)){
+            $this->db->where("{$this->_table}.parceiro_id", $parceiroId);
+        }
+        if(!empty($tipo)){
+            $this->db->where_in("{$this->_table}.parceiro_tipo_id", $tipo);
+        }
+        $this->db->where("{$this->_table}.deletado", 0);
+        return $this->get_all();
     }
 
 }

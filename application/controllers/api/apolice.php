@@ -102,20 +102,48 @@ class Apolice extends CI_Controller {
         die( json_encode( $this->retornaProdutoApolices($_POST), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
-    public function retornaApolices($GET = []) {                
-        $pedidos = $this->filtraPedidos($GET);                        
-        
-        if (!empty($pedidos['status'])) {
-      
+    public function retornaApolices($GET = []) {
 
-            $pedidos = $pedidos['pedidos']->get_all();                    
-            
+        $pedidos = $this->filtraPedidos($GET);
+
+        if (!empty($pedidos['status'])) {
+            if(!empty($GET["dias_atras"])){
+                $limit = (int)$GET["limit"];
+                $offset = $limit * (int)$GET['page'];
+                if($limit > 1000){
+                    return array( "status" => false, "message" => "Limite máximo de paginação: 1000" );
+                }
+                $pedidos = $pedidos['pedidos']->limit($limit, $offset)->get_all();
+            }
+            else{
+                $pedidos = $pedidos['pedidos']->get_all();
+            }
+
             if($pedidos) {
                 $resposta = [];
                 foreach ($pedidos as $pedido) {
+
                     //Monta resposta da apólice
                     $apolice = $this->apolice->getApolicePedido($pedido["pedido_id"]);
                     $apolice[0]["inadimplente"] = ($this->pedido->isInadimplente( $pedido["pedido_id"] ) === false ) ? 0 : 1;
+
+                    $this->load->model('Comissao_gerada_model', 'comissao_gerada');
+
+                    $aComissaoGerada = $this->comissao_gerada->getByParceiroId($pedido["pedido_id"], null, array('3','2'));
+
+                    if(sizeof($aComissaoGerada))
+                    {
+                        foreach ($aComissaoGerada as $iComissaoGerada => $vComissaoGerada)
+                        {
+                            $data_template[$iComissaoGerada]["tipo_id"] = $vComissaoGerada["parceiro_tipo_id"];
+                            $data_template[$iComissaoGerada]["nome"] = strtoupper($vComissaoGerada["tipo_parceiro"]);
+                            $data_template[$iComissaoGerada]["slug"] = $vComissaoGerada["tipo_parceiro_slug"];
+                            $data_template[$iComissaoGerada]["percentual"] = number_format((float)$vComissaoGerada["comissao"], 4, '.' , '');
+                            $data_template[$iComissaoGerada]["valor"] = number_format((float)$vComissaoGerada["valor"], 2, '.' , '');
+                        }
+
+                        $pedido["comissao"] = $data_template;
+                    }
 
                     $faturas = $this->fatura->filterByPedido($pedido["pedido_id"])
                     ->with_fatura_status()
@@ -123,7 +151,8 @@ class Apolice extends CI_Controller {
                     ->order_by("data_processamento")
                     ->get_all();
 
-                    foreach ($faturas as $index => $fatura) {
+                    foreach ($faturas as $index => $fatura)
+                    {
                         $faturas[$index]["parcelas"] = $this->fatura_parcela->with_fatura_status()
                             ->filterByFatura($fatura["fatura_id"])
                             ->order_by("num_parcela")
@@ -133,7 +162,7 @@ class Apolice extends CI_Controller {
                     $resposta[] = array(
                         "apolice" => api_retira_timestamps($apolice),
                         "faturas" => api_retira_timestamps($faturas),
-                        "pedido" => api_retira_timestamps($pedido),
+                        "pedido" => api_retira_timestamps($pedido)
                     );
                 }
 
@@ -190,9 +219,14 @@ class Apolice extends CI_Controller {
                 $produto_id = $GET["produto_id"];
             }
 
+            $days_ago = null;
+            if( isset( $GET["dias_atras"] ) ) {
+                $days_ago = $GET["dias_atras"];
+            }
+
             $apolice_status = null;
             if( isset( $GET["apolice_status"] ) ) {
-                $apolice_status = $GET["apolice_status"];                
+                $apolice_status = $GET["apolice_status"];
             }
     
             $data_fim = null;
@@ -216,8 +250,9 @@ class Apolice extends CI_Controller {
             $params["apolice_status"] = $apolice_status;
             $params["data_inicio"] = $data_inicio;
             $params["data_fim"] = $data_fim;
+            $params["days_ago"] = $days_ago;
     
-            if($apolice_id || $num_apolice || $documento || $pedido_id || $apolice_status) {            
+            if($apolice_id || $num_apolice || $documento || $pedido_id || $apolice_status || $days_ago || $data_inicio || $data_fim) {
                 $pedidos = $this->pedido
                 ->with_pedido_status()
                 // ->with_apolice()
@@ -253,9 +288,10 @@ class Apolice extends CI_Controller {
                 }
                 $apolice_id = $PUT["apolice_id"];
                 $num_apolice = $PUT["num_apolice"];
+                $num_apolice_cliente = !empty($PUT["num_apolice_cliente"])? $PUT["num_apolice_cliente"]: null;
 
                 // atualiza o numero do bilhete
-                $ret = $this->apolice->updateBilhete( $apolice_id, $num_apolice );
+                $ret = $this->apolice->updateBilhete( $apolice_id, $num_apolice, $num_apolice_cliente);
                 die( json_encode( $ret, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
             } else {
                 die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
@@ -286,36 +322,59 @@ class Apolice extends CI_Controller {
             $POST = $this->getDados();
         }
 
-        $apolice_id = null;
-        if( isset( $POST["apolice_id"] ) ) {
-            $apolice_id = $POST["apolice_id"];
-            $params["apolice_id"] = $apolice_id;
-        } else {
-            die( json_encode( array( "status" => false, "message" => "Campo apolice_id é obrigatório" ) ) );
-        }
-
         $this->load->model("pedido_model", "pedido");
+        $this->load->model("apolice_model", "apolice");
 
-        $pedido = $this->pedido->with_apolice()->filter_by_apolice($apolice_id)->get_all();
+        try {
 
-        if(!$pedido) {
-            die( json_encode( array( "status" => false, "message" => "Apólice não encontrada" ) ) );
+            $apolice_id = null;
+
+            if (isset($POST["apolice_id"])) {
+                $apolice_id = $POST["apolice_id"];
+            } else if (isset($POST["num_apolice"])) {
+
+                $apolice = $this->apolice->get_by(array("num_apolice" => $POST["num_apolice"], "deletado" => 0));
+                
+                if (!empty($apolice)) {
+                    $apolice_id = $apolice["apolice_id"];
+                } else {
+                    throw new Exception("Apólice não encontrada para o num_apolice: ".$POST["num_apolice"]);
+                }
+                
+            } else {
+                throw new Exception("É obrigatório um dos campos: apolice_id ou num_apolice");
+            }
+
+            $pedido = $this->pedido->with_apolice()->filter_by_apolice($apolice_id)->get_all();
+            if(!$pedido) {
+                throw new Exception("Apólice não encontrada");                
+            }
+
+            return [ 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
+
+        } catch (Exception $ex) {
+            die( json_encode( array( "status" => false, "message" => $ex->getMessage() ) ) );
         }
 
-        return [ 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
+        
+    }
+
+    private function __validarDadosEntrada($POST = []){
+        return $this->validarDadosEntrada($POST);
     }
 
     public function cancelar() {
         
         $this->checkKey();
 
-        $validacao = $this->validarDadosEntrada();
+        $validacao = $this->__validarDadosEntrada();
         $pedido_id = $validacao['pedido_id'];
         $dados_bancarios = !empty($validacao['dados']['dados_bancarios']) ? $validacao['dados']['dados_bancarios'] : [];
         $define_date = !empty($validacao['dados']["define_date"]) ? $validacao['dados']["define_date"] : date("Y-m-d H:i:s") ;
+        $tipo_motivo = emptyor($validacao['dados']["tipo_motivo"], 'C');
 
         //pega as configurações de cancelamento do pedido
-        $produto_parceiro_cancelamento = $this->pedido->cancelamento( $pedido_id, $dados_bancarios, $define_date);
+        $produto_parceiro_cancelamento = $this->pedido->cancelamento( $pedido_id, $dados_bancarios, $define_date, 'C', $tipo_motivo);
 
         if( isset( $produto_parceiro_cancelamento["result"] ) && $produto_parceiro_cancelamento["result"] == false ) {
             die( json_encode( array( "status" => false, "message" => $produto_parceiro_cancelamento["mensagem"] ) ) );
@@ -328,7 +387,7 @@ class Apolice extends CI_Controller {
     public function calculoCancelar() {
         $this->checkKey();
 
-        $validacao = $this->validarDadosEntrada();
+        $validacao = $this->__validarDadosEntrada();
 
         $pedido_id = $validacao['pedido_id'];
         $define_date = !empty($validacao['dados']["define_date"]) ? $validacao['dados']["define_date"] : date("Y-m-d H:i:s") ;

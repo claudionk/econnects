@@ -246,6 +246,18 @@ Class Cotacao_Generico_Model extends MY_Model
             'rules' => '',
             'groups' => 'default'
         ),
+        array(
+            'field' => 'mei',
+            'label' => 'Empresa é MEI',
+            'rules' => '',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'garantia_fabricante',
+            'label' => 'garantia_fabricante',
+            'rules' => '',
+            'groups' => 'default'
+        ),
     );
 
 
@@ -273,6 +285,11 @@ Class Cotacao_Generico_Model extends MY_Model
         $this->load->model('cotacao_generico_cobertura_model', 'cotacao_generico_cobertura');
         $this->load->model('produto_parceiro_regra_preco_model', 'produto_parceiro_regra_preco');
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
+        $this->load->model('cotacao_saude_faixa_etaria_model', 'faixa_etaria');
+        $this->load->model('apolice_model', 'apolice');
+        $this->load->model('parceiro_model', 'parceiro');
+        $this->load->model('produto_parceiro_model', 'produto_parceiro');
+        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
 
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $carrossel = $this->session->userdata("carrossel_{$produto_parceiro_id}");
@@ -310,7 +327,10 @@ Class Cotacao_Generico_Model extends MY_Model
         }
 
         //faz o Insert ou UPdate do Cliente
-        $cliente = $this->cliente->cotacao_insert_update($cotacao);
+        if ( !empty($cotacao['cnpj_cpf']) )
+        {
+            $cliente = $this->cliente->cotacao_insert_update($cotacao);
+        }
 
         if($cotacao_id){
             $dt_cotacao = array();
@@ -336,7 +356,6 @@ Class Cotacao_Generico_Model extends MY_Model
         if(isset($carrossel['plano'])) {
 
             $planos = explode(';', $carrossel['plano']);
-
             $valores = explode(';', $carrossel['valor']);
             $comissao_repasse = explode(';', $carrossel['comissao_repasse']);
             $desconto_condicional = explode(';', $carrossel['desconto_condicional']);
@@ -378,9 +397,12 @@ Class Cotacao_Generico_Model extends MY_Model
         }
 
         $data_cotacao = array_merge( $cotacao, $data_cotacao );
+        $faixa_etaria = emptyor($data_cotacao["faixa_etaria"], []);
         unset( $data_cotacao["parceiro_id"] );
         unset( $data_cotacao["usuario_cotacao_id"] );
         unset( $data_cotacao["url_busca_cliente"] );
+        unset( $data_cotacao["faixa_etaria"] );
+        unset( $data_cotacao["beneficiarios"] );
 
         if(isset($cotacao['produto_parceiro_plano_id'])){
             $data_cotacao['produto_parceiro_plano_id'] = $cotacao['produto_parceiro_plano_id'];
@@ -406,7 +428,7 @@ Class Cotacao_Generico_Model extends MY_Model
         }
 
         if(isset($cotacao['cnpj_cpf'])){
-            $data_cotacao['cnpj_cpf'] = app_retorna_numeros($cotacao['cnpj_cpf']);
+            $data_cotacao['cnpj_cpf'] = app_completa_cpf_cnpj($cotacao['cnpj_cpf']);
         }
 
         if(isset($cotacao['rg'])){
@@ -415,6 +437,10 @@ Class Cotacao_Generico_Model extends MY_Model
 
         if(isset($cotacao['data_nascimento'])){
             $data_cotacao['data_nascimento'] =  app_dateonly_mask_to_mysql($cotacao['data_nascimento']);
+        }
+
+        if(isset($cotacao['garantia_fabricante'])){
+            $data_cotacao['garantia_fabricante'] =  app_dateonly_mask_to_mysql($cotacao['garantia_fabricante']);
         }
 
         if(isset($cotacao['endereco_cep'])){
@@ -509,6 +535,10 @@ Class Cotacao_Generico_Model extends MY_Model
             $data_cotacao['aux_10'] = $cotacao['aux_10'];
         }
 
+        if(isset($cotacao['mei'])){
+            $data_cotacao['mei'] = $cotacao['mei'];
+        }
+
         if( isset( $cotacao["data_inicio_vigencia"] ) ) {
             $data_cotacao["data_inicio_vigencia"] = app_dateonly_mask_to_mysql($cotacao["data_inicio_vigencia"]);
         }
@@ -522,12 +552,34 @@ Class Cotacao_Generico_Model extends MY_Model
             $cotacao_generico_id = $cotacao_salva['cotacao_generico_id'];
             $this->update($cotacao_salva['cotacao_generico_id'], $data_cotacao, TRUE);
         }else{
+            
+            $parceiro_id = issetor( $cotacao["parceiro_id"], $this->session->userdata("parceiro_id") );
+            $parceiro = $this->parceiro->get($parceiro_id);
+            $produto_parceiro = $this->produto_parceiro->get($produto_parceiro_id);
+
+            $data_template = [
+                'sigla_loja'   => $parceiro['slug'],
+                'cod_sucursal' => $produto_parceiro['cod_sucursal'],
+                'cod_ramo'     => $produto_parceiro['cod_ramo'],
+                'cod_operacao' => $produto_parceiro['cod_tpa'],
+                'ano_AA'       => date('y'),
+                'ano_AAAA'     => date('Y'),
+                'mes_MM'       => date('m'),
+            ];
+
+            if ( !empty($data_cotacao['produto_parceiro_plano_id']) )
+            {
+                $plano = $this->produto_parceiro_plano->get($data_cotacao['produto_parceiro_plano_id']);
+                $data_template['cod_produto'] = $plano['codigo_operadora'];
+            }
+
             //salva cotacão
             $dt_cotacao = array();
-            $dt_cotacao['cliente_id'] = $cliente['cliente_id'];
+            $dt_cotacao['cliente_id'] = emptyor($cliente['cliente_id'], NULL);
             $dt_cotacao['codigo'] = $this->cotacao_codigo->get_codigo_cotacao_formatado('BE');
             $dt_cotacao['cotacao_tipo'] = 'ONLINE';
-            $dt_cotacao['parceiro_id'] = ( isset( $cotacao["parceiro_id"]) ? $cotacao["parceiro_id"] : $this->session->userdata("parceiro_id") );
+            $dt_cotacao['numero_apolice'] = $this->apolice->defineNumApolice($produto_parceiro_id, 'cotacao', null, $data_template);
+            $dt_cotacao['parceiro_id'] = $parceiro_id;
             $dt_cotacao['usuario_venda_id'] = 0;
             $dt_cotacao['cotacao_status_id'] = 1;
             $dt_cotacao['alteracao_usuario_id'] = $this->session->userdata('usuario_id');
@@ -545,6 +597,29 @@ Class Cotacao_Generico_Model extends MY_Model
             $cotacao_id = $this->cotacao->insert($dt_cotacao, TRUE);
             $data_cotacao['cotacao_id'] = $cotacao_id;
             $cotacao_generico_id = $this->insert($data_cotacao, TRUE);
+        }
+
+        if ( !empty($faixa_etaria) )
+        {
+            $rows = [];
+            foreach ($faixa_etaria as $key => $value)
+            {
+                $dadosKey = explode("_", $key);
+                if ( !empty($value) )
+                {
+                    $rows[] = [
+                        'inicio' => $dadosKey[0],
+                        'fim' => $dadosKey[1],
+                        'quantidade' => $value,
+                    ];
+                }
+            }
+
+            if ( !empty($rows) )
+            {
+                $this->faixa_etaria->atualiza_faixa_etaria($rows, $cotacao_id);
+            }
+
         }
 
         if ( !empty($coberturas_adicionais) )
@@ -619,6 +694,17 @@ Class Cotacao_Generico_Model extends MY_Model
     }
 
     /**
+     * Filtro Pelo Tipo de Segurado
+     * @param $cotacao_id
+     * @return $this
+     */
+    function filterByTipoSegurado($tipo_segurado = 'T'){
+        $this->_database->where("cotacao_generico.tipo_segurado", $tipo_segurado);
+        $this->_database->where("cotacao_generico.deletado", 0);
+        return $this;
+    }
+
+    /**
      * Busca o Valor Total da compra
      * @param $cotacao_id
      * @return int
@@ -634,4 +720,25 @@ Class Cotacao_Generico_Model extends MY_Model
         return $valor;
     }
 
+    /**
+     * Remove os beneficiários da Cotação deixando apenas o Titular
+     * @param $cotacao_id
+     * @return int
+     */
+    public function remove_beneficiarios($cotacao_id)
+    {
+        $cotacoes = $this->filterByCotacao($cotacao_id)->get_all();
+        foreach ($cotacoes as $cot)
+        {
+            if ( $cot['tipo_segurado'] != 'T')
+            {
+                $this->delete($cot['cotacao_generico_id']);
+            }
+        }
+    }
+
+    public function updateEmailByCotacaoId($cotacaoId, $email){
+        $SQL = "UPDATE {$this->_table} SET email = '$email' WHERE cotacao_id = $cotacaoId";
+        $this->_database->query($SQL);
+    }
 }

@@ -37,6 +37,12 @@ Class Produto_Parceiro_Apolice_Model extends MY_Model
             'label' => 'Template',
             'rules' => 'required',
             'groups' => 'default'
+        ),
+        array(
+            'field' => 'template_coberturas',
+            'label' => 'Template das Coberturas',
+            'rules' => '',
+            'groups' => 'default'
         )
     );
 
@@ -49,22 +55,20 @@ Class Produto_Parceiro_Apolice_Model extends MY_Model
             'nome' => $this->input->post('nome'),
             'slug' => $this->input->post('slug'),
             'template' => $this->input->post('template'),
-
+            'template_coberturas' => $this->input->post('template_coberturas'),
         );
         return $data;
     }
+
     function get_by_id($id)
     {
         return $this->get($id);
     }
 
-
-    function  filter_by_produto_parceiro($produto_parceiro_id){
-
+    function  filter_by_produto_parceiro($produto_parceiro_id)
+    {
         $this->_database->where('produto_parceiro_id', $produto_parceiro_id);
-
         return $this;
     }
-
 
 }

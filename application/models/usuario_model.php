@@ -499,15 +499,24 @@ Class Usuario_Model extends MY_Model {
   }
 
 
-  function update_termo($usuario_id){
+  function update_termo($usuario_id, $senha = null, $ajax = null){
 
     $dados_usuario = array();
     $dados_usuario['termo_aceite'] = 1;
     $dados_usuario['termo_aceite_data'] = date('Y-m-d H:i:s');
     $dados_usuario['termo_aceite_ip'] = $this->input->ip_address();
+    if($senha){
+      $dados_usuario['senha'] = MD5($this->salt.$senha);
+    }
+    
     $this->update($usuario_id, $dados_usuario, TRUE);
     $this->session->set_userdata('termo_aceite', 1);
-    redirect('admin/home');
+    if($ajax){
+      return true;
+    }else{
+      redirect('admin/home');
+    }
+    
 
   }
 
@@ -520,7 +529,7 @@ Class Usuario_Model extends MY_Model {
 
   function  filter_by_parceiro($parceiro_id){
 
-    $this->_database->where('parceiro_id', $parceiro_id);
+    $this->_database->where($this->_table.'.parceiro_id', $parceiro_id);
 
     return $this;
   }

@@ -51,11 +51,12 @@ Class Integracao_Log_Model extends MY_Model
 
     function get_next_sequencia($integracao_id)
     {
-        $this->_database->select('MAX(integracao_log.sequencia) as seq');
-        $this->_database->where("integracao_log.integracao_id", $integracao_id);
-        $result = $this->get_all();
+        $result = $this->_database->query("select ifnull(max(integracao_log.sequencia),0) as seq
+                                             from integracao_log
+                                            where integracao_log.integracao_id = $integracao_id
+                                              and integracao_log.integracao_log_id in (select max(integracao_log_id) from integracao_log where integracao_log.integracao_id = $integracao_id and integracao_log.deletado = 0)
+                                ")->result_array();
         $result = (int)$result[0]['seq'] + 1;
-
         return $result;
     }
 
@@ -63,6 +64,25 @@ Class Integracao_Log_Model extends MY_Model
     {
         $this->_database->where("integracao_log.integracao_id", $integracao_id);
         return $this;
+    }
+
+    function get_file_by_apolice_sequencia($num_apolice, $sequencia)
+    {
+        $result = $this->_database->query("SELECT l.* 
+            FROM integracao i 
+            JOIN integracao_log l ON i.integracao_id = l.integracao_id AND l.deletado = 0 
+            WHERE i.cod_tpa IN(
+                SELECT produto_parceiro.cod_tpa 
+                FROM pedido
+                INNER JOIN apolice ON apolice.pedido_id = pedido.pedido_id AND apolice.deletado = 0 AND apolice.num_apolice = '$num_apolice'
+                INNER JOIN cotacao ON cotacao.cotacao_id = pedido.cotacao_id AND cotacao.deletado = 0
+                INNER JOIN produto_parceiro ON produto_parceiro.produto_parceiro_id = cotacao.produto_parceiro_id
+                WHERE pedido.deletado = 0
+            ) 
+            AND i.tipo = 'S'
+            AND l.sequencia = $sequencia
+        ")->result_array();
+        return emptyor($result[0], []);
     }
 
     function filter_by_file($file)
@@ -80,6 +100,42 @@ Class Integracao_Log_Model extends MY_Model
     {
         $q = $this->_database->query("SELECT * FROM _CTA_reprocess_retorno WHERE integracao_id = $integracao_id")->result_array();
         return $q;
+    }
+
+    function get_sequencia_by_cod_prod($integracao_id, $cod_produto)
+    {
+        $this->_database->select("COUNT(`integracao_log`.`integracao_id`) AS seq");
+        $this->_database->join("integracao_log_status", "{$this->_table}.integracao_log_status_id = integracao_log_status.integracao_log_status_id");
+        $this->_database->where("{$this->_table}.integracao_id", $integracao_id);
+        $this->_database->where("{$this->_table}.retorno", $cod_produto);
+        $this->_database->where("integracao_log_status.slug", "S");
+        $result = $this->get_all();
+        $seq = emptyor($result[0]['seq'], 0);
+        $result = (int)$seq + 1;
+        return $result;
+    }
+
+    function isArquivoProcessado($isArquivoProcessado){
+
+        $isArquivoProcessado        = (object) $isArquivoProcessado;
+        $integracao_log_status_id   = $isArquivoProcessado->integracao_log_status_id;
+        $integracao_id              = $isArquivoProcessado->integracao_id;
+        $nome_arquivo               = $isArquivoProcessado->nome_arquivo;
+
+        $SQL = "SELECT 
+            integracao_log_id 
+        FROM 
+            integracao_log AS il
+        WHERE 
+            il.deletado = 0             
+            AND il.processamento_fim IS NOT NULL
+            AND il.integracao_log_status_id = $integracao_log_status_id
+            AND il.integracao_id = $integracao_id
+            AND il.nome_arquivo = '$nome_arquivo'";
+
+        $query = $this->_database->query($SQL);
+        return ($query->num_rows() > 0);
+
     }
 
 }

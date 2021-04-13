@@ -71,7 +71,7 @@ Class Cotacao_Model extends MY_Model
             case 'equipamento':
                 $cotacao = $this->with_produto_parceiro()->with_cotacao_equipamento()->get($cotacao_id);
                 break;
-            case 'generico':
+            default:
                 $cotacao = $this->with_produto_parceiro()->with_cotacao_generico()->get($cotacao_id);
                 break;
         }
@@ -204,6 +204,15 @@ Class Cotacao_Model extends MY_Model
         $this->_database->where("cotacao_seguro_viagem.deletado", 0);
         return $this;
     }
+
+    /**
+     * Filtra por Id da cotação de Equipamento
+     * @return $this
+     */
+    public function filter_by_cotacao_seguro_viagem_id( $cotacao_seguro_viagem_id ) {
+        $this->_database->where("cotacao_seguro_viagem.cotacao_seguro_viagem_id", $cotacao_seguro_viagem_id);
+        return $this;
+    }
   
     /**
      * Com cotação de generico
@@ -215,6 +224,15 @@ Class Cotacao_Model extends MY_Model
         $this->_database->where("cotacao_generico.deletado", 0);
         return $this;
     }
+
+    /**
+     * Filtra por Id da cotação Generico
+     * @return $this
+     */
+    public function filter_by_cotacao_generico_id( $cotacao_generico_id ) {
+        $this->_database->where("cotacao_generico.cotacao_generico_id", $cotacao_generico_id);
+        return $this;
+    }
   
     /**
      * Com cotação de Equipamento
@@ -224,6 +242,26 @@ Class Cotacao_Model extends MY_Model
         $this->_database->select('cotacao_equipamento.*');
         $this->_database->join('cotacao_equipamento', 'cotacao_equipamento.cotacao_id = cotacao.cotacao_id');
         $this->_database->where("cotacao_equipamento.deletado", 0);
+        return $this;
+    }
+
+    /**
+     * Filtra por Id da cotação de Equipamento
+     * @return $this
+     */
+    public function filter_by_cotacao_equipamento_id( $cotacao_equipamento_id ) {
+        $this->_database->where("cotacao_equipamento.cotacao_equipamento_id", $cotacao_equipamento_id);
+        return $this;
+    }
+
+    /**
+     * Com cotação de Equipamento
+     * @return $this
+     */
+    public function with_cotacao_equipamento_modelo() {
+        $this->_database->select('IFNULL(e.equipamento_sub_categoria_id, ee.equipamento_sub_categoria_id) equipamento_sub_categoria_id, IFNULL(e.equipamento_categoria_id, ee.equipamento_categoria_id) equipamento_categoria_id', false);
+        $this->_database->join('vw_Equipamentos e', "cotacao_equipamento.equipamento_id = e.equipamento_id AND {$this->_table}.lista_id = 1", 'left');
+        $this->_database->join('equipamentos_elegiveis ee', "cotacao_equipamento.equipamento_id = ee.equipamento_id AND {$this->_table}.lista_id = ee.lista_id", 'left');
         return $this;
     }
 
@@ -327,13 +365,18 @@ Class Cotacao_Model extends MY_Model
 
     public function with_cotacao_equipamento_equipamento()
     {
-        $this->_database->select('em.nome as equipamento_marca_nome');
-        $this->_database->select('el.nome as equipamento_categoria_nome');
-        $this->_database->select('esc.nome as equipamento_sub_categoria_nome');
+        $this->_database->select('IFNULL(em.nome, eem.nome) as equipamento_marca_nome', false);
+        $this->_database->select('IFNULL(el.nome, eel.nome) as equipamento_categoria_nome', false);
+        $this->_database->select('IFNULL(esc.nome, eesc.nome) as equipamento_sub_categoria_nome', false);
 
-        $this->_database->join('vw_Equipamentos_Marcas em', 'cotacao_equipamento.equipamento_marca_id = em.equipamento_marca_id', 'left');
-        $this->_database->join('vw_Equipamentos_Linhas el', 'cotacao_equipamento.equipamento_categoria_id = el.equipamento_categoria_id', 'left');
-        $this->_database->join('vw_Equipamentos_Linhas esc', 'cotacao_equipamento.equipamento_sub_categoria_id = esc.equipamento_categoria_id', 'left');
+        $this->_database->join('vw_Equipamentos_Marcas em', "cotacao_equipamento.equipamento_marca_id = em.equipamento_marca_id AND {$this->_table}.lista_id = 1", 'left');
+        $this->_database->join('vw_Equipamentos_Linhas el', "cotacao_equipamento.equipamento_categoria_id = el.equipamento_categoria_id AND {$this->_table}.lista_id = 1", 'left');
+        $this->_database->join('vw_Equipamentos_Linhas esc', "cotacao_equipamento.equipamento_sub_categoria_id = esc.equipamento_categoria_id AND {$this->_table}.lista_id = 1", 'left');
+
+        $this->_database->join('equipamentos_elegiveis_marca eem', "cotacao_equipamento.equipamento_marca_id = eem.equipamento_marca_id AND {$this->_table}.lista_id = eem.lista_id", 'left');
+        $this->_database->join('equipamentos_elegiveis_categoria eel', "cotacao_equipamento.equipamento_categoria_id = eel.equipamento_categoria_id AND {$this->_table}.lista_id = eel.lista_id", 'left');
+        $this->_database->join('equipamentos_elegiveis_categoria eesc', "cotacao_equipamento.equipamento_sub_categoria_id = eesc.equipamento_categoria_id AND {$this->_table}.lista_id = eesc.lista_id", 'left');
+
         return $this;
     }
 
@@ -383,7 +426,8 @@ Class Cotacao_Model extends MY_Model
         $this->_database->where("cotacao.deletado", 0);
         $this->_database->where("cp.deletado", 0);
         $this->_database->where("c.deletado", 0);
-        $this->_database->where("c.slug", 'sorteio_mensal');
+        $this->_database->where_in('c.slug', ['capitalizacao_nro_sorte', 'sorteio_mensal'] );
+
         return !empty($this->get_total());
     }
 
@@ -545,6 +589,30 @@ Class Cotacao_Model extends MY_Model
             $this->processa_parceiros_permitidos("cotacao_filtro.parceiro_id");
         }*/
         return parent::get_total(); // TODO: Change the autogenerated stub
+    }
+
+    function getDadosNumApolice($cotacao_id)
+    {
+        $this->_database->select("parceiro.slug AS sigla_loja, produto_parceiro.cod_sucursal , produto_parceiro.cod_ramo, produto_parceiro.cod_tpa AS cod_operacao, produto_parceiro_plano.codigo_operadora AS cod_produto, DATE_FORMAT(NOW(), '%y') AS ano_AA, DATE_FORMAT(NOW(), '%Y') AS ano_AAAA, DATE_FORMAT(NOW(), '%m') AS mes_MM", FALSE);
+        $this->_database->from("{$this->_table} as cotacao");
+        $this->_database->join('parceiro', 'parceiro.parceiro_id = cotacao.parceiro_id');
+        $this->_database->join("(
+            SELECT cotacao_id, produto_parceiro_id, produto_parceiro_plano_id FROM cotacao_generico WHERE cotacao_id = {$cotacao_id}
+            UNION
+            SELECT cotacao_id, produto_parceiro_id, produto_parceiro_plano_id FROM cotacao_equipamento WHERE cotacao_id = {$cotacao_id}
+        ) cot_aux ", 'cotacao.cotacao_id = cot_aux.cotacao_id', 'left', FALSE);
+        $this->_database->join('produto_parceiro', 'cot_aux.produto_parceiro_id = produto_parceiro.produto_parceiro_id');
+        $this->_database->join('produto_parceiro_plano', 'cot_aux.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id');
+        $this->_database->where("cotacao.cotacao_id", $cotacao_id);
+        $query = $this->_database->get();
+        $resp = $result = [];
+
+        if( !empty($query->num_rows()) )
+        {
+            return $query->result_array();
+        }
+
+        return [];
     }
 
 }

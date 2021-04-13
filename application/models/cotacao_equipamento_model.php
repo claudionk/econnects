@@ -317,6 +317,10 @@ Class Cotacao_Equipamento_Model extends MY_Model
         $this->load->model('cotacao_equipamento_cobertura_model', 'cotacao_equipamento_cobertura');
         $this->load->model('produto_parceiro_regra_preco_model', 'produto_parceiro_regra_preco');
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
+        $this->load->model('apolice_model', 'apolice');
+        $this->load->model('parceiro_model', 'parceiro');
+        $this->load->model('produto_parceiro_model', 'produto_parceiro');
+        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
 
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $carrossel = $this->session->userdata("carrossel_{$produto_parceiro_id}");
@@ -430,6 +434,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
         unset( $data_cotacao["parceiro_id"] );
         unset( $data_cotacao["usuario_cotacao_id"] );
         unset( $data_cotacao["url_busca_cliente"] );
+        unset( $data_cotacao["lista_id"] );
 
         if(isset($cotacao['produto_parceiro_plano_id'])){
             $data_cotacao['produto_parceiro_plano_id'] = $cotacao['produto_parceiro_plano_id'];
@@ -470,7 +475,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
         }
 
         if(isset($cotacao['cnpj_cpf'])){
-            $data_cotacao['cnpj_cpf'] = app_retorna_numeros($cotacao['cnpj_cpf']);
+            $data_cotacao['cnpj_cpf'] = app_completa_cpf_cnpj($cotacao['cnpj_cpf']);
         }
 
         if(isset($cotacao['rg'])){
@@ -479,6 +484,10 @@ Class Cotacao_Equipamento_Model extends MY_Model
 
         if(isset($cotacao['data_nascimento'])){
             $data_cotacao['data_nascimento'] =  app_dateonly_mask_to_mysql($cotacao['data_nascimento']);
+        }
+        
+        if(isset($cotacao['garantia_fabricante'])){
+            $data_cotacao['garantia_fabricante'] =  app_dateonly_mask_to_mysql($cotacao['garantia_fabricante']);
         }
 
         if(isset($cotacao['nota_fiscal_data'])){
@@ -606,17 +615,38 @@ Class Cotacao_Equipamento_Model extends MY_Model
             $this->update($cotacao_salva['cotacao_equipamento_id'], $data_cotacao, TRUE);
             $cotacao_equipamento_id = $cotacao_salva['cotacao_equipamento_id'];
         } else {
+            $parceiro_id = issetor( $cotacao["parceiro_id"], $this->session->userdata("parceiro_id") );
+            $parceiro = $this->parceiro->get($parceiro_id);
+            $produto_parceiro = $this->produto_parceiro->get($produto_parceiro_id);
+
+            $data_template = [
+                'sigla_loja'   => $parceiro['slug'],
+                'cod_sucursal' => $produto_parceiro['cod_sucursal'],
+                'cod_ramo'     => $produto_parceiro['cod_ramo'],
+                'cod_operacao' => $produto_parceiro['cod_tpa'],
+                'ano_AA'       => date('y'),
+                'ano_AAAA'     => date('Y'),
+                'mes_MM'       => date('m'),
+            ];
+
+            if ( !empty($data_cotacao['produto_parceiro_plano_id']) )
+            {
+                $plano = $this->produto_parceiro_plano->get($data_cotacao['produto_parceiro_plano_id']);
+                $data_template['cod_produto'] = $plano['codigo_operadora'];
+            }
             //salva cotacão
             $dt_cotacao = array();
             $dt_cotacao['cliente_id'] = $cliente['cliente_id'];
             $dt_cotacao['codigo'] = $this->cotacao_codigo->get_codigo_cotacao_formatado('BE');
             $dt_cotacao['cotacao_tipo'] = 'ONLINE';
-            $dt_cotacao['parceiro_id'] = ( isset( $cotacao["parceiro_id"]) ? $cotacao["parceiro_id"] : $this->session->userdata("parceiro_id") );
+            $dt_cotacao['numero_apolice'] = $this->apolice->defineNumApolice($produto_parceiro_id, 'cotacao', null, $data_template);
+            $dt_cotacao['parceiro_id'] = $parceiro_id;
             $dt_cotacao['usuario_venda_id'] = 0;
             $dt_cotacao['cotacao_status_id'] = 1;
             $dt_cotacao['alteracao_usuario_id'] = $this->session->userdata('usuario_id');
             $dt_cotacao['produto_parceiro_id'] = $produto_parceiro_id;
             $dt_cotacao["usuario_cotacao_id"] = issetor($cotacao["usuario_cotacao_id"], $this->session->userdata('usuario_id'));
+            $dt_cotacao['lista_id'] = $produto_parceiro['lista_id'];
 
             if( isset( $data_cotacao["data_inicio_vigencia"] ) ) {
                 $dt_cotacao["data_inicio_vigencia"] = $data_cotacao["data_inicio_vigencia"];
@@ -684,7 +714,7 @@ Class Cotacao_Equipamento_Model extends MY_Model
       $cotacao = $cotacao[0];
       if ($cotacao['produto_parceiro_plano_id'] > 0){
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
-        return $this->produto_parceiro_plano->verifica_tempo_limite_de_uso($cotacao['produto_parceiro_id'], $cotacao['produto_parceiro_plano_id'], $cotacao['nota_fiscal_data']);
+        return $this->produto_parceiro_plano->verifica_tempo_limite_de_uso($cotacao['produto_parceiro_id'], $cotacao['produto_parceiro_plano_id'], $cotacao['nota_fiscal_data'], $cotacao['data_adesao']);
       }
     }
 
@@ -731,6 +761,11 @@ Class Cotacao_Equipamento_Model extends MY_Model
       $valor += $item['premio_liquido_total'];
     }
     return $valor;
+  }
+
+  public function updateEmailByCotacaoId($cotacaoId, $email){
+    $SQL = "UPDATE {$this->_table} SET email = '$email' WHERE cotacao_id = $cotacaoId";
+    $this->_database->query($SQL);
   }
 
 }

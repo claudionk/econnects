@@ -225,50 +225,30 @@ class Apolice_Model extends MY_Model
 
     public function concluiApolice($pedido, $apolice_id, $produto_parceiro_plano_id)
     {
-        $this->load->model('apolice_cobertura_model', 'apolice_cobertura');
+        $this->load->model('apolice_cobertura_model', 'apolice_cobertura');        
         $this->load->model('apolice_movimentacao_model', 'movimentacao');
+        $this->load->model('comissao_gerada_model', 'comissao_gerada');
 
         $pedido_id = $pedido['pedido_id'];
         $produto_parceiro_id = $pedido['produto_parceiro_id'];
         $cotacao_id = $pedido['cotacao_id'];
 
+        // Dados da Capitalização
         $this->insertCapitalizacao($produto_parceiro_id, $pedido_id);
 
+        // Dados das Coberturas. Nota: Precisa ser antes dos dados do Endosso
+        $this->apolice_cobertura->deleteByCotacao($cotacao_id);
+        $this->apolice_cobertura->geraDadosEmissao($cotacao_id, $pedido_id, $apolice_id, $produto_parceiro_plano_id);
+
+        // Dados da Movimentação e Endosso
         $this->movimentacao->insMovimentacao('A', $apolice_id, $pedido);
 
-        $this->apolice_cobertura->deleteByCotacao($cotacao_id);
-
-        $dados_bilhete = $this->defineDadosBilhete($produto_parceiro_plano_id);
-
-        $coberturas = $this->cotacao_cobertura
-            ->with_cobertura_plano()
-            ->filterByID($cotacao_id)
-            ->get_all();
-
-        foreach ($coberturas as $cobertura) {
-
-            $dados_apolice_cobertura = [
-                'cotacao_id'         => $cotacao_id,
-                'pedido_id'          => $pedido_id,
-                'apolice_id'         => $apolice_id,
-                'cobertura_plano_id' => $cobertura["cobertura_plano_id"],
-                'valor'              => $cobertura["valor"],
-                'iof'                => $cobertura["iof"],
-                'mostrar'            => $cobertura["mostrar"],
-                'valor_config'       => $cobertura['valor_config'],
-                'cod_cobertura'      => $cobertura['cod_cobertura'],
-                'cod_ramo'           => isempty($cobertura['cod_ramo'], $dados_bilhete['cod_ramo']),
-                'cod_produto'        => isempty($cobertura['cod_produto'], $dados_bilhete['cod_produto']),
-                'cod_sucursal'       => isempty($cobertura['cod_sucursal'], $dados_bilhete['cod_sucursal']),
-                'criacao'            => date("Y-m-d H:i:s"),
-            ];
-
-            $this->apolice_cobertura->insert($dados_apolice_cobertura, true);
-        }
+        //Gerar comissão (Ação incluida no processo de concluir apolice para evitar uso da Cron que estava sobrepondo as requisições)
+        $this->comissao_gerada->gerar_comissao_parceiro_relacionamento($pedido_id);
 
     }
 
-    public function updateBilhete( $apolice_id, $num_apolice ) {
+    public function updateBilhete( $apolice_id, $num_apolice, $num_apolice_cliente = null ) {
         // retorna os dados da apólice
         $result = $this->get($apolice_id);
 
@@ -293,12 +273,17 @@ class Apolice_Model extends MY_Model
         // Define o número da apólice do cliente
         $dados_bilhete                        = $this->defineDadosBilhete($result['produto_parceiro_plano_id']);
         $dados_apolice['num_apolice']         = $num_apolice;
-        $dados_apolice['num_apolice_cliente'] = $this->defineNumApoliceCliente([
-            'cod_tpa'       => $dados_bilhete['cod_tpa'],
-            'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
-            'cod_ramo'      => $dados_bilhete['cod_ramo'],
-            'num_apolice'   => $dados_apolice['num_apolice'],
-        ]);
+
+        if (empty($num_apolice_cliente)) {
+            $dados_apolice['num_apolice_cliente'] = $this->defineNumApoliceCliente([
+                'cod_tpa'       => $dados_bilhete['cod_tpa'],
+                'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
+                'cod_ramo'      => $dados_bilhete['cod_ramo'],
+                'num_apolice'   => $dados_apolice['num_apolice'],
+            ]);
+        } else {
+            $dados_apolice['num_apolice_cliente'] = $num_apolice_cliente;
+        }        
 
         // Atualiza o numero da apólice
         $this->update($apolice_id, $dados_apolice, true);
@@ -323,6 +308,8 @@ class Apolice_Model extends MY_Model
 
         $this->load->model('produto_parceiro_desconto_model', 'parceiro_desconto');
         $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
+        $this->load->model('produto_parceiro_comunicacao_model', 'produto_parceiro_comunicacao');
+        $this->load->model('comunicacao_evento_model', 'comunicacao_evento');
 
         $this->load->model("cliente_contato_model", "cliente_contato");
         $this->load->model('cliente_model', 'cliente');
@@ -367,7 +354,7 @@ class Apolice_Model extends MY_Model
             log_message('debug', 'UPDATE STATUS CLIENTE');
 
             $data_cliente                               = array();
-            $data_cliente['cliente_evolucao_status_id'] = 4;
+            $data_cliente['cliente_evolucao_status_id'] = 4; // Salva como CLIENTE
             $this->cliente->update($cotacao_salva['cliente_id'], $data_cliente, true);
 
             $dados_apolice                              = array();
@@ -383,7 +370,7 @@ class Apolice_Model extends MY_Model
             $dados_apolice['cod_sucursal']  = $dados_bilhete['cod_sucursal'];
 
             // Define o número da apólice
-            $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id']);
+            $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id'], 'contratacao', $cotacao_salva['cotacao_id']);
             $dados_apolice['num_apolice_cliente']   = $this->defineNumApoliceCliente([
                 'cod_tpa'       => $dados_bilhete['cod_tpa'],
                 'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
@@ -410,6 +397,9 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['data_nascimento'] = $cotacao_salva['data_nascimento'];
             $dados_equipamento['sexo']            = $cotacao_salva['sexo'];
             $dados_equipamento['email']           = $cotacao_salva['email'];
+            $dados_equipamento['garantia_fabricante'] = $cotacao_salva['garantia_fabricante'];
+            $dados_equipamento['cod_vendedor']        = $cotacao_salva['cod_vendedor'];
+            $dados_equipamento['cod_loja']            = $cotacao_salva['cod_loja'];
 
             $dados_equipamento['ean']                           = $cotacao_salva['ean'];
             $dados_equipamento['equipamento_id']                = $cotacao_salva['equipamento_id'];
@@ -419,29 +409,32 @@ class Apolice_Model extends MY_Model
             $dados_equipamento['equipamento_marca_id']          = $cotacao_salva['equipamento_marca_id'];
             $dados_equipamento['nota_fiscal_data']              = $cotacao_salva['nota_fiscal_data'];
             $dados_equipamento['nota_fiscal_valor']             = $cotacao_salva['nota_fiscal_valor'];
+            $dados_equipamento['nota_fiscal_numero']            = $cotacao_salva['nota_fiscal_numero'];
             $dados_equipamento['imei']                          = $cotacao_salva['imei'];
+            $dados_equipamento['cod_produto_sap']               = $cotacao_salva['cod_produto_sap'];
 
-            $dados_equipamento['estado_civil']       = $cotacao_salva['estado_civil'];
-            $dados_equipamento['rg_orgao_expedidor'] = $cotacao_salva['rg_orgao_expedidor'];
-            $dados_equipamento['rg_uf']              = $cotacao_salva['rg_uf'];
-            $dados_equipamento['rg_data_expedicao']  = $cotacao_salva['rg_data_expedicao'];
-            $dados_equipamento['aux_01']             = $cotacao_salva['aux_01'];
-            $dados_equipamento['aux_02']             = $cotacao_salva['aux_02'];
-            $dados_equipamento['aux_03']             = $cotacao_salva['aux_03'];
-            $dados_equipamento['aux_04']             = $cotacao_salva['aux_04'];
-            $dados_equipamento['aux_05']             = $cotacao_salva['aux_05'];
-            $dados_equipamento['aux_06']             = $cotacao_salva['aux_06'];
-            $dados_equipamento['aux_07']             = $cotacao_salva['aux_07'];
-            $dados_equipamento['aux_08']             = $cotacao_salva['aux_08'];
-            $dados_equipamento['aux_09']             = $cotacao_salva['aux_09'];
-            $dados_equipamento['aux_10']             = $cotacao_salva['aux_10'];
-            $dados_equipamento['tempo_uso']          = $cotacao_salva['tempo_uso'];
-            $dados_equipamento['imei2']              = $cotacao_salva['imei2'];
-            $dados_equipamento['latitude_longitude'] = $cotacao_salva['latitude_longitude'];
-            $dados_equipamento['serial']             = $cotacao_salva['serial'];
-            $dados_equipamento['uuid']               = $cotacao_salva['uuid'];
-            $dados_equipamento['data_aceite_termo']  = $cotacao_salva['data_aceite_termo'];
-            $dados_equipamento['numero_sorte']       = $cotacao_salva['numero_sorte'];
+            $dados_equipamento['estado_civil']               = $cotacao_salva['estado_civil'];
+            $dados_equipamento['rg_orgao_expedidor']         = $cotacao_salva['rg_orgao_expedidor'];
+            $dados_equipamento['rg_uf']                      = $cotacao_salva['rg_uf'];
+            $dados_equipamento['rg_data_expedicao']          = $cotacao_salva['rg_data_expedicao'];
+            $dados_equipamento['aux_01']                     = $cotacao_salva['aux_01'];
+            $dados_equipamento['aux_02']                     = $cotacao_salva['aux_02'];
+            $dados_equipamento['aux_03']                     = $cotacao_salva['aux_03'];
+            $dados_equipamento['aux_04']                     = $cotacao_salva['aux_04'];
+            $dados_equipamento['aux_05']                     = $cotacao_salva['aux_05'];
+            $dados_equipamento['aux_06']                     = $cotacao_salva['aux_06'];
+            $dados_equipamento['aux_07']                     = $cotacao_salva['aux_07'];
+            $dados_equipamento['aux_08']                     = $cotacao_salva['aux_08'];
+            $dados_equipamento['aux_09']                     = $cotacao_salva['aux_09'];
+            $dados_equipamento['aux_10']                     = $cotacao_salva['aux_10'];
+            $dados_equipamento['tempo_uso']                  = $cotacao_salva['tempo_uso'];
+            $dados_equipamento['imei2']                      = $cotacao_salva['imei2'];
+            $dados_equipamento['latitude_longitude']         = $cotacao_salva['latitude_longitude'];
+            $dados_equipamento['serial']                     = $cotacao_salva['serial'];
+            $dados_equipamento['uuid']                       = $cotacao_salva['uuid'];
+            $dados_equipamento['data_aceite_termo']          = $cotacao_salva['data_aceite_termo'];
+            $dados_equipamento['numero_sorte']               = $cotacao_salva['numero_sorte'];
+            $dados_equipamento['num_proposta_capitalizacao'] = $cotacao_salva['num_proposta_capitalizacao'];
 
             $dados_equipamento['endereco_logradouro']     = $cotacao_salva['endereco_logradouro'];
             $dados_equipamento['endereco_numero']         = $cotacao_salva['endereco_numero'];
@@ -502,6 +495,38 @@ class Apolice_Model extends MY_Model
 
                 log_message('debug', 'APOLICE DISPARO EMAIL');
                 if (!empty($evento['destinatario_email'])) {
+                    $comunicacaoEvento = $this->comunicacao_evento
+                    ->with_foreign()
+                    ->get_by(array('comunicacao_evento.slug' => "apolice_gerada_email"));
+
+                    if($comunicacaoEvento){
+                            $parceiro_comunicacao = $this->produto_parceiro_comunicacao
+                            ->with_foreign()
+                            ->with_parceiro()
+                            ->get_by(array(
+                                'produto_parceiro_comunicacao.produto_parceiro_id'   => $evento['produto_parceiro_id'],
+                                'produto_parceiro_comunicacao.comunicacao_evento_id' => $comunicacaoEvento['comunicacao_evento_id']
+                                )
+                            );
+                        
+                        if ($parceiro_comunicacao) {
+
+                            $comunicacao_template_mensagem = $parceiro_comunicacao['comunicacao_template_mensagem'];                         
+
+                            $mathes = array();
+                            $pattern = "/{anexo}(.*?){\/anexo}/s";
+                            preg_match_all($pattern, $comunicacao_template_mensagem, $matches);
+                            if(!empty($matches)){
+                                $aAnexos = $matches[1];
+                                foreach($aAnexos as $_anexo){
+                                    if(method_exists($this, $_anexo)){
+                                        $evento['mensagem']['anexos'][] = $this->{$_anexo}($apolice_id, "pdf_file");;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     $comunicacao = new Comunicacao();
                     $comunicacao->setMensagemParametros($evento['mensagem']);
                     $comunicacao->setDestinatario($evento['destinatario_email']);
@@ -600,7 +625,7 @@ class Apolice_Model extends MY_Model
             $dados_apolice['cod_sucursal']  = $dados_bilhete['cod_sucursal'];
 
             // Define o número da apólice
-            $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id']);
+            $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id'], 'contratacao', $cotacao_salva['cotacao_id']);
             $dados_apolice['num_apolice_cliente']   = $this->defineNumApoliceCliente([
                 'cod_tpa'       => $dados_bilhete['cod_tpa'],
                 'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
@@ -621,6 +646,9 @@ class Apolice_Model extends MY_Model
             $dados_generico['data_fim_vigencia']             = $vigencia['fim_vigencia'];
             $dados_generico['data_adesao']                   = $vigencia['data_adesao'];
             $dados_generico['data_pagamento']                = $vigencia['data_adesao'];
+            $dados_generico['garantia_fabricante']           = $cotacao_salva['garantia_fabricante'];
+            $dados_generico['cod_vendedor']                  = $cotacao_salva['cod_vendedor'];
+            $dados_generico['cod_loja']                      = $cotacao_salva['cod_loja'];
 
             $dados_generico['cnpj_cpf']                = $cotacao_salva['cnpj_cpf'];
             $dados_generico['rg']                      = $cotacao_salva['rg'];
@@ -647,27 +675,28 @@ class Apolice_Model extends MY_Model
             $dados_generico['valor_estorno']           = 0;
             $dados_generico['comissao_premio']         = round($cotacao_salva['comissao_premio'], 2);
 
-            $dados_generico['estado_civil']       = $cotacao_salva['estado_civil'];
-            $dados_generico['rg_orgao_expedidor'] = $cotacao_salva['rg_orgao_expedidor'];
-            $dados_generico['rg_uf']              = $cotacao_salva['rg_uf'];
-            $dados_generico['rg_data_expedicao']  = $cotacao_salva['rg_data_expedicao'];
-            $dados_generico['aux_01']             = $cotacao_salva['aux_01'];
-            $dados_generico['aux_02']             = $cotacao_salva['aux_02'];
-            $dados_generico['aux_03']             = $cotacao_salva['aux_03'];
-            $dados_generico['aux_04']             = $cotacao_salva['aux_04'];
-            $dados_generico['aux_05']             = $cotacao_salva['aux_05'];
-            $dados_generico['aux_06']             = $cotacao_salva['aux_06'];
-            $dados_generico['aux_07']             = $cotacao_salva['aux_07'];
-            $dados_generico['aux_08']             = $cotacao_salva['aux_08'];
-            $dados_generico['aux_09']             = $cotacao_salva['aux_09'];
-            $dados_generico['aux_10']             = $cotacao_salva['aux_10'];
-            $dados_generico['tempo_uso']          = $cotacao_salva['tempo_uso'];
-            $dados_generico['imei2']              = $cotacao_salva['imei2'];
-            $dados_generico['latitude_longitude'] = $cotacao_salva['latitude_longitude'];
-            $dados_generico['serial']             = $cotacao_salva['serial'];
-            $dados_generico['uuid']               = $cotacao_salva['uuid'];
-            $dados_generico['data_aceite_termo']  = $cotacao_salva['data_aceite_termo'];
-            $dados_generico['numero_sorte']       = $cotacao_salva['numero_sorte'];
+            $dados_generico['estado_civil']                 = $cotacao_salva['estado_civil'];
+            $dados_generico['rg_orgao_expedidor']           = $cotacao_salva['rg_orgao_expedidor'];
+            $dados_generico['rg_uf']                        = $cotacao_salva['rg_uf'];
+            $dados_generico['rg_data_expedicao']            = $cotacao_salva['rg_data_expedicao'];
+            $dados_generico['aux_01']                       = $cotacao_salva['aux_01'];
+            $dados_generico['aux_02']                       = $cotacao_salva['aux_02'];
+            $dados_generico['aux_03']                       = $cotacao_salva['aux_03'];
+            $dados_generico['aux_04']                       = $cotacao_salva['aux_04'];
+            $dados_generico['aux_05']                       = $cotacao_salva['aux_05'];
+            $dados_generico['aux_06']                       = $cotacao_salva['aux_06'];
+            $dados_generico['aux_07']                       = $cotacao_salva['aux_07'];
+            $dados_generico['aux_08']                       = $cotacao_salva['aux_08'];
+            $dados_generico['aux_09']                       = $cotacao_salva['aux_09'];
+            $dados_generico['aux_10']                       = $cotacao_salva['aux_10'];
+            $dados_generico['tempo_uso']                    = $cotacao_salva['tempo_uso'];
+            $dados_generico['imei2']                        = $cotacao_salva['imei2'];
+            $dados_generico['latitude_longitude']           = $cotacao_salva['latitude_longitude'];
+            $dados_generico['serial']                       = $cotacao_salva['serial'];
+            $dados_generico['uuid']                         = $cotacao_salva['uuid'];
+            $dados_generico['data_aceite_termo']            = $cotacao_salva['data_aceite_termo'];
+            $dados_generico['numero_sorte']                 = $cotacao_salva['numero_sorte'];
+            $dados_generico['num_proposta_capitalizacao']   = $cotacao_salva['num_proposta_capitalizacao'];
 
             $this->apolice_generico->insert($dados_generico, true);
             $this->concluiApolice($pedido, $apolice_id, $dados_apolice['produto_parceiro_plano_id']);
@@ -741,9 +770,7 @@ class Apolice_Model extends MY_Model
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('cotacao_seguro_viagem_pessoa_model', 'cotacao_pessoa');
         $this->load->model('apolice_seguro_viagem_model', 'apolice_seguro_viagem');
-
         $this->load->model('produto_parceiro_desconto_model', 'parceiro_desconto');
-
         $this->load->model("cliente_contato_model", "cliente_contato");
         $this->load->model('cliente_model', 'cliente');
         $this->load->model('cliente_evolucao_model', 'cliente_evolucao');
@@ -810,7 +837,7 @@ class Apolice_Model extends MY_Model
                 $dados_apolice['cod_sucursal']  = $dados_bilhete['cod_sucursal'];
 
                 // Define o número da apólice
-                $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id']);
+                $dados_apolice['num_apolice']           = $this->defineNumApolice($pedido['produto_parceiro_id'], 'contratacao', $cotacao_salva['cotacao_id']);
                 $dados_apolice['num_apolice_cliente']   = $this->defineNumApoliceCliente([
                     'cod_tpa'       => $dados_bilhete['cod_tpa'],
                     'cod_sucursal'  => $dados_bilhete['cod_sucursal'],
@@ -823,6 +850,7 @@ class Apolice_Model extends MY_Model
                 $dados_seguro_viagem['apolice_id']                    = $apolice_id;
                 $dados_seguro_viagem['seguro_viagem_motivo_id']       = $cotacao_salva['seguro_viagem_motivo_id'];
                 $dados_seguro_viagem['produto_parceiro_pagamento_id'] = $pedido['produto_parceiro_pagamento_id'];
+                $dados_seguro_viagem['garantia_fabricante']           = $cotacao_salva['garantia_fabricante'];
                 $dados_seguro_viagem['data_ini_vigencia']             = $cotacao_salva['data_saida'];
                 $dados_seguro_viagem['data_fim_vigencia']             = $cotacao_salva['data_retorno'];
                 $dados_seguro_viagem['data_adesao']                   = date('Y-m-d');
@@ -858,6 +886,10 @@ class Apolice_Model extends MY_Model
                 $dados_seguro_viagem['data_aceite_termo']             = $cotacao_salva['data_aceite_termo'];
                 $dados_seguro_viagem['comissao_premio']               = round($cotacao_salva['comissao_premio'], 2);
                 $dados_seguro_viagem['numero_sorte']                  = $cotacao_salva['numero_sorte'];
+                $dados_seguro_viagem['num_proposta_capitalizacao']    = $cotacao_salva['num_proposta_capitalizacao'];
+                $dados_seguro_viagem['cod_vendedor']                  = $cotacao_salva['cod_vendedor'];
+                $dados_seguro_viagem['cod_loja']                      = $cotacao_salva['cod_loja'];
+
 
                 $this->apolice_seguro_viagem->insert($dados_seguro_viagem, true);
                 $this->concluiApolice($pedido, $apolice_id, $dados_apolice['produto_parceiro_plano_id']);
@@ -941,7 +973,7 @@ class Apolice_Model extends MY_Model
 
         $pedido = $this->pedido->getPedidoProdutoParceiro($pedido_id);
 
-        $this->_database->select("apolice.apolice_id, apolice.pedido_id, apolice.num_apolice")
+        $this->_database->select("apolice.apolice_id, apolice.pedido_id, apolice.num_apolice, apolice.num_apolice_cliente")
             ->select("apolice.produto_parceiro_plano_id, apolice.apolice_status_id, apolice_status.nome as apolice_status_nome")
             ->select("apolice_status.slug as apolice_status_slug")
             ->select("produto_parceiro_plano.produto_parceiro_id")
@@ -953,28 +985,38 @@ class Apolice_Model extends MY_Model
             ->select("parceiro.nome as parceiro")
             ->select("produto_parceiro.slug_produto")
             ->select("produto.nome as produto")
-            ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
-            ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner')
-            ->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner')
-            ->join("produto", "produto_parceiro.produto_id = produto.produto_id", 'inner')
-            ->join("parceiro parceiro_seg", "parceiro_seg.parceiro_id = produto_parceiro.parceiro_id", 'inner')
-            ->join("parceiro", "parceiro.parceiro_id = apolice.parceiro_id", 'inner')
+            ->select("produto.slug as slug_produto_seguro")
+            ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", "inner")
+            ->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", "inner")
+            ->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id", "inner")
+            ->join("produto", "produto_parceiro.produto_id = produto.produto_id", "inner")
+            ->join("parceiro parceiro_seg", "parceiro_seg.parceiro_id = produto_parceiro.parceiro_id", "inner")
+            ->join("parceiro", "parceiro.parceiro_id = apolice.parceiro_id", "inner")
             ->join("capitalizacao_serie_titulo", "apolice.pedido_id = capitalizacao_serie_titulo.pedido_id and capitalizacao_serie_titulo.deletado = 0", 'left');
 
-
-        if ($pedido) {
+        if ($pedido)
+        {
             $pedido = $pedido[0];
-            if ($pedido['slug'] == 'seguro_viagem') {
-                $this->_database->select("apolice_seguro_viagem.*, IFNULL(apolice_seguro_viagem.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte ", FALSE)
-                    ->join("apolice_seguro_viagem", "apolice.apolice_id = apolice_seguro_viagem.apolice_id", 'inner');
-            } elseif ($pedido['slug'] == 'equipamento') {
-                $this->_database->select("apolice_equipamento.*, IFNULL(apolice_equipamento.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte ", FALSE)
-                    ->join("apolice_equipamento", "apolice.apolice_id = apolice_equipamento.apolice_id", 'inner');
-            } elseif ($pedido["slug"] == "generico" || $pedido["slug"] == "seguro_saude") {
-                $this->_database->select("apolice_generico.*, IFNULL(apolice_generico.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte ", FALSE)
-                    ->join("apolice_generico", "apolice.apolice_id = apolice_generico.apolice_id", 'inner');
+            if ($pedido['slug'] == 'seguro_viagem')
+            {
+                $this->_database->join("apolice_seguro_viagem apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", "inner");
+            } 
+            elseif ($pedido['slug'] == 'equipamento')
+            {
+                $this->_database->join("apolice_equipamento apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", "inner");
+            }
+            elseif ($pedido["slug"] == "generico" || $pedido["slug"] == "seguro_saude")
+            {
+                $this->_database->join("apolice_generico apolice_auxiliar", "apolice.apolice_id = apolice_auxiliar.apolice_id", "inner");
             }
 
+            $this->_database->select("apolice_auxiliar.*
+                , IFNULL(apolice_auxiliar.numero_sorte, capitalizacao_serie_titulo.numero) as numero_sorte
+                , IFNULL(apolice_auxiliar.num_proposta_capitalizacao, capitalizacao_serie_titulo.num_lote) as num_proposta_capitalizacao
+                , IFNULL(av.rec_data_inicio_vigencia, apolice_auxiliar.data_ini_vigencia) as data_ini_vigencia
+                , IFNULL(av.rec_data_fim_vigencia, apolice_auxiliar.data_fim_vigencia) as data_fim_vigencia
+                 ", FALSE);
+            $this->_database->join("apolice_vigencia_nm av", "apolice.apolice_id = av.apolice_id", "left");
             $this->_database->where("apolice.pedido_id", $pedido_id);
             return $this->get_all();
         } else {
@@ -1083,18 +1125,10 @@ class Apolice_Model extends MY_Model
 
     public function certificado($apolice_id, $export = '')
     {
-
         $this->load->model('pedido_model', 'pedido');
-        $this->load->model('localidade_model', 'localidade');
-        $this->load->model('parceiro_model', 'parceiro_model');
-        $this->load->model('produto_parceiro_plano_model', 'plano');
-        $this->load->model('cobertura_plano_model', 'plano_cobertura');
-        $this->load->model('produto_parceiro_termo_model', 'termo');
-
-        $this->load->library('parser');
 
         $data_template = array();
-
+        $template = '';
         $apolice = $this->getApolice($apolice_id);
 
         if (count($apolice) == 0) {
@@ -1105,221 +1139,11 @@ class Apolice_Model extends MY_Model
         $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
         $dados = $dados[0];
 
-
-        // Relacionamento corretora
-        $data_template['rel_corretora_nome']         = '';
-        $data_template['rel_corretora_cnpj']         = '';
-        $data_template['rel_corretora_codigo_susep'] = '';
-        if(isset($dados['produto_parceiro_id']) && !empty($dados['produto_parceiro_id']))
+        if ( !empty($dados['template_apolice']) )
         {
-            $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
-            $dados_prp = $this->parceiro_relacionamento_produto->filter_by_produto_parceiro($dados['produto_parceiro_id'])->with_parceiro()->filter_by_parceiro_tipo('2')->get_all();
-
-            if (!empty($dados_prp)) {
-                $data_template['rel_corretora_nome'] = $dados_prp[0]['parceiro_nome'];
-                $data_template['rel_corretora_cnpj'] = app_cnpj_to_mask($dados_prp[0]['parceiro_cnpj']);
-                $data_template['rel_corretora_codigo_susep'] = $dados_prp[0]['parceiro_codigo_susep'];
-            } else {
-                $data_template['rel_corretora_nome'] = '';
-                $data_template['rel_corretora_cnpj'] = '';
-                $data_template['rel_corretora_codigo_susep'] = '';
-            }
-                        
+            $template = $this->templates($dados['template_apolice'], $apolice_id, $apolice, $dados);
         }
 
-        $template = $dados['template_apolice'];
-
-        if (isset($apolice['origem_id'])) {
-            $origem                  = $this->localidade->get($apolice['origem_id']);
-            $data_template['origem'] = $origem['nome'];
-        }
-
-        if (isset($apolice['destino_id'])) {
-            $destino                  = $this->localidade->get($apolice['destino_id']);
-            $data_template['destino'] = $destino['nome'];
-        }
-
-        if (isset($apolice['nota_fiscal_data'])) {
-            $data_template['nota_fiscal_data'] = app_dateonly_mysql_to_mask($apolice['nota_fiscal_data']);
-        }
-        if (isset($apolice['nota_fiscal_valor'])) {
-            $data_template['nota_fiscal_valor'] = app_format_currency($apolice['nota_fiscal_valor']);
-        }
-        if (isset($apolice['nota_fiscal_numero'])) {
-            $data_template['nota_fiscal_numero'] = $apolice['nota_fiscal_numero'];
-        }
-
-        $parceiro = $this->parceiro_model->get($apolice['parceiro_id']);
-
-        $termo = $this->termo->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
-        $termo = (isset($termo[0])) ? $termo[0] : array('termo' => '');
-
-        if ($parceiro["parceiro_tipo_id"] == 1) {
-            $data_template['representante_nome']      = "&nbsp;";
-            $data_template['representante_cnpj']      = "&nbsp;";
-            $data_template['representante_susep']     = "&nbsp;";
-            $data_template['representante_corretora'] = "&nbsp;";
-            $data_template['representante_endereco']  = "&nbsp;";
-            $data_template['representante_sucursal']  = "&nbsp;";
-            $data_template['seguradora_razao']        = $parceiro['nome'];
-            $data_template['seguradora_cnpj']         = $parceiro['cnpj'];
-            $data_template['seguradora_susep']        = $parceiro['codigo_susep'];
-            $data_template['seguradora_endereco']     = trim($parceiro['endereco']) . ", " . trim($parceiro['numero']);
-            if (trim($parceiro['complemento']) != "") {
-                $data_template['seguradora_endereco'] .= " - " . trim($parceiro['complemento']);
-            }
-            $data_template['seguradora_endereco'] .= " - " . trim($parceiro['bairro']) . " - CEP:" . trim($parceiro['cep']);
-        } else {
-            $data_template['representante_nome']      = $parceiro['nome'];
-            $data_template['representante_cnpj']      = $parceiro['cnpj'];
-            $data_template['representante_susep']     = $parceiro['codigo_susep'];
-            $data_template['representante_corretora'] = $parceiro['nome'];
-            $data_template['representante_corretora'] = $parceiro['endereco'];
-            $data_template['representante_sucursal']  = "";
-        }
-
-        $data_template['termo']             = $termo['termo'];
-        $data_template['assets']            = base_url('assets');
-        $data_template['num_apolice']       = $apolice['num_apolice'];
-        $data_template['num_certificado']   = $apolice['num_apolice'];
-        $data_template['data_ini_vigencia'] = app_date_mysql_to_mask($apolice['data_ini_vigencia'], 'd/m/Y');
-        $data_template['data_fim_vigencia'] = app_date_mysql_to_mask($apolice['data_fim_vigencia'], 'd/m/Y');
-
-        $data_template['inicio_viagem'] = app_date_mysql_to_mask($apolice['data_ini_vigencia'], 'd/m/Y');
-        $data_template['fim_viagem']    = app_date_mysql_to_mask($apolice['data_fim_vigencia'], 'd/m/Y');
-        $data_template['data_pedido']   = app_date_mysql_to_mask($apolice['data_adesao'], 'd/m/Y');
-        $data_template['data_adesao']   = app_date_mysql_to_mask($apolice['data_adesao'], 'd/m/Y');
-
-        $data_template['premio_liquido'] = "R$ " . app_format_currency($apolice['valor_premio_net']);
-        $data_template['premio_total']   = "R$ " . app_format_currency($apolice['valor_premio_total']);
-        $data_template['valor_iof']      = "R$ " . app_format_currency($apolice['valor_premio_total'] - $apolice['valor_premio_net']);
-
-        if ($apolice['num_parcela'] == "1") {
-            $data_template['forma_pagamento'] = $apolice['num_parcela'] . " parcela de R$ " . app_format_currency($apolice['valor_premio_total']);
-        } else {
-            $data_template['forma_pagamento'] = $apolice['num_parcela'] . " parcelas de R$ " . app_format_currency($apolice['valor_premio_total']);
-        }
-
-        $data_template['parceiro']      = $parceiro['nome'];
-        $data_template['cnpj_parceiro'] = app_cnpj_to_mask($parceiro['cnpj']);
-
-        $plano      = $this->plano->get($apolice['produto_parceiro_plano_id']);
-        $coberturas = $this->plano_cobertura->with_cobertura()->filter_by_produto_parceiro_plano($apolice['produto_parceiro_plano_id'])->get_all();
-        $coberturasAll = $this->plano_cobertura->getCoberturasApolice($apolice["apolice_id"]);
-
-
-        $equipamento = $this->db->query("SELECT em.nome as marca, ec.nome as categoria, esc.nome as equipamento, ce.equipamento_nome as modelo, ae.imei FROM apolice_equipamento ae
-                                          INNER JOIN apolice a ON (a.apolice_id=ae.apolice_id)
-                                          INNER JOIN pedido p ON (p.pedido_id=a.pedido_id)
-                                          INNER JOIN cotacao_equipamento ce ON (ce.cotacao_id=p.cotacao_id)
-                                          INNER JOIN vw_Equipamentos_Linhas ec ON (ec.equipamento_categoria_id=ce.equipamento_categoria_id)
-                                          INNER JOIN vw_Equipamentos_Linhas esc ON (esc.equipamento_categoria_id=ce.equipamento_sub_categoria_id)
-                                          INNER JOIN vw_Equipamentos_Marcas em ON (em.equipamento_marca_id = ce.equipamento_marca_id)
-                                          WHERE a.apolice_id=" . $apolice["apolice_id"])->result_array();
-
-        if (sizeof($equipamento)) {
-            $data_template['categoria'] = $equipamento[0]["categoria"];
-            $data_template['equipamento'] = $equipamento[0]["equipamento"];
-            $data_template['modelo']      = $equipamento[0]["modelo"];
-            $data_template['marca']       = $equipamento[0]["marca"];
-            $data_template['imei']        = $equipamento[0]["imei"];
-            $data_template['lmi_roubo']   = app_format_currency($apolice['nota_fiscal_valor']);
-            $data_template['lmi_furto']   = app_format_currency($apolice['nota_fiscal_valor']);
-            $data_template['lmi_quebra']  = app_format_currency($apolice['nota_fiscal_valor']);
-        } else {
-            $data_template['equipamento'] = "";
-            $data_template['modelo']      = "";
-            $data_template['marca']       = "";
-            $data_template['imei']        = "";
-        }
-
-        $ccount = 0;
-        foreach ($coberturas as $cobertura) {
-            $ccount                                                     = $ccount + 1;
-            $data_template["cobertura_" . trim($ccount) . "_descricao"] = $cobertura["cobertura_nome"];
-            $data_template["lmi_" . trim($ccount)]                      = $cobertura["descricao"];
-        }
-
-        $pagamento = $this->pedido->getPedidoPagamento($apolice['pedido_id']);
-        $pagamento = $pagamento[0];
-
-
-        $data_template['pagamento_tipo_pagamento']      = $pagamento['tipo_pagamento'];
-        $data_template['pagamento_bandeira']            = $pagamento['bandeira'];
-        $data_template['pagamento_num_parcela']         = $pagamento['num_parcela'];
-        //print_r($pagamento); exit;
-
-        //@todo fazer listagem do numero de capitalização
-        //$capitalizacao = array('numero' => $apolice['num_capitalizacao']);
-
-        //dados segurado
-        $data_template['segurado_rg']      = $apolice['rg'];
-        $data_template['segurado_sexo']    = $apolice['sexo'];
-        $data_template['profissao']        = "";
-        $data_template['estado_civil']     = "";
-        $data_template['contato_telefone'] = app_format_telefone($apolice['contato_telefone']);
-
-        $data_template['segurado_sexo_masculino'] = " ";
-        $data_template['segurado_sexo_feminino']  = " ";
-        if ($apolice['sexo'] == "M") {
-            $data_template['segurado_sexo']           = "Masculino";
-            $data_template['segurado_sexo_masculino'] = "X";
-        } else {
-            $data_template['segurado_sexo']          = "Feminno";
-            $data_template['segurado_sexo_feminino'] = "X";
-        }
-
-
-        $tot = strlen(trim($apolice['cnpj_cpf']));
-        if($tot == 11)
-            $_cpf_cnpj = app_cpf_to_mask($apolice['cnpj_cpf']);
-        else if($tot == 14)
-           $_cpf_cnpj = app_cnpj_to_mask($apolice['cnpj_cpf']); 
-        else 
-            $_cpf_cnpj = $apolice['cnpj_cpf']; 
-
-        
-        $data_template['segurado_nome']            = $apolice['nome'];
-        $data_template['segurado_cnpj_cpf']        = $apolice['cnpj_cpf']; 
-        $data_template['segurado_cnpj_cpf_2']      = $_cpf_cnpj;
-        $data_template['segurado_data_nascimento'] = app_dateonly_mysql_to_mask($apolice['data_nascimento']);
-        $data_template['segurado_endereco']        = $apolice['endereco_logradouro'];
-        $data_template['segurado_numero']          = $apolice['endereco_numero'];
-        $data_template['segurado_bairro']          = $apolice['endereco_bairro'];
-        $data_template['segurado_cidade']          = $apolice['endereco_cidade'];
-        $data_template['segurado_estado']          = $apolice['endereco_estado'];
-        $data_template['segurado_cep']             = app_format_cep($apolice['endereco_cep']);
-        $data_template['segurado_telefone']        = app_format_telefone($apolice['contato_telefone']);
-        //$data_template['plano'] = $plano['nome'];
-
-        $data_template['segurado'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/dados_segurado", array('segurado' => $apolice), true);
-
-        $viewseguro = 'dados_seguro';
-
-        if($dados['slug_parceiro'] == 'tem')
-        {
-            $viewseguro = 'dados_seguro_tem';
-        } else
-        {
-            $viewseguro = 'dados_seguro_cobertura';
-        }
-
-        $data_template['seguro']   = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/{$viewseguro}", array(
-            'plano'          => $plano,
-            'coberturas'     => $coberturas,
-            'coberturas_all' => $coberturasAll,
-            //  'capitalizacao' => $capitalizacao,
-            'premio_liquido' => $apolice['valor_premio_net'],
-            'premio_bruto' => $apolice['valor_premio_total'],
-            'pagamento'  => $pagamento,
-            'dados'      => $dados),
-            true);
-
-        error_log(print_r($data_template['seguro'], true) . "\n", 3, "/var/log/httpd/myapp.log");
-        $data_template['premio']    = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/premio", array('premio_liquido' => $apolice['valor_premio_net'], 'premio_total' => $apolice['valor_premio_total']), true);
-        $data_template['pagamento'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/pagamento", array('pagamento' => $pagamento), true);
-
-        $template = $this->parser->parse_string($template, $data_template, true);
         if (($export == 'pdf') || ($export == 'pdf_file')) {
             $this->custom_loader->library('pdf');
             $this->pdf->setPageOrientation('P');
@@ -1336,7 +1160,7 @@ class Apolice_Model extends MY_Model
             $this->pdf->writeHTML($template, true, false, true, false, '');
             $destino = ($export == 'pdf') ? 'D' : 'F';
             $file    = ($export == 'pdf') ? "{$apolice['num_apolice']}.pdf" : "{$destino_dir}{$apolice['num_apolice']}.pdf";
-            ob_end_clean();
+            if (ob_get_length()) ob_end_clean();
             $this->pdf->Output($file, $destino);
             $this->custom_loader->unload_library('pdf');
             if ($export == 'pdf_file') {
@@ -1348,15 +1172,22 @@ class Apolice_Model extends MY_Model
         } else {
             return $template;
         }
-
     }
 
     public function insertCapitalizacao($produto_parceiro_id, $pedido_id)
     {
-
         $this->load->model('produto_parceiro_capitalizacao_model', 'produto_parceiro_capitalizacao');
+        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
         $this->load->model('capitalizacao_model', 'capitalizacao');
         $this->load->model('capitalizacao_serie_titulo_model', 'capitalizacao_serie_titulo');
+        $this->load->model('apolice_equipamento_model', 'apolice_equipamento');
+        $this->load->model('apolice_generico_model', 'apolice_generico');
+        $this->load->model('apolice_seguro_viagem_model', 'apolice_seguro_viagem');
+
+        $capitalizacoes = [];
+        $apolices = $this->getApolicePedido($pedido_id);
+        if ( empty($apolices) )
+            return false;
 
         //verifica se tem capitalização configurado
         $parceiro_capitalizacao = $this->produto_parceiro_capitalizacao->with_capitalizacao()
@@ -1364,58 +1195,117 @@ class Apolice_Model extends MY_Model
             ->filter_by_capitalizacao_ativa()
             ->get_all();
 
-        //capitalização
-        if (count($parceiro_capitalizacao) > 0) {
+        foreach ($apolices as $apolice)
+        {
+            $plano_capitalizacao = $this->produto_parceiro_plano
+                ->with_capitalizacao()
+                ->filter_by_capitalizacao_ativa()
+                ->get_by_id($apolice['produto_parceiro_plano_id']);
 
-            foreach ($parceiro_capitalizacao as $index => $item) {
+            if ( !empty($plano_capitalizacao) )
+            {
+                // get_by_id retorna apenas 1 registro
+                $plano_capitalizacao['apolice_id']                 = $apolice['apolice_id'];
+                $plano_capitalizacao['slug']                       = $apolice['slug_produto_seguro'];
+                $plano_capitalizacao['numero_sorte']               = $apolice['numero_sorte'];
+                $plano_capitalizacao['num_proposta_capitalizacao'] = $apolice['num_proposta_capitalizacao'];
+                $capitalizacoes[] = $plano_capitalizacao;
+            } else
+            {
+                //capitalização no produto
+                if ( !empty($parceiro_capitalizacao) )
+                {
+                    // get_all retornar vários registros
+                    foreach ($parceiro_capitalizacao as $key => $value) {
+                        $value['apolice_id']                 = $apolice['apolice_id'];
+                        $value['slug']                       = $apolice['slug_produto_seguro'];
+                        $value['numero_sorte']               = $apolice['numero_sorte'];
+                        $value['num_proposta_capitalizacao'] = $apolice['num_proposta_capitalizacao'];
+                        $capitalizacoes[] = $value;
+                    }
+                }
+            }
+        }
 
-                $capitalizacaoItem = $this->capitalizacao->get($item['capitalizacao_id']);
-                if (count($capitalizacaoItem) > 0) {
+        // caso não tenha capialização no plano
+        if ( empty($capitalizacoes) )
+            return false;
 
-                    // Dados de entrada
-                    $dados_capitalizacao                = array();
-                    $dados_capitalizacao['pedido_id']   = $pedido_id;
-                    $dados_capitalizacao['utilizado']   = 1;
-                    $dados_capitalizacao['data_compra'] = date('Y-m-d H:i:s');
+        foreach ($capitalizacoes as $index => $item)
+        {
+            // Dados de entrada
+            $dados_capitalizacao                = array();
+            $dados_capitalizacao['pedido_id']   = $pedido_id;
+            $dados_capitalizacao['utilizado']   = 1;
+            $dados_capitalizacao['data_compra'] = date('Y-m-d H:i:s');
 
-                    // Parceiro
-                    if ($capitalizacaoItem['responsavel_num_sorte'] == 1)
+            // Parceiro
+            if ($item['capitalizacao_responsavel_num_sorte_distribuicao'] == 1)
+            {
+                // Recupera o número da Sorte
+                $numero_sorte               = $item['numero_sorte'];
+                $num_proposta_capitalizacao = $item['num_proposta_capitalizacao'];
+
+                // Se foi enviado o número da sorte - Aceita "0"
+                if ( !ifempty($numero_sorte) )
+                {
+                    // validar se está dentro da range
+                    $capitalizacao_serie = $this->capitalizacao->getDadosSerie($item['capitalizacao_id'], $numero_sorte, $num_proposta_capitalizacao);
+                    if ($capitalizacao_serie)
                     {
-                        // Recupera o número da Sorte
-                        $apolices = $this->getApolicePedido($pedido_id);
-                        if ($apolices) {
-                            foreach ($apolices as $apolice) {
-                                $numero_sorte = $apolice['numero_sorte'];
-
-                                // Se foi enviado o número da sorte
-                                if ($numero_sorte){
-                                    // validar se está dentro da range
-                                    if ($capitalizacao_serie = $this->capitalizacao->getDadosSerie($item['capitalizacao_id'], $numero_sorte) )
-                                    {
-                                        $dados_capitalizacao['capitalizacao_serie_id'] = $capitalizacao_serie['capitalizacao_serie_id'];
-                                        $dados_capitalizacao['contemplado'] = 0;
-                                        $dados_capitalizacao['numero'] = $numero_sorte;
-                                        $dados_capitalizacao['ativo'] = 1;
-                                        $this->capitalizacao_serie_titulo->insert($dados_capitalizacao, TRUE);
-                                    }
-
-                                }
-                            }
+                        // Caso não exista os dados enviados
+                        if ( empty($capitalizacao_serie['capitalizacao_serie_titulo_id']) )
+                        {
+                            // faz o insert dos dados completos
+                            $dados_capitalizacao['capitalizacao_serie_id'] = $capitalizacao_serie['capitalizacao_serie_id'];
+                            $dados_capitalizacao['contemplado'] = 0;
+                            $dados_capitalizacao['numero'] = $numero_sorte;
+                            $dados_capitalizacao['num_lote'] = emptyor($num_proposta_capitalizacao, 1);
+                            $dados_capitalizacao['ativo'] = 1;
+                            $this->capitalizacao_serie_titulo->insert($dados_capitalizacao, true);
                         }
-
-                    } else {
-                        $capitalizacao = $this->capitalizacao->getTituloNaoUtilizado($item['capitalizacao_id']);
-
-                        if (count($capitalizacao) > 0) {
-                            $capitalizacao = $capitalizacao[0];
-                            $this->capitalizacao_serie_titulo->update($capitalizacao['capitalizacao_serie_titulo_id'], $dados_capitalizacao, true);
+                        else
+                        {
+                            // apenas atualiza que foi usado e em qual pedido
+                            $this->capitalizacao_serie_titulo->update($capitalizacao_serie['capitalizacao_serie_titulo_id'], $dados_capitalizacao, true);
                         }
                     }
-
                 }
 
-            }
+            } else
+            {
+                $capitalizacao = $this->capitalizacao->getTituloNaoUtilizado($item['capitalizacao_id']);
+                if (count($capitalizacao) > 0)
+                {
+                    $obj_aux = null;
+                    $capitalizacao = $capitalizacao[0];
+                    $this->capitalizacao_serie_titulo->update($capitalizacao['capitalizacao_serie_titulo_id'], $dados_capitalizacao, true);
 
+                    // atualizar o número da sorte utilizado na apólice
+                    if ($item['slug'] == 'seguro_viagem')
+                    {
+                        $obj_aux = $this->apolice_seguro_viagem;
+
+                    } elseif ($item['slug'] == 'equipamento')
+                    {
+                        $obj_aux = $this->apolice_equipamento;
+
+                    } elseif ($item["slug"] == "generico" || $item["slug"] == "seguro_saude")
+                    {
+                        $obj_aux = $this->apolice_generico;
+                    }
+
+                    if ( $obj_aux )
+                    {
+                        $obj_aux->update_by(
+                            array('apolice_id' => $item['apolice_id']), array(
+                                'numero_sorte' => $capitalizacao['numero'],
+                                'num_proposta_capitalizacao' => $capitalizacao['num_lote']
+                            )
+                        );
+                    }
+                }
+            }
         }
 
     }
@@ -1442,14 +1332,31 @@ class Apolice_Model extends MY_Model
         return $this->get_all();
     }
 
+    public function getApoliceByNumeroCliente($num_apolice, $parceiro_id)
+    {
+        $this->_database->select("apolice.apolice_id, apolice.apolice_status_id, apolice_status.nome")
+            ->join("apolice_status", "apolice.apolice_status_id = apolice_status.apolice_status_id", 'inner')
+            ->where("apolice.num_apolice_cliente", $num_apolice)
+            ->where("apolice.parceiro_id", $parceiro_id);
+        return $this->get_all();
+    }
+
     public function search_apolice_produto_parceiro_plano_id($num_apolice, $produto_parceiro_plano_id)
     {
-        $sql = "
-            SELECT apolice_id
-            FROM apolice
-            WHERE num_apolice = '{$num_apolice}' and produto_parceiro_plano_id = '{$produto_parceiro_plano_id}'
-            AND deletado = 0
-            LIMIT 1
+        $sql = "SELECT a.apolice_id
+            FROM apolice a
+            join produto_parceiro_plano ppp on a.produto_parceiro_plano_id = ppp.produto_parceiro_plano_id
+            join produto_parceiro pp on ppp.produto_parceiro_id = pp.produto_parceiro_id and pp.deletado = 0
+            WHERE 1
+            and a.num_apolice = '{$num_apolice}'
+            and pp.parceiro_id IN(
+                select ppx.parceiro_id
+                from produto_parceiro_plano pppx
+                join produto_parceiro ppx on pppx.produto_parceiro_id = ppx.produto_parceiro_id and ppx.deletado = 0
+                where pppx.produto_parceiro_plano_id = {$produto_parceiro_plano_id} and pppx.deletado = 0
+            )
+            AND a.deletado = 0
+            LIMIT 1;
         ";
         return (int) $this->_database->query($sql)->num_rows() == 1;
     }
@@ -1491,17 +1398,38 @@ class Apolice_Model extends MY_Model
         return $this;
     }
 
-    public function defineNumApolice($produto_parceiro_id)
+    public function defineNumApolice($produto_parceiro_id, $etapa = 'contratacao', $cotacao_id = NULL, $data_template = [])
     {
         $this->load->model('produto_parceiro_configuracao_model', 'parceiro_configuracao');
         $this->load->model('apolice_numero_seq_model', 'apolice_seq');
         $this->load->model('produto_parceiro_apolice_range_model', 'apolice_range');
         $this->load->model('produto_parceiro_apolice_multiplo_model', 'apolice_multiplo');
         $this->load->model('produto_parceiro_apolice_multiplo_range_model', 'apolice_multiplo_range');
+        $this->load->model('cotacao_model', 'cotacao');
 
         //obter numero da apolice;
         $configuracao = $this->parceiro_configuracao->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
         $configuracao = $configuracao[0];
+        $num_apolice = NULL;
+
+        // É cotação e NÃO gera apolice nessa etapa
+        if ( $etapa == 'cotacao' && empty($configuracao['gera_num_apolice_cotacao']) )
+            return NULL;
+
+        // É contratação e gerou apolice na etapa de cotação
+        if ( $etapa == 'contratacao' && !empty($configuracao['gera_num_apolice_cotacao']) )
+        {
+            if ( !empty($cotacao_id) )
+            {
+                $cotacao_salva = $this->cotacao->filterByID($cotacao_id)->get_all();
+                if ( !empty($cotacao_salva) )
+                {
+                    $num_apolice = $cotacao_salva[0]['numero_apolice'];
+                }
+            }
+
+            return $num_apolice;
+        }
 
         if ($configuracao['apolice_sequencia'] == 1) {
             //é número Sequencial
@@ -1519,7 +1447,20 @@ class Apolice_Model extends MY_Model
 
         }
 
-        return $num_apolice;
+        if ( empty($data_template) && $etapa == 'contratacao' && !empty($cotacao_id) )
+        {
+            $dadNumApol = $this->cotacao->getDadosNumApolice($cotacao_id);
+
+            if ( !empty($dadNumApol) )
+            {
+                $data_template = $dadNumApol[0];
+            }
+        }
+
+        // Faz o parse das variáveis
+        $num_apolice = $this->apolice_range->getSequencialVariavel($num_apolice, 0, $data_template, true);
+
+        return $num_apolice['result'];
     }
 
     /**
@@ -1560,15 +1501,23 @@ class Apolice_Model extends MY_Model
     function isControleEndossoPeloClienteByPedidoId($pedido_id)
     {
         $this->load->model('pedido_model', 'pedido');
+        $this->load->model('produto_parceiro_pagamento_model', 'parceiro_pagamento');
 
         // Carregar pedido
-        $pedido                 = $this->pedido->getPedidosByID($pedido_id);
-        $pedido                 = $pedido[0];
-        $produto_parceiro_id    = $pedido['produto_parceiro_id'];
-        $num_parcela            = $pedido['num_parcela'];
-        $endosso                = $this->isControleEndossoPeloClienteByProdutoParceiroId($produto_parceiro_id);
+        $pedido = $this->pedido->getPedidosByID($pedido_id);
+        if ( empty($pedido) )
+        {
+            return [ 'num_parcela' => 1, 'tipo_pagto' => false ];
+        }
 
-        return [ 'num_parcela' => $num_parcela, 'endosso' => $endosso ];
+        $pedido                         = $pedido[0];
+        $produto_parceiro_id            = $pedido['produto_parceiro_id'];
+        $produto_parceiro_pagamento_id  = $pedido['produto_parceiro_pagamento_id'];
+        $num_parcela                    = emptyor($pedido['num_parcela'], 1);
+        $endosso                        = $this->isControleEndossoPeloClienteByProdutoParceiroId($produto_parceiro_id);
+        $tipo_pagto                     = $this->parceiro_pagamento->isRecurrent($produto_parceiro_pagamento_id) ? 1 : $endosso;
+
+        return [ 'num_parcela' => $num_parcela, 'tipo_pagto' => $tipo_pagto ];
     }
 
     /**
@@ -1612,12 +1561,6 @@ class Apolice_Model extends MY_Model
         return null;
     }
 
-    function defineApoliceCliente($apolice_id) {
-        $dadosPP = $this->getProdutoParceiro($apolice_id);
-        $dadosPP['num_apolice'] = $this->defineNumApoliceCliente($dadosPP);
-        return $dadosPP;
-    }
-
     /**
      * Valida o número da apólice do Cliente DE / PARA
      * @param array $dadosPP (códigos do CTA)
@@ -1629,17 +1572,10 @@ class Apolice_Model extends MY_Model
         $num_apolice_cliente = '';
 
         if (!empty($dadosPP)) {
-            // LASA RF+QA NOVOS && POMPEIA
-            if ($dadosPP['cod_tpa'] == '007' || $dadosPP['cod_tpa'] == '025' || $dadosPP['cod_tpa'] == '048') {
+            // LASA RF+QA NOVOS
+            if ($dadosPP['cod_tpa'] == '007') {
                 $num_apolice_aux = $dadosPP['cod_sucursal'] . $dadosPP['cod_ramo'] . $dadosPP['cod_tpa'];
-
-                if ($dadosPP['cod_tpa'] == '025') {
-                    $num_apolice_aux .= substr($dadosPP['num_apolice'], 3, 3) . str_pad(substr($dadosPP['num_apolice'], 10, 5), 5, '0', STR_PAD_LEFT);
-                } elseif ($dadosPP['cod_tpa'] == '048') {
-                    $num_apolice_aux .= str_pad(substr($dadosPP['num_apolice'], 7, 6), 8, '0', STR_PAD_LEFT);
-                } else {
-                    $num_apolice_aux .= str_pad(substr($dadosPP['num_apolice'], 7, 8), 8, '0', STR_PAD_LEFT);
-                }
+                $num_apolice_aux .= str_pad(substr($dadosPP['num_apolice'], 7, 8), 8, '0', STR_PAD_LEFT);
                 $num_apolice_cliente = $num_apolice_aux;
             } else {
                 $num_apolice_cliente = $dadosPP['num_apolice'];
@@ -1697,9 +1633,518 @@ class Apolice_Model extends MY_Model
             if(!in_array($slug, $aApoliceStatusSlug)){
                 throw new Exception('Slug "'.$slug.'" inválido para status da apolice (Opções Permitidas: ['.implode($aApoliceStatusSlug).']")');
             }else{                                
-                $this->db->where("apolice_status.slug = '".$slug."'");                        
-            }        
-        }            
+                $this->db->where("apolice_status.slug = '".$slug."'");
+            }
+        }
+    }
+
+    public function termo($apolice_id, $export = "", $produto_parceiro_id = null)
+    {
+        $this->load->model('pedido_model', 'pedido');        
+        $this->load->model('produto_parceiro_termo_model', 'termo');
+
+        $data_template = array();
+        $template = '';
+        if($apolice_id == null){
+            $termo = $this->termo->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
+            if ( !empty($termo) )
+            {
+                $termo = $termo[0];
+                if ( !empty($termo['termo']) )
+                {
+                    $template = $termo['termo'];
+                }
+            }
+        }else{
+            $apolice = $this->getApolice($apolice_id);
+
+            if (count($apolice) == 0) {
+                $this->session->set_flashdata('fail_msg', 'Apólice não esta liberado'); //Mensagem de sucesso
+                return false;
+            }
+
+            $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
+            $dados = $dados[0];
+            $produtoSlug = $apolice['produto_slug'];
+            $termo = $this->termo->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
+            if ( !empty($termo) )
+            {
+                $termo = $termo[0];
+                if ( !empty($termo['termo']) )
+                {
+                    $template = $this->templates($termo['termo'], $apolice_id, $apolice, $dados);
+                }
+            }
+        }
+
+        if (($export == 'pdf') || ($export == 'pdf_file')) {
+            $this->custom_loader->library('pdf');
+            $this->pdf->setPageOrientation('P');
+            $this->pdf->AddPage();
+
+            $destino_dir = FCPATH . "assets/files/{{$produtoSlug}}/termo/";
+            if (!file_exists($destino_dir)) {
+                mkdir($destino_dir, 0777, true);
+            }
+            $this->pdf->SetMargins(5, 5, 5);
+            $this->pdf->writeHTML($template, true, false, true, false, '');
+            $destino = ($export == 'pdf') ? 'D' : 'F';
+            $file    = ($export == 'pdf') ? "{$termo['produto_parceiro_termo_id']}.pdf" : "{$destino_dir}{$termo['produto_parceiro_termo_id']}.pdf";
+            if (ob_get_length()) ob_end_clean();
+            $this->pdf->Output($file, $destino);
+            $this->custom_loader->unload_library('pdf');
+            if ($export == 'pdf_file') {
+                return "{$destino_dir}{$termo['produto_parceiro_termo_id']}.pdf";
+            } else {
+                exit;
+            }
+
+        } else {
+            return $template;
+        }
+    }
+
+    public function autorizacao_cobranca($apolice_id, $export = "")
+    {
+        $this->load->model('pedido_model', 'pedido');        
+        $this->load->model('produto_parceiro_autorizacao_cobranca_model', 'autorizacao_cobranca');
+
+        $data_template = array();
+        $template = '';
+        $apolice = $this->getApolice($apolice_id);
+
+        if (count($apolice) == 0) {
+            $this->session->set_flashdata('fail_msg', 'Apólice não esta liberado'); //Mensagem de sucesso
+            return false;
+        }
+
+        $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
+        $dados = $dados[0];
+        $autorizacao_cobranca = $this->autorizacao_cobranca->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
+
+        if ( !empty($autorizacao_cobranca) )
+        {
+            $autorizacao_cobranca = $autorizacao_cobranca[0];
+            if ( !empty($autorizacao_cobranca['autorizacao_cobranca']) )
+            {
+                $template = $this->templates($autorizacao_cobranca['autorizacao_cobranca'], $apolice_id, $apolice, $dados);
+            }
+        }
+
+        if (($export == 'pdf' || $export == 'pdf_file') && !empty($template)) {
+            $this->custom_loader->library('pdf');
+            $this->pdf->setPageOrientation('P');
+            $this->pdf->AddPage();
+
+            $destino_dir = FCPATH . "assets/files/{{$apolice['produto_slug']}}/autorizacao_cobranca/";
+            if (!file_exists($destino_dir)) {
+                mkdir($destino_dir, 0777, true);
+            }
+            $this->pdf->SetMargins(5, 5, 5);
+            $this->pdf->writeHTML($template, true, false, true, false, '');
+            $destino = ($export == 'pdf') ? 'D' : 'F';
+            $file    = ($export == 'pdf') ? "{$autorizacao_cobranca['produto_parceiro_autorizacao_cobranca_id']}.pdf" : "{$destino_dir}{$autorizacao_cobranca['produto_parceiro_autorizacao_cobranca_id']}.pdf";
+            if (ob_get_length()) ob_end_clean();
+            $this->pdf->Output($file, $destino);
+            $this->custom_loader->unload_library('pdf');
+            if ($export == 'pdf_file') {
+                return "{$destino_dir}{$autorizacao_cobranca['produto_parceiro_autorizacao_cobranca_id']}.pdf";
+            } else {
+                exit;
+            }
+
+        } else {
+            return $template;
+        }
+    }
+
+    public function solicitacao_desistencia($apolice_id, $export = "")
+    {
+        $this->load->model('pedido_model', 'pedido');        
+        $this->load->model('produto_parceiro_solicitacao_desistencia_model', 'solicitacao_desistencia');
+
+        $data_template = array();
+        $template = '';
+        $apolice = $this->getApolice($apolice_id);
+
+        if (count($apolice) == 0) {
+            $this->session->set_flashdata('fail_msg', 'Apólice não esta liberado'); //Mensagem de sucesso
+            return false;
+        }
+
+        $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
+        $dados = $dados[0];
+        $solicitacao_desistencia = $this->solicitacao_desistencia->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
+
+        if ( !empty($solicitacao_desistencia) )
+        {
+            $solicitacao_desistencia = $solicitacao_desistencia[0];
+            if ( !empty($solicitacao_desistencia['solicitacao_desistencia']) )
+            {
+                $template = $this->templates($solicitacao_desistencia['solicitacao_desistencia'], $apolice_id, $apolice, $dados);
+            }
+        }
+
+        if (($export == 'pdf') || ($export == 'pdf_file')) {
+            $this->custom_loader->library('pdf');
+            $this->pdf->setPageOrientation('P');
+            $this->pdf->AddPage();
+
+            $destino_dir = FCPATH . "assets/files/{{$apolice['produto_slug']}}/solicitacao_desistencia/";
+            if (!file_exists($destino_dir)) {
+                mkdir($destino_dir, 0777, true);
+            }
+            $this->pdf->SetMargins(5, 5, 5);
+            $this->pdf->writeHTML($template, true, false, true, false, '');
+            $destino = ($export == 'pdf') ? 'D' : 'F';
+            $file    = ($export == 'pdf') ? "{$solicitacao_desistencia['produto_parceiro_solicitacao_desistencia_id']}.pdf" : "{$destino_dir}{$solicitacao_desistencia['produto_parceiro_solicitacao_desistencia_id']}.pdf";
+            if (ob_get_length()) ob_end_clean();
+            $this->pdf->Output($file, $destino);
+            $this->custom_loader->unload_library('pdf');
+            if ($export == 'pdf_file') {
+                return "{$destino_dir}{$solicitacao_desistencia['produto_parceiro_solicitacao_desistencia_id']}.pdf";
+            } else {
+                exit;
+            }
+
+        } else {
+            return $template;
+        }
+    }
+
+    public function templates($template, $apolice_id, $apolice = [], $dados = [])
+    {
+        $this->load->model('pedido_model', 'pedido');
+        $this->load->model('localidade_model', 'localidade');
+        $this->load->model('parceiro_model', 'parceiro_model');
+        $this->load->model('produto_parceiro_plano_model', 'plano');
+        $this->load->model('cobertura_plano_model', 'plano_cobertura');
+        $this->load->model('produto_parceiro_termo_model', 'termo');
+        $this->load->model('Comissao_gerada_model', 'comissao_gerada');
+        
+        $this->load->library('parser');
+
+        $data_template = array();
+
+        if ( empty($apolice) )
+        {
+            $apolice = $this->getApolice($apolice_id);
+        }
+
+        if (count($apolice) == 0) {
+            $this->session->set_flashdata('fail_msg', 'Apólice não esta liberado'); //Mensagem de sucesso
+            return '';
+        }
+
+        if ( empty($dados) )
+        {
+            $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
+            $dados = $dados[0];
+        }
+
+        // Relacionamento corretora
+        $data_template['rel_corretora_nome']           = '';
+        $data_template['rel_corretora_cnpj']           = '';
+        $data_template['rel_corretora_codigo_susep']   = '';
+        $data_template['rel_corretora_comissao']       = '';
+        $data_template['rel_corretora_comissao_valor'] = '';
+
+        if(isset($dados['produto_parceiro_id']) && !empty($dados['produto_parceiro_id']))
+        {
+            $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
+            $dados_prp = $this->parceiro_relacionamento_produto->filter_by_produto_parceiro($dados['produto_parceiro_id'])->with_parceiro()->filter_by_parceiro_tipo('2')->get_all(0, 0, false);
+
+            if (!empty($dados_prp)) {
+                $data_template['rel_corretora_nome'] = $dados_prp[0]['parceiro_nome'];
+                $data_template['rel_corretora_cnpj'] = app_cnpj_to_mask($dados_prp[0]['parceiro_cnpj']);
+                $data_template['rel_corretora_codigo_susep'] = $dados_prp[0]['parceiro_codigo_susep'];
+
+                $aComissaoCorretor = $this->comissao_gerada->getByParceiroId($apolice["pedido_id"], $dados_prp[0]['parceiro_id']);
+                if(sizeof($aComissaoCorretor)){
+                    $comissaoCorretor = $aComissaoCorretor[0];
+                    $data_template["rel_corretora_comissao"] = app_format_currency($comissaoCorretor["comissao"])."%";
+                    $data_template["rel_corretora_comissao_valor"] = "R$ ".app_format_currency($comissaoCorretor["valor"]);
+                }
+            }
+        }
+
+        if (isset($apolice['origem_id'])) {
+            $origem                  = $this->localidade->get($apolice['origem_id']);
+            $data_template['origem'] = $origem['nome'];
+        }
+
+        if (isset($apolice['destino_id'])) {
+            $destino                  = $this->localidade->get($apolice['destino_id']);
+            $data_template['destino'] = $destino['nome'];
+        }
+
+        if (isset($apolice['nota_fiscal_data'])) {
+            $data_template['nota_fiscal_data'] = app_dateonly_mysql_to_mask($apolice['nota_fiscal_data']);
+        }
+        if (isset($apolice['nota_fiscal_valor'])) {
+            $data_template['nota_fiscal_valor'] = app_format_currency($apolice['nota_fiscal_valor']);
+        }
+        if (isset($apolice['nota_fiscal_numero'])) {
+            $data_template['nota_fiscal_numero'] = $apolice['nota_fiscal_numero'];
+        }
+
+        $parceiro = $this->parceiro_model->get($apolice['parceiro_id']);
+        $termo    = $this->termo->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
+        $termo    = (isset($termo[0])) ? $termo[0] : array('termo' => '');
+
+        $aComissaoGerada = $this->comissao_gerada->getByParceiroId($apolice["pedido_id"], $apolice['parceiro_id']);
+        if(sizeof($aComissaoGerada)){
+            $comissaoGerada = $aComissaoGerada[0];
+            $data_template["representante_comissao"] = app_format_currency($comissaoGerada["comissao"])."%";
+            $data_template["representante_comissao_valor"] = "R$ ".app_format_currency($comissaoGerada["valor"]);
+        }else{
+            $data_template["representante_comissao"] = "";
+            $data_template["representante_comissao_valor"] = "";
+        }
+        
+        if ($parceiro["parceiro_tipo_id"] == 1) {
+            $data_template['representante_nome']      = "&nbsp;";
+            $data_template['representante_cnpj']      = "&nbsp;";
+            $data_template['representante_susep']     = "&nbsp;";
+            $data_template['representante_corretora'] = "&nbsp;";
+            $data_template['representante_endereco']  = "&nbsp;";
+            $data_template['representante_sucursal']  = "&nbsp;";
+            $data_template['seguradora_razao']        = $parceiro['nome'];
+            $data_template['seguradora_cnpj']         = $parceiro['cnpj'];
+            $data_template['seguradora_susep']        = $parceiro['codigo_susep'];
+            $data_template['seguradora_endereco']     = trim($parceiro['endereco']) . ", " . trim($parceiro['numero']);
+            if (trim($parceiro['complemento']) != "") {
+                $data_template['seguradora_endereco'] .= " - " . trim($parceiro['complemento']);
+            }
+            $data_template['seguradora_endereco'] .= " - " . trim($parceiro['bairro']) . " - CEP:" . trim($parceiro['cep']);
+        } else {
+            $data_template['representante_nome']      = $parceiro['nome'];
+            $data_template['representante_cnpj']      = $parceiro['cnpj'];
+            $data_template['representante_susep']     = $parceiro['codigo_susep'];
+            $data_template['representante_corretora'] = $parceiro['nome'];
+            $data_template['representante_corretora'] = $parceiro['endereco'];
+            $data_template['representante_sucursal']  = "";
+        }
+
+        $data_template['termo']             = $termo['termo'];
+        $data_template['assets']            = base_url('assets');
+        $data_template['produto_nome']      = $dados['produto_nome'];
+        $data_template['num_apolice']       = $apolice['num_apolice'];
+        $data_template['num_certificado']   = $apolice['num_apolice'];
+        $data_template['data_ini_vigencia'] = app_date_mysql_to_mask($apolice['data_ini_vigencia'], 'd/m/Y');
+        $data_template['data_fim_vigencia'] = app_date_mysql_to_mask($apolice['data_fim_vigencia'], 'd/m/Y');
+
+        $data_template['inicio_viagem'] = app_date_mysql_to_mask($apolice['data_ini_vigencia'], 'd/m/Y');
+        $data_template['fim_viagem']    = app_date_mysql_to_mask($apolice['data_fim_vigencia'], 'd/m/Y');
+        $data_template['data_pedido']   = app_date_mysql_to_mask($apolice['data_adesao'], 'd/m/Y');
+        $data_template['data_adesao']   = app_date_mysql_to_mask($apolice['data_adesao'], 'd/m/Y');
+
+        $data_template["data_ini_garantia_fornecedor"]  = $data_template['data_adesao'];
+        $data_template["data_fim_garantia_fornecedor"]  = date('d/m/Y', strtotime('-1 days', strtotime($apolice['data_ini_vigencia'])));
+
+        $data_template['premio_liquido'] = "R$ " . app_format_currency($apolice['valor_premio_net']);
+        $data_template['premio_total']   = "R$ " . app_format_currency($apolice['valor_premio_total']);
+        $data_template['valor_iof']      = "R$ " . app_format_currency($apolice['valor_premio_total'] - $apolice['valor_premio_net']);
+
+        if ($apolice['num_parcela'] == "1") {
+            $data_template['forma_pagamento'] = $apolice['num_parcela'] . " parcela de R$ " . app_format_currency($apolice['valor_premio_total']);
+        } else {
+            $data_template['forma_pagamento'] = $apolice['num_parcela'] . " parcelas de R$ " . app_format_currency($apolice['valor_premio_total']);
+        }
+
+        $data_template['parceiro']      = $parceiro['nome'];
+        $data_template['cnpj_parceiro'] = app_cnpj_to_mask($parceiro['cnpj']);
+
+        $plano      = $this->plano->get($apolice['produto_parceiro_plano_id']);
+        $coberturas = $this->plano_cobertura->with_cobertura(["nome", "slug"])->filter_by_produto_parceiro_plano($apolice['produto_parceiro_plano_id'])->get_all();
+        $coberturasAll = $this->plano_cobertura->getCoberturasApolice($apolice["apolice_id"]);
+
+        $equipamento = $this->db->query("SELECT 
+                IFNULL(em.nome, eem.nome) as marca, 
+                IFNULL(ec.nome, eec.nome) as categoria, 
+                IFNULL(esc.nome, eesc.nome) as equipamento, 
+                ce.equipamento_nome as modelo, 
+                ae.numero_sorte,
+                ae.imei 
+                FROM apolice_equipamento ae
+                INNER JOIN apolice a ON (a.apolice_id=ae.apolice_id)
+                INNER JOIN pedido p ON (p.pedido_id=a.pedido_id)
+                INNER JOIN cotacao_equipamento ce ON (ce.cotacao_id=p.cotacao_id)
+                INNER JOIN cotacao c ON (c.cotacao_id=p.cotacao_id)
+                
+                LEFT JOIN vw_Equipamentos_Linhas ec ON c.lista_id = 1 AND ec.equipamento_categoria_id=ce.equipamento_categoria_id
+                LEFT JOIN vw_Equipamentos_Linhas esc ON c.lista_id = 1 AND esc.equipamento_categoria_id=ce.equipamento_sub_categoria_id
+                LEFT JOIN vw_Equipamentos_Marcas em ON c.lista_id = 1 AND em.equipamento_marca_id = ce.equipamento_marca_id
+                
+                LEFT JOIN equipamentos_elegiveis_categoria eec ON c.lista_id = eec.lista_id AND eec.equipamento_categoria_id=ce.equipamento_categoria_id
+                LEFT JOIN equipamentos_elegiveis_categoria eesc ON c.lista_id = eesc.lista_id AND eesc.equipamento_categoria_id=ce.equipamento_sub_categoria_id
+                LEFT JOIN equipamentos_elegiveis_marca eem ON c.lista_id = eem.lista_id AND eem.equipamento_marca_id = ce.equipamento_marca_id
+                WHERE a.apolice_id =" . $apolice["apolice_id"])->result_array();
+
+        $data_template['lmi_ge']      = "R$ ".app_format_currency($apolice['nota_fiscal_valor']);
+        if (sizeof($equipamento)) {
+            $data_template['categoria']     = $equipamento[0]["categoria"];
+            $data_template['equipamento']   = $equipamento[0]["equipamento"];
+            $data_template['modelo']        = $equipamento[0]["modelo"];
+            $data_template['marca']         = $equipamento[0]["marca"];
+            $data_template['imei']          = $equipamento[0]["imei"];
+            $data_template['lmi_roubo']     = app_format_currency($apolice['nota_fiscal_valor']);
+            $data_template['lmi_furto']     = app_format_currency($apolice['nota_fiscal_valor']);
+            $data_template['lmi_quebra']    = app_format_currency($apolice['nota_fiscal_valor']);
+        } else {
+            $data_template['equipamento']   = "";
+            $data_template['modelo']        = "";
+            $data_template['marca']         = "";
+            $data_template['imei']          = "";            
+        }
+
+        $ccount = 0;
+        $data_template["franquia"] = "";
+        $data_template["sorteio_valor"] = "";
+        $data_template['numero_sorte']  = $apolice["numero_sorte"];
+
+
+        foreach ($coberturas as $cobertura) {
+            $ccount = $ccount + 1;
+            $data_template["cobertura_" . trim($ccount) . "_descricao"] = $cobertura["cobertura_nome"];
+            $data_template["lmi_" . trim($ccount)]                      = $cobertura["descricao"];
+            $data_template["franquia"] = $cobertura["franquia"];
+            if(in_array($cobertura["cobertura_slug"], array("capitalizacao_nro_sorte", "sorteio_mensal"))){
+                $data_template["sorteio_valor"] = "R$ ".app_format_currency($cobertura["importancia_segurada"]);
+            }
+        }
+
+    
+
+        $pagamento = $this->pedido->getPedidoPagamento($apolice['pedido_id']);
+        $pagamento = $pagamento[0];
+
+        $data_template['pagamento_tipo_pagamento']      = $pagamento['tipo_pagamento'];
+        $data_template['pagamento_bandeira']            = $pagamento['bandeira'];
+        $data_template['pagamento_num_parcela']         = $pagamento['num_parcela'];
+
+        //@todo fazer listagem do numero de capitalização
+        //$capitalizacao = array('numero' => $apolice['num_capitalizacao']);
+
+        //dados segurado
+        $data_template['segurado_rg']           = $apolice['rg'];
+        $data_template['segurado_sexo']         = $apolice['sexo'];
+        $data_template['profissao']             = "";
+        $data_template['estado_civil']          = "";
+        $data_template['contato_telefone']      = app_format_telefone($apolice['contato_telefone']);
+        $data_template['rg_orgao_expedidor']    = $apolice['rg_orgao_expedidor'];
+
+        $data_template['segurado_sexo_masculino'] = " ";
+        $data_template['segurado_sexo_feminino']  = " ";
+        if ($apolice['sexo'] == "M") {
+            $data_template['segurado_sexo']           = "Masculino";
+            $data_template['segurado_sexo_masculino'] = "X";
+        } else {
+            $data_template['segurado_sexo']          = "Feminno";
+            $data_template['segurado_sexo_feminino'] = "X";
+        }
+
+        $tot = strlen(trim($apolice['cnpj_cpf']));
+        if($tot == 11)
+            $_cpf_cnpj = app_cpf_to_mask($apolice['cnpj_cpf']);
+        else if($tot == 14)
+           $_cpf_cnpj = app_cnpj_to_mask($apolice['cnpj_cpf']); 
+        else 
+            $_cpf_cnpj = $apolice['cnpj_cpf'];
+        
+        $data_template['segurado_nome']            = $apolice['nome'];
+        $data_template['segurado_cnpj_cpf']        = $apolice['cnpj_cpf']; 
+        $data_template['segurado_cnpj_cpf_2']      = $_cpf_cnpj;
+        $data_template['segurado_data_nascimento'] = app_dateonly_mysql_to_mask($apolice['data_nascimento']);
+        $data_template['segurado_endereco']        = $apolice['endereco_logradouro'];
+        $data_template['segurado_numero']          = $apolice['endereco_numero'];
+        $data_template['segurado_bairro']          = $apolice['endereco_bairro'];
+        $data_template['segurado_cidade']          = $apolice['endereco_cidade'];
+        $data_template['segurado_estado']          = $apolice['endereco_estado'];
+        $data_template['segurado_cep']             = app_format_cep($apolice['endereco_cep']);
+        $data_template['segurado_telefone']        = app_format_telefone($apolice['contato_telefone']);
+        //$data_template['plano'] = $plano['nome'];
+
+        $data_template['segurado'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/dados_segurado", array('segurado' => $apolice), true);
+
+        $viewvigencia = "";
+        if ( !empty($dados['template_coberturas']) )
+        {
+            
+            $viewseguro = emptyor($dados['template_coberturas'], '');                
+            if(!empty($viewseguro)){
+                $dadosPP = $this->getProdutoParceiro($apolice_id);                
+                $parceiro_slug = $dadosPP["slug"];
+                $seguroFilename = $viewseguro;
+                $viewseguro = $parceiro_slug."/".$seguroFilename;
+                $viewvigencia = $parceiro_slug."/vigencia/".$seguroFilename;
+            }
+            
+        } else {
+            if($dados['slug_parceiro'] == 'tem')
+            {
+                $viewseguro = 'dados_seguro_tem';
+            } else
+            {
+                $viewseguro = 'dados_seguro_cobertura';
+            }
+        }
+
+        $data_template['seguro']   = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/{$viewseguro}", array(
+            'plano'          => $plano,
+            'coberturas'     => $coberturas,
+            'coberturas_all' => $coberturasAll,
+            //  'capitalizacao' => $capitalizacao,
+            'premio_liquido' => $apolice['valor_premio_net'],
+            'premio_bruto' => $apolice['valor_premio_total'],
+            'pagamento'  => $pagamento,
+            'dados'      => $dados),
+            true);
+
+        $data_template["seguro2"] = "";
+        if($viewseguro == "generali/residencial"){
+            $data_template["seguro2"] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/generali/residencial2", array(
+                'coberturas_all' => $coberturasAll
+                ),
+                true);
+        }
+
+        if(isset($coberturasAll) && !empty($viewvigencia)){            
+
+            $_coberturaAll = $coberturasAll[0];
+            if($_coberturaAll["data_inicio_vigencia"]){                                
+                
+                $vigenciaContent = $coberturasAll;
+                $isVigenciaLista = true;
+
+            }else{
+                
+                $vigenciaContent = array();
+                $vigenciaContent["data_inicio_vigencia"] = $data_template['data_ini_vigencia'];
+                $vigenciaContent["data_fim_vigencia"] = $data_template['data_fim_vigencia'];                
+                $isVigenciaLista = false;
+
+            }   
+            
+            $data_template["vigencia"] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/$viewvigencia", array(
+                'content' => $vigenciaContent,
+                'isLista' => $isVigenciaLista
+                ),
+                true);
+        
+        }
+
+
+        
+      
+        $data_template['premio']    = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/premio", array('premio_liquido' => $apolice['valor_premio_net'], 'premio_total' => $apolice['valor_premio_total']), true);
+        $data_template['pagamento'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/pagamento", array('pagamento' => $pagamento), true);
+
+        return $this->parser->parse_string($template, $data_template, true);
+    }
+
+    public function parse_string($template, $data){
+        return $this->parser->parse_string($template, $data, true);
     }
 
 }

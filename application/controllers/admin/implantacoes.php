@@ -8,7 +8,7 @@
  */
 class Implantacoes extends Admin_Controller
 {
-    private $parceiro_id;
+    #private $parceiro_id;
 
     public function __construct()
     {
@@ -30,11 +30,18 @@ class Implantacoes extends Admin_Controller
 
     public function index($offset = 0) //Função padrão (load)
     {
+        //Carrega bibliotecas
+        $this->load->library('pagination');
         //Carrega variáveis de informação para a página
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Implantações");
         $this->template->set_breadcrumb("Implantações", base_url("{$this->controller_uri}/index"));
-
+        //Inicializa tabela
+        $config['base_url'] = base_url("$this->controller_uri/index");
+        $config['uri_segment'] = 4;
+        $config['total_rows'] =  $this->current_model->filterFromInput()->get_total()-1;
+        $config['per_page'] = 20; //voltar
+        $this->pagination->initialize($config);
         $produtos = $this->current_model
         ->with_implantacao_staus();
 
@@ -48,7 +55,7 @@ class Implantacoes extends Admin_Controller
         }
 
         //relacionamentos
-        $produtos = $produtos->get_produtos_venda_admin_parceiros($this->parceiro_id);
+        $produtos = $produtos->filterFromInput()->order_by('nome_prod_parc')->limit($config['per_page'], $offset)->get_produtos_venda_admin_parceiros($this->parceiro_id);
         $parceiros = [];
         $parceiros_ids = [];
 
@@ -57,11 +64,12 @@ class Implantacoes extends Admin_Controller
         $data["rows"] = $produtos;
         $data['primary_key'] = $this->current_model->primary_key();
         $data['implantacao_status'] = $this->implantacao_status->get_all();
-
+        $data["pagination_links"] = $this->pagination->create_links();
+        
         if ( isset($_GET['filter']) )
         {
             if (!empty($_GET['filter']['nome_fantasia']))
-                $parceiros = $this->parceiro->filterFromInput()->get_all();
+            $parceiros = $this->parceiro->filterFromInput($_GET['filter']['nome_fantasia'])->get_all();
         }
 
         foreach ($parceiros as $key => $value) {

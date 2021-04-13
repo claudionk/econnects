@@ -1,5 +1,10 @@
 <script type="text/javascript">
 function validaRepresentante() {
+    if (document.frmOpcao.data_inicio.value == '' || 
+        document.frmOpcao.data_fim.value == ''){
+        alert('Informe a Data');
+        return false;
+    }
     if (document.frmOpcao.representante.value == ''){
         alert('Informe o representante');
         return false;
@@ -12,6 +17,17 @@ function validaRepresentante() {
         return true;
     }
 }
+
+$(document).on('click', 'input[type=radio]', function() {
+    var id = $(this).attr('id');
+    if (id == 'layout1'){ // Habilita o botão apenas quando for relatório sintético
+       $('#btnFiltro').removeAttr('disabled');
+    } else {
+       $('#btnFiltro').attr('disabled','disabled');
+    }     
+})
+
+
 </script>
 <div class="section-header">
     <ol class="breadcrumb">
@@ -54,17 +70,16 @@ function validaRepresentante() {
             <p>Selecione uma data inicial e final para resgatar os registros.</p>
         </div>
 
-        
         <div class="row">
             <div class="col-md-12 form-group">
                 <?php $field_name = "layout"; $field_label = "Visualização: " ?>
                 <label class="control-label" for="<?php echo $field_name;?>"><?php echo $field_label ?></label>
                 <div class="form-check checkbox-inline">
-                  <input type="radio" class="form-check-input" id="<?php echo $field_name ?>0" name="<?= $field_name ?>" value="mapa_analitico" <? if ($layout == "mapa_analitico") {echo "checked='checked'";} ?> >
+                  <input type="radio" class="form-check-input" id="<?php echo $field_name ?>0" name="<?= $field_name ?>" value="mapa_analitico" <?php if ($layout == "mapa_analitico") {echo "checked='checked'";} ?> >
                   <label class="form-check-label" for="<?php echo $field_name ?>0">Analítico</label>
                 </div>
                 <div class="form-check checkbox-inline">
-                  <input type="radio" class="form-check-input" id="<?php echo $field_name ?>1" name="<?php echo $field_name ?>" value="mapa_sintetico" <? if ($layout == "mapa_sintetico") {echo "checked='checked'";} ?> >
+                  <input type="radio" class="form-check-input" id="<?php echo $field_name ?>1" name="<?php echo $field_name ?>" value="mapa_sintetico" <?php if ($layout == "mapa_sintetico") {echo "checked='checked'";} ?> >
                   <label class="form-check-label" for="<?php echo $field_name ?>1">Sintético</label>
                 </div>
             </div>

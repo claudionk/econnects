@@ -456,7 +456,10 @@ function app_valida_email($str)
     return ( ! preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $str)) ? FALSE : TRUE;
 }
 
-function app_verifica_cpf_cnpj ($cpf_cnpj) {
+function app_verifica_cpf_cnpj($cpf_cnpj)
+{
+    $cpf_cnpj = app_clear_number($cpf_cnpj);
+
     // Verifica CPF
     if ( strlen($cpf_cnpj ) === 11 ) {
         return 'CPF';
@@ -466,16 +469,43 @@ function app_verifica_cpf_cnpj ($cpf_cnpj) {
         return 'CNPJ';
     }
     // Não retorna nada
-    else {
+    else
+    {
+        $cpf_cnpj = "00000000000". $cpf_cnpj;
+        $cpf = substr($cpf_cnpj, -11);
+        $cnpj = substr($cpf_cnpj, -14);
+        if ( app_validate_cpf($cpf) )
+        {
+            return 'CPF';
+        }
+
+        if ( app_validate_cnpj($cnpj) )
+        {
+            return 'CNPJ';
+        }
+
         return false;
     }
 }
 
-function app_clear_number($str){
+function app_completa_cpf_cnpj($cpf_cnpj)
+{
+    $cpf_cnpj = "00000000000". app_clear_number($cpf_cnpj);
+    $cpf = substr($cpf_cnpj, -11);
+    $cnpj = substr($cpf_cnpj, -14);
 
-    return preg_replace('/[^0-9]/', '', $str);
+    if (app_verifica_cpf_cnpj($cpf_cnpj) == 'CNPJ')
+    {
+        return $cnpj;
+    }
+
+    return $cpf;
 }
 
+function app_clear_number($str)
+{
+    return preg_replace('/[^0-9]/', '', $str);
+}
 function app_char_alpha($index){
     //fixa o problema do indice do array comeÃ§ar em zero;
     $index = $index - 1;
@@ -495,7 +525,6 @@ function app_get_querystring_full(){
 
     return$query;
 }
-
 function app_get_value($field, $default = ''){
     $ci = & get_instance();
 
@@ -521,19 +550,19 @@ function app_get_value($field, $default = ''){
 
         return $default;
     }
-
-
 }
-
-function app_validate_cpf_cnpj ($cpf_cnpj) {
-
+function app_validate_cpf_cnpj ($cpf_cnpj)
+{
     if ( empty($cpf_cnpj) )
         return false;
 
     $cpf_cnpj = preg_replace('/[^0-9]/', '', $cpf_cnpj);
 
+    if ( empty($cpf_cnpj) )
+        return false;
+
     // Verifica CPF
-    if ( strlen($cpf_cnpj ) === 11 ) {
+    if ( strlen( $cpf_cnpj ) === 11 ) {
         return app_validate_cpf($cpf_cnpj);
     }
     // Verifica CNPJ
@@ -542,7 +571,10 @@ function app_validate_cpf_cnpj ($cpf_cnpj) {
     }
     // Não retorna nada
     else {
-        return false;
+        $cpf_cnpj = "00000000000". $cpf_cnpj;
+        $cpf = substr($cpf_cnpj, -11);
+        $cnpj = substr($cpf_cnpj, -14);
+        return ( app_validate_cpf($cpf) || app_validate_cnpj($cnpj) );
     }
 }
 
@@ -665,17 +697,12 @@ function app_validate_cnpj($cnpj)
 }
 
 function app_db_escape($string){
-
     $ci = & get_instance();
-
     return $ci->db->escape($string);
 }
 
 function app_set_value($field = '', $default = '')
 {
-
-
-
     if ( ! isset($_POST[$field]))
     {
         $value =  $default;
@@ -683,17 +710,11 @@ function app_set_value($field = '', $default = '')
 
         $value =  $_POST[$field];
     }
-
-
-
     return form_prep($value, $field);
 }
 
 function app_has_value($field = '')
 {
-
-
-
     if (isset($_POST[$field]))
     {
         return true;
@@ -1186,7 +1207,40 @@ function emptyor(&$var, $default = ' ') {
 if ( ! function_exists('isempty')) {
     function isempty(&$var, $default = ' ')
     {
-        return (strlen($var) > 0) ? $var : $default; // $default : $var;
+        if ( !isset($var) )
+            return $default;
+
+        if ( is_array($var) || is_object($var) )
+            return (!empty($var)) ? $var : $default;
+
+        return (strlen($var) > 0) ? $var : $default;
+    }
+}
+
+/**
+ * @description Se for uma variavel vazia ele retorna com o default
+ * @param $var
+ * @return string
+ */
+if ( ! function_exists('isvazio')) {
+    function isvazio(&$var, $default = ' ')
+    {
+        if ( !isset($var) )
+        {
+            $var = $default;
+        } 
+        else
+        {
+            if ( empty($var) )
+            {
+                if ( strlen($var) == 0 )
+                {
+                    $var = $default;
+                }
+            }
+        }
+
+        return $var; // $default : $var;
     }
 }
 
@@ -1258,7 +1312,7 @@ function app_calculo_valor($tipo, $quantidade, $valor){
         $result = $valor - $quantidade;
     }
 
-    return round($result, 2);
+    return $result;
 }
 /**
  * Cálculo de porcentagem
@@ -1368,7 +1422,7 @@ function app_print_recursos($recursos)
                     <span>{$recurso['nome']}</span>
                 </label>
             </div>
-
+    
             ".app_print_recurso_filho($recurso)."
         </li>
         ";
@@ -1408,7 +1462,7 @@ function app_print_recurso_filho($recurso)
         foreach ($recurso['filhos'] as $filho) {
             echo "<li class='titulo'>";
 
-            foreach ($recurso['acoes'] as $acao)
+            foreach ($filho['acoes'] as $acao)
             {
                 if($acao['usuario_acl_acao_id'] == 1)
                 {
@@ -1586,8 +1640,9 @@ function app_validate_cep($cep){
     if(strlen($cep) != 8)
         return false;
 
-    if($cep == '00000000')
+    if (preg_match('/^(.)\1*$/', $cep)) {
         return false;
+    }
 
     return true;
 }
@@ -1765,10 +1820,10 @@ if ( ! function_exists('soap_curl'))
 
 if ( ! function_exists('app_get_token'))
 {
-    function app_get_token($email = null, $senha = null){
+    function app_get_token($email = null, $senha = null, $validToken = true){
 
         // solicitar outro token quando a API tiver vencida
-        if ( !empty(app_get_userdata("tokenAPIvalid")) && app_get_userdata("tokenAPIvalid") > date("Y-m-d H:i:s"))
+        if ( $validToken && !empty(app_get_userdata("tokenAPIvalid")) && app_get_userdata("tokenAPIvalid") > date("Y-m-d H:i:s"))
             return app_get_userdata("tokenAPI");
 
         $url = '';
@@ -1780,8 +1835,6 @@ if ( ! function_exists('app_get_token'))
             $url = '&forceEmail=1';
 
         $CI =& get_instance();
-
-
 
         $retorno = soap_curl([
             'url' => $CI->config->item('base_url') ."api/acesso?email={$email}&senha={$senha}&url={$url}",
@@ -1832,12 +1885,36 @@ if ( ! function_exists('app_search'))
 
 if ( ! function_exists('trataRetorno'))
 {
-    function trataRetorno($txt) {
-        $txt = mb_strtoupper(trim($txt), 'UTF-8');
+    function trataRetorno($txt, $up = 1, $trim = true) {
+
+        $replaceEspaco = true;
+        if ( !empty($txt) && !empty($trim) )
+        {
+            $txt = trim($txt);
+        }
+
+        // caso não tenha que dar o trim
+        if ( empty($trim) )
+        {
+            $replaceEspaco = false;
+        }
+
+        if ($up === 1)
+        {
+            $txt = mb_strtoupper($txt, 'UTF-8');
+        } elseif ($up === 0) {
+            $txt = mb_strtolower($txt, 'UTF-8');
+        } else {
+            $txt = mb_convert_encoding($txt, "UTF-8", "auto");
+        }
+
         $txt = app_remove_especial_caracteres($txt);
-        $txt = preg_replace("/[^ |A-Z|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
-        $txt = preg_replace("/\s{2,3000}/", " ", $txt);
-        $txt = preg_replace("/[\\|\/]/", "-", $txt);
+        $txt = preg_replace("/[^ |A-Z|a-z|+|@|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
+        if ($replaceEspaco)
+        {
+            $txt = preg_replace("/\s{2,3000}/", " ", $txt);
+        }
+        // $txt = preg_replace("/[\\|\/]/", "-", $txt);
         return $txt;
     }
 }
@@ -1848,4 +1925,69 @@ function print_pre($arr, $die = true)
     print_r($arr);
 
     if ($die) die();
+}
+
+/**
+ * @description Se for uma variavel vazia/nula retorna true, senão, false
+ * @param $var
+ * @return string
+ */
+if ( ! function_exists('ifempty')) {
+    function ifempty($var)
+    {
+        if ( !isset($var) )
+            return true;
+
+        if ( is_array($var) || is_object($var) )
+            return empty($var);
+
+        return !(strlen($var) > 0);
+    }
+}
+
+/**
+ * @description Retorna apenas os caracteres printáveis, e exibe ? quando não conseguir printar
+ * @param $text
+ * @return string
+ */
+if ( ! function_exists('printable')) {
+    function printable($text)
+    {
+        return preg_replace( '/[^[:print:]\r\n]/', '?',$text);
+    }
+}
+
+/**
+ * @description Une os arrays multidimensionais sem duplicar a chave informada
+ * @param $text
+ * @return string
+ */
+if ( ! function_exists('array_merge_recursive_distinct')) {
+    function array_merge_recursive_distinct ( $chave, array $array1, array $array2 )
+    {
+        $merged = $array1;
+
+        foreach ( $array2 as $key => $value )
+        {
+            if ( is_array ( $value ) )
+            {
+                $exists = false;
+                foreach ($array1 as $k => $v)
+                {
+                    if ( isset($merged[$k][$chave]) && $merged[$k][$chave] == $value[$chave])
+                    {
+                        $exists = true;
+                        break;
+                    }
+                }
+
+                if (!$exists)
+                {
+                    $merged[] = $value;
+                }
+            }
+        }
+
+        return $merged;
+    }
 }

@@ -1,8 +1,10 @@
+<?php if ($layout != "front") { ?>
 <div class="section-header">
     <ol class="breadcrumb">
         <li class="active"><?php echo app_recurso_nome(); ?></li>
     </ol>
 </div>
+<?php } ?>
 
 <!-- col-app -->
 <div class="card">
@@ -26,10 +28,20 @@
 
                 <!-- Column -->
                 <div class="col-md-12">
-                    <?php $this->load->view('admin/venda/step', array('step' => 4, 'produto_parceiro_id' =>  issetor($produto_parceiro_id))); ?>
 
-                    <h4 class="title-pagamento">Aguardando Pagamento</h4>
+                    <h2 class="text-light text-center"><?php echo app_produto_traducao('Aguardando pagamento', $produto_parceiro_id); ?><br>
+                        <small class="text-primary"><?php echo app_produto_traducao('Aguarde a confirmação de seu pagamento', $produto_parceiro_id); ?></small>
+                    </h2>
 
+                    <?php
+                    if((isset($layout)) && ($layout == 'front') && ($context != "pagamento")) {
+                        $this->load->view('admin/venda/equipamento/front/step', array('step' => 5, 'produto_parceiro_id' => $produto_parceiro_id ));
+                    }else{
+                        if ($context != "pagamento") {
+                            $this->load->view("admin/venda/step", array('step' => 5, 'produto_parceiro_id' => $produto_parceiro_id ));
+                        }
+                    }
+                    ?>
 
                     <div class="col-md-6">
 
@@ -122,7 +134,6 @@
     <!-- col-app -->
     <div class="card-body">
         <div class="box-sucesso" style="display: none">
-
             <a class="btn  btn-app btn-primary" href="<?php echo base_url("{$current_controller_uri}/index")?>">
                 <i class="fa fa-edit"></i> Nova Venda
             </a>

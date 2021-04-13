@@ -11,10 +11,6 @@ class Venda_Equipamento extends Admin_Controller{
     const TIPO_CALCULO_BRUTO = 2;
 
     protected $layout = "base";
-    protected $color  = 'default';
-    protected $token;
-    protected $getUrl = '';
-    public $name;
 
     public function __construct()
     {
@@ -30,23 +26,6 @@ class Venda_Equipamento extends Admin_Controller{
         $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento');
         $this->load->model('cliente_model', 'cliente');
 
-        //Seta layout
-        $layout = $this->session->userdata("layout");
-        $this->layout = isset($layout) && !empty($layout) ? $layout : 'base';
-
-        if(! empty($this->input->get("token"))){
-            $this->token = $this->input->get("token");
-            $this->getUrl = '?token='.$this->token;
-        }
-        if(! empty($this->input->get("layout"))){
-            $this->layout = $this->input->get("layout");
-            $this->getUrl .= '&layout='.$this->layout;
-        }
-        if(! empty($this->input->get("color"))){
-            $this->color  = $this->input->get("color");
-            $this->getUrl .= '&color='.$this->color;
-        }
-
         $this->template->js(app_assets_url("template/js/libs/cycle2/cycle2.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/cycle2/jquery.cycle2.carousel.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/toastr/toastr.js", "admin"));
@@ -54,11 +33,9 @@ class Venda_Equipamento extends Admin_Controller{
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/toastr/toastr.css", "admin"));
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/wizard/wizard.css", "admin"));
 
-        if(! empty($this->input->get("color"))){
+        if( !empty($this->color)){
             $this->template->css(app_assets_url('modulos/venda/equipamento/css/'.$this->input->get("color").'.css', 'admin'));
         }
-
-        //echo '<pre>', print_r($this->session); exit;
     }
 
     /**
@@ -110,60 +87,10 @@ class Venda_Equipamento extends Admin_Controller{
         }
     }
 
-    public function step_login($data)
-    {
-        $this->load->model('cliente_model', 'cliente');
-
-        $this->template->js(app_assets_url("modulos/venda/equipamento/js/login.js", "admin"));
-        $this->template->js(app_assets_url("core/js/SenhaForte.js", "admin"));
-        $this->template->js(app_assets_url("template/js/libs/popper.min.js", "admin"));
-
-        if ($_POST)
-        {
-            $documento  = $_POST['cnpj_cpf'];
-            $senha      = $_POST['password'];
-            $confSenha  = $_POST['password_confirm'];
-            $sucesso    = true;
-
-            if ( empty($documento) )
-            {
-                $this->session->set_flashdata('fail_msg', 'Informe o Documento (CPF / CNPJ).');
-                $sucesso = false;
-            }
-
-            if ( !app_validate_cpf_cnpj($documento) )
-            {
-                $this->session->set_flashdata('fail_msg', 'O documento informado é inválido.');
-                $sucesso = false;
-            }
-
-            if ( empty($senha) )
-            {
-                $this->session->set_flashdata('fail_msg', 'A senha é obrigatória.');
-                $sucesso = false;
-            }
-
-            if ( $senha != $confSenha )
-            {
-                $this->session->set_flashdata('fail_msg', 'A senha não confere');
-                $sucesso = false;
-            }
-
-            if ( $sucesso )
-            {
-                $this->cliente->atualizar($this->input->post('cliente_id'), $_POST);
-                $this->session->set_userdata('logado', true);
-                header("Refresh: 0;");
-            }
-        }
-
-        $this->template->load("admin/layouts/{$this->layout}", "admin/venda/equipamento/{$this->layout}/login", $data);
-    }
-
     public function step_pagto($produto_parceiro_id, $cotacao_id = 0, $pedido_id = 0, $conclui_em_tempo_real = true, $data)
     {
         if(empty($this->session->userdata('logado')) && $this->template->get('layout') == 'front'){
-            $this->step_login($data);
+            $this->step_login($data, $cotacao_id);
 
         }else{
             $this->load->model("pedido_model", "pedido_model");
@@ -215,7 +142,7 @@ class Venda_Equipamento extends Admin_Controller{
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $conclui_em_tempo_real = $this->prod_parc_config->item_config($produto_parceiro_id, 'conclui_em_tempo_real');
 
-        if(isset($cotacao['nome'])){
+        if( empty($this->name) && isset($cotacao['nome'])){
             $name = explode(' ',$cotacao['nome']);
             $this->name = trim($name[0]);
         }
@@ -322,6 +249,7 @@ class Venda_Equipamento extends Admin_Controller{
         $this->template->css(app_assets_url("modulos/venda/equipamento/css/select2.css", "admin"));
         $this->template->js(app_assets_url("modulos/venda/equipamento/js/base.js", "admin"));
         $this->template->js(app_assets_url("modulos/venda/equipamento/js/formulario.js", "admin"));
+        $this->template->js(app_assets_url("modulos/venda/equipamento/js/busca_cotacao.js", "admin"));
 
         //Dados para template
         $data = array();
@@ -329,10 +257,12 @@ class Venda_Equipamento extends Admin_Controller{
         $data["produto_parceiro_id"] = $produto_parceiro_id;
         $data["slug"] = "cotacao";
 
+        $produto_parceiro = $this->current_model->get($produto_parceiro_id);
+        $data["lista_id"] = $produto_parceiro["lista_id"];
+
         //Verifica cotação
         if($cotacao_id > 0)
         {
-
             if($this->cotacao->isCotacaoValida($cotacao_id) == FALSE)
             {
                 $this->session->set_flashdata("fail_msg", "Essa Cotação não é válida");
@@ -345,45 +275,16 @@ class Venda_Equipamento extends Admin_Controller{
         //Carrega dados
         $campos_session = $this->session->userdata("cotacao_{$produto_parceiro_id}");
 
-        //Campos para formulário
-        $data["campos"] = $this->campo->with_campo()
-        ->with_campo_tipo()
-        ->filter_by_produto_parceiro($produto_parceiro_id)
-        ->filter_by_campo_tipo_slug("cotacao")
-        ->order_by("ordem", "asc")
-        ->get_all();
-
         if(isset($campos_session) && is_array($campos_session)){
             $data["row"] = $campos_session;
         }else{
             $data["row"] = array();
         }
 
-        $api_key = app_get_token();
-        $this->token = $api_key;
-
-        $Url = $this->config->item('base_url') ."api/campos?produto_parceiro_id={$data['produto_parceiro_id']}&slug={$data['slug']}";
-
-        $myCurl = curl_init();
-        curl_setopt( $myCurl, CURLOPT_URL, $Url );
-        curl_setopt( $myCurl, CURLOPT_FRESH_CONNECT, 1 );
-        curl_setopt( $myCurl, CURLOPT_POST, 0 );
-        curl_setopt( $myCurl, CURLOPT_VERBOSE, 0);
-        curl_setopt( $myCurl, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt( $myCurl, CURLOPT_HTTPHEADER, array( "Content-Type: application/json", "apikey: $api_key" ) );
-        curl_setopt( $myCurl, CURLOPT_TIMEOUT, 15 );
-        curl_setopt( $myCurl, CURLOPT_CONNECTTIMEOUT, 15 );
-        $Response = curl_exec( $myCurl );
-
-        curl_close( $myCurl );
-
-        $Response = json_decode( $Response, true );
-
-        $Response = $Response[0];
-        //echo "<pre>API KEY: $api_key " . print_r( $Response, true ) . "</pre>";
-        $data["campos"] = ( isset( $Response["campos"] ) ? $Response["campos"] : array() );
-
-
+        //Campos para formulário
+        $Campos = $this->campo->getCamposProduto($data['produto_parceiro_id'], $data['slug']);
+        $this->token = $Campos['token'];
+        $data["campos"] = $Campos['campos'];
         $data["cotacao_id"] = $cotacao_id;
         $data["list"] = array();
         $data["list"]["rg_uf"] = $this->localidade_estado->order_by("nome")->get_all();
@@ -397,8 +298,9 @@ class Venda_Equipamento extends Admin_Controller{
             //Verifica válido form
             if ($this->cotacao->validate_form("cotacao"))
             {
-                $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $_POST);
                 $cotacao_id = $this->input->post("cotacao_id");
+                $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $_POST);
+                $this->set_cotacao_session($cotacao_id, $produto_parceiro_id, '', $_POST);
                 $cotacao_id = $this->cotacao_equipamento->insert_update($produto_parceiro_id, $cotacao_id);
 
                 redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/2/{$cotacao_id}{$this->getUrl}");
@@ -553,17 +455,18 @@ class Venda_Equipamento extends Admin_Controller{
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('localidade_estado_model', 'localidade_estado');
         $this->load->model('capitalizacao_model', 'capitalizacao');
+        $this->load->model('produto_parceiro_plano_model', 'plano');
 
         //Carrega JS para template
         $this->template->css(app_assets_url('modulos/venda/equipamento/css/select2.css', 'admin'));
         $this->template->js(app_assets_url('modulos/venda/equipamento/js/dados_busca_cep.js', 'admin'));
         $this->template->js(app_assets_url('modulos/venda/equipamento/js/dados_segurado.js', 'admin'));
+        $this->template->js(app_assets_url("modulos/venda/equipamento/js/formulario.js", "admin"));
 
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $carrossel = $this->session->userdata("carrossel_{$produto_parceiro_id}");
 
         $valido = isset($cotacao) && is_array($cotacao) && count($cotacao) > 0 && isset($carrossel) && is_array($carrossel) && count($carrossel) > 0;
-
         $cotacao_id = ((int)$this->input->post('cotacao_id') > 0) ? (int)$this->input->post('cotacao_id') : $cotacao_id;
 
         if($cotacao_id > 0)
@@ -616,8 +519,11 @@ class Venda_Equipamento extends Admin_Controller{
         }
 
         $data = array();
-
         $data['cotacao_id'] = $cotacao_id;
+
+        $produto_parceiro = $this->current_model->get($produto_parceiro_id);
+        $data["lista_id"] = $produto_parceiro["lista_id"];
+
         $data['campos'] = $this->campo->with_campo()
         ->with_campo_tipo()
         ->filter_by_produto_parceiro($produto_parceiro_id)
@@ -658,6 +564,16 @@ class Venda_Equipamento extends Admin_Controller{
                     $dados_cotacao['step'] = 4;
 
                     $this->campo->setDadosCampos($produto_parceiro_id, 'equipamento', 'dados_segurado', $plano,  $dados_cotacao);
+
+                    // valida Data de Nascimento
+
+                    $dDataNascimento = (!empty($dados_cotacao['data_nascimento']) && $dados_cotacao['data_nascimento'] != '0000-00-00') ? $dados_cotacao['data_nascimento'] : $cotacao_salva['data_nascimento'];
+                    $dNotaFiscalData = (!empty($dados_cotacao['nota_fiscal_data']) && $dados_cotacao['data_nascimento'] != '0000-00-00') ? $dados_cotacao['nota_fiscal_data'] : $cotacao_salva['nota_fiscal_data'];
+                    $validaDataNascimento = $this->plano->valida_data_nascimento($produto_parceiro_id, $cotacao_salva['produto_parceiro_plano_id'], $dDataNascimento, $dNotaFiscalData);
+                    if ( empty($validaDataNascimento['status']) ) {
+                        $this->session->set_flashdata('fail_msg', $validaDataNascimento["mensagem"]);
+                        redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/3/{$cotacao_id}");
+                    }
 
                     if( isset( $_POST["data_inicio_vigencia"] ) ) {
                         $_POST["data_inicio_vigencia"] = app_dateonly_mask_to_mysql($_POST["data_inicio_vigencia"]);
@@ -755,12 +671,9 @@ class Venda_Equipamento extends Admin_Controller{
         $this->template->css(app_assets_url('modulos/venda/equipamento/css/carrossel.css', 'admin'));
         $this->template->css(app_assets_url('modulos/venda/equipamento/css/base.css', 'admin'));
 
-
-
         if($cotacao_id > 0){
             $this->comunicacao_track->insert_or_update($cotacao_id);
         }
-
 
         //Dados para template
         $data = array();
@@ -793,7 +706,6 @@ class Venda_Equipamento extends Admin_Controller{
                 $data['configuracao']['comissao'] = $rel['comissao'];
             }
 
-
             $rel_desconto = $this->relacionamento->get_desconto($produto_parceiro_id, $this->session->userdata('parceiro_id'));
             if(count($rel_desconto) > 0){
                 $data['desconto']['data_ini'] = $rel_desconto['desconto_data_ini'];
@@ -802,7 +714,6 @@ class Venda_Equipamento extends Admin_Controller{
             }else{
                 $data['desconto'] = array('habilitado' => 0);
             }
-
         }
 
         $data['parceiro_id'] = $this->session->userdata('parceiro_id');
@@ -1099,12 +1010,10 @@ class Venda_Equipamento extends Admin_Controller{
         //Carrega models
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('pedido_codigo_model', 'pedido_codigo');
-        $this->load->model('pedido_cartao_model', 'pedido_cartao');
         $this->load->model('pedido_transacao_model', 'pedido_transacao');
         $this->load->model('cotacao_equipamento', 'cotacao_equipamento');
         $this->load->model('cotacao_model', 'cotacao');
 
-        $cotacao = $this->cotacao->get($cotacao_id);
         $valor_total = $this->cotacao_equipamento->getValorTotal($cotacao_id);
 
         $dados_pedido = array();
@@ -1132,7 +1041,6 @@ class Venda_Equipamento extends Admin_Controller{
 
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('pedido_codigo_model', 'pedido_codigo');
-        $this->load->model('pedido_cartao_model', 'pedido_cartao');
         $this->load->model('pedido_transacao_model', 'pedido_transacao');
         $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento');
         $this->load->model('cotacao_model', 'cotacao');
@@ -1229,7 +1137,7 @@ class Venda_Equipamento extends Admin_Controller{
     * @param $cotacao_id
     * @param $produto_parceiro_id
     */
-    private function set_cotacao_session($cotacao_id, $produto_parceiro_id, $status = '')
+    private function set_cotacao_session($cotacao_id, $produto_parceiro_id, $status = '', $inputData = null)
     {
         $this->load->model("Produto_Parceiro_Plano_Model","produto_parceiro_plano" );
         $this->load->model('cotacao_equipamento_model', 'cotacao_equipamento_model');
@@ -1255,6 +1163,7 @@ class Venda_Equipamento extends Admin_Controller{
             $cotacao['email'] = $cotacao_salva['email'];
             $cotacao['telefone'] = $cotacao_salva['telefone'];
             $cotacao['data_nascimento'] = app_date_mysql_to_mask($cotacao_salva['data_nascimento'], 'd/m/Y');
+            $cotacao['garantia_fabricante'] = $cotacao_salva['garantia_fabricante'];
 
             $cotacao['nota_fiscal_data'] = app_date_mysql_to_mask($cotacao_salva['nota_fiscal_data'], 'd/m/Y');
             $cotacao['nota_fiscal_valor'] = app_format_currency($cotacao_salva['nota_fiscal_valor']);
@@ -1297,8 +1206,21 @@ class Venda_Equipamento extends Admin_Controller{
             $cotacao['aux_09'] = $cotacao_salva['aux_09'];
             $cotacao['aux_10'] = $cotacao_salva['aux_10'];
 
+            $sessionData = array();
+            if($inputData){
+                foreach($cotacao as $key => $value){
+                    if(isset($inputData[$key])){
+                        $sessionData[$key] = $inputData[$key];
+                    }else{
+                        $sessionData[$key] = $value;
+                    }
+                }
+            }else{
+                $sessionData = $cotacao;
+            }
 
-            $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $cotacao);
+            $this->session->set_userdata("cotacao_{$produto_parceiro_id}", $sessionData);
+            
         }
 
     }
@@ -1500,6 +1422,7 @@ class Venda_Equipamento extends Admin_Controller{
         $apolice = $this->apolice->getApolicePedido($pedido_id);
         $pedido = $this->pedido->get($pedido_id);
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
+        $_cotacao = $this->cotacao->get_cotacao_produto($pedido['cotacao_id']);
 
         $data = array();
         $data['primary_key'] = $this->current_model->primary_key();
@@ -1509,6 +1432,8 @@ class Venda_Equipamento extends Admin_Controller{
         $data['apolice'] = $apolice;
         $data['pedido'] = $pedido;
         $data['equipamento_marca_id'] = emptyor($cotacao['equipamento_marca_id'], null);
+        $data["email"] = $_cotacao["email"];
+        $data["hasApp"] = $this->hasApp;
 
         $this->limpa_cotacao($produto_parceiro_id);
 

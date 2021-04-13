@@ -37,6 +37,7 @@ class Equipamento extends CI_Controller {
         $this->load->database('default');
 
         $this->load->model("equipamento_model", "equipamento");
+        $this->load->model("equipamentos_elegiveis_model", "equipamentos_elegiveis");
     }
 
     public function index() {
@@ -50,9 +51,22 @@ class Equipamento extends CI_Controller {
             die( json_encode( array( "status" => false, "message" => "Campo EAN é obrigatório" ) ) );
         }
 
+        $lista_id = isempty($GET["lista_id"], 1);
+
+        if ($lista_id == 1)
+        {
+            $EquipModel = $this->equipamento;
+        } else {
+            $EquipModel = $this->equipamentos_elegiveis;
+        }
+
         $ean = $GET["ean"];
 
-        $Equipamento = $this->equipamento->filterByEAN($ean)->get_all();
+        $Equipamento = $EquipModel
+            ->filterByEAN($ean)
+            ->whith_linhas()
+            ->get_all();
+
         if( sizeof( $Equipamento ) ) {
             $Equipamento = $Equipamento[0];
 
@@ -61,6 +75,7 @@ class Equipamento extends CI_Controller {
                 "equipamento_id" => $Equipamento["equipamento_id"],
                 "ean" => $Equipamento["ean"],
                 "nome" => $Equipamento["nome"],
+                "categoria" => $Equipamento["categoria"],
                 "equipamento_marca_id" => $Equipamento["equipamento_marca_id"],
                 "equipamento_categoria_id" => $Equipamento["equipamento_categoria_id"],
                 "equipamento_sub_categoria_id" => $Equipamento["equipamento_sub_categoria_id"]
@@ -72,15 +87,27 @@ class Equipamento extends CI_Controller {
         }    
     }
 
-    public function categorias() {
-        if( $_SERVER["REQUEST_METHOD"] === "GET" ) {
+    public function categorias()
+    {
+        if( $_SERVER["REQUEST_METHOD"] === "GET" )
+        {
             $GET = $_GET;
         } else {
             die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
         }
 
         $this->load->model("equipamento_categoria_model", "equipamento_categoria");
-        $Categorias = $this->equipamento_categoria->filter_by_nviel(1)->order_by('nome')->get_all();
+        $this->load->model("equipamentos_elegiveis_categoria_model", "equipamentos_elegiveis_categoria");
+
+        $lista_id = isempty($GET["lista_id"], 1);
+        if ($lista_id == 1)
+        {
+            $EqCatModel = $this->equipamento_categoria;
+        } else {
+            $EqCatModel = $this->equipamentos_elegiveis_categoria;
+        }
+
+        $Categorias = $EqCatModel->filter_by_nviel(1)->order_by('nome')->get_all();
         die( json_encode( $Categorias, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
@@ -93,9 +120,19 @@ class Equipamento extends CI_Controller {
 
         $categoria_pai_id   = isempty($GET["equipamento_categoria_id"], 0);
         $marca_id           = isempty($GET["equipamento_marca_id"], 0);
+        $lista_id           = isempty($GET["lista_id"], 1);
 
         $this->load->model("equipamento_categoria_model", "equipamento_categoria");
-        $Categorias = $this->equipamento_categoria->with_sub_categoria($categoria_pai_id, $marca_id)->order_by('nome')->get_all();
+        $this->load->model("equipamentos_elegiveis_categoria_model", "equipamentos_elegiveis_categoria");
+
+        if ($lista_id == 1)
+        {
+            $EqCatModel = $this->equipamento_categoria;
+        } else {
+            $EqCatModel = $this->equipamentos_elegiveis_categoria;
+        }
+
+        $Categorias = $EqCatModel->with_sub_categoria($categoria_pai_id, $marca_id)->order_by('nome')->get_all();
         die( json_encode( $Categorias, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
@@ -107,8 +144,17 @@ class Equipamento extends CI_Controller {
         }
 
         $this->load->model("equipamento_marca_model", "equipamento_marca");
-        $Marcas         = $this->equipamento_marca;
-        $categoria_id   = isempty($GET["equipamento_categoria_id"], 0);
+        $this->load->model("equipamentos_elegiveis_marca_model", "equipamentos_elegiveis_marca");
+
+        $categoria_id = isempty($GET["equipamento_categoria_id"], 0);
+        $lista_id     = isempty($GET["lista_id"], 1);
+
+        if ($lista_id == 1)
+        {
+            $Marcas = $this->equipamento_marca;
+        } else {
+            $Marcas = $this->equipamentos_elegiveis_marca;
+        }
 
         if (!empty($categoria_id))
         {
@@ -128,7 +174,16 @@ class Equipamento extends CI_Controller {
 
         $categoria_id = isempty($GET["equipamento_categoria_id"], null);
         $marca_id     = isempty($GET["equipamento_marca_id"], null);
-        $result = $this->equipamento->get_equipamentos($categoria_id, $marca_id);
+        $lista_id     = isempty($GET["lista_id"], 1);
+
+        if ($lista_id == 1)
+        {
+            $modelInstance = $this->equipamento;
+        } else {
+            $modelInstance = $this->equipamentos_elegiveis;
+        }
+
+        $result = $modelInstance->get_equipamentos($categoria_id, $marca_id);
 
         die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
@@ -162,9 +217,17 @@ class Equipamento extends CI_Controller {
         //Faz o MATCH para consulta do Equipamento
         $indiceMax = 20;
         $modelo = $payload->modelo;
-        $marca = !empty($payload->marca) ? $payload->marca : null;
-        $categoria = !empty($payload->categoria) ? $payload->categoria : null;
+        $marca = emptyor($payload->marca, null);
+        $categoria = emptyor($payload->categoria, null);
+        $lista_id     = emptyor($payload->lista_id, 1);
         $resulDefault = array( "status" => false, "message" => "Não foram localizados equipamentos com o modelo informado ({$modelo})" );
+
+        if ($lista_id == 1)
+        {
+            $EquipModel = $this->equipamento;
+        } else {
+            $EquipModel = $this->equipamentos_elegiveis;
+        }
 
         if (!empty($payload->marca)) {
             $marca = $payload->marca;
@@ -176,7 +239,7 @@ class Equipamento extends CI_Controller {
         }
 
         $qtdeRegistros = ( isset($payload->quantidade) && (int)$payload->quantidade > 0) ? $payload->quantidade : 10;
-        $result = $this->equipamento->match($modelo, $marca, $qtdeRegistros, $categoria);
+        $result = $EquipModel->match($lista_id, $modelo, $marca, $qtdeRegistros, $categoria);
 
         //se encontrou algum parecido
         if (empty($result))
@@ -204,6 +267,7 @@ class Equipamento extends CI_Controller {
                     "equipamento_id" => $EANenriquecido->equipamento_id,
                     "ean" => $EANenriquecido->ean,
                     "nome" => $EANenriquecido->nome,
+                    "categoria" => $EANenriquecido->categoria,
                     "equipamento_marca_id" => $EANenriquecido->equipamento_marca_id,
                     "equipamento_categoria_id" => $EANenriquecido->equipamento_categoria_id,
                     "equipamento_sub_categoria_id" => $EANenriquecido->equipamento_sub_categoria_id,

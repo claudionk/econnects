@@ -27,7 +27,6 @@ class Venda_Generico extends Admin_Controller
         $this->template->set_breadcrumb('Venda', base_url("$this->controller_uri/index"));
 
         //Carrega modelos necessários
-
         $this->load->model('produto_parceiro_model', 'current_model');
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('cotacao_generico_model', 'cotacao_generico');
@@ -40,6 +39,7 @@ class Venda_Generico extends Admin_Controller
         $this->template->js(app_assets_url("template/js/libs/cycle2/cycle2.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/cycle2/jquery.cycle2.carousel.js", "admin"));
         $this->template->js(app_assets_url("template/js/libs/toastr/toastr.js", "admin"));
+
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/toastr/toastr.css", "admin"));
         $this->template->css(app_assets_url("template/css/{$this->_theme}/libs/wizard/wizard.css", "admin"));
     }
@@ -127,7 +127,6 @@ class Venda_Generico extends Admin_Controller
             else
             {
                 //Carrega função para finalizar
-               // $this->set_carrossel_session($cotacao_id, $produto_parceiro_id);
                 $this->generico_finalizar($produto_parceiro_id, $cotacao_id, $status);
             }
 
@@ -167,10 +166,7 @@ class Venda_Generico extends Admin_Controller
             $this->generico_salvar_cotacao($produto_parceiro_id, $cotacao_id, $pedido_id);
         }
 
-
     }
-
-
 
     /**
      * Página que verifica desconto
@@ -210,7 +206,6 @@ class Venda_Generico extends Admin_Controller
 
         }
 
-
         //Carrega template
         $this->template->load("admin/layouts/{$this->layout}", "$this->controller_uri/generico/verificar_desconto", $data );
     }
@@ -229,7 +224,6 @@ class Venda_Generico extends Admin_Controller
         $this->load->model('localidade_estado_model', 'estado');
         $this->load->model('faixa_salarial_model', 'faixa_salarial');
         $this->load->model("servico_produto_model", "servico_produto");
-        $this->load->library('api');
 
         //Dados para template
         $data = array();
@@ -252,29 +246,16 @@ class Venda_Generico extends Admin_Controller
         //Carrega dados
         $campos_session = $this->session->userdata("cotacao_{$produto_parceiro_id}");
 
-        //Campos para formulário
-        $data['campos'] = $this->campo->with_campo()
-            ->with_campo_tipo()
-            ->filter_by_produto_parceiro($produto_parceiro_id)
-            ->filter_by_campo_tipo_slug('cotacao')
-            ->order_by("ordem", "asc")
-            ->get_all();
-
         if(isset($campos_session) && is_array($campos_session)){
             $data['row'] = $campos_session;
         }else{
             $data['row'] = array();
         }
 
-        $obj = new Api();
-        $url = base_url() ."api/campos?produto_parceiro_id={$data['produto_parceiro_id']}&slug={$data['slug']}";
-        $r = $obj->execute($url);
-
-        if ( !empty($r) ) {
-            $Response = json_decode($r,true);
-            $Response = $Response[0];
-            $data["campos"] = ( isset( $Response["campos"] ) ? $Response["campos"] : array() );
-        }
+        //Campos para formulário
+        $Campos = $this->campo->getCamposProduto($data['produto_parceiro_id'], $data['slug']);
+        $this->token = $Campos['token'];
+        $data["campos"] = $Campos['campos'];
 
         $data['cotacao_id'] = $cotacao_id;
         $data['list'] = array();
@@ -286,7 +267,6 @@ class Venda_Generico extends Admin_Controller
 
         if($_POST)
         {
-
             $validacao = $this->campo->setValidacoesCampos($produto_parceiro_id, "cotacao");
             $this->cotacao->setValidate($validacao);
 
@@ -471,6 +451,7 @@ class Venda_Generico extends Admin_Controller
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('localidade_estado_model', 'localidade_estado');
         $this->load->model('capitalizacao_model', 'capitalizacao');
+        $this->load->model('produto_parceiro_plano_model', 'plano');
 
         //Carrega JS para template
         $this->template->js(app_assets_url('modulos/venda/generico/js/dados_busca_cep.js', 'admin'));
@@ -481,9 +462,7 @@ class Venda_Generico extends Admin_Controller
         $carrossel = $this->session->userdata("carrossel_{$produto_parceiro_id}");
 
         $valido = isset($cotacao) && is_array($cotacao) && count($cotacao) > 0 && isset($carrossel) && is_array($carrossel) && count($carrossel) > 0;
-
         $cotacao_id = ((int)$this->input->post('cotacao_id') > 0) ? (int)$this->input->post('cotacao_id') : $cotacao_id;
-
 
         if($cotacao_id > 0)
         {
@@ -491,15 +470,14 @@ class Venda_Generico extends Admin_Controller
                 $this->session->set_flashdata('fail_msg', 'Essa Cotação não é válida');
                 redirect("{$this->controller_uri}/index");
             }
+
             //Verifica se cotação e carrossel foram setados na session
             if ($status == 'desconto_aprovado'){
                 //Seta session
                 $this->set_cotacao_session($cotacao_id, $produto_parceiro_id, $status);
             }elseif($valido){
                 //Move para cotação carrossel
-
                 $this->cotacao_generico->insert_update($produto_parceiro_id, $cotacao_id, 3);
-
             }else{
                 redirect("{$this->controller_uri}/generico/{$produto_parceiro_id}/2/{$cotacao_id}");
             }
@@ -536,7 +514,6 @@ class Venda_Generico extends Admin_Controller
         }
 
         $data = array();
-
         $data['cotacao_id'] = $cotacao_id;
         $data['campos'] = $this->campo->with_campo()
             ->with_campo_tipo()
@@ -545,12 +522,11 @@ class Venda_Generico extends Admin_Controller
             ->order_by("ordem", "asc")
             ->get_all();
 
-
         $data['cotacao'] = $this->session->userdata("cotacao_{$produto_parceiro_id}");
         $data['carrossel'] = $this->session->userdata("carrossel_{$produto_parceiro_id}");
 
         if(isset($cotacao_salva['cotacao_upgrade_id']) && (int)$cotacao_salva['cotacao_upgrade_id'] > 0){
-           $this->set_cotacao_session($cotacao_id, $produto_parceiro_id);
+            $this->set_cotacao_session($cotacao_id, $produto_parceiro_id);
         }
         $dados_segurado =  $this->session->userdata("dados_segurado_{$produto_parceiro_id}");
         $data['row'] = (isset($dados_segurado) && is_array($dados_segurado) && count($dados_segurado) > 0) ? $dados_segurado : array();
@@ -559,15 +535,16 @@ class Venda_Generico extends Admin_Controller
 
         if($_POST)
         {
-
             $planos = explode(';', $data['carrossel']['plano']);
             $planos_nome = explode(';', $data['carrossel']['plano_nome']);
             $validacao = $this->campo->setValidacoesCamposPlano($produto_parceiro_id, 'dados_segurado', $data['carrossel']['plano']);
 
             $this->cotacao->setValidate($validacao);
-            if ($this->cotacao->validate_form('dados_segurado')) {
+            if ($this->cotacao->validate_form('dados_segurado'))
+            {
 
-                foreach ($planos as $index => $plano) {
+                foreach ($planos as $index => $plano)
+                {
 
                     //busca cotação do cotacao_seguro_viagem
                     $cotacao_salva = $this->cotacao->with_cotacao_generico()
@@ -579,6 +556,15 @@ class Venda_Generico extends Admin_Controller
                     $dados_cotacao['step'] = 4;
 
                     $this->campo->setDadosCampos($produto_parceiro_id, 'generico',  'dados_segurado', $plano, $dados_cotacao);
+
+                    // valida Data de Nascimento
+                    $dDataNascimento = (!empty($dados_cotacao['data_nascimento']) && $dados_cotacao['data_nascimento'] != '0000-00-00') ? $dados_cotacao['data_nascimento'] : $cotacao_salva['data_nascimento'];
+                    $dNotaFiscalData = (!empty($dados_cotacao['nota_fiscal_data']) && $dados_cotacao['data_nascimento'] != '0000-00-00') ? $dados_cotacao['nota_fiscal_data'] : $cotacao_salva['nota_fiscal_data'];
+                    $validaDataNascimento = $this->plano->valida_data_nascimento($produto_parceiro_id, $cotacao_salva['produto_parceiro_plano_id'], $dDataNascimento, $dNotaFiscalData);
+                    if ( empty($validaDataNascimento['status']) ) {
+                        $this->session->set_flashdata('fail_msg', $validaDataNascimento["mensagem"]);
+                        redirect("{$this->controller_uri}/equipamento/{$produto_parceiro_id}/3/{$cotacao_id}");
+                    }
 
                     if( isset( $_POST["data_inicio_vigencia"] ) ) {
                         $_POST["data_inicio_vigencia"] = app_dateonly_mask_to_mysql($_POST["data_inicio_vigencia"]);
@@ -671,7 +657,6 @@ class Venda_Generico extends Admin_Controller
         $this->load->model('servico_produto_model', 'servico_produto');
         $this->load->model('comunicacao_track_model', 'comunicacao_track');
 
-
         //Carrega JS
         $this->template->js(app_assets_url('modulos/venda/generico/js/base.js', 'admin'));
         $this->template->js(app_assets_url('modulos/venda/generico/js/carrossel.js', 'admin'));
@@ -683,7 +668,6 @@ class Venda_Generico extends Admin_Controller
             $this->comunicacao_track->insert_or_update($cotacao_id);
         }
 
-
         //Dados para template
         $data = array();
         $data['primary_key'] = $this->current_model->primary_key();
@@ -691,17 +675,13 @@ class Venda_Generico extends Admin_Controller
 
         $desconto = $this->desconto->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
 
-
         if(count($desconto) > 0){
             $data['desconto'] = $desconto[0];
         }else{
             $data['desconto'] = array('habilitado' => 0);
         }
 
-        //print_r($data['desconto']);exit;
-
         $configuracao = $this->configuracao->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
-
 
         if(count($configuracao) > 0){
             $data['configuracao'] = $configuracao[0];
@@ -712,8 +692,6 @@ class Venda_Generico extends Admin_Controller
         if($data['row']['parceiro_id'] != $this->session->userdata('parceiro_id')){
 
             $rel = $this->relacionamento->get_comissao($produto_parceiro_id, $this->session->userdata('parceiro_id'));
-
-
 
             $data['configuracao']['repasse_comissao'] = $rel['repasse_comissao'];
             $data['configuracao']['repasse_maximo'] = $rel['repasse_maximo'];
@@ -729,10 +707,7 @@ class Venda_Generico extends Admin_Controller
                 $data['desconto'] = array('habilitado' => 0);
             }
 
-
-
         }
-
 
         $data['parceiro_id'] = $this->session->userdata('parceiro_id');
 
@@ -756,10 +731,7 @@ class Venda_Generico extends Admin_Controller
             //Seta session
             $this->set_cotacao_session($cotacao_id, $produto_parceiro_id);
 
-
             $cotacao_salva = $this->cotacao->with_cotacao_generico()->filterByID($cotacao_id)->get_all();
-
-
 
             if($cotacao_salva){
 
@@ -786,42 +758,41 @@ class Venda_Generico extends Admin_Controller
                 $data['carrinho_hidden']['cobertura_adicional_valor_total'] = "";
 
 
-                    if((int)$cotacao_salva['produto_parceiro_plano_id'] > 0) {
+                if((int)$cotacao_salva['produto_parceiro_plano_id'] > 0) {
 
-                        $plano_salvo = $this->plano->get($cotacao_salva['produto_parceiro_plano_id']);
+                    $plano_salvo = $this->plano->get($cotacao_salva['produto_parceiro_plano_id']);
 
-                        //exit($plano_salvo['produto_parceiro_plano_id']);
+                    if (($cotacao_antiga && isset($cotacao_antiga['produto_parceiro_plano_id']) && $cotacao_antiga['produto_parceiro_plano_id'] != $cotacao_salva['produto_parceiro_plano_id']) || (!$cotacao_antiga))
+                    {
+                        $data['carrinho_hidden']['plano'][] = $plano_salvo['produto_parceiro_plano_id'];
+                        $data['carrinho_hidden']['plano_nome'][] = $plano_salvo['nome'];
+                        $data['carrinho_hidden']['quantidade'][] = $cotacao_salva['quantidade'];
+                        $data['carrinho_hidden']['valor'][] = app_format_currency($cotacao_salva['premio_liquido'], false, 3);
+                        $data['carrinho_hidden']['comissao_repasse'][] = app_format_currency($cotacao_salva['repasse_comissao'], false, 3);
+                        $data['carrinho_hidden']['desconto_condicional'][] = app_format_currency($cotacao_salva['desconto_condicional'], false, 3);
+                        $data['carrinho_hidden']['desconto_condicional_valor'][] = $cotacao_salva['desconto_condicional_valor'];
+                        $data['carrinho_hidden']['valor_total'][] = app_format_currency($cotacao_salva['premio_liquido_total'], false, 3);
 
-                        if (($cotacao_antiga && isset($cotacao_antiga['produto_parceiro_plano_id']) && $cotacao_antiga['produto_parceiro_plano_id'] != $cotacao_salva['produto_parceiro_plano_id']) || (!$cotacao_antiga)) {
-                            $data['carrinho_hidden']['plano'][] = $plano_salvo['produto_parceiro_plano_id'];
-                            $data['carrinho_hidden']['plano_nome'][] = $plano_salvo['nome'];
-                            $data['carrinho_hidden']['quantidade'][] = $cotacao_salva['quantidade'];
-                            $data['carrinho_hidden']['valor'][] = app_format_currency($cotacao_salva['premio_liquido'], false, 3);
-                            $data['carrinho_hidden']['comissao_repasse'][] = app_format_currency($cotacao_salva['repasse_comissao'], false, 3);
-                            $data['carrinho_hidden']['desconto_condicional'][] = app_format_currency($cotacao_salva['desconto_condicional'], false, 3);
-                            $data['carrinho_hidden']['desconto_condicional_valor'][] = $cotacao_salva['desconto_condicional_valor'];
-                            $data['carrinho_hidden']['valor_total'][] = app_format_currency($cotacao_salva['premio_liquido_total'], false, 3);
+                        $cotacao_adicional = $this->cotacao_generico_cobertura->get_many_by(array(
+                            'cotacao_generico_id' => $cotacao_salva['cotacao_generico_id'],
+                            'deletado' => 0,
+                        ));
 
-                            $cotacao_adicional = $this->cotacao_generico_cobertura->get_many_by(array(
-                                'cotacao_generico_id' => $cotacao_salva['cotacao_generico_id'],
-                                'deletado' => 0,
-                            ));
-
-                            foreach ($cotacao_adicional as $ca) {
-                                $data['carrinho_hidden']['cobertura_adicional'] .= $ca['cobertura_plano_id'].";";
-                                $data['carrinho_hidden']['cobertura_adicional_valor'] .= $ca['valor'].";";
-                                $data['carrinho_hidden']['cobertura_adicional_valor_total'] += $ca['valor'];
-                            }
-
-                            $data['carrinho'][] = array(
-                                'item' => 1,
-                                'quantidade' => $cotacao_salva['quantidade'],
-                                'plano_id' => $plano_salvo['produto_parceiro_plano_id'],
-                                'plano' => $plano_salvo['nome'],
-                                'valor' => app_format_currency($cotacao_salva['premio_liquido_total'], FALSE, 2)
-                            );
+                        foreach ($cotacao_adicional as $ca) {
+                            $data['carrinho_hidden']['cobertura_adicional'] .= $ca['cobertura_plano_id'].";";
+                            $data['carrinho_hidden']['cobertura_adicional_valor'] .= $ca['valor'].";";
+                            $data['carrinho_hidden']['cobertura_adicional_valor_total'] += $ca['valor'];
                         }
+
+                        $data['carrinho'][] = array(
+                            'item' => 1,
+                            'quantidade' => $cotacao_salva['quantidade'],
+                            'plano_id' => $plano_salvo['produto_parceiro_plano_id'],
+                            'plano' => $plano_salvo['nome'],
+                            'valor' => app_format_currency($cotacao_salva['premio_liquido_total'], FALSE, 2)
+                        );
                     }
+                }
 
                 $data['carrinho_hidden']['plano'] = implode(';', $data['carrinho_hidden']['plano']);
                 $data['carrinho_hidden']['quantidade'] = implode(';', $data['carrinho_hidden']['quantidade']);
@@ -931,15 +902,15 @@ class Venda_Generico extends Admin_Controller
                 $arrPlanos = $this->plano
                     ->order_by('produto_parceiro_plano.ordem', 'asc')
                     ->distinct();
-                    if((isset($cotacao['origem_id'])) && ($cotacao['origem_id'])){
-                        $arrPlanos->with_origem($cotacao['origem_id']);
-                    }
-                    if((isset($cotacao['destino_id'])) && ($cotacao['destino_id'])){
-                        $arrPlanos->with_destino($cotacao['destino_id']);
-                    }
-                    if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
-                        $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
-                    }
+                if((isset($cotacao['origem_id'])) && ($cotacao['origem_id'])){
+                    $arrPlanos->with_origem($cotacao['origem_id']);
+                }
+                if((isset($cotacao['destino_id'])) && ($cotacao['destino_id'])){
+                    $arrPlanos->with_destino($cotacao['destino_id']);
+                }
+                if((isset($cotacao['faixa_salarial_id'])) && ($cotacao['faixa_salarial_id'])){
+                    $arrPlanos->with_faixa_salarial($cotacao['faixa_salarial_id']);
+                }
                 $arrPlanos = $arrPlanos
                     ->get_many_by(array(
                         'produto_parceiro_id' => $produto_parceiro_id
@@ -1061,7 +1032,6 @@ class Venda_Generico extends Admin_Controller
     private function insertPedidoCarrinho($cotacao_id)
     {
         //Carrega models
-
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('pedido_codigo_model', 'pedido_codigo');
         $this->load->model('pedido_cartao_model', 'pedido_cartao');
@@ -1069,12 +1039,8 @@ class Venda_Generico extends Admin_Controller
         $this->load->model('cotacao_generico', 'cotacao_generico');
         $this->load->model('cotacao_model', 'cotacao');
 
-
         $cotacao = $this->cotacao->get($cotacao_id);
         $valor_total = $this->cotacao_generico->getValorTotal($cotacao_id);
-
-
-
 
         $dados_pedido = array();
         $dados_pedido['cotacao_id'] = $cotacao_id;
@@ -1091,16 +1057,13 @@ class Venda_Generico extends Admin_Controller
         $this->pedido_transacao->insStatus($pedido_id, 'criado');
         $this->pedido_transacao->insStatus($pedido_id, 'carrinho');
 
-
         //altera o status da cotação
         $this->cotacao->update($cotacao_id, array('cotacao_status_id' => 2), TRUE);
 
-
         return $pedido_id;
-
     }
 
-     private function updatePedidoCarrinho($pedido_id, $cotacao_id){
+    private function updatePedidoCarrinho($pedido_id, $cotacao_id){
 
         $this->load->model('pedido_model', 'pedido');
         $this->load->model('pedido_codigo_model', 'pedido_codigo');
@@ -1121,7 +1084,6 @@ class Venda_Generico extends Admin_Controller
         $this->pedido->update($pedido_id,  $dados_pedido, TRUE);
         $this->pedido_transacao->insStatus($pedido_id, 'alteracao');
         $this->pedido_transacao->insStatus($pedido_id, 'carrinho');
-
 
         //altera o status da cotação
         $this->cotacao->update($cotacao_id, array('cotacao_status_id' => 2), TRUE);
@@ -1146,37 +1108,16 @@ class Venda_Generico extends Admin_Controller
             ->set_output(json_encode($result));
     }
 
-    private function getValorCoberturaAdicional($produto_parceiro_plano_id, $cobertura_plano_id, $qntDias){
-        $this->load->model('cobertura_plano_model', 'cobertura_plano');
-
-        $cobertura = $this->cobertura_plano->get_by(array(
-            'produto_parceiro_plano_id' => $produto_parceiro_plano_id,
-            'cobertura_plano_id' => $cobertura_plano_id,
-
-        ));
-
-
-        if($cobertura){
-            return (app_calculo_porcentagem($cobertura['porcentagem'],$cobertura['preco'])*$qntDias);
-        }else{
-            return 0;
-        }
-
-    }
-
-    private function salvar_cotacao_campos_adicionais($cotacao_id){
-
+    private function salvar_cotacao_campos_adicionais($cotacao_id)
+    {
 
         $this->load->model('cotacao_model', 'cotacao');
         $this->load->model('cliente_contato_model', 'cliente_contato');
 
         $cotacao = $this->cotacao->get($cotacao_id);
 
-
         //insere os contatos
-
         $qnt_contato = $this->input->post('quantidade_contatos');
-
 
         for ($i = 0; $i < $qnt_contato; $i++) {
 
@@ -1196,12 +1137,9 @@ class Venda_Generico extends Admin_Controller
                 $data_contato['contato_tipo_id'] = $contato_tipo_id;
                 $data_contato['cliente_terceiro'] = $cliente_terceiro;
                 $data_contato['melhor_horario'] = $melhor_horario;
-//                $data_contato['data_nascimento'] = app_dateonly_mask_to_mysql($cotacao['data_nascimento']);
                 $this->cliente_contato->insert_not_exist_contato($data_contato);
-              //  print_r($data_contato);
             }
         }
-
 
         $data_cotacao = array();
         $data_cotacao['motivo'] = $this->input->post('salvar_motivo');
@@ -1209,15 +1147,13 @@ class Venda_Generico extends Admin_Controller
         $data_cotacao['motivo_obs'] = $this->input->post('motivo_obs');
 
         $this->cotacao->update($cotacao_id,  $data_cotacao, TRUE);
-
     }
 
-    public function limpa_cotacao($produto_parceiro_id){
-
+    public function limpa_cotacao($produto_parceiro_id)
+    {
         $this->session->unset_userdata("cotacao_{$produto_parceiro_id}");
         $this->session->unset_userdata("carrossel_{$produto_parceiro_id}");
         $this->session->unset_userdata("dados_segurado_{$produto_parceiro_id}");
-
     }
 
     /**
@@ -1245,6 +1181,8 @@ class Venda_Generico extends Admin_Controller
             $cotacao['email'] = $cotacao_salva['email'];
             $cotacao['telefone'] = $cotacao_salva['telefone'];
             $cotacao['data_nascimento'] = app_date_mysql_to_mask($cotacao_salva['data_nascimento'], 'd/m/Y');
+            $cotacao['garantia_fabricante'] = $cotacao_salva['garantia_fabricante'];
+            
             $cotacao['endereco_cep'] = $cotacao_salva['endereco_cep'];
             $cotacao['endereco_logradouro'] = $cotacao_salva['endereco_logradouro'];
             $cotacao['endereco_numero'] = $cotacao_salva['endereco_numero'];
@@ -1425,11 +1363,9 @@ class Venda_Generico extends Admin_Controller
             $this->load->model('pedido_transacao_model', 'pedido_transacao');
             $this->load->model('cotacao_model', 'cotacao');
             $this->load->model('pedido_cartao_transacao_model', 'pedido_cartao_transacao');
-
             $this->load->library("Nusoap_lib");
 
             $pedido = $this->pedido->get($dados['pedido_id']);
-
             $integracao = $this->forma_pagamento_integracao->get_by_slug('pagmax');
 
             $dados_transacao = array();
@@ -1586,7 +1522,6 @@ class Venda_Generico extends Admin_Controller
      * @param $produto_parceiro_id
      * @param int $pedido_id
      */
-
     public function generico_certificado($produto_parceiro_id, $pedido_id = 0){
 
         $this->load->model('pedido_model', 'pedido');

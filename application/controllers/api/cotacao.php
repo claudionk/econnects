@@ -89,8 +89,9 @@ class Cotacao extends CI_Controller {
                 die( json_encode( array( "status" => false, "message" => "Campo cotacao_id é obrigatório no método PUT" ) ) );
             }
             $cotacao_id = $POST["cotacao_id"];
-            } else {
-                if( isset( $POST["cotacao_id"] ) ) {
+        } else {
+            
+            if( isset( $POST["cotacao_id"] ) ) {
                 unset( $POST["cotacao_id"] );
             }
         }
@@ -106,21 +107,24 @@ class Cotacao extends CI_Controller {
         }
 
         $coberturas_adicionais = null;
-        if (!empty($POST['produto_parceiro_plano_id'])) {
+        $coberturas = emptyor($POST['coberturas'], null);
+
+        if (!empty($POST['produto_parceiro_plano_id']))
+        {
             $POST['nota_fiscal_data'] = issetor($POST['nota_fiscal_data'], null);
-            $valid = $this->produto_parceiro_plano->verifica_tempo_limite_de_uso($POST['produto_parceiro_id'], $POST['produto_parceiro_plano_id'], $POST['nota_fiscal_data']);
 
-            if (!empty($valid)) {
-                die( json_encode( array( "status" => false, "message" => $valid ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
-            }
-
-            $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($POST['produto_parceiro_plano_id'], null, $POST);
+            $vigencia = $this->produto_parceiro_plano->getInicioFimVigencia($POST['produto_parceiro_plano_id'], null, $POST, $coberturas);
             if (!empty($vigencia))
             {
                 if ( app_date_get_diff_dias(app_dateonly_mysql_to_mask($vigencia["data_adesao"]), date('d/m/Y'),  "D") < 0 )
                 {
                     die( json_encode( array( "status" => false, "message" => "A data de adesão não pode ser superior à data atual" ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
                 }
+            }
+
+            $valid = $this->produto_parceiro_plano->verifica_tempo_limite_de_uso($POST['produto_parceiro_id'], $POST['produto_parceiro_plano_id'], $POST['nota_fiscal_data'], $vigencia["data_adesao"]);
+            if (!empty($valid)) {
+                die( json_encode( array( "status" => false, "message" => $valid ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
             }
 
             // Gera o registro de coberturas adicionais
@@ -133,6 +137,7 @@ class Cotacao extends CI_Controller {
             }
         }
         unset( $POST["coberturas_opcionais"] );
+        unset( $POST["coberturas"] );
 
         $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $POST );
         $cotacao_id = (int)$cotacao_id;
@@ -188,12 +193,18 @@ class Cotacao extends CI_Controller {
     }
 
     public function calculo() {
-        if( $_SERVER["REQUEST_METHOD"] !== "GET" ) {
-        ob_clean();
-        die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
+        if( $_SERVER["REQUEST_METHOD"] !== "GET" && $_SERVER["REQUEST_METHOD"] !== "POST") {
+            ob_clean();
+            die( json_encode( array( "status" => false, "message" => "Invalid HTTP method" ) ) );
         }
 
-        $GET = $_GET;
+        if( $_SERVER["REQUEST_METHOD"] === "GET" )
+        {
+            $GET = $_GET;
+        } else {
+            $GET = json_decode( file_get_contents( "php://input" ), true );
+        }
+
         $this->load->model( "cotacao_model", "cotacao" );
         $this->load->model( "produto_parceiro_campo_model", "produto_parceiro_campo" );
         $this->load->model( 'produto_parceiro_regra_preco_model', 'regra_preco');
@@ -215,11 +226,13 @@ class Cotacao extends CI_Controller {
         $equipamento_de_para            = issetor( $GET["equipamento_de_para"] , null);
         $equipamento_sub_categoria_id   = issetor( $GET["equipamento_sub_categoria_id"] , null);
         $quantidade                     = issetor( $GET["quantidade"] , 1);
-        $coberturas                     = issetor( $GET["coberturas_opcionais"] , null);
+        $coberturas_opcionais           = issetor( $GET["coberturas_opcionais"] , null);
+        $coberturas_v                   = issetor( $GET["coberturas"] , null);
         $repasse_comissao               = issetor( $GET["repasse_comissao"] , 0);
         $desconto_condicional           = issetor( $GET["desconto_condicional"] , 0);
         $comissao_premio                = issetor( $GET["comissao_premio"] , 0);
         $valor_fixo                     = issetor( $GET["valor_fixo"] , null);
+        $garantia_fabricante            = issetor( $GET["garantia_fabricante"] , null);
 
         if( is_null( $produto_parceiro_id ) ) {
             $cotacao = $this->cotacao->get_by_id( $cotacao_id );
@@ -245,17 +258,19 @@ class Cotacao extends CI_Controller {
         $params["repasse_comissao"]             = emptyor($repasse_comissao, $cotacao_aux['repasse_comissao']);
         $params["desconto_condicional"]         = emptyor($desconto_condicional, $cotacao_aux['desconto_condicional']);
         $params["comissao_premio"]              = emptyor($comissao_premio, $cotacao_aux['comissao_premio']);
+        $params["coberturas"]                   = emptyor($coberturas_v, null);
+        $params["garantia_fabricante"]          = emptyor($garantia_fabricante, 0);
 
-        if ( !empty($params["coberturas_opcionais"]) && is_array($params["coberturas_opcionais"]))
+        if ( !empty($coberturas_opcionais) && is_array($coberturas_opcionais))
         {
-            $coberturas = $this->cobertura_plano->filter_adicional_by_cobertura_slug($cotacao_id, $params["coberturas_opcionais"])->get_all();
+            $coberturas = $this->cobertura_plano->filter_adicional_by_cobertura_slug($cotacao_id, $coberturas_opcionais)->get_all();
             foreach ($coberturas as $cobAdd) {
-                $params["coberturas"][] = $cobAdd['cobertura_plano_id'] .";". $cobAdd['preco'];
+                $params["coberturas_adicionais"][] = $cobAdd['cobertura_plano_id'] .";". $cobAdd['preco'];
             }
         } else {
             $coberturas = $this->cotacao_generico_cobertura->with_cotacao($cotacao_id)->get_all();
             foreach ($coberturas as $cobAdd) {
-                $params["coberturas"][] = $cobAdd['produto_parceiro_plano_id'] .";". $cobAdd['cobertura_plano_id'];
+                $params["coberturas_adicionais"][] = $cobAdd['produto_parceiro_plano_id'] .";". $cobAdd['cobertura_plano_id'];
             }
         }
 
@@ -354,6 +369,7 @@ class Cotacao extends CI_Controller {
         $this->load->model( "apolice_model", "apolice" );
         $this->load->model( "localidade_estado_model", "localidade_estado" );
         $this->load->model( "capitalizacao_model", "capitalizacao" );
+        $this->load->model('produto_parceiro_plano_model', 'produto_parceiro_plano');
 
         //$parceiro_id = issetor($params['parceiro_id'], 0);
         $produto_parceiro_id = issetor($params['produto_parceiro_id'], 0);
@@ -361,6 +377,11 @@ class Cotacao extends CI_Controller {
         $repasse_comissao = $params["repasse_comissao"];
         $desconto_condicional= $params["desconto_condicional"];
         $cotacao_id = issetor($params['cotacao_id'], 0);
+
+        $validaDataNascimento = $this->produto_parceiro_plano->valida_data_nascimento($produto_parceiro_id, $produto_parceiro_plano_id, $params["data_nascimento"], $params["data_adesao"]);
+        if (empty($validaDataNascimento['status'])) {
+            return $validaDataNascimento;
+        }
 
         $result  = array(
             'status' => false,
@@ -382,14 +403,19 @@ class Cotacao extends CI_Controller {
             if ( $produto_slug == "equipamento" ) {
                 $cotacao_aux = $this->cotacao_equipamento;
                 $cotacao_aux_id = "cotacao_equipamento_id";
+                $name_banco = "equipamento";
             } elseif ( $produto_slug == "seguro_viagem" ) {
                 $cotacao_aux = $this->cotacao_seguro_viagem;
                 $cotacao_aux_id = "cotacao_seguro_viagem_id";
+                $name_banco = "viagem";
             } else {
                 $cotacao_aux = $this->cotacao_generico;
                 $cotacao_aux_id = "cotacao_generico_id";
+                $name_banco = "generico";
             }
 
+            // deve remover as coberturas antes de inserir na session
+            unset( $params["coberturas"] );
             $this->session->set_userdata( "cotacao_{$produto_parceiro_id}", $params );
             $cotacao_aux->insert_update( $produto_parceiro_id, $cotacao_id, 3 );
 
@@ -415,9 +441,25 @@ class Cotacao extends CI_Controller {
 
         $cotacao_salva = $cotacao_salva[0];
 
-        $result = $this->campo->validate_campos( $produto_parceiro_id, ["cotacao", "dados_segurado"], $cotacao_salva );
+        $result = $this->campo->validate_campos( $produto_parceiro_id, ["cotacao", "dados_segurado", "dados_dependente"], $cotacao_salva );
         if ( empty($result['status']) ) {
             return $result;
+        }
+
+        // NUMERO DE DEPENDENTES DO SEGURO SAUDE
+        if ( $produto_slug == "seguro_saude" )
+        {
+            $num_dependente = $this->faixa_etaria->get_qtde_beneficiarios($cotacao_id);
+
+            if ( !empty($num_dependente) && $num_dependente > 1 && empty($params['beneficiarios']))
+            {
+                $result = array(
+                    "status" => false,
+                    "mensagem" => "Os dados dos beneficiarios não foram informados",
+                    "errors" => array(),
+                );
+                return $result;
+            }
         }
 
         // Salva o plano na cotação
@@ -433,8 +475,57 @@ class Cotacao extends CI_Controller {
         } else {
 
             $dados_cotacao["step"] = 4;
-            $this->campo->setDadosCampos( $produto_parceiro_id, "equipamento", "dados_segurado", $produto_parceiro_plano_id,  $dados_cotacao );
+            $this->campo->setDadosCampos( $produto_parceiro_id, $name_banco, "dados_segurado", $produto_parceiro_plano_id,  $dados_cotacao );
             $cotacao_aux->update( $cotacao_salva[$cotacao_aux_id], $dados_cotacao, true );
+
+            // Se tem algum beneficiário
+            if( !empty($num_dependente) && $num_dependente > 1)
+            {
+                $dadosTitular = $cotacao_aux->filterByCotacao($cotacao_id)->filterByTipoSegurado('T')->get_all();
+                $dadosTitular = emptyor($dadosTitular[0], []);
+
+                $in = [];
+                $in['data_base'] = date('Y-m-d');
+                $in['produto_parceiro_id'] = $produto_parceiro_id;
+                $in['parceiro_id'] = $this->parceiro_id;
+                $in['quantidade'] = 1; // QUANTIDADE
+                $in['cotacao_id'] = $cotacao_id;
+                $in['cotacao_aux_id'] = $dadosTitular[$cotacao_aux_id];
+
+                // altera os dados dos valores
+                $this->alterValoresItem($in);
+
+                // remove os beneficiarios para inserir novamente
+                $cotacao_aux->remove_beneficiarios($cotacao_id);
+
+                // Remove campos que não precisam enviar para os demais
+                unset($dadosTitular[$cotacao_aux_id]);
+                unset($dadosTitular['criacao']);
+                unset($dadosTitular['alteracao']);
+                unset($dadosTitular['alteracao_usuario_id']);
+                unset($dadosTitular['deletado']);
+
+                // echo "DADOS TITULAR<br>";
+                // print_pre($dadosTitular, false);
+
+                for ($cont = 2; $cont <= $num_dependente; $cont++ )
+                {
+                    $dadosTitular['tipo_segurado'] = 'D';
+                    $dadosTitular['iof'] = 0;
+                    $dadosTitular['premio_liquido'] = 0;
+                    $dadosTitular['premio_liquido_total'] = 0;
+
+                    // print_pre($this->input->post("cnpj_cpf"));
+                    $this->campo->setDadosCampos($produto_parceiro_id, $name_banco, 'dados_dependente', $produto_parceiro_plano_id, $dadosTitular, $cont, 'beneficiarios', $params['beneficiarios'][$cont-2]);
+                    $cotacao_aux_id = $cotacao_aux->insert($dadosTitular, TRUE);
+                    // echo "DADOS<br>";
+                    // print_pre($dadosTitular, false);
+
+                    // altera os dados dos valores
+                    $in['cotacao_aux_id'] = $cotacao_aux_id;
+                    $this->alterValoresItem($in);
+                }
+            }
 
             $result  = array(
                 "status" => true,
@@ -456,6 +547,17 @@ class Cotacao extends CI_Controller {
         }
 
         return $result;
+    }
+
+    /**
+     * Atualiza os valores do premio de um item especifico
+     * @param $in
+     * @param string $export
+     */
+    private function alterValoresItem($in)
+    {
+        $this->load->model('produto_parceiro_regra_preco_model', 'regra_preco');
+        $result = $this->regra_preco->calculo_plano($in);
     }
 
     public function listPendentes()

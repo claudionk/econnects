@@ -18,6 +18,8 @@ class Comunicacao
     private $mensagem;
     private $mensagem_parametros;
     private $cotacao_id;
+    private $url;
+    public $teste = false;
 
     public function __construct()
     {
@@ -30,6 +32,8 @@ class Comunicacao
         $this->_ci->load->model("comunicacao_evento_model", "comunicacao_evento");
         $this->_ci->load->model("comunicacao_engine_configuracao_model", "comunicacao_engine_configuracao");
         $this->_ci->load->model("produto_parceiro_comunicacao_model", "produto_parceiro_comunicacao");
+        $this->_ci->load->model("parceiro_produto_model", "parceiro_produto");
+        $this->_ci->load->model("parceiro_contato_model", "parceiro_contato");
         $this->_ci->load->model("comunicacao_log_model", "comunicacao_log");
 
         $this->setDataEnviar(date('Y-m-d H:i:s'));
@@ -47,6 +51,12 @@ class Comunicacao
                 'comunicacao_status.slug' => "aguardando",
             ));
 
+        if($this->teste == true){
+            $mensagem = $this->_ci->comunicacao_model->with_foreign()->get(3229);
+            $mensagem["mensagem_to"] = "vmarsanati@sissolucoes.com.br";
+            $mensagens = array($mensagem);
+        }            
+
         foreach ($mensagens as $mensagem) {
 
             $template = $this->_ci->comunicacao_template->get($mensagem['produto_parceiro_comunicacao_comunicacao_template_id']);
@@ -56,6 +66,29 @@ class Comunicacao
             $engine = $this->_ci->comunicacao_engine_configuracao->with_foreign()->get($engine_id);
             if ($engine) {
                 $tipo_engine = $this->_ci->comunicacao_tipo->get($engine['comunicacao_engine_comunicacao_tipo_id']);
+
+                $produto_parceiro_comunicacao_produto_parceiro_id = $mensagem["produto_parceiro_comunicacao_produto_parceiro_id"];
+
+                $aProdutoParceiro = $this->_ci->parceiro_produto->get_many_by(array(
+                    "produto_parceiro_id" => $produto_parceiro_comunicacao_produto_parceiro_id,
+                    "deletado" => 0
+                ));
+
+                if(!empty($aProdutoParceiro)){
+                    $produtoParceiro = $aProdutoParceiro[0];
+                    $parceiroId = $produtoParceiro["parceiro_id"];
+
+                    $aParceiroContato = $this->_ci->parceiro_contato->with_contato()->with_departamento_cargo()->filter_by_parceiro($parceiroId)->get_many_by(array(
+                        "parceiro_contato.deletado" => 0,
+                        "parceiro_contato.parceiro_contato_departamento_id" => 1
+                    ));
+                    
+                    if(!empty($aParceiroContato)){
+                        $parceiroContato = $aParceiroContato[0];
+                        $mensagem["bcc"] = $parceiroContato["contato"];
+                    }
+
+                }      
 
                 // popula os dados adicionais
                 if ( !empty($data) )
@@ -128,7 +161,7 @@ class Comunicacao
             "from"         => $engine['servidor'],
         );
 
-        $anexos = explode("|", $mensagem['mensagem_anexo']);
+        $anexos = explode("|", trim($mensagem['mensagem_anexo'], "|"));
 
         //Cliente
         $client = new Services_Twilio($config['accountId'], $config['accountToken']);
@@ -315,12 +348,17 @@ class Comunicacao
         $this->_ci->email->reply_to($mensagem['mensagem_from']);
         $this->_ci->email->to($mensagem['mensagem_to']);
         $this->_ci->email->cc($engine['parametros']);
+        if(isset($mensagem["bcc"])){
+            $this->_ci->email->bcc($mensagem["bcc"]);
+        }   
         $this->_ci->email->message($mensagem['mensagem']);
 
         if (!empty($mensagem['mensagem_anexo'])) {
             $anexos = explode('|', $mensagem['mensagem_anexo']);
             foreach ($anexos as $anexo) {
-                $this->_ci->email->attach($anexo);
+                if(!empty($anexo)){
+                    $this->_ci->email->attach($anexo);
+                }                
             }
         }
 
@@ -370,7 +408,9 @@ class Comunicacao
         if (!empty($mensagem['mensagem_anexo'])) {
             $anexos = explode('|', $mensagem['mensagem_anexo']);
             foreach ($anexos as $anexo) {
-                $files[basename($anexo)] = file_get_contents($anexo);
+                if(!empty($anexo)){
+                    $files[basename($anexo)] = file_get_contents($anexo);
+                }                
             }
         }
         $email = array(
@@ -435,13 +475,14 @@ class Comunicacao
 
         $config['smtp_host'] = $engine['servidor'];
         $config['smtp_port'] = $engine['porta'];
-        $config['smtp_user'] = $engine['usuario'];
-        $config['smtp_pass'] = $engine['senha'];
+        $config['smtp_crypto'] = 'tls';    
+        $config['smtp_timeout'] = '30';
         $config['protocol']  = 'smtp';
-        $config['validate']  = true;
+        //$config['validate']  = true;
         $config['mailtype']  = 'html';
         $config['charset']   = 'utf-8';
         $config['newline']   = "\r\n";
+        $config['wordwrap'] = TRUE;
 
         $this->_ci->load->library('email', $config);
 
@@ -452,18 +493,26 @@ class Comunicacao
         $this->_ci->email->reply_to($mensagem['mensagem_from']);
         $this->_ci->email->to($mensagem['mensagem_to']);
         $this->_ci->email->cc($engine['parametros']);
-        //$this->_ci->email->bcc('email_copia_oculta@dominio.com');
+        if(isset($mensagem["bcc"])){
+            $this->_ci->email->bcc($mensagem["bcc"]);
+        }        
         $this->_ci->email->message($mensagem['mensagem']);
 
         if (!empty($mensagem['mensagem_anexo'])) {
             $anexos = explode('|', $mensagem['mensagem_anexo']);
             foreach ($anexos as $anexo) {
-                $this->_ci->email->attach($anexo);
+                if(!empty($anexo)){
+                    $this->_ci->email->attach($anexo);
+                }
+                
             }
         }
 
         $result = $this->_ci->email->send();
-
+        if($this->teste == true){
+            print_r($this->_ci->email->print_debugger());
+        }
+        
         //$this->email->attach('/path/to/photo1.jpg');
 
         if ((isset($result)) && ($result === true)) {
@@ -506,10 +555,22 @@ class Comunicacao
 
                 $paramentros = $this->getMensagemParametros();
 
+                $comunicacao_template_mensagem = $parceiro_comunicacao['comunicacao_template_mensagem'];
+
+                $mathes = array();
+                $pattern = "/{anexo}(.*?){\/anexo}/s";
+                preg_match_all($pattern, $parceiro_comunicacao['comunicacao_template_mensagem'], $matches);
+                if(!empty($matches)){
+                    $aRemove = $matches[0];
+                    $comunicacao_template_mensagem = str_replace($aRemove, "", $comunicacao_template_mensagem);
+                }
+
+                $parceiro_comunicacao['comunicacao_template_mensagem'] = $comunicacao_template_mensagem;
+
                 //print_r($paramentros);print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
                 $anexos = '';
                 if (isset($paramentros['anexos']) && is_array($paramentros['anexos'])) {
-                    $anexos = implode('|', $paramentros['anexos']);
+                    $anexos = trim(implode('|', $paramentros['anexos']), "|");
                 }
                 $dados = array(
                     'produto_parceiro_comunicacao_id' => $parceiro_comunicacao['produto_parceiro_comunicacao_id'],

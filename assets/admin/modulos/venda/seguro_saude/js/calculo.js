@@ -1,15 +1,10 @@
 $(document).ready(function(){
 
-
-
-
     $(".inputmask-porcento").inputmask('99,99'); //, { numericInput: true, rightAlignNumerics: false, greedy: true});
     $(".inputmask-numero").inputmask('integer'); //, { numericInput: true, rightAlignNumerics: false, greedy: true});
     $(".inputmask-date").inputmask("d/m/y",{ "placeholder": "__/__/____" });
 
-
     calculo_preco();
-
 
     $('.repasse_comissao').on('blur',function() {
 
@@ -17,7 +12,6 @@ $(document).ready(function(){
 
         calculo_preco();
     });
-
 
     $('.desconto_condicional').on('blur',function() {
 
@@ -30,10 +24,8 @@ $(document).ready(function(){
     });
 
     $('#btn_recalcular').on('click',function() {
-
         console.log('botao recalcular');
         calculo_preco();
-
     });
 
     $('.quantidade').on('blur',function() {
@@ -54,14 +46,11 @@ $(document).ready(function(){
 
 });
 
-
 /**
  * Calculo do preço da cotação
  */
 function calculo_preco()
 {
-
-
     toastr.clear();
 
     //Dados para post
@@ -82,8 +71,8 @@ function calculo_preco()
 
     var url = $('#url_calculo').val();
 
-console.log( url );    
-console.log('calculo:', data);
+    console.log( url );    
+    console.log('calculo:', data);
 
     /**
      * Efetua post para retornar cálculo de cotação
@@ -99,7 +88,7 @@ console.log('calculo:', data);
             console.log('result', result);
 
             //Se sucesso
-            if(result.sucess == true)
+            if(result.status == true)
             {
                 //Seta diferença dos dias
                 $('.comissao_corretor').html(numeroParaMoeda(result.comissao, 2, ',', ''));
@@ -112,9 +101,21 @@ console.log('calculo:', data);
                     $('.premio_bruto_one_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
                     $('.premio_bruto_two_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
 
-                    $('.valor_cobertura_adicional_one_'+idx).html('00,00');
-                    $('.valor_cobertura_adicional_two_'+idx).html('00,00');
+                    $('.valor_cobertura_adicional_one_'+idx).html('0,00');
+                    $('.valor_cobertura_adicional_two_'+idx).html('0,00');
 
+                    if (parseFloat(obj) == 0 )
+                    {
+                        $('.td-add-car').each(function(){
+                            if ($(this).find('a').data('plano') == idx )
+                            {
+                                $(this).find('a')
+                                    .attr('data-enabled', 0)
+                                    .text('Indisponível', 0);
+                                $(this).addClass('disabled');
+                            }
+                        });
+                    }
                 });
 
                 $.each(result.valores_liquido, function (idx, obj)
@@ -137,8 +138,6 @@ console.log('calculo:', data);
                     $('.premio_total_two_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
                 });
 
-                console.log('coberturas; ', result.valores_cobertura_adicional);
-
                 $.each(result.valores_totais_cobertura_adicional, function (idx, obj)
                 {
                     $('.valor_cobertura_adicional_one_'+idx).html(numeroParaMoeda(parseFloat(obj).toFixed(3), 2, ',', '.'));
@@ -147,11 +146,9 @@ console.log('calculo:', data);
 
                 $.each(result.valores_cobertura_adicional, function (idx, obj)
                 {
-
                     $('#cobertura_adicional_valores_one_'+idx).val(obj.join(';'));
                     $('#cobertura_adicional_valores_two_'+idx).val(obj.join(';'));
                 });
-
 
                 //Se o valor bruto e líquido for igual, esconde os campos
                 if(tudo_igual)
@@ -168,7 +165,6 @@ console.log('calculo:', data);
                     $(".li_premio_liquido").hide();
                 }
 
-
                 toastr.success("Calculo efetuado com sucesso!", "Calcular cotação");
                 $('.td-add-car').show();
             }else{
@@ -177,10 +173,7 @@ console.log('calculo:', data);
                 $('.td-add-car').hide();
                 $('#' + result.campo).focus();
 
-
             }
-        });
+        }
+    );
 }
-
-
-
