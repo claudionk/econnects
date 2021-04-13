@@ -57,12 +57,15 @@ class Apolice extends CI_Controller {
         $pedidos = $this->filtraPedidos($GET);
 
         if (!empty($pedidos['status'])) {
-            if(!empty($GET["dias_atras"]) || !empty($GET["dias_de"]) || !empty($GET["dias_ate"])){
-                $limit = (int)$GET["limit"];
-                $offset = $limit * (int)$GET['page'];
+
+            $limit = (int)$GET["limit"];
+            if ( !empty($limit) )
+            {
                 if($limit > 1000){
                     return array( "status" => false, "message" => "Limite máximo de paginação: 1000" );
                 }
+
+                $offset = $limit * (int)$GET['page'];
                 $pedidos = $pedidos['pedidos']->limit($limit, $offset)->get_all();
             }
             else{
@@ -174,21 +177,14 @@ class Apolice extends CI_Controller {
             $days_ago = $GET["dias_atras"];
         }
 
-        $days_start = null;
-        $days_finish = null;
-        if(empty($days_ago)){
-            //Recebe data no formato ano-mes-dia
-            if( isset( $GET["dias_de"] ) && $GET["dias_de"] <> "" ) {                
-                if(checkdate(substr($GET["dias_de"],4,2), substr($GET["dias_de"],6,2), substr($GET["dias_de"],0,4))){
-                    $days_start = substr($GET["dias_de"],0,4).'-'.substr($GET["dias_de"],4,2).'-'.substr($GET["dias_de"],6,2);
-                }
-            }
-            //Recebe data no formato ano-mes-dia
-            if( isset( $GET["dias_ate"] ) && $GET["dias_ate"] <> "" ) {
-                if(checkdate(substr($GET["dias_ate"],4,2), substr($GET["dias_ate"],6,2), substr($GET["dias_ate"],0,4))){
-                    $days_finish = substr($GET["dias_ate"],0,4).'-'.substr($GET["dias_ate"],4,2).'-'.substr($GET["dias_ate"],6,2);
-                }
-            }
+        $data_inicio_proc = null;
+        if( isset( $GET["data_inicio_proc"] ) ) {
+            $data_inicio_proc = $GET["data_inicio_proc"];
+        }
+
+        $data_fim_proc = null;
+        if( isset( $GET["data_fim_proc"] ) ) {
+            $data_fim_proc = $GET["data_fim_proc"];
         }
 
         $retorno = null;
@@ -200,10 +196,10 @@ class Apolice extends CI_Controller {
         $params["parceiro_id"] = $parceiro_id;
         $params["produto_id"] = $produto_id;
         $params["days_ago"] = $days_ago;  
-        $params["days_start"] = $days_start;
-        $params["days_finish"] = $days_finish;
+        $params["data_inicio_proc"] = $data_inicio_proc;
+        $params["data_fim_proc"] = $data_fim_proc;
 
-        if($apolice_id || $num_apolice || $documento || $pedido_id || $days_ago || $days_start || $days_finish ) {
+        if($apolice_id || $num_apolice || $documento || $pedido_id || $days_ago || $data_inicio_proc || $data_fim_proc ) {
             $pedidos = $this->pedido
             ->with_pedido_status()
             // ->with_apolice()
