@@ -267,6 +267,12 @@ Class Pedido_Model extends MY_Model
                         case "days_ago":
                             $this->_database->where('(select criacao from apolice_movimentacao am where am.apolice_id = apolice.apolice_id order by criacao desc limit 1) > DATE_SUB(CURDATE(),INTERVAL '.$value.' DAY)');
                             break;
+                        case "data_inicio_proc":
+                            $this->_database->where('(select criacao from apolice_movimentacao am where am.apolice_id = apolice.apolice_id order by criacao desc limit 1) >= "'.$value.'"');
+                            break;
+                        case "data_fim_proc":
+                            $this->_database->where('(select criacao from apolice_movimentacao am where am.apolice_id = apolice.apolice_id order by criacao desc limit 1) <= "'.$value.'"');
+                            break;
                     }
                 }
             }            
