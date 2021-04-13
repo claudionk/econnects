@@ -122,7 +122,6 @@ Class Pedido_Model extends MY_Model
 
         $pedidos = $this->get_all();
         //exit($this->_database->last_query());
-
         //log_message('debug', 'BUSCANDO PEDIDOS PENDENTES QUERY - ' . $this->_database->last_query());
         return ($pedidos) ? $pedidos : array();
 
@@ -225,9 +224,8 @@ Class Pedido_Model extends MY_Model
         return $this;
     }
 
-    public function filterAPI($param = array())
+    public function filterAPI($param = array())    
     {
-
         if($param) {
             foreach ($param as $key => $value)
             {
@@ -245,12 +243,27 @@ Class Pedido_Model extends MY_Model
                         case "pedido_id":
                             $this->_database->where('pedido.pedido_id', $value);
                             break;
-                        case "parceiro_id":
+                        case "parceiro_id":                            
                             $this->_database->where('produto_parceiro.parceiro_id', $value);
                             break;
                         case "produto_id":
                             $this->_database->where('produto_parceiro.produto_id', $value);
                             break;
+                        case "apolice_status":
+                            if($value){
+                                $campoData = "data_adesao";
+                                if($value == 1) {                                    
+                                    $this->_database->where('apolice_status.slug', "ativa");                                                                                                
+                                } else if($value == 2){
+                                    $campoData = "data_cancelamento";
+                                    $this->_database->where('apolice_status.slug', "cancelada");                                                                                                
+                                }                                      
+                                $data_inicio =  $param["data_inicio"];
+                                $data_fim =  $param["data_fim"];
+                                $this->_database->where('IFNULL(apolice_equipamento.'.$campoData.', IFNULL(apolice_generico.'.$campoData.', apolice_seguro_viagem.'.$campoData.')) BETWEEN "'.$data_inicio.'" AND "'.$data_fim.'"');                                                                                                
+                                
+                            }                            
+                        break;
                         case "days_ago":
                             $this->_database->where('(select criacao from apolice_movimentacao am where am.apolice_id = apolice.apolice_id order by criacao desc limit 1) > DATE_SUB(CURDATE(),INTERVAL '.$value.' DAY)');
                             break;
@@ -262,7 +275,7 @@ Class Pedido_Model extends MY_Model
                             break;
                     }
                 }
-            }
+            }            
         }
         return $this;
     }
@@ -489,6 +502,9 @@ Class Pedido_Model extends MY_Model
         $this->_database->join('cotacao', 'cotacao.cotacao_id = pedido.cotacao_id', 'inner');
         $this->_database->join('cliente', 'cliente.cliente_id = cotacao.cliente_id', 'inner');
         $this->_database->join("apolice_equipamento", "apolice_equipamento.apolice_id = apolice.apolice_id", 'left');
+        $this->_database->join("apolice_generico", "apolice_generico.apolice_id = apolice.apolice_id", "left");
+        $this->_database->join("apolice_seguro_viagem", "apolice_seguro_viagem.apolice_id = apolice.apolice_id", "left");
+        $this->_database->join('apolice_status', 'apolice.apolice_status_id = apolice_status.apolice_status_id', 'inner');
         // $this->_database->join("vw_Equipamentos_Marcas em", "em.equipamento_marca_id = apolice_equipamento.equipamento_marca_id", 'left');
         // $this->_database->join("vw_Equipamentos_Linhas ec", "ec.equipamento_categoria_id = apolice_equipamento.equipamento_categoria_id", 'left');
         $this->_database->join("business_engine.Equipamentos_Marcas em", "em.idEquipamentos_Marcas = apolice_equipamento.equipamento_marca_id", 'left');
@@ -498,10 +514,10 @@ Class Pedido_Model extends MY_Model
     }
 
     public function with_produto_parceiro(){
-        $this->_database->select("produto.produto_id, produto.nome as produto");
+        $this->_database->select("produto.produto_id, produto.nome as produto");        
         $this->_database->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner');
         $this->_database->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner');
-        $this->_database->join("produto", "produto_parceiro.produto_id = produto.produto_id", 'inner');
+        $this->_database->join("produto", "produto_parceiro.produto_id = produto.produto_id", 'inner');        
         return $this;
     }
 

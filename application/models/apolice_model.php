@@ -147,7 +147,7 @@ class Apolice_Model extends MY_Model
                 $evento                         = array();
                 $evento['mensagem']             = array();
                 $evento['mensagem']['apolices'] = "";
-                $evento['mensagem']['nome']     = "";
+                $evento['mensagem']['nome']     = ""; 
 
                 if ($produto['slug'] == 'seguro_viagem') {
                     foreach ($cotacao_salvas as $cotacao_salva) {
@@ -1623,6 +1623,19 @@ class Apolice_Model extends MY_Model
         $this->_database->where("{$this->_table}.apolice_id", $apolice_id);
         $this->_database->where("ast.slug", $slug_status);
         return !empty($this->get_all());
+    }
+
+    public function setApoliceStatusBySlug_DAO($slug){
+        $aApoliceStatusSlug = array("ativa", "cancelada");   
+        if(!is_string($slug)){
+            throw new Exception('O slug do status da apolice deve ser uma variável do tipo "String"');
+        } else{
+            if(!in_array($slug, $aApoliceStatusSlug)){
+                throw new Exception('Slug "'.$slug.'" inválido para status da apolice (Opções Permitidas: ['.implode($aApoliceStatusSlug).']")');
+            }else{                                
+                $this->db->where("apolice_status.slug = '".$slug."'");
+            }
+        }
     }
 
     public function termo($apolice_id, $export = "", $produto_parceiro_id = null)
