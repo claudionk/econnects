@@ -57,7 +57,7 @@ class Apolice extends CI_Controller {
         $pedidos = $this->filtraPedidos($GET);
 
         if (!empty($pedidos['status'])) {
-            if(!empty($GET["dias_atras"])){
+            if(!empty($GET["dias_atras"]) || !empty($GET["dias_de"]) || !empty($GET["dias_ate"])){
                 $limit = (int)$GET["limit"];
                 $offset = $limit * (int)$GET['page'];
                 if($limit > 1000){
@@ -174,6 +174,23 @@ class Apolice extends CI_Controller {
             $days_ago = $GET["dias_atras"];
         }
 
+        $days_start = null;
+        $days_finish = null;
+        if(empty($days_ago)){
+            //Recebe data no formato ano-mes-dia
+            if( isset( $GET["dias_de"] ) && $GET["dias_de"] <> "" ) {                
+                if(checkdate(substr($GET["dias_de"],4,2), substr($GET["dias_de"],6,2), substr($GET["dias_de"],0,4))){
+                    $days_start = substr($GET["dias_de"],0,4).'-'.substr($GET["dias_de"],4,2).'-'.substr($GET["dias_de"],6,2);
+                }
+            }
+            //Recebe data no formato ano-mes-dia
+            if( isset( $GET["dias_ate"] ) && $GET["dias_ate"] <> "" ) {
+                if(checkdate(substr($GET["dias_ate"],4,2), substr($GET["dias_ate"],6,2), substr($GET["dias_ate"],0,4))){
+                    $days_finish = substr($GET["dias_ate"],0,4).'-'.substr($GET["dias_ate"],4,2).'-'.substr($GET["dias_ate"],6,2);
+                }
+            }
+        }
+
         $retorno = null;
         $params = array();
         $params["apolice_id"] = $apolice_id;
@@ -182,9 +199,11 @@ class Apolice extends CI_Controller {
         $params["pedido_id"] = $pedido_id;
         $params["parceiro_id"] = $parceiro_id;
         $params["produto_id"] = $produto_id;
-        $params["days_ago"] = $days_ago;    
+        $params["days_ago"] = $days_ago;  
+        $params["days_start"] = $days_start;
+        $params["days_finish"] = $days_finish;
 
-        if($apolice_id || $num_apolice || $documento || $pedido_id || $days_ago ) {
+        if($apolice_id || $num_apolice || $documento || $pedido_id || $days_ago || $days_start || $days_finish ) {
             $pedidos = $this->pedido
             ->with_pedido_status()
             // ->with_apolice()
