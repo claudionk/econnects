@@ -239,6 +239,16 @@ class Apolice extends CI_Controller {
             if( isset( $GET["data_inicio"] ) ) {
                 $data_inicio = $GET["data_inicio"];
             }
+
+            $data_inicio_proc = null;
+            if( isset( $GET["data_inicio_proc"] ) ) {
+                $data_inicio_proc = $GET["data_inicio_proc"];
+            }
+
+            $data_fim_proc = null;
+            if( isset( $GET["data_fim_proc"] ) ) {
+                $data_fim_proc = $GET["data_fim_proc"];
+            }
           
             $retorno = null;
             $params = array();
@@ -251,9 +261,11 @@ class Apolice extends CI_Controller {
             $params["apolice_status"] = $apolice_status;
             $params["data_inicio"] = $data_inicio;
             $params["data_fim"] = $data_fim;
-            $params["days_ago"] = $days_ago;  
+            $params["days_ago"] = $days_ago;
+            $params["data_inicio_proc"] = $data_inicio_proc;
+            $params["data_fim_proc"] = $data_fim_proc;
 
-            if($apolice_id || $num_apolice || $documento || $pedido_id || $apolice_status || $days_ago || $data_inicio || $data_fim ) {
+            if($apolice_id || $num_apolice || $documento || $pedido_id || $apolice_status || $days_ago || $data_inicio || $data_fim || $data_inicio_proc || $data_fim_proc ) {
                 $pedidos = $this->pedido
                 ->with_pedido_status()
                 // ->with_apolice()
