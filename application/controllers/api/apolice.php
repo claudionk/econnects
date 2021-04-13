@@ -44,8 +44,56 @@ class Apolice extends CI_Controller {
         return $webservice;
     }
 
+    public function consulta(){             
+        $this->checkKey();        
+        $filtroApolice = array();        
+
+        $inputData = $_POST;      
+
+        try{
+            if(empty($inputData["apolice_status"])){
+                throw new Exception('O campo "apolice_status" é obrigatório');         
+            }else{            
+                if(!in_array($inputData["apolice_status"],["1", "2", "3"])){
+                    throw new Exception('O campo "apolice_status" deve ser "1", "2" ou "3" [1: ativa; 2: cancelada; 3: ativa ou cancelada]');
+                }
+            }
+    
+            if(empty($inputData["data_inicio"])){            
+                throw new Exception('O campo "data_inicio" é obrigatório');
+            }else{
+                if (!preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $inputData["data_inicio"])) {
+                    throw new Exception('O campo "data_inicio" deve conter o formato "yyyy-mm-dd"');
+                }        
+            } 
+    
+            if(empty($inputData["data_fim"])){            
+                throw new Exception('O campo "data_fim" é obrigatório');
+            }else{
+                if (!preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $inputData["data_fim"])) {
+                    throw new Exception('O campo "data_fim" deve conter o formato "yyyy-mm-dd"');
+                }        
+            }
+    
+            $data_inicio = new DateTime($inputData["data_inicio"]);
+            $data_fim = new DateTime($inputData["data_fim"]);
+            $dias = $data_fim->diff($data_inicio)->format("%a");
+            if($dias > 31){
+                throw new Exception("O intervalo de datas deve ter no máximo 31 dias");
+            }        
+    
+            $outputData = $this->retornaApolices($inputData);
+        }catch(Exception $ex){
+            $outputData = array("status" => false, "message" => $ex->getMessage());
+        }
+        
+        die( json_encode( $outputData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+    }
+    
+
     public function consultaBase() {
-        die( json_encode( $this->retornaApolices($_POST), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+        $outputData =  $this->retornaApolices($_POST);
+        die( json_encode($outputData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
 
     public function consultaBaseProduto() {
@@ -57,12 +105,15 @@ class Apolice extends CI_Controller {
         $pedidos = $this->filtraPedidos($GET);
 
         if (!empty($pedidos['status'])) {
-            if(!empty($GET["dias_atras"]) || !empty($GET["dias_de"]) || !empty($GET["dias_ate"])){
-                $limit = (int)$GET["limit"];
-                $offset = $limit * (int)$GET['page'];
+
+            $limit = (int)$GET["limit"];
+            if ( !empty($limit) )
+            {
                 if($limit > 1000){
                     return array( "status" => false, "message" => "Limite máximo de paginação: 1000" );
                 }
+
+                $offset = $limit * (int)$GET['page'];
                 $pedidos = $pedidos['pedidos']->limit($limit, $offset)->get_all();
             }
             else{
@@ -71,11 +122,10 @@ class Apolice extends CI_Controller {
 
             if($pedidos) {
                 $resposta = [];
-
                 foreach ($pedidos as $pedido) {
 
                     //Monta resposta da apólice
-                    $apolice = $this->apolice->getApolicePedido( $pedido["pedido_id"] );
+                    $apolice = $this->apolice->getApolicePedido($pedido["pedido_id"]);
                     $apolice[0]["inadimplente"] = ($this->pedido->isInadimplente( $pedido["pedido_id"] ) === false ) ? 0 : 1;
 
                     $this->load->model('Comissao_gerada_model', 'comissao_gerada');
@@ -129,7 +179,6 @@ class Apolice extends CI_Controller {
 
     public function retornaProdutoApolices($GET = []) {
         $pedidos = $this->filtraPedidos($GET);
-
         if (!empty($pedidos['status'])) {
             $pedidos = $pedidos['pedidos']->group_by('produto.produto_id, produto.nome')->get_all();
             return array("status" => true, "dados" => api_retira_timestamps($pedidos));
@@ -139,85 +188,89 @@ class Apolice extends CI_Controller {
     }
 
     private function filtraPedidos($GET = []) {
-        $apolice_id = null;
-        if( isset( $GET["apolice_id"] ) ) {
-            $apolice_id = $GET["apolice_id"];
-        } 
+        try{
+            $apolice_id = null;
 
-        $num_apolice = null;
-        if( isset( $GET["num_apolice"] ) ) {
-            $num_apolice = $GET["num_apolice"];
-        }
+            if( isset( $GET["apolice_id"] ) ) {
+                $apolice_id = $GET["apolice_id"];
+            } 
 
-        $documento = null;
-        if( isset( $GET["documento"] ) ) {
-            $documento = $GET["documento"];
-        }
-
-        $pedido_id = null;
-        if( isset( $GET["pedido_id"] ) ) {
-            $pedido_id = $GET["pedido_id"];
-        }
-
-        $parceiro_id = null;
-        if( isset( $GET["parceiro_id"] ) ) {
-            $parceiro_id = $GET["parceiro_id"];
-        }
-
-        $produto_id = null;
-        if( isset( $GET["produto_id"] ) ) {
-            $produto_id = $GET["produto_id"];
-        }
-
-        $days_ago = null;
-        if( isset( $GET["dias_atras"] ) ) {
-            $days_ago = $GET["dias_atras"];
-        }
-
-        $days_start = null;
-        $days_finish = null;
-        if(empty($days_ago)){
-            //Recebe data no formato ano-mes-dia
-            if( isset( $GET["dias_de"] ) && $GET["dias_de"] <> "" ) {                
-                if(checkdate(substr($GET["dias_de"],4,2), substr($GET["dias_de"],6,2), substr($GET["dias_de"],0,4))){
-                    $days_start = substr($GET["dias_de"],0,4).'-'.substr($GET["dias_de"],4,2).'-'.substr($GET["dias_de"],6,2);
-                }
+            $num_apolice = null;
+            if( isset( $GET["num_apolice"] ) ) {
+                $num_apolice = $GET["num_apolice"];
             }
-            //Recebe data no formato ano-mes-dia
-            if( isset( $GET["dias_ate"] ) && $GET["dias_ate"] <> "" ) {
-                if(checkdate(substr($GET["dias_ate"],4,2), substr($GET["dias_ate"],6,2), substr($GET["dias_ate"],0,4))){
-                    $days_finish = substr($GET["dias_ate"],0,4).'-'.substr($GET["dias_ate"],4,2).'-'.substr($GET["dias_ate"],6,2);
-                }
+
+            $documento = null;
+            if( isset( $GET["documento"] ) ) {
+                $documento = $GET["documento"];
             }
+
+            $pedido_id = null;
+            if( isset( $GET["pedido_id"] ) ) {
+                $pedido_id = $GET["pedido_id"];
+            }
+
+            $parceiro_id = null;
+            if( isset( $GET["parceiro_id"] ) ) {
+                $parceiro_id = $GET["parceiro_id"];
+            }
+
+            $produto_id = null;
+            if( isset( $GET["produto_id"] ) ) {
+                $produto_id = $GET["produto_id"];
+            }
+
+            $days_ago = null;
+            if( isset( $GET["dias_atras"] ) ) {
+                $days_ago = $GET["dias_atras"];
+            }
+
+            $apolice_status = null;
+            if( isset( $GET["apolice_status"] ) ) {
+                $apolice_status = $GET["apolice_status"];
+            }
+
+            $data_fim = null;
+            if( isset( $GET["data_fim"] ) ) {
+                $data_fim = $GET["data_fim"];
+            }
+
+            $data_inicio = null;
+            if( isset( $GET["data_inicio"] ) ) {
+                $data_inicio = $GET["data_inicio"];
+            }
+
+            $retorno = null;
+            $params = array();
+            $params["apolice_id"] = $apolice_id;
+            $params["num_apolice"] = $num_apolice;
+            $params["documento"] = $documento;
+            $params["pedido_id"] = $pedido_id;
+            $params["parceiro_id"] = $parceiro_id;
+            $params["produto_id"] = $produto_id;
+            $params["apolice_status"] = $apolice_status;
+            $params["data_inicio"] = $data_inicio;
+            $params["data_fim"] = $data_fim;
+            $params["days_ago"] = $days_ago;  
+
+            if($apolice_id || $num_apolice || $documento || $pedido_id || $apolice_status || $days_ago || $data_inicio || $data_fim ) {
+                $pedidos = $this->pedido
+                ->with_pedido_status()
+                // ->with_apolice()
+                ->with_cotacao_cliente_contato()
+                ->with_produto_parceiro()
+                // ->with_fatura()
+                ->filterNotCarrinho()
+                ->filterAPI($params);           
+
+                $retorno = array("status" => true, "pedidos" => $pedidos);
+            } else {
+                throw new Exception("Parametros inválidos");
+            }        
+            
+        }catch(Exception $ex){
+            $retorno = array( "status" => false, "message" => $ex->getMessage());
         }
-
-        $retorno = null;
-        $params = array();
-        $params["apolice_id"] = $apolice_id;
-        $params["num_apolice"] = $num_apolice;
-        $params["documento"] = $documento;
-        $params["pedido_id"] = $pedido_id;
-        $params["parceiro_id"] = $parceiro_id;
-        $params["produto_id"] = $produto_id;
-        $params["days_ago"] = $days_ago;  
-        $params["days_start"] = $days_start;
-        $params["days_finish"] = $days_finish;
-
-        if($apolice_id || $num_apolice || $documento || $pedido_id || $days_ago || $days_start || $days_finish ) {
-            $pedidos = $this->pedido
-            ->with_pedido_status()
-            // ->with_apolice()
-            ->with_cotacao_cliente_contato()
-            ->with_produto_parceiro()
-            // ->with_fatura()
-            ->filterNotCarrinho()
-            ->filterAPI($params);           
-
-            $retorno = array("status" => true, "pedidos" => $pedidos);
-        } else {
-            $retorno = array( "status" => false, "message" => "Parâmetros inválidos" );
-        }
-
         return $retorno;
     }
 
@@ -378,8 +431,7 @@ class Apolice extends CI_Controller {
         die( json_encode( array( "status" => true, "message" => "OK" , "documents" => $docs) ) );
     }
 
-    public function sendDocumentos()
-    {
+    public function sendDocumentos(){
         $this->checkKey();
 
         $payload = json_decode( file_get_contents( "php://input" ), false );
@@ -620,6 +672,10 @@ class Apolice extends CI_Controller {
             "message" => $msg,
             "apolice_id" => $apolice_id
         );
+    }
+
+    public function onlyCancelados(){
+
     }
 
     public function getBilhete($apolice_id = null)
