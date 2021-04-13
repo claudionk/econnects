@@ -1816,20 +1816,6 @@ class Apolice_Model extends MY_Model
         return [ 'status' => true, 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
     }
 
-    public function setApoliceStatusBySlug_DAO($slug)
-    {
-        $aApoliceStatusSlug = array("ativa", "cancelada");   
-        if(!is_string($slug)){
-            throw new Exception('O slug do status da apolice deve ser uma variável do tipo "String"');
-        } else{
-            if(!in_array($slug, $aApoliceStatusSlug)){
-                throw new Exception('Slug "'.$slug.'" inválido para status da apolice (Opções Permitidas: ['.implode($aApoliceStatusSlug).']")');
-            }else{                                
-                $this->db->where("apolice_status.slug = '".$slug."'");                        
-            }        
-        }
-    }
-
     public function termo($apolice_id, $export = "", $produto_parceiro_id = null)
     {
         $this->load->model('pedido_model', 'pedido');        
@@ -2337,6 +2323,19 @@ class Apolice_Model extends MY_Model
 
     public function parse_string($template, $data){
         return $this->parser->parse_string($template, $data, true);
+    }
+
+    public function setApoliceStatusBySlug_DAO($slug){
+        $aApoliceStatusSlug = array("ativa", "cancelada");   
+        if(!is_string($slug)){
+            throw new Exception('O slug do status da apolice deve ser uma variável do tipo "String"');
+        } else{
+            if(!in_array($slug, $aApoliceStatusSlug)){
+                throw new Exception('Slug "'.$slug.'" inválido para status da apolice (Opções Permitidas: ['.implode($aApoliceStatusSlug).']")');
+            }else{                                
+                $this->db->where("apolice_status.slug = '".$slug."'");                        
+            }        
+        }            
     }
 
 }

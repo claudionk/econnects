@@ -105,18 +105,21 @@ class Apolice extends CI_Controller {
         $pedidos = $this->filtraPedidos($GET);
 
         if (!empty($pedidos['status'])) {
-            if(!empty($GET["dias_atras"])){
-                $limit = (int)$GET["limit"];
-                $offset = $limit * (int)$GET['page'];
+
+            $limit = (int)$GET["limit"];
+            if ( !empty($limit) )
+            {
                 if($limit > 1000){
                     return array( "status" => false, "message" => "Limite máximo de paginação: 1000" );
                 }
+
+                $offset = $limit * (int)$GET['page'];
                 $pedidos = $pedidos['pedidos']->limit($limit, $offset)->get_all();
             }
             else{
                 $pedidos = $pedidos['pedidos']->get_all();
             }
-          
+
             if($pedidos) {
                 $resposta = [];
                 foreach ($pedidos as $pedido) {
@@ -191,52 +194,52 @@ class Apolice extends CI_Controller {
             if( isset( $GET["apolice_id"] ) ) {
                 $apolice_id = $GET["apolice_id"];
             } 
-    
+
             $num_apolice = null;
             if( isset( $GET["num_apolice"] ) ) {
                 $num_apolice = $GET["num_apolice"];
             }
-    
+
             $documento = null;
             if( isset( $GET["documento"] ) ) {
                 $documento = $GET["documento"];
             }
-    
+
             $pedido_id = null;
             if( isset( $GET["pedido_id"] ) ) {
                 $pedido_id = $GET["pedido_id"];
             }
-    
+
             $parceiro_id = null;
             if( isset( $GET["parceiro_id"] ) ) {
                 $parceiro_id = $GET["parceiro_id"];
             }
-    
+
             $produto_id = null;
             if( isset( $GET["produto_id"] ) ) {
                 $produto_id = $GET["produto_id"];
             }
 
+            $days_ago = null;
+            if( isset( $GET["dias_atras"] ) ) {
+                $days_ago = $GET["dias_atras"];
+            }
+
             $apolice_status = null;
             if( isset( $GET["apolice_status"] ) ) {
-                $apolice_status = $GET["apolice_status"];                
+                $apolice_status = $GET["apolice_status"];
             }
-    
+
             $data_fim = null;
             if( isset( $GET["data_fim"] ) ) {
                 $data_fim = $GET["data_fim"];
             }
-    
+
             $data_inicio = null;
             if( isset( $GET["data_inicio"] ) ) {
                 $data_inicio = $GET["data_inicio"];
             }
           
-          	$days_ago = null;
-            if( isset( $GET["dias_atras"] ) ) {
-                $days_ago = $GET["dias_atras"];
-            }
-    
             $retorno = null;
             $params = array();
             $params["apolice_id"] = $apolice_id;
@@ -248,17 +251,18 @@ class Apolice extends CI_Controller {
             $params["apolice_status"] = $apolice_status;
             $params["data_inicio"] = $data_inicio;
             $params["data_fim"] = $data_fim;
-          	$params["days_ago"] = $days_ago;
-    		
-            if($apolice_id || $num_apolice || $documento || $pedido_id || $apolice_status || $days_ago) {            
+            $params["days_ago"] = $days_ago;  
+
+            if($apolice_id || $num_apolice || $documento || $pedido_id || $apolice_status || $days_ago || $data_inicio || $data_fim ) {
                 $pedidos = $this->pedido
                 ->with_pedido_status()
                 // ->with_apolice()
                 ->with_cotacao_cliente_contato()
                 ->with_produto_parceiro()
-                // ->with_fatura()            
-                ->filterNotCarrinho()            
-                ->filterAPI($params);
+                // ->with_fatura()
+                ->filterNotCarrinho()
+                ->filterAPI($params);           
+
                 $retorno = array("status" => true, "pedidos" => $pedidos);
             } else {
                 throw new Exception("Parametros inválidos");
