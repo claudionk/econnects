@@ -100,7 +100,7 @@ class Relatorios extends Admin_Controller
                         $row['CODIGO_TRANSACAO'],
                         $row['MOVIMENTO'],
                         app_date_mysql_to_mask($row['DATA_MOVIMENTO'], 'd/m/Y'),
-                        $row['APOLICE'],
+                        "'".$row['APOLICE'],
                         $row['VIGENCIA'],
                         $row['CPF'],
                         $row['SEXO'],
