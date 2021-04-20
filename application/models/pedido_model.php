@@ -1616,10 +1616,11 @@ Class Pedido_Model extends MY_Model
             , DATE_FORMAT(IF(STR_TO_DATE(ildd.data_adesao_cancel, '%Y-%m-%d') IS NOT NULL, ildd.data_adesao_cancel, STR_TO_DATE(ildd.data_adesao_cancel, '%m%d%Y')), '%d/%m/%Y') AS `DATA_MOVIMENTO`
             , ildd.num_apolice AS `APOLICE`
             , TIMESTAMPDIFF(MONTH, ae.data_ini_vigencia, ae.data_fim_vigencia) AS `VIGENCIA`
-            , ae.cnpj_cpf `CPF`
+            , IFNULL(ildd.nome,ae.nome) AS `NOME`
+            , IFNULL(ildd.cpf,ae.cnpj_cpf) AS `CPF`
             , IF(ae.sexo='F','FEMININO','MASCULINO') AS `SEXO`
-            , ae.endereco_logradouro `ENDERECO`
-            , ae.contato_telefone `TELEFONE`
+            , IFNULL(ildd.endereco,ae.endereco_logradouro) AS `ENDERECO`
+            , IFNULL(ildd.telefone,ae.contato_telefone) AS `TELEFONE`
             , ildd.cod_loja `COD_LOJA`
             , ildd.cod_vendedor `COD_VENDEDOR`
             , ildd.cod_produto_sap `COD_PRODUTO_SAP`
