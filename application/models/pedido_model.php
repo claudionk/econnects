@@ -1632,7 +1632,7 @@ Class Pedido_Model extends MY_Model
             , ildd.nota_fiscal_numero `NRO_NF`
             , ifnull(ildd.premio_bruto, concat(cast((left(ildd.premio_liquido, length(ildd.premio_liquido)-2)) as unsigned), '.', right(ildd.premio_liquido, 2))) `PREMIO_BRUTO`
             , if(ildc.msg like 'Valor do prêmio bruto%', SUBSTRING_INDEX(REPLACE(ildc.msg, ']', ''), '[', -1), 0) AS `VALOR_CALCULADO`
-            , IF(ild.integracao_log_status_id = 5, NULL, ae.valor_premio_net) `PREMIO_LIQUIDO`
+            , IF(ild.integracao_log_status_id = 5, 0, IFNULL(ae.valor_premio_net,0)) `PREMIO_LIQUIDO`
             , 'COBRANÇA DE TERCEIROS' `FORMA_PAGAMENTO`
             , 1 `NRO_PARCELA`", FALSE);
 
