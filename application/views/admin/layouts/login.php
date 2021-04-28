@@ -206,7 +206,7 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-xs-12 text-right">
+                    <div class="col-xs-12 text-left">
                         <p id="form-login-esqueceu_a_senha"><a href="#">Esqueceu a senha?</a></p>
                     </div>                    
                 </div>
@@ -226,6 +226,8 @@
                     <div class="col-xs-8 text-left">
                     </div>
                 </div>
+                </br>
+                </br>
             </form>
         </div>
         <!-- END LOGIN SECTION -->

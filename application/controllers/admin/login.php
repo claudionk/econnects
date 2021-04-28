@@ -73,13 +73,47 @@ class Login extends Admin_Controller {
             if($usuario_id = $this->usuario->login($this->input->post('login'), $this->input->post('password')) )
             {
 
+                // //TODO INICIO
+                // exit('<br>Valida Senha<br>');
+
+                // 
+                
+
+                // mostraLogin("Insira o c&oacute;digo enviado no e-mail <b>".$email_usuario."</b> para o usu&aacute;rio <b>".$nome_usuario."</b>", "a2f", [
+                //   "id_sessao" => $_SESSION['id_session'],
+                //   "token" => $tokenGerado,
+                //   "success" => true
+                // ]);
+                // exit();
+                // //TODO FINAL
+
                 //Seta parceiros permitidos
                 $parceiros_permitidos = array();
-
                 $parceiro_id = $this->session->userdata('parceiro_id');
-
                 $usuario = $this->usuario->get($usuario_id);
                 $colaborador = $this->colaborador->get($usuario['colaborador_id']);
+                print ('<pre>');
+                print('<br> Usuario 1: <br>');
+                extract($usuario);
+                $usuarioAuthData = array();      
+                $usuarioAuthData["id_usuario"] = $usuario_id; //$this->usuario->usuario_id;      
+                $usuarioAuthData["id_sessao"] =  $this->session->userdata('session_id');
+                $usuarioAuthData["ip_solicitacao"] = $this->input->ip_address();
+                $email_usuario = $email; //$this->$usuario->email;
+                $nome_usuario = $nome; //$this->$usuario->nome;
+                // var_dump ($usuarioAuthData);
+                $tokenGerado = $this->solicitar_a2f($usuarioAuthData, $email_usuario, $nome_usuario);
+                // print('<br> Email: <br>');
+                // print($email_usuario);
+                // print('<br> Nome: <br>');
+                // print($nome_usuario);
+                // print_r($colaborador);
+                // print('<br> ****************************** Colaborador ******************************<br>');
+                // var_dump($this->colaborador);
+                // print('<br> ****************************** Usuario ******************************<br>');
+                // var_dump($this->usuario);
+                print ('</pre>');
+                exit('<br>Colaborador<br>');
 
                 if($parceiro_id) {
                     $this->input->cookie('login_parceiro_id', $parceiro_id);
@@ -265,6 +299,160 @@ class Login extends Admin_Controller {
 
     }
 
+
+    public function solicitar_a2f($usuarioAuthData, $email, $nome_usuario){
+        $dh_vencimento = $this->gerar_dh_vencimento_a2f();
+        print('dh_vencimento: '.$dh_vencimento . '<br>');
+        $tokenGerado = $this->gerar_token_a2f();
+        print('tokenGerado: '.$tokenGerado . '<br>');
+        $codigoGerado = $this->gerar_codigo_a2f();
+        print('codigoGerado: '.$codigoGerado . '<br>');
+        
+        $insertUsuarioAuthSQL = "INSERT INTO usuario_auth
+                                            (usuario_id_auth,
+                                            usuario_id,
+                                            dh_registro,
+                                            dh_solicitacao,
+                                            dh_vencimento,
+                                            dh_confirmacao,
+                                            ip_solicitacao,
+                                            token,
+                                            codigo,
+                                            ativo,
+                                            id_sessao,
+                                            HTTP_USER_AGENT)
+                                            VALUES
+                                            (NULL,
+                                            ". $usuarioAuthData["id_usuario"] . ",
+                                            '".date("Y-m-d H:i:s")."',
+                                            '".date("Y-m-d H:i:s")."',
+                                            '$dh_vencimento',
+                                            NULL,
+                                            '".$usuarioAuthData["ip_solicitacao"]."',
+                                            '".$tokenGerado."',
+                                            '".$codigoGerado."',
+                                            1,
+                                            '".$usuarioAuthData["id_sessao"]."',
+                                            NULL);        
+                                ";
+
+        print('<br>SQL Insert: ' . $insertUsuarioAuthSQL);
+        $bodyMessage = "
+            <body leftmargin=\"0\" topmargin=\"0\" onLoad=\"MM_preloadImages('imagens/drop_quemsomosb.gif','imagens/drop_knowhowb.gif','imagens/drop_qualidadeb.gif')\">
+                <a href='http://econnects-h.jelastic.saveincloud.net/admin/login/index/?redirect=&token=$tokenGerado'>
+                    <img width='600' height='300' src='http://econnects-h.jelastic.saveincloud.net/assets/admin/template/img/image-login.png' alt='Acesse sua conta'>
+                </a>    
+                <a href='http://econnects-h.jelastic.saveincloud.net/admin/login/index/?redirect=&token=$tokenGerado'>
+                    <h2 style='text-align: left; color: #255A8E'><b>ACESSE SUA CONTA:</b></h2>
+                </a>
+                <p style='text-align: left;'>Insira o seguinte codigo de verificacao para acessar o Neo Connect</p>
+                <h2 style='text-align: left; color: #255A8E'><b>$codigoGerado</b></h2>        
+            </body>   
+        ";
+        
+       // private function envia_email($mensagem, $engine)
+       // /var/www/webroot/ROOT/econnects/application/libraries/Comunicacao.php
+       // TODO: IMPLEMENTAR O ENVIO DO EMAIL
+        print ('<br> Mensage: ');
+        print ($bodyMessage);
+        
+        exit('<br>Fim solicitar_a2f');
+/*
+
+        $updateUsuariosAuthSQL = "UPDATE usuario_auth SET 
+          dh_confirmacao = NULL, 
+          dh_solicitacao = '".date("Y-m-d H:i:s")."', 
+          dh_vencimento = '$dh_vencimento', 
+          ip_solicitacao = '".$usuarioAuthData["ip_solicitacao"]."', 
+          id_sessao = '".$usuarioAuthData["id_sessao"]."',
+          token = '".$tokenGerado."', 
+          codigo = '".$codigoGerado."'
+        WHERE
+          usuarioid = '".$usuarioAuthData["id_usuario"]."'";
+
+        print('<br>SQL: ' . $updateUsuariosAuthSQL);
+
+        $this->db->query($updateUsuariosAuthSQL);
+
+        $bodyMessage = "   <body leftmargin=\"0\" topmargin=\"0\" onLoad=\"MM_preloadImages('imagens/drop_quemsomosb.gif','imagens/drop_knowhowb.gif','imagens/drop_qualidadeb.gif')\">
+        <table width=\"780\" border=\"0\" align=\"center\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-top: 30px;border-bottom: 1px solid #255A8E;margin-bottom: 5px;padding-bottom: 30px;\"><tbody><tr><td align=\"middle\" width=\"50%\"><a href=\"https://sgs-h.jelastic.saveincloud.net/\"><img src=\"https://sgs-h.jelastic.saveincloud.net/wp-content/uploads/2018/12/logo_1.png\" alt=\"SIS serviços\"></a></td><td align=\"middle\" width=\"50%\"><h3 style=\" font-size: 30px; line-height: 0.3em; color: #255A8E; font-family: Montserrat, 'Open Sans', Helvetica, Arial, sans-serif; font-weight: 400; letter-spacing: -2px;\">ACESSE SUA CONTA</h3></td></tr></tbody></table> <p style='text-align: center;'>Insira o seguinte codigo de verificacao para acessar o SGS</p> <h2 style='text-align: center; color: #255A8E'><b>$codigoGerado</b></h2>";
+
+        $this->funcoes->disparaEmail(null, "SIS - Seguranca", "Codigo de Verificacao - ".$nome_usuario, $bodyMessage, null, null, $email);
+*/
+        return $tokenGerado;
+    }
+
+
+    public static function gerar_token_a2f(){
+        return self::gerar_aleatorio(12);
+    }
+
+    public static function gerar_codigo_a2f(){
+        return self::gerar_aleatorio(8);
+    }
+
+    public static function gerar_dh_vencimento_a2f($dh_solicitacao = null){
+        $dh_format = "Y-m-d H:i:s";
+        $horas = 6;
+
+        if($dh_solicitacao == null){
+            $dh_solicitacao = date($dh_format);
+        }
+        
+        $oDhVencimento = date_add(date_create($dh_solicitacao), date_interval_create_from_date_string($horas.' hours'));
+        $dh_vencimento = date_format($oDhVencimento, $dh_format);
+        return $dh_vencimento;
+    }    
+
+    public static function gerar_aleatorio($length){        
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+        return $randomString;        
+    }
+
+    // function ipCheck() {
+    //     if (getenv('HTTP_X_FORWARDED_FOR')) {
+    //         $ip = getenv('HTTP_X_FORWARDED_FOR');
+    //     }
+    //     elseif (getenv('HTTP_X_REAL_IP')) {
+    //         $ip = getenv('HTTP_X_REAL_IP');
+    //     }
+    //     else {
+    //         $ip = $_SERVER['REMOTE_ADDR'];
+    //     }
+    //     return $ip;
+    // }
+
+
+    /*
+
+    public function confirmar_a2f($usuarioAuthData){
+        $updateValidateUsuariosAuthSQL = "UPDATE
+            sis_usuarios_auth 
+        SET
+            dh_confirmacao = '".date("Y-m-d H:i:s")."'
+        WHERE 1 = 1
+            AND token = '".$usuarioAuthData["token"]."'
+            AND codigo = '".$usuarioAuthData["codigo"]."'
+            AND id_usuario = '".$usuarioAuthData["id_usuario"]."'
+            AND id_sessao = '".$usuarioAuthData["id_sessao"]."'
+            AND ip_solicitacao = '".$usuarioAuthData["ip_solicitacao"]."'";               
+        $this->db->query($updateValidateUsuariosAuthSQL);        
+        return $this->db->affected_rows > 0;
+    }
+
+
+
+
+
+    public static function valdiarEmail($email){
+        return filter_var($email, FILTER_VALIDATE_EMAIL);
+    }    
+*/
 }
 
 
