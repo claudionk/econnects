@@ -54,12 +54,14 @@ class Relatorios extends Admin_Controller
             'ARQUIVO',
             'STATUS',
             'STATUS PROCESSAMENTO',
-            'RESULTADO DO PROCESSAMENTO',
+            'RESULTADO DO PROCESSAMENTO (CRITICA)',
             'DETALHE DO PROCESSAMENTO',
             'CODIGO DA TRANSAÇÃO',
-            'DESCRIÇÃO DA TRANSAÇÃO',
+            'MOVIMENTO',
+            'DATA DO MOVIMENTO',
             'APOLICE',
             'VIGENCIA (mes)',
+            'NOME',
             'CPF',
             'SEXO',
             'ENDEREÇO',
@@ -74,6 +76,7 @@ class Relatorios extends Admin_Controller
             'DATA NF',
             'NRO NF',
             'PREMIO BRUTO',
+            'VALOR CALCULADO',
             'PREMIO LIQUIDO',
             'FORMA DE PAGAMENTO',
             'NRO PARCELA',
@@ -81,6 +84,7 @@ class Relatorios extends Admin_Controller
 
         if ($_POST) {
             $result = $this->getRelatorioProcVenda(FALSE);
+
             $data['result'] = $result['data'];
 
             if (!empty($_POST['btnExcel'])) {
@@ -95,9 +99,11 @@ class Relatorios extends Admin_Controller
                         $row['RESULTADO_PROCESSAMENTO'],
                         $row['DETALHE_PROCESSAMENTO'],
                         $row['CODIGO_TRANSACAO'],
-                        $row['DESCRIÇÃO_TRANSACAO'],
-                        $row['APOLICE'],
+                        $row['MOVIMENTO'],
+                        app_date_mysql_to_mask($row['DATA_MOVIMENTO'], 'd/m/Y'),
+                        "'".$row['APOLICE'],
                         $row['VIGENCIA'],
+                        $row['NOME'],
                         $row['CPF'],
                         $row['SEXO'],
                         $row['ENDERECO'],
@@ -112,11 +118,13 @@ class Relatorios extends Admin_Controller
                         app_date_mysql_to_mask($row['DATA_NF'], 'd/m/Y'),
                         $row['NRO_NF'],
                         app_format_currency($row['PREMIO_BRUTO'], true),
+                        app_format_currency($row['VALOR_CALCULADO'], true),
                         app_format_currency($row['PREMIO_LIQUIDO'], true),
                         $row['FORMA_PAGAMENTO'],
                         $row['NRO_PARCELA'],
                     ];
                 }
+
                 //$this->exportExcel($data['columns'], $rows, 'CSV');
                 $this->exportCSV($data['columns'], $rows, 'Relatório de Processamento de Vendas');
             }
@@ -124,7 +132,10 @@ class Relatorios extends Admin_Controller
             //Dados via GET
             $data['data_inicio'] = $this->input->get_post('data_inicio');
             $data['data_fim'] = $this->input->get_post('data_fim');
+            $data['representante'] = $this->input->get_post('representante');
         }
+
+        $data['combo'] = $this->getParceiro('vendas-canc');
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/{$data['action']}", $data);
@@ -144,8 +155,9 @@ class Relatorios extends Admin_Controller
         //Dados via GET
         $data_inicio = $this->input->get_post('data_inicio');
         $data_fim = $this->input->get_post('data_fim');
+        $id_parceiro = $this->input->get_post('representante');
 
-        $resultado['data'] = $this->pedido->extrairRelatorioProcessamentoVendas($data_inicio, $data_fim);
+        $resultado['data'] = $this->pedido->extrairRelatorioProcessamentoVendas($data_inicio, $data_fim, $id_parceiro);
         $resultado['status'] = true;
 
         if ($ajax)
@@ -542,18 +554,17 @@ class Relatorios extends Admin_Controller
 
         $data['combo'] = $this->getParceiro();
 
-
         //Carrega template
         $this->template->load("admin/layouts/base", "{$this->controller_uri}/{$data['action']}", $data);
     }
 
 
     /* Retorno os dados para combo */
-    public function getParceiro()
+    public function getParceiro($withFileIntegration_bySlugGroup = null)
     {
 
         $this->load->model('pedido_model', 'pedido');
-        return $this->pedido->getRepresentantes();
+        return $this->pedido->getRepresentantes($withFileIntegration_bySlugGroup);
     }
 
     /**
