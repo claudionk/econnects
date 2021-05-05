@@ -91,6 +91,7 @@ class Relatorios extends Admin_Controller
 
                 $rows = [];
                 foreach ($data['result'] as $row) {
+                    $VALOR_NF = !empty($row['VALOR_NF']) ? app_format_currency($row['VALOR_NF'], true) : '';
                     $rows[] = [
                         app_date_mysql_to_mask($row['DATA_PROCESSAMENTO'], 'd/m/Y'),
                         $row['ARQUIVO'],
@@ -114,7 +115,7 @@ class Relatorios extends Admin_Controller
                         $row['EAN'],
                         $row['MARCA'],
                         $row['EQUIPAMENTO'],
-                        app_format_currency($row['VALOR_NF'], true),
+                        $VALOR_NF,
                         app_date_mysql_to_mask($row['DATA_NF'], 'd/m/Y'),
                         $row['NRO_NF'],
                         app_format_currency($row['PREMIO_BRUTO'], true),
@@ -124,6 +125,8 @@ class Relatorios extends Admin_Controller
                         $row['NRO_PARCELA'],
                     ];
                 }
+                //echo "<pre>";
+                //print_r($rows);
 
                 //$this->exportExcel($data['columns'], $rows, 'CSV');
                 $this->exportCSV($data['columns'], $rows, 'Relatório de Processamento de Vendas');

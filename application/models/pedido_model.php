@@ -1619,21 +1619,21 @@ class Pedido_Model extends MY_Model
             , IF(ildd.tipo_operacao = '1', 'EMISSAO', 'CANCELAMENTO') AS `MOVIMENTO`
             , DATE_FORMAT(IF(STR_TO_DATE(ildd.data_adesao_cancel, '%Y-%m-%d') IS NOT NULL, ildd.data_adesao_cancel, STR_TO_DATE(ildd.data_adesao_cancel, '%m%d%Y')), '%d/%m/%Y') AS `DATA_MOVIMENTO`
             , ildd.num_apolice AS `APOLICE`
-            , TIMESTAMPDIFF(MONTH, ae.data_ini_vigencia, ae.data_fim_vigencia) AS `VIGENCIA`
-            , IFNULL(ildd.nome,ae.nome) AS `NOME`
-            , IFNULL(ildd.cpf,ae.cnpj_cpf) AS `CPF`
+            , IFNULL(TIMESTAMPDIFF(MONTH, ildd.data_inicio_vigencia, ildd.data_fim_vigencia), IFNULL(TIMESTAMPDIFF(MONTH, ae.data_ini_vigencia, ae.data_fim_vigencia), TIMESTAMPDIFF(MONTH, ag.data_ini_vigencia, ag.data_fim_vigencia))) AS `VIGENCIA`
+            , IFNULL(ildd.nome, IFNULL(ae.nome,ag.nome)) AS `NOME`
+            , IFNULL(ildd.cpf, IFNULL(ae.cnpj_cpf,ag.cnpj_cpf)) AS `CPF`
             , IF(ae.sexo='F','FEMININO','MASCULINO') AS `SEXO`
-            , IFNULL(ildd.endereco,ae.endereco_logradouro) AS `ENDERECO`
-            , IFNULL(ildd.telefone,ae.contato_telefone) AS `TELEFONE`
-            , ildd.cod_loja `COD_LOJA`
-            , ildd.cod_vendedor `COD_VENDEDOR`
-            , ildd.cod_produto_sap `COD_PRODUTO_SAP`
-            , CAST(ildd.ean AS UNSIGNED) `EAN`
-            , ildd.marca `MARCA`
-            , ildd.equipamento_nome `EQUIPAMENTO`
-            , if(ildd.nota_fiscal_valor LIKE '%,%', ildd.nota_fiscal_valor, concat(cast((left(ildd.nota_fiscal_valor, length(ildd.nota_fiscal_valor)-2)) as unsigned), '.', right(ildd.nota_fiscal_valor, 2))) `VALOR_NF`
-            , ildd.nota_fiscal_data `DATA_NF`
-            , ildd.nota_fiscal_numero `NRO_NF`
+            , IFNULL(ildd.endereco, IFNULL(ae.endereco_logradouro, ag.endereco_logradouro)) AS `ENDERECO`
+            , IFNULL(ildd.telefone, IFNULL(ae.contato_telefone,ag.contato_telefone)) AS `TELEFONE`
+            , IFNULL(ildd.cod_loja, IFNULL(ae.cod_loja,ag.cod_loja)) `COD_LOJA`
+            , IFNULL(ildd.cod_vendedor, IFNULL(ae.cod_vendedor,ag.cod_vendedor)) `COD_VENDEDOR`
+            , IFNULL(ildd.cod_produto_sap, IFNULL(ae.cod_produto_sap,ag.cod_produto_sap)) `COD_PRODUTO_SAP`
+            , IFNULL(CAST(ildd.ean AS UNSIGNED), IFNULL(CAST(ae.ean AS UNSIGNED),CAST(ag.ean AS UNSIGNED))) `EAN`
+            , IFNULL(ildd.marca, IFNULL(ae.marca, ag.marca)) `MARCA`
+            , IFNULL(ildd.equipamento_nome, IFNULL(ae.equipamento_nome, ag.equipamento_nome)) `EQUIPAMENTO`
+            , IFNULL(if(ildd.nota_fiscal_valor LIKE '%,%', ildd.nota_fiscal_valor, concat(cast((left(ildd.nota_fiscal_valor, length(ildd.nota_fiscal_valor)-2)) as unsigned), '.', right(ildd.nota_fiscal_valor, 2))),IFNULL(ae.nota_fiscal_valor,ag.nota_fiscal_valor)) `VALOR_NF`
+            , IFNULL(ildd.nota_fiscal_data, IFNULL(ae.nota_fiscal_data, ag.nota_fiscal_data)) `DATA_NF`
+            , IFNULL(ildd.nota_fiscal_numero, IFNULL(ae.nota_fiscal_numero, ag.nota_fiscal_numero)) `NRO_NF`
             , ifnull(ildd.premio_bruto, concat(cast((left(ildd.premio_liquido, length(ildd.premio_liquido)-2)) as unsigned), '.', right(ildd.premio_liquido, 2))) `PREMIO_BRUTO`
             , if(ildc.msg like 'Valor do prêmio bruto%', SUBSTRING_INDEX(REPLACE(ildc.msg, ']', ''), '[', -1), 0) AS `VALOR_CALCULADO`
             , IF(ild.integracao_log_status_id = 5, 0, IFNULL(ae.valor_premio_net,0)) `PREMIO_LIQUIDO`
@@ -1648,7 +1648,8 @@ class Pedido_Model extends MY_Model
         $this->_database->join("integracao_log_detalhe_dados ildd", "ild.integracao_log_detalhe_id = ildd.integracao_log_detalhe_id", "inner");
         $this->_database->join("integracao_log_status ils", "ild.integracao_log_status_id = ils.integracao_log_status_id", "left");
         $this->_database->join("apolice a", "ild.chave = a.num_apolice and a.deletado = 0 and IF(ildd.tipo_operacao = '9', a.apolice_status_id = 2, 1)", "left");
-        $this->_database->join("apolice_equipamento ae", "a.apolice_id = ae.apolice_id", "left");
+        $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "left");
+        $this->_database->join("apolice_generico ag", "ag.apolice_id = a.apolice_id and ag.deletado = 0", "left");
 
         // if(isset($data_inicio) && !empty($data_inicio))
         //     $this->_database->where("status_data >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
