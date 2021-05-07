@@ -4496,9 +4496,9 @@ if ( ! function_exists('app_integracao_retorno_mapfre_rf'))
 
                 $num_apolice_cliente = (!empty($dados['registro']['num_apolice_cliente'])) ? $dados['registro']['num_apolice_cliente']: null;
                 $cod_tpa = (!empty($dados["log"]["integracao"]) && !empty($dados["log"]["integracao"]["cod_tpa"])) ? $dados["log"]["integracao"]["cod_tpa"]: null;
-                $apolice_mae = (!empty($dados["registro"]["apolice_mae"]))? !empty($dados["registro"]["apolice_mae"]): null;
+                $apolice_mae = (!empty($dados["registro"]["apolice_mae"]))? $dados["registro"]["apolice_mae"]: null;
 
-                if($num_apolice_cliente){
+                if($num_apolice_cliente != null && $tipo_operacao == 1){
 
                     try {
 
