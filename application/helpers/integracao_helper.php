@@ -2433,9 +2433,14 @@ if ( ! function_exists('app_integracao_retorno_success_cta')) {
 if ( ! function_exists('app_integracao_generali_sinistro')) {
     function app_integracao_generali_sinistro($formato, $dados = array())
     {
+
         $d = $dados['registro'];
         $integracao_log_detalhe_id = $formato;
         $valor = str_replace(array(",", "."), array("", "."), $d['vlr_movimento']);
+        $cod_mov = null;
+        if(!empty($d['cod_mov'])){
+            $cod_mov = $d['cod_mov'];
+        }
 
         // Ações que zeram ou diminuem ou valor da reserva
         // Ajuste a menor, Cancelamento, Pagamento Total e Parcial
@@ -2444,8 +2449,8 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
         }
 
         $CI =& get_instance();
-        $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, id_sinistro, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
-            VALUES ({$d['id_exp']}, '{$d['cod_sinistro']}', NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$valor} )");
+        $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, id_sinistro, data_envio, tipo_expediente, id_controle_arquivo_registros, valor, cod_mov_arquivo_registros) 
+            VALUES ({$d['id_exp']}, '{$d['cod_sinistro']}', NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$valor}, '{$cod_mov}' )");
         $id_exp_hist_carga = $CI->db->insert_id();
 
         if ($d['tipo_expediente'] == 'ABE') {
