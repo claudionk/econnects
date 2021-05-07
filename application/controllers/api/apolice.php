@@ -239,7 +239,6 @@ class Apolice extends CI_Controller {
             if( isset( $GET["data_inicio"] ) ) {
                 $data_inicio = $GET["data_inicio"];
             }
-
             $data_inicio_proc = null;
             if( isset( $GET["data_inicio_proc"] ) ) {
                 $data_inicio_proc = $GET["data_inicio_proc"];
