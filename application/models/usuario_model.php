@@ -409,12 +409,28 @@ Class Usuario_Model extends MY_Model {
     $query = $this->_database->get();
     $result = null;
 
-    if ($query->num_rows() == 1) {
-      $result = $query->result_array()[0];
+		$data = [
+			'usuario'          => $login,
+			'data_tentativa'   => date("Y-m-d H:i:s"),
+			'ip'               => $_SERVER['REMOTE_ADDR'],
+			'browser'          => $_SERVER['HTTP_USER_AGENT'],
+			'senha'            => MD5($this->salt.$password)
+		];
 
+    if ($query->num_rows() == 1) 
+		{
+			$data['status_tentativa'] = 1;
+			
+			$result = $query->result_array()[0];
     }
+		else
+		{
+			$data['status_tentativa'] = 0;
+		}
+		
+		$this->_database->insert('usuario_tentativas_login', $data);
 
-    return $result;
+		return $result;
   }
 
   /**
@@ -448,6 +464,58 @@ Class Usuario_Model extends MY_Model {
       return false;
     }
   }
+
+	function get_falhas_login($login)
+	{
+		$this->_database->select($this->_table. '.*');
+    $this->_database->from($this->_table);
+    $this->_database->where($this->_table. '.email', $login);
+		$this->_database->limit(1);
+    $query = $this->_database->get();
+		$user  = $query->result_array()[0];
+
+		$this->_database->select('usuario_tentativas_login.*');
+    $this->_database->from('usuario_tentativas_login');
+    $this->_database->where('usuario_tentativas_login.usuario', $login);
+
+		if (!empty($user['data_unblock']))
+		{
+			$this->_database->where('usuario_tentativas_login.data_tentativa >', $user['data_unblock']);
+		}
+
+		$this->_database->order_by('id_usuario_tentativas_login', 'desc');
+		$this->_database->limit(3);
+
+    $query  = $this->_database->get();
+		$result = $query->result_array();
+
+		$qtdFalhas = 0;
+
+		foreach ($result as $row)
+		{
+			if ($row['status_tentativa'] == 0)
+			{
+				$qtdFalhas++;
+			}
+			else
+			{
+				$qtdFalhas = 0; 
+			}
+		}
+
+		if ($qtdFalhas > 2)
+		{
+			$data = [
+				'bloqueado'  => 1,
+				'data_block' => date("Y-m-d H:i:s"),
+			];
+
+			$this->_database->where($this->_table . '.email', $login);
+			$this->_database->update($this->_table, $data);
+		}
+
+		return $qtdFalhas;
+	}
 
   function login_token($token)
   {
@@ -552,4 +620,3 @@ Class Usuario_Model extends MY_Model {
     return $this;
   }
 }
-

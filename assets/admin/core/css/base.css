@@ -254,6 +254,8 @@ div#url_venda_online {
     content: '\f105';
     font: normal normal normal 44px/1 FontAwesome;
     right: 30px;
+    top: 5px;
+    bottom: 5px;
     position: absolute;
 }
 
