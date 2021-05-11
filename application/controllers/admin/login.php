@@ -61,8 +61,9 @@ class Login extends Admin_Controller {
                 redirect("admin/login?redirect={$redirect}");
             }
 
-        }else {
-
+        }
+        else 
+        {
             //processa os dados de login
             $this->load->model("Parceiro_relacionamento_produto_model", 'parceiro_relacionamento');
             $this->load->model("Parceiro_model", 'parceiro');
@@ -72,6 +73,33 @@ class Login extends Admin_Controller {
             //Se logar
             if($usuario_id = $this->usuario->login($this->input->post('login'), $this->input->post('password')) )
             {
+                //Seta parceiros permitidos
+                $parceiros_permitidos = array();
+                $parceiro_id          = $this->session->userdata('parceiro_id');
+                $usuario              = $this->usuario->get($usuario_id);
+                $colaborador          = $this->colaborador->get($usuario['colaborador_id']);
+
+                if ($usuario['bloqueado'])
+                {
+                    $this->session->set_flashdata('loginerro', 'Usuario bloqueado.');
+
+                    $redirect = urlencode($redirect);
+
+                    if ($parceiro)
+                    {
+                        redirect("parceiro/{$parceiro}?redirect={$redirect}");
+                    }
+                    else
+                    {
+                        redirect("admin/login?redirect={$redirect}");
+                    }
+                }
+
+                
+                print   ('<pre>');
+                print_r ($usuario);
+                print   ('</pre>');
+                exit();
 
                 // //TODO INICIO
                 // exit('<br>Valida Senha<br>');
@@ -87,11 +115,6 @@ class Login extends Admin_Controller {
                 // exit();
                 // //TODO FINAL
 
-                //Seta parceiros permitidos
-                $parceiros_permitidos = array();
-                $parceiro_id = $this->session->userdata('parceiro_id');
-                $usuario = $this->usuario->get($usuario_id);
-                $colaborador = $this->colaborador->get($usuario['colaborador_id']);
                 print ('<pre>');
                 print('<br> Usuario 1: <br>');
                 extract($usuario);
@@ -216,12 +239,25 @@ class Login extends Admin_Controller {
                     redirect('admin/home');
                 }
 
-            } else {
-                $this->session->set_flashdata('loginerro', 'E-mail ou Senha incorretos.');
+            }
+            else
+            {
                 $redirect = urlencode($redirect);
-                if($parceiro) {
+                
+                $falhas   = $this->usuario->get_falhas_login($this->input->post('login'));
+
+                $msg      = ($falhas <= 2)
+                                ? "Voce tem " . (3 - $falhas) . " tentativa(s) restante(s)"
+                                : "Usuario bloqueado, entre em contato com o Suporte";
+
+                $this->session->set_flashdata('loginerro', "E-mail ou Senha incorretos. <br> $msg");
+
+                if ($parceiro) 
+                {
                     redirect("parceiro/{$parceiro}?redirect={$redirect}");
-                }else{
+                }
+                else
+                {
                     redirect("admin/login?redirect={$redirect}");
                 }
 
@@ -454,8 +490,3 @@ class Login extends Admin_Controller {
     }    
 */
 }
-
-
-
-
-
