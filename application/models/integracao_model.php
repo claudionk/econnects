@@ -288,6 +288,9 @@ Class Integracao_Model extends MY_Model
             }
 
         }
+
+        $this->liberarIntegracoesFinalizadas();
+
     }
 
     public function run_r($integracao_id){
@@ -322,9 +325,7 @@ Class Integracao_Model extends MY_Model
 
         if($result){
             $result = $result[0];
-            $dados_integracao = array();
-            $dados_integracao['status'] = 'L';
-            $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            $this->bloquearIntegracao($result['integracao_id']);
 
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
@@ -391,11 +392,7 @@ Class Integracao_Model extends MY_Model
                 call_user_func($result['after_run'], null, array('item' => $result, 'a_registro' => $aResultFile));
             }
 
-            $dados_integracao = array();
-            $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']);
-            $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');
-            $dados_integracao['status'] = 'A';
-            $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            $this->finalizarIntegracao($result['integracao_id']);
 
         }
 
@@ -418,9 +415,7 @@ Class Integracao_Model extends MY_Model
 
         if($result){
             $result = $result[0];
-            $dados_integracao = array();
-            $dados_integracao['status'] = 'L';
-            $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            $this->bloquearIntegracao($result['integracao_id']);
 
             //execute before execute
             if((!empty($result['before_execute'])) && (function_exists($result['before_execute']))){
@@ -468,11 +463,7 @@ Class Integracao_Model extends MY_Model
 
             unset($dados_log['quantidade_registros']);
 
-            $dados_integracao = array();
-            $dados_integracao['proxima_execucao'] = $this->get_proxima_execucao($result['integracao_id']); 
-            $dados_integracao['ultima_execucao'] = date('Y-m-d H:i:s');
-            $dados_integracao['status'] = 'A';
-            $this->update($result['integracao_id'], $dados_integracao, TRUE);
+            $this->finalizarIntegracao($result['integracao_id']);
 
             //execute after execute
             if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
@@ -1475,6 +1466,14 @@ Class Integracao_Model extends MY_Model
         return $this;
     }
 
+    function filter_by_rotina_finalizada(){
+        $this->_database->where('integracao.periodicidade_unidade <>', 'C');
+        $this->_database->where('integracao.habilitado', 1);
+        $this->_database->where('integracao.status', 'F');
+
+        return $this;
+    }
+
     function max_seq_by_parceiro_id($parceiro_id){
         $sequencia = 0;
 
@@ -1930,10 +1929,10 @@ Class Integracao_Model extends MY_Model
     }
 
     //Inicializa e retorna todas as integrações que irão ser executadas em massa
-    public function inicializarIntegracoes(){
+    private function inicializarIntegracoes(){
 
-        $aIntegracaoId = array();
-        $aIntegracao = $this->filter_by_rotina_pronta()->order_by('proxima_execucao')->limit(1)->get_all();
+        $aOutput = array();
+        $aIntegracao = $this->filter_by_rotina_pronta()->order_by('proxima_execucao')->get_all();
 
         foreach($aIntegracao as $integracao){
 
@@ -1942,8 +1941,8 @@ Class Integracao_Model extends MY_Model
                 continue;
             }
 
-            //Verifica se o dia da semana é permitido [0123456] (cada número representa um dia da semana de domingo a sábado)
-            $diasemana_numero = date('w', strtotime(date('Y-m-d')));
+            //Verifica se o dia da semana é permitido [1234567] (cada número representa um dia da semana de domingo a sábado)
+            $diasemana_numero = date('w', strtotime(date('Y-m-d'))) + 1;
             if(strpos($integracao["dias_semana"], $diasemana_numero) != false){
 
                 $horario_minimo = strtotime( date('Y-m-d' . $integracao["horario_minimo"]) );
@@ -1953,16 +1952,50 @@ Class Integracao_Model extends MY_Model
                 //Verifica se esta no intervalo de horas permitido
                 if ( $horario_minimo <= $horario_atual && $horario_atual <= $horario_maximo) {                                        
                     $this->update($integracao['integracao_id'], [
-                        "status" => 'L'
+                        "status" => 'I' //INICIALIZADO
                     ], TRUE);
-                    $aIntegracaoId[] = $integracao;
+                    $aOutput[] = $integracao;
                 }
 
             }
         }
         
-        return $aIntegracaoId;
+        return $aOutput;
 
+    }
+
+    //Bloqueia a integração para não executar ao mesmo tempo
+    private function bloquearIntegracao($integracao_id){        
+        $dados_integracao['status'] = 'L';
+        $this->update($integracao_id, [
+            "status" => 'L'
+        ], TRUE);
+    }
+
+    //Inidica a integração como finalizada para que possa ser liberada após o final da execução da cron
+    private function finalizarIntegracao($integracao_id){        
+        $this->update($integracao_id, [
+            'proxima_execucao' => $this->get_proxima_execucao($integracao_id),
+            'proxima_execucao' => date('Y-m-d H:i:s'),
+            'proxima_execucao' => 'F' //Finalizada
+        ], TRUE);
+    }
+
+    //Libera as integrações para serem inicialziadas na proxima cron
+    private function liberarIntegracoesFinalizadas(){
+
+        $aOutput = array();
+        $aIntegracao = $this->filter_by_rotina_finalizada()->order_by('proxima_execucao')->get_all();
+
+        foreach($aIntegracao as $integracao){
+            $this->update($integracao['integracao_id'], [
+                "status" => 'A' //AGUARDANDO
+            ], TRUE);
+            $aOutput[] = $integracao;
+        }
+
+
+        return $aOutput;
     }
 
 }
