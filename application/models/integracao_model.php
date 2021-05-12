@@ -1937,20 +1937,23 @@ Class Integracao_Model extends MY_Model
         foreach($aIntegracao as $integracao){
 
             //Deve haver essas configurações para inicialização em massa
-            if(empty($integracao["dias_semana"]) || empty($integracao["horario_minimo"]) || empty($integracao["horario_maximo"])){
+            if(empty($integracao["dias_semana"])){
                 continue;
             }
 
             //Verifica se o dia da semana é permitido [1234567] (cada número representa um dia da semana de domingo a sábado)
             $diasemana_numero = date('w', strtotime(date('Y-m-d'))) + 1;
-            if(strpos($integracao["dias_semana"], $diasemana_numero) != false){
+            if(strpos($integracao["dias_semana"], $diasemana_numero) != false || $integracao["dias_semana"] == '*'){
 
-                $horario_minimo = strtotime( date('Y-m-d' . $integracao["horario_minimo"]) );
-                $horario_maximo = strtotime( date('Y-m-d' . $integracao["horario_maximo"]) );
+    
                 $horario_atual  = time();
             
                 //Verifica se esta no intervalo de horas permitido
-                if ( $horario_minimo <= $horario_atual && $horario_atual <= $horario_maximo) {                                        
+                if (
+                    (empty($integracao["horario_minimo"]) || strtotime(date('Y-m-d'.$integracao["horario_minimo"])) >= $horario_atual) 
+                    && 
+                    (empty($integracao["horario_maximo"]) || strtotime(date('Y-m-d'.$integracao["horario_maximo"])) <= $horario_atual)                     
+                ) {                                        
                     $this->update($integracao['integracao_id'], [
                         "status" => 'I' //INICIALIZADO
                     ], TRUE);
