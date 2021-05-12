@@ -474,6 +474,14 @@ Class Usuario_Model extends MY_Model {
     $query = $this->_database->get();
 		$user  = $query->result_array()[0];
 
+    if ($user['bloqueado'])
+    {
+      return [
+        'bloqueado' => $user['bloqueado'],
+        'falhas'    => NULL,
+      ];
+    }
+
 		$this->_database->select('usuario_tentativas_login.*');
     $this->_database->from('usuario_tentativas_login');
     $this->_database->where('usuario_tentativas_login.usuario', $login);
@@ -486,22 +494,17 @@ Class Usuario_Model extends MY_Model {
 		$this->_database->order_by('id_usuario_tentativas_login', 'desc');
 		$this->_database->limit(3);
 
-    $query  = $this->_database->get();
-		$result = $query->result_array();
+    $query     = $this->_database->get();
+		$result    = $query->result_array();
 
 		$qtdFalhas = 0;
 
 		foreach ($result as $row)
 		{
-			if ($row['status_tentativa'] == 0)
-			{
-				$qtdFalhas++;
-			}
-			else
-			{
-				$qtdFalhas = 0; 
-			}
+			if ($row['status_tentativa'] == 0) $qtdFalhas++;
 		}
+
+    $block = $user['bloqueado'];
 
 		if ($qtdFalhas > 2)
 		{
@@ -510,11 +513,16 @@ Class Usuario_Model extends MY_Model {
 				'data_block' => date("Y-m-d H:i:s"),
 			];
 
+      $block = 1;
+
 			$this->_database->where($this->_table . '.email', $login);
 			$this->_database->update($this->_table, $data);
 		}
 
-		return $qtdFalhas;
+		return [
+      'bloqueado' => $block,
+      'falhas'    => $qtdFalhas,
+    ];
 	}
 
   function login_token($token)

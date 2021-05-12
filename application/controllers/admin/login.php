@@ -243,16 +243,21 @@ class Login extends Admin_Controller {
             else
             {
                 $redirect = urlencode($redirect);
-                
                 $falhas   = $this->usuario->get_falhas_login($this->input->post('login'));
+                $msg      = "E-mail ou Senha incorretos. <br>";
 
-                $msg      = ($falhas <= 2)
-                                ? "Voce tem " . (3 - $falhas) . " tentativa(s) restante(s)"
-                                : "Usuario bloqueado, entre em contato com o Suporte";
+                if (!$falhas['bloqueado'])
+                {
+                    $msg .= "Voce tem " . (3 - $falhas['falhas']) . " tentativa(s) restante(s)";
+                }
+                else
+                {
+                    $msg = "Usuario bloqueado, entre em contato com o Suporte";
+                }
 
-                $this->session->set_flashdata('loginerro', "E-mail ou Senha incorretos. <br> $msg");
+                $this->session->set_flashdata('loginerro', $msg);
 
-                if ($parceiro) 
+                if ($parceiro)
                 {
                     redirect("parceiro/{$parceiro}?redirect={$redirect}");
                 }
@@ -260,10 +265,8 @@ class Login extends Admin_Controller {
                 {
                     redirect("admin/login?redirect={$redirect}");
                 }
-
             }
         }
-
     }
 
     public function aceite_termo() {
@@ -393,7 +396,7 @@ class Login extends Admin_Controller {
         print ($bodyMessage);
         
         exit('<br>Fim solicitar_a2f');
-/*
+        /*
 
         $updateUsuariosAuthSQL = "UPDATE usuario_auth SET 
           dh_confirmacao = NULL, 
@@ -414,7 +417,7 @@ class Login extends Admin_Controller {
         <table width=\"780\" border=\"0\" align=\"center\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-top: 30px;border-bottom: 1px solid #255A8E;margin-bottom: 5px;padding-bottom: 30px;\"><tbody><tr><td align=\"middle\" width=\"50%\"><a href=\"https://sgs-h.jelastic.saveincloud.net/\"><img src=\"https://sgs-h.jelastic.saveincloud.net/wp-content/uploads/2018/12/logo_1.png\" alt=\"SIS serviços\"></a></td><td align=\"middle\" width=\"50%\"><h3 style=\" font-size: 30px; line-height: 0.3em; color: #255A8E; font-family: Montserrat, 'Open Sans', Helvetica, Arial, sans-serif; font-weight: 400; letter-spacing: -2px;\">ACESSE SUA CONTA</h3></td></tr></tbody></table> <p style='text-align: center;'>Insira o seguinte codigo de verificacao para acessar o SGS</p> <h2 style='text-align: center; color: #255A8E'><b>$codigoGerado</b></h2>";
 
         $this->funcoes->disparaEmail(null, "SIS - Seguranca", "Codigo de Verificacao - ".$nome_usuario, $bodyMessage, null, null, $email);
-*/
+        */
         return $tokenGerado;
     }
 
@@ -488,5 +491,5 @@ class Login extends Admin_Controller {
     public static function valdiarEmail($email){
         return filter_var($email, FILTER_VALIDATE_EMAIL);
     }    
-*/
+    */
 }
