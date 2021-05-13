@@ -19,7 +19,7 @@
         <link type="text/css" rel="stylesheet" href="<?php echo app_assets_url("template/css/{$theme}/material-design-iconic-font.min.css", 'admin');?>" />
         <link type="text/css" rel="stylesheet" href="<?php echo app_assets_url("core/css/base.css", 'admin');?>" />
         <style>
-            .load-gif { width: 60px; height: 60px; margin: 0 auto; border: 5px solid #1fEC7A; border-top: 5px solid transparent; border-radius: 50%; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
+            .load-gif { width: 60px; height: 60px; margin: 0 auto; border: 5px solid #1FEC7A; border-top: 5px solid transparent; border-radius: 50%; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
             .load { top: 0; left: 0; width: 100vw;  height: 100vh;  display: none; position: fixed;  overflow: auto;  z-index: 9999;  text-align: center;  justify-content: space-between; background-color: rgb(0,0,0);  background-color: rgba(0,0,0,0.7);  }
             .load-child { margin: auto; }
             @-webkit-keyframes spin { 0% { -webkit-transform: rotate(0deg); } 100% { -webkit-transform: rotate(360deg); } }
@@ -44,7 +44,7 @@
         <div id="form-login-container">
             <form id="form-login" class="form" action="<?php echo $valida_token_url;?>" accept-charset="utf-8" method="post">
                 <h2 id="form-login-title"><b>ENTRE COM SEU CODIGO</b></h2>
-                <p style="margin-bottom: 0px; color: #FFF;">Um codigo foi enviado para o seu e-mail</p>
+                <p style="margin-bottom: 0px; color: #FFF;">O codigo foi enviado para o seu e-mail</p>
                 <div class="form-login-group">
                     <input type="text" class="form-control form-login-input" id="code" name="code" />
                     <label class="form-login-label">DIGITE SEU CODIGO</label>
@@ -57,7 +57,7 @@
                 </div>
                 <div class="row">
                     <div class="col-xs-4 text-right">
-                        <button id="form-login-submit" type="submit" >ENTRAR</button>
+                        <button id="form-login-submit" type="submit" >VALIDAR</button>
                     </div>
                 </div>
             </form>
