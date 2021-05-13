@@ -3,7 +3,8 @@
 /**
  * @property mixed template
  */
-class Login extends Admin_Controller {
+class Login extends Admin_Controller 
+{
     protected $noLogin = true;
 
     function __construct()
@@ -35,12 +36,12 @@ class Login extends Admin_Controller {
         $this->template->load('admin/layouts/login', 'admin/login/form', $data);
     }
 
-    public function proccess($parceiro = null) {
+    public function proccess($parceiro = null) 
+    {
         //Carrega models necessários
-        $this->load->model('colaborador_model', 'colaboradores');
+        // $this->load->model('colaborador_model', 'colaboradores');
         $redirect = urldecode($this->input->get('redirect'));
-
-        $this->load->helper('cookie');
+        // $this->load->helper('cookie');
         $this->load->library('form_validation');
 
         $this->form_validation->set_rules('login', 'E-mail', 'valid_email|trim|required|xss_clean');
@@ -74,171 +75,36 @@ class Login extends Admin_Controller {
             if($usuario_id = $this->usuario->login($this->input->post('login'), $this->input->post('password')) )
             {
                 //Seta parceiros permitidos
-                $parceiros_permitidos = array();
-                $parceiro_id          = $this->session->userdata('parceiro_id');
-                $usuario              = $this->usuario->get($usuario_id);
-                $colaborador          = $this->colaborador->get($usuario['colaborador_id']);
+                // $parceiros_permitidos = array();
+                // $parceiro_id          = $this->session->userdata('parceiro_id');
+                $usuario = $this->usuario->get($usuario_id);
+                // $colaborador          = $this->colaborador->get($usuario['colaborador_id']);
 
-                if ($usuario['bloqueado'])
+                extract($usuario);
+
+                if ($bloqueado)
                 {
                     $this->session->set_flashdata('loginerro', 'Usuario bloqueado.');
 
                     $redirect = urlencode($redirect);
 
                     if ($parceiro)
-                    {
                         redirect("parceiro/{$parceiro}?redirect={$redirect}");
-                    }
                     else
-                    {
                         redirect("admin/login?redirect={$redirect}");
-                    }
                 }
 
-                
-                print   ('<pre>');
-                print_r ($usuario);
-                print   ('</pre>');
-                exit();
-
-                // //TODO INICIO
-                // exit('<br>Valida Senha<br>');
-
-                // 
-                
-
-                // mostraLogin("Insira o c&oacute;digo enviado no e-mail <b>".$email_usuario."</b> para o usu&aacute;rio <b>".$nome_usuario."</b>", "a2f", [
-                //   "id_sessao" => $_SESSION['id_session'],
-                //   "token" => $tokenGerado,
-                //   "success" => true
-                // ]);
-                // exit();
-                // //TODO FINAL
-
-                print ('<pre>');
-                print('<br> Usuario 1: <br>');
-                extract($usuario);
-                $usuarioAuthData = array();      
-                $usuarioAuthData["id_usuario"] = $usuario_id; //$this->usuario->usuario_id;      
-                $usuarioAuthData["id_sessao"] =  $this->session->userdata('session_id');
+                $usuarioAuthData                   = array();      
+                $usuarioAuthData["id_usuario"]     = $usuario_id; //$this->usuario->usuario_id;      
+                $usuarioAuthData["id_sessao"]      = $this->session->userdata('session_id');
                 $usuarioAuthData["ip_solicitacao"] = $this->input->ip_address();
-                $email_usuario = $email; //$this->$usuario->email;
-                $nome_usuario = $nome; //$this->$usuario->nome;
-                // var_dump ($usuarioAuthData);
-                $tokenGerado = $this->solicitar_a2f($usuarioAuthData, $email_usuario, $nome_usuario);
-                // print('<br> Email: <br>');
-                // print($email_usuario);
-                // print('<br> Nome: <br>');
-                // print($nome_usuario);
-                // print_r($colaborador);
-                // print('<br> ****************************** Colaborador ******************************<br>');
-                // var_dump($this->colaborador);
-                // print('<br> ****************************** Usuario ******************************<br>');
-                // var_dump($this->usuario);
-                print ('</pre>');
-                exit('<br>Colaborador<br>');
 
-                if($parceiro_id) {
-                    $this->input->cookie('login_parceiro_id', $parceiro_id);
+                $tokenGerado = $this->solicitar_a2f($usuarioAuthData, $email, $nome);
+                $redirect    = urlencode($redirect);
 
+                $this->session->set_flashdata('token', $tokenGerado);
 
-                    $parceiro = $this->parceiro->get($parceiro_id);
-
-                    $this->session->set_userdata("parceiro_termo", $parceiro["termo_aceite_usuario"]);
-                    $this->session->set_userdata("parceiro_pai_id", $parceiro["parceiro_pai_id"]);
-
-                    //Busca relacionamento
-                    $parceiro_relacionamento = $this->parceiro_relacionamento
-                        ->with_parceiro()
-                        ->with_produto_parceiro()
-                        ->get_many_by(
-                        array("produto_parceiro.parceiro_id" => $parceiro_id)
-                    );
-                  
-                  $parceiro_relacionamento = $this->db->query( "SELECT * FROM parceiro WHERE parceiro_pai_id=$parceiro_id AND deletado=0" )->result_array();
-
-                    $parceiros_permitidos[] = $parceiro_id;
-
-                    foreach($parceiro_relacionamento as $parceiro_filho)
-                    {
-                        $parceiros_permitidos[] = $parceiro_filho['parceiro_id'];
-                    }
-
-                    //Seta sessão
-                    $this->session->set_userdata("parceiros_permitidos", $parceiros_permitidos);
-
-                    $cookie = array(
-                        'name'   => 'login_parceiro_id',
-                        'value'  => $parceiro_id,
-                        'expire' => 7*24*60*60
-                    );
-                    $this->input->set_cookie($cookie);
-                }elseif($colaborador){
-                    $colaborador_parceiro = $this->colaborador_parceiro->get_many_by(array('colaborador_id' => $colaborador['colaborador_id']));
-
-                    if($colaborador_parceiro)
-                    {
-                        $this->session->set_userdata('parceiro_id', $colaborador_parceiro[0]['parceiro_id']);
-
-                        $parceiros_permitidos[] = $colaborador_parceiro[0]['parceiro_id'];
-
-                        //para cada Parceiro associado ao colaborador
-                        foreach($colaborador_parceiro as $parceiro)
-                        {
-                            $parceiros_permitidos[] = $parceiro['parceiro_id'];
-
-                            //Busca relacionamento
-                            $parceiro_relacionamento = $this->parceiro_relacionamento
-                                ->with_parceiro()
-                                ->with_produto_parceiro()
-                                ->get_many_by(
-                                    array("produto_parceiro.parceiro_id" => $parceiro['parceiro_id'])
-                                );
-
-
-                            foreach($parceiro_relacionamento as $parceiro_filho)
-                            {
-                                $parceiros_permitidos[] = $parceiro_filho['parceiro_id'];
-                            }
-                        }
-
-
-                        if(is_array($parceiros_permitidos))
-                        {
-                            $this->session->set_userdata("parceiro_selecionado", $parceiros_permitidos[0]);
-                            $this->session->set_userdata("parceiros_permitidos", $parceiros_permitidos);
-                        }
-
-                        $cookie = array(
-                            'name'   => 'login_parceiro_id',
-                            'value'  => $parceiro_id,
-                            'expire' => 7*24*60*60
-                        );
-
-                        $this->input->set_cookie($cookie);
-                        $this->session->set_userdata("is_colaborador", true);
-                    }
-                }
-
-                $parceiros = array();
-                foreach($parceiros_permitidos as $parceiro_id)
-                {
-                    $parceiro = $this->parceiro->get($parceiro_id);
-
-                    if(!in_array($parceiro, $parceiros))
-                        $parceiros[] = $parceiro;
-                }
-
-
-                $this->session->set_userdata("parceiros", $parceiros);
-
-
-                if($redirect) {
-                    redirect($redirect);
-                }else{
-                    redirect('admin/home');
-                }
-
+                redirect("admin/login/valida_token/?redirect={$redirect}");
             }
             else
             {
@@ -338,86 +204,71 @@ class Login extends Admin_Controller {
 
     }
 
-
-    public function solicitar_a2f($usuarioAuthData, $email, $nome_usuario){
+    public function solicitar_a2f($usuarioAuthData, $email, $nome_usuario)
+    {
         $dh_vencimento = $this->gerar_dh_vencimento_a2f();
-        print('dh_vencimento: '.$dh_vencimento . '<br>');
-        $tokenGerado = $this->gerar_token_a2f();
-        print('tokenGerado: '.$tokenGerado . '<br>');
-        $codigoGerado = $this->gerar_codigo_a2f();
-        print('codigoGerado: '.$codigoGerado . '<br>');
+        $tokenGerado   = $this->gerar_token_a2f();
+        $codigoGerado  = $this->gerar_codigo_a2f();
         
-        $insertUsuarioAuthSQL = "INSERT INTO usuario_auth
-                                            (usuario_id_auth,
-                                            usuario_id,
-                                            dh_registro,
-                                            dh_solicitacao,
-                                            dh_vencimento,
-                                            dh_confirmacao,
-                                            ip_solicitacao,
-                                            token,
-                                            codigo,
-                                            ativo,
-                                            id_sessao,
-                                            HTTP_USER_AGENT)
-                                            VALUES
-                                            (NULL,
-                                            ". $usuarioAuthData["id_usuario"] . ",
-                                            '".date("Y-m-d H:i:s")."',
-                                            '".date("Y-m-d H:i:s")."',
-                                            '$dh_vencimento',
-                                            NULL,
-                                            '".$usuarioAuthData["ip_solicitacao"]."',
-                                            '".$tokenGerado."',
-                                            '".$codigoGerado."',
-                                            1,
-                                            '".$usuarioAuthData["id_sessao"]."',
-                                            NULL);        
-                                ";
+        $now  = date("Y-m-d H:i:s");
+        $data = [
+            'usuario_id'      => $usuarioAuthData["id_usuario"],
+            'dh_registro'     => $now,
+            'dh_solicitacao'  => $now,
+            'dh_vencimento'   => $dh_vencimento,
+            'dh_confirmacao'  => NULL,
+            'ip_solicitacao'  => $usuarioAuthData["ip_solicitacao"],
+            'token'           => $tokenGerado,
+            'codigo'          => $codigoGerado,
+            'ativo'           => 1,
+            'id_sessao'       => $usuarioAuthData["id_sessao"],
+            'HTTP_USER_AGENT' => $_SERVER['HTTP_USER_AGENT'],
+        ];
 
-        print('<br>SQL Insert: ' . $insertUsuarioAuthSQL);
+        $this->db->where("usuario_auth.usuario_id", $data['usuario_id']);
+        $this->db->update("usuario_auth", $data); 
+
         $bodyMessage = "
             <body leftmargin=\"0\" topmargin=\"0\" onLoad=\"MM_preloadImages('imagens/drop_quemsomosb.gif','imagens/drop_knowhowb.gif','imagens/drop_qualidadeb.gif')\">
-                <a href='http://econnects-h.jelastic.saveincloud.net/admin/login/index/?redirect=&token=$tokenGerado'>
-                    <img width='600' height='300' src='http://econnects-h.jelastic.saveincloud.net/assets/admin/template/img/image-login.png' alt='Acesse sua conta'>
-                </a>    
-                <a href='http://econnects-h.jelastic.saveincloud.net/admin/login/index/?redirect=&token=$tokenGerado'>
-                    <h2 style='text-align: left; color: #255A8E'><b>ACESSE SUA CONTA:</b></h2>
-                </a>
-                <p style='text-align: left;'>Insira o seguinte codigo de verificacao para acessar o Neo Connect</p>
-                <h2 style='text-align: left; color: #255A8E'><b>$codigoGerado</b></h2>        
-            </body>   
+            <table width=\"780\" border=\"0\" align=\"center\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-top: 30px;border-bottom: 1px solid #255A8E;margin-bottom: 5px;padding-bottom: 15px;\">
+                <tbody>
+                    <tr>
+                        <td align=\"middle\" width=\"50%\">
+                            <a href=\"https://sgs-h.jelastic.saveincloud.net/\">
+                                <img width='300' height='150' src='http://econnects-h.jelastic.saveincloud.net/assets/admin/template/img/image-login.png' alt='Acesse sua conta'>    
+                            </a>
+                        </td>
+                        <td align=\"middle\" width=\"50%\">
+                            <h3 style=\"margin:0; font-size: 30px; line-height: 0.3em; color: #255A8E; font-family: Montserrat, 'Open Sans', Helvetica, Arial, sans-serif; font-weight: 400; letter-spacing: -2px;\">
+                                ACESSE SUA CONTA
+                            </h3>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style='text-align: center;'>
+                Insira o seguinte codigo de verificacao para acessar o Neo Connect
+            </p>
+            <h2 style='text-align: center; color: #255A8E'>
+                <b>$codigoGerado</b>
+            </h2>
         ";
         
-       // private function envia_email($mensagem, $engine)
-       // /var/www/webroot/ROOT/econnects/application/libraries/Comunicacao.php
-       // TODO: IMPLEMENTAR O ENVIO DO EMAIL
-        print ('<br> Mensage: ');
-        print ($bodyMessage);
+        // private function envia_email($mensagem, $engine)
+        // /var/www/webroot/ROOT/econnects/application/libraries/Comunicacao.php
+        // TODO: IMPLEMENTAR O ENVIO DO EMAIL
+
+        // $this->funcoes->disparaEmail(null, "SIS - Seguranca", "Codigo de Verificacao - ".$nome_usuario, $bodyMessage, null, null, $email);
         
-        exit('<br>Fim solicitar_a2f');
-        /*
+        // $this->load->library('email');
+        // $this->email->from('your@example.com', 'Your Name');
+        // $this->email->to('someone@example.com');
+        // $this->email->cc('another@another-example.com');
+        // $this->email->bcc('them@their-example.com');
+        // $this->email->subject('Email Test');
+        // $this->email->message($bodyMessage);
+        // $this->email->send();
 
-        $updateUsuariosAuthSQL = "UPDATE usuario_auth SET 
-          dh_confirmacao = NULL, 
-          dh_solicitacao = '".date("Y-m-d H:i:s")."', 
-          dh_vencimento = '$dh_vencimento', 
-          ip_solicitacao = '".$usuarioAuthData["ip_solicitacao"]."', 
-          id_sessao = '".$usuarioAuthData["id_sessao"]."',
-          token = '".$tokenGerado."', 
-          codigo = '".$codigoGerado."'
-        WHERE
-          usuarioid = '".$usuarioAuthData["id_usuario"]."'";
-
-        print('<br>SQL: ' . $updateUsuariosAuthSQL);
-
-        $this->db->query($updateUsuariosAuthSQL);
-
-        $bodyMessage = "   <body leftmargin=\"0\" topmargin=\"0\" onLoad=\"MM_preloadImages('imagens/drop_quemsomosb.gif','imagens/drop_knowhowb.gif','imagens/drop_qualidadeb.gif')\">
-        <table width=\"780\" border=\"0\" align=\"center\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-top: 30px;border-bottom: 1px solid #255A8E;margin-bottom: 5px;padding-bottom: 30px;\"><tbody><tr><td align=\"middle\" width=\"50%\"><a href=\"https://sgs-h.jelastic.saveincloud.net/\"><img src=\"https://sgs-h.jelastic.saveincloud.net/wp-content/uploads/2018/12/logo_1.png\" alt=\"SIS serviços\"></a></td><td align=\"middle\" width=\"50%\"><h3 style=\" font-size: 30px; line-height: 0.3em; color: #255A8E; font-family: Montserrat, 'Open Sans', Helvetica, Arial, sans-serif; font-weight: 400; letter-spacing: -2px;\">ACESSE SUA CONTA</h3></td></tr></tbody></table> <p style='text-align: center;'>Insira o seguinte codigo de verificacao para acessar o SGS</p> <h2 style='text-align: center; color: #255A8E'><b>$codigoGerado</b></h2>";
-
-        $this->funcoes->disparaEmail(null, "SIS - Seguranca", "Codigo de Verificacao - ".$nome_usuario, $bodyMessage, null, null, $email);
-        */
         return $tokenGerado;
     }
 
@@ -451,6 +302,205 @@ class Login extends Admin_Controller {
             $randomString .= $characters[rand(0, $charactersLength - 1)];
         }
         return $randomString;        
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return void
+     */
+    public function valida_token($parceiro = null) 
+    {
+        $redirect = urlencode($this->input->get('redirect'));
+
+        if ($parceiro)
+        {
+            $row = $this->parceiro->get_by(
+                array('slug' => $parceiro)
+            );
+
+            if ($row)
+            {
+                $this->_setTheme($row['parceiro_id']);
+            }
+        }
+
+        $data = [
+            'valida_token_url' => base_url("admin/login/process_token/{$parceiro}?redirect={$redirect}")
+        ];
+
+        $this->template->load('admin/layouts/valida_token', 'admin/login/form', $data);
+    }
+
+    public function process_token($parceiro = null) {
+        //Carrega models necessários
+        $this->load->model('colaborador_model', 'colaboradores');
+        $this->load->helper('cookie');
+        
+        $redirect   = urldecode($this->input->get('redirect'));
+        $code       = $this->input->post('code');
+        $token      = $this->session->flashdata('token');
+        $session_id = $this->session->userdata('session_id');
+        $ip         = $this->input->ip_address();
+
+		$this->db->select('usuario_auth.*');
+        $this->db->from('usuario_auth');
+        $this->db->where('usuario_auth.codigo',         $code);
+        $this->db->where('usuario_auth.token',          $token);
+        $this->db->where('usuario_auth.id_sessao',      $session_id);
+        $this->db->where('usuario_auth.ip_solicitacao', $ip);
+
+        $query = $this->db->get();
+        
+        if ($query->num_rows() == 1)
+        {
+            $result = $query->result_array()[0];
+            extract($result);
+            
+            $now = date("Y-m-d H:i:s");
+            
+            if ($now > $dh_vencimento)
+            {
+                $redirect = urlencode($redirect);
+    
+                $this->session->set_flashdata('token_erro', 'Codigo invalido!');
+    
+                if ($parceiro)
+                    redirect("parceiro/{$parceiro}?redirect={$redirect}");
+                else
+                    redirect("admin/login/valida_token/?redirect={$redirect}");
+            }
+
+			$this->db->where('usuario_auth.usuario_id', $usuario_id);
+			$this->db->update('usuario_auth', [
+				'dh_confirmacao' => $now
+			]);
+
+            //processa os dados de login
+            $this->load->model("Parceiro_relacionamento_produto_model", 'parceiro_relacionamento');
+            $this->load->model("Parceiro_model", 'parceiro');
+            $this->load->model("Colaborador_parceiro_model", 'colaborador_parceiro');
+            $this->load->model("Colaborador_model", 'colaborador');
+
+            //Seta parceiros permitidos
+            $parceiros_permitidos = array();
+            $parceiro_id          = $this->session->userdata('parceiro_id');
+            $usuario              = $this->usuario->get($usuario_id);
+            $colaborador          = $this->colaborador->get($usuario['colaborador_id']);
+
+            if ($parceiro_id) 
+            {
+                $this->input->cookie('login_parceiro_id', $parceiro_id);
+
+                $parceiro = $this->parceiro->get($parceiro_id);
+
+                $this->session->set_userdata("parceiro_termo",  $parceiro["termo_aceite_usuario"]);
+                $this->session->set_userdata("parceiro_pai_id", $parceiro["parceiro_pai_id"]);
+
+                //Busca relacionamento
+                $parceiro_relacionamento = $this->parceiro_relacionamento
+                    ->with_parceiro()
+                    ->with_produto_parceiro()
+                    ->get_many_by(
+                        array("produto_parceiro.parceiro_id" => $parceiro_id)
+                    );
+
+                $parceiro_relacionamento = $this->db->query( "SELECT * FROM parceiro WHERE parceiro_pai_id=$parceiro_id AND deletado=0" )->result_array();
+                $parceiros_permitidos[]  = $parceiro_id;
+
+                foreach($parceiro_relacionamento as $parceiro_filho)
+                {
+                    $parceiros_permitidos[] = $parceiro_filho['parceiro_id'];
+                }
+
+                //Seta sessão
+                $this->session->set_userdata("parceiros_permitidos", $parceiros_permitidos);
+
+                $cookie = array(
+                    'name'   => 'login_parceiro_id',
+                    'value'  => $parceiro_id,
+                    'expire' => 7*24*60*60
+                );
+
+                $this->input->set_cookie($cookie);
+            }
+            elseif ($colaborador)
+            {
+                $colaborador_parceiro = $this->colaborador_parceiro->get_many_by(array('colaborador_id' => $colaborador['colaborador_id']));
+
+                if($colaborador_parceiro)
+                {
+                    $this->session->set_userdata('parceiro_id', $colaborador_parceiro[0]['parceiro_id']);
+
+                    $parceiros_permitidos[] = $colaborador_parceiro[0]['parceiro_id'];
+
+                    //para cada Parceiro associado ao colaborador
+                    foreach($colaborador_parceiro as $parceiro)
+                    {
+                        $parceiros_permitidos[]  = $parceiro['parceiro_id'];
+
+                        //Busca relacionamento
+                        $parceiro_relacionamento = $this->parceiro_relacionamento
+                            ->with_parceiro()
+                            ->with_produto_parceiro()
+                            ->get_many_by(
+                                array("produto_parceiro.parceiro_id" => $parceiro['parceiro_id'])
+                            );
+
+                        foreach($parceiro_relacionamento as $parceiro_filho)
+                        {
+                            $parceiros_permitidos[] = $parceiro_filho['parceiro_id'];
+                        }
+                    }
+
+                    if(is_array($parceiros_permitidos))
+                    {
+                        $this->session->set_userdata("parceiro_selecionado", $parceiros_permitidos[0]);
+                        $this->session->set_userdata("parceiros_permitidos", $parceiros_permitidos);
+                    }
+
+                    $cookie = array(
+                        'name'   => 'login_parceiro_id',
+                        'value'  => $parceiro_id,
+                        'expire' => 7*24*60*60
+                    );
+
+                    $this->input->set_cookie($cookie);
+                    $this->session->set_userdata("is_colaborador", true);
+                }
+            }
+
+            $parceiros = array();
+            foreach($parceiros_permitidos as $parceiro_id)
+            {
+                $parceiro = $this->parceiro->get($parceiro_id);
+
+                if(!in_array($parceiro, $parceiros))
+                    $parceiros[] = $parceiro;
+            }
+
+            $this->session->set_userdata("parceiros", $parceiros);
+
+            if ($redirect) 
+                redirect($redirect);
+            else
+                redirect('admin/home');
+        }
+        else
+		{
+            $redirect = urlencode($redirect);
+
+            $this->session->set_flashdata('token_erro', 'Codigo invalido!');
+
+            if ($parceiro)
+            {
+                redirect("parceiro/{$parceiro}?redirect={$redirect}");
+            }
+            else
+            {
+                redirect("admin/login/valida_token/?redirect={$redirect}");
+            }
+        }
     }
 
     // function ipCheck() {
