@@ -46,7 +46,7 @@
                 <h2 id="form-login-title"><b>ENTRE COM SEU CODIGO</b></h2>
                 <p style="margin-bottom: 0px; color: #FFF;">Um codigo foi enviado para o seu e-mail</p>
                 <div class="form-login-group">
-                    <input type="text" class="form-control form-login-input" id="token" name="token" placeholder=" "/>
+                    <input type="text" class="form-control form-login-input" id="code" name="code" />
                     <label class="form-login-label">DIGITE SEU CODIGO</label>
                 </div>
                 </br>
