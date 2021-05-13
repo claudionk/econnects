@@ -18,6 +18,13 @@
         <link type="text/css" rel="stylesheet" href="<?php echo app_assets_url("template/css/{$theme}/font-awesome.min.css", 'admin');?>" />
         <link type="text/css" rel="stylesheet" href="<?php echo app_assets_url("template/css/{$theme}/material-design-iconic-font.min.css", 'admin');?>" />
         <link type="text/css" rel="stylesheet" href="<?php echo app_assets_url("core/css/base.css", 'admin');?>" />
+        <style>
+            .load-gif { width: 60px; height: 60px; margin: 0 auto; border: 5px solid #1fEC7A; border-top: 5px solid transparent; border-radius: 50%; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
+            .load { top: 0; left: 0; width: 100vw;  height: 100vh;  display: none; position: fixed;  overflow: auto;  z-index: 9999;  text-align: center;  justify-content: space-between; background-color: rgb(0,0,0);  background-color: rgba(0,0,0,0.7);  }
+            .load-child { margin: auto; }
+            @-webkit-keyframes spin { 0% { -webkit-transform: rotate(0deg); } 100% { -webkit-transform: rotate(360deg); } }
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        </style>
         <!-- END STYLESHEETS -->
 
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -232,6 +239,12 @@
         </div>
         <!-- END LOGIN SECTION -->
 
+        <div id="load" class="load">
+            <div class="load-child">
+                <div class="load-gif"></div>
+            </div>
+        </div>
+
         <!-- BEGIN JAVASCRIPT -->
         <script src="<?php echo app_assets_url('template/js/libs/jquery/jquery-1.11.2.min.js', 'admin');?>"></script>
         <script src="<?php echo app_assets_url('template/js/libs/jquery/jquery-migrate-1.2.1.min.js', 'admin');?>"></script>
@@ -253,6 +266,11 @@
         <script>
             function enableBtn(){
                 document.getElementById("form-login-submit").disabled = false;
+            }
+
+            window.onbeforeunload = function( event ) { 
+                var modal = document.getElementById("load");
+                modal.style.display = "flex";
             }
         </script>
         <!-- END JAVASCRIPT -->
