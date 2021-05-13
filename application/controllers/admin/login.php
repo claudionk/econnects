@@ -15,8 +15,8 @@ class Login extends Admin_Controller
         $this->load->model('parceiro_model', 'parceiro');
     }
 
-    public function index($parceiro = null) {
-        
+    public function index($parceiro = null) 
+    {
         $redirect = urlencode($this->input->get('redirect'));
 
         if($parceiro)
@@ -30,7 +30,8 @@ class Login extends Admin_Controller
             }
         }
         $data = array(
-            'login_form_url' => base_url("admin/login/proccess/{$parceiro}?redirect={$redirect}")
+            'login_form_url'    => base_url("admin/login/proccess/{$parceiro}?redirect={$redirect}"),
+            'esqueceu_form_url' => base_url("admin/login/esqueci_senha"),
         );
 
         $this->template->load('admin/layouts/login', 'admin/login/form', $data);
@@ -39,29 +40,24 @@ class Login extends Admin_Controller
     public function proccess($parceiro = null) 
     {
         //Carrega models necessários
-        // $this->load->model('colaborador_model', 'colaboradores');
+        $this->load->model('colaborador_model', 'colaboradores');
         $redirect = urldecode($this->input->get('redirect'));
-        // $this->load->helper('cookie');
+
+        $this->load->helper('cookie');
         $this->load->library('form_validation');
 
         $this->form_validation->set_rules('login', 'E-mail', 'valid_email|trim|required|xss_clean');
         $this->form_validation->set_rules('password', 'Senha', 'trim|required|xss_clean');
 
-
         if($this->form_validation->run() == FALSE)
         {
-
             $this->session->set_flashdata('loginerro', 'E-mail ou Senha incorretos.');
             $redirect = urlencode($redirect);
-            if($parceiro)
-            {
-                redirect("parceiro/{$parceiro}?redirect={$redirect}");
-            }
-            else
-            {
-                redirect("admin/login?redirect={$redirect}");
-            }
 
+            if($parceiro)
+                redirect("parceiro/{$parceiro}?redirect={$redirect}");
+            else
+                redirect("admin/login?redirect={$redirect}");
         }
         else 
         {
@@ -75,62 +71,117 @@ class Login extends Admin_Controller
             if($usuario_id = $this->usuario->login($this->input->post('login'), $this->input->post('password')) )
             {
                 //Seta parceiros permitidos
-                // $parceiros_permitidos = array();
-                // $parceiro_id          = $this->session->userdata('parceiro_id');
-                $usuario = $this->usuario->get($usuario_id);
-                // $colaborador          = $this->colaborador->get($usuario['colaborador_id']);
+                $parceiros_permitidos = array();
+                $parceiro_id          = $this->session->userdata('parceiro_id');
+                $usuario              = $this->usuario->get($usuario_id);
+                $colaborador          = $this->colaborador->get($usuario['colaborador_id']);
 
-                extract($usuario);
-
-                if ($bloqueado)
+                if($parceiro_id) 
                 {
-                    $this->session->set_flashdata('loginerro', 'Usuario bloqueado.');
+                    $this->input->cookie('login_parceiro_id', $parceiro_id);
 
-                    $redirect = urlencode($redirect);
+                    $parceiro = $this->parceiro->get($parceiro_id);
 
-                    if ($parceiro)
-                        redirect("parceiro/{$parceiro}?redirect={$redirect}");
-                    else
-                        redirect("admin/login?redirect={$redirect}");
+                    $this->session->set_userdata("parceiro_termo", $parceiro["termo_aceite_usuario"]);
+                    $this->session->set_userdata("parceiro_pai_id", $parceiro["parceiro_pai_id"]);
+
+                    //Busca relacionamento
+                    $parceiro_relacionamento = $this->parceiro_relacionamento
+                                                    ->with_parceiro()
+                                                    ->with_produto_parceiro()
+                                                    ->get_many_by(
+                                                        array("produto_parceiro.parceiro_id" => $parceiro_id)
+                                                    );
+                  
+                    $parceiro_relacionamento = $this->db->query( "SELECT * FROM parceiro WHERE parceiro_pai_id=$parceiro_id AND deletado=0" )->result_array();
+                    $parceiros_permitidos[]  = $parceiro_id;
+
+                    foreach($parceiro_relacionamento as $parceiro_filho)
+                    {
+                        $parceiros_permitidos[] = $parceiro_filho['parceiro_id'];
+                    }
+
+                    //Seta sessão
+                    $this->session->set_userdata("parceiros_permitidos", $parceiros_permitidos);
+
+                    $cookie = array(
+                        'name'   => 'login_parceiro_id',
+                        'value'  => $parceiro_id,
+                        'expire' => 7*24*60*60
+                    );
+                    $this->input->set_cookie($cookie);
+                }
+                elseif($colaborador)
+                {
+                    $colaborador_parceiro = $this->colaborador_parceiro->get_many_by(array('colaborador_id' => $colaborador['colaborador_id']));
+
+                    if($colaborador_parceiro)
+                    {
+                        $this->session->set_userdata('parceiro_id', $colaborador_parceiro[0]['parceiro_id']);
+
+                        $parceiros_permitidos[] = $colaborador_parceiro[0]['parceiro_id'];
+
+                        //para cada Parceiro associado ao colaborador
+                        foreach($colaborador_parceiro as $parceiro)
+                        {
+                            $parceiros_permitidos[]  = $parceiro['parceiro_id'];
+
+                            //Busca relacionamento
+                            $parceiro_relacionamento = $this->parceiro_relacionamento
+                                                            ->with_parceiro()
+                                                            ->with_produto_parceiro()
+                                                            ->get_many_by(
+                                                                array("produto_parceiro.parceiro_id" => $parceiro['parceiro_id'])
+                                                            );
+
+                            foreach($parceiro_relacionamento as $parceiro_filho)
+                            {
+                                $parceiros_permitidos[] = $parceiro_filho['parceiro_id'];
+                            }
+                        }
+
+                        if(is_array($parceiros_permitidos))
+                        {
+                            $this->session->set_userdata("parceiro_selecionado", $parceiros_permitidos[0]);
+                            $this->session->set_userdata("parceiros_permitidos", $parceiros_permitidos);
+                        }
+
+                        $cookie = array(
+                            'name'   => 'login_parceiro_id',
+                            'value'  => $parceiro_id,
+                            'expire' => 7*24*60*60
+                        );
+
+                        $this->input->set_cookie($cookie);
+                        $this->session->set_userdata("is_colaborador", true);
+                    }
                 }
 
-                $usuarioAuthData                   = array();      
-                $usuarioAuthData["id_usuario"]     = $usuario_id; //$this->usuario->usuario_id;      
-                $usuarioAuthData["id_sessao"]      = $this->session->userdata('session_id');
-                $usuarioAuthData["ip_solicitacao"] = $this->input->ip_address();
-
-                $tokenGerado = $this->solicitar_a2f($usuarioAuthData, $email, $nome);
-                $redirect    = urlencode($redirect);
-
-                $this->session->set_flashdata('token', $tokenGerado);
-
-                redirect("admin/login/valida_token/?redirect={$redirect}");
-            }
-            else
-            {
-                $redirect = urlencode($redirect);
-                $falhas   = $this->usuario->get_falhas_login($this->input->post('login'));
-                $msg      = "E-mail ou Senha incorretos. <br>";
-
-                if (!$falhas['bloqueado'])
+                $parceiros = array();
+                foreach($parceiros_permitidos as $parceiro_id)
                 {
-                    $msg .= "Voce tem " . (3 - $falhas['falhas']) . " tentativa(s) restante(s)";
+                    $parceiro = $this->parceiro->get($parceiro_id);
+
+                    if(!in_array($parceiro, $parceiros))
+                        $parceiros[] = $parceiro;
                 }
+
+                $this->session->set_userdata("parceiros", $parceiros);
+
+                if ($redirect) 
+                    redirect($redirect);
                 else
-                {
-                    $msg = "Usuario bloqueado, entre em contato com o Suporte";
-                }
-
-                $this->session->set_flashdata('loginerro', $msg);
+                    redirect('admin/home');
+            } 
+            else 
+            {
+                $this->session->set_flashdata('loginerro', 'E-mail ou Senha incorretos.');
+                $redirect = urlencode($redirect);
 
                 if ($parceiro)
-                {
                     redirect("parceiro/{$parceiro}?redirect={$redirect}");
-                }
                 else
-                {
                     redirect("admin/login?redirect={$redirect}");
-                }
             }
         }
     }
@@ -259,7 +310,7 @@ class Login extends Admin_Controller
         // TODO: IMPLEMENTAR O ENVIO DO EMAIL
 
         // $this->funcoes->disparaEmail(null, "SIS - Seguranca", "Codigo de Verificacao - ".$nome_usuario, $bodyMessage, null, null, $email);
-        
+
         // $this->load->library('email');
         // $this->email->from('your@example.com', 'Your Name');
         // $this->email->to('someone@example.com');
