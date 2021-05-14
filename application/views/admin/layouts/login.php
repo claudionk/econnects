@@ -24,6 +24,7 @@
             .load-child { margin: auto; }
             @-webkit-keyframes spin { 0% { -webkit-transform: rotate(0deg); } 100% { -webkit-transform: rotate(360deg); } }
             @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            #form-reset-mensagem { color: green; text-align: center; font-size: 16px !important; }
         </style>
         <!-- END STYLESHEETS -->
 
@@ -215,12 +216,17 @@
                 <div class="row">
                     <div class="col-xs-12 text-left">
                         <p id="form-login-esqueceu_a_senha"><a href="<?php echo $esqueceu_form_url;?>">Esqueceu a senha?</a></p>
-                    </div>                    
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12 text-left">
+                        <p id="form-reset-mensagem"><?php echo $this->session->flashdata('pass_reset');?></p>
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-xs-12 text-left">
                         <p id="form-login-mensagem"><?php echo $this->session->flashdata('loginerro');?></p>
-                    </div>                    
+                    </div>
                 </div>
 
                 <div class="g-recaptcha" data-sitekey="<?php echo $captchaSiteKey;?>" data-callback="enableBtn"></div>
