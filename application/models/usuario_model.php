@@ -487,21 +487,21 @@ Class Usuario_Model extends MY_Model {
     $this->_database->where('usuario_tentativas_login.usuario', $login);
 
 		if (!empty($user['data_unblock']))
-		{
 			$this->_database->where('usuario_tentativas_login.data_tentativa >', $user['data_unblock']);
-		}
 
 		$this->_database->order_by('id_usuario_tentativas_login', 'desc');
 		$this->_database->limit(3);
 
     $query     = $this->_database->get();
-		$result    = $query->result_array();
-
+		$result    = array_reverse($query->result_array());
 		$qtdFalhas = 0;
 
 		foreach ($result as $row)
 		{
-			if ($row['status_tentativa'] == 0) $qtdFalhas++;
+			if ($row['status_tentativa'] == 0) 
+        $qtdFalhas++;
+      else
+        $qtdFalhas = 0;
 		}
 
     $block = $user['bloqueado'];

@@ -42,6 +42,7 @@ class Login extends Admin_Controller
         //Carrega models necessários
         $this->load->model('colaborador_model', 'colaboradores');
         $redirect = urldecode($this->input->get('redirect'));
+        $redirect = urlencode($redirect);
 
         $this->load->helper('cookie');
         $this->load->library('form_validation');
@@ -52,7 +53,6 @@ class Login extends Admin_Controller
         if($this->form_validation->run() == FALSE)
         {
             $this->session->set_flashdata('loginerro', 'E-mail ou Senha incorretos.');
-            $redirect = urlencode($redirect);
 
             if($parceiro)
                 redirect("parceiro/{$parceiro}?redirect={$redirect}");
@@ -75,6 +75,16 @@ class Login extends Admin_Controller
                 $parceiro_id          = $this->session->userdata('parceiro_id');
                 $usuario              = $this->usuario->get($usuario_id);
                 $colaborador          = $this->colaborador->get($usuario['colaborador_id']);
+                
+                if ($usuario['bloqueado'])
+                {
+                    $this->session->set_flashdata('loginerro', 'Usuario bloqueado.');
+
+                    if ($parceiro)
+                        redirect("parceiro/{$parceiro}?redirect={$redirect}");
+                    else
+                        redirect("admin/login?redirect={$redirect}");
+                }
 
                 if($parceiro_id) 
                 {
@@ -175,13 +185,21 @@ class Login extends Admin_Controller
             } 
             else 
             {
-                $this->session->set_flashdata('loginerro', 'E-mail ou Senha incorretos.');
-                $redirect = urlencode($redirect);
+                $falhas = $this->usuario->get_falhas_login($this->input->post('login'));
+                $msg    = "E-mail ou Senha incorretos. <br>";
+
+                if (!$falhas['bloqueado'])
+                    $msg .= "Voce tem " . (3 - $falhas['falhas']) . " tentativa(s) restante(s)";
+                else
+                    $msg = "Usuario bloqueado, entre em contato com o Suporte";
+
+                $this->session->set_flashdata('loginerro', $msg);
 
                 if ($parceiro)
                     redirect("parceiro/{$parceiro}?redirect={$redirect}");
                 else
                     redirect("admin/login?redirect={$redirect}");
+
             }
         }
     }
