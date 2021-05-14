@@ -482,6 +482,8 @@ class Login extends Admin_Controller
         
         if ($query->num_rows() == 1)
         {
+            $redirect = urlencode($redirect);
+            
             $result = $query->result_array()[0];
             extract($result);
             
@@ -489,8 +491,6 @@ class Login extends Admin_Controller
             
             if ($now > $dh_vencimento)
             {
-                $redirect = urlencode($redirect);
-    
                 $this->session->set_flashdata('token_erro', 'Codigo expirado!');
     
                 if ($parceiro)
@@ -503,6 +503,8 @@ class Login extends Admin_Controller
 			$this->db->update('usuario_auth', [
 				'dh_confirmacao' => $now
 			]);
+
+            $this->session->set_flashdata('token', $token);
 
             redirect("admin/login/reseta_senha/?redirect={$redirect}");
         }
@@ -549,21 +551,114 @@ class Login extends Admin_Controller
 
     public function proccess_senha($parceiro = null)
     {
-        $session_id = $this->session->userdata('session_id');
-        $ip         = $this->input->ip_address();
+        $redirect    = urldecode($this->input->get('redirect'));
+        $redirect    = urlencode($redirect);
 
-        print_r ('<pre>');
-        print_r ($this->input->post('password'));
-        print_r ('<br>');
-        print_r ($this->input->post('confirm_pass'));
-        print_r ('<br>');
-        print_r ($session_id);
-        print_r ('<br>');
-        print_r ($ip);
-        print_r ('<br>');
-        print_r ('</pre>');
+        $session_id  = $this->session->userdata('session_id');
+        $token       = $this->session->flashdata('token');
+        $ip          = $this->input->ip_address();
 
-        exit();
+        $newPass     = $this->input->post('password');
+        $confirmPass = $this->input->post('confirm_pass');
+        $regex       = '/^((?=.*?[0-9])(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[!@#$%¨&*()\-_+=´`^\[\]\';,.\/{}|":<>?~\\\\])).{10,}.*$/';
+
+        if (empty($newPass) || empty($confirmPass))
+        {
+            $err = true;
+            $msg = 'Existe um campo que esta vazio e deve ser preenchido!';
+        }
+        elseif ($newPass <> $confirmPass)
+        {
+            $err = true;
+            $msg = 'O campo de Senha/Confirmacao de Senha nao sao iguais!';
+        }
+        elseif (!preg_match($regex, $newPass) && !preg_match($regex, $confirmPass))
+        {
+            $err = true;
+            $msg = 'O campo de Senha/Confirmacao de Senha não atendem aos requisitos!';
+        }
+        else
+        {
+            $err = false;
+        }
+
+        if ($err)
+        {
+            $this->session->set_flashdata('pass_erro', $msg);
+            redirect("admin/login/reseta_senha/?redirect={$redirect}");
+        }
+
+		$this->db->select('usuario_auth.*');
+        $this->db->from('usuario_auth');
+        $this->db->where('usuario_auth.token',          $token);
+        $this->db->where('usuario_auth.id_sessao',      $session_id);
+        $this->db->where('usuario_auth.ip_solicitacao', $ip);
+		$this->db->limit(1);
+
+        $query  = $this->db->get();
+
+        if ($query->num_rows() == 1)
+        {
+            $rUsuario = $query->result_array()[0];
+        }
+        else
+        {
+            $this->session->set_flashdata('pass_erro', 'Token invalido!');
+            redirect("admin/login/reseta_senha/?redirect={$redirect}");
+        }
+
+		$this->db->select('usuario_senha.*');
+        $this->db->from('usuario_senha');
+        $this->db->where('usuario_senha.usuario_id', $rUsuario['usuario_id']);
+		$this->db->order_by('id_usuario_senha', 'desc');
+		$this->db->limit(5);
+
+        $querySenhas = $this->db->get();
+        $rSenhas     = $querySenhas->result_array();
+
+        $salt        = '174mJuR18mS0lhgKL2J0CETRlN252x';
+        $limiteUso   = 5;
+        $usada       = false;
+        
+        if ($querySenhas->num_rows() > 0)
+        {
+            foreach ($rSenhas as $s)
+            {
+                if ($s['senha'] == MD5($salt.$newPass))
+                {
+                    $usada = true;
+                    break;
+                }
+            }
+        }
+
+        if ($usada)
+        {
+            $this->session->set_flashdata('pass_erro', "Senha usada recentemente. Deve ser diferente das ultimas $limiteUso usadas.");
+            redirect("admin/login/reseta_senha/?redirect={$redirect}");
+        }
+
+        $now = date("Y-m-d H:i:s");
+        
+        $dataSenha = [
+            'usuario_id'     => $rUsuario['usuario_id'],
+            'senha'          => MD5($salt.$newPass),
+            'data_alt_senha' => $now,
+            'ip'             => $ip,
+            'browser'        => $_SERVER['HTTP_USER_AGENT']
+         ];
+        $this->db->insert('usuario_senha', $dataSenha);
+
+        $dataUsuario = [
+            'senha'     => MD5($salt.$newPass),
+            'alteracao' => $now,
+        ];
+        $this->db->where('usuario.usuario_id', $rUsuario['usuario_id']);
+        $this->db->update('usuario', $dataUsuario);
+
+        $this->session->set_flashdata('pass_reset', "Senha alterada com sucesso.");
+
+        redirect("admin/login/?redirect={$redirect}");
     }
 
     // function ipCheck() {
