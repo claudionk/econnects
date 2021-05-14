@@ -57,12 +57,11 @@
                 </div>
                 <div class="row">
                     <div class="col-xs-12 text-left">
-                        <p id="form-login-mensagem" style="margin:8px 0 0 0" ><?php echo $this->session->flashdata('token_erro');?></p>
+                        <p id="form-login-mensagem" style="margin:8px 0 0 0" ><?php echo $this->session->flashdata('pass_erro');?></p>
                     </div>
                 </div>
                 <div class="row" style="color:#FFF;">
                     <div id="errors" class="col-xs-12 text-left" style="margin-bottom: 8px;" >
-                        <p id="form-login-mensagem"><?php echo $this->session->flashdata('token_erro');?></p>
                         <p id="case1" class="titulo"><span class="fa fa-times"></span>A senha deve conter ao menos 1 letra mai&uacute;scula.</p>
                         <p id="case2" class="titulo"><span class="fa fa-times"></span>A senha deve conter ao menos 1 letra min&uacute;scula</p>
                         <p id="case3" class="titulo"><span class="fa fa-times"></span>A senha deve conter ao menos 1 caracter especial.</p>
