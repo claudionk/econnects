@@ -388,7 +388,7 @@ class Apolice extends CI_Controller {
         $define_date = !empty($validacao['dados']["define_date"]) ? $validacao['dados']["define_date"] : date("Y-m-d H:i:s") ;
         $tipo_usuario = !empty($validacao['dados']['tipo_usuario']) ? $validacao['dados']['tipo_usuario'] : [];
         $dados_apolice = $this->apolice->getApolicePedido($pedido_id);
-        if ($tipo_usuario == 'INT' && $dados_apolice[0]["parceiro_id"] == 30){ //Tratamento exclusivo para LASA e Softbox
+        if (($tipo_usuario == 'INT' || $tipo_usuario == 'CLI') && $dados_apolice[0]["parceiro_id"] == 30){ //Tratamento exclusivo para LASA e Softbox
             $tipo_motivo = emptyor($validacao['dados']["tipo_motivo"], 'R');
         }else{
             $tipo_motivo = emptyor($validacao['dados']["tipo_motivo"], 'C');
