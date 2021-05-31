@@ -4757,3 +4757,54 @@ if ( ! function_exists('app_integracao_apolice_status_id'))
         return $apolice_status_id;
     }
 }
+
+
+if ( ! function_exists('app_integracao_format_file_name_axa'))
+{
+    function app_integracao_format_file_name_axa($formato, $dados = array())
+    {
+        $date = date("d.m.Y");
+        switch((int)$dados["item"]["integracao_id"]){
+            case 387:
+                $fileName = "AVISO_SIS_".$date.".xlsx";
+                break;
+            case 388:
+                $fileName = "AVISO_SIS_".$date."_RetornoAXA.xlsx";
+                break;
+            case 389:
+                $fileName = "Lote Pagamento ".$date.".xlsx";
+                break;
+            case 389:
+                $fileName = "Lote Pagamento ".$date."_RetornoAXA.xlsx";
+                break;
+        }       
+        
+        return $fileName;
+    }
+}
+
+if ( ! function_exists('app_integracao_axa'))
+{
+    function app_integracao_axa($formato, $dados = array())
+    {
+        if(isset($dados["log"])){
+            switch((int)$dados["log"]["integracao_id"]){
+                case 387:
+                    $d = $dados['registro'];
+                    $integracao_log_detalhe_id = $formato;
+                    $id_exp = $d['id_exp'];
+            
+                    $CI =& get_instance();
+                    $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
+                        VALUES ($id_exp,  NOW(), 'ABE', '$integracao_log_detalhe_id', 0 )");
+
+                    $id_exp_hist_carga = $CI->db->insert_id();            
+                    return $id_exp_hist_carga;
+
+                break;
+            }
+            
+        }        
+        
+    }
+}
