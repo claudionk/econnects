@@ -89,4 +89,14 @@ class ExcelHelper
         $objWriter->save("php://output");
     }
 
+    public function loadDataFromFile($filePath){
+        $objReader = PHPExcel_IOFactory::createReader('Excel2007');
+        return $objReader->load($filePath);
+    }
+
+    public function saveFile($filePath){
+        $objWriter = PHPExcel_IOFactory::createWriter($this->CI->excel, "Excel2007");
+        $objWriter->save(str_replace(__FILE__,$filePath,__FILE__));
+    }
+
 }

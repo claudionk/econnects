@@ -983,17 +983,41 @@ Class Integracao_Model extends MY_Model
             mkdir($diretorio, 0777, true);
         }
 
-        $content=$concat="";
-        foreach ($linhas as $row) {
-            $content.=$concat.implode("\n", $row);
-            $concat = "\r\n";
-        }
-
         $arRet['qtde_reg'] = count($linhas)-$rmQtdeLine;
-        $content = iconv( mb_detect_encoding( $content ), 'Windows-1252//TRANSLIT', $content );
-        file_put_contents("{$diretorio}/{$filename}", $content);
 
-        return $arRet;
+        if($this->tipo_layout == "XLSX") {
+            try {
+
+                $this->load->library('ExcelHelper');
+                $excel = new ExcelHelper();
+                
+                foreach($linhas as $iRow => $row){
+                    
+                    $colunas = explode( $integracao['layout_separador'], utf8_encode( str_replace("'"," ", $row[0]) ) );
+                    
+                    foreach($colunas as $iCol => $col){
+                        $excel->sheet->setCellValueByColumnAndRow($iCol, $iRow + 1, $col);
+                    }
+                }
+
+                $excel->saveFile("{$diretorio}/{$filename}");
+                return $arRet;
+            } catch(Exception $ex) {
+                return $arRet;
+            }
+            
+        } else {
+            $content=$concat="";
+            foreach ($linhas as $row) {
+                $content.=$concat.implode("\n", $row);
+                $concat = "\r\n";
+            }
+
+            $content = iconv( mb_detect_encoding( $content ), 'Windows-1252//TRANSLIT', $content );
+            file_put_contents("{$diretorio}/{$filename}", $content);
+            return $arRet;
+        }        
+        
     }
 
     private function processFileIntegracao($integracao = array(), $file){        
@@ -1147,6 +1171,31 @@ Class Integracao_Model extends MY_Model
                 $detail[] = $sub_detail;
                 $num_registro++;
                 $data = NULL; //cleanup memory
+                $this->int_flush();
+            }
+        } else if($integracao['tipo_layout'] == 'XLSX') {
+
+            $this->load->library('ExcelHelper');
+            $excel = new ExcelHelper();
+            $objPHPExcel = $excel->loadDataFromFile($file);
+            $sheet = $objPHPExcel->getSheet(0); 
+
+            for($i = 2; $i <= $sheet->getHighestRow(); $i++){
+                $sub_detail = array();
+
+                foreach ($layout_detail as $idxd => $item_d) {
+                    $cell = $sheet->getCellByColumnAndRow($item_d["ordem"], $i);
+                    
+                    $sub_detail[] = array(
+                        'layout' => $item_d,
+                        'valor' => $cell->getValue(),
+                        'linha' => null
+                    );
+                   
+                }
+
+                $detail[] = $sub_detail;
+                $num_registro++;
                 $this->int_flush();
             }
         }
@@ -1399,7 +1448,7 @@ Class Integracao_Model extends MY_Model
             if (!is_null($campo))
             {
                 $rValue = trataRetorno($campo, $upCase, $trim);
-        		if($this->tipo_layout=="CSV")
+        		if($this->tipo_layout == "CSV" || $this->tipo_layout == "XLSX")
         		{
                     $pre_result = $rValue;
         		}
@@ -1413,7 +1462,7 @@ Class Integracao_Model extends MY_Model
             }
 
     	    $sep=$this->layout_separador;
-    	    if($this->tipo_layout=="CSV")
+    	    if($this->tipo_layout == "CSV" || $this->tipo_layout == "XLSX")
     	    {
         		if($ind==count($layout)-1)
         		{
