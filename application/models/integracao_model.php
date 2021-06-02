@@ -2089,6 +2089,28 @@ Class Integracao_Model extends MY_Model
         return $aOutput;
     }
 
+    public function teste($integracao_id){
+
+        echo "run_s($integracao_id)\n";
+        $this->load->model('integracao_log_model', 'integracao_log');
+        $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
+
+        $this->_database->select('integracao.*');
+        $this->_database->where("integracao.integracao_id", $integracao_id);
+        
+        $integracao = $this->get_all()[0];
+
+        $this->load->library('sftp');
+
+        $config = self::createConfigFTP($integracao); 
+        $config['debug']    = TRUE;
+        
+        $connectedFTP = $this->sftp->connect($config);
+        var_dump($connectedFTP);
+        $list = $this->sftp->list_files("/SIS_SOLUCOES/");
+        print_r($list);
+    }
+
 }
 
 ob_end_flush();

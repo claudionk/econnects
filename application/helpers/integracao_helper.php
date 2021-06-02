@@ -4787,19 +4787,66 @@ if ( ! function_exists('app_integracao_axa'))
 {
     function app_integracao_axa($formato, $dados = array())
     {
+        $CI =& get_instance();
+        $CI->load->model('integracao_model');
+
         if(isset($dados["log"])){
             switch((int)$dados["log"]["integracao_id"]){
                 case 387:
+                    
                     $d = $dados['registro'];
-                    $integracao_log_detalhe_id = $formato;
                     $id_exp = $d['id_exp'];
+                    $estimativa_de_valor = (float) $d['estimativa_de_valor'];
+                    $integracao_log_detalhe_id = $formato;
             
-                    $CI =& get_instance();
                     $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
-                        VALUES ($id_exp,  NOW(), 'ABE', '$integracao_log_detalhe_id', 0 )");
+                        VALUES ($id_exp,  NOW(), 'ABE', '$integracao_log_detalhe_id', $estimativa_de_valor )");
 
                     $id_exp_hist_carga = $CI->db->insert_id();            
                     return $id_exp_hist_carga;
+
+                break;
+                case 388:
+
+                    $d = $dados['registro'];
+                    $id_exp = $d['id_exp'];
+                    $id_sinistro = $d['id_sinistro'];
+                    $selectExpSinistroSQL = "SELECT * FROM sissolucoes1.sis_exp_sinistro WHERE id_exp = $id_exp";
+
+                    $selectExpSinistroQuery = $CI->db->query($selectExpSinistroSQL);
+                    if(empty($selectExpSinistroQuery->num_rows())) {
+                        $insertExpSinistroSQL = "INSERT INTO sissolucoes1.sis_exp_sinistro (id_exp, id_sinistro, usado, data_criacao) VALUES ($id_exp, '$id_sinistro', 'S', NOW())";
+                        $CI->db->query($insertExpSinistroSQL);
+
+                        $CI->integracao_model->update_log_sucess(null, false, $id_exp.'|ABE');
+
+                        $updateExpHistCargaSQL = "UPDATE 
+                            sissolucoes1.sis_exp_hist_carga AS sehc
+
+                        INNER JOIN
+                            sissolucoes1.sis_exp AS se
+                            ON se.id_exp = sehc.id_exp
+
+                        LEFT JOIN 
+                            sissolucoes1.sis_exp AS se_clone 
+                            ON se.id_exp_orig_clone = se_clone.id_exp 
+                            AND se.id_exp_orig_clone <> 0
+                            
+                        SET 
+                            se.id_sinistro = '$id_sinistro',
+                            se.data_id_sinistro = NOW(),
+                            sehc.id_sinistro = '$id_sinistro',
+                            sehc.data_retorno = NOW(),
+                            sehc.`status` = 'C'
+
+                        WHERE 1 = 1
+                            AND sehc.id_exp = $id_exp 
+                            AND sehc.tipo_expediente = 'ABE' 
+                            AND sehc.`status` = 'P';";        
+
+                        $CI->db->query($updateExpHistCargaSQL);
+
+                    }
 
                 break;
             }
