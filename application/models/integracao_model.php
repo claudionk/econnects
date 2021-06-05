@@ -497,6 +497,9 @@ Class Integracao_Model extends MY_Model
                 case 3:
 
                     break;
+                case 4:
+                    $this->sendFileFTPS($integracao, $file);
+                    break;
             }
 
         }catch (Exception $e) {
@@ -520,6 +523,10 @@ Class Integracao_Model extends MY_Model
 
                 case 3:
 
+                    break;
+                
+                case 4:
+                    return $this->getFileFTPS($integracao, $file);
                     break;
 
                 // Criado para correções pontuais
@@ -548,6 +555,10 @@ Class Integracao_Model extends MY_Model
 
                 case 3:
 
+                    break;
+
+                case 4:
+                    $this->deleteFileFTPS($integracao, $file);
                     break;
             }
 
@@ -634,6 +645,25 @@ Class Integracao_Model extends MY_Model
 
     }
 
+    private function getFileFTPS($integracao = array(), $file){
+
+        $this->load->library('FTPS');
+
+        $config = self::createConfigFTP($integracao);        
+
+        $result = null;
+        $connectedFTPS = $this->ftps->connect($config);
+        if ($connectedFTPS) {
+            $list = $this->ftps->list_files("{$integracao['diretorio']}");
+            $result = $this->getFileTransferProtocol($this->ftps, $list, $integracao, $file);
+            $this->ftps->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
+        }
+
+        return $result;
+    }
+
     private function getFileTransferProtocol($obj, $list, $integracao = array(), $file){
 
         $this->load->model('integracao_log_model', 'integracao_log');
@@ -714,6 +744,22 @@ Class Integracao_Model extends MY_Model
         }
     }
 
+    private function sendFileFTPS($integracao = array(), $file){
+
+        $this->load->library('FTPS');
+
+        $config = self::createConfigFTP($integracao); 
+
+        $filename = basename($file);
+        $connectedFTPS = $this->ftps->connect($config);
+        if ($connectedFTPS) {
+            $this->ftps->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
+            $this->ftps->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
+        }
+    }
+
     private function deleteFileFTP($integracao = array(), $file){
 
         $this->load->library('ftp');
@@ -746,6 +792,23 @@ Class Integracao_Model extends MY_Model
         }
 
     }
+
+    private function deleteFileFTPS($integracao = array(), $file){
+
+        $this->load->library('FTPS');
+
+        $config = self::createConfigFTP($integracao); 
+
+        $filename = basename($file);
+        $connectedFTPS = $this->ftps->connect($config);
+        if ($connectedFTPS) {
+            $this->ftps->delete_file("{$integracao['diretorio']}{$filename}");
+            $this->ftps->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
+        }
+    }
+
 
     private function processLine($multiplo, $layout, $registro, $integracao_log, $integracao_log_detalhe_id = null, $integracao = null) {
         $this->data_template_script['totalRegistros']++;
@@ -1976,28 +2039,6 @@ Class Integracao_Model extends MY_Model
         }
 
         return $config;
-    }
-
-    public function teste($integracao_id){
-
-        echo "run_s($integracao_id)\n";
-        $this->load->model('integracao_log_model', 'integracao_log');
-        $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
-
-        $this->_database->select('integracao.*');
-        $this->_database->where("integracao.integracao_id", $integracao_id);
-        
-        $integracao = $this->get_all()[0];
-
-        $this->load->library('sftp');
-
-        $config = self::createConfigFTP($integracao); 
-        $config['debug']    = TRUE;
-        
-        $connectedFTP = $this->sftp->connect($config);
-        var_dump($connectedFTP);
-        $list = $this->sftp->list_files("/SIS_SOLUCOES/");
-        print_r($list);
     }
 
 }
