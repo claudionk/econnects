@@ -28,6 +28,7 @@ class FTPS {
         $this->username = $config["username"];
         $this->password = $config["password"];
         $this->curlhandle = curl_init();
+        return true;
     }
 
     /**
@@ -46,7 +47,7 @@ class FTPS {
     }
 
     public function connect($config){
-        $this->initalize($config);
+        return $this->initalize($config);
     }
 
     public function close(){
