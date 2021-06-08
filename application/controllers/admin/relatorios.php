@@ -92,6 +92,8 @@ class Relatorios extends Admin_Controller
                 $rows = [];
                 foreach ($data['result'] as $row) {
                     $VALOR_NF = !empty($row['VALOR_NF']) ? app_format_currency($row['VALOR_NF'], true) : '';
+                    $row['RESULTADO_PROCESSAMENTO'] = $this->trataHTML($row['RESULTADO_PROCESSAMENTO']);
+                    $row['DETALHE_PROCESSAMENTO'] = $this->trataHTML($row['DETALHE_PROCESSAMENTO']);
                     $rows[] = [
                         app_date_mysql_to_mask($row['DATA_PROCESSAMENTO'], 'd/m/Y'),
                         $row['ARQUIVO'],
@@ -2225,5 +2227,19 @@ class Relatorios extends Admin_Controller
             );
             echo $this->list_to_html($data);
         }
+    }
+
+    private function trataHTML($text)
+    {
+        if (empty($text)) {
+            return '';
+        }
+
+        if ( strpos($text, '<html') !== false )
+        {
+            $text = 'Erro de Processamento';
+        }
+
+        return $text;
     }
 }
