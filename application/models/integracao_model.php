@@ -497,6 +497,9 @@ Class Integracao_Model extends MY_Model
                 case 3:
 
                     break;
+                case 4:
+                    $this->sendFileFTPS($integracao, $file);
+                    break;
             }
 
         }catch (Exception $e) {
@@ -520,6 +523,10 @@ Class Integracao_Model extends MY_Model
 
                 case 3:
 
+                    break;
+                
+                case 4:
+                    return $this->getFileFTPS($integracao, $file);
                     break;
 
                 // Criado para correções pontuais
@@ -548,6 +555,10 @@ Class Integracao_Model extends MY_Model
 
                 case 3:
 
+                    break;
+
+                case 4:
+                    $this->deleteFileFTPS($integracao, $file);
                     break;
             }
 
@@ -634,6 +645,25 @@ Class Integracao_Model extends MY_Model
 
     }
 
+    private function getFileFTPS($integracao = array(), $file){
+
+        $this->load->library('FTPS');
+
+        $config = self::createConfigFTP($integracao);        
+
+        $result = null;
+        $connectedFTPS = $this->ftps->connect($config);
+        if ($connectedFTPS) {
+            $list = $this->ftps->list_files("{$integracao['diretorio']}");
+            $result = $this->getFileTransferProtocol($this->ftps, $list, $integracao, $file);
+            $this->ftps->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
+        }
+
+        return $result;
+    }
+
     private function getFileTransferProtocol($obj, $list, $integracao = array(), $file){
 
         $this->load->model('integracao_log_model', 'integracao_log');
@@ -714,6 +744,22 @@ Class Integracao_Model extends MY_Model
         }
     }
 
+    private function sendFileFTPS($integracao = array(), $file){
+
+        $this->load->library('FTPS');
+
+        $config = self::createConfigFTP($integracao); 
+
+        $filename = basename($file);
+        $connectedFTPS = $this->ftps->connect($config);
+        if ($connectedFTPS) {
+            $this->ftps->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
+            $this->ftps->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
+        }
+    }
+
     private function deleteFileFTP($integracao = array(), $file){
 
         $this->load->library('ftp');
@@ -746,6 +792,23 @@ Class Integracao_Model extends MY_Model
         }
 
     }
+
+    private function deleteFileFTPS($integracao = array(), $file){
+
+        $this->load->library('FTPS');
+
+        $config = self::createConfigFTP($integracao); 
+
+        $filename = basename($file);
+        $connectedFTPS = $this->ftps->connect($config);
+        if ($connectedFTPS) {
+            $this->ftps->delete_file("{$integracao['diretorio']}{$filename}");
+            $this->ftps->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
+        }
+    }
+
 
     private function processLine($multiplo, $layout, $registro, $integracao_log, $integracao_log_detalhe_id = null, $integracao = null) {
         $this->data_template_script['totalRegistros']++;
@@ -983,17 +1046,41 @@ Class Integracao_Model extends MY_Model
             mkdir($diretorio, 0777, true);
         }
 
-        $content=$concat="";
-        foreach ($linhas as $row) {
-            $content.=$concat.implode("\n", $row);
-            $concat = "\r\n";
-        }
-
         $arRet['qtde_reg'] = count($linhas)-$rmQtdeLine;
-        $content = iconv( mb_detect_encoding( $content ), 'Windows-1252//TRANSLIT', $content );
-        file_put_contents("{$diretorio}/{$filename}", $content);
 
-        return $arRet;
+        if($this->tipo_layout == "XLSX") {
+            try {
+
+                $this->load->library('ExcelHelper');
+                $excel = new ExcelHelper();
+                
+                foreach($linhas as $iRow => $row){
+                    
+                    $colunas = explode( $integracao['layout_separador'], utf8_encode( str_replace("'"," ", $row[0]) ) );
+                    
+                    foreach($colunas as $iCol => $col){
+                        $excel->sheet->setCellValueByColumnAndRow($iCol, $iRow + 1, $col);
+                    }
+                }
+
+                $excel->saveFile("{$diretorio}/{$filename}");
+                return $arRet;
+            } catch(Exception $ex) {
+                return $arRet;
+            }
+            
+        } else {
+            $content=$concat="";
+            foreach ($linhas as $row) {
+                $content.=$concat.implode("\n", $row);
+                $concat = "\r\n";
+            }
+
+            $content = iconv( mb_detect_encoding( $content ), 'Windows-1252//TRANSLIT', $content );
+            file_put_contents("{$diretorio}/{$filename}", $content);
+            return $arRet;
+        }        
+        
     }
 
     private function processFileIntegracao($integracao = array(), $file){        
@@ -1147,6 +1234,31 @@ Class Integracao_Model extends MY_Model
                 $detail[] = $sub_detail;
                 $num_registro++;
                 $data = NULL; //cleanup memory
+                $this->int_flush();
+            }
+        } else if($integracao['tipo_layout'] == 'XLSX') {
+
+            $this->load->library('ExcelHelper');
+            $excel = new ExcelHelper();
+            $objPHPExcel = $excel->loadDataFromFile($file);
+            $sheet = $objPHPExcel->getSheet(0); 
+
+            for($i = 2; $i <= $sheet->getHighestRow(); $i++){
+                $sub_detail = array();
+
+                foreach ($layout_detail as $idxd => $item_d) {
+                    $cell = $sheet->getCellByColumnAndRow($item_d["ordem"], $i);
+                    
+                    $sub_detail[] = array(
+                        'layout' => $item_d,
+                        'valor' => $cell->getValue(),
+                        'linha' => null
+                    );
+                   
+                }
+
+                $detail[] = $sub_detail;
+                $num_registro++;
                 $this->int_flush();
             }
         }
@@ -1399,7 +1511,7 @@ Class Integracao_Model extends MY_Model
             if (!is_null($campo))
             {
                 $rValue = trataRetorno($campo, $upCase, $trim);
-        		if($this->tipo_layout=="CSV")
+        		if($this->tipo_layout == "CSV" || $this->tipo_layout == "XLSX")
         		{
                     $pre_result = $rValue;
         		}
@@ -1413,7 +1525,7 @@ Class Integracao_Model extends MY_Model
             }
 
     	    $sep=$this->layout_separador;
-    	    if($this->tipo_layout=="CSV")
+    	    if($this->tipo_layout == "CSV" || $this->tipo_layout == "XLSX")
     	    {
         		if($ind==count($layout)-1)
         		{
