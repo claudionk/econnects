@@ -1510,7 +1510,7 @@ Class Integracao_Model extends MY_Model
 
             if (!is_null($campo))
             {
-                $rValue = trataRetorno($campo, $upCase, $trim);
+                $rValue = trataRetorno($campo, $upCase, $trim, ($this->tipo_layout == "XLSX"));
         		if($this->tipo_layout == "CSV" || $this->tipo_layout == "XLSX")
         		{
                     $pre_result = $rValue;
