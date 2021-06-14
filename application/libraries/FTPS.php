@@ -110,7 +110,7 @@ class FTPS {
             return false;
         } else {
             $output = array();
-            $files = explode("\r\n", trim($result));
+            $files = explode("\n", trim($result));
             foreach($files as $file){
                 $output[] = $remote.$file;
             }

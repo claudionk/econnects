@@ -956,6 +956,7 @@ function app_get_userdata($item){
 }
 function app_format_currency($number, $symbol = false, $num_casas = 2){
 
+    if (empty($number)) $number = 0;
     $number = str_replace("..", ".", $number);
     $result = number_format($number, $num_casas, ',' , '.');
 
