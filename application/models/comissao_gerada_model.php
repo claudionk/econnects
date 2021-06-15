@@ -103,15 +103,32 @@ Class Comissao_Gerada_Model extends MY_Model {
                 ifnull(ifnull(cotacao_equipamento.comissao_corretor, cotacao_generico.comissao_corretor), cotacao_seguro_viagem.comissao_corretor) as comissao_corretor,
                 ifnull(ifnull(cotacao_equipamento.comissao_premio, cotacao_generico.comissao_premio), cotacao_seguro_viagem.comissao_premio) as comissao_premio,
                 parceiro_relacionamento_produto.parceiro_relacionamento_produto_id,
-                parceiro_relacionamento_produto.comissao_tipo
+                #parceiro_relacionamento_produto.comissao_tipo,
+                parceiro_relacionamento_produto_vigencia.comissao_tipo,
+                (CASE WHEN cotacao_generico.data_adesao IS NOT NULL THEN cotacao_generico.data_adesao
+                    WHEN cotacao_equipamento.data_adesao IS NOT NULL THEN cotacao_equipamento.data_adesao
+                    WHEN cotacao_seguro_viagem.data_adesao IS NOT NULL THEN cotacao_seguro_viagem.data_adesao
+                    ELSE NULL
+                END) AS data_adesao,        
+                parceiro_relacionamento_produto_vigencia.parceiro_relacionamento_produto_vigencia_id,
+                parceiro_relacionamento_produto_vigencia.comissao_data_ini,
+                parceiro_relacionamento_produto_vigencia.comissao_data_fim                
             FROM pedido
             INNER JOIN cotacao ON pedido.cotacao_id = cotacao.cotacao_id
-            LEFT JOIN cotacao_equipamento ON cotacao_equipamento.cotacao_id = cotacao.cotacao_id AND cotacao_equipamento.deletado = 0
-            LEFT JOIN cotacao_seguro_viagem ON cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id AND cotacao_seguro_viagem.deletado = 0
-            LEFT JOIN cotacao_generico ON cotacao_generico.cotacao_id = cotacao.cotacao_id AND cotacao_generico.deletado = 0
+             LEFT JOIN cotacao_equipamento ON cotacao_equipamento.cotacao_id = cotacao.cotacao_id AND cotacao_equipamento.deletado = 0
+             LEFT JOIN cotacao_seguro_viagem ON cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id AND cotacao_seguro_viagem.deletado = 0
+             LEFT JOIN cotacao_generico ON cotacao_generico.cotacao_id = cotacao.cotacao_id AND cotacao_generico.deletado = 0
             INNER JOIN parceiro_relacionamento_produto ON cotacao.parceiro_id = parceiro_relacionamento_produto.parceiro_id AND parceiro_relacionamento_produto.produto_parceiro_id = ifnull(ifnull(cotacao_equipamento.produto_parceiro_id, cotacao_generico.produto_parceiro_id), cotacao_seguro_viagem.produto_parceiro_id)
             INNER JOIN parceiro ON parceiro_relacionamento_produto.parceiro_id = parceiro.parceiro_id
-            LEFT JOIN comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.deletado = 0 
+             LEFT JOIN comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.deletado = 0 
+             INNER JOIN parceiro_relacionamento_produto_vigencia 
+                ON parceiro_relacionamento_produto.parceiro_relacionamento_produto_id = parceiro_relacionamento_produto_vigencia.parceiro_relacionamento_produto_id 
+               AND parceiro_relacionamento_produto_vigencia.deletado = 0
+               AND ((CASE WHEN cotacao_generico.data_adesao IS NOT NULL THEN cotacao_generico.data_adesao
+                          WHEN cotacao_equipamento.data_adesao IS NOT NULL THEN cotacao_equipamento.data_adesao
+                          WHEN cotacao_seguro_viagem.data_adesao IS NOT NULL THEN cotacao_seguro_viagem.data_adesao
+                          ELSE NULL
+                      END) BETWEEN DATE(parceiro_relacionamento_produto_vigencia.comissao_data_ini) AND DATE(parceiro_relacionamento_produto_vigencia.comissao_data_fim))
             WHERE pedido.pedido_status_id IN (3,8,5) 
                 $sql_pedido_id
                 AND cotacao.deletado = 0
