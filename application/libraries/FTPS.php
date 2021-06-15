@@ -110,7 +110,7 @@ class FTPS {
             return false;
         } else {
             $output = array();
-            $files = explode("\r\n", trim($result));
+            $files = explode("\n", trim($result));
             foreach($files as $file){
                 $output[] = $remote.$file;
             }
@@ -122,14 +122,12 @@ class FTPS {
 
     function delete_file($remote) {
 
-        print_r($remote);
         $this->curlhandle = $this->common("");
         curl_setopt($this->curlhandle, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($this->curlhandle, CURLOPT_QUOTE, array('DELE ' .$remote));
         curl_exec($this->curlhandle);        
 
         if (curl_error($this->curlhandle)) {
-            print_r(curl_error($this->curlhandle));
             return false;
         } else {
             return true;            
