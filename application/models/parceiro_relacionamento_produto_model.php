@@ -90,6 +90,18 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
             'groups' => 'default'
         ),
         array(
+            'field' => 'comissao_data_ini',
+            'label' => 'Data de início Comissão',
+            'rules' => 'required',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'comissao_data_fim',
+            'label' => 'Data final Comissão',
+            'rules' => 'required',
+            'groups' => 'default'
+        ),
+        array(
             'field' => 'desconto_valor',
             'label' => 'Desconto Valor',
             'rules' => '',
