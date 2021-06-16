@@ -1088,8 +1088,11 @@ class Pedido_Model extends MY_Model
                     $vig_soma = $vig['data_inicio_vigencia'];
                 }
 
-                //FAZ CALCULO DO VALOR PARCIAL
-                $dias_utilizados = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D"), 0);
+	            //FAZ CALCULO DO VALOR PARCIAL
+                $admtmi = app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]);
+                $admtmc = app_dateonly_mysql_to_mask($data_cancelamento);
+                $adgdd = app_date_get_diff_dias($admtmi, $admtmc, "D");
+	            $dias_utilizados = issetor($adgdd, 0);
 
                 // caso não tenha iniciado a vigência, deve realizar o calculo com 100% nao usada da vigência
                 if ($dias_utilizados < 0) {
@@ -1099,10 +1102,18 @@ class Pedido_Model extends MY_Model
                     $dia_inicio = $data_cancelamento;
                 }
 
-                $dias_restantes = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($dia_inicio), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]), "D"), 0);
-                $dias_aderido = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_adesao"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D"), 0);
-                $dias_total = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]),  "D"), 0);
-                $devolucao_integral = (!empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_aderido <= $produto_parceiro_cancelamento['seg_depois_dias_carencia']);
+                $vDtInicio = app_dateonly_mysql_to_mask($dia_inicio);
+                $vDtFimVig = app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]);
+                $vDtIniVig = app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]);
+                $vDtAdesao = app_dateonly_mysql_to_mask($apolice["data_adesao"]);
+                $vDtCancel = app_dateonly_mysql_to_mask($data_cancelamento);
+                $dias_restantes = app_date_get_diff_dias($vDtInicio, $vDtFimVig, "D");
+	            $dias_aderido = app_date_get_diff_dias($vDtAdesao, $vDtCancel,  "D");
+	            $dias_total = app_date_get_diff_dias($vDtIniVig, $vDtFimVig,  "D");
+	            $dias_restantes = issetor($dias_restantes, 0);
+                $dias_aderido = issetor($dias_aderido, 0);
+                $dias_total = issetor($dias_total, 0);
+	            $devolucao_integral = ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_aderido <= $produto_parceiro_cancelamento['seg_depois_dias_carencia'] );
 
                 // cobertura vigente retorna dados
                 if ($dias_restantes >= 0) {
@@ -1317,10 +1328,10 @@ class Pedido_Model extends MY_Model
     }
 
     /**
-     * Retorna todos
-     * @return mixed
-     */
-    public function get_total()
+    * Retorna todos
+    * @return mixed
+    */
+    public function get_total($field = NULL)
     {
         //Efetua join com cotação
         $this->_database->join("cotacao as cotacao_filtro", "cotacao_filtro.cotacao_id = {$this->_table}.cotacao_id");

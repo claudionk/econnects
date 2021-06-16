@@ -103,32 +103,19 @@ Class Comissao_Gerada_Model extends MY_Model {
                 ifnull(ifnull(cotacao_equipamento.comissao_corretor, cotacao_generico.comissao_corretor), cotacao_seguro_viagem.comissao_corretor) as comissao_corretor,
                 ifnull(ifnull(cotacao_equipamento.comissao_premio, cotacao_generico.comissao_premio), cotacao_seguro_viagem.comissao_premio) as comissao_premio,
                 parceiro_relacionamento_produto.parceiro_relacionamento_produto_id,
-                #parceiro_relacionamento_produto.comissao_tipo,
-                parceiro_relacionamento_produto_vigencia.comissao_tipo,
                 (CASE WHEN cotacao_generico.data_adesao IS NOT NULL THEN cotacao_generico.data_adesao
                     WHEN cotacao_equipamento.data_adesao IS NOT NULL THEN cotacao_equipamento.data_adesao
                     WHEN cotacao_seguro_viagem.data_adesao IS NOT NULL THEN cotacao_seguro_viagem.data_adesao
                     ELSE NULL
-                END) AS data_adesao,        
-                parceiro_relacionamento_produto_vigencia.parceiro_relacionamento_produto_vigencia_id,
-                parceiro_relacionamento_produto_vigencia.comissao_data_ini,
-                parceiro_relacionamento_produto_vigencia.comissao_data_fim                
+                END) AS data_adesao
             FROM pedido
             INNER JOIN cotacao ON pedido.cotacao_id = cotacao.cotacao_id
-             LEFT JOIN cotacao_equipamento ON cotacao_equipamento.cotacao_id = cotacao.cotacao_id AND cotacao_equipamento.deletado = 0
-             LEFT JOIN cotacao_seguro_viagem ON cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id AND cotacao_seguro_viagem.deletado = 0
-             LEFT JOIN cotacao_generico ON cotacao_generico.cotacao_id = cotacao.cotacao_id AND cotacao_generico.deletado = 0
+            LEFT JOIN cotacao_equipamento ON cotacao_equipamento.cotacao_id = cotacao.cotacao_id AND cotacao_equipamento.deletado = 0
+            LEFT JOIN cotacao_seguro_viagem ON cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id AND cotacao_seguro_viagem.deletado = 0
+            LEFT JOIN cotacao_generico ON cotacao_generico.cotacao_id = cotacao.cotacao_id AND cotacao_generico.deletado = 0
             INNER JOIN parceiro_relacionamento_produto ON cotacao.parceiro_id = parceiro_relacionamento_produto.parceiro_id AND parceiro_relacionamento_produto.produto_parceiro_id = ifnull(ifnull(cotacao_equipamento.produto_parceiro_id, cotacao_generico.produto_parceiro_id), cotacao_seguro_viagem.produto_parceiro_id)
             INNER JOIN parceiro ON parceiro_relacionamento_produto.parceiro_id = parceiro.parceiro_id
-             LEFT JOIN comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.deletado = 0 
-             INNER JOIN parceiro_relacionamento_produto_vigencia 
-                ON parceiro_relacionamento_produto.parceiro_relacionamento_produto_id = parceiro_relacionamento_produto_vigencia.parceiro_relacionamento_produto_id 
-               AND parceiro_relacionamento_produto_vigencia.deletado = 0
-               AND ((CASE WHEN cotacao_generico.data_adesao IS NOT NULL THEN cotacao_generico.data_adesao
-                          WHEN cotacao_equipamento.data_adesao IS NOT NULL THEN cotacao_equipamento.data_adesao
-                          WHEN cotacao_seguro_viagem.data_adesao IS NOT NULL THEN cotacao_seguro_viagem.data_adesao
-                          ELSE NULL
-                      END) BETWEEN DATE(parceiro_relacionamento_produto_vigencia.comissao_data_ini) AND DATE(parceiro_relacionamento_produto_vigencia.comissao_data_fim))
+            LEFT JOIN comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.deletado = 0 
             WHERE pedido.pedido_status_id IN (3,8,5) 
                 $sql_pedido_id
                 AND cotacao.deletado = 0
@@ -144,16 +131,23 @@ Class Comissao_Gerada_Model extends MY_Model {
     }
 
     private function geraComissaoRelacionamento($item, $pai_id) {
-        $parceiro_relacionamento = $this->parceiro_relacionamento_produto
-            ->with_parceiro()
-            ->with_parceiro_tipo()
-            ->filter_by_produto_parceiro($item['produto_parceiro_id'])
-            ->get($pai_id);
+        $parceiro_relacionamento = $this->_database->query("
+            SELECT parceiro.nome AS parceiro_nome, parceiro.cnpj AS parceiro_cnpj, parceiro.codigo_susep AS parceiro_codigo_susep, parceiro.codigo_corretor AS parceiro_codigo_corretor, parceiro_tipo.nome as parceiro_tipo, parceiro_tipo.codigo_interno, parceiro_tipo.parceiro_tipo_id as parceiro_tipo_id_parceiro, parceiro_relacionamento_produto.pai_id, parceiro_relacionamento_produto.parceiro_id, vig.comissao_tipo, vig.comissao
+            FROM parceiro_relacionamento_produto
+            INNER JOIN parceiro ON parceiro_relacionamento_produto.parceiro_id = parceiro.parceiro_id
+            LEFT JOIN parceiro_tipo ON IFNULL(parceiro_relacionamento_produto.parceiro_tipo_id,parceiro.parceiro_tipo_id) = parceiro_tipo.parceiro_tipo_id
+            INNER JOIN parceiro_relacionamento_produto_vigencia vig ON 
+                vig.parceiro_relacionamento_produto_id = parceiro_relacionamento_produto.parceiro_relacionamento_produto_id 
+                AND vig.deletado = 0 
+                AND '{$item['data_adesao']}' BETWEEN DATE(vig.comissao_data_ini) AND DATE(vig.comissao_data_fim)
+            WHERE produto_parceiro_id = {$item['produto_parceiro_id']}
+            AND parceiro_relacionamento_produto.deletado =  0
+            AND parceiro_relacionamento_produto.parceiro_relacionamento_produto_id = $pai_id")->result_array();
 
         if (empty($parceiro_relacionamento))
             return;
 
-        $this->geraComissao($item, $parceiro_relacionamento);
+        $this->geraComissao($item, $parceiro_relacionamento[0]);
     }
 
     private function geraComissao($item, $parceiro) {
@@ -165,9 +159,9 @@ Class Comissao_Gerada_Model extends MY_Model {
         $premio_liquido_total = $item["premio_liquido"];
 
         // valida se possui uma Comissão específica da venda
-        if ( !empty($item['comissao_tipo']) && !empty($item['comissao_premio']) && $item['comissao_premio'] > 0 && $parceiro['codigo_interno'] == 'representante')
+        if ( !empty($parceiro['comissao_tipo']) && !empty($item['comissao_premio']) && $item['comissao_premio'] > 0 && $parceiro['codigo_interno'] == 'representante')
         {
-            $comissao_premio = $item['comissao_premio'] - ($item['comissao_tipo'] == 1 ? $item['comissao_corretor'] : 0);
+            $comissao_premio = $item['comissao_premio'] - ($parceiro['comissao_tipo'] == 1 ? $item['comissao_corretor'] : 0);
         } else {
             $comissao_premio = $parceiro['comissao'];
         }
