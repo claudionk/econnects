@@ -149,6 +149,12 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
         return $this->get($id);
     }
 
+    public function with_vigencia($data_adesao){
+        $this->_database->select("vig.comissao");
+        $this->_database->join("parceiro_relacionamento_produto_vigencia vig", "vig.parceiro_relacionamento_produto_id = {$this->_table}.parceiro_relacionamento_produto_id AND vig.deletado = 0 AND '$data_adesao' BETWEEN DATE(vig.comissao_data_ini) AND DATE(vig.comissao_data_fim)", "inner", FALSE);
+        return $this;
+    }
+
     public function with_produto_parceiro(){
         return $this->with_simple_relation_foreign('produto_parceiro', 'produto_parceiro_', 'produto_parceiro_id', 'produto_parceiro_id', array('nome'), 'inner');
     }

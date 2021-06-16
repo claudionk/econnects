@@ -45,17 +45,9 @@ class CI_Encrypt {
 	{
 		$this->CI =& get_instance();
 		$this->_mcrypt_exists = ( ! function_exists('mcrypt_encrypt')) ? FALSE : TRUE;
-
-		if ($this->_mcrypt_exists === FALSE)
-		{
-			show_error('The Encrypt library requires the Mcrypt extension.');
-		}
-
 		log_message('debug', "Encrypt Class Initialized");
 	}
-
 	// --------------------------------------------------------------------
-
 	/**
 	 * Fetch the encryption key
 	 *
@@ -100,19 +92,17 @@ class CI_Encrypt {
 	{
 		$this->encryption_key = $key;
 	}
-
 	// --------------------------------------------------------------------
-
 	/**
 	 * Encode
 	 *
 	 * Encodes the message string using bitwise XOR encoding.
 	 * The key is combined with a random hash, and then it
 	 * too gets converted using XOR. The whole thing is then run
-	 * through mcrypt using the randomized key. The end result
-	 * is a double-encrypted message string that is randomized
-	 * with each call to this function, even if the supplied
-	 * message and key are the same.
+	 * through mcrypt (if supported) using the randomized key.
+	 * The end result is a double-encrypted message string
+	 * that is randomized with each call to this function,
+	 * even if the supplied message and key are the same.
 	 *
 	 * @access	public
 	 * @param	string	the string to encode
@@ -122,13 +112,17 @@ class CI_Encrypt {
 	function encode($string, $key = '')
 	{
 		$key = $this->get_key($key);
-		$enc = $this->mcrypt_encode($string, $key);
-
+		if ($this->_mcrypt_exists === TRUE)
+		{
+			$enc = $this->mcrypt_encode($string, $key);
+		}
+		else
+		{
+			$enc = $this->_xor_encode($string, $key);
+		}
 		return base64_encode($enc);
 	}
-
 	// --------------------------------------------------------------------
-
 	/**
 	 * Decode
 	 *
@@ -142,24 +136,25 @@ class CI_Encrypt {
 	function decode($string, $key = '')
 	{
 		$key = $this->get_key($key);
-
 		if (preg_match('/[^a-zA-Z0-9\/\+=]/', $string))
 		{
 			return FALSE;
 		}
-
 		$dec = base64_decode($string);
-
-		if (($dec = $this->mcrypt_decode($dec, $key)) === FALSE)
+		if ($this->_mcrypt_exists === TRUE)
 		{
-			return FALSE;
+			if (($dec = $this->mcrypt_decode($dec, $key)) === FALSE)
+			{
+				return FALSE;
+			}
 		}
-
+		else
+		{
+			$dec = $this->_xor_decode($dec, $key);
+		}
 		return $dec;
 	}
-
 	// --------------------------------------------------------------------
-
 	/**
 	 * Encode from Legacy
 	 *
@@ -178,37 +173,60 @@ class CI_Encrypt {
 	 */
 	function encode_from_legacy($string, $legacy_mode = MCRYPT_MODE_ECB, $key = '')
 	{
+		if ($this->_mcrypt_exists === FALSE)
+		{
+			log_message('error', 'Encoding from legacy is available only when Mcrypt is in use.');
+			return FALSE;
+		}
 		// decode it first
 		// set mode temporarily to what it was when string was encoded with the legacy
 		// algorithm - typically MCRYPT_MODE_ECB
 		$current_mode = $this->_get_mode();
 		$this->set_mode($legacy_mode);
-
 		$key = $this->get_key($key);
-
 		if (preg_match('/[^a-zA-Z0-9\/\+=]/', $string))
 		{
 			return FALSE;
 		}
-
 		$dec = base64_decode($string);
-
 		if (($dec = $this->mcrypt_decode($dec, $key)) === FALSE)
 		{
 			return FALSE;
 		}
-
 		$dec = $this->_xor_decode($dec, $key);
-
 		// set the mcrypt mode back to what it should be, typically MCRYPT_MODE_CBC
 		$this->set_mode($current_mode);
-
 		// and re-encode
 		return base64_encode($this->mcrypt_encode($dec, $key));
 	}
-
 	// --------------------------------------------------------------------
-
+	/**
+	 * XOR Encode
+	 *
+	 * Takes a plain-text string and key as input and generates an
+	 * encoded bit-string using XOR
+	 *
+	 * @access	private
+	 * @param	string
+	 * @param	string
+	 * @return	string
+	 */
+	function _xor_encode($string, $key)
+	{
+		$rand = '';
+		while (strlen($rand) < 32)
+		{
+			$rand .= mt_rand(0, mt_getrandmax());
+		}
+		$rand = $this->hash($rand);
+		$enc = '';
+		for ($i = 0; $i < strlen($string); $i++)
+		{
+			$enc .= substr($rand, ($i % strlen($rand)), 1).(substr($rand, ($i % strlen($rand)), 1) ^ substr($string, $i, 1));
+		}
+		return $this->_xor_merge($enc, $key);
+	}
+	// --------------------------------------------------------------------
 	/**
 	 * XOR Decode
 	 *

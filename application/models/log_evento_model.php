@@ -214,7 +214,7 @@ Class Log_Evento_Model extends MY_Model
         $this->_database->join('colaborador', 'usuario.colaborador_id = colaborador.colaborador_id', 'inner');
         return $this;
     }
-    public function get_all($limit = 0, $offset = 0)
+    public function get_all($limit = 0, $offset = 0, $viewAll = true)
     {
         $this->_database->select($this->_table.'.*, colaborador.nome');
         $this->_database->from($this->_table);
