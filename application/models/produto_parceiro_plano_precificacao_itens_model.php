@@ -93,9 +93,15 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
             'final' => app_unformat_currency($this->input->post('final')),
             'valor' => app_unformat_currency($this->input->post('valor')),
             'equipamento' => '',
+            'marca' => '',
+            'tipo_restricao_marca' => (!empty($this->input->post('tipo_restricao_marca'))? $this->input->post('tipo_restricao_marca'): null),
             'equipamento_de_para' => $this->input->post('equipamento_de_para'),
             'cobranca' => $this->input->post('cobranca'),
         );
+
+        if( !empty($this->input->post('marca')) ) {
+            $data['marca'] = "'" . implode ( "','", $this->input->post('marca') ) . "'";
+        }        
 
         if( !empty($this->input->post('equipamento')) ) {
             $data['equipamento'] = "'" . implode ( "','", $this->input->post('equipamento') ) . "'";
@@ -140,6 +146,12 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
     function filter_by_equipamento($equipamento){
         $this->_database->like("{$this->_table}.equipamento", "'{$equipamento}'");
+        return $this;
+    }
+
+    function filter_by_marca($marca){
+        $this->_database->where("IF({$this->_table}.tipo_restricao_marca = 'LIB', {$this->_table}.marca LIKE '%$marca%', 1)");
+        $this->_database->where("IF({$this->_table}.tipo_restricao_marca = 'RES', {$this->_table}.marca NOT LIKE '%$marca%', 1)");
         return $this;
     }
 
@@ -293,6 +305,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             $valor = $this
                                 ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
                                 ->filter_by_tipo_equipamento('TODOS')
+                                ->filter_by_marca($equipamento_marca_id)
                                 ->get_all();
 
                             $dataTabelaFixa = new stdClass();
@@ -691,6 +704,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         $valor = $this
                             ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
                             ->filter_by_tipo_equipamento("TODOS")
+                            ->filter_by_marca($equipamento_marca_id)
                             ->get_all();
 
                         $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
@@ -701,6 +715,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             ->filter_by_faixa( $valor_nota )
                             ->filter_by_tipo_equipamento("CATEGORIA")
                             ->filter_by_equipamento($equipamento_categoria_id)
+                            ->filter_by_marca($equipamento_marca_id)
                             ->get_all();
 
                         $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
@@ -739,7 +754,8 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                                 ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
                                 ->filter_by_faixa( $valor_nota )
                                 ->filter_by_vigencia_equipamento($data_adesao)
-                                ->filter_by_tipo_equipamento("EQUIPAMENTO");
+                                ->filter_by_tipo_equipamento("EQUIPAMENTO")
+                                ->filter_by_marca($equipamento_marca_id);
 
                             // Caso tenha um DE x PARA
                             if ( !empty($equipamento_de_para) ) {

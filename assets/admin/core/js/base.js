@@ -206,9 +206,13 @@ $(function(){
 
     //verifica se é uma edição ou POST
     if($(".js-equipamento_marca_id-ajax").data('selected') != ''){
-        populaSelectMarca($(".js-equipamento_marca_id-ajax").data('selected'));
+        var $jsEquipamentoMarcaIdAjax = $(".js-equipamento_marca_id-ajax");
+        var multiple = $jsEquipamentoMarcaIdAjax.attr("multiple");
+        if(multiple){
+            populaSelectMarca($(".js-equipamento_marca_id-ajax").data('selected'), multiple);
+        }
+        
     }
-
     //busca produtos conforme o codigo da tabela do cliente selecionado
     $(".js-equipamento_sub_categoria_id-ajax").select2({
         ajax: {
@@ -220,7 +224,7 @@ $(function(){
                     q: params.term, // search term
                     page: params.page,
                     categoria_pai_id: ($(".js-categorias-ajax").val() != '') ? $(".js-categorias-ajax").val() : 0,
-                    marca_id: ($(".js-equipamento_marca_id-ajax").val() != '') ? $(".js-equipamento_marca_id-ajax").val() : 0,
+                    marca_id: ($(".js-equipamento_marca_id-ajax").val() != '' && $(".js-equipamento_marca_id-ajax").attr("multiple") != "multiple") ? $(".js-equipamento_marca_id-ajax").val() : 0,
                     lista_id: lista_id
                 };
             },
@@ -559,24 +563,54 @@ function populaSelectSubCategoria(id){
         }
     });
 }
-function populaSelectMarca(id){
+function populaSelectMarca(id, multiple){
     if (!id) return false;
     if ($(".js-equipamento_marca_id-ajax").val() == id) return false;
 
-    $.ajax({
-        url: base_url + "admin/equipamento/service_marcas/" + id,
-        type: "GET",
+    var ajaxData = {
         async: false,
         dataType: "json",
         success: function(data){
-            $(".js-equipamento_marca_id-ajax").select2("trigger", "select", {
-                data: data.items
+            $(".js-equipamento_marca_id-ajax").each(function(index){
+                if($(this).attr("multiple")){
+                    for (var i in data.items) {
+                        $(this).select2("trigger", "select", {
+                            data: data.items[i]
+                        });
+                    }
+                } else {
+                    $(this).select2("trigger", "select", {
+                        data: data.items
+                    });
+                }
             });
+            
         },
         error: function(error){
             console.log("Error:", error);
         }
-    });
+    };
+
+    if(multiple){
+
+        ajaxData.url = base_url + "admin/equipamento/service_marcas/";
+        ajaxData.type = "POST";
+        
+        ajaxData.data = {};
+        if (String(id).indexOf(",") >= 0 || String(id).indexOf("'") >= 0) {
+            var chave = 0;
+            var aMarcaId = id.replace(/'/g, '').split(",");
+            for(chave in aMarcaId){
+                ajaxData.data[chave] = aMarcaId[chave];
+            }
+        }
+
+    } else {
+        ajaxData.url = base_url + "admin/equipamento/service_marcas/" + id;
+        ajaxData.type = "GET";
+    }
+
+    $.ajax(ajaxData);
 }
 function populaSelectModelo(id){
     if (!id) return false;

@@ -284,6 +284,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             'garantia_fabricante' => $cotacao['garantia_fabricante'],
             'cotacao' => $cotacao,
         ];
+
         $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($data_preco);
 
         $valores_cobertura_adicional_total = $valores_cobertura_adicional = array();
