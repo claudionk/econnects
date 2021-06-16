@@ -193,6 +193,11 @@ class Equipamento extends Admin_Controller
         }
 
         $total = $total->with_foreign();
+
+        if (isset($_POST['0'])) {
+            $total = $total->whith_multiples_ids($_POST);
+        }
+
         if($lista_id) $total->_database->join("(SELECT @lista_id:=$lista_id) AS vli", TRUE);
         $total = $total->get_total();
 
@@ -211,6 +216,11 @@ class Equipamento extends Admin_Controller
         }
 
         $data = $data->with_foreign();
+
+        if (isset($_POST['0'])) {
+            $data = $data->whith_multiples_ids($_POST);
+        }
+
         if($lista_id) $data->_database->join("(SELECT @lista_id:=$lista_id) AS vli", TRUE);
         $data = $data->get_all();
 

@@ -140,7 +140,45 @@ if($_POST)
                                                   <div class="form-group">
                                                     <label class="col-md-2 control-label" for="<?php echo $field_name;?>"><?= $descTipo ?></label>
 
-                                                    <div class="col-md-6"><select name="<?php echo $field_name;?>[]" data-selected="<?php echo isset($row[$field_name]) ?  $row[$field_name] : ''; ?>" id="jss-<?= $descSelect ?>-ajax" class="form-control js-<?= $descSelect ?>-ajax" style="width: 100%;" multiple="multiple">
+                                                    <div class="col-md-6">
+                                                        <select name="<?php echo $field_name;?>[]" data-selected="<?php echo isset($row[$field_name]) ?  $row[$field_name] : ''; ?>" id="jss-<?= $descSelect ?>-ajax" class="form-control js-<?= $descSelect ?>-ajax" style="width: 100%;" multiple="multiple">
+                                                      </select>
+
+                                                    </div>
+                                                    <?php echo app_get_form_error($field_name); ?>
+                                                  </div>
+
+                                                  <?php $field_name = 'tipo_restricao_marca'; ?>
+                                                  <div class="form-group">
+                                                    <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Restrição de Marca</label>
+
+                                                    <div class="col-md-6">
+                                                        <label class="radio-inline">
+                                                            <input type="radio" name="<?php echo $field_name; ?>" class="required styled"
+                                                                   value="LIB" <?php if (isset($row[$field_name]) && $row[$field_name] == 'LIB') echo 'checked="checked"'; ?> />
+                                                            Liberar
+                                                        </label>
+                                                        <label class="radio-inline">
+                                                            <input type="radio" name="<?php echo $field_name; ?>" class="required styled"
+                                                                   value="RES" <?php if (isset($row[$field_name]) && $row[$field_name] == 'RES') echo 'checked="checked"'; ?> />
+                                                            Restringir
+                                                        </label>
+
+                                                        <label class="radio-inline">
+                                                            <input type="radio" name="<?php echo $field_name; ?>" class="required styled"
+                                                                   value="" <?php if (empty($row[$field_name])) echo 'checked="checked"'; ?> />
+                                                            Sem Restrição
+                                                        </label>
+                                                    </div>
+                                                    <?php echo app_get_form_error($field_name); ?>
+                                                  </div>
+
+                                                  <?php $field_name = 'marca'; ?>
+                                                  <div class="form-group">
+                                                    <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Marca</label>
+
+                                                    <div class="col-md-6">
+                                                        <select name="<?php echo $field_name;?>[]" data-selected="<?php echo isset($row[$field_name]) ?  $row[$field_name] : ''; ?>" id="jss-equipamento_marca_id-ajax" class="form-control js-equipamento_marca_id-ajax" style="width: 100%;" multiple="multiple">
                                                       </select>
 
                                                     </div>
