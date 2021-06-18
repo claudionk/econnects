@@ -132,17 +132,28 @@ Class Comissao_Gerada_Model extends MY_Model {
 
     private function geraComissaoRelacionamento($item, $pai_id) {
         $parceiro_relacionamento = $this->_database->query("
-            SELECT parceiro.nome AS parceiro_nome, parceiro.cnpj AS parceiro_cnpj, parceiro.codigo_susep AS parceiro_codigo_susep, parceiro.codigo_corretor AS parceiro_codigo_corretor, parceiro_tipo.nome as parceiro_tipo, parceiro_tipo.codigo_interno, parceiro_tipo.parceiro_tipo_id as parceiro_tipo_id_parceiro, parceiro_relacionamento_produto.pai_id, parceiro_relacionamento_produto.parceiro_id, vig.comissao_tipo, vig.comissao
+            SELECT parceiro.nome AS parceiro_nome
+                , parceiro.cnpj AS parceiro_cnpj
+                , parceiro.codigo_susep AS parceiro_codigo_susep
+                , parceiro.codigo_corretor AS parceiro_codigo_corretor
+                , parceiro_tipo.nome as parceiro_tipo
+                , parceiro_tipo.codigo_interno
+                , parceiro_tipo.parceiro_tipo_id as parceiro_tipo_id_parceiro
+                , parceiro_relacionamento_produto.pai_id
+                , parceiro_relacionamento_produto.parceiro_id
+                , ifnull(vig.comissao_tipo, parceiro_relacionamento_produto.comissao_tipo) comissao_tipo
+                , ifnull(vig.comissao, parceiro_relacionamento_produto.comissao) comissao
+                , parceiro_relacionamento_produto.cod_parceiro
             FROM parceiro_relacionamento_produto
             INNER JOIN parceiro ON parceiro_relacionamento_produto.parceiro_id = parceiro.parceiro_id
             LEFT JOIN parceiro_tipo ON IFNULL(parceiro_relacionamento_produto.parceiro_tipo_id,parceiro.parceiro_tipo_id) = parceiro_tipo.parceiro_tipo_id
-            INNER JOIN parceiro_relacionamento_produto_vigencia vig ON 
+            LEFT JOIN parceiro_relacionamento_produto_vigencia vig ON 
                 vig.parceiro_relacionamento_produto_id = parceiro_relacionamento_produto.parceiro_relacionamento_produto_id 
                 AND vig.deletado = 0 
                 AND '{$item['data_adesao']}' BETWEEN DATE(vig.comissao_data_ini) AND DATE(vig.comissao_data_fim)
             WHERE produto_parceiro_id = {$item['produto_parceiro_id']}
-            AND parceiro_relacionamento_produto.deletado =  0
-            AND parceiro_relacionamento_produto.parceiro_relacionamento_produto_id = $pai_id")->result_array();
+                AND parceiro_relacionamento_produto.deletado =  0
+                AND parceiro_relacionamento_produto.parceiro_relacionamento_produto_id = $pai_id")->result_array();
 
         if (empty($parceiro_relacionamento))
             return;
