@@ -201,7 +201,10 @@ class Calculo extends CI_Controller {
       }
     }
 
-    if(!$valores_bruto) {
+    
+    $erro_valores_bruto = $this->plano->erroValidacaoValoresPlano($valores_bruto);
+
+    if($erro_valores_bruto) {
       $result = array(
         'sucess' => FALSE,
         'produto_parceiro_id' => $produto_parceiro_id,
@@ -214,7 +217,7 @@ class Calculo extends CI_Controller {
         'valores_totais_cobertura_adicional' => 0,
         'valores_liquido' => 0,
         'valores_liquido_total' => 0,
-        'mensagem' => 'PLANO NÃO DISPONÍVEL PARA ESSAS CONFIGURAÇÕES',
+        'mensagem' => $erro_valores_bruto,
         'quantidade' => $quantidade,
       );
       die( json_encode( $result ) );
