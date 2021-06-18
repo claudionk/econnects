@@ -299,8 +299,8 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                 $valores_cobertura_adicional[$cobertura[0]][] = $valor;
             }
         }
-
-        if(!$valores_bruto) {
+        $erro_valores_bruto = $this->produto_parceiro_plano_precificacao_itens->erroValidacaoValoresPlano($valores_bruto);
+        if($erro_valores_bruto) {
             return $result;
         }
 
