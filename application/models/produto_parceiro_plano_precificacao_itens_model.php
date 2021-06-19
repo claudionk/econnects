@@ -1156,25 +1156,27 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     }
 
     public function erroValidacaoValoresPlano($valores_bruto){
+
         $erro_valores_bruto = null;
-        $valores_bruto_encontrou = false;
+
         if(empty($valores_bruto)){
-          $erro_valores_bruto = 'PLANO NÃO DISPONÍVEL PARA ESSAS CONFIGURAÇÕES';
-        } else {
-          if(!empty($valores_bruto["erros"])){
-            foreach($valores_bruto as $valores_bruto_key => $valores_bruto_value){
-              if($valores_bruto_encontrou == false){
-                if(!in_array($valores_bruto_key, ["quantidade", "erros"])){
-                  if(!in_array($valores_bruto_key, $valores_bruto["erros"])){
-                    $valores_bruto_encontrou = true;
-                  } else {
-                    $erro_valores_bruto = $valores_bruto["erros"][$valores_bruto_key];
-                  }
-                }
-              }
-            }
-          }      
+          return 'PLANO NÃO DISPONÍVEL PARA ESSAS CONFIGURAÇÕES';
+        } 
+
+        if(empty($valores_bruto["erros"])){
+            return null;
         }
+
+        foreach($valores_bruto as $valores_bruto_key => $valores_bruto_value){
+            if(!in_array($valores_bruto_key, ["quantidade", "erros"])){
+                if(!isset($valores_bruto["erros"][$valores_bruto_key])){
+                    return null;
+                } else {
+                    $erro_valores_bruto = $valores_bruto["erros"][$valores_bruto_key];
+                }
+            }
+        }
+        
         return $erro_valores_bruto;
     }
 
