@@ -490,11 +490,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                                 }
                             }
                             
-                            if(!empty($valor)){
-                                if(!empty($valor[0]["validacao_marca"])){
-                                    $valores["erros"][$produto_parceiro_plano_id] = $valor[0]["validacao_marca"];
-                                }
-                            }
                         }
 
                         $dataTabelaFixa = new stdClass();
@@ -510,6 +505,12 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         $dataTabelaFixa->aIgnore = [];
                         $dataTabelaFixa->produto_parceiro_plano_id = $produto_parceiro_plano_id;
                         $dataTabelaFixa->getVigencia = $getVigencia;
+
+                        if(!empty($valor)){
+                            if(!empty($valor[0]["validacao_marca"])){
+                                $valores["erros"][$produto_parceiro_plano_id] = $valor[0]["validacao_marca"];
+                            }
+                        }
 
                         $calculo = $this->getValorTabelaFixa($dataTabelaFixa);
                         if($calculo)
@@ -819,6 +820,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                                     $try = true;
                                 }
                             }
+                        }
 
                         $dataTabelaFixa = new stdClass();
                         $dataTabelaFixa->valor = $valor;
