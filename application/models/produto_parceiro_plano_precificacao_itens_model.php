@@ -151,9 +151,9 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
     function with_validacao_marca($marca){
         $SQL = "IF(
-            {$this->_table}.tipo_restricao_marca = 'LIB' AND \"'%$marca%'\" NOT LIKE {$this->_table}.marca, 'Marca Não Liberada',
+            {$this->_table}.tipo_restricao_marca = 'LIB' AND {$this->_table}.marca NOT LIKE  \"'%$marca%'\", 'Marca Não Liberada',
             IF(
-                {$this->_table}.tipo_restricao_marca = 'RES' AND \"'%$marca%'\" LIKE {$this->_table}.marca, 'Marca Restrita',
+                {$this->_table}.tipo_restricao_marca = 'RES' AND {$this->_table}.marca LIKE \"'%$marca%'\", 'Marca Restrita',
                 NULL
             )
         ) AS validacao_marca";
