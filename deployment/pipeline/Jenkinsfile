@@ -1,0 +1,138 @@
+pipeline {
+    agent {
+        label 'slave'
+    }
+
+    parameters {
+        gitParameter(
+            name: 'BRANCH_NAME',
+//             defaultValue: 'origin/homolog',
+            defaultValue: 'origin/rts-add-k8s',
+            branchFilter: '.*',
+            quickFilterEnabled: true,
+            selectedValue: 'NONE',
+            sortMode: 'ASCENDING_SMART',
+            type: 'PT_BRANCH',
+            listSize: '8',
+            description: 'Nome da branch para realizar o deploy (branches com nome diferente de master serão consideradas ambiente de staging).'
+        )
+    }
+
+    environment {
+        registry = "sissolucoes/sis-econnects"
+        registryCredential = "dockerhub"
+        dockerImage = ""
+        DOCKER_BUILDKIT = 1
+        BUILDKIT_PROGRESS = "plain"
+        MAIN_BRANCH = 'master'
+        BRANCH_NAME = params.BRANCH_NAME.replaceAll(/origin\//, '')
+        image_prefix = "${env.BRANCH_NAME == env.MAIN_BRANCH ? 'production' : 'staging'}"
+        tag_name = "${env.image_prefix}.${BUILD_NUMBER}"
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+
+    stages {
+        stage('Clonning') {
+            steps {
+                script {
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [
+                            [name: env.BRANCH_NAME]
+                        ],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [
+                            [$class: 'LocalBranch', localBranch: env.BRANCH_NAME],
+                            [$class: 'CleanBeforeCheckout'],
+                            [
+                                $class: 'CloneOption',
+                                noTags: false,
+                                reference: '',
+                                depth: 1,
+                                shallow: true,
+                                timeout: 90
+                            ]
+                        ],
+                        submoduleCfg: [],
+                        userRemoteConfigs: [
+                            [
+                                url: 'git@github.com:sissolucoes/econnects.git',
+                                credentialsId: 'github',
+                                refspec: "+refs/heads/${env.BRANCH_NAME}:refs/remotes/origin/${env.BRANCH_NAME}"
+                            ]
+                        ]
+                    ])
+
+                    stash name: "deployment", includes: "deployment/**/*", useDefaultExcludes: true
+                }
+            }
+        }
+
+        stage('Building Docker image') {
+            steps {
+                script {
+                    docker.image('php:7.4-apache').pull()
+
+                    try {
+                        docker.withRegistry('', registryCredential) {
+                            def previous_number = (BUILD_NUMBER as Integer) - 1
+                            docker.image("${env.registry}:${env.image_prefix}.${previous_number}").pull()
+                        }
+                    } catch (Exception e) {
+                        echo 'Previous image does not exist'
+                    }
+
+                    dockerImage = docker.build(
+                        "${registry}:${tag_name}",
+                        "-f ./deployment/images/Dockerfile ."
+                    )
+                }
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                script {
+                    docker.withRegistry('', registryCredential) {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            agent {
+                label 'master'
+            }
+
+            steps {
+                script {
+                    unstash "deployment"
+
+                    def service_suffix = 'stg'
+                    def ci_env_value = 'development'
+                    def env_value = '"false"'
+
+                    if (env.BRANCH_NAME == env.MAIN_BRANCH) {
+                        service_suffix = 'prod'
+                        ci_env_value = 'production'
+                        env_value = '"true"'
+                    }
+
+                    def branch_manifest = './branch_manifest.yaml'
+
+                    sh "sed 's/TAG_NAME/${tag_name}/g; s/SERVICE_SUFFIX/${service_suffix}/g; s/CI_ENV_VALUE/${ci_env_value}/g' deployment/yaml/deployment.yaml > ${branch_manifest}"
+                    sh "sed 's/SERVICE_SUFFIX/${service_suffix}/g' deployment/yaml/service.yaml >> ${branch_manifest}"
+
+                    sh "kubectl apply -n sis-solucoes -f ${branch_manifest}"
+                    sh "kubectl rollout status -w deployment/sis-econnects-${service_suffix} -n sis-solucoes"
+                }
+            }
+        }
+    }
+}

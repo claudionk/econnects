@@ -1,0 +1,11 @@
+.git/
+.idea/
+.dockerignore
+.editorconfig
+vendor/
+rel_tmp/
+download/
+upload/
+node_modules/
+composer.phar
+application/sessions/

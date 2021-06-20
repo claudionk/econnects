@@ -1,0 +1,28 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sis-econnects-SERVICE_SUFFIX
+  namespace: sis-solucoes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sis-econnects-SERVICE_SUFFIX
+  template:
+    metadata:
+      labels:
+        app: sis-econnects-SERVICE_SUFFIX
+    spec:
+      containers:
+        - name: sis-econnects-SERVICE_SUFFIX
+          image: sissolucoes/sis-econnects:TAG_NAME
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: "128m"
+              memory: "128M"
+          ports:
+            - containerPort: 80
+      imagePullSecrets:
+        - name: regcred
