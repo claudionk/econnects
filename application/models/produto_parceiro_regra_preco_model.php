@@ -301,6 +301,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         }
         $erro_valores_bruto = $this->produto_parceiro_plano_precificacao_itens->erroValidacaoValoresPlano($valores_bruto);
         if($erro_valores_bruto) {
+            $result["mensagem"] = $erro_valores_bruto;
             return $result;
         }
 
