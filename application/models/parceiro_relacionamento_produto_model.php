@@ -90,6 +90,18 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
             'groups' => 'default'
         ),
         array(
+            'field' => 'comissao_data_ini',
+            'label' => 'Data de início Comissão',
+            'rules' => 'required',
+            'groups' => 'default'
+        ),
+        array(
+            'field' => 'comissao_data_fim',
+            'label' => 'Data final Comissão',
+            'rules' => 'required',
+            'groups' => 'default'
+        ),
+        array(
             'field' => 'desconto_valor',
             'label' => 'Desconto Valor',
             'rules' => '',
@@ -135,6 +147,12 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
     function get_by_id($id)
     {
         return $this->get($id);
+    }
+
+    public function with_vigencia($data_adesao){
+        $this->_database->select("vig.comissao");
+        $this->_database->join("parceiro_relacionamento_produto_vigencia vig", "vig.parceiro_relacionamento_produto_id = {$this->_table}.parceiro_relacionamento_produto_id AND vig.deletado = 0 AND '$data_adesao' BETWEEN DATE(vig.comissao_data_ini) AND DATE(vig.comissao_data_fim)", "inner", FALSE);
+        return $this;
     }
 
     public function with_produto_parceiro(){

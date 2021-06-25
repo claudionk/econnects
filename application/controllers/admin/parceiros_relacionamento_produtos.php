@@ -19,6 +19,7 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
 
         //Carrega modelos
         $this->load->model('parceiro_relacionamento_produto_model', 'current_model');
+        $this->load->model('parceiro_relacionamento_produto_vigencia_model', 'vigencia_model');
         $this->load->model('parceiro_model', 'parceiro');
         $this->load->model('produto_parceiro_model', 'produto_parceiro');
         $this->load->model('produto_parceiro_configuracao_model', 'produto_parceiro_configuracao');
@@ -116,7 +117,7 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
         $data['produtos'] = $this->produto_parceiro->with_produto()->with_parceiro()->get_all();
         $data['parceiros'] = $this->parceiro->get_all();
         $data['pais'] = $this->current_model->with_produto_parceiro()->with_parceiro()->get_all();
-        $data['tipos'] = $this->parceiro_tipo->get_all();
+        $data['tipos'] = $this->parceiro_tipo->get_all();        
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );
@@ -140,6 +141,7 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
         $data['primary_key'] = $this->current_model->primary_key();
         $data['new_record'] = '0';
         $data['form_action'] =  base_url("$this->controller_uri/edit/{$id}");
+        $data['vigencia'] = $this->vigencia_model->filter_by_parceiro_relacionamento_produto_id($id);
 
         //Verifica se registro existe
         if(!$data['row'])
@@ -158,6 +160,12 @@ class Parceiros_Relacionamento_Produtos extends Admin_Controller
                 //Realiza update
 
                 $this->current_model->update_form();
+                
+                if ($_POST['parceiro_relacionamento_produto_vigencia_id'] == ""){
+                    $this->vigencia_model->insert_form();
+                    #TODO: Testar o encerramento da vigência
+                    $this->vigencia_model->update_last_row($_POST['parceiro_relacionamento_produto_id'],  $_POST['comissao_data_ini']);
+                }
 
                 //Mensagem de sucesso
                 $this->session->set_flashdata('succ_msg', 'Os dados foram salvos corretamente.');

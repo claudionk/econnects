@@ -150,17 +150,70 @@ if($_POST)
                           <div class="card">
                             <div class="card-head"><header>Comissão</header></div>
                             <div class="card-body">
+
+                              <?php
+                                $select_vigencia_id =  $this->uri->segment(5);
+                              ?>
+
+                              <?php $field_name = 'parceiro_relacionamento_produto_vigencia_id';?>
+                              <div class="form-group">
+                                <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Vigência *</label>
+                                <div class="col-md-8">
+                                  <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>" onChange="refresh_comissao();">
+                                    <option name="" value="">-- Selecione --</option>
+                                    <option name="" value="0">-- Incluir Nova Vigência --</option>
+                                    <?php $select = false; foreach($vigencia as $linha) { ?>
+                                    <option name="" value="<?php echo $linha['parceiro_relacionamento_produto_vigencia_id'] ?>"
+                                        <?php if(isset($row)){
+                                                 if($select_vigencia_id != ""){
+                                                    if($row['parceiro_relacionamento_produto_id'] == $select_vigencia_id && $select == false) {
+                                                      echo " selected "; $select = true;
+                                                    };
+                                                 }else{
+                                                    if($row['parceiro_relacionamento_produto_id'] == $linha['parceiro_relacionamento_produto_id'] && $select == false) {
+                                                      echo " selected "; $select = true; $select_vigencia_id = $linha['parceiro_relacionamento_produto_vigencia_id'];
+                                                    };
+                                                 };
+                                              }; 
+                                        ?>
+                                    >
+                                      <?php echo app_date_mysql_to_mask($linha['comissao_data_ini'],'d/m/Y') . ' - '. app_date_mysql_to_mask($linha['comissao_data_fim'],'d/m/Y'); ?>
+                                    </option>
+                                    <?php }  ?>
+                                  </select>
+                                </div>
+                              </div>
+
+                              <?php
+                                $vigencia_id =  $this->uri->segment(5);
+                                if ($vigencia_id == ""){
+                                  $vigencia_id = $select_vigencia_id;
+                                }
+                                $row_vigencia = array();
+                                $row_vigencia = $this->vigencia_model->filter_by_parceiro_relacionamento_produto_vigencia_id($vigencia_id);
+                              ?>
+
+                              <?php $field_name = 'comissao_data_ini';?>
+                              <div class="form-group">
+                                <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Data início *</label>
+                                <div class="col-md-4"><input placeholder="__/__/____" class="form-control inputmask-date" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row_vigencia[0][$field_name]) ? app_date_mysql_to_mask($row_vigencia[0][$field_name]) : set_value($field_name); ?>" /></div>
+                              </div>
+                              <?php $field_name = 'comissao_data_fim';?>
+                              <div class="form-group">
+                                <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Data Final *</label>
+                                <div class="col-md-4"><input placeholder="__/__/____" class="form-control inputmask-date" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row_vigencia[0][$field_name]) ? app_date_mysql_to_mask($row_vigencia[0][$field_name]) : set_value($field_name); ?>" /></div>
+                              </div>
                               <?php $field_name = 'repasse_comissao';?>
                               <div class="form-group">
                                 <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Repasse da comissão *</label>
                                 <label class="radio-inline radio-styled radio-primary">
                                   <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                         value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
+                                         value="1" <?php if (isset($row_vigencia[0][$field_name]) && $row_vigencia[0][$field_name] == '1') echo 'checked="checked"'; ?> />
                                   Sim
                                 </label>
                                 <label class="radio-inline radio-styled radio-primary">
                                   <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled"
-                                         value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
+                                         value="0" <?php if (isset($row_vigencia[0][$field_name]) && $row_vigencia[0][$field_name] == '0') echo 'checked="checked"'; ?> />
                                   Não
                                 </label>
                               </div>
@@ -177,17 +230,17 @@ if($_POST)
                                 <label>
                                   <label class="radio-styled radio-primary" style="display: block;"> 
                                     <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled" 
-                                           value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> /> 
+                                           value="0" <?php if (isset($row_vigencia[0][$field_name]) && $row_vigencia[0][$field_name] == '0') echo 'checked="checked"'; ?> /> 
                                     Fixa 
                                   </label> 
                                   <label class="radio-styled radio-primary" style="display: block;"> 
                                     <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled" 
-                                           value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> /> 
+                                           value="1" <?php if (isset($row_vigencia[0][$field_name]) && $row_vigencia[0][$field_name] == '1') echo 'checked="checked"'; ?> /> 
                                     Variável (<b>com</b> comissão do corretor)
                                   </label>
                                   <label class="radio-styled radio-primary" style="display: block;">
                                     <input type="radio" id="radio1" name="<?php echo $field_name; ?>" class="required styled" 
-                                           value="2" <?php if (isset($row[$field_name]) && $row[$field_name] == '2') echo 'checked="checked"'; ?> /> 
+                                           value="2" <?php if (isset($row_vigencia[0][$field_name]) && $row_vigencia[0][$field_name] == '2') echo 'checked="checked"'; ?> /> 
                                     Variável (<b>sem</b> comissão do corretor)
                                   </label>
                                 </label>
@@ -196,13 +249,13 @@ if($_POST)
                               <?php $field_name = 'comissao';?>
                               <div class="form-group">
                                 <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Comissão (%) *</label>
-                                <div class="col-md-4"><input ng-model="comissao" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/></div>
+                                <div class="col-md-4"><input ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row_vigencia[0][$field_name]) ? str_replace('.',',', $row_vigencia[0][$field_name]): set_value($field_name); ?>"/></div>
                               </div>
 
                               <?php $field_name = 'comissao_indicacao';?>
                               <div class="form-group">
                                 <label class="col-md-4 control-label" for="<?php echo $field_name;?>">Comissão indicação (%) *</label>
-                                <div class="col-md-4"><input ng-model="comissao_indicacao" ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text"/></div>
+                                <div class="col-md-4"><input ui-number-mask class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row_vigencia[0][$field_name]) ? str_replace('.',',', $row_vigencia[0][$field_name]): set_value($field_name); ?>" /></div>
                               </div>
                             </div>
                           </div>
