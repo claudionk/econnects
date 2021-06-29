@@ -6,8 +6,7 @@ pipeline {
     parameters {
         gitParameter(
             name: 'BRANCH_NAME',
-//             defaultValue: 'origin/homolog',
-            defaultValue: 'origin/rts-add-k8s',
+            defaultValue: 'origin/homolog',
             branchFilter: '.*',
             quickFilterEnabled: true,
             selectedValue: 'NONE',
@@ -76,7 +75,7 @@ pipeline {
         stage('Building Docker image') {
             steps {
                 script {
-                    docker.image('php:7.4-apache').pull()
+                    docker.image('sissolucoes/sis-base:php-7.4-lts').pull()
 
                     try {
                         docker.withRegistry('', registryCredential) {

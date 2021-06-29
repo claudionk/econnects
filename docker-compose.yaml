@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  app:
+    image: sis/sis-econnects
+    restart: always
+    ports:
+      - "8000:80"
+    build:
+      context: .
+      dockerfile: ./deployment/images/Dockerfile
+    environment:
+      ENABLE_OPCACHE: 0
+    volumes:
+      - .:/var/www/webroot/ROOT/
+      - /var/www/webroot/ROOT/application/session/
+      - /var/www/webroot/ROOT/application/cache/
+
