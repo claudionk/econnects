@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sis-econnects-SERVICE_SUFFIX
+  namespace: sis-solucoes
+spec:
+  ports:
+    - name: sis-econnects-SERVICE_SUFFIX
+      protocol: TCP
+      port: 80
+  selector:
+    app: sis-econnects-SERVICE_SUFFIX
