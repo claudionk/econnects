@@ -245,8 +245,13 @@ class Equipamento extends Admin_Controller
     {
         $this->load->model("equipamentos_elegiveis_model", "equipamentos_elegiveis");
 
+        $post_lista_id = $this->input->get_post("lista_id");
+        $lista_id = null;
+
         $json     = array();
-        $lista_id = emptyor(emptyor($lista_id, $this->input->get_post("lista_id")), 1);
+
+        $empty_or = emptyor($lista_id, $post_lista_id);
+        $lista_id = emptyor($empty_or, 1);
 
         if ($lista_id == 1)
         {

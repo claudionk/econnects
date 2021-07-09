@@ -53,7 +53,7 @@ class Enquete_configuracao_model extends MY_Model
         return $data;
     }
 
-    public function insert_form()
+    public function insert_form($array = array())
     {
         $this->load->model("Enquete_gatilho_configuracao_model", "enquete_gatilho_configuracao");
 

@@ -27,7 +27,12 @@
 
                 <tr>
                     <td width="50%">Data de nascimento</td>
-                    <td width="50%"><?php echo issetor(app_date_mysql_to_mask($row['data_nascimento'], 'd/m/Y'), "Não cadastrado") ?></td>
+                    <td width="50%">
+                        <?php 
+                            $app_date_mysql_to_mask = app_date_mysql_to_mask($row['data_nascimento'], 'd/m/Y');
+                            echo issetor($app_date_mysql_to_mask, "Não cadastrado"); 
+                        ?>
+                    </td>
                 </tr>
             </table>
         </div>

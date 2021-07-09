@@ -134,6 +134,16 @@ class Produto_Parceiro_Plano_Model extends MY_Model
     //Get dados
     public function get_form_data($just_check = false)
     {
+        $limite_vigencia = $this->input->post('limite_vigencia');
+        $possui_limite_tempo = $this->input->post('possui_limite_tempo');
+        $limite_tempo = $this->input->post('limite_tempo');
+        $passivel_upgrade = $this->input->post('passivel_upgrade');
+        $ordem = $this->input->post('ordem');
+        $qtd_min_vida = $this->input->post('qtd_min_vida');
+        $idade_minima = $this->input->post('idade_minima');
+        $idade_maxima = $this->input->post('idade_maxima');
+        $capitalizacao_id = $this->input->post('capitalizacao_id');
+
         //Dados
         $data =  array(
             'nome'                  => $this->input->post('nome'),
@@ -144,16 +154,16 @@ class Produto_Parceiro_Plano_Model extends MY_Model
             'precificacao_tipo_id'  => $this->input->post('precificacao_tipo_id'),
             'moeda_id'              => $this->input->post('moeda_id'),
             'unidade_tempo'         => $this->input->post('unidade_tempo'),
-            'limite_vigencia'       => isempty($this->input->post('limite_vigencia'), NULL),
-            'possui_limite_tempo'   => isempty($this->input->post('possui_limite_tempo'), 0),
+            'limite_vigencia'       => isempty($limite_vigencia, NULL),
+            'possui_limite_tempo'   => isempty($possui_limite_tempo, 0),
             'unidade_limite_tempo'  => $this->input->post('unidade_limite_tempo'),
-            'limite_tempo'          => isempty($this->input->post('limite_tempo'), 0),
-            'passivel_upgrade'      => isempty($this->input->post('passivel_upgrade'), NULL),
-            'ordem'                 => isempty($this->input->post('ordem'), 0),
-            'qtd_min_vida'          => isempty($this->input->post('qtd_min_vida'), 0),
-            'idade_minima'          => isempty($this->input->post('idade_minima'), 0),
-            'idade_maxima'          => isempty($this->input->post('idade_maxima'), 0),
-            'capitalizacao_id'      => isempty($this->input->post('capitalizacao_id'), NULL),
+            'limite_tempo'          => isempty($limite_tempo, 0),
+            'passivel_upgrade'      => isempty($passivel_upgrade, NULL),
+            'ordem'                 => isempty($ordem, 0),
+            'qtd_min_vida'          => isempty($qtd_min_vida, 0),
+            'idade_minima'          => isempty($idade_minima, 0),
+            'idade_maxima'          => isempty($idade_maxima, 0),
+            'capitalizacao_id'      => isempty($capitalizacao_id, NULL),
         );
         return $data;
     }

@@ -133,6 +133,10 @@ Class Cobertura_Plano_Model extends MY_Model {
     //Get dados
     public function get_form_data($just_check = false) {
 
+        $cod_ramo = $this->input->post('cod_ramo');
+        $cod_produto = $this->input->post('cod_produto');
+        $cod_sucursal = $this->input->post('cod_sucursal');
+
         //Dados
         $data =  array(
             'cobertura_id'              => $this->input->post('cobertura_id'),
@@ -151,9 +155,9 @@ Class Cobertura_Plano_Model extends MY_Model {
             'franquia'                  => $this->input->post('franquia'),
             'carencia'                  => $this->input->post('carencia'),
             'cod_cobertura'             => $this->input->post('cod_cobertura'),
-            'cod_ramo'                  => isempty($this->input->post('cod_ramo'), null),
-            'cod_produto'               => isempty($this->input->post('cod_produto'), null),
-            'cod_sucursal'              => isempty($this->input->post('cod_sucursal'), null),
+            'cod_ramo'                  => isempty($cod_ramo, null),
+            'cod_produto'               => isempty($cod_produto, null),
+            'cod_sucursal'              => isempty($cod_sucursal, null),
         );
         return $data;
     }

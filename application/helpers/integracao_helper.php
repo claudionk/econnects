@@ -2070,7 +2070,8 @@ if ( ! function_exists('app_integracao_emissao'))
             $response->msg = 'Nenhum dado recebido para validação';
             return $response;
         }
-
+        $response->msg = array();
+        
         $dados = $dados['registro'];
         $cotacao_id = $dados["cotacao_id"];
         $num_apolice = $dados["num_apolice"];

@@ -124,6 +124,9 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
     //Get dados
     public function get_form_data($just_check = false)
     {
+        $parceiro_tipo_id = $this->input->post('parceiro_tipo_id');
+        $cod_parceiro = $this->input->post('cod_parceiro');
+
         //Dados
         $data =  array(
             'produto_parceiro_id'   => app_clear_number($this->input->post('produto_parceiro_id')),
@@ -138,8 +141,8 @@ Class Parceiro_Relacionamento_Produto_Model extends MY_Model
             'desconto_data_fim'     => app_dateonly_mask_to_mysql($this->input->post('desconto_data_fim')),
             'desconto_valor'        => app_unformat_currency($this->input->post('desconto_valor')),
             'desconto_habilitado'   => $this->input->post('desconto_habilitado'),
-            'parceiro_tipo_id'      => isempty($this->input->post('parceiro_tipo_id'), null),
-            'cod_parceiro'          => isempty($this->input->post('cod_parceiro'), null),
+            'parceiro_tipo_id'      => isempty($parceiro_tipo_id, null),
+            'cod_parceiro'          => isempty($cod_parceiro, null),
         );
         return $data;
     }

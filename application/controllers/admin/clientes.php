@@ -35,6 +35,11 @@ class Clientes extends Admin_Controller
         //Carrega bibliotecas
         $this->load->library('pagination');
         $get = $this->input->get();
+
+        if(empty($get)){
+            $get = array();
+        }
+
         //Inicializa paginação
         $config['base_url'] = base_url("$this->controller_uri/index");
         $config['uri_segment'] = 4;
@@ -50,7 +55,11 @@ class Clientes extends Admin_Controller
         $data['evolucao_status'] = $this->cliente_evolucao_status->get_all();
         $data['grupos_empresariais'] = $this->grupo_empresarial->get_all();
         $data['colaboradores'] = $this->colaboradores->get_all();
-        $get['cnpj_cpf'] = app_retorna_numeros($get['cnpj_cpf']);
+
+        if(!empty($get['cnpj_cpf'])){
+            $get['cnpj_cpf'] = app_retorna_numeros($get['cnpj_cpf']);
+        }
+                
         $data['rows'] = $this->current_model->limit($config['per_page'], $offset)->filterFromInput($get)->with_cliente_evolucao_status()->get_all();
         
         //Carrega dados do template
