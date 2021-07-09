@@ -29,7 +29,7 @@ Class Integracao_Model extends MY_Model
 
     private $desconsiderarIntegracao = false; //Usado para identificar algum possivel erro durante o processo para salvar o log como deletado e com erro
 
-    private $simularTransferencia = true;
+    private $simularTransferencia = false;
 
     //Dados
     public $validate = array(
