@@ -1,4 +1,5 @@
 <?php
+
 $host_servers['production'] = array(
     'sisconnects.com.br',
     'www.sisconnects.com.br',
@@ -6,7 +7,7 @@ $host_servers['production'] = array(
 $host_servers['homologacao'] = array(
     'sis.econnects.com.br',
     'alseg.econnects.com.br',
-    'econnects-h.jelastic.saveincloud.net',
+    'econnects-h.sisti.me',
     '191.243.196.174'
 );
 /*

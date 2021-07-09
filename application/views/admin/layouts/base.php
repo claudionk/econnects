@@ -116,6 +116,14 @@
     <script src="<?php echo app_assets_url('core/js/prettify.min.js', 'admin');?>"></script>
     <script src="<?php echo app_assets_url('template/js/libs/select2/select2.full.min.js', 'admin');?>"></script>
     <script src="<?php echo app_assets_url('template/js/libs/select2/i18n/pt-BR.js', 'admin');?>"></script>
+
+    <script>
+        var SISGlobal = {};
+        SISGlobal.config = {
+          URL_SGS: "<?= $this->config->item("URL_SGS"); ?>"
+        };
+    </script>
+
   </head>
   <body class="menubar-hoverable header-fixed menubar-pin ">
 

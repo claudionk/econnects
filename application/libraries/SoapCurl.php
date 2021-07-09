@@ -105,7 +105,7 @@ class SoapCurl
 			    'methodCurl' => $method,
 			    'headerCurl' => array(
 				    "accept: application/json",
-				    "Authorization: Basic dXN1X3Npc3RlbWE6c2lzMTIz" ,
+				    "Authorization: Basic dXN1X3Npc3RlbWE6M2I4YmE1NmQ3NGNmY2M1NWNhMTBjNDZhYWI1MWIwNDkwYjVmMmZkZA==" ,
 				    "content-type: application/json",
 				    "cache-control: no-cache",
 				    ),
@@ -141,7 +141,14 @@ class SoapCurl
 			    if (!empty($retorno['response']['reason']['faultstring'])) {
 				    $retorno['erro'] = $retorno['response']['reason']['faultstring'];
 			    } else {
-				    $retorno['erro'] = $retorno['response']["message"];
+                    if(isset($retorno['response']["message"])){
+                        $retorno['erro'] = $retorno['response']["message"];
+                    }else if (isset($retorno['response']["error"])) {
+                        $retorno['erro'] = $retorno['response']["error"];
+                    }else {
+                        $retorno['erro'] = "Erro na API";
+                    }
+				    
 			    }
 
 		    } else {

@@ -716,7 +716,7 @@ class PHPExcel
      *
      * @return string[]
      */
-    public function getSheetNames()
+    public function getSheetNames($inputFileName = null)
     {
         $returnValue = array();
         $worksheetCount = $this->getSheetCount();

@@ -73,7 +73,7 @@ Class Qualificacao_Parceiro_Resposta_Model extends MY_Model
         return $this->get($id);
     }
 
-    function insert_form()
+    function insert_form($array = array())
     {
         $data = $this->get_form_data();
         $this->delete_by_qualificacao_parceiro($this->input->post('qualificacao_parceiro_id'));

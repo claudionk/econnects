@@ -19,7 +19,7 @@ class Excel extends PHPExcel {
        return $this->getSheetRows($sheet);
 
     }
-    public function getSheetNames($inputFileName){
+    public function getSheetNames($inputFileName = null){
 
         $inputFileType = PHPExcel_IOFactory::identify($inputFileName);
         $objReader = PHPExcel_IOFactory::createReader($inputFileType);

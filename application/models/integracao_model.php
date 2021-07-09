@@ -29,6 +29,8 @@ Class Integracao_Model extends MY_Model
 
     private $desconsiderarIntegracao = false; //Usado para identificar algum possivel erro durante o processo para salvar o log como deletado e com erro
 
+    private $simularTransferencia = true;
+
     //Dados
     public $validate = array(
         array(
@@ -176,7 +178,8 @@ Class Integracao_Model extends MY_Model
         parent::__construct();
 
         $this->load->library('parser');
-
+        $this->load->library("ArquivoIntegracao");
+        
         $this->data_template_script = array(
             'data_ini_mes_anterior' => date('Y-m-d', mktime(0, 0, 0, date('m')-1, 1, date('Y'))),
             'data_fim_mes_anterior' => date('Y-m-t', mktime(0, 0, 0, date('m')-1, 1, date('Y'))),
@@ -187,10 +190,25 @@ Class Integracao_Model extends MY_Model
             'totalItens' => 0,
             'campo_chave' => '',
         );
+
+        if(isset($_GET["simularTransferencia"])){
+            $this->simularTransferencia = true;
+        }
     }
 
     public function isDesconsiderarIntegracao(){
         return $this->desconsiderarIntegracao;
+    }
+
+    public function isSimularTransferencia(){
+        return $this->simularTransferencia;
+    }
+
+    private function finalizarArquivo($integracao, $localFilePath){
+        $saveFile = ArquivoIntegracao::uploadFile($integracao, $localFilePath);
+        if($saveFile){
+            unlink($localFilePath);
+        }
     }
 
     //Get dados
@@ -393,6 +411,12 @@ Class Integracao_Model extends MY_Model
 
             $this->finalizarIntegracao($result['integracao_id']);
 
+            foreach($aResultFile as $resultFile) {
+                if(!empty($resultFile['file'])) {
+                    $this->finalizarArquivo($result, $resultFile["file"]);                
+                }
+            }
+
         }
 
         // reset memory limit
@@ -468,28 +492,35 @@ Class Integracao_Model extends MY_Model
             if((!empty($result['after_execute'])) && (function_exists($result['after_execute']))){
                 call_user_func($result['after_execute'], null, array('item' => $result, 'registro' => $result_file, 'log' => $dados_log, 'valor' => null));
             }
+
+            $this->finalizarArquivo($result, $filename);                
+                
         }
     }
 
     public function sendFile($integracao = array(), $file) {
         try{
 
-            switch ($integracao['integracao_comunicacao_id']){
+            if($this->isSimularTransferencia() == false) {
+                switch ($integracao['integracao_comunicacao_id']){
 
-                case 1:
-                    $this->sendFileFTP($integracao, $file);
-                    break;
-
-                case 2:
-                    $this->sendFileSFTP($integracao, $file);
-                    break;
-
-                case 3:
-
-                    break;
-                case 4:
-                    $this->sendFileFTPS($integracao, $file);
-                    break;
+                    case 1:
+                        $this->sendFileFTP($integracao, $file);
+                        break;
+    
+                    case 2:
+                        $this->sendFileSFTP($integracao, $file);
+                        break;
+    
+                    case 3:
+    
+                        break;
+                    case 4:
+                        $this->sendFileFTPS($integracao, $file);
+                        break;
+                }
+            } else {
+                $this->sendFileLocal($integracao, $file);
             }
 
         }catch (Exception $e) {
@@ -500,31 +531,33 @@ Class Integracao_Model extends MY_Model
     private function getFile($integracao = array(), $file)
     {
         try{
+            if($this->isSimularTransferencia() == false) {
+                switch ($integracao['integracao_comunicacao_id']){
 
-            switch ($integracao['integracao_comunicacao_id']){
+                    case 1:
+                        return $this->getFileFTP($integracao, $file);
+                        break;
 
-                case 1:
-                    return $this->getFileFTP($integracao, $file);
-                    break;
+                    case 2:
+                        return $this->getFileSFTP($integracao, $file);
+                        break;
 
-                case 2:
-                    return $this->getFileSFTP($integracao, $file);
-                    break;
+                    case 3:
 
-                case 3:
-
-                    break;
+                        break;
                 
-                case 4:
-                    return $this->getFileFTPS($integracao, $file);
-                    break;
+                    case 4:
+                        return $this->getFileFTPS($integracao, $file);
+                        break;
 
-                // Criado para correções pontuais
-                case 100:
-                    return $this->getFileCustom($integracao);
-                    break;
+                    // Criado para correções pontuais
+                    case 100:
+                        return $this->getFileCustom($integracao);
+                        break;
+                }
+            } else {
+                return $this->getFileLocal($integracao, $file);
             }
-
         }catch (Exception $e) {
 	  	    echo "getFile::Exception " . print_r($e, true) . "\n";
         }
@@ -532,24 +565,28 @@ Class Integracao_Model extends MY_Model
 
     public function deleteFile($integracao = array(), $file){
         try{
+            if($this->isSimularTransferencia() == false) {
 
-            switch ($integracao['integracao_comunicacao_id']){
+                switch ($integracao['integracao_comunicacao_id']){
 
-                case 1:
-                    $this->deleteFileFTP($integracao, $file);
-                    break;
+                    case 1:
+                        $this->deleteFileFTP($integracao, $file);
+                        break;
 
-                case 2:
-                    $this->deleteFileSFTP($integracao, $file);
-                    break;
+                    case 2:
+                        $this->deleteFileSFTP($integracao, $file);
+                        break;
 
-                case 3:
+                    case 3:
 
-                    break;
+                        break;
 
-                case 4:
-                    $this->deleteFileFTPS($integracao, $file);
-                    break;
+                    case 4:
+                        $this->deleteFileFTPS($integracao, $file);
+                        break;
+                }
+            } else {
+                $this->deleteFileLocal($integracao, $file);
             }
 
         }catch (Exception $e) {
@@ -654,6 +691,25 @@ Class Integracao_Model extends MY_Model
         return $result;
     }
 
+    private function getFileLocal($integracao = array(), $file){
+
+        $this->load->library('SimuladorFTP');
+
+        $config = self::createConfigFTP($integracao);        
+
+        $result = null;
+        $connectedFTPS = $this->simuladorftp->connect($config);
+        if ($connectedFTPS) {
+            $list = $this->simuladorftp->list_files("{$integracao['diretorio']}");
+            $result = $this->getFileTransferProtocol($this->simuladorftp, $list, $integracao, $file);
+            $this->simuladorftp->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
+        }
+
+        return $result;
+    }
+
     private function getFileTransferProtocol($obj, $list, $integracao = array(), $file){
 
         $this->load->model('integracao_log_model', 'integracao_log');
@@ -750,6 +806,23 @@ Class Integracao_Model extends MY_Model
         }
     }
 
+    
+    private function sendFileLocal($integracao = array(), $file){
+
+        $this->load->library('SimuladorFTP');
+
+        $config = self::createConfigFTP($integracao); 
+
+        $filename = basename($file);
+        $connectedFTP = $this->simuladorftp->connect($config);
+        if ($connectedFTP) {
+            $this->simuladorftp->upload($file, "{$integracao['diretorio']}{$filename}", 'binary', 0777);
+            $this->simuladorftp->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
+        }
+    }
+
     private function deleteFileFTP($integracao = array(), $file){
 
         $this->load->library('ftp');
@@ -794,6 +867,22 @@ Class Integracao_Model extends MY_Model
         if ($connectedFTPS) {
             $this->ftps->delete_file("{$integracao['diretorio']}{$filename}");
             $this->ftps->close();
+        } else {
+            $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
+        }
+    }
+
+    private function deleteFileLocal($integracao = array(), $file){
+
+        $this->load->library('SimuladorFTP');
+
+        $config = self::createConfigFTP($integracao); 
+
+        $filename = basename($file);
+        $connectedFTPS = $this->simuladorftp->connect($config);
+        if ($connectedFTPS) {
+            $this->simuladorftp->delete_file("{$integracao['diretorio']}{$filename}");
+            $this->simuladorftp->close();
         } else {
             $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
         }

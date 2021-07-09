@@ -445,7 +445,7 @@ function busca_cliente(){
     });
 
     // Busca no SGS
-    var url = "https://sgs-h.jelastic.saveincloud.net/v1/api/segurado/econnects?seg_doc=" + $('#cnpj_cpf').val();
+    var url = SISGlobal.config.URL_SGS+"v1/api/segurado/econnects?seg_doc=" + $('#cnpj_cpf').val();
     console.log( url );
     $.ajax({
         type: "GET",

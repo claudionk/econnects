@@ -361,7 +361,7 @@ $config['proxy_ips'] = '';
  * ## NÃO REMOVER ##
  * Permite carregar classes dentro da pasta "core"
  */
-function __autoload($class)
+spl_autoload_register(function ($class)
 {
     if (substr($class,0,3) !== 'CI_')
     {
@@ -370,7 +370,7 @@ function __autoload($class)
             include $file;
         }
     }
-}
+});
 
 
 /* End of file config.php */
@@ -382,9 +382,9 @@ $config["Pagmax360_merchantId"] = "1";
 $config["Pagmax360_merchantKey"] = "25fbb99741c739dd84d7b06ec78c9bac718838630f30b112d033ce2e621b34f3";
 
 $config["URL_APLICATIVO"] = "https://play.google.com/store/apps/details?id=com.econnects.app.bidu";
-$config["URL_sisconnects"] = "http://econnects-h.jelastic.saveincloud.net/";
-$config["URL_SGS"] = "https://sgs-h.jelastic.saveincloud.net/";
-$config["URL_portal"] = "https://portal-h.jelastic.saveincloud.net/";
+$config["URL_sisconnects"] = "http://econnects-h.sisti.me/";
+$config["URL_SGS"] = "https://sgs-h.sisti.me/";
+$config["URL_portal"] = "https://portal-h.sisti.me/";
 
 $config['PRECO_TIPO_TABELA'] = 1;
 $config['PRECO_TIPO_COBERTURA'] = 2;

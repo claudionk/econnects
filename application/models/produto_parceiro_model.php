@@ -87,6 +87,8 @@ Class Produto_Parceiro_Model extends MY_Model
     //Get dados
     public function get_form_data($just_check = false)
     {
+        $cod_sucursal = $this->input->post('cod_sucursal');
+        $cod_ramo = $this->input->post('cod_ramo');
         //Dados
         $data =  array(
             'nome'              => $this->input->post('nome'),
@@ -97,8 +99,8 @@ Class Produto_Parceiro_Model extends MY_Model
             'venda_agrupada'    => $this->input->post('venda_agrupada'),
             'slug_produto'      => $this->input->post('slug_produto'),
             'cod_tpa'           => $this->input->post('cod_tpa'),
-            'cod_sucursal'      => isempty($this->input->post('cod_sucursal'), null),
-            'cod_ramo'          => isempty($this->input->post('cod_ramo'), null),
+            'cod_sucursal'      => isempty($cod_sucursal, null),
+            'cod_ramo'          => isempty($cod_ramo, null),
             'lista_id'          => $this->input->post('lista_id'),
         );
         return $data;
