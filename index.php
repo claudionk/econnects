@@ -7,7 +7,7 @@ $host_servers['production'] = array(
 $host_servers['homologacao'] = array(
     'sis.econnects.com.br',
     'alseg.econnects.com.br',
-    'econnects-h.sisti.me',
+    'neoconnect-h.sisti.me',
     '191.243.196.174'
 );
 /*

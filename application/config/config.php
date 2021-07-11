@@ -382,7 +382,7 @@ $config["Pagmax360_merchantId"] = "1";
 $config["Pagmax360_merchantKey"] = "25fbb99741c739dd84d7b06ec78c9bac718838630f30b112d033ce2e621b34f3";
 
 $config["URL_APLICATIVO"] = "https://play.google.com/store/apps/details?id=com.econnects.app.bidu";
-$config["URL_sisconnects"] = "http://econnects-h.sisti.me/";
+$config["URL_sisconnects"] = "https://neoconnect-h.sisti.me/";
 $config["URL_SGS"] = "https://sgs-h.sisti.me/";
 $config["URL_portal"] = "https://portal-h.sisti.me/";
 

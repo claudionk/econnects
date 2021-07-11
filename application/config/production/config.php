@@ -361,7 +361,7 @@ $config['proxy_ips'] = '';
  * ## NÃO REMOVER ##
  * Permite carregar classes dentro da pasta "core"
  */
-function __autoload($class)
+spl_autoload_register(function ($class)
 {
     if (substr($class,0,3) !== 'CI_')
     {
@@ -370,7 +370,7 @@ function __autoload($class)
             include $file;
         }
     }
-}
+});
 
 
 /* End of file config.php */
