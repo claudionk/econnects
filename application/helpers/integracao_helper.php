@@ -4854,6 +4854,45 @@ if ( ! function_exists('app_integracao_axa'))
                     }
 
                 break;
+                case 389:
+                    $d = $dados['registro'];
+                    $id_exp = $d['id_exp'];
+
+                    $valor_pagto_despesa        = (float) $d["valor_pagto_despesa"];
+                    $valor_pagto_indenizacao    = (float) $d["valor_pagto_indenizacao"];
+                    $valor_mao_de_obra          = (float) $d["valor_mao_de_obra"];
+                    $valor_honorario            = (float) $d["valor_honorario"];
+                    $valor_total                = $valor_pagto_despesa + $valor_pagto_indenizacao + $valor_mao_de_obra + $valor_honorario;
+
+                    $integracao_log_detalhe_id = $formato;
+            
+                    $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
+                        VALUES ($id_exp,  NOW(), 'PAG', '$integracao_log_detalhe_id', $valor_total )");
+
+                    $id_exp_hist_carga = $CI->db->insert_id();            
+                    return $id_exp_hist_carga;
+                break;
+                case 390:
+
+                    $d = $dados['registro'];
+                    $id_exp = $d['id_exp'];
+
+                    $updateExpHistCargaSQL = "UPDATE 
+                            sissolucoes1.sis_exp_hist_carga AS sehc
+                            
+                        SET 
+                            sehc.data_retorno = NOW(),
+                            sehc.`status` = 'C'
+
+                        WHERE 1 = 1
+                            AND sehc.id_exp = $id_exp 
+                            AND sehc.tipo_expediente = 'PAG' 
+                            AND sehc.`status` = 'P';";        
+
+                    $CI->db->query($updateExpHistCargaSQL);
+
+                break;
+                default;
             }
             
         }        
