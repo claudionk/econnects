@@ -4867,7 +4867,7 @@ if ( ! function_exists('app_integracao_axa'))
                     $integracao_log_detalhe_id = $formato;
             
                     $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
-                        VALUES ($id_exp,  NOW(), 'PAG', '$integracao_log_detalhe_id', $valor_total )");
+                        VALUES ($id_exp,  NOW(), 'LIQ', '$integracao_log_detalhe_id', $valor_total )");
 
                     $id_exp_hist_carga = $CI->db->insert_id();            
                     return $id_exp_hist_carga;
@@ -4886,7 +4886,7 @@ if ( ! function_exists('app_integracao_axa'))
 
                         WHERE 1 = 1
                             AND sehc.id_exp = $id_exp 
-                            AND sehc.tipo_expediente = 'PAG' 
+                            AND sehc.tipo_expediente = 'LIQ' 
                             AND sehc.`status` = 'P';";        
 
                     $CI->db->query($updateExpHistCargaSQL);
