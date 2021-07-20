@@ -1981,20 +1981,29 @@ if ( ! function_exists('app_integracao_calcula_premio'))
         $premioValid = true;
         $aceitaPorcentagem = false;
         $dif_accept = 0;
+        $tipo_diff = ''; // % ou R$
 
         // diferença do cálculo
         if (!empty($acesso) )
         {
             if ( $acesso->parceiro == 'lasa' ) {
                 $dif_accept = 0.01;
+                $tipo_diff = 'R$';
             } elseif ( $acesso->parceiro == 'novomundo' ) {
-                $dif_accept = 0.50;
+                $dif_accept = 5;
+                $tipo_diff = '%';
             }
         }
 
         echo "Calculo do Premio: $valor_premio | $premio_bruto | $premio_liquido | $valor_iof | $valor_fixo<br>";
         
-        if ($valor_premio != $premio_bruto && $acesso->parceiro != "b2w") {
+        if ($valor_premio != $premio_bruto && $acesso->parceiro != "b2w")
+        {
+            // transforma % em R$
+            if ($tipo_diff == '%') {
+                $dif_accept = $valor_premio * ($dif_accept/100);
+            }
+
             if ($valor_premio >= $premio_bruto-$dif_accept && $valor_premio <= $premio_bruto+$dif_accept) {
                 echo "dif de R$ $dif_accept - $cotacao_id<br>";
 
