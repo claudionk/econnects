@@ -2571,12 +2571,27 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
         }
 
         // definir operação pelo nome do arquivo ou por integracao?
-        $acesso = app_integracao_novo_mundo_define_operacao($dados['log']['nome_arquivo']);
+        $acesso = app_integracao_novo_mundo_define_operacao($dados);
         if ( empty($acesso->status) ) {
             $response->status = 2;
             $response->msg[] = $acesso->msg;
             return $response;
         }
+
+
+        // Emissao
+        if ( $reg['acao'] == '1' )
+        {
+            // gerar as vigências de DanosEletricos
+            $idx = app_search( $acesso->coberturas, 'danos-eletricos', 'cobertura' );
+            if ( $idx >= 0 )
+            {
+                $acesso->coberturas[$idx]['data_inicio_vigencia'] = $reg['data_adesao_cancel'];
+                $acesso->coberturas[$idx]['data_fim_vigencia'] = date('d/m/Y', strtotime('-1 days', $reg['data_inicio_vigencia']));;
+            }
+        }
+
+        $dados["registro"]["coberturas"] = $acesso->coberturas;
 
         // recupera as variaveis mais importantes
         $num_apolice    = $reg['num_apolice'];
@@ -2645,8 +2660,10 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
     }
 }
 if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
-    function app_integracao_novo_mundo_define_operacao($nome_arquivo)
+    function app_integracao_novo_mundo_define_operacao($dados)
     {
+        $nome_arquivo = $dados['log']['nome_arquivo'];
+        $reg = $dados['registro'];
         /*
          * Nomenclatura dos arquivos:
          * ssssOOnnnn_xx_data.ext (len 27), onde:
@@ -2674,6 +2691,9 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
         $result->sequencial_remessa = substr($nome_arquivo, 12, 2);
         $result->data = app_integracao_format_date_r("Ymd|Y-m-d", ['valor' => substr($nome_arquivo, 15, 8)]);
 
+        
+        $equipamento_de_para = $reg['equipamento_de_para'];
+
         switch ($result->operacao) {
             case '031':
                 $result->parceiro_id = 72;
@@ -2681,8 +2701,15 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
 
                 switch ($result->produto) {
                     case 'GAES':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
+
+                        $result->produto_parceiro_id = 80;                                         
+                        $result->coberturas[] = ['cobertura' => 'garantia-estendida'];
+                        if (strpos($equipamento_de_para, "X") === FALSE) {
+                            $result->produto_parceiro_plano_id = 103;
+                        } else {
+                            $result->produto_parceiro_plano_id = 205;
+                            $result->coberturas[] = ['cobertura' => 'danos-eletricos'];
+                        }
                         break;
 
                     case 'ROFU':
@@ -2709,7 +2736,13 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                 switch ($result->produto) {
                     case 'GAES':
                         $result->produto_parceiro_id = 83;
-                        $result->produto_parceiro_plano_id = 107;
+                        $result->coberturas[] = ['cobertura' => 'garantia-estendida'];
+                        if (strpos($equipamento_de_para, "X") === FALSE) {
+                            $result->produto_parceiro_plano_id = 107;
+                        } else {
+                            $result->produto_parceiro_plano_id = 206;
+                            $result->coberturas[] = ['cobertura' => 'danos-eletricos'];
+                        }
                         break;
 
                     case 'ROFU':
