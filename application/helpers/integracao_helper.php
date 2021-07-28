@@ -4816,7 +4816,8 @@ if ( ! function_exists('app_integracao_format_file_name_axa'))
                 $fileName = "AVISO_SIS_".$date."_RetornoAXA.xlsx";
                 break;
             case 389:
-                $fileName = "Lote Pagamento ".$date.".xlsx";
+                //$fileName = "Lote_Honorario_SIS_".$date.".xlsx";
+                $fileName = "Lote_Indenizacao_SIS_".$date.".xlsx";                
                 break;
             case 389:
                 $fileName = "Lote Pagamento ".$date."_RetornoAXA.xlsx";
