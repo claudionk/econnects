@@ -820,7 +820,7 @@ if ( ! function_exists('app_integracao_format_file_name_ret_sis'))
         }
 
         $data = date('Ymd');
-        $num_sequencia = str_pad($num_sequencia,4, '0',STR_PAD_LEFT);
+        $num_sequencia = substr(str_pad($num_sequencia, 4, '0', STR_PAD_LEFT), -4);
 
         $file = "{$formato}_{$num_sequencia}_{$data}.TXT";
         return  $file;
