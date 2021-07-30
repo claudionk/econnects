@@ -56,6 +56,7 @@ class Pedido extends Admin_Controller
             ->filterNotCarrinho()
             ->limit($config['per_page'], $offset)
             ->order_by('pedido.criacao', 'DESC')
+            ->setIndex('pedido', 'idx_deletado_statusid')
             ->get_all(0, 0, false);
 
         $config['total_rows'] =  count($data['rows']);
