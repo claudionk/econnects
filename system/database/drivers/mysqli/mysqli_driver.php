@@ -532,7 +532,12 @@ class CI_DB_mysqli_driver extends CI_DB {
 			$tables = array($tables);
 		}
 
-		return '('.implode(', ', $tables).')';
+		$tables = implode(', ', $tables);
+		if (strpos(strtoupper($tables), 'USE INDEX') === false) {
+			return '('.$tables.')';
+		} else {
+			return $tables;
+		}
 	}
 
 	// --------------------------------------------------------------------

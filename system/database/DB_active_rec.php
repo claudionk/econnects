@@ -45,6 +45,7 @@ class CI_DB_active_record extends CI_DB_driver {
 	var $ar_wherein				= array();
 	var $ar_aliased_tables		= array();
 	var $ar_store_array			= array();
+	var $ar_index				= array();
 
 	// Active Record Caching variables
 	var $ar_caching				= FALSE;
@@ -1718,6 +1719,16 @@ class CI_DB_active_record extends CI_DB_driver {
 		{
 			$sql .= "\nFROM ";
 
+			foreach ($this->ar_from as $ind => $tab) {
+				$tabAx = preg_replace('/[`]/i', '', $tab);
+
+				foreach ($this->ar_index as $indexes) {
+					if( $indexes[0] == $tabAx ){
+						$this->ar_from[$ind] = $tab." USE INDEX(".$indexes[1].") ";
+					}
+				}
+			}
+
 			$sql .= $this->_from_tables($this->ar_from);
 		}
 
@@ -1805,6 +1816,11 @@ class CI_DB_active_record extends CI_DB_driver {
 
 		return $sql;
 	}
+
+	public function setIndex($table, $index){
+        $this->ar_index[] = [$table, $index];
+        return $this;
+    }
 
 	// --------------------------------------------------------------------
 
