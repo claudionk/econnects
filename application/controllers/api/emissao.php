@@ -265,7 +265,7 @@ class Emissao extends CI_Controller {
                             else
                                 die(json_encode(array("status"=>false,"message"=>"Atributo 'marca' não informado"),JSON_UNESCAPED_UNICODE));
                         }
-                        if($validaModelo && empty($parametros['modelo']))
+                        if(empty($parametros['modelo']))
                         {
                             if (!empty($msgBuscaEqip))
                                 die(json_encode(array("status"=>false,"message"=>$msgBuscaEqip .". Informe o atributo `modelo` para realizar a pesquisa alternativa."),JSON_UNESCAPED_UNICODE));
