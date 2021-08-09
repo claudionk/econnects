@@ -131,7 +131,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 {
                     $sequencia_end = 1;
                 }
-                if ( in_array($tipo, ['C','F','E']) )
+                if ( in_array($tipo, ['C','F','E', 'R']) )
                 {
                     $sequencia_end = 2;
                 }
@@ -190,7 +190,7 @@ Class Apolice_Endosso_Model extends MY_Model
         {
             $cd_mov_cob = 3;
         }
-        elseif ( in_array($tipo, ['C','F','E']) )
+        elseif ( in_array($tipo, ['C','F','E', 'R']) )
         {
             // nao é parcelado
             if ( $tipo_pagto != 2 )
@@ -229,6 +229,7 @@ Class Apolice_Endosso_Model extends MY_Model
         5 - 10 - Cancelamento da apólice
         6 - 11 - Cancelamento por falta de pagamento
         7 - 13 - Cancelamento por erro na emissão
+        8 - 22 - Cancelamento pelo representante (Loja)
         */
 
         if ($tipo == 'A') {
@@ -253,7 +254,9 @@ Class Apolice_Endosso_Model extends MY_Model
                 case 'E':
                     $tipo = 7;
                     break;
-                
+                case 'R':
+                    $tipo = 8;
+                    break;                    
                 default:
                     $tipo = 5;
                     break;
@@ -437,7 +440,7 @@ Class Apolice_Endosso_Model extends MY_Model
 
                 // valida a vigência
                 // caso seja cancelamento, a vigência deve ser a mesma da parcela cancelada
-                if ($dados_end['parcela'] > 0 && !in_array($tipo, ['C','F','E']) )
+                if ($dados_end['parcela'] > 0 && !in_array($tipo, ['C','F','E', 'R']) )
                 {
                     if ($dados_end['parcela'] > 1)
                     {
@@ -493,7 +496,7 @@ Class Apolice_Endosso_Model extends MY_Model
                 $geraDadosEndosso = false;
             }
             // caso seja cancelamento
-            elseif ( in_array($tipo, ['C','F','E']) )
+            elseif ( in_array($tipo, ['C','F','E', 'R']) )
             {
                 // NAO FAZ O CANCELAMENTO
                 // Mensal: após X dias e após inicio da vigencia
