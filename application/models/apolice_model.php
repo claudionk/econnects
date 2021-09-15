@@ -261,10 +261,11 @@ class Apolice_Model extends MY_Model
             $ret['message'] = "Apólice não encontrada";
             return $ret;
         }
-
-        if( $this->search_apolice_produto_parceiro_plano_id( $num_apolice , $result['produto_parceiro_plano_id'] ) ){
-            $ret['message'] = "Já existe um certificado com o número {$num_apolice} em nossa base";
-            return $ret;
+        if(empty($num_apolice_cliente)){
+            if( $this->search_apolice_produto_parceiro_plano_id( $num_apolice , $result['produto_parceiro_plano_id'] ) ){
+                $ret['message'] = "Já existe um certificado com o número {$num_apolice} em nossa base";
+                return $ret;
+            }
         }
 
         $this->load->model("apolice_endosso_model", "apolice_endosso");
