@@ -2578,30 +2578,32 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
             return $response;
         }
 
-
-        // Emissao
-        if ( $reg['acao'] == '1' )
+        //Se deve tratar coberturas distintas
+        if ( !empty($acesso->coberturas) )
         {
-
-            // gerar as vigências de GarantiaEstendida
-            $idx = app_search( $acesso->coberturas, 'garantia-estendida', 'cobertura' );
-            if ( $idx >= 0 )
+            // Emissao
+            if ( $reg['acao'] == '1' )
             {
-                $acesso->coberturas[$idx]['data_inicio_vigencia'] = $reg['data_inicio_vigencia'];
-                $acesso->coberturas[$idx]['data_fim_vigencia'] = $reg['data_fim_vigencia'];
+                // gerar as vigências de GarantiaEstendida
+                $idx = app_search( $acesso->coberturas, 'garantia-estendida', 'cobertura' );
+                if ( $idx >= 0 )
+                {
+                    $acesso->coberturas[$idx]['data_inicio_vigencia'] = $reg['data_inicio_vigencia'];
+                    $acesso->coberturas[$idx]['data_fim_vigencia'] = $reg['data_fim_vigencia'];
+                }
+
+                // gerar as vigências de DanosEletricos
+                $idx = app_search( $acesso->coberturas, 'danos-eletricos', 'cobertura' );
+                if ( $idx >= 0 )
+                {
+                    $acesso->coberturas[$idx]['data_inicio_vigencia'] = $reg['data_adesao_cancel'];
+                    $acesso->coberturas[$idx]['data_fim_vigencia'] = date('Y-m-d', strtotime('-1 day', strtotime($reg['data_inicio_vigencia'])));
+
+                }
             }
 
-            // gerar as vigências de DanosEletricos
-            $idx = app_search( $acesso->coberturas, 'danos-eletricos', 'cobertura' );
-            if ( $idx >= 0 )
-            {
-                $acesso->coberturas[$idx]['data_inicio_vigencia'] = $reg['data_adesao_cancel'];
-                $acesso->coberturas[$idx]['data_fim_vigencia'] = date('Y-m-d', strtotime('-1 day', strtotime($reg['data_inicio_vigencia'])));
-
-            }
+            $dados["registro"]["coberturas"] = $acesso->coberturas;
         }
-
-        $dados["registro"]["coberturas"] = $acesso->coberturas;
 
         // recupera as variaveis mais importantes
         $num_apolice    = $reg['num_apolice'];
