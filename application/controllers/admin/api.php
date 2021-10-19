@@ -173,6 +173,20 @@ class Api extends Site_Controller
         return;
     }
 
+    public function atualizaCotacao(){
+        $json = file_get_contents( "php://input" );
+        $trat = $this->extractEmail($json);
+        $json = $trat->json;
+        $email = $trat->email;
+
+        $retorno = $this->execute($this->url."cotacao", 'PUT', $json, $email);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output($retorno);
+        return;
+    }
+
     public function cotacao_contratar(){
         // $this->stop=true;
         $json = file_get_contents( "php://input" );
