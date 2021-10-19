@@ -1898,6 +1898,13 @@ if ( ! function_exists('app_integracao_valida_regras'))
                     $fields = app_utf8_converter($fields);
                 }
 
+                //var_dump($fields['equipamento_de_para']);
+                if($fields['equipamento_de_para'] == '20501007'){
+                    //print_r(json_encode($fields));
+                    //exit();
+                }
+                
+
                 // Cotação
                 $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields), $acesso);
                 if (empty($cotacao['status'])) {
@@ -1930,6 +1937,52 @@ if ( ! function_exists('app_integracao_valida_regras'))
 
                 $premioValid = $calcPremio['response'];
                 $valor_premio = $calcPremio['valor_premio'];
+
+
+                if(!$premioValid){
+                    if(in_array($acesso->parceiro, ["novomundo", "novomundoamazonia"])) {
+
+                        if((float)$valor_premio != 0){
+                            if((float)$dados["premio_bruto"] > (float)$valor_premio) {                            
+                                $calcPremio     = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0), $dados["premio_liquido"], 0, $fields['coberturas']);
+                                $premioValid    = true;
+                            } else if((float)$dados["premio_bruto"] < (float)$valor_premio && (float)$valor_premio) {
+
+                                $CI =& get_instance();
+                                $CI->load->model('cotacao_model');
+
+                                $perc_prolabore             = Cotacao_Model::calcularPercProlabore((float)$dados["valor_custo"], (float)$calcPremio["premio_liquido"]);            
+                                $fields["comissao_premio"]  = $perc_prolabore;
+                                $fields["cotacao_id"]       = $cotacao_id;
+
+                                $calcPremio     = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0), $dados["premio_liquido"], 0, $fields['coberturas']);
+                                
+                                $atualizaCotacaoResponse    = app_get_api("atualizaCotacao", "POST", json_encode($fields), $acesso);
+                                $premioValid                = true;
+    
+                                if (empty($atualizaCotacaoResponse['status'])) {
+                                    if ( is_object($atualizaCotacaoResponse['response']) )
+                                    {
+                                        $erros = isset($atualizaCotacaoResponse['response']->erros) ? $atualizaCotacaoResponse['response']->erros : $atualizaCotacaoResponse['response']->errors;
+                                        foreach ($erros as $er) {
+                                            $response->errors[] = [
+                                                'id' => -1, 
+                                                'msg' => $er, 
+                                                'slug' => "atualiza_cotacao"
+                                            ];
+                                        }
+                                    } else {
+                                        $response->errors[] = ['id' => -1, 'msg' => $atualizaCotacaoResponse['response'], 'slug' => "atualiza_cotacao"];
+                                    }
+                                    return $response;
+                                }
+                                
+                            }
+                        }
+                        
+                       
+                    }
+                }
 
                 if (!$premioValid) {
                     $errors[] = ['id' => 7, 'msg' => "Valor do prêmio bruto [". $dados["premio_bruto"] ."] difere do prêmio calculado [". $valor_premio ."]", 'slug' => "premio_liquido"];
@@ -2058,7 +2111,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
             }
         }
 
-        return ['status'=> true, 'response'=> $premioValid, 'valor_premio'=> $valor_premio];
+        return ['status'=> true, 'response'=> $premioValid, 'valor_premio'=> $valor_premio, 'premio_liquido' => $calcPremio->premio_liquido];
     }
 }
 if ( ! function_exists('app_integracao_emissao'))
