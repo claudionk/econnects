@@ -615,4 +615,8 @@ Class Cotacao_Model extends MY_Model
         return [];
     }
 
+    public static function calcularPercProlabore($valor_custo, $premio_liquido){
+        return 100 - (($valor_custo/$premio_liquido) * 100);
+    }
+
 }
