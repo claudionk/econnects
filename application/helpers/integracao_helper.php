@@ -1898,13 +1898,6 @@ if ( ! function_exists('app_integracao_valida_regras'))
                     $fields = app_utf8_converter($fields);
                 }
 
-                //var_dump($fields['equipamento_de_para']);
-                if($fields['equipamento_de_para'] == '20501007'){
-                    //print_r(json_encode($fields));
-                    //exit();
-                }
-                
-
                 // Cotação
                 $cotacao = app_get_api("insereCotacao", "POST", json_encode($fields), $acesso);
                 if (empty($cotacao['status'])) {
@@ -2311,7 +2304,9 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
         // Tratamento para erros que são considerados sucesso
         // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods
         // Tratando o erro 110 - Registro duplicado no arquivo de origem
-        if ( !empty($dados['registro']['cod_erro']) && in_array($dados['registro']['cod_erro'], [22, 110]) && ( in_array($proc['tipo'], ['CLIENTE', 'EMSCMS', 'PARCEMS', 'LCTCMS', 'COBRANCA']) ) )
+        // Tratando o erro 242 - Numero sequencial de emissao ja processado anteriormente para este contrato
+        // Tratando o erro 243 - Numero do endosso ja processado anteriormente para este contrato
+        if ( !empty($dados['registro']['cod_erro']) && in_array($dados['registro']['cod_erro'], [22, 110, 242, 243]) && ( in_array($proc['tipo'], ['CLIENTE', 'EMSCMS', 'PARCEMS', 'LCTCMS', 'COBRANCA']) ) )
 		{
 			$response->msg[] = ['id' => 12, 'msg' => $dados['registro']['cod_erro'] ." - ". $dados['registro']['descricao_erro'], 'slug' => "erro_retorno"];
             return $response;
@@ -3316,7 +3311,9 @@ if ( ! function_exists('app_integracao_retorno_cta'))
             	// Tratamento para erros que são considerados sucesso
 		        // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods
 		        // Tratando o erro 110 - Registro duplicado no arquivo de origem
-		        if ( !empty($dados['registro']['cod_erro']) && in_array($dados['registro']['cod_erro'], [22, 110]) && in_array($proc['tipo'], ['CLIENTE', 'EMSCMS', 'PARCEMS', 'LCTCMS', 'COBRANCA']) )
+                // Tratando o erro 242 - Numero sequencial de emissao ja processado anteriormente para este contrato
+                // Tratando o erro 243 - Numero do endosso ja processado anteriormente para este contrato
+		        if ( !empty($dados['registro']['cod_erro']) && in_array($dados['registro']['cod_erro'], [22, 110, 242, 243]) && in_array($proc['tipo'], ['CLIENTE', 'EMSCMS', 'PARCEMS', 'LCTCMS', 'COBRANCA']) )
 				{
 					$cdEr = '4';
 				}
