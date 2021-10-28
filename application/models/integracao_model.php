@@ -699,11 +699,15 @@ Class Integracao_Model extends MY_Model
                     }
         
                     $fileget = basename($item);
-                    if($obj->download($item, "{$diretorio}/{$fileget}", 'binary')){
-                        $aOutput[] = array(
-                            'file' => "{$diretorio}/{$fileget}",
-                            'fileget' => $fileget,
-                        );
+                    if($obj->download($item, "{$diretorio}/{$fileget}", 'binary'))
+                    {
+                        if ( filesize($diretorio.'/'.$fileget) > 0 )
+                        {
+                            $aOutput[] = array(
+                                'file' => "{$diretorio}/{$fileget}",
+                                'fileget' => $fileget,
+                            );
+                        }
                     }
                 }
             }
@@ -808,7 +812,6 @@ Class Integracao_Model extends MY_Model
             $this->desconsiderarIntegracao = true; //Identifica o erro para salvar o log como detelado e com erro
         }
     }
-
 
     private function processLine($multiplo, $layout, $registro, $integracao_log, $integracao_log_detalhe_id = null, $integracao = null) {
         $this->data_template_script['totalRegistros']++;
