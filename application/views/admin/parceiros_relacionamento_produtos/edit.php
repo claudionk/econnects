@@ -189,8 +189,11 @@ if($_POST)
                                 if ($vigencia_id == ""){
                                   $vigencia_id = $select_vigencia_id;
                                 }
+                                
                                 $row_vigencia = array();
-                                $row_vigencia = $this->vigencia_model->filter_by_parceiro_relacionamento_produto_vigencia_id($vigencia_id);
+                                if ( !empty($select_vigencia_id)){
+                                  $row_vigencia = $this->vigencia_model->filter_by_parceiro_relacionamento_produto_vigencia_id($vigencia_id);
+                                }
                               ?>
 
                               <?php $field_name = 'comissao_data_ini';?>
