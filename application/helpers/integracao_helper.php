@@ -1951,9 +1951,11 @@ if ( ! function_exists('app_integracao_valida_regras'))
                                 $CI =& get_instance();
                                 $CI->load->model('cotacao_model');
 
-                                $perc_prolabore             = Cotacao_Model::calcularPercProlabore((float)$dados["valor_custo"], (float)$calcPremio["premio_liquido"]);            
+                                $perc_prolabore             = Cotacao_Model::calcularPercProlabore((float)$calcPremio["premio_pcl"], (float)$dados["premio_liquido"]);            
                                 $fields["comissao_premio"]  = $perc_prolabore;
                                 $fields["cotacao_id"]       = $cotacao_id;
+
+                                var_dump($calcPremio);
 
                                 $calcPremio     = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0), $dados["premio_liquido"], 0, $fields['coberturas']);
                                 
@@ -2111,7 +2113,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
             }
         }
 
-        return ['status'=> true, 'response'=> $premioValid, 'valor_premio'=> $valor_premio, 'premio_liquido' => $calcPremio->premio_liquido];
+        return ['status'=> true, 'response'=> $premioValid, 'valor_premio'=> $valor_premio, 'premio_liquido' => $calcPremio->premio_liquido, 'premio_pcl' => $calcPremio->premio_pcl];
     }
 }
 if ( ! function_exists('app_integracao_emissao'))

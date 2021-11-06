@@ -466,6 +466,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             'premio_liquido' => number_format((float)$valores_liquido[$produto_parceiro_plano_id], 2, '.' , ''),
             'premio_liquido_total' => number_format((float)$valores_liquido_total[$produto_parceiro_plano_id], 2, '.' , ''),
             'iof' => (float)$iof,
+            "premio_pcl" => (float)$valores_bruto[$produto_parceiro_plano_id]
         );
 
         if (!$api) {
