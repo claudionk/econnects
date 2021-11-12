@@ -742,8 +742,8 @@ Class Integracao_Model extends MY_Model
 
                 if ((int)$total == 0) {
                     $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+                    $diretorio = app_assets_dir('integracao', 'uploads');
                     if(!file_exists($diretorio)){
-                        chmod(app_assets_dir('integracao', 'uploads'), 0777);
                         mkdir($diretorio, 0777, true);
                     }
         
@@ -985,6 +985,7 @@ Class Integracao_Model extends MY_Model
         $this->load->model('integracao_detalhe_model', 'integracao_det');
 
         $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+        $diretorio = app_assets_dir('integracao', 'uploads');
 
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
         $this->data_template_script['parceiro_id'] = $integracao['parceiro_id'];
