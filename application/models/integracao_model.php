@@ -2224,8 +2224,8 @@ Class Integracao_Model extends MY_Model
     private function finalizarIntegracao($integracao_id){        
         $this->update($integracao_id, [
             'proxima_execucao' => $this->get_proxima_execucao($integracao_id),
-            'proxima_execucao' => date('Y-m-d H:i:s'),
-            'proxima_execucao' => 'F' //Finalizada
+            'ultima_execucao' => date('Y-m-d H:i:s'),
+            'status' => 'F' //Finalizada
         ], TRUE);
     }
 
