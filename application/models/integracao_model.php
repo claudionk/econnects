@@ -762,7 +762,9 @@ Class Integracao_Model extends MY_Model
                     }
         
                     $fileget = basename($item);
-                    if($obj->download($item, "{$diretorio}/{$fileget}", 'binary')){
+                    $_download = $obj->download($item, "{$diretorio}/{$fileget}", 'binary');
+                    var_dump($_download);
+                    if($_download){
                         $aOutput[] = array(
                             'file' => "{$diretorio}/{$fileget}",
                             'fileget' => $fileget,
