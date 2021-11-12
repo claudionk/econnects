@@ -2161,7 +2161,7 @@ Class Integracao_Model extends MY_Model
         $config['username']   = $integracao['usuario'];
         $config['password']   = $integracao['senha'];
         $config['port']       = $integracao['porta'];       
-        //$config['debug']    = TRUE;
+        $config['debug']    = TRUE;
 
         /* privatekey = '' para usar as lib's de FTP e SFTP mais de uma vez na mesma requisição:
          - As lib's de FTP e SFTP não limpam as propriedades quando são reinicializadas, apenas substituem as novas que foram enviadas (caso sejam enviadas); */        
