@@ -390,7 +390,7 @@ Class Integracao_Model extends MY_Model
 
             }
 
-            $aResultFile = array($aResultFile[0]);
+            print_r($aResultFile);
             
             foreach($aResultFile as $resultFile){
 
