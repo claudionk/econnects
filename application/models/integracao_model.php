@@ -743,6 +743,7 @@ Class Integracao_Model extends MY_Model
                 if ((int)$total == 0) {
                     $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
                     if(!file_exists($diretorio)){
+                        chmod(app_assets_dir('integracao', 'uploads'), 0777);
                         mkdir($diretorio, 0777, true);
                     }
         
