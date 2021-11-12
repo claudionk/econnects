@@ -389,6 +389,8 @@ Class Integracao_Model extends MY_Model
                 $aResultFile = $this->getFile($result, $file);
 
             }
+
+            $aResultFile = array($aResultFile[0]);
             
             foreach($aResultFile as $resultFile){
 
@@ -2242,6 +2244,15 @@ Class Integracao_Model extends MY_Model
 
 
         return $aOutput;
+    }
+
+    public function teste(){
+        
+        $localFilePath = "/var/www/webroot/ROOT/oi.jpg";
+        $saveFile = ArquivoIntegracao::uploadFile(["integracao_id" => 104, "tipo" => 'E'], $localFilePath);
+        if($saveFile){
+            //unlink($localFilePath);
+        }
     }
 
 }
