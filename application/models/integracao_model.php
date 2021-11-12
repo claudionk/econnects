@@ -728,6 +728,8 @@ Class Integracao_Model extends MY_Model
 
         $aOutput = array();
 
+        print_r($list);
+
         if($list) {
             foreach ($list as $index => $item) {
                 if ( strpos($item, ".") === FALSE )
@@ -749,6 +751,8 @@ Class Integracao_Model extends MY_Model
                     ->filter_by_integracao($integracao['integracao_id'])
                     ->filter_by_file(basename($item))
                     ->get_total();
+
+                    print_r("Total: ".$total);
 
                 if ((int)$total == 0) {
                     $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
