@@ -11,6 +11,11 @@ class SoapCurl
     private $fieldsCurl;
     private $headerCurl;
     private $timeout;
+    private $apiData = [
+        "headers" => [
+
+        ]
+    ];
 
     public function __construct($config = null)
     {
@@ -23,7 +28,20 @@ class SoapCurl
             $this->setData();
         }
 
+        $this->putApiHeader("accept", "application/json");
+        $this->putApiHeader("Authorization", "Basic dXN1X3Npc3RlbWE6M2I4YmE1NmQ3NGNmY2M1NWNhMTBjNDZhYWI1MWIwNDkwYjVmMmZkZA==" );
+        $this->putApiHeader("content-type", "application/json");
+        $this->putApiHeader("cache-control", "no-cache");
         $this->_ci = & get_instance();
+    }
+
+    public function putApiHeader($key, $value){
+        $key = ucwords($key, "-");
+        $this->apiData["headers"][$key] = $value;
+    }
+
+    public function getApiHeaders(){
+        return $this->apiData["headers"];
     }
 
     public function setData()
@@ -99,16 +117,17 @@ class SoapCurl
             $url = $this->_ci->config->item("URL_portal") ."PSFase3/sis-api-v1/api/". $endPoint;
 	    }
 
-	    $retorno = ['status' => false, 'erro' => '', 'newTry' => false];
+        $retorno = ['status' => false, 'erro' => '', 'newTry' => false];
+    
+        $aHeader = array();
+        foreach($this->getApiHeaders() as $key => $value){
+            $aHeader[] = $key.": ".$value;
+        }
+
 	    $config = array(
 			    'urlCurl'    => $url,
 			    'methodCurl' => $method,
-			    'headerCurl' => array(
-				    "accept: application/json",
-				    "Authorization: Basic dXN1X3Npc3RlbWE6M2I4YmE1NmQ3NGNmY2M1NWNhMTBjNDZhYWI1MWIwNDkwYjVmMmZkZA==" ,
-				    "content-type: application/json",
-				    "cache-control: no-cache",
-				    ),
+			    'headerCurl' => $aHeader,
 			   );
 
 	    if (!empty($params)) {
@@ -127,7 +146,8 @@ class SoapCurl
 	    } else {
 		    $info                = $this->soap->getInfo();
 		    $httpCode            = $this->soap->getHttpCode();
-		    $response            = $this->soap->getHeader();
+            $response            = $this->soap->getHeader();
+            
 		    $retorno['response'] = json_decode($response, true);
 		    // $retorno['info'] = $info;
 
@@ -160,5 +180,34 @@ class SoapCurl
 	    }
 
 	    return $retorno;
+    }
+
+    public static function build_data_files($boundary, $fields, $files){
+        $data = '';
+        $eol = "\r\n";
+        $delimiter = '-------------' . $boundary;
+
+        if (!empty($fields))
+        {
+            foreach ($fields as $name => $content) {
+                $data .= "--" . $delimiter . $eol
+                    . 'Content-Disposition: form-data; name="' . $name . "\"".$eol.$eol
+                    . $content . $eol;
+            }
+        }
+        foreach ($files as $name => $_data) {
+            $content = $_data['content'];
+            $filename = $_data['filename'];
+            $data .= "--" . $delimiter . $eol
+                . 'Content-Disposition: form-data; name="' . $name . '"; filename="' . $filename . '"' . $eol
+                //. 'Content-Type: image/png'.$eol
+                . 'Content-Transfer-Encoding: binary'.$eol
+                ;
+
+            $data .= $eol;
+            $data .= $content . $eol;
+        }
+        $data .= "--" . $delimiter . "--".$eol;
+        return $data;
     }
 }
