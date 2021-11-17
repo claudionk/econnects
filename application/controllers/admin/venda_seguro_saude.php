@@ -359,7 +359,13 @@ class Venda_Seguro_Saude extends Admin_Controller
                 'label' => "Contato",
                 'rules' => 'trim|required',
                 'groups' => 'salvar_cotacao'
-                );
+            );
+            $validacao[] = array(
+                'field' => "data_contato[0]",
+                'label' => "Data",
+                'rules' => 'trim|required|validate_data',
+                'groups' => 'salvar_cotacao'
+            );
             $validacao[] = array(
                 'field' => "melhor_horario[0]",
                 'label' => "Melhor Horario",

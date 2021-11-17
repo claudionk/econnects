@@ -42,11 +42,7 @@
                 <hr>
                 <br>
 
-
-                <?php // echo print_r($campos_salvar_cotacao); ?>
-                <?php foreach ($campos_salvar_cotacao as $campo): ?>
-
-                    <?php
+                <?php foreach ($campos_salvar_cotacao as $campo):
 
                     $data_campo = array();
                     $data_campo['row'] = $row;
@@ -57,18 +53,14 @@
                     $data_campo['tamanho'] = $campo['tamanho'] == 0 ? 6 : $campo['tamanho'];
                     $data_campo['class'] = $campo['campo_classes'];
 
-
                     if($campo['classe_slug'] == 'fixo'){
                         $this->load->view('admin/campos_sistema/'. $campo['campo_slug'], $data_campo);
                     }else{
-
                         $data_campo['list'] = (empty($campo['opcoes'])) ? explode(',', $campo['campo_opcoes']) : explode(',', $campo['opcoes']);
                         $this->load->view('admin/campos_sistema/'. $campo['classe_slug'], $data_campo);
                     }
 
-                    ?>
-
-                <?php endforeach; ?>
+                endforeach; ?>
 
             </div>
 

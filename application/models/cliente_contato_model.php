@@ -114,8 +114,6 @@ Class Cliente_Contato_Model extends MY_Model
     //Agrega contato
     function with_contato($fields = array('contato.nome', 'contato.contato', 'contato.contato_tipo_id', 'contato_tipo.nome as contato_tipo'))
     {
-
-
         $this->_database->select($fields);
         $this->_database->join('contato', 'contato.contato_id = cliente_contato.contato_id');
         $this->_database->join('contato_tipo', 'contato_tipo.contato_tipo_id = contato.contato_tipo_id');
@@ -163,11 +161,16 @@ Class Cliente_Contato_Model extends MY_Model
         return $this->insert($data_cliente_contato, TRUE);
     }
 
-    function insert_not_exist_contato($data){
+    function insert_not_exist_contato($data, $forceUpdate = false){
 
         $this->load->model('contato_model', 'contato');
 
-        $contato = $this->with_contato()->get_many_by(array(
+        if ($forceUpdate)
+        {
+            $this->contato->delete_by_cliente($data['cliente_id'], $data['contato_tipo_id']);
+        }
+
+        $contato = $this->with_contato(['contato.contato_id', 'contato.contato_tipo_id', 'contato.contato'])->get_many_by(array(
             'contato.contato_tipo_id' =>  $data['contato_tipo_id'],
             'contato.contato' =>  ($data['contato_tipo_id'] != 1) ? app_retorna_numeros($data['contato']) :  mb_strtolower($data['contato'], 'UTF-8'),
             'cliente_contato.cliente_id' => $data['cliente_id']
@@ -180,7 +183,7 @@ Class Cliente_Contato_Model extends MY_Model
             $data_contato['cliente_terceiro'] = isset( $data['cliente_terceiro']) ? $data['cliente_terceiro'] : 0;
             $data_contato['melhor_horario'] = isset( $data['melhor_horario']) ? $data['melhor_horario'] : 'Q';
             $data_contato['contato'] = ($data['contato_tipo_id'] != 1) ? app_retorna_numeros($data['contato']) : mb_strtolower($data['contato'], 'UTF-8');
-
+            $data_contato['data_contato'] = isset( $data['data_contato']) ? app_dateonly_mask_to_mysql($data['data_contato']) : null;
 
             $contato_id = $this->contato->insert($data_contato, TRUE);
 
@@ -193,7 +196,7 @@ Class Cliente_Contato_Model extends MY_Model
             $data_cliente_contato['decisor'] = isset($data['decisor']) ? $data['decisor'] :0  ;
 
             return $this->insert($data_cliente_contato, TRUE);
-        }else{
+        } else {
             return FALSE;
         }
     }

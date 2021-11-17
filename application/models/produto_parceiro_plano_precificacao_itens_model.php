@@ -313,9 +313,9 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                                 }
 
                             $calculo = $this->getValorTabelaFixa($valor, 'original', $valor_nota, $comissao, $data_nascimento, $data_inicio_vigencia, $data_fim_vigencia, $garantia_fabricante);
-                            $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, $calculo['unidade']);
+                            $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, issetor($calculo['unidade'], null));
 
-                            $calculo = $calculo['valor'] * $quantidade;
+                            $calculo = issetor($calculo['valor'], 0) * $quantidade;
 
                         } elseif( $produto_slug == 'generico' ) {
 

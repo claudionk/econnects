@@ -366,7 +366,6 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
 
         $validacoes = array();
 
-        //print_r($campos);exit;
         if($campos){
             foreach ($campos as $index => $campo) {
 

@@ -33,13 +33,6 @@ class Cotacao extends Admin_Controller
         //Inicializa tabela
         $config['base_url'] = base_url("$this->controller_uri/index");
         $config['uri_segment'] = 4;
-        $config['total_rows'] =  $this->current_model
-            ->with_clientes_contatos()
-            ->filterFromInput()
-            ->with_produto_parceiro()
-            ->filterByStatus(1)
-            ->get_total();
-
         $config['per_page'] = 10;
 
         $this->pagination->initialize($config);
@@ -50,9 +43,11 @@ class Cotacao extends Admin_Controller
             ->filterByStatus(1)
             ->filterFromInput()
             ->limit($config['per_page'], $offset)
-            ->with_clientes_contatos()
+            #->with_clientes_contatos()
             ->with_produto_parceiro()
+            ->order_by("cotacao.criacao", "desc")
             ->get_all();
+        $config['total_rows'] = count($data['rows']);
 
         $data['primary_key'] = $this->current_model->primary_key();
         $data["pagination_links"] = $this->pagination->create_links();

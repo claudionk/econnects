@@ -235,7 +235,8 @@ class Comunicacao
         $text                    = html_entity_decode(strip_tags($mensagem['mensagem']));
         $text                    = preg_replace("/\r|\t|\n/", "", $text);
         $config                  = array(
-            'urlCurl'    => 'https://api.infobip.com/sms/1/text/single',
+            #'urlCurl'    => 'https://api.infobip.com/sms/1/text/single',
+            'urlCurl'    => 'https://api.messaging-service.com/sms/1/text/single',
             'methodCurl' => 'POST',
             'fieldsCurl' => "{  \n   \"from\":\"SIS\",\n   \"to\":\"{$mensagem['mensagem_to']}\",\n   \"text\":\"{$text}\"\n}",
             'headerCurl' => array(

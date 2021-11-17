@@ -12,7 +12,7 @@ class Short_url
     {
 
         $httpHeader = array(
-            "Authorization: Basic dXN1X3Npc3RlbWE6c2lzMTIz", // id_usuario = 10058
+            "Authorization: Basic dXN1X3Npc3RlbWE6M2I4YmE1NmQ3NGNmY2M1NWNhMTBjNDZhYWI1MWIwNDkwYjVmMmZkZA==", // id_usuario = 10058
             "cache-control: no-cache",
         );
 

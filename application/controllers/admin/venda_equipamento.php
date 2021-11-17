@@ -358,7 +358,7 @@ class Venda_Equipamento extends Admin_Controller{
 
         $cotacao = $this->session->userdata("cotacao_{$produto_parceiro_id}");
 
-        $data['nome_segurado'] = $cotacao['nome'];
+        $data['nome_segurado'] = issetor($cotacao['nome'], '');
 
         /**
         * Busca Planos e coberturas
@@ -366,19 +366,17 @@ class Venda_Equipamento extends Admin_Controller{
 
         if($_POST){
             //print_r($_POST);exit;
-            $validacao = $this->setValidacoesCampos($produto_parceiro_id, 'salvar_cotacao');
-
+            $validacao = $this->campo->setValidacoesCampos($produto_parceiro_id, 'salvar_cotacao');
 
             $validacao[] = array(
-            'field' => "cliente_terceiro[0]",
-            'label' => "Cliente / terceiro",
-            'rules' => 'trim|required',
-            'groups' => 'salvar_cotacao'
+                'field' => "cliente_terceiro[0]",
+                'label' => "Cliente / terceiro",
+                'rules' => 'trim|required',
+                'groups' => 'salvar_cotacao'
             );
 
             $contato_tipo = $this->input->post("cliente_terceiro");
             if(isset($contato_tipo[0]) && $contato_tipo[0] == 1) {
-
                 $validacao[] = array(
                     'field' => "contato_nome[0]",
                     'label' => "Nome",
@@ -396,6 +394,12 @@ class Venda_Equipamento extends Admin_Controller{
                 'field' => "contato[0]",
                 'label' => "Contato",
                 'rules' => 'trim|required',
+                'groups' => 'salvar_cotacao'
+            );
+            $validacao[] = array(
+                'field' => "data_contato[0]",
+                'label' => "Data",
+                'rules' => 'trim|required|validate_data',
                 'groups' => 'salvar_cotacao'
             );
             $validacao[] = array(
@@ -435,7 +439,6 @@ class Venda_Equipamento extends Admin_Controller{
                 $this->limpa_cotacao($produto_parceiro_id);
                 redirect("$this->controller_uri/index");
             }
-
         }
 
         $data['produto_parceiro_id'] = $produto_parceiro_id;
@@ -1098,6 +1101,7 @@ class Venda_Equipamento extends Admin_Controller{
             $contato = (isset($this->input->post('contato')[$i])) ? $this->input->post('contato')[$i] : '';
             $contato_tipo_id = (isset($this->input->post('contato_tipo_id')[$i])) ? $this->input->post('contato_tipo_id')[$i] : '';
             $melhor_horario = (isset($this->input->post('melhor_horario')[$i])) ? $this->input->post('melhor_horario')[$i] : 'Q';
+            $contato_data = (isset($this->input->post('data_contato')[$i])) ? $this->input->post('data_contato')[$i] : null;
 
             if($contato && $contato_tipo_id) {
                 $data_contato = array();
@@ -1109,9 +1113,10 @@ class Venda_Equipamento extends Admin_Controller{
                 $data_contato['contato_tipo_id'] = $contato_tipo_id;
                 $data_contato['cliente_terceiro'] = $cliente_terceiro;
                 $data_contato['melhor_horario'] = $melhor_horario;
+                $data_contato['data_contato'] = $contato_data;
                 //                $data_contato['data_nascimento'] = app_dateonly_mask_to_mysql($cotacao['data_nascimento']);
-                $this->cliente_contato->insert_not_exist_contato($data_contato);
-                //  print_r($data_contato);
+
+                $this->cliente_contato->insert_not_exist_contato($data_contato, true);
             }
         }
 

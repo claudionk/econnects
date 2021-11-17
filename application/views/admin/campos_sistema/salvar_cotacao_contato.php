@@ -8,33 +8,26 @@ if($_POST)
         'N' => 'NOITE',
         'C' => 'COMERCIAL',
         'Q' => 'QUALQUER HORARIO'
-
     );
 
     if(!isset($row['quantidade_contatos'])){
         $row['quantidade_contatos'] = 1;
 
         $i=0;
-        if((isset($cotacao)) && ($cotacao['email'])){
+        if((isset($cotacao['email'])) && ($cotacao['email'])){
             $row['cliente_terceiro'][$i] = 0;
             $row['contato_tipo_id'][$i] = 1;
             $row['contato'][$i] = $cotacao['email'];
             $i++;
         }
-        if((isset($cotacao)) && ($cotacao['telefone'])){
+        if((isset($cotacao['telefone'])) && ($cotacao['telefone'])){
             $row['cliente_terceiro'][$i] = 0;
             $row['contato_tipo_id'][$i] = 2;
             $row['contato'][$i] = $cotacao['telefone'];
             $i++;
         }
         $row['quantidade_contatos'] = $i;
-
-
-
-
-
     }
-
 
 ?>
 <br />
@@ -45,7 +38,7 @@ if($_POST)
 <?php for ($i = 0; $i < $row['quantidade_contatos']; $i++) : ?>
 <div id="contato" class="contato contato_add_form form-group card card-underline" style="font-size: 12px">
        <?php $field_name = "cliente_terceiro[$i]"; ?>
-        <div class="col-md-2<?php echo (app_is_form_error($field_name)) ? ' has-error' : ''; ?>">
+        <div class="col-md-1<?php echo (app_is_form_error($field_name)) ? ' has-error' : ''; ?>">
             <label class="radio-inline radio-styled radio-primary">
                 <input name="<?php echo $field_name;?>" value="0" type="radio"
                     <?php if(isset($row['cliente_terceiro'])){if($row['cliente_terceiro'] == 0) {echo " checked ";};}; ?>
@@ -102,8 +95,13 @@ if($_POST)
             <input class="form-control" placeholder="Contato" id="contato_<?php echo $i; ?>" name="<?php echo $field_name;?>" type="text" value="<?php if(isset($row['contato'][$i])){ echo $row['contato'][$i]; } ?>" />
             <?php echo app_get_form_error($field_name); ?>
         </div>
+        <?php $field_name = "data_contato[$i]"; ?>
+        <div class="col-md-2<?php echo (app_is_form_error($field_name)) ? ' has-error' : ''; ?>">
+            <input class="form-control inputmask-date" placeholder="__/__/____" id="data_contato_<?php echo $i; ?>" name="<?php echo $field_name;?>" type="text" value="<?php if(isset($row['data_contato'][$i])){ echo app_date_mysql_to_mask($row['data_contato'][$i]); } ?>" />
+            <?php echo app_get_form_error($field_name); ?>
+        </div>
         <?php $field_name = "melhor_horario[$i]"; ?>
-        <div class="col-md-3<?php echo (app_is_form_error($field_name)) ? ' has-error' : ''; ?>">
+        <div class="col-md-2<?php echo (app_is_form_error($field_name)) ? ' has-error' : ''; ?>">
             <select class="form-control melhor_horario" name="<?php echo $field_name;?>" id="melhor_horario_<?php echo $i?>">
                 <option name="" value="">Melhor Horário</option>
                 <?php

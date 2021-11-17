@@ -349,8 +349,6 @@ class Venda_Generico extends Admin_Controller
             //print_r($_POST);exit;
             $validacao = array();
             foreach ($data['campos_salvar_cotacao'] as $campo) {
-
-
                 $validacao[] = array(
                     'field' => "{$campo['campo_nome_banco']}",
                     'label' => "{$campo['campo_nome']}",
@@ -389,6 +387,12 @@ class Venda_Generico extends Admin_Controller
                 'groups' => 'salvar_cotacao'
             );
             $validacao[] = array(
+                'field' => "data_contato[0]",
+                'label' => "Data",
+                'rules' => 'trim|required|validate_data',
+                'groups' => 'salvar_cotacao'
+            );
+            $validacao[] = array(
                 'field' => "melhor_horario[0]",
                 'label' => "Melhor Horario",
                 'rules' => 'trim|required',
@@ -409,8 +413,6 @@ class Venda_Generico extends Admin_Controller
                         'groups' => 'salvar_cotacao'
                     );
                 }
-
-
             }
 
             //print_r($data['campos_salvar_cotacao']);exit;

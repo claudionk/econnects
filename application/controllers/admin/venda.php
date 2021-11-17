@@ -526,6 +526,12 @@ class Venda extends Admin_Controller {
         'groups' => 'salvar_cotacao'
       );
       $validacao[] = array(
+        'field' => "data_contato[0]",
+        'label' => "Data",
+        'rules' => 'trim|required|validate_data',
+        'groups' => 'salvar_cotacao'
+      );
+      $validacao[] = array(
         'field' => "melhor_horario[0]",
         'label' => "Melhor Horario",
         'rules' => 'trim|required',
