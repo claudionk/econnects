@@ -280,7 +280,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             'data_inicio_vigencia' => $data_inicio_vigencia,
             'data_fim_vigencia' => $data_fim_vigencia,
             'comissao' => $comissao,
-            'data_adesao' => $cotacao['data_adesao'],
+            'data_adesao' => emptyor($cotacao['data_adesao'], $cotacao['nota_fiscal_data']),
             'garantia_fabricante' => $cotacao['garantia_fabricante'],
             'cotacao' => $cotacao,
         ];
