@@ -1339,6 +1339,8 @@ Class Integracao_Model extends MY_Model
             }
 
             $num_linha = 1;
+
+            $auxData = array();
             foreach ($data as $index => $datum)
             {
                 // gera log
@@ -1355,10 +1357,14 @@ Class Integracao_Model extends MY_Model
                 {
                     if ( function_exists($integracao['before_detail']) )
                     {
-                        $callFuncReturn = call_user_func($integracao['before_detail'], $integracao_log_detalhe_id, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
+                        $callFuncReturn = call_user_func($integracao['before_detail'], $integracao_log_detalhe_id, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null, 'auxData' => $auxData));
 
                         if ( !empty($callFuncReturn) )
                         {
+                            if($callFuncReturn->auxData){
+                                $auxData = $callFuncReturn->auxData;
+                            }
+                            
                             if ( empty($callFuncReturn->status) )
                             {
                                 // seta para erro
