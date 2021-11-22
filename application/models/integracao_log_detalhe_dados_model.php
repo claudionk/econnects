@@ -56,4 +56,23 @@ Class Integracao_Log_Detalhe_Dados_Model extends MY_Model
         return $this;
     }
 
+    public function get_by_integracao_log_id($integracao_log_id){
+        $SQL = "SELECT
+            *
+        FROM
+            integracao_log_detalhe AS ild
+
+        INNER JOIN
+            integracao_log_detalhe_dados AS ildd
+            ON ildd.integracao_log_detalhe_id = ild.integracao_log_detalhe_id
+            AND ildd.deletado = 0
+            
+        WHERE 1 = 1
+            AND ild.deletado = 0
+            AND ild.integracao_log_id = $integracao_log_id";
+
+        $query = $this->_database->query($SQL);
+        return $query->result_array();
+    }
+
 }
