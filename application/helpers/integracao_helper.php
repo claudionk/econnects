@@ -2490,22 +2490,19 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
         if (in_array($d['cod_tipo_mov'], [2, 7, 9, 146,'P']) ) {
             $valor *= -1;
         }
-
+        
+        $integracao_log_detalhe_dados = array();
+        $integracao_log_detalhe_dados['sinistro_id']                = $d["cod_sinistro"];
+        $integracao_log_detalhe_dados['sinistro_id_exp']            = $d["id_exp"];
+        $integracao_log_detalhe_dados['sinistro_tipo_expediente']   = $d["tipo_expediente"];
+        $integracao_log_detalhe_dados['sinistro_vcmotivolog']       = $d["desc_expediente"];        
+        $integracao_log_detalhe_dados['sinistro_data_envio']        = date('Y-m-d H:i:s');
+        $integracao_log_detalhe_dados['sinistro_valor']             = $valor;
+        $integracao_log_detalhe_dados['integracao_log_detalhe_id']  = $integracao_log_detalhe_id;
+        
         $CI =& get_instance();
-        $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, id_sinistro, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
-            VALUES ({$d['id_exp']}, '{$d['cod_sinistro']}', NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$valor} )");
-        $id_exp_hist_carga = $CI->db->insert_id();
-
-        if ($d['tipo_expediente'] == 'ABE') {
-            $q = $CI->db->query("SELECT id_exp FROM sissolucoes1.sis_exp_complemento WHERE id_exp = {$d['id_exp']}");
-            if (empty($q->num_rows())) {
-                $CI->db->query("INSERT INTO sissolucoes1.sis_exp_complemento (id_exp, id_sinistro_generali, id_usuario, dt_log, vcmotivolog) VALUES ({$d['id_exp']}, '{$d['cod_sinistro']}', 10058, NOW(), '{$d['desc_expediente']}') ");
-            } else {
-                $CI->db->query("UPDATE sissolucoes1.sis_exp_complemento SET id_sinistro_generali = '{$d['cod_sinistro']}', id_usuario = 10058, dt_log = NOW(), vcmotivolog = '{$d['desc_expediente']}' WHERE id_exp = {$d['id_exp']}");
-            }
-        }
-
-        return $id_exp_hist_carga;
+        $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
+        $CI->integracao_log_detalhe_dados->insLogDetalheDados($integracao_log_detalhe_dados);
     }
 }
 if ( ! function_exists('app_integracao_gera_sinistro')) {
@@ -5272,5 +5269,44 @@ if ( ! function_exists('app_integracao_mapfre_lasa_final'))
         }
  
         return $response;
+    }
+
+    if ( ! function_exists('app_integracao_generali_sinistro_after_execute')) {
+        function app_integracao_generali_sinistro_after_execute($formato, $dados = array())
+        {
+            $CI =& get_instance();
+            $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
+            $a_integracao_log_detalhe_dados = $CI->integracao_log_detalhe_dados->get_by_integracao_log_id($dados["registro"]["integracao_log_id"]);       
+
+            foreach($a_integracao_log_detalhe_dados as $integracao_log_detalhe_dados){
+
+                $sinistro_id = $integracao_log_detalhe_dados['sinistro_id'];
+                $sinistro_id_exp = $integracao_log_detalhe_dados['sinistro_id_exp'];
+                $sinistro_tipo_expediente = $integracao_log_detalhe_dados['sinistro_tipo_expediente'];
+                $sinistro_vcmotivolog = $integracao_log_detalhe_dados['sinistro_vcmotivolog'];
+                $sinistro_data_envio = $integracao_log_detalhe_dados['sinistro_data_envio'];
+                $sinistro_valor = $integracao_log_detalhe_dados['sinistro_valor'];
+                $integracao_log_detalhe_id = $integracao_log_detalhe_dados['integracao_log_detalhe_id'];
+
+                $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, id_sinistro, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
+                VALUES ($sinistro_id_exp, '$sinistro_id', '$sinistro_data_envio', '$sinistro_tipo_expediente', '$integracao_log_detalhe_id', $sinistro_valor )");
+            
+        
+                if ($sinistro_tipo_expediente == 'ABE') {
+                    $q = $CI->db->query("SELECT id_exp FROM sissolucoes1.sis_exp_complemento WHERE id_exp = $sinistro_id_exp");
+                    if (empty($q->num_rows())) {
+                        $CI->db->query("INSERT INTO sissolucoes1.sis_exp_complemento (id_exp, id_sinistro_generali, id_usuario, dt_log, vcmotivolog) VALUES ($sinistro_id_exp, '$sinistro_id', 10058, '$sinistro_data_envio', '$sinistro_vcmotivolog') ");
+                    } else {
+                        $CI->db->query("UPDATE sissolucoes1.sis_exp_complemento SET id_sinistro_generali = '$sinistro_id', id_usuario = 10058, dt_log = '$sinistro_data_envio', vcmotivolog = '$sinistro_vcmotivolog' WHERE id_exp = $sinistro_id_exp");
+                    }
+                }
+            }
+
+            
+            
+            
+    
+            
+        }
     }
 }
