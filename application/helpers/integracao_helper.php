@@ -5274,7 +5274,6 @@ if ( ! function_exists('app_integracao_mapfre_lasa_final'))
     if ( ! function_exists('app_integracao_generali_sinistro_after_execute')) {
         function app_integracao_generali_sinistro_after_execute($formato, $dados = array())
         {
-           print_r(func_get_args());
             $CI =& get_instance();
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
             $a_integracao_log_detalhe_dados = $CI->integracao_log_detalhe_dados->get_by_integracao_log_id($dados["registro"]["integracao_log_id"]);       
