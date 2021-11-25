@@ -2505,7 +2505,7 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
         $integracao_log_detalhe_dados['sinistro_vcmotivolog']       = $d["desc_expediente"];
         $integracao_log_detalhe_dados['sinistro_data_envio']        = date('Y-m-d H:i:s');
         $integracao_log_detalhe_dados['sinistro_valor']             = $valor;
-        $integracao_log_detalhe_dados['sinistro_cod_tipo_mov']      = $d['cod_tipo_mov'];
+        $integracao_log_detalhe_dados['sinistro_cod_tipo_mov']      = $d['cod_mov'];
         $integracao_log_detalhe_dados['integracao_log_detalhe_id']  = $integracao_log_detalhe_id;
         
         $CI =& get_instance();
