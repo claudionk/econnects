@@ -1454,10 +1454,10 @@ Class Integracao_Model extends MY_Model
 
                         if ( !empty($callFuncReturn) )
                         {
-                            if($callFuncReturn->auxData){
+                            if ( !empty($callFuncReturn->auxData) ) {
                                 $auxData = $callFuncReturn->auxData;
                             }
-                            
+
                             if ( empty($callFuncReturn->status) )
                             {
                                 // seta para erro
