@@ -58,7 +58,7 @@ Class Integracao_Log_Detalhe_Dados_Model extends MY_Model
 
     public function get_by_integracao_log_id($integracao_log_id){
         $SQL = "SELECT
-            *
+            ildd.*
         FROM
             integracao_log_detalhe AS ild
 
