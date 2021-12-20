@@ -306,11 +306,18 @@ class Pagmax_Model extends MY_Model
             $Response = json_decode($Response);
             error_log(print_r($Response, true) . "\n", 3, "/var/log/httpd/myapp.log");
 
-            if (isset($Response->{"Code"}) || sizeof($Response) == 0 || (isset($Response->{"status"}) && empty($Response->{"status"}))) {
+            if (isset($Response->{"Code"}) || sizeof($Response) == 0 || (isset($Response->{"status"}) && empty($Response->{"status"})) 
+                // valida retorno de recorrencia (Abortada/negada)
+                || ( isset($Response->Payment->Status) && in_array($Response->Payment->Status, [13]))
+            ) {
                 $tipo_mensagem = "msg_erro";
 
                 if (isset($Response->{"error"}) && isset($Response->{"error"}->{"Code"})) {
                     $msgErro = issetor($Response->{"error"}->{"Message"}, "Falha na transacao") . " (Erro " . $Response->{"error"}->{"Code"} . ")";
+                }elseif (isset($Response["error"]) && isset($Response["error"]["Code"])) {
+                    $msgErro = issetor( $Response["error"]["Message"], "Falha na transacao") ." (Erro " . $Response["error"]["Code"] . ")";
+                } elseif ( isset($Response->Payment->Status->Code) && isset($Response->Payment->Status->Message) ) {
+                    $msgErro = $Response->Payment->Status->Message ." (Code " . $Response->Payment->Status->Code . ")";
                 } else {
                     if (isset($Response[0]->{"Code"}) && isset($Response[0]->{"Message"})) {
                         $msgErro = $Response[0]->{"Message"} . " (Code " . $Response[0]->{"Code"} . ")";
