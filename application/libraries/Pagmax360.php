@@ -78,7 +78,7 @@ class Pagmax360
 
         // Loga as informações no banco de dados
         $JsonObject = json_decode($Json);
-        $logPagmax  = $this->CI->db->query("call sp_loga_transacao_pagmax( $merchantId, '$Url', '$Json', '$Response', '$pedido_id' )");
+        $logPagmax  = $this->CI->db->query("call sp_loga_transacao_pagmax( $merchantId, '$Url', '$Json', '". addslashes($Response) ."', '$pedido_id' )");
 
         return $Response;
     }
@@ -132,7 +132,7 @@ class Pagmax360
 
         // Loga as informações no banco de dados
         $JsonObject = json_decode($Json);
-        $logPagmax  = $this->CI->db->query("call sp_loga_transacao_pagmax( $merchantId, '$Url', NULL, '$Response', '$pedido_id' )");
+        $logPagmax  = $this->CI->db->query("call sp_loga_transacao_pagmax( $merchantId, '$Url', NULL, '". addslashes($Response) ."', '$pedido_id' )");
 
         return $Response;
     }
@@ -183,7 +183,7 @@ class Pagmax360
 
         // Loga as informações no banco de dados
         $JsonObject = json_decode($Response);
-        $logPagmax  = $this->CI->db->query("call sp_loga_transacao_pagmax( $merchantId, '$Url', NULL, '$Response', '$pedido_id' )");
+        $logPagmax  = $this->CI->db->query("call sp_loga_transacao_pagmax( $merchantId, '$Url', NULL, '". addslashes($Response) ."', '$pedido_id' )");
 
         return $Response;
     }
@@ -233,7 +233,7 @@ class Pagmax360
 
         // Loga as informações no banco de dados
         $JsonObject = json_decode($Response);
-        $logPagmax  = $this->CI->db->query("call sp_loga_transacao_pagmax( $merchantId, '$Url', NULL, '$Response', '$pedido_id' )");
+        $logPagmax  = $this->CI->db->query("call sp_loga_transacao_pagmax( $merchantId, '$Url', NULL, '". addslashes($Response) ."', '$pedido_id' )");
 
         return $Response;
     }
@@ -286,7 +286,7 @@ class Pagmax360
 
         // Loga as informações no banco de dados
         $JsonObject = json_decode($Response);
-        $logPagmax  = $this->CI->db->query("call sp_loga_transacao_pagmax( $merchantId, '$Url', NULL, '$Response', '$pedido_id' )");
+        $logPagmax  = $this->CI->db->query("call sp_loga_transacao_pagmax( $merchantId, '$Url', NULL, '". addslashes($Response) ."', '$pedido_id' )");
 
         return $Response;
     }
@@ -332,7 +332,7 @@ class Pagmax360
 
         // Loga as informações no banco de dados
         $JsonObject = json_decode($Response);
-        $logPagmax  = $this->CI->db->query("call sp_loga_transacao_pagmax( $merchantId, '$Url', NULL, '$Response', '$pedido_id' )");
+        $logPagmax  = $this->CI->db->query("call sp_loga_transacao_pagmax( $merchantId, '$Url', NULL, '". addslashes($Response) ."', '$pedido_id' )");
 
         return $Response;
     }
