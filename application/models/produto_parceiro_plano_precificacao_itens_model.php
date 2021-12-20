@@ -235,6 +235,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
     public function getValoresPlano( $data_preco )
     {
         $produto_slug = $data_preco['produto_slug'];
+        $parceiro_id = $data_preco['parceiro_id'];
         $produto_parceiro_id = $data_preco['produto_parceiro_id'];
         $produto_parceiro_plano_id = $data_preco['produto_parceiro_plano_id'];
         $equipamento_marca_id = $data_preco['equipamento_marca_id'];
@@ -273,7 +274,8 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                 ->with_produto_parceiro()
                 ->with_produto()
                 ->get_many_by(array(
-                    'produto_parceiro.venda_agrupada' => 1
+                    'produto_parceiro.venda_agrupada' => 1,
+                    'parceiro_id' => $parceiro_id
                 ));
         }else{
             $arrPlanos = $this->plano->order_by('produto_parceiro_plano.ordem', 'asc')->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
