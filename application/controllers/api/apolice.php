@@ -193,7 +193,11 @@ class Apolice extends CI_Controller {
             $apolice_id = null;
             if( isset( $GET["apolice_id"] ) ) {
                 $apolice_id = $GET["apolice_id"];
-            } 
+            }
+
+            if( isset( $GET["cotacao_id"] ) ) {
+                $cotacao_id = $GET["cotacao_id"];
+            }
 
             $num_apolice = null;
             if( isset( $GET["num_apolice"] ) ) {
@@ -252,6 +256,7 @@ class Apolice extends CI_Controller {
             $retorno = null;
             $params = array();
             $params["apolice_id"] = $apolice_id;
+            $params["cotacao_id"] = $cotacao_id;
             $params["num_apolice"] = $num_apolice;
             $params["documento"] = $documento;
             $params["pedido_id"] = $pedido_id;
@@ -263,8 +268,8 @@ class Apolice extends CI_Controller {
             $params["days_ago"] = $days_ago;
             $params["data_inicio_proc"] = $data_inicio_proc;
             $params["data_fim_proc"] = $data_fim_proc;
-
-            if($apolice_id || $num_apolice || $documento || $pedido_id || $apolice_status || $days_ago || $data_inicio || $data_fim || $data_inicio_proc || $data_fim_proc ) {
+    
+            if($apolice_id || $cotacao_id || $num_apolice || $documento || $pedido_id || $apolice_status || $days_ago || $data_inicio || $data_fim || $data_inicio_proc || $data_fim_proc) {
                 $pedidos = $this->pedido
                 ->with_pedido_status()
                 // ->with_apolice()
@@ -346,20 +351,20 @@ class Apolice extends CI_Controller {
             } else if (isset($POST["num_apolice"])) {
 
                 $apolice = $this->apolice->get_by(array("num_apolice" => $POST["num_apolice"], "deletado" => 0));
-                
+
                 if (!empty($apolice)) {
                     $apolice_id = $apolice["apolice_id"];
                 } else {
                     throw new Exception("Apólice não encontrada para o num_apolice: ".$POST["num_apolice"]);
                 }
-                
+
             } else {
                 throw new Exception("É obrigatório um dos campos: apolice_id ou num_apolice");
             }
 
             $pedido = $this->pedido->with_apolice()->filter_by_apolice($apolice_id)->get_all();
             if(!$pedido) {
-                throw new Exception("Apólice não encontrada");                
+                throw new Exception("Apólice não encontrada");
             }
 
             return [ 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
@@ -368,7 +373,6 @@ class Apolice extends CI_Controller {
             die( json_encode( array( "status" => false, "message" => $ex->getMessage() ) ) );
         }
 
-        
     }
 
     private function __validarDadosEntrada($POST = []){
@@ -376,7 +380,7 @@ class Apolice extends CI_Controller {
     }
 
     public function cancelar() {
-        
+
         $this->checkKey();
 
         $validacao = $this->__validarDadosEntrada();
@@ -542,6 +546,14 @@ class Apolice extends CI_Controller {
         die( json_encode($result) );
     }
 
+    private function parcelaReturn ($apolice_id, $msg) {
+        return array(
+            "status" => false,
+            "message" => $msg,
+            "apolice_id" => $apolice_id
+        );
+    }
+
     public function onlyCancelados(){
 
     }
@@ -572,7 +584,7 @@ class Apolice extends CI_Controller {
 
             die( json_encode( array( 
                 "status" => true, 
-                "message" => "Apólice cancelada com sucesso",
+                "message" => "Certificado gerado com sucesso",
                 "pdf" => base64_encode($pdf_content),
             ) ) );
         }

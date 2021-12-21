@@ -467,7 +467,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                                 ->filter_by_tipo_equipamento("EQUIPAMENTO")
                                 ->filter_by_vigencia_equipamento($data_adesao)
                                 ->with_validacao_marca($equipamento_marca_id);
-                                
 
                             // Caso tenha um DE x PARA
                             if ( !empty($equipamento_de_para) ) {
@@ -491,7 +490,6 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                                     $try = true;
                                 }
                             }
-                            
                         }
 
                         $dataTabelaFixa = new stdClass();

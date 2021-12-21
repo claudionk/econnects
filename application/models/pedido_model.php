@@ -231,6 +231,9 @@ class Pedido_Model extends MY_Model
                         case "apolice_id":
                             $this->_database->where('apolice.apolice_id', $value);
                             break;
+                        case "cotacao_id":
+                            $this->_database->where('pedido.cotacao_id', $value);
+                            break;
                         case "num_apolice":
                             $this->_database->where('apolice.num_apolice', $value);
                             break;
