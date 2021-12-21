@@ -70,29 +70,13 @@ class Campos extends CI_Controller {
         $slug = $GET["slug"];
       }
 
-      $planos = $this->produto_parceiro_plano->coreSelectPlanosProdutoParceiro( $produto_parceiro_id, $produto_parceiro_plano_id )->get_all_select();
-      $result = array();
-      
-      if( $planos ) {
-        //$produto_parceiro_id = $planos[0]["produto_parceiro_id"];
-        $produtos = $this->produto_parceiro->get_produtos_venda_admin( null, null, $produto_parceiro_id );
-        $produto_slug = $produtos[0]["slug"];
+      $filter = new stdClass();
+      $filter->slug = $slug;
+      $filter->produto_parceiro_plano_id = $produto_parceiro_plano_id;
+      $filter->produto_parceiro_id = $produto_parceiro_id;
 
-        $campos_tipo = $this->campo_tipo->coreSelecCampoTipo( $slug )->get_all_select();
-        $i = 0;
-        foreach ($campos_tipo as $index => $item) {
-          $campos = $this->produto_parceiro_campo->coreSelecCampoProdutoParceiro( $produto_parceiro_id, $item["campo_tipo_id"] )->get_all_select();
-          if( $campos ) {
-            if( $item["slug"] == "dados_passageiro" && $produto_slug != "seguro_viagem" ) {
-              $pula = null;
-            } else {
-              $result[$i] = $item;
-              $result[$i]["campos"] = $campos;
-              $i++;
-            }
-          }
-        }
-      }
+      $result = $this->produto_parceiro_plano->getCampos($filter);
+
       if( $result ) {
         die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
       } else {
