@@ -63,12 +63,16 @@ function buscaCep(cep, plano_id){
 
             if(json.success){
 
-                $("#plano_"+ plano_id +"_endereco_cidade").val(json.data.cidade.toUpperCase());
-                $("#plano_"+ plano_id +"_endereco_bairro").val(json.data.bairro.toUpperCase());
-                $("#plano_"+ plano_id +"_endereco_logradouro").val(json.data.tipo_logradouro.toUpperCase() + ' ' + json.data.logradouro.toUpperCase() );
-                $("#plano_"+ plano_id +"_endereco_estado").val(json.data.uf);
+                let aux = '';
+                if (plano_id){
+                    aux = 'plano_'+ plano_id +'_';
+                }
 
-                $("#plano_"+ plano_id +"_endereco_numero").focus();
+                $("#"+ aux +"endereco_cidade").val(json.data.cidade.toUpperCase());
+                $("#"+ aux +"endereco_bairro").val(json.data.bairro.toUpperCase());
+                $("#"+ aux +"endereco_logradouro").val(json.data.tipo_logradouro.toUpperCase() + ' ' + json.data.logradouro.toUpperCase() );
+                $("#"+ aux +"endereco_estado").val(json.data.uf);
+                $("#"+ aux +"endereco_numero").focus();
             }else {
 
                 alert('Não foi possivel obter informações do cep informado.');

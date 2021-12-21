@@ -265,6 +265,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $data_preco = [
             'cotacao_id' => $cotacao_id,
             'cotacao_aux_id' => $cotacao_aux_id,
+            'parceiro_id' => $parceiro_id,
             'valor_fixo' => $valor_fixo,
             'produto_slug' => $row['produto_slug'],
             'produto_parceiro_id' => $produto_parceiro_id,

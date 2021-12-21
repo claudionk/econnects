@@ -2497,14 +2497,15 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
         if (in_array($d['cod_tipo_mov'], [2, 7, 9, 146,'P']) ) {
             $valor *= -1;
         }
-        
+
         $integracao_log_detalhe_dados = array();
         $integracao_log_detalhe_dados['sinistro_id']                = $d["cod_sinistro"];
         $integracao_log_detalhe_dados['sinistro_id_exp']            = $d["id_exp"];
         $integracao_log_detalhe_dados['sinistro_tipo_expediente']   = $d["tipo_expediente"];
-        $integracao_log_detalhe_dados['sinistro_vcmotivolog']       = $d["desc_expediente"];        
+        $integracao_log_detalhe_dados['sinistro_vcmotivolog']       = $d["desc_expediente"];
         $integracao_log_detalhe_dados['sinistro_data_envio']        = date('Y-m-d H:i:s');
         $integracao_log_detalhe_dados['sinistro_valor']             = $valor;
+        $integracao_log_detalhe_dados['sinistro_cod_tipo_mov']      = $d['cod_mov'];
         $integracao_log_detalhe_dados['integracao_log_detalhe_id']  = $integracao_log_detalhe_id;
         
         $CI =& get_instance();
@@ -5230,38 +5231,38 @@ if ( ! function_exists('app_integracao_mapfre_lasa_final'))
 
             $acesso->apikey = $acessoResponse->apikey;
             $acesso->parceiro = $acessoResponse->parceiro;
-    
+
             // recupera as variaveis mais importantes
             $num_apolice    = $reg['num_apolice'];
             $cpf            = $reg['cpf'];
             $ean            = $reg['ean'];
-    
+
             $dados['registro']['produto_parceiro_id']       = $acesso->produto_parceiro_id;
             $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
             $dados['registro']['data_adesao']               = $dados['registro']['data_adesao_cancel'];
             $dados["registro"]['nome']                      = preg_replace('/\s+/', " ", $dados["registro"]['nome']); //Remover espaços duplos (Regra para nome do segurado splicitada pela MAPFRE)
             $eanErro = true;
             $eanErroMsg = "";
-    
+
             if(empty($reg['equipamento_nome'])){
-                
+
                 $integracaoFilter = new stdClass();
                 $integracaoFilter->lista_id = 4;
                 $integracaoFilter->codigo = $reg['id_departamento_categoria'];
-    
+
                 $equipamentoElegivelCategoria = $CI->equipamentos_elegiveis_categoria->getIntegracao($integracaoFilter);
                 if(!empty($equipamentoElegivelCategoria)){
                     $dados["registro"]['equipamento_nome'] = utf8_encode($equipamentoElegivelCategoria["nome"]);
                 }            
-    
+
             }
-    
+
             // validações iniciais
             $valid = new stdClass();
             $valid->status = true;
-    
+
             $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, true, $acesso);
-    
+
             // Só faz a emissão caso as regras sejam válidas e não tenha encontrado nenhuma apolice
             if($dados["registro"]["acao"] == 1){
                 $apolice = $CI->apolice->getApoliceByNumero($num_apolice, $acesso->parceiro_id);
@@ -5270,66 +5271,65 @@ if ( ! function_exists('app_integracao_mapfre_lasa_final'))
                     return $response;
                 }    
             }
-            
+
             // Campos para cotação
             $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id, 'GET', [], $acesso);
             if (empty($camposCotacao['status'])){
                 $response->msg[] = ['id' => -1, 'msg' => $camposCotacao['response'], 'slug' => "cotacao_campos"];
                 return $response;
             }
-    
+
             $camposCotacao = $camposCotacao['response'];
-              
+
             $aCampos_enriqueceCPF = array();
-    
+
             //Trecho que define se o nome do segurado será enriquecido pelo CPF no método 'app_integracao_valida_regras'   
             $aNome = explode(" ", $dados["registro"]['nome']); 
             if(sizeof($aNome) < 2){ //O nome deve ser completo, ou seja, devem haverer pelo menos dois nomes separados por espaço
                 $dados["registro"]['nome'] = "";
                 $aCampos_enriqueceCPF[] = "nome";
             }
-    
+
             //Se o CEP não for valido, irá enriquecer o campo no metodo 'app_integracao_valida_regras'  
             if(!app_validate_cep($dados["registro"]["endereco_cep"])){
                 $aCampos_enriqueceCPF[] = "endereco";
-                $aCampos_enriqueceCPF[] = "only_cep"; //Apenas o CEP deve ser enriquecido            
+                $aCampos_enriqueceCPF[] = "only_cep"; //Apenas o CEP deve ser enriquecido
             }
-    
+
             if(empty($aCampos_enriqueceCPF)){
                 $mixedEnriqueceCPF = false; //O attr false indica que não deve ser enriquecido
             }else{
                 $mixedEnriqueceCPF = $aCampos_enriqueceCPF; //O attr como array determina a lista de campos que serão enriquecidos
-            }        
-            
+            }
+
             $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, $mixedEnriqueceCPF, $acesso);
             // echo "<pre>";print_r($validaRegra);echo "</pre>";die();
-    
+
             if (!empty($validaRegra->status)) {
-    
+
                 $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
                 $dados['registro']['fields'] = $validaRegra->fields;
-    
+
                 $emissao = app_integracao_emissao($formato, $dados, $acesso);
-    
+
                 if (empty($emissao->status)) {
-    
+
                     if ( !empty($emissao->msg) ) {
-    
+
                         if ( !is_array($emissao->msg) ) {
                             $response->msg[] = $emissao->msg;
                         } else {
                             $response->msg = $emissao->msg;
                         }
-    
+
                     } else {
                         $response->msg = $emissao->errors;
                     }
-    
+
                 } else {
                     $response->status = true;
-                }            
-                
-    
+                }
+
             } else {
                 if (!empty($response->msg)) {
                     $response->msg = array_merge($validaRegra->errors, $response->msg);
@@ -5348,7 +5348,7 @@ if ( ! function_exists('app_integracao_mapfre_lasa_final'))
         {
             $CI =& get_instance();
             $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
-            $a_integracao_log_detalhe_dados = $CI->integracao_log_detalhe_dados->get_by_integracao_log_id($dados["registro"]["integracao_log_id"]);       
+            $a_integracao_log_detalhe_dados = $CI->integracao_log_detalhe_dados->get_by_integracao_log_id($dados["registro"]["integracao_log_id"]);
 
             foreach($a_integracao_log_detalhe_dados as $integracao_log_detalhe_dados){
 
@@ -5358,12 +5358,12 @@ if ( ! function_exists('app_integracao_mapfre_lasa_final'))
                 $sinistro_vcmotivolog = $integracao_log_detalhe_dados['sinistro_vcmotivolog'];
                 $sinistro_data_envio = $integracao_log_detalhe_dados['sinistro_data_envio'];
                 $sinistro_valor = $integracao_log_detalhe_dados['sinistro_valor'];
+                $sinistro_cod_tipo_mov = $integracao_log_detalhe_dados['sinistro_cod_tipo_mov'];
                 $integracao_log_detalhe_id = $integracao_log_detalhe_dados['integracao_log_detalhe_id'];
 
-                $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, id_sinistro, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
-                VALUES ($sinistro_id_exp, '$sinistro_id', '$sinistro_data_envio', '$sinistro_tipo_expediente', '$integracao_log_detalhe_id', $sinistro_valor )");
-            
-        
+                $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, id_sinistro, data_envio, tipo_expediente, id_controle_arquivo_registros, valor, cod_mov_arquivo_registros) 
+                VALUES ($sinistro_id_exp, '$sinistro_id', '$sinistro_data_envio', '$sinistro_tipo_expediente', '$integracao_log_detalhe_id', $sinistro_valor, $sinistro_cod_tipo_mov)");
+
                 if ($sinistro_tipo_expediente == 'ABE') {
                     $q = $CI->db->query("SELECT id_exp FROM sissolucoes1.sis_exp_complemento WHERE id_exp = $sinistro_id_exp");
                     if (empty($q->num_rows())) {
@@ -5373,12 +5373,7 @@ if ( ! function_exists('app_integracao_mapfre_lasa_final'))
                     }
                 }
             }
-
-            
-            
-            
-    
-            
         }
     }
+
 }

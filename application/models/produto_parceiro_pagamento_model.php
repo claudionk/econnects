@@ -210,6 +210,8 @@ class Produto_Parceiro_Pagamento_Model extends MY_Model
             $dia_vencimento = date('d');
         }
 
+        $dia_vencimento = str_pad($dia_vencimento, 2, "0", STR_PAD_LEFT);
+
         if ($forma_pagamento_tipo_id == $this->config->item("FORMA_PAGAMENTO_CARTAO_CREDITO") ) {
 
             /*verifica se é uma configuracao de pagamento recorrente */

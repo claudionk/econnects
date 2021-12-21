@@ -291,6 +291,7 @@ class Venda_Generico extends Admin_Controller
             ->css(app_assets_url('modulos/venda/generico/css/select2.css', 'admin'))
             ->js(app_assets_url('modulos/venda/generico/js/base.js', 'admin'))
             ->js(app_assets_url('modulos/venda/generico/js/formulario.js', 'admin'))
+            ->js(app_assets_url('modulos/venda/generico/js/dados_busca_cep.js', 'admin'))
             ->load("admin/layouts/{$this->layout}", $view, $data );
     }
 

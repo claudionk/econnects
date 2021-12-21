@@ -220,7 +220,6 @@ class Apolice_Model extends MY_Model
         }
 
         return $apolice_id;
-
     }
 
     public function concluiApolice($pedido, $apolice_id, $produto_parceiro_plano_id)
@@ -2309,13 +2308,9 @@ class Apolice_Model extends MY_Model
                 'content' => $vigenciaContent,
                 'isLista' => $isVigenciaLista
                 ),
-                true);
-        
+            true);
         }
 
-
-        
-      
         $data_template['premio']    = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/premio", array('premio_liquido' => $apolice['valor_premio_net'], 'premio_total' => $apolice['valor_premio_total']), true);
         $data_template['pagamento'] = $this->load->view("admin/venda/{$apolice['produto_slug']}/certificado/pagamento", array('pagamento' => $pagamento), true);
 
