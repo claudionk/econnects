@@ -116,4 +116,18 @@ class Acesso extends CI_Controller {
         $this->index(['email' => $email, 'senha' => $senha, 'forceEmail' => 'yes']);
     }
 
+    public function createURLAcessoExterno(){
+        $this->load->model( "usuario_webservice_model", "webservice" );
+        $webservice = $this->webservice->checkKeyExpiration( $_SERVER["HTTP_APIKEY"]);
+        $parceiro_id = $webservice["parceiro_id"];
+        $token = $this->auth->get_venda_online_token($parceiro_id);
+        $data['url_acesso_externo'] = $this->auth->generate_page_token(
+            $token
+            , ''
+            , 'front'
+            , 'pagamento'
+        );
+        echo json_encode($data);
+    }
+
 }
