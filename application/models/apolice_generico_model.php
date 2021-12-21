@@ -20,7 +20,7 @@ Class Apolice_Generico_Model extends MY_Model
     protected $fields_uppercase = array('nome','endereco_logradouro', 'endereco_complemento',  'endereco_bairro', 'endereco_cidade', 'endereco_estado');
 
     //Dados
-    public $validate = array(
+    public $validate = array( 
 
     );
 

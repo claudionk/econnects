@@ -9,8 +9,6 @@
 class Produtos_Parceiros_Apolice extends Admin_Controller
 {
 
-
-
     public function __construct()
     {
         parent::__construct();
@@ -25,10 +23,8 @@ class Produtos_Parceiros_Apolice extends Admin_Controller
 
     }
 
-
-     public function edit($produto_parceiro_id) //Função que edita registro
+    public function edit($produto_parceiro_id) //Função que edita registro
     {
-
         //Adicionar Bibliotecas
         $this->load->library('form_validation');
 
@@ -38,7 +34,6 @@ class Produtos_Parceiros_Apolice extends Admin_Controller
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Produto / Parceiro / Apólice / Bilhete");
         $this->template->set_breadcrumb('Produto / Parceiro / Apólice / Bilhete', base_url("$this->controller_uri/index"));
-
 
         //Carrega dados para a página
         $data = array();
@@ -53,16 +48,13 @@ class Produtos_Parceiros_Apolice extends Admin_Controller
         $data['primary_key'] = $this->current_model->primary_key();
         $data['form_action'] =  base_url("$this->controller_uri/edit/{$produto_parceiro_id}");
 
-
         $produto_parceiro =  $this->produto_parceiro->get($produto_parceiro_id);
-
 
         if(!$produto_parceiro){
             //Mensagem de erro caso registro não exista
             $this->session->set_flashdata('fail_msg', 'Não foi possível encontrar o Registro.');
             //Redireciona para index
             redirect("admin/parceiros/index");
-
         }
 
         //Verifica se registro existe
@@ -75,7 +67,6 @@ class Produtos_Parceiros_Apolice extends Admin_Controller
         }
 
         $data['produto_parceiro'] = $produto_parceiro;
-
 
         //Caso post
         if($_POST)
@@ -90,8 +81,6 @@ class Produtos_Parceiros_Apolice extends Admin_Controller
                     $this->current_model->update_form();
                 }
 
-
-
                 //Mensagem de sucesso
                 $this->session->set_flashdata('succ_msg', 'Os dados foram salvos corretamente.');
 
@@ -100,11 +89,20 @@ class Produtos_Parceiros_Apolice extends Admin_Controller
             }
         }
 
-
         $data['produto_parceiro_id'] = $produto_parceiro_id;
         $data['produto_parceiro'] = $produto_parceiro;
         //Configurações ckeditor
         $data['enable_ckeditor'] = true;
+        $data['template_coberturas'] = [
+            'riscos_diversos' => 'RISCOS DIVERSOS',
+            'garantia_estendida' => 'GARANTIA ESTENDIDA',
+            'bolsa_protegida' => 'BOLSA PROTEGIDA',
+            'prestamista_fixo' => 'PRESTAMISTA FIXO',
+            'prestamista_variavel' => 'PRESTAMISTA VARIAVEL',
+            'prestamista_vinculado' => 'PRESTAMISTA VINCULADO',
+            'residencial' => 'MICROSEGUROS RESIDENCIAL',
+            'pessoas' => 'MICROSEGUROS PESSOAS',
+        ];
         $data['ckeditor_template'] = array
         (
             'id'   => 'template',
@@ -123,9 +121,6 @@ class Produtos_Parceiros_Apolice extends Admin_Controller
                 'filebrowserFlashUploadUrl' => base_url('assets/common/ckfinder/core/connector/php/connector.php?command=QuickUpload&type=Flash')
             )
         );
-
-
-
 
         //Carrega template
         $this->template->load("admin/layouts/base", "$this->controller_uri/edit", $data );

@@ -44,4 +44,9 @@ Class Equipamento_Marca_Model extends MY_Model
         $this->_database->where("{$this->_table}.equipamento_marca_id IN(SELECT DISTINCT equipamento_marca_id FROM vw_Equipamentos WHERE deletado = 0 AND equipamento_categoria_id = {$categoria_id})", NULL, FALSE);
         return $this;
     }
+
+    public function whith_multiples_ids($values = []) {
+        $this->db->where_in("{$this->_table}.equipamento_marca_id", $values);
+        return $this;
+    }
 }

@@ -193,7 +193,7 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         $comissao = isempty($params['comissao_premio'], issetor($cotacao['comissao_premio'], 0));
 
         // Valida comissão negativa
-        if (number_format($comissao, 2, ',', '.') < number_format(0, 2, ',', '.') )
+        if (number_format($comissao, 2, ',', '.') < number_format(0, 2, ',', '.') && ($parceiro_id <> 72 && $parceiro_id <> 76))
         {
             $comissao = number_format($comissao, 2, ',', '.');
             $result['mensagem'] = "A comissão não pode ser negativa [{$comissao}%]";
@@ -280,10 +280,11 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
             'data_inicio_vigencia' => $data_inicio_vigencia,
             'data_fim_vigencia' => $data_fim_vigencia,
             'comissao' => $comissao,
-            'data_adesao' => $cotacao['data_adesao'],
+            'data_adesao' => emptyor($cotacao['data_adesao'], $cotacao['nota_fiscal_data']),
             'garantia_fabricante' => $cotacao['garantia_fabricante'],
             'cotacao' => $cotacao,
         ];
+
         $valores_bruto = $this->produto_parceiro_plano_precificacao_itens->getValoresPlano($data_preco);
 
         $valores_cobertura_adicional_total = $valores_cobertura_adicional = array();
@@ -298,8 +299,9 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
                 $valores_cobertura_adicional[$cobertura[0]][] = $valor;
             }
         }
-
-        if(!$valores_bruto) {
+        $erro_valores_bruto = $this->produto_parceiro_plano_precificacao_itens->erroValidacaoValoresPlano($valores_bruto);
+        if($erro_valores_bruto) {
+            $result["mensagem"] = $erro_valores_bruto;
             return $result;
         }
 

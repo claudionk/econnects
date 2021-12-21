@@ -1558,6 +1558,11 @@ class MY_Model extends CI_Model
         }
     }
 
+    public function setIndex($table, $index){
+        $this->_database->setIndex($table, $index);
+        return $this;
+    }
+
     public function  set_select(){
 
         $this->_database->select($this->_table . '.*');

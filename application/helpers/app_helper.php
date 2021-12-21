@@ -956,6 +956,8 @@ function app_get_userdata($item){
 }
 function app_format_currency($number, $symbol = false, $num_casas = 2){
 
+    if (empty($number)) $number = 0;
+    $number = str_replace("..", ".", $number);
     $result = number_format($number, $num_casas, ',' , '.');
 
     return ($symbol) ? 'R$ '.$result : $result;
@@ -1640,8 +1642,9 @@ function app_validate_cep($cep){
     if(strlen($cep) != 8)
         return false;
 
-    if($cep == '00000000')
+    if (preg_match('/^(.)\1*$/', $cep)) {
         return false;
+    }
 
     return true;
 }
@@ -1884,7 +1887,7 @@ if ( ! function_exists('app_search'))
 
 if ( ! function_exists('trataRetorno'))
 {
-    function trataRetorno($txt, $up = 1, $trim = true) {
+    function trataRetorno($txt, $up = 1, $trim = true, $permiteParenteses = false) {
 
         $replaceEspaco = true;
         if ( !empty($txt) && !empty($trim) )
@@ -1908,7 +1911,11 @@ if ( ! function_exists('trataRetorno'))
         }
 
         $txt = app_remove_especial_caracteres($txt);
-        $txt = preg_replace("/[^ |A-Z|a-z|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
+        if($permiteParenteses){
+            $txt = preg_replace("/[^ |A-Z|a-z|+|@|\d|\[|\,|\.|\-|\_|\]|\\|\/|(|)]+/", "", $txt);
+        } else {
+            $txt = preg_replace("/[^ |A-Z|a-z|+|@|\d|\[|\,|\.|\-|\_|\]|\\|\/]+/", "", $txt);
+        }
         if ($replaceEspaco)
         {
             $txt = preg_replace("/\s{2,3000}/", " ", $txt);

@@ -93,9 +93,15 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
             'final' => app_unformat_currency($this->input->post('final')),
             'valor' => app_unformat_currency($this->input->post('valor')),
             'equipamento' => '',
+            'marca' => '',
+            'tipo_restricao_marca' => (!empty($this->input->post('tipo_restricao_marca'))? $this->input->post('tipo_restricao_marca'): null),
             'equipamento_de_para' => $this->input->post('equipamento_de_para'),
             'cobranca' => $this->input->post('cobranca'),
         );
+
+        if( !empty($this->input->post('marca')) ) {
+            $data['marca'] = "'" . implode ( "','", $this->input->post('marca') ) . "'";
+        }        
 
         if( !empty($this->input->post('equipamento')) ) {
             $data['equipamento'] = "'" . implode ( "','", $this->input->post('equipamento') ) . "'";
@@ -140,6 +146,18 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
 
     function filter_by_equipamento($equipamento){
         $this->_database->like("{$this->_table}.equipamento", "'{$equipamento}'");
+        return $this;
+    }
+
+    function with_validacao_marca($marca){
+        $SQL = "IF(
+            {$this->_table}.tipo_restricao_marca = 'LIB' AND {$this->_table}.marca NOT LIKE  \"'%$marca%'\", 'Marca Não Liberada',
+            IF(
+                {$this->_table}.tipo_restricao_marca = 'RES' AND {$this->_table}.marca LIKE \"'%$marca%'\", 'Marca Restrita',
+                NULL
+            )
+        ) AS validacao_marca";
+        $this->_database->select($SQL, FALSE);
         return $this;
     }
 
@@ -287,6 +305,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             $valor = $this
                                 ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
                                 ->filter_by_tipo_equipamento('TODOS')
+                                ->with_validacao_marca($equipamento_marca_id)
                                 ->get_all();
 
                             $dataTabelaFixa = new stdClass();
@@ -302,6 +321,12 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             $dataTabelaFixa->aIgnore = [];
                             $dataTabelaFixa->produto_parceiro_plano_id = $produto_parceiro_plano_id;
                             $dataTabelaFixa->getVigencia = $getVigencia;
+
+                            if(!empty($valor)){
+                                if(!empty($valor[0]["validacao_marca"])){
+                                    $valores["erros"][$produto_parceiro_plano_id] = $valor[0]["validacao_marca"];
+                                }
+                            }
 
                             $calculo = $this->getValorTabelaFixa($dataTabelaFixa);
                             $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, $calculo['unidade']);
@@ -371,7 +396,14 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         $valor = $this
                             ->filter_by_produto_parceiro_plano($produto_parceiro_plano_id)
                             ->filter_by_tipo_equipamento("TODOS")
+                            ->with_validacao_marca($equipamento_marca_id)
                             ->get_all();
+
+                            if(!empty($valor)){
+                                if(!empty($valor[0]["validacao_marca"])){
+                                    $valores["erros"][$produto_parceiro_plano_id] = $valor[0]["validacao_marca"];
+                                }
+                            }
 
                         $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
                         break;
@@ -381,7 +413,14 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             ->filter_by_faixa( $valor_nota )
                             ->filter_by_tipo_equipamento("CATEGORIA")
                             ->filter_by_equipamento($equipamento_categoria_id)
+                            ->with_validacao_marca($equipamento_marca_id)
                             ->get_all();
+
+                            if(!empty($valor)){
+                                if(!empty($valor[0]["validacao_marca"])){
+                                    $valores["erros"][$produto_parceiro_plano_id] = $valor[0]["validacao_marca"];
+                                }
+                            }
 
                         $valores[$produto_parceiro_plano_id] = floatval( $valor_nota ) * ( floatval( $valor[0]["valor"] ) / 100 );
 
@@ -418,14 +457,15 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                             $query = $this
                                 ->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
                                 ->filter_by_faixa( $valor_nota )
-                                ->filter_by_tipo_equipamento("EQUIPAMENTO");
+                                ->filter_by_vigencia_equipamento($data_adesao)
+                                ->filter_by_tipo_equipamento("EQUIPAMENTO")
+                                ->with_validacao_marca($equipamento_marca_id);
 
                             // Caso tenha um DE x PARA
                             if ( !empty($equipamento_de_para) ) {
 
                                 $valor = $query
                                     ->filter_by_equipamento_de_para($equipamento_de_para)
-                                    ->filter_by_vigencia_equipamento($data_adesao)                                        
                                     ->get_all();
 
                             } else {
@@ -458,6 +498,12 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                         $dataTabelaFixa->aIgnore = [];
                         $dataTabelaFixa->produto_parceiro_plano_id = $produto_parceiro_plano_id;
                         $dataTabelaFixa->getVigencia = $getVigencia;
+
+                        if(!empty($valor)){
+                            if(!empty($valor[0]["validacao_marca"])){
+                                $valores["erros"][$produto_parceiro_plano_id] = $valor[0]["validacao_marca"];
+                            }
+                        }
 
                         $calculo = $this->getValorTabelaFixa($dataTabelaFixa);
                         if($calculo)
@@ -1079,6 +1125,31 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
                 $this->produto_parceiro_plano_itens_config->insert($dt, TRUE);
             }
         }
+    }
+
+    public function erroValidacaoValoresPlano($valores_bruto){
+
+        $erro_valores_bruto = null;
+
+        if(empty($valores_bruto)){
+          return 'PLANO NÃO DISPONÍVEL PARA ESSAS CONFIGURAÇÕES';
+        } 
+
+        if(empty($valores_bruto["erros"])){
+            return null;
+        }
+
+        foreach($valores_bruto as $valores_bruto_key => $valores_bruto_value){
+            if(!in_array($valores_bruto_key, ["quantidade", "erros"])){
+                if(!isset($valores_bruto["erros"][$valores_bruto_key])){
+                    return null;
+                } else {
+                    $erro_valores_bruto = $valores_bruto["erros"][$valores_bruto_key];
+                }
+            }
+        }
+        
+        return $erro_valores_bruto;
     }
 
 }

@@ -122,7 +122,6 @@ Class Pedido_Model extends MY_Model
 
         $pedidos = $this->get_all();
         //exit($this->_database->last_query());
-
         //log_message('debug', 'BUSCANDO PEDIDOS PENDENTES QUERY - ' . $this->_database->last_query());
         return ($pedidos) ? $pedidos : array();
 
@@ -186,13 +185,13 @@ Class Pedido_Model extends MY_Model
                 if (!empty($value)) {
                     switch ($key) {
                         case "pedido_codigo":
-                            $this->_database->like('pedido.codigo', $value);
+                            $this->_database->where('pedido.codigo', $value);
                             break;
                         case "razao_nome":
                             $this->_database->like('cliente.razao_nome', $value);
                             break;
                         case "cnpj_cpf":
-                            $this->_database->like('cliente.cnpj_cpf', $value);
+                            $this->_database->where('cliente.cnpj_cpf', app_clear_number($value));
                             break;
                         case "data_nascimento":
                             $this->_database->where('cliente.data_nascimento', app_dateonly_mask_to_mysql($value));
@@ -225,9 +224,8 @@ Class Pedido_Model extends MY_Model
         return $this;
     }
 
-    public function filterAPI($param = array())
+    public function filterAPI($param = array())    
     {
-
         if($param) {
             foreach ($param as $key => $value)
             {
@@ -235,6 +233,9 @@ Class Pedido_Model extends MY_Model
                     switch ($key) {
                         case "apolice_id":
                             $this->_database->where('apolice.apolice_id', $value);
+                            break;
+                        case "cotacao_id":
+                            $this->_database->where('pedido.cotacao_id', $value);
                             break;
                         case "num_apolice":
                             $this->_database->where('apolice.num_apolice', $value);
@@ -245,15 +246,39 @@ Class Pedido_Model extends MY_Model
                         case "pedido_id":
                             $this->_database->where('pedido.pedido_id', $value);
                             break;
-                        case "parceiro_id":
+                        case "parceiro_id":                            
                             $this->_database->where('produto_parceiro.parceiro_id', $value);
                             break;
                         case "produto_id":
                             $this->_database->where('produto_parceiro.produto_id', $value);
                             break;
+                        case "apolice_status":
+                            if($value){
+                                $campoData = "data_adesao";
+                                if($value == 1) {                                    
+                                    $this->_database->where('apolice_status.slug', "ativa");                                                                                                
+                                } else if($value == 2){
+                                    $campoData = "data_cancelamento";
+                                    $this->_database->where('apolice_status.slug', "cancelada");                                                                                                
+                                }                                      
+                                $data_inicio =  $param["data_inicio"];
+                                $data_fim =  $param["data_fim"];
+                                $this->_database->where('IFNULL(apolice_equipamento.'.$campoData.', IFNULL(apolice_generico.'.$campoData.', apolice_seguro_viagem.'.$campoData.')) BETWEEN "'.$data_inicio.'" AND "'.$data_fim.'"');                                                                                                
+                                
+                            }                            
+                        break;
+                        case "days_ago":
+                            $this->_database->where('(select criacao from apolice_movimentacao am where am.apolice_id = apolice.apolice_id order by criacao desc limit 1) > DATE_SUB(CURDATE(),INTERVAL '.$value.' DAY)');
+                            break;
+                        case "data_inicio_proc":
+                            $this->_database->where('(select criacao from apolice_movimentacao am where am.apolice_id = apolice.apolice_id order by criacao desc limit 1) >= "'.$value.'"');
+                            break;
+                        case "data_fim_proc":
+                            $this->_database->where('(select criacao from apolice_movimentacao am where am.apolice_id = apolice.apolice_id order by criacao desc limit 1) <= "'.$value.'"');
+                            break;
                     }
                 }
-            }
+            }            
         }
         return $this;
     }
@@ -335,6 +360,7 @@ Class Pedido_Model extends MY_Model
                 produto_parceiro.parceiro_id,
                 produto_parceiro.nome as produto_nome,
                 produto_parceiro_apolice.template as template_apolice,
+                produto_parceiro_apolice.template_coberturas,
                 CASE produto.slug 
                     WHEN 'equipamento' THEN cotacao_equipamento.iof
                     WHEN 'generico' THEN cotacao_generico.iof
@@ -479,6 +505,9 @@ Class Pedido_Model extends MY_Model
         $this->_database->join('cotacao', 'cotacao.cotacao_id = pedido.cotacao_id', 'inner');
         $this->_database->join('cliente', 'cliente.cliente_id = cotacao.cliente_id', 'inner');
         $this->_database->join("apolice_equipamento", "apolice_equipamento.apolice_id = apolice.apolice_id", 'left');
+        $this->_database->join("apolice_generico", "apolice_generico.apolice_id = apolice.apolice_id", "left");
+        $this->_database->join("apolice_seguro_viagem", "apolice_seguro_viagem.apolice_id = apolice.apolice_id", "left");
+        $this->_database->join('apolice_status', 'apolice.apolice_status_id = apolice_status.apolice_status_id', 'inner');
         // $this->_database->join("vw_Equipamentos_Marcas em", "em.equipamento_marca_id = apolice_equipamento.equipamento_marca_id", 'left');
         // $this->_database->join("vw_Equipamentos_Linhas ec", "ec.equipamento_categoria_id = apolice_equipamento.equipamento_categoria_id", 'left');
         $this->_database->join("business_engine.Equipamentos_Marcas em", "em.idEquipamentos_Marcas = apolice_equipamento.equipamento_marca_id", 'left');
@@ -488,10 +517,10 @@ Class Pedido_Model extends MY_Model
     }
 
     public function with_produto_parceiro(){
-        $this->_database->select("produto.produto_id, produto.nome as produto");
+        $this->_database->select("produto.produto_id, produto.nome as produto");        
         $this->_database->join("produto_parceiro_plano", "apolice.produto_parceiro_plano_id = produto_parceiro_plano.produto_parceiro_plano_id", 'inner');
         $this->_database->join("produto_parceiro", "produto_parceiro_plano.produto_parceiro_id = produto_parceiro.produto_parceiro_id", 'inner');
-        $this->_database->join("produto", "produto_parceiro.produto_id = produto.produto_id", 'inner');
+        $this->_database->join("produto", "produto_parceiro.produto_id = produto.produto_id", 'inner');        
         return $this;
     }
 
@@ -1088,7 +1117,10 @@ Class Pedido_Model extends MY_Model
                 }
 
 	            //FAZ CALCULO DO VALOR PARCIAL
-	            $dias_utilizados = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D"), 0);
+                $admtmi = app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]);
+                $admtmc = app_dateonly_mysql_to_mask($data_cancelamento);
+                $adgdd = app_date_get_diff_dias($admtmi, $admtmc, "D");
+	            $dias_utilizados = issetor($adgdd, 0);
 
 	            // caso não tenha iniciado a vigência, deve realizar o calculo com 100% nao usada da vigência
 	            if ($dias_utilizados < 0)
@@ -1099,9 +1131,17 @@ Class Pedido_Model extends MY_Model
 	                $dia_inicio = $data_cancelamento;
 	            }
 
-	            $dias_restantes = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($dia_inicio), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]), "D"), 0);
-	            $dias_aderido = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($apolice["data_adesao"]), app_dateonly_mysql_to_mask($data_cancelamento),  "D"), 0);
-	            $dias_total = issetor(app_date_get_diff_dias(app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]), app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]),  "D"), 0);
+                $vDtInicio = app_dateonly_mysql_to_mask($dia_inicio);
+                $vDtFimVig = app_dateonly_mysql_to_mask($vig["data_fim_vigencia"]);
+                $vDtIniVig = app_dateonly_mysql_to_mask($vig["data_inicio_vigencia"]);
+                $vDtAdesao = app_dateonly_mysql_to_mask($apolice["data_adesao"]);
+                $vDtCancel = app_dateonly_mysql_to_mask($data_cancelamento);
+                $dias_restantes = app_date_get_diff_dias($vDtInicio, $vDtFimVig, "D");
+	            $dias_aderido = app_date_get_diff_dias($vDtAdesao, $vDtCancel,  "D");
+	            $dias_total = app_date_get_diff_dias($vDtIniVig, $vDtFimVig,  "D");
+	            $dias_restantes = issetor($dias_restantes, 0);
+                $dias_aderido = issetor($dias_aderido, 0);
+                $dias_total = issetor($dias_total, 0);
 	            $devolucao_integral = ( !empty($produto_parceiro_cancelamento['seg_depois_dias_carencia']) && $dias_aderido <= $produto_parceiro_cancelamento['seg_depois_dias_carencia'] );
 
                 // cobertura vigente retorna dados
@@ -1329,7 +1369,7 @@ Class Pedido_Model extends MY_Model
     * Retorna todos
     * @return mixed
     */
-    public function get_total()
+    public function get_total($field = NULL)
     {
         //Efetua join com cotação
         $this->_database->join("cotacao as cotacao_filtro","cotacao_filtro.cotacao_id = {$this->_table}.cotacao_id");
@@ -1339,7 +1379,7 @@ Class Pedido_Model extends MY_Model
         return parent::get_total(); // TODO: Change the autogenerated stub
     }
 
-    public function getRepresentantes(){
+    public function getRepresentantes($withFileIntegration_bySlugGroup = null){
 
         $listaIds = '';
         $arrRetorno = [];
@@ -1365,7 +1405,16 @@ Class Pedido_Model extends MY_Model
         {
             $arrParcProds = array_unique($arrParcProds);
             foreach ($arrParcProds as $l) {
-                $listaIds .= $l.',';
+                if(!empty($withFileIntegration_bySlugGroup)){
+                    $query = $this->db->query("select integracao_id from integracao where parceiro_id = {$l} and slug_group = '{$withFileIntegration_bySlugGroup}';");
+                    if($query->num_rows() > 0)
+                    {
+                        $listaIds .= $l.',';
+                    }
+                }
+                else{
+                    $listaIds .= $l.',';
+                }
             }
 
             if(!empty($listaIds)){
@@ -1375,7 +1424,6 @@ Class Pedido_Model extends MY_Model
             $this->load->model('parceiro_model', 'parceiro');
             $arrRetorno = $this->parceiro->getParceiroCombo($listaIds);
         }
-
         return $arrRetorno;
     }
 
@@ -1590,63 +1638,74 @@ Class Pedido_Model extends MY_Model
     /**
     * Extrai relatório de vendas
     */
-    public function extrairRelatorioProcessamentoVendas($data_inicio = null, $data_fim = null)
+    public function extrairRelatorioProcessamentoVendas($data_inicio = null, $data_fim = null, $id_parceiro = null)
     {
-
         $this->_database->select("
-            il.processamento_inicio as `DATA_PROCESSAMENTO`
+            ildd.criacao as `DATA_PROCESSAMENTO`
             , il.nome_arquivo AS `ARQUIVO`
             , IF(ild.integracao_log_status_id = 5, 'ERRO', 'OK') AS `STATUS`
             , ils.nome AS `STATUS_PROCESSAMENTO`
             , ilde.nome `RESULTADO_PROCESSAMENTO`
             , ildc.msg `DETALHE_PROCESSAMENTO`
             , ildd.tipo_transacao `CODIGO_TRANSACAO`
-            , IF(ildd.tipo_transacao = 'NS', 'EMISSAO', IF(ildd.tipo_transacao IN('XS','XX'), 'CANCELAMENTO', 'OUTROS')) AS `DESCRIÇÃO_TRANSACAO`
+            , IF(ildd.tipo_operacao = '1', 'EMISSAO', 'CANCELAMENTO') AS `MOVIMENTO`
+            , DATE_FORMAT(IF(STR_TO_DATE(ildd.data_adesao_cancel, '%Y-%m-%d') IS NOT NULL, ildd.data_adesao_cancel, STR_TO_DATE(ildd.data_adesao_cancel, '%m%d%Y')), '%d/%m/%Y') AS `DATA_MOVIMENTO`
             , ildd.num_apolice AS `APOLICE`
-            , TIMESTAMPDIFF(MONTH, ae.data_ini_vigencia, ae.data_fim_vigencia) AS `VIGENCIA`
-            , ae.cnpj_cpf `CPF`
+            , IFNULL(TIMESTAMPDIFF(MONTH, ildd.data_inicio_vigencia, ildd.data_fim_vigencia), IFNULL(TIMESTAMPDIFF(MONTH, ae.data_ini_vigencia, ae.data_fim_vigencia), TIMESTAMPDIFF(MONTH, ag.data_ini_vigencia, ag.data_fim_vigencia))) AS `VIGENCIA`
+            , IFNULL(ildd.nome, IFNULL(ae.nome,ag.nome)) AS `NOME`
+            , IFNULL(ildd.cpf, IFNULL(ae.cnpj_cpf,ag.cnpj_cpf)) AS `CPF`
             , IF(ae.sexo='F','FEMININO','MASCULINO') AS `SEXO`
-            , ae.endereco_logradouro `ENDERECO`
-            , ae.contato_telefone `TELEFONE`
-            , ildd.cod_loja `COD_LOJA`
-            , ildd.cod_vendedor `COD_VENDEDOR`
-            , ildd.cod_produto_sap `COD_PRODUTO_SAP`
-            , ildd.ean `EAN`
-            , ildd.marca `MARCA`
-            , ildd.equipamento_nome `EQUIPAMENTO`
-            , IF(ild.integracao_log_status_id = 5, ildd.nota_fiscal_valor, ae.nota_fiscal_valor) `VALOR_NF`
-            , ildd.nota_fiscal_data `DATA_NF`
-            , ildd.nota_fiscal_numero `NRO_NF`
-            , IF(ild.integracao_log_status_id = 5, ildd.premio_liquido, ae.valor_premio_total) `PREMIO_BRUTO`
-            , IF(ild.integracao_log_status_id = 5, NULL, ae.valor_premio_net) `PREMIO_LIQUIDO`
+            , IFNULL(ildd.endereco, IFNULL(ae.endereco_logradouro, ag.endereco_logradouro)) AS `ENDERECO`
+            , IFNULL(ildd.telefone, IFNULL(ae.contato_telefone,ag.contato_telefone)) AS `TELEFONE`
+            , IFNULL(ildd.cod_loja, IFNULL(ae.cod_loja,ag.cod_loja)) `COD_LOJA`
+            , IFNULL(ildd.cod_vendedor, IFNULL(ae.cod_vendedor,ag.cod_vendedor)) `COD_VENDEDOR`
+            , IFNULL(ildd.cod_produto_sap, IFNULL(ae.cod_produto_sap,ag.cod_produto_sap)) `COD_PRODUTO_SAP`
+            , IFNULL(CAST(ildd.ean AS UNSIGNED), IFNULL(CAST(ae.ean AS UNSIGNED),CAST(ag.ean AS UNSIGNED))) `EAN`
+            , IFNULL(ildd.marca, IFNULL(ae.marca, ag.marca)) `MARCA`
+            , IFNULL(ildd.equipamento_nome, IFNULL(ae.equipamento_nome, ag.equipamento_nome)) `EQUIPAMENTO`
+            , IFNULL(if(ildd.nota_fiscal_valor LIKE '%,%', ildd.nota_fiscal_valor, concat(cast((left(ildd.nota_fiscal_valor, length(ildd.nota_fiscal_valor)-2)) as unsigned), '.', right(ildd.nota_fiscal_valor, 2))),IFNULL(ae.nota_fiscal_valor,ag.nota_fiscal_valor)) `VALOR_NF`
+            , IFNULL(ildd.nota_fiscal_data, IFNULL(ae.nota_fiscal_data, ag.nota_fiscal_data)) `DATA_NF`
+            , IFNULL(ildd.nota_fiscal_numero, IFNULL(ae.nota_fiscal_numero, ag.nota_fiscal_numero)) `NRO_NF`
+            , ifnull(ildd.premio_bruto, concat(cast((left(ildd.premio_liquido, length(ildd.premio_liquido)-2)) as unsigned), '.', right(ildd.premio_liquido, 2))) `PREMIO_BRUTO`
+            , if(ildc.msg like 'Valor do prêmio bruto%', SUBSTRING_INDEX(REPLACE(ildc.msg, ']', ''), '[', -1), 0) AS `VALOR_CALCULADO`
+            , IF(ild.integracao_log_status_id = 5, 0, IFNULL(ae.valor_premio_net,0)) `PREMIO_LIQUIDO`
             , 'COBRANÇA DE TERCEIROS' `FORMA_PAGAMENTO`
             , 1 `NRO_PARCELA`", FALSE);
 
         $this->_database->from("integracao_log il");
+        $this->_database->join("integracao i", "il.integracao_id = i.integracao_id", "inner");
         $this->_database->join("integracao_log_detalhe ild", "il.integracao_log_id = ild.integracao_log_id", "inner");
         $this->_database->join("integracao_log_detalhe_campo ildc", "ild.integracao_log_detalhe_id = ildc.integracao_log_detalhe_id", "left");
         $this->_database->join("integracao_log_detalhe_erro ilde", "ildc.integracao_erros_id = ilde.integracao_log_detalhe_erro_id", "left");
-        $this->_database->join("integracao_log_detalhe_dados ildd", "ild.integracao_log_detalhe_id = ildd.integracao_log_detalhe_id", "left");
+        $this->_database->join("integracao_log_detalhe_dados ildd", "ild.integracao_log_detalhe_id = ildd.integracao_log_detalhe_id", "inner");
         $this->_database->join("integracao_log_status ils", "ild.integracao_log_status_id = ils.integracao_log_status_id", "left");
-        $this->_database->join("apolice a", "ild.chave = a.num_apolice", "left");
-        $this->_database->join("apolice_equipamento ae", "a.apolice_id = ae.apolice_id", "left");
+        $this->_database->join("apolice a", "ild.chave = a.num_apolice and a.deletado = 0 and IF(ildd.tipo_operacao = '9', a.apolice_status_id = 2, 1)", "left");
+        $this->_database->join("apolice_equipamento ae", "ae.apolice_id = a.apolice_id and ae.deletado = 0", "left");
+        $this->_database->join("apolice_generico ag", "ag.apolice_id = a.apolice_id and ag.deletado = 0", "left");
 
         // if(isset($data_inicio) && !empty($data_inicio))
         //     $this->_database->where("status_data >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
         // if(isset($data_fim) && !empty($data_fim))
         //     $this->_database->where("status_data <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
 
-        $this->_database->where("il.integracao_id = 15");
+        $this->_database->where("i.slug_group = 'vendas-canc'");
+        //$this->_database->where("ild.integracao_log_status_id = 5");
+        //$this->_database->where("a.apolice_id is null");
+        //$this->_database->where("il.integracao_id = 15");
+
         $this->_database->where("il.deletado = 0");
         //Inclusão de filtro no relatório
         if(isset($data_inicio) && !empty($data_inicio))
             $this->_database->where("il.processamento_inicio >= '". app_date_only_numbers_to_mysql($data_inicio) ."'");
         if(isset($data_fim) && !empty($data_fim))
             $this->_database->where("il.processamento_inicio <= '". app_date_only_numbers_to_mysql($data_fim, FALSE) ."'");
+        if(!empty($id_parceiro))
+            $this->_database->where("i.parceiro_id = {$id_parceiro}");
 
         $query = $this->_database->get();
         $resp = [];
         //print_r($this->db->last_query()); exit;
+
         if($query->num_rows() > 0)
         {
             $resp = $query->result_array();

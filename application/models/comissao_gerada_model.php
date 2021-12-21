@@ -80,11 +80,16 @@ Class Comissao_Gerada_Model extends MY_Model {
 
     }
 
-    public function gerar_comissao_parceiro_relacionamento(){
+    public function gerar_comissao_parceiro_relacionamento($pedido_id = null){
 
         //busca vendas que não foram contabilziadas ainda
         $this->load->model('parceiro_relacionamento_produto_model', 'parceiro_relacionamento_produto');
         $this->load->model('comissao_classe_model', 'comissao_classe');
+
+        $sql_pedido_id = "";
+        if($pedido_id){
+            $sql_pedido_id = "AND pedido.pedido_id = $pedido_id";
+        }
 
         $sql = "SELECT 
                 cotacao.cotacao_id,
@@ -98,7 +103,11 @@ Class Comissao_Gerada_Model extends MY_Model {
                 ifnull(ifnull(cotacao_equipamento.comissao_corretor, cotacao_generico.comissao_corretor), cotacao_seguro_viagem.comissao_corretor) as comissao_corretor,
                 ifnull(ifnull(cotacao_equipamento.comissao_premio, cotacao_generico.comissao_premio), cotacao_seguro_viagem.comissao_premio) as comissao_premio,
                 parceiro_relacionamento_produto.parceiro_relacionamento_produto_id,
-                parceiro_relacionamento_produto.comissao_tipo
+                (CASE WHEN cotacao_generico.data_adesao IS NOT NULL THEN cotacao_generico.data_adesao
+                    WHEN cotacao_equipamento.data_adesao IS NOT NULL THEN cotacao_equipamento.data_adesao
+                    WHEN cotacao_seguro_viagem.data_adesao IS NOT NULL THEN cotacao_seguro_viagem.data_adesao
+                    ELSE NULL
+                END) AS data_adesao
             FROM pedido
             INNER JOIN cotacao ON pedido.cotacao_id = cotacao.cotacao_id
             LEFT JOIN cotacao_equipamento ON cotacao_equipamento.cotacao_id = cotacao.cotacao_id AND cotacao_equipamento.deletado = 0
@@ -108,6 +117,7 @@ Class Comissao_Gerada_Model extends MY_Model {
             INNER JOIN parceiro ON parceiro_relacionamento_produto.parceiro_id = parceiro.parceiro_id
             LEFT JOIN comissao_gerada ON pedido.pedido_id = comissao_gerada.pedido_id AND comissao_gerada.deletado = 0 
             WHERE pedido.pedido_status_id IN (3,8,5) 
+                $sql_pedido_id
                 AND cotacao.deletado = 0
                 AND pedido.deletado = 0
                 AND comissao_gerada.pedido_id IS NULL
@@ -121,16 +131,34 @@ Class Comissao_Gerada_Model extends MY_Model {
     }
 
     private function geraComissaoRelacionamento($item, $pai_id) {
-        $parceiro_relacionamento = $this->parceiro_relacionamento_produto
-            ->with_parceiro()
-            ->with_parceiro_tipo()
-            ->filter_by_produto_parceiro($item['produto_parceiro_id'])
-            ->get($pai_id);
+        $parceiro_relacionamento = $this->_database->query("
+            SELECT parceiro.nome AS parceiro_nome
+                , parceiro.cnpj AS parceiro_cnpj
+                , parceiro.codigo_susep AS parceiro_codigo_susep
+                , parceiro.codigo_corretor AS parceiro_codigo_corretor
+                , parceiro_tipo.nome as parceiro_tipo
+                , parceiro_tipo.codigo_interno
+                , parceiro_tipo.parceiro_tipo_id as parceiro_tipo_id_parceiro
+                , parceiro_relacionamento_produto.pai_id
+                , parceiro_relacionamento_produto.parceiro_id
+                , ifnull(vig.comissao_tipo, parceiro_relacionamento_produto.comissao_tipo) comissao_tipo
+                , ifnull(vig.comissao, parceiro_relacionamento_produto.comissao) comissao
+                , parceiro_relacionamento_produto.cod_parceiro
+            FROM parceiro_relacionamento_produto
+            INNER JOIN parceiro ON parceiro_relacionamento_produto.parceiro_id = parceiro.parceiro_id
+            LEFT JOIN parceiro_tipo ON IFNULL(parceiro_relacionamento_produto.parceiro_tipo_id,parceiro.parceiro_tipo_id) = parceiro_tipo.parceiro_tipo_id
+            LEFT JOIN parceiro_relacionamento_produto_vigencia vig ON 
+                vig.parceiro_relacionamento_produto_id = parceiro_relacionamento_produto.parceiro_relacionamento_produto_id 
+                AND vig.deletado = 0 
+                AND '{$item['data_adesao']}' BETWEEN DATE(vig.comissao_data_ini) AND DATE(vig.comissao_data_fim)
+            WHERE produto_parceiro_id = {$item['produto_parceiro_id']}
+                AND parceiro_relacionamento_produto.deletado =  0
+                AND parceiro_relacionamento_produto.parceiro_relacionamento_produto_id = $pai_id")->result_array();
 
         if (empty($parceiro_relacionamento))
             return;
 
-        $this->geraComissao($item, $parceiro_relacionamento);
+        $this->geraComissao($item, $parceiro_relacionamento[0]);
     }
 
     private function geraComissao($item, $parceiro) {
@@ -142,14 +170,21 @@ Class Comissao_Gerada_Model extends MY_Model {
         $premio_liquido_total = $item["premio_liquido"];
 
         // valida se possui uma Comissão específica da venda
-        if ( !empty($item['comissao_tipo']) && !empty($item['comissao_premio']) && $item['comissao_premio'] > 0 && $parceiro['codigo_interno'] == 'representante')
+        if ( !empty($parceiro['comissao_tipo']) && !empty($item['comissao_premio']) && $item['comissao_premio'] > 0 && $parceiro['codigo_interno'] == 'representante')
         {
-            $comissao_premio = $item['comissao_premio'] - ($item['comissao_tipo'] == 1 ? $item['comissao_corretor'] : 0);
+            $comissao_premio = $item['comissao_premio'] - ($parceiro['comissao_tipo'] == 1 ? $item['comissao_corretor'] : 0);
         } else {
             $comissao_premio = $parceiro['comissao'];
         }
 
         $comissao_venda =  ($comissao_premio/100) * $premio_liquido_total;
+
+        if(($parceiro['parceiro_id'] == 72 || $parceiro['parceiro_id'] == 76)){
+            if(!empty($item['comissao_premio']) && $item['comissao_premio'] < 0){
+                $comissao_venda = 0.010;
+                $comissao_premio = 0.000;
+            }
+        }
 
         $data_comissao = array();
         $data_comissao['comissao_classe_id']    = $comissao_classe['comissao_classe_id'];
@@ -204,16 +239,26 @@ Class Comissao_Gerada_Model extends MY_Model {
         $this->with_simple_relation_foreign('pedido', 'pedido_', 'pedido_id', 'pedido_id', $fields );
         return $this;
     }
+
     function with_parceiro($fields = array('nome_fantasia'))
     {
         $this->with_simple_relation_foreign('parceiro', 'parceiro_', 'parceiro_id', 'parceiro_id', $fields );
         return $this;
     }
 
-    public function getByParceiroId($pedido_id, $parceiroId){
-        $sql = "SELECT * FROM comissao_gerada WHERE pedido_id = $pedido_id AND parceiro_id = $parceiroId AND deletado = 0";
-        $result = $this->_database->query($sql)->result_array();
-        return $result;
+    public function getByParceiroId($pedido_id, $parceiroId = null, $tipo = [])
+    {
+        $this->db->select("parceiro_tipo.nome AS tipo_parceiro, parceiro_tipo.codigo_interno AS tipo_parceiro_slug, ");
+        $this->db->join("parceiro_tipo", "parceiro_tipo.parceiro_tipo_id = {$this->_table}.parceiro_tipo_id", "join");
+        $this->db->where("{$this->_table}.pedido_id", $pedido_id);
+        if(!empty($parceiroId)){
+            $this->db->where("{$this->_table}.parceiro_id", $parceiroId);
+        }
+        if(!empty($tipo)){
+            $this->db->where_in("{$this->_table}.parceiro_tipo_id", $tipo);
+        }
+        $this->db->where("{$this->_table}.deletado", 0);
+        return $this->get_all();
     }
 
 }
