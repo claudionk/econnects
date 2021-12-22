@@ -335,6 +335,7 @@ class Equipamento extends CI_Controller {
 
         $URL    = "https://www.imei.info/api/checkimei/";
         $key  = "6a4a9ee5788dd10c30d9f135bce5b5987b01242c2320eae8229a0ec308cd5193";
+        $key    = "c976131932bcb491dd087cb996cc853d8c8fc72c1818a83777a77a181abe75a7";
         $imei   = $inputData->imei;
 
 
