@@ -136,6 +136,9 @@ Class Cotacao_Model extends MY_Model
             foreach ($filters as $key => $value) {
                 if (!empty($value)) {
                     switch ($key) {
+                        case "cotacao_id":
+                            $this->_database->where('cotacao.cotacao_id', $value);
+                            break;
                         case "cotacao_codigo":
                             $this->_database->like('cotacao.codigo', $value);
                             break;
