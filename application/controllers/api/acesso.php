@@ -117,6 +117,18 @@ class Acesso extends CI_Controller {
     }
 
     public function createURLAcessoExterno(){
+
+        $inputJSON = file_get_contents("php://input");
+        $inputData = json_decode($inputJSON);
+        
+        $cotacao_id             = $inputData->cotacao_id;
+        $produto_parceiro_id    = $inputData->produto_parceiro_id;
+        
+        $step                   = 4;
+        $produto_slug           = "generico";
+        
+        $URL = base_url("admin/venda_{$produto_slug}/{$produto_slug}/{$produto_parceiro_id}/$step/$cotacao_id");        
+
         $this->load->model( "usuario_webservice_model", "webservice" );
         $webservice = $this->webservice->checkKeyExpiration( $_SERVER["HTTP_APIKEY"]);
         $parceiro_id = $webservice["parceiro_id"];
@@ -126,7 +138,9 @@ class Acesso extends CI_Controller {
             , ''
             , 'front'
             , 'pagamento'
+            , $URL
         );
+
         echo json_encode($data);
     }
 

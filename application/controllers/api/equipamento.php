@@ -328,6 +328,42 @@ class Equipamento extends CI_Controller {
 
     }
 
+    public function consultaIMEI(){
+        $inputJSON = file_get_contents("php://input");
+        $inputData = json_decode($inputJSON);
+        
+
+        $URL    = "https://www.imei.info/api/checkimei/";
+        $key  = "6a4a9ee5788dd10c30d9f135bce5b5987b01242c2320eae8229a0ec308cd5193";
+        $imei   = $inputData->imei;
+
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $URL,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "imei=$imei&key=$key",        
+        ));
+
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
+
+        if($err){
+            echo json_encode(["error" => "Erro na requisição: ".$err]);
+        } else {
+            echo $response;
+        }
+
+        
+    }
+
 }
 
 
