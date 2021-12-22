@@ -15,12 +15,13 @@ class Auth {
         $this->CI->load->library('encrypt');
     }
 
-    public function get_venda_online_token()
+    public function get_venda_online_token($parceiro_id = null)
     {
         $this->CI->load->model("usuario_model", "usuario");
-
-        $parceiro_id = $this->CI->session->userdata("parceiro_id");
-
+        if($parceiro_id == null){
+            $parceiro_id = $this->CI->session->userdata("parceiro_id");
+        }
+        
         $usuario = $this->CI->usuario
             ->with_foreign()
             ->get_by(array(
