@@ -331,40 +331,63 @@ class Equipamento extends CI_Controller {
     public function consultaIMEI(){
         $inputJSON = file_get_contents("php://input");
         $inputData = json_decode($inputJSON);
-        
+        $output  = [];
 
         $URL    = "https://www.imei.info/api/checkimei/";
-        $key  = "6a4a9ee5788dd10c30d9f135bce5b5987b01242c2320eae8229a0ec308cd5193";
         $key    = "c976131932bcb491dd087cb996cc853d8c8fc72c1818a83777a77a181abe75a7";
-        $imei   = $inputData->imei;
 
+        try {
+            if (empty($inputData)) {
+                throw new Exception("Dados não informados no padrão JSON válido");
+            }
 
-        $curl = curl_init();
+            if ( empty($inputData->imei) ){
+                throw new Exception("Campo \"imei\" não informado");
+            }
 
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $URL,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => "imei=$imei&key=$key",        
-        ));
+            $imei = $inputData->imei;
 
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-        curl_close($curl);
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => $URL,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => "",
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_SSL_VERIFYHOST => 0,
+                CURLOPT_SSL_VERIFYPEER => 0,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => "POST",
+                CURLOPT_POSTFIELDS => "imei=$imei&key=$key",        
+            ));
 
-        if($err){
-            echo json_encode(["error" => "Erro na requisição: ".$err]);
-        } else {
-            echo $response;
+            $response = curl_exec($curl);
+            $err = curl_error($curl);
+            curl_close($curl);
+
+            if($err){
+                throw new Exception("Erro na requisição: ".$err);
+            }
+
+            if( empty($response) ){
+                throw new Exception("Nenhum resultado encontrado");
+            }
+
+            $response = json_decode($response);
+
+            if( empty($response->brand) ){
+                throw new Exception("Nenhum resultado encontrado");
+            }
+
+            $output["success"] = true;
+            $output = array_merge($output, (array)$response);
+
+        } catch(Exception $ex) {
+            $output["success"] = false;
+            $output["message"] = $ex->getMessage();
         }
 
-        
+        echo json_encode($output);
     }
 
 }
-
-
