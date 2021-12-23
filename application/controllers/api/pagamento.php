@@ -938,9 +938,73 @@ class Pagamento extends CI_Controller
             }
 
             die(json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-
         }
-
     }
 
+    public function createURLAcessoExterno(){
+        $this->load->model( "usuario_webservice_model", "webservice" );
+        $this->load->model( "produto_model", "produto" );
+        $this->load->model( "cotacao_model", "cotacao" );
+
+        $output = array();
+        $output["success"] = null;
+        $output["message"] = null;
+
+        $inputJSON = file_get_contents("php://input");
+        $inputData = json_decode($inputJSON);
+
+        try {
+
+            if ( empty($inputData) ){
+                throw new Exception("Dados não informados no padrão JSON válido");
+            }
+
+            if ( empty($inputData->cotacao_id) ){
+                throw new Exception("Campo \"cotacao_id\" não informado");
+            }
+
+            $cotacao_id = $inputData->cotacao_id;
+
+            if (!empty($inputData->produto_parceiro_id)) {
+                $produto_parceiro_id = $inputData->produto_parceiro_id;
+            } else {
+                $cotacao = $this->cotacao->get_by_id( $cotacao_id );
+                if ( empty($cotacao) ){
+                    throw new Exception("Cotação não identificada [$cotacao_id]");
+                }
+                $produto_parceiro_id = $cotacao["produto_parceiro_id"];
+            }
+
+            $aProduto = $this->produto->get_by_produto_parceiro_id($produto_parceiro_id);
+            if(empty($aProduto)){
+                throw new Exception("Produto não encontrado para o produto_parceiro_id: ".$produto_parceiro_id);
+            }
+
+            $produto = $aProduto[0];
+
+            $step          = 4;
+            $produto_slug  = $produto->slug;
+
+            $URL = base_url("admin/venda_{$produto_slug}/{$produto_slug}/{$produto_parceiro_id}/$step/$cotacao_id");        
+
+            $webservice = $this->webservice->checkKeyExpiration( $_SERVER["HTTP_APIKEY"]);
+            $parceiro_id = $webservice["parceiro_id"];
+            $token = $this->auth->get_venda_online_token($parceiro_id);
+            $output["success"] = true;
+            $output["message"] = "URL gerada com sucesso";
+            $output['url_acesso_externo'] = $this->auth->generate_page_token(
+                $token
+                , ''
+                , 'front'
+                , 'pagamento'
+                , $URL
+            );
+
+        } catch(Exception $ex) {
+            $output["success"] = false;
+            $output["message"] = $ex->getMessage();
+        }
+
+        echo json_encode($output);
+    }
 }
