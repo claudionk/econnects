@@ -62,4 +62,18 @@ Class Produto_Model extends MY_Model
         $this->with_simple_relation('produto_ramo', 'produto_ramo_', 'produto_ramo_id', array('nome'));
         return $this;
     }
+
+    public function get_by_produto_parceiro_id($produto_parceiro_id){
+        $SQL = "SELECT 
+            * 
+        FROM 
+            sisconnects.produto AS p
+        INNER JOIN
+            sisconnects.produto_parceiro AS pp
+            ON pp.produto_id = p.produto_id
+            
+        WHERE 1 = 1
+            AND pp.produto_parceiro_id = $produto_parceiro_id";
+        return $this->db->query($SQL)->result();
+    }
 }
