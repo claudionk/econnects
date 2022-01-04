@@ -1996,3 +1996,10 @@ if ( ! function_exists('array_merge_recursive_distinct')) {
         return $merged;
     }
 }
+
+if ( ! function_exists('app_tmp_dir'))
+{
+    function app_tmp_dir($uri = '', $context = 'site'){
+        return "/tmp/{$uri}/";
+    }
+}
