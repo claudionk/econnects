@@ -259,4 +259,57 @@ class Produto_Parceiro_Pagamento_Model extends MY_Model
         return $Json;
     }
 
+    public function getFormasPagamento($formasPagamentoFilter){
+        $this->load->model('forma_pagamento_tipo_model', 'forma_pagamento_tipo');
+        $this->load->model('forma_pagamento_bandeira_model', 'forma_pagamento_bandeira');
+
+        $formasPagamentoFilter = (object) $formasPagamentoFilter;
+        $produto_parceiro_id = $formasPagamentoFilter->produto_parceiro_id;
+        $valor_total = $formasPagamentoFilter->valor_total;
+
+        $tipo_pagamento  = $this->forma_pagamento_tipo->get_all();
+        $exibe_url_acesso_externo = false;
+
+        //Para cada tipo de pagamento
+        foreach ($tipo_pagamento as $index => $tipo) {
+
+            $forma = $this->with_forma_pagamento()
+                ->filter_by_produto_parceiro($produto_parceiro_id)
+                ->filter_by_forma_pagamento_tipo($tipo['forma_pagamento_tipo_id'])
+                ->filter_by_ativo()
+                ->get_all();
+
+            $bandeiras = $this->forma_pagamento_bandeira->get_many_by(array("forma_pagamento_tipo_id" => $tipo["forma_pagamento_tipo_id"]));
+
+            if (count($forma) > 0) {
+
+                // exibe o link para acesso externo se houver configurado os tipos de cartão
+                if ( !$exibe_url_acesso_externo && in_array($tipo['forma_pagamento_tipo_id'], [$this->config->item('FORMA_PAGAMENTO_CARTAO_CREDITO'), $this->config->item('FORMA_PAGAMENTO_CARTAO_DEBITO')] ) ) {
+                    $exibe_url_acesso_externo = true;
+                }
+
+                foreach ($forma as $index => $item) {
+                    $parcelamento = array();
+                    for ($i = 1; $i <= $item['parcelamento_maximo']; $i++) {
+                        if ($i <= $item['parcelamento_maximo_sem_juros']) {
+                            $parcelamento[$i] = array("Parcelas" => $i, "Valor" => round($valor_total / $i, 2), "Descricao" => "{$i} X " . app_format_currency(round($valor_total / $i, 2)) . " sem juros");
+                            //$parcelamento[$i] = "{$i} X ". app_format_currency($valor_total/$i) . " sem juros";
+                        } else {
+                            //$valor = (( $item['juros_parcela'] / 100 ) * ($valor_total/$i)) + ($valor_total/$i);
+                            $valor            = ($valor_total / (1 - ($item['juros_parcela'] / 100))) / $i;
+                            $parcelamento[$i] = array("Parcelas" => $i, "Valor" => $valor, "Descricao" => "{$i} X " . app_format_currency($valor) . " com juros (" . app_format_currency($item['juros_parcela']) . "%)");
+                            //$parcelamento[$i] = "{$i} X ". app_format_currency($valor) . " com juros (". app_format_currency($item['juros_parcela']) ."%)";
+                        }
+                    }
+                    $forma[$index]['parcelamento'] = $parcelamento;
+                }
+
+                $forma_pagamento[] = array('tipo' => $tipo, 'pagamento' => $forma, 'bandeiras' => $bandeiras);
+            }
+
+        }
+
+        return $forma_pagamento;
+    }
+
 }

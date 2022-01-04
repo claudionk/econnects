@@ -234,6 +234,14 @@ class Cotacao extends CI_Controller {
         $valor_fixo                     = issetor( $GET["valor_fixo"] , null);
         $garantia_fabricante            = issetor( $GET["garantia_fabricante"] , null);
 
+        $this->load->model('forma_pagamento_tipo_model', 'forma_pagamento_tipo');
+        $this->load->model('produto_parceiro_pagamento_model', 'produto_pagamento');
+        $forma = $this->produto_pagamento->getFormasPagamento([
+           "produto_parceiro_id" => $produto_parceiro_id,
+           "valor_total" => 10
+        ]);
+        print_r($forma);
+        exit("ok");
         if( is_null( $produto_parceiro_id ) ) {
             $cotacao = $this->cotacao->get_by_id( $cotacao_id );
             $produto_parceiro_id = $cotacao["produto_parceiro_id"];
