@@ -89,7 +89,7 @@ class CI_SFTP {
 		{
 			$this->initialize($config);
 		}
-
+		
 		if (FALSE === ($this->conn_id = @ssh2_connect($this->hostname, $this->port)))
 		{
 			if ($this->debug == TRUE)

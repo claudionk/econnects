@@ -540,8 +540,9 @@ Class Integracao_Model extends MY_Model
         }
     }
 
-    private function getFile($integracao = array(), $file)
+    public function getFile($integracao = array(), $file)
     {
+        
         try{
             if($this->isSimularTransferencia() == false) {
                 switch ($integracao['integracao_comunicacao_id']){
@@ -672,6 +673,8 @@ Class Integracao_Model extends MY_Model
 
         $result = null;
         $connectedFTP = $this->sftp->connect($config);
+        var_dump($connectedFTP);
+        
         if ($connectedFTP) {
             $list = $this->sftp->list_files("{$integracao['diretorio']}");
             $result = $this->getFileTransferProtocol($this->sftp, $list, $integracao, $file);
@@ -728,8 +731,6 @@ Class Integracao_Model extends MY_Model
 
         $aOutput = array();
 
-        print_r($list);
-
         if($list) {
             foreach ($list as $index => $item) {
                 if ( strpos($item, ".") === FALSE )
@@ -765,7 +766,6 @@ Class Integracao_Model extends MY_Model
         
                     $fileget = basename($item);
                     $_download = $obj->download($item, "{$diretorio}/{$fileget}", 'binary');
-                    var_dump($_download);
                     if($_download){
                         $aOutput[] = array(
                             'file' => "{$diretorio}/{$fileget}",
