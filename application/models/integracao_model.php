@@ -624,7 +624,7 @@ Class Integracao_Model extends MY_Model
 
         if(!empty($file_processar)){
             $fileget = $file_processar;
-            $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+            $diretorio = app_tmp_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
             if(file_exists("{$diretorio}/{$fileget}")){
                 $result = array(
                     'file' => "{$diretorio}/{$fileget}",
@@ -748,8 +748,7 @@ Class Integracao_Model extends MY_Model
                     print_r("Total: ".$total);
 
                 if ((int)$total == 0) {
-                    $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
-                    $diretorio = app_assets_dir('integracao', 'uploads');
+                    $diretorio = app_tmp_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
                     if(!file_exists($diretorio)){
                         mkdir($diretorio, 0777, true);
                     }
@@ -988,8 +987,8 @@ Class Integracao_Model extends MY_Model
         $this->load->model('integracao_layout_model', 'integracao_layout');
         $this->load->model('integracao_detalhe_model', 'integracao_det');
 
-        $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
-        $diretorio = app_assets_dir('integracao', 'uploads');
+        $diretorio = app_tmp_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+        $diretorio = app_tmp_dir('integracao', 'uploads');
 
         $this->data_template_script['integracao_id'] = $integracao['integracao_id'];
         $this->data_template_script['parceiro_id'] = $integracao['parceiro_id'];
@@ -1183,7 +1182,7 @@ Class Integracao_Model extends MY_Model
         $this->load->model('integracao_log_detalhe_model', 'integracao_log_detalhe');
         $this->load->model('integracao_layout_model', 'integracao_layout');
 
-        $diretorio = app_assets_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+        $diretorio = app_tmp_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
 
         //busca layout
         $layout_header = $this->integracao_layout->filter_by_integracao($integracao['integracao_id'])
@@ -2173,7 +2172,7 @@ Class Integracao_Model extends MY_Model
     
 
         if(!empty($integracao['privatekey_filename'])){
-            $privatekey             = app_assets_dir('privatekey', 'files') . $integracao['privatekey_filename'];
+            $privatekey             = app_tmp_dir('privatekey', 'files') . $integracao['privatekey_filename'];
             $config['privatekey']   = $privatekey;
         }
 
