@@ -32,7 +32,7 @@ class TesteTivit extends CI_Controller {
         ini_set('display_startup_errors', 1);
         error_reporting(E_ALL); 
 
-        $integracao = $this->getIntegracao($integracao_id);
+        //$integracao = $this->getIntegracao($integracao_id);
         $aFile = $this->integracao->getFile($integracao, null);        
         var_dump($aFile);
     }
