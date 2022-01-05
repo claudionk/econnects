@@ -177,14 +177,14 @@ class ArquivoIntegracao {
     }
 
     public static function createIntegracaoTmpPath($integracao, $fileName = null){
-        $path = app_tmp_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+        $path = app_tmp_dir('integracao', 'uploads');
 
         if(!is_dir($path)){
             mkdir($path);
         }
 
         if($fileName){
-            $path .= "/".$fileName;
+            $path .= $fileName;
         }
         
         return $path;
