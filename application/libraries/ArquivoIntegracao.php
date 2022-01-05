@@ -98,10 +98,26 @@ class ArquivoIntegracao {
     }
 
     public static function downloadFileToTMP($integracao, $fileName){
-        $filePath   = self::createIntegracaoTmpPath($integracao, $fileName);
+
+        $path = app_tmp_dir('integracao', 'uploads');
+        if(!file_exists($path)){
+            mkdir($path);
+        }
+        $path .= $integracao['integracao_id']."/";
+        if(!file_exists($path)){
+            mkdir($path);
+        }
+
+        $path .= $integracao['tipo']."/";
+        if(!file_exists($path)){
+            mkdir($path);
+        }
+
+        $path       .= $fileName;
         $content    = self::downloadFile($integracao, $fileName);
-        file_put_contents($filePath, $content);
-        return $filePath;
+
+        file_put_contents($path, $content);
+        return $path;
     }
 
     private static function callAPI($methodName, $inputData){
@@ -175,21 +191,5 @@ class ArquivoIntegracao {
         }
         return $r;
     }
-
-    public static function createIntegracaoTmpPath($integracao, $fileName = null){
-        $path = app_tmp_dir('integracao', 'uploads');
-        var_dump($path);
-        mkdir("/tmp/uploads");
-        if(!is_dir($path)){
-            mkdir($path);
-        }
-
-        if($fileName){
-            $path .= $fileName;
-        }
-        
-        return $path;
-    }
-
 
 }
