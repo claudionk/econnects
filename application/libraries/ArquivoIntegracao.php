@@ -100,15 +100,19 @@ class ArquivoIntegracao {
     public static function downloadFileToTMP($integracao, $fileName){
 
         $path = app_tmp_dir('integracao', 'uploads');
+        var_dump($path);
         if(!file_exists($path)){
             mkdir($path);
         }
+
         $path .= $integracao['integracao_id']."/";
+        var_dump($path);
         if(!file_exists($path)){
             mkdir($path);
         }
 
         $path .= $integracao['tipo']."/";
+        var_dump($path);
         if(!file_exists($path)){
             mkdir($path);
         }
