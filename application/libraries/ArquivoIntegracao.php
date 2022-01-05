@@ -116,7 +116,7 @@ class ArquivoIntegracao {
         $path       .= $fileName;
         $content    = self::downloadFile($integracao, $fileName);
 
-        file_put_contents($path, $content);
+        file_put_contents($path, base64_decode($content));
         return $path;
     }
 
