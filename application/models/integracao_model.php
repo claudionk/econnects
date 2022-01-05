@@ -31,6 +31,8 @@ Class Integracao_Model extends MY_Model
 
     private $simularTransferencia = false;
 
+    private $debug = false;
+
     //Dados
     public $validate = array(
         array(
@@ -193,6 +195,10 @@ Class Integracao_Model extends MY_Model
 
         if(isset($_GET["simularTransferencia"])){
             $this->simularTransferencia = true;
+        }
+
+        if(isset($_GET["debug"])){
+            $this->debug = true;
         }
     }
 
@@ -366,8 +372,7 @@ Class Integracao_Model extends MY_Model
             if (isset($_GET["fileName"])) {
 
                 $_fileName  = $_GET["fileName"];
-                $_tipo      = $_GET["tipo"];
-                $_filePath  = "/var/www/webroot/ROOT/assets/uploads/integracao/$integracao_id/$_tipo/$_fileName";
+                $_filePath  = ArquivoIntegracao::downloadFileToTMP($result, $_fileName);
 
                 if (file_exists($_filePath)) {
 
@@ -2172,7 +2177,7 @@ Class Integracao_Model extends MY_Model
     
 
         if(!empty($integracao['privatekey_filename'])){
-            $privatekey             = app_tmp_dir('privatekey', 'files') . $integracao['privatekey_filename'];
+            $privatekey             = app_assets_dir('privatekey', 'files') . $integracao['privatekey_filename'];
             $config['privatekey']   = $privatekey;
         }
 
