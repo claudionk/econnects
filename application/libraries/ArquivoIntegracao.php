@@ -99,29 +99,16 @@ class ArquivoIntegracao {
 
     public static function downloadFileToTMP($integracao, $fileName){
 
-        $path = app_tmp_dir('integracao', 'uploads');
-        var_dump($path);
-        if(!file_exists($path)){
-            mkdir($path);
+        $diretorio = app_tmp_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+        if(!file_exists($diretorio)){
+            mkdir($diretorio, 0777, true);
         }
 
-        $path .= $integracao['integracao_id']."/";
-        var_dump($path);
-        if(!file_exists($path)){
-            mkdir($path);
-        }
-
-        $path .= $integracao['tipo']."/";
-        var_dump($path);
-        if(!file_exists($path)){
-            mkdir($path);
-        }
-
-        $path       .= $fileName;
+        $diretorio  .= "/".$fileName;
         $content    = self::downloadFile($integracao, $fileName);
 
-        file_put_contents($path, base64_decode($content));
-        return $path;
+        file_put_contents($diretorio, base64_decode($content));
+        return $diretorio;
     }
 
     private static function callAPI($methodName, $inputData){
