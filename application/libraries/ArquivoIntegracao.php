@@ -178,7 +178,8 @@ class ArquivoIntegracao {
 
     public static function createIntegracaoTmpPath($integracao, $fileName = null){
         $path = app_tmp_dir('integracao', 'uploads');
-
+        var_dump($path);
+        mkdir("/tmp/uploads");
         if(!is_dir($path)){
             mkdir($path);
         }
