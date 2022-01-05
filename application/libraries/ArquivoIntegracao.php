@@ -99,6 +99,9 @@ class ArquivoIntegracao {
 
     public static function downloadFileToTMP($integracao, $fileName){
         $filePath   = self::createIntegracaoTmpPath($integracao, $fileName);
+        if(){
+
+        }
         $content    = self::downloadFile($integracao, $fileName);
         file_put_contents($filePath, $content);
         return $filePath;
@@ -178,9 +181,15 @@ class ArquivoIntegracao {
 
     public static function createIntegracaoTmpPath($integracao, $fileName = null){
         $path = app_tmp_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+        
+        if(!is_dir($path)){
+            mkdir($path);
+        }
+
         if($fileName){
             $path .= "/".$fileName;
         }
+        
         return $path;
     }
 
