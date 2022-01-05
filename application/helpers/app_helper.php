@@ -2000,14 +2000,6 @@ if ( ! function_exists('array_merge_recursive_distinct')) {
 if ( ! function_exists('app_tmp_dir'))
 {
     function app_tmp_dir($uri = '', $context = 'site'){
-        return "/tmp/{$uri}/";
-    }
-}
-
-
-if ( ! function_exists('app_assets_dir'))
-{
-    function app_assets_dir($uri = '', $context = 'site'){
         $uri = "/tmp/" .$context . '/' .$uri."/";
         return $uri;
     }
