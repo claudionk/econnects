@@ -56,6 +56,21 @@ class ArquivoIntegracao {
 
         try {
 
+            $content = self::downloadFile($integracao, $fileName);
+            $arquivoIntegracao = new ArquivoIntegracao();
+            $arquivoIntegracao->aLine = explode(PHP_EOL, base64_decode($content));
+            return $arquivoIntegracao;
+
+        } catch (Exception $ex) {
+            return null;
+
+        }
+
+    }
+
+    private static function downloadFile($integracao, $fileName){
+        try {
+
             $data = array();
             $data["Name"] = $fileName;
             $data["Folder"] = self::createFolderPath($integracao);
@@ -74,15 +89,19 @@ class ArquivoIntegracao {
                 throw new Exception("Campo esperado: data");
             }
 
-            $arquivoIntegracao = new ArquivoIntegracao();
-            $arquivoIntegracao->aLine = explode(PHP_EOL, base64_decode($responseData["data"]));
-            return $arquivoIntegracao;
+            return $responseData["data"];
 
         } catch (Exception $ex) {
             return null;
 
         }
+    }
 
+    public static function downloadFileToTMP($integracao, $fileName){
+        $filePath   = self::createIntegracaoTmpPath($integracao, $fileName);
+        $content    = self::downloadFile($integracao, $fileName);
+        file_put_contents($filePath, $content);
+        return $filePath;
     }
 
     private static function callAPI($methodName, $inputData){
@@ -156,5 +175,14 @@ class ArquivoIntegracao {
         }
         return $r;
     }
+
+    public static function createIntegracaoTmpPath($integracao, $fileName = null){
+        $path = app_tmp_dir('integracao', 'uploads') . "{$integracao['integracao_id']}/{$integracao['tipo']}";
+        if($fileName){
+            $path .= "/".$fileName;
+        }
+        return $path;
+    }
+
 
 }
