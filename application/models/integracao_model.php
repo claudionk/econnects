@@ -378,7 +378,8 @@ Class Integracao_Model extends MY_Model
 
                     $aResultFile = array(
                         array(
-                            "file" => $_filePath
+                            "file"      => $_filePath,
+                            "fileget"   => $_fileName
                         )
                     );  
 
