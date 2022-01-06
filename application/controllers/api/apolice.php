@@ -195,6 +195,7 @@ class Apolice extends CI_Controller {
                 $apolice_id = $GET["apolice_id"];
             }
 
+            $cotacao_id = null;
             if( isset( $GET["cotacao_id"] ) ) {
                 $cotacao_id = $GET["cotacao_id"];
             }
