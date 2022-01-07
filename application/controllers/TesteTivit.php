@@ -83,7 +83,7 @@ ZipArchive::ER_SEEK]);
 
 
     public function download(){
-        $file = "/tmp/uploads/integracao/124/E/NMTROCA_20220104/NMTROCA_20220104.zip";
+        $file = "/tmp/uploads/integracao/124/E/NMTROCA_20220104.zip";
         header('Content-Description: File Transfer');
         header('Content-Type: application/octet-stream');
         header('Content-Disposition: attachment; filename='.basename($file));
