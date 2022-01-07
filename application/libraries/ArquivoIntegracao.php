@@ -106,8 +106,20 @@ class ArquivoIntegracao {
 
         $diretorio  .= "/".$fileName;
         $content    = self::downloadFile($integracao, $fileName);
-        print_r($content);
-        file_put_contents($diretorio, base64_decode($content));
+        
+        file_put_contents($diretorio, base64_decode($content));;
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename='.basename($diretorio));
+        header('Content-Transfer-Encoding: binary');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($diretorio));
+        ob_clean();
+        flush();
+        readfile($diretorio);
+        exit();
         return $diretorio;
     }
 
