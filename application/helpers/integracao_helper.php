@@ -677,7 +677,7 @@ if ( ! function_exists('app_integracao_zip_extract_novomundo'))
         }
         else
         {
-            $CI->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, -1, "Erro na extracao de arquivo: {$arquivo}", 'nm_zip');
+            $CI->integracao_log_detalhe_campo->insLogDetalheCampo($integracao_log_detalhe_id, -1, "Erro na extracao de arquivo: {$arquivo} (ERRO: ".$res.")", 'nm_zip');
             return false;
         }
 
