@@ -106,7 +106,7 @@ class ArquivoIntegracao {
 
         $diretorio  .= "/".$fileName;
         $content    = self::downloadFile($integracao, $fileName);
-
+        print_r($content);
         file_put_contents($diretorio, base64_decode($content));
         return $diretorio;
     }
