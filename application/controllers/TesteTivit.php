@@ -59,4 +59,43 @@ class TesteTivit extends CI_Controller {
         print_r(scandir($dirPath));
     }
 
+    public function errorZip(){
+        echo '<pre>';
+        print_r([ZipArchive::ER_EXISTS,
+
+ZipArchive::ER_INCONS,
+
+ZipArchive::ER_INVAL,
+
+ZipArchive::ER_MEMORY,
+
+ZipArchive::ER_NOENT,
+
+ZipArchive::ER_NOZIP,
+
+ZipArchive::ER_OPEN,
+
+ZipArchive::ER_READ,
+
+ZipArchive::ER_SEEK]);
+
+    }
+
+
+    public function download(){
+        $file = "/tmp/uploads/integracao/124/E/NMTROCA_20220104/NMTROCA_20220104.zip";
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename='.basename($file));
+        header('Content-Transfer-Encoding: binary');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($file));
+        ob_clean();
+        flush();
+        readfile($file);
+        exit;
+    }
+
 }
