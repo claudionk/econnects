@@ -53,4 +53,10 @@ class TesteTivit extends CI_Controller {
         return $output;
     }
 
+    public function showTMP($dirPath){
+        $dirPath = "/".str_replace("---", "/", $dirPath);
+        var_dump($dirPath);
+        print_r(scandir($dirPath));
+    }
+
 }
