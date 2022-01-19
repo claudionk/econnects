@@ -2495,12 +2495,12 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
         $integracao_log_detalhe_dados['sinistro_id']                = $d["cod_sinistro"];
         $integracao_log_detalhe_dados['sinistro_id_exp']            = $d["id_exp"];
         $integracao_log_detalhe_dados['sinistro_tipo_expediente']   = $d["tipo_expediente"];
-        $integracao_log_detalhe_dados['sinistro_vcmotivolog']       = $d["desc_expediente"];
+        $integracao_log_detalhe_dados['sinistro_vcmotivolog']       = emptyor($d["desc_expediente"], '');
         $integracao_log_detalhe_dados['sinistro_data_envio']        = date('Y-m-d H:i:s');
         $integracao_log_detalhe_dados['sinistro_valor']             = $valor;
-        $integracao_log_detalhe_dados['sinistro_cod_tipo_mov']      = $d['cod_mov'];
+        $integracao_log_detalhe_dados['sinistro_cod_tipo_mov']      = emptyor($d['cod_mov'], null);
         $integracao_log_detalhe_dados['integracao_log_detalhe_id']  = $integracao_log_detalhe_id;
-        
+
         $CI =& get_instance();
         $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
         $CI->integracao_log_detalhe_dados->insLogDetalheDados($integracao_log_detalhe_dados);
