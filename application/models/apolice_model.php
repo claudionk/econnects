@@ -973,7 +973,10 @@ class Apolice_Model extends MY_Model
         $pedido = $this->pedido->getPedidoProdutoParceiro($pedido_id);
 
         $this->_database->select("apolice.apolice_id, apolice.pedido_id, apolice.num_apolice, apolice.num_apolice_cliente")
-            ->select("apolice.produto_parceiro_plano_id, apolice.apolice_status_id, apolice_status.nome as apolice_status_nome")
+            ->select("apolice.produto_parceiro_plano_id")
+            ->select("produto_parceiro_plano.nome as plano_nome")
+            ->select("apolice.apolice_status_id")
+            ->select("apolice_status.nome as apolice_status_nome")
             ->select("apolice_status.slug as apolice_status_slug")
             ->select("produto_parceiro_plano.produto_parceiro_id")
             ->select("produto_parceiro_plano.codigo_operadora as cod_produto_seg")
