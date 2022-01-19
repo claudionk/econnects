@@ -22,6 +22,7 @@ class Apolice extends CI_Controller {
         $this->load->model('pedido_model', 'pedido');
         $this->load->model("fatura_model", "fatura");
         $this->load->model("fatura_parcela_model", "fatura_parcela");
+        $this->load->model('apolice_cobertura_model', 'apolice_cobertura');
 
         $this->load->helper("api_helper");
 
@@ -129,6 +130,7 @@ class Apolice extends CI_Controller {
                     //Monta resposta da apólice
                     $apolice = $this->apolice->getApolicePedido($pedido["pedido_id"]);
                     $apolice[0]["inadimplente"] = ($this->pedido->isInadimplente( $pedido["pedido_id"] ) === false ) ? 0 : 1;
+                    $apolice[0]["coberturas"] = $this->apolice_cobertura->OnlyCoberturas()->filterByTipo("A")->getByApoliceID($apolice[0]["apolice_id"])->get_all();
 
                     $this->load->model('Comissao_gerada_model', 'comissao_gerada');
 
@@ -386,8 +388,13 @@ class Apolice extends CI_Controller {
         $pedido_id = $validacao['pedido_id'];
         $dados_bancarios = !empty($validacao['dados']['dados_bancarios']) ? $validacao['dados']['dados_bancarios'] : [];
         $define_date = !empty($validacao['dados']["define_date"]) ? $validacao['dados']["define_date"] : date("Y-m-d H:i:s") ;
-        $tipo_motivo = emptyor($validacao['dados']["tipo_motivo"], 'C');
-
+        $tipo_usuario = !empty($validacao['dados']['tipo_usuario']) ? $validacao['dados']['tipo_usuario'] : [];
+        $dados_apolice = $this->apolice->getApolicePedido($pedido_id);
+        if (($tipo_usuario == 'INT' || $tipo_usuario == 'CLI') && $dados_apolice[0]["parceiro_id"] == 30){ //Tratamento exclusivo para LASA e Softbox
+            $tipo_motivo = emptyor($validacao['dados']["tipo_motivo"], 'R');
+        }else{
+            $tipo_motivo = emptyor($validacao['dados']["tipo_motivo"], 'C');
+        }
         //pega as configurações de cancelamento do pedido
         $produto_parceiro_cancelamento = $this->pedido->cancelamento( $pedido_id, $dados_bancarios, $define_date, 'C', $tipo_motivo);
 

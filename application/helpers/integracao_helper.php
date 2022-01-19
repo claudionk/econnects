@@ -820,7 +820,7 @@ if ( ! function_exists('app_integracao_format_file_name_ret_sis'))
         }
 
         $data = date('Ymd');
-        $num_sequencia = str_pad($num_sequencia,4, '0',STR_PAD_LEFT);
+        $num_sequencia = substr(str_pad($num_sequencia, 4, '0', STR_PAD_LEFT), -4);
 
         $file = "{$formato}_{$num_sequencia}_{$data}.TXT";
         return  $file;
@@ -1931,6 +1931,52 @@ if ( ! function_exists('app_integracao_valida_regras'))
                 $premioValid = $calcPremio['response'];
                 $valor_premio = $calcPremio['valor_premio'];
 
+
+                if(!$premioValid){
+                    if(in_array($acesso->parceiro, ["novomundo", "novomundoamazonia"])) {
+
+                        if((float)$valor_premio != 0){
+                            if((float)$dados["premio_bruto"] > (float)$valor_premio) {                            
+                                $calcPremio     = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0), $dados["premio_liquido"], 0, $fields['coberturas']);
+                                $premioValid    = true;
+                            } else if((float)$dados["premio_bruto"] < (float)$valor_premio && (float)$valor_premio) {
+
+                                $CI =& get_instance();
+                                $CI->load->model('cotacao_model');
+
+                                $perc_prolabore             = Cotacao_Model::calcularPercProlabore((float)$dados["valor_custo"], (float)$calcPremio["premio_liquido"]);            
+                                $fields["comissao_premio"]  = $perc_prolabore;
+                                $fields["cotacao_id"]       = $cotacao_id;
+
+                                $calcPremio     = app_integracao_calcula_premio($cotacao_id, $dados["premio_bruto"], issetor($dados["nota_fiscal_valor"],0), $acesso, issetor($dados["premio_liquido"],0), issetor($dados["valor_iof"],0), $dados["premio_liquido"], 0, $fields['coberturas']);
+                                
+                                $atualizaCotacaoResponse    = app_get_api("atualizaCotacao", "POST", json_encode($fields), $acesso);
+                                $premioValid                = true;
+    
+                                if (empty($atualizaCotacaoResponse['status'])) {
+                                    if ( is_object($atualizaCotacaoResponse['response']) )
+                                    {
+                                        $erros = isset($atualizaCotacaoResponse['response']->erros) ? $atualizaCotacaoResponse['response']->erros : $atualizaCotacaoResponse['response']->errors;
+                                        foreach ($erros as $er) {
+                                            $response->errors[] = [
+                                                'id' => -1, 
+                                                'msg' => $er, 
+                                                'slug' => "atualiza_cotacao"
+                                            ];
+                                        }
+                                    } else {
+                                        $response->errors[] = ['id' => -1, 'msg' => $atualizaCotacaoResponse['response'], 'slug' => "atualiza_cotacao"];
+                                    }
+                                    return $response;
+                                }
+                                
+                            }
+                        }
+                        
+                       
+                    }
+                }
+
                 if (!$premioValid) {
                     $errors[] = ['id' => 7, 'msg' => "Valor do prêmio bruto [". $dados["premio_bruto"] ."] difere do prêmio calculado [". $valor_premio ."]", 'slug' => "premio_liquido"];
                 }
@@ -1954,7 +2000,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
     function app_integracao_calcula_premio($cotacao_id, $premio_bruto, $is, $acesso = null, $premio_liquido = NULL, $valor_iof = NULL, $valor_fixo = NULL, $qtde = 0, $coberturas = [])
     {
 
-        if($acesso->parceiro == "b2w"){
+        if($acesso->parceiro == "b2w" || $acesso->parceiro == "mapfre-lasa"){
             $valor_fixo = $premio_liquido;
         }
 
@@ -2058,7 +2104,7 @@ if ( ! function_exists('app_integracao_calcula_premio'))
             }
         }
 
-        return ['status'=> true, 'response'=> $premioValid, 'valor_premio'=> $valor_premio];
+        return ['status'=> true, 'response'=> $premioValid, 'valor_premio'=> $valor_premio, 'premio_liquido' => $calcPremio->premio_liquido];
     }
 }
 if ( ! function_exists('app_integracao_emissao'))
@@ -2259,7 +2305,9 @@ if ( ! function_exists('app_integracao_retorno_generali_fail')) {
         // Tratamento para erros que são considerados sucesso
         // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods
         // Tratando o erro 110 - Registro duplicado no arquivo de origem
-        if ( !empty($dados['registro']['cod_erro']) && in_array($dados['registro']['cod_erro'], [22, 110]) && ( in_array($proc['tipo'], ['CLIENTE', 'EMSCMS', 'PARCEMS', 'LCTCMS', 'COBRANCA']) ) )
+        // Tratando o erro 242 - Numero sequencial de emissao ja processado anteriormente para este contrato
+        // Tratando o erro 243 - Numero do endosso ja processado anteriormente para este contrato
+        if ( !empty($dados['registro']['cod_erro']) && in_array($dados['registro']['cod_erro'], [22, 110, 242, 243]) && ( in_array($proc['tipo'], ['CLIENTE', 'EMSCMS', 'PARCEMS', 'LCTCMS', 'COBRANCA']) ) )
 		{
 			$response->msg[] = ['id' => 12, 'msg' => $dados['registro']['cod_erro'] ." - ". $dados['registro']['descricao_erro'], 'slug' => "erro_retorno"];
             return $response;
@@ -2444,21 +2492,19 @@ if ( ! function_exists('app_integracao_generali_sinistro')) {
             $valor *= -1;
         }
 
+        $integracao_log_detalhe_dados = array();
+        $integracao_log_detalhe_dados['sinistro_id']                = $d["cod_sinistro"];
+        $integracao_log_detalhe_dados['sinistro_id_exp']            = $d["id_exp"];
+        $integracao_log_detalhe_dados['sinistro_tipo_expediente']   = $d["tipo_expediente"];
+        $integracao_log_detalhe_dados['sinistro_vcmotivolog']       = emptyor($d["desc_expediente"], '');
+        $integracao_log_detalhe_dados['sinistro_data_envio']        = date('Y-m-d H:i:s');
+        $integracao_log_detalhe_dados['sinistro_valor']             = $valor;
+        $integracao_log_detalhe_dados['sinistro_cod_tipo_mov']      = emptyor($d['cod_mov'], null);
+        $integracao_log_detalhe_dados['integracao_log_detalhe_id']  = $integracao_log_detalhe_id;
+
         $CI =& get_instance();
-        $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, id_sinistro, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
-            VALUES ({$d['id_exp']}, '{$d['cod_sinistro']}', NOW(), '{$d['tipo_expediente']}', '{$integracao_log_detalhe_id}', {$valor} )");
-        $id_exp_hist_carga = $CI->db->insert_id();
-
-        if ($d['tipo_expediente'] == 'ABE') {
-            $q = $CI->db->query("SELECT id_exp FROM sissolucoes1.sis_exp_complemento WHERE id_exp = {$d['id_exp']}");
-            if (empty($q->num_rows())) {
-                $CI->db->query("INSERT INTO sissolucoes1.sis_exp_complemento (id_exp, id_sinistro_generali, id_usuario, dt_log, vcmotivolog) VALUES ({$d['id_exp']}, '{$d['cod_sinistro']}', 10058, NOW(), '{$d['desc_expediente']}') ");
-            } else {
-                $CI->db->query("UPDATE sissolucoes1.sis_exp_complemento SET id_sinistro_generali = '{$d['cod_sinistro']}', id_usuario = 10058, dt_log = NOW(), vcmotivolog = '{$d['desc_expediente']}' WHERE id_exp = {$d['id_exp']}");
-            }
-        }
-
-        return $id_exp_hist_carga;
+        $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
+        $CI->integracao_log_detalhe_dados->insLogDetalheDados($integracao_log_detalhe_dados);
     }
 }
 if ( ! function_exists('app_integracao_gera_sinistro')) {
@@ -2565,11 +2611,38 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
         }
 
         // definir operação pelo nome do arquivo ou por integracao?
-        $acesso = app_integracao_novo_mundo_define_operacao($dados['log']['nome_arquivo']);
+        $acesso = app_integracao_novo_mundo_define_operacao($dados);
         if ( empty($acesso->status) ) {
             $response->status = 2;
             $response->msg[] = $acesso->msg;
             return $response;
+        }
+
+        //Se deve tratar coberturas distintas
+        if ( !empty($acesso->coberturas) )
+        {
+            // Emissao
+            if ( $reg['acao'] == '1' )
+            {
+                // gerar as vigências de GarantiaEstendida
+                $idx = app_search( $acesso->coberturas, 'garantia-estendida', 'cobertura' );
+                if ( $idx >= 0 )
+                {
+                    $acesso->coberturas[$idx]['data_inicio_vigencia'] = $reg['data_inicio_vigencia'];
+                    $acesso->coberturas[$idx]['data_fim_vigencia'] = $reg['data_fim_vigencia'];
+                }
+
+                // gerar as vigências de DanosEletricos
+                $idx = app_search( $acesso->coberturas, 'danos-eletricos', 'cobertura' );
+                if ( $idx >= 0 )
+                {
+                    $acesso->coberturas[$idx]['data_inicio_vigencia'] = $reg['data_adesao_cancel'];
+                    $acesso->coberturas[$idx]['data_fim_vigencia'] = date('Y-m-d', strtotime('-1 day', strtotime($reg['data_inicio_vigencia'])));
+
+                }
+            }
+
+            $dados["registro"]["coberturas"] = $acesso->coberturas;
         }
 
         // recupera as variaveis mais importantes
@@ -2639,8 +2712,10 @@ if ( ! function_exists('app_integracao_novo_mundo')) {
     }
 }
 if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
-    function app_integracao_novo_mundo_define_operacao($nome_arquivo)
+    function app_integracao_novo_mundo_define_operacao($dados)
     {
+        $nome_arquivo = $dados['log']['nome_arquivo'];
+        $reg = $dados['registro'];
         /*
          * Nomenclatura dos arquivos:
          * ssssOOnnnn_xx_data.ext (len 27), onde:
@@ -2668,6 +2743,9 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
         $result->sequencial_remessa = substr($nome_arquivo, 12, 2);
         $result->data = app_integracao_format_date_r("Ymd|Y-m-d", ['valor' => substr($nome_arquivo, 15, 8)]);
 
+        
+        $equipamento_de_para = $reg['equipamento_de_para'];
+
         switch ($result->operacao) {
             case '031':
                 $result->parceiro_id = 72;
@@ -2675,8 +2753,15 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
 
                 switch ($result->produto) {
                     case 'GAES':
-                        $result->produto_parceiro_id = 80;
-                        $result->produto_parceiro_plano_id = 103;
+
+                        $result->produto_parceiro_id = 80;                                         
+                        $result->coberturas[] = ['cobertura' => 'garantia-estendida'];
+                        if (strpos($equipamento_de_para, "X") === FALSE) {
+                            $result->produto_parceiro_plano_id = 103;
+                        } else {
+                            $result->produto_parceiro_plano_id = 205;
+                            $result->coberturas[] = ['cobertura' => 'danos-eletricos'];
+                        }
                         break;
 
                     case 'ROFU':
@@ -2703,7 +2788,13 @@ if ( ! function_exists('app_integracao_novo_mundo_define_operacao')) {
                 switch ($result->produto) {
                     case 'GAES':
                         $result->produto_parceiro_id = 83;
-                        $result->produto_parceiro_plano_id = 107;
+                        $result->coberturas[] = ['cobertura' => 'garantia-estendida'];
+                        if (strpos($equipamento_de_para, "X") === FALSE) {
+                            $result->produto_parceiro_plano_id = 107;
+                        } else {
+                            $result->produto_parceiro_plano_id = 206;
+                            $result->coberturas[] = ['cobertura' => 'danos-eletricos'];
+                        }
                         break;
 
                     case 'ROFU':
@@ -3219,7 +3310,9 @@ if ( ! function_exists('app_integracao_retorno_cta'))
             	// Tratamento para erros que são considerados sucesso
 		        // Tratando o erro 22 - Linha ja inserida na db_cta_stage_ods
 		        // Tratando o erro 110 - Registro duplicado no arquivo de origem
-		        if ( !empty($dados['registro']['cod_erro']) && in_array($dados['registro']['cod_erro'], [22, 110]) && in_array($proc['tipo'], ['CLIENTE', 'EMSCMS', 'PARCEMS', 'LCTCMS', 'COBRANCA']) )
+                // Tratando o erro 242 - Numero sequencial de emissao ja processado anteriormente para este contrato
+                // Tratando o erro 243 - Numero do endosso ja processado anteriormente para este contrato
+		        if ( !empty($dados['registro']['cod_erro']) && in_array($dados['registro']['cod_erro'], [22, 110, 242, 243]) && in_array($proc['tipo'], ['CLIENTE', 'EMSCMS', 'PARCEMS', 'LCTCMS', 'COBRANCA']) )
 				{
 					$cdEr = '4';
 				}
@@ -4702,7 +4795,8 @@ if ( ! function_exists('app_integracao_format_file_name_axa'))
                 $fileName = "AVISO_SIS_".$date."_RetornoAXA.xlsx";
                 break;
             case 389:
-                $fileName = "Lote Pagamento ".$date.".xlsx";
+                //$fileName = "Lote_Honorario_SIS_".$date.".xlsx";
+                $fileName = "Lote_Indenizacao_SIS_".$date.".xlsx";                
                 break;
             case 389:
                 $fileName = "Lote Pagamento ".$date."_RetornoAXA.xlsx";
@@ -4783,9 +4877,433 @@ if ( ! function_exists('app_integracao_axa'))
                     }
 
                 break;
+                case 389:
+                    $d = $dados['registro'];
+                    $id_exp = $d['id_exp'];
+
+                    $valor_pagto_despesa        = (float) $d["valor_pagto_despesa"];
+                    $valor_pagto_indenizacao    = (float) $d["valor_pagto_indenizacao"];
+                    $valor_mao_de_obra          = (float) $d["valor_mao_de_obra"];
+                    $valor_honorario            = (float) $d["valor_honorario"];
+                    $valor_total                = $valor_pagto_despesa + $valor_pagto_indenizacao + $valor_mao_de_obra + $valor_honorario;
+
+                    $integracao_log_detalhe_id = $formato;
+            
+                    $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, data_envio, tipo_expediente, id_controle_arquivo_registros, valor) 
+                        VALUES ($id_exp,  NOW(), 'LIQ', '$integracao_log_detalhe_id', $valor_total )");
+
+                    $id_exp_hist_carga = $CI->db->insert_id();            
+                    return $id_exp_hist_carga;
+                break;
+                case 390:
+
+                    $d = $dados['registro'];
+                    $id_exp = $d['id_exp'];
+
+                    $updateExpHistCargaSQL = "UPDATE 
+                            sissolucoes1.sis_exp_hist_carga AS sehc
+                            
+                        SET 
+                            sehc.data_retorno = NOW(),
+                            sehc.`status` = 'C'
+
+                        WHERE 1 = 1
+                            AND sehc.id_exp = $id_exp 
+                            AND sehc.tipo_expediente = 'LIQ' 
+                            AND sehc.`status` = 'P';";        
+
+                    $CI->db->query($updateExpHistCargaSQL);
+
+                break;
+                default;
             }
             
         }        
         
     }
+}
+
+
+if ( ! function_exists('app_integracao_mapfre_lasa'))
+{
+    function app_integracao_mapfre_lasa($formato, $dados = array())
+    {
+
+        $CI =& get_instance();
+        $CI->load->library("BaseSeguradosSGS");
+        $baseSeguradosSGS = new BaseSeguradosSGS();
+
+        $outputData = array();
+        $outputData["status"] = true;
+        $outputData["auxData"] = $dados["auxData"];        
+
+        $reg = $dados["registro"];
+
+        if(substr($reg["num_apolice_cliente"], 0, 4) != '5131' || $reg["cod_estipulante"] != "0000776574"){
+            $outputData["status"] = false;
+            return (object) $outputData;
+        }
+
+        if($reg["tipo_registro"] == "01"){
+
+            $insertData = array();
+            $insertData["integracao_log_id"]        = $dados["log"]["integracao_log_id"];
+            $insertData["cod_cliente_estipulante"]  = $reg["cod_estipulante"];
+            $insertData["endereco_2"]               = $reg["num_apolice"];
+            $insertData["matricula"]                = $reg["num_apolice_cliente"];
+            
+            if ($reg["tipo_registro_emitido"] == "EF") {
+                $insertData["tp_movi"] = "I";
+            }
+    
+            if ($reg["tipo_registro_emitido"] == "CN") {
+                $insertData["tp_movi"] = "E";
+            }
+    
+            $insertData["cpf"]                      = $reg["cod_docum_seg"];
+            $insertData["nome_cliente"]             = $reg["nome"];
+            $insertData["endereco_1"]               = $reg["endereco_logradouro"];
+            $insertData["bairro"]                   = $reg["endereco_bairro"];
+            $insertData["municipio"]                = $reg["endereco_cidade"];
+            $insertData["uf"]                       = $reg["endereco_estado"];
+            $insertData["cep"]                      = $reg["endereco_cep"];
+            $insertData["telefone"]                 = $reg["telefone"];
+
+            $insertData["ini_vig"]		= str_replace('/', '', $reg["data_inicio_vigencia"]); 
+            $insertData["ini_vig"]		= substr($insertData["ini_vig"], 4, 4) . substr($insertData["ini_vig"], 2, 2) . substr($insertData["ini_vig"], 0, 2);
+
+            $insertData["fim_vig"]		= str_replace('/', '', $reg["data_fim_vigencia"]); 
+            $insertData["fim_vig"]		= substr($insertData["fim_vig"], 4, 4) . substr($insertData["fim_vig"], 2, 2) . substr($insertData["fim_vig"], 0, 2);
+                
+            $insertData["cod_plano"]                = $reg["prod_mapfre"];
+            $insertData["dtdata_log"]               = date('Y-m-d H:i:s');
+            $insertData["vcmotivo_log"]             = "inclusão de segurados temp";
+            $insertData["inid_usuario_log"]         = "2395";
+            $insertData["dt_pg"]                    = 0;
+            $insertData["descricao"]                = "";
+
+            $insertData["data_emissao"]             = "";
+            $insertData["nome_vendedor"]            = "";
+
+            $id_segurado = $baseSeguradosSGS->insert_mapfre_segurados_tmp($insertData);
+            $outputData["auxData"]["id_segurado"] = $id_segurado;
+
+        } else if($reg["tipo_registro"] == "02") {
+
+            $insertData = array();
+            $insertData["id_segurado"]              = $dados["auxData"]["id_segurado"];
+            $insertData["cod_cliente_estipulante"]  = $reg["cod_estipulante"];            
+            $insertData["cod_prod_bem_segurado"]    = $reg["num_apolice_cliente"];
+
+            $insertData["inicio_vigencia"]		= str_replace('/', '', $reg["data_inicio_vigencia"]); 
+            $insertData["inicio_vigencia"]		= substr($insertData["inicio_vigencia"], 4, 4) . substr($insertData["inicio_vigencia"], 2, 2) . substr($insertData["inicio_vigencia"], 0, 2);
+
+            $insertData["final_vigencia"]		= str_replace('/', '', $reg["data_fim_vigencia"]); 
+            $insertData["final_vigencia"]		= substr($insertData["final_vigencia"], 4, 4) . substr($insertData["final_vigencia"], 2, 2) . substr($insertData["final_vigencia"], 0, 2);
+
+            $insertData["tempo_garantia"]           = $reg["garantia"];
+            $insertData["vl_venda_bem"]             = $reg["nota_fiscal_valor"];
+            $insertData["marca_prod"]               = $reg["marca"];
+            $insertData["desc_prod"]                = $reg["equipamento_nome"];
+            $insertData["modelo_prod"]              = $reg["modelo"];
+
+            $insertData["nr_nf"]                    = $reg["nota_fiscal_numero"];
+            $insertData["cod_prod"]                 = $reg["prod_mapfre"];
+            $insertData["serie_prod"]               = $reg["num_serie"];
+
+            $insertData["dt_compra"]		= str_replace('/', '', $reg["nota_fiscal_data"]); 
+            $insertData["dt_compra"]		= substr($insertData["dt_compra"], 4, 4) . substr($insertData["dt_compra"], 2, 2) . substr($insertData["dt_compra"], 0, 2);
+            
+            if ($reg["tipo_garantia"] == "Y") {
+                $insertData["tipo_plano"] = "0";
+            }
+
+            if ($reg["tipo_garantia"] == "R") {
+                $insertData["tipo_plano"] = "1";
+            }
+
+            $insertData["dtdata_log"]               = date('Y-m-d H:i:s');
+            $insertData["vcmotivo_log"]             = 'inclusão de equipamentos temp';
+            $insertData["inid_usuario_log"]         = '2395';
+            $insertData["vl_premio"]                = $reg["premio_bruto"];
+            $insertData["id_contrato_cobertura"]    = null;
+            $insertData["cd_cobertura_cli"]         = $reg["cod_cob"];
+            $insertData["desc_cobertura_cli"]       = '';
+            $insertData["num_cupom"]                = '';
+
+            
+            $match = $baseSeguradosSGS->MatchEquipamento($reg["modelo"], $reg["marca"], $reg["equipamento_nome"]);
+            $insertData["id_linha"]                 = $match->id_linha;
+            $insertData["id_marca"]                 = $match->id_marca;
+            $insertData["id_equipamento_prod"]      = $match->id_equipamento;
+
+            $baseSeguradosSGS->insert_mapfre_equipamentos_tmp($insertData);            
+        }       
+
+        return (object) $outputData;
+        
+    }
+
+    
+}
+
+
+if ( ! function_exists('app_integracao_mapfre_lasa_final'))
+{
+    function app_integracao_mapfre_lasa_final($formato, $dados = array())
+    {
+        $response = (object) ['status' => false, 'msg' => [], 'cpf' => [], 'ean' => []];
+
+        $CI =& get_instance();
+        $CI->session->sess_destroy();
+        $CI->session->set_userdata("operacao", "mapfre-lasa");
+        $CI->load->model("integracao_model", "integracao");
+        $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
+        $CI->load->model("equipamentos_elegiveis_categoria_model", "equipamentos_elegiveis_categoria");
+        $CI->load->model("apolice_model", "apolice");
+        $CI->load->library("BaseSeguradosSGS");
+        $baseSeguradosSGS = new BaseSeguradosSGS();
+        $baseSeguradosSGS->atualizarBaseMapfreTmp($dados["log"]["integracao_log_id"]);
+
+        $aInseridos = $baseSeguradosSGS->getInseridosMapfre($dados["log"]["integracao_log_id"]);
+
+        print_r($aInseridos);
+
+        foreach($aInseridos as $reg){
+            
+            $dados["registro"] = $reg;
+
+            $geraDados['tipo_transacao']            = $reg['acao'];
+            $geraDados['tipo_operacao']             = $reg['acao'];                
+            $geraDados['num_apolice']               = $reg['num_apolice'];
+            $geraDados['nota_fiscal_numero']        = $reg['nota_fiscal_numero'];
+            $geraDados['nome']                      = utf8_encode($reg['nome']);
+            $geraDados['telefone']                  = $reg['telefone'];
+            $geraDados['endereco']                  = utf8_encode($reg['endereco_logradouro']);                
+            $geraDados['endereco_bairro']           = utf8_encode($reg['endereco_bairro']);
+            $geraDados['endereco_cidade']           = utf8_encode($reg['endereco_cidade']);
+            $geraDados['endereco_estado']           = utf8_encode($reg['endereco_estado']);
+            $geraDados['endereco_cep']              = $reg['endereco_cep'];                
+            $geraDados['cpf']                       = $reg['cpf'];
+            $geraDados['premio_bruto']              = $reg['premio_bruto'];
+            $geraDados['marca']                     = utf8_encode($reg['marca']);
+            $geraDados['modelo']                    = utf8_encode($reg['modelo']);
+            $geraDados['equipamento_nome']          = utf8_encode($reg['equipamento_nome']);                
+            $geraDados['num_serie']                 = $reg['num_serie'];
+            $geraDados['nota_fiscal_data']          = $reg['nota_fiscal_data'];
+            $geraDados['data_inicio_vigencia']      = $reg['data_inicio_vigencia'];
+            $geraDados['data_fim_vigencia']         = $reg['data_fim_vigencia'];                
+            $geraDados['nota_fiscal_valor']         = $reg['nota_fiscal_valor'];
+            $geraDados['sexo']                      = null;
+            $geraDados['data_nascimento']           = null;
+            $geraDados['integracao_log_detalhe_id'] = $reg["integracao_log_detalhe_id"];
+            $geraDados['data_adesao_cancel']        = $reg['data_adesao_cancel'];
+
+
+/*
+            $geraDados['tipo_produto']              = $reg['tipo_produto'];
+            $geraDados['ramo']                      = $reg['ramo'];
+            $geraDados['cod_loja']                  = $reg['cod_loja'];
+            $geraDados['cod_vendedor']              = $reg['cod_vendedor'];
+            $geraDados['cpf_vendedor']              = $reg['cpf_vendedor'];
+            $geraDados['nome_vendedor']             = $reg['nome_vendedor'];
+            $geraDados['ddd_residencial']           = $reg['ddd_residencial'];
+            $geraDados['ddd_comercial']             = $reg['ddd_comercial'];
+            $geraDados['telefone_comercial']        = $reg['telefone_comercial'];
+            $geraDados['ddd_celular']               = $reg['ddd_celular'];
+            $geraDados['telefone_celular']          = $reg['telefone_celular'];
+            $geraDados['endereco_numero']           = $reg['endereco_numero'];
+            $geraDados['complemento']               = utf8_encode($reg['endereco_complemento']);
+            $geraDados['email']                     = $reg['email'];
+            $geraDados['tipo_pessoa']               = $reg['tipo_pessoa'];
+            $geraDados['outro_doc']                 = $reg['outro_doc'];
+            $geraDados['tipo_doc']                  = $reg['tipo_doc'];
+            $geraDados['premio_liquido']            = $reg['premio_liquido'];
+            $geraDados['valor_iof']                 = $reg['valor_iof'];
+            $geraDados['valor_custo']               = $reg['valor_custo'];
+            $geraDados['num_parcela']               = 1;
+            $geraDados['vigencia']                  = $reg['vigencia'];
+            $geraDados['garantia_fabricante']       = $reg['garantia_fabricante'];
+            $geraDados['cod_produto_sap']           = $reg['cod_produto_sap'];
+            $geraDados['data_adesao_cancel']        = $reg['data_adesao_cancel'];
+            $geraDados['ean']                       = $reg['ean'];
+            $geraDados['imei']                      = $reg['imei'];
+            $geraDados['cod_cancelamento']          = $reg['cod_cancelamento'];
+            $geraDados['data_cancelamento']         = $reg['data_cancelamento'];
+            $geraDados['status_carga']              = $reg['status_carga'];
+            $geraDados['status_reenvio']            = $reg['status_reenvio'];
+            $geraDados['codigo_erro']               = $reg['codigo_erro'];
+            $geraDados['dado_financ']               = $reg['dado_financ'];
+            $geraDados['numero_seq_lote']           = $reg['numero_seq_lote'];
+            $geraDados['arquivo_data']              = $reg['arquivo_data'];
+            $geraDados['arquivo_hora']              = $reg['arquivo_hora'];
+            $geraDados['total_registros']           = $reg['total_registros'];
+            $geraDados['apolice_rep']               = $reg['apolice_rep'];
+            $geraDados['id_departamento_categoria'] = $reg['id_departamento_categoria'];*/
+
+
+            $integracao_log_detalhe_dados_id = $CI->integracao_log_detalhe_dados->insLogDetalheDados($geraDados);
+
+            $acesso = new stdClass();
+            $acesso->parceiro_id = 161;
+            $acesso->produto_parceiro_id = $reg['produto_parceiro_id'];
+            $acesso->produto_parceiro_plano_id = $reg['produto_parceiro_plano_id'];
+            $acesso->email = "mapfre-lasa@neconnect.com.br";
+        
+            // Dados para definição do parceiro, produto e plano
+            $acessoResponse = app_integracao_generali_dados([
+                "email" => $acesso->email,
+                "parceiro_id" => $acesso->parceiro_id,
+                "produto_parceiro_id" => $acesso->produto_parceiro_id,
+                "produto_parceiro_plano_id" => $acesso->produto_parceiro_plano_id,
+            ]);
+
+            $acesso->apikey = $acessoResponse->apikey;
+            $acesso->parceiro = $acessoResponse->parceiro;
+
+            // recupera as variaveis mais importantes
+            $num_apolice    = $reg['num_apolice'];
+            $cpf            = $reg['cpf'];
+            $ean            = $reg['ean'];
+
+            $dados['registro']['produto_parceiro_id']       = $acesso->produto_parceiro_id;
+            $dados['registro']['produto_parceiro_plano_id'] = $acesso->produto_parceiro_plano_id;
+            $dados['registro']['data_adesao']               = $dados['registro']['data_adesao_cancel'];
+            $dados["registro"]['nome']                      = preg_replace('/\s+/', " ", $dados["registro"]['nome']); //Remover espaços duplos (Regra para nome do segurado splicitada pela MAPFRE)
+            $eanErro = true;
+            $eanErroMsg = "";
+
+            if(empty($reg['equipamento_nome'])){
+
+                $integracaoFilter = new stdClass();
+                $integracaoFilter->lista_id = 4;
+                $integracaoFilter->codigo = $reg['id_departamento_categoria'];
+
+                $equipamentoElegivelCategoria = $CI->equipamentos_elegiveis_categoria->getIntegracao($integracaoFilter);
+                if(!empty($equipamentoElegivelCategoria)){
+                    $dados["registro"]['equipamento_nome'] = utf8_encode($equipamentoElegivelCategoria["nome"]);
+                }            
+
+            }
+
+            // validações iniciais
+            $valid = new stdClass();
+            $valid->status = true;
+
+            $valid = app_integracao_inicio($acesso->parceiro_id, $num_apolice, $cpf, $ean, $dados, true, $acesso);
+
+            // Só faz a emissão caso as regras sejam válidas e não tenha encontrado nenhuma apolice
+            if($dados["registro"]["acao"] == 1){
+                $apolice = $CI->apolice->getApoliceByNumero($num_apolice, $acesso->parceiro_id);
+                if(!empty($apolice)){
+                    $response->status = true;
+                    return $response;
+                }    
+            }
+
+            // Campos para cotação
+            $camposCotacao = app_get_api("cotacao_campos/". $acesso->produto_parceiro_id, 'GET', [], $acesso);
+            if (empty($camposCotacao['status'])){
+                $response->msg[] = ['id' => -1, 'msg' => $camposCotacao['response'], 'slug' => "cotacao_campos"];
+                return $response;
+            }
+
+            $camposCotacao = $camposCotacao['response'];
+
+            $aCampos_enriqueceCPF = array();
+
+            //Trecho que define se o nome do segurado será enriquecido pelo CPF no método 'app_integracao_valida_regras'   
+            $aNome = explode(" ", $dados["registro"]['nome']); 
+            if(sizeof($aNome) < 2){ //O nome deve ser completo, ou seja, devem haverer pelo menos dois nomes separados por espaço
+                $dados["registro"]['nome'] = "";
+                $aCampos_enriqueceCPF[] = "nome";
+            }
+
+            //Se o CEP não for valido, irá enriquecer o campo no metodo 'app_integracao_valida_regras'  
+            if(!app_validate_cep($dados["registro"]["endereco_cep"])){
+                $aCampos_enriqueceCPF[] = "endereco";
+                $aCampos_enriqueceCPF[] = "only_cep"; //Apenas o CEP deve ser enriquecido
+            }
+
+            if(empty($aCampos_enriqueceCPF)){
+                $mixedEnriqueceCPF = false; //O attr false indica que não deve ser enriquecido
+            }else{
+                $mixedEnriqueceCPF = $aCampos_enriqueceCPF; //O attr como array determina a lista de campos que serão enriquecidos
+            }
+
+            $validaRegra = app_integracao_valida_regras($dados, $camposCotacao, $mixedEnriqueceCPF, $acesso);
+            // echo "<pre>";print_r($validaRegra);echo "</pre>";die();
+
+            if (!empty($validaRegra->status)) {
+
+                $dados['registro']['cotacao_id'] = !empty($validaRegra->cotacao_id) ? $validaRegra->cotacao_id : 0;
+                $dados['registro']['fields'] = $validaRegra->fields;
+
+                $emissao = app_integracao_emissao($formato, $dados, $acesso);
+
+                if (empty($emissao->status)) {
+
+                    if ( !empty($emissao->msg) ) {
+
+                        if ( !is_array($emissao->msg) ) {
+                            $response->msg[] = $emissao->msg;
+                        } else {
+                            $response->msg = $emissao->msg;
+                        }
+
+                    } else {
+                        $response->msg = $emissao->errors;
+                    }
+
+                } else {
+                    $response->status = true;
+                }
+
+            } else {
+                if (!empty($response->msg)) {
+                    $response->msg = array_merge($validaRegra->errors, $response->msg);
+                } else {
+                    $response->msg = $validaRegra->errors;
+                }
+            }
+
+        }
+ 
+        return $response;
+    }
+
+    if ( ! function_exists('app_integracao_generali_sinistro_after_execute')) {
+        function app_integracao_generali_sinistro_after_execute($formato, $dados = array())
+        {
+            $CI =& get_instance();
+            $CI->load->model("integracao_log_detalhe_dados_model", "integracao_log_detalhe_dados");
+            $a_integracao_log_detalhe_dados = $CI->integracao_log_detalhe_dados->get_by_integracao_log_id($dados["registro"]["integracao_log_id"]);
+
+            foreach($a_integracao_log_detalhe_dados as $integracao_log_detalhe_dados){
+
+                $sinistro_id = $integracao_log_detalhe_dados['sinistro_id'];
+                $sinistro_id_exp = $integracao_log_detalhe_dados['sinistro_id_exp'];
+                $sinistro_tipo_expediente = $integracao_log_detalhe_dados['sinistro_tipo_expediente'];
+                $sinistro_vcmotivolog = $integracao_log_detalhe_dados['sinistro_vcmotivolog'];
+                $sinistro_data_envio = $integracao_log_detalhe_dados['sinistro_data_envio'];
+                $sinistro_valor = $integracao_log_detalhe_dados['sinistro_valor'];
+                $integracao_log_detalhe_id = $integracao_log_detalhe_dados['integracao_log_detalhe_id'];
+                $sinistro_cod_tipo_mov = $integracao_log_detalhe_dados['sinistro_cod_tipo_mov'];
+                $sinistro_cod_tipo_mov = empty($sinistro_cod_tipo_mov) ? 'NULL' : $sinistro_cod_tipo_mov;
+
+                $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, id_sinistro, data_envio, tipo_expediente, id_controle_arquivo_registros, valor, cod_mov_arquivo_registros) 
+                VALUES ($sinistro_id_exp, '$sinistro_id', '$sinistro_data_envio', '$sinistro_tipo_expediente', '$integracao_log_detalhe_id', $sinistro_valor, $sinistro_cod_tipo_mov)");
+
+                if ($sinistro_tipo_expediente == 'ABE') {
+                    $q = $CI->db->query("SELECT id_exp FROM sissolucoes1.sis_exp_complemento WHERE id_exp = $sinistro_id_exp");
+                    if (empty($q->num_rows())) {
+                        $CI->db->query("INSERT INTO sissolucoes1.sis_exp_complemento (id_exp, id_sinistro_generali, id_usuario, dt_log, vcmotivolog) VALUES ($sinistro_id_exp, '$sinistro_id', 10058, '$sinistro_data_envio', '$sinistro_vcmotivolog') ");
+                    } else {
+                        $CI->db->query("UPDATE sissolucoes1.sis_exp_complemento SET id_sinistro_generali = '$sinistro_id', id_usuario = 10058, dt_log = '$sinistro_data_envio', vcmotivolog = '$sinistro_vcmotivolog' WHERE id_exp = $sinistro_id_exp");
+                    }
+                }
+            }
+        }
+    }
+
 }

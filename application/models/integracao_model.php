@@ -914,7 +914,6 @@ Class Integracao_Model extends MY_Model
         }
     }
 
-
     private function processLine($multiplo, $layout, $registro, $integracao_log, $integracao_log_detalhe_id = null, $integracao = null) {
         $this->data_template_script['totalRegistros']++;
         if (!empty($multiplo)) $this->data_template_script['totalItens']++;
@@ -1442,6 +1441,8 @@ Class Integracao_Model extends MY_Model
             }
 
             $num_linha = 1;
+
+            $auxData = array();
             foreach ($data as $index => $datum)
             {
                 // gera log
@@ -1458,10 +1459,14 @@ Class Integracao_Model extends MY_Model
                 {
                     if ( function_exists($integracao['before_detail']) )
                     {
-                        $callFuncReturn = call_user_func($integracao['before_detail'], $integracao_log_detalhe_id, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null));
+                        $callFuncReturn = call_user_func($integracao['before_detail'], $integracao_log_detalhe_id, array('item' => $detail, 'registro' => $datum, 'log' => $integracao_log, 'valor' => null, 'auxData' => $auxData));
 
                         if ( !empty($callFuncReturn) )
                         {
+                            if ( !empty($callFuncReturn->auxData) ) {
+                                $auxData = $callFuncReturn->auxData;
+                            }
+
                             if ( empty($callFuncReturn->status) )
                             {
                                 // seta para erro
@@ -1784,13 +1789,11 @@ Class Integracao_Model extends MY_Model
                 INNER JOIN integracao_log_detalhe ild ON il.integracao_log_id = ild.integracao_log_id 
                 INNER JOIN sissolucoes1.sis_exp_sinistro ec ON ec.id_sinistro = SUBSTRING_INDEX(ild.chave, '|', 1)
                 INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_sinistro = ehc.id_sinistro AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
-                LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_sinistro = ehcx.id_sinistro AND ehcx.tipo_expediente = ehc.tipo_expediente AND ehcx.status = 'C'                
                 SET ehc.data_retorno = NOW(), ehc.`status` = 'C'
                 WHERE 1 {$where} {$whereItem}
                 AND il.deletado = 0
                 AND ild.integracao_log_status_id = 4
                 AND ehc.`status` = 'P'
-                AND IF(ehc.tipo_expediente IN('AJU','ENC','REA'), 1, ehcx.id_exp IS NULL)
             ";
             $query = $this->_database->query($sql);
 
@@ -1850,12 +1853,10 @@ Class Integracao_Model extends MY_Model
                 INNER JOIN integracao_log_detalhe ild ON il.integracao_log_id = ild.integracao_log_id 
                 INNER JOIN sissolucoes1.sis_exp_sinistro ec ON ec.id_sinistro = SUBSTRING_INDEX(ild.chave, '|', 1)
                 INNER JOIN sissolucoes1.sis_exp_hist_carga ehc ON ec.id_sinistro = ehc.id_sinistro AND ehc.id_controle_arquivo_registros = ild.integracao_log_detalhe_id
-                LEFT JOIN sissolucoes1.sis_exp_hist_carga ehcx ON ec.id_sinistro = ehcx.id_sinistro AND ehcx.tipo_expediente = ehc.tipo_expediente AND ehcx.status = 'C'
                 SET ehc.data_retorno = NOW(), ehc.`status` = 'F'
                 WHERE 1 {$where}
                 AND il.deletado = 0
                 AND ehc.`status` = 'P'
-                AND IF(ehc.tipo_expediente IN('AJU','ENC','REA'), 1, ehcx.id_exp IS NULL)
                 AND ild.chave LIKE '{$chave}%'
             ";
             $query = $this->_database->query($sql);

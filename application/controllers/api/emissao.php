@@ -184,6 +184,7 @@ class Emissao extends CI_Controller {
                 }
 
                 $validaModelo = false;
+                $carregaModelo = false;
                 $obj = new Api();
 
                 // Consulta se existe a necessidade de consultar o modelo do equipamento
@@ -209,6 +210,7 @@ class Emissao extends CI_Controller {
 
                     foreach ($ret->campos as $campo) {
                         if ( in_array($campo->nome_banco, ['ean', 'equipamento_id', 'equipamento_nome', 'equipamento_marca_id', 'equipamento_sub_categoria_id', 'equipamento_categoria_id']) ) {
+                            $carregaModelo = true;
                             $pos = strpos($campo->validacoes, "required");
                             if ( !($pos === false) ) {
                                 $validaModelo = true;
@@ -218,7 +220,7 @@ class Emissao extends CI_Controller {
                     }
                 }
 
-                if ($validaModelo) {
+                if ($carregaModelo) {
                     // Caso não tenha sido informado os ID dos equipamentos
                     if ( empty($this->campos_estrutura["equipamento_id"]) || empty($this->campos_estrutura["equipamento_marca_id"]) || empty($this->campos_estrutura["equipamento_sub_categoria_id"]) || empty($this->campos_estrutura["equipamento_categoria_id"]) || empty($this->campos_estrutura["ean"]) ) {
 
@@ -236,7 +238,7 @@ class Emissao extends CI_Controller {
                                 $arrOptions["equipamento_marca_id"]         = $retorno["equipamento_marca_id"];
                                 $arrOptions["equipamento_sub_categoria_id"] = $retorno["equipamento_sub_categoria_id"];
                                 $arrOptions["equipamento_categoria_id"]     = $retorno["equipamento_categoria_id"];
-                                $validaModelo                               = false ;
+                                $carregaModelo                              = false ;
 
                                 $this->equipamento_nome                                 = $arrOptions["equipamento_nome"];
                                 $this->campos_estrutura["equipamento_id"]               = $retorno["equipamento_id"];
@@ -246,17 +248,17 @@ class Emissao extends CI_Controller {
                             }
                         }
                         else{
-                            if( empty($parametros['marca']) && empty($parametros['modelo']) ){
+                            if( $validaModelo && empty($parametros['marca']) && empty($parametros['modelo']) ){
                                 die(json_encode(array("status"=>false,"message"=>"Os atributos '[ean] ou [marca e modelo]' não foram informados"),JSON_UNESCAPED_UNICODE));
                             }
                         }
                     } else {
-                        $validaModelo = false;
+                        $carregaModelo = false;
                     }
 
-                    if ($validaModelo)
+                    if ($carregaModelo)
                     {
-                        if(empty($parametros['marca']))
+                        if($validaModelo && empty($parametros['marca']))
                         {
                             if (!empty($msgBuscaEqip))
                                 die(json_encode(array("status"=>false,"message"=>$msgBuscaEqip .". Informe o atributo `marca` para realizar a pesquisa alternativa."),JSON_UNESCAPED_UNICODE));
@@ -282,12 +284,12 @@ class Emissao extends CI_Controller {
                         $url = base_url() ."api/equipamento/modelo";
                         $r = $obj->execute($url, 'POST', json_encode($fields));
 
-                        if(empty($r)) {
+                        if($validaModelo && empty($r)) {
                             die(json_encode(array("status"=>false,"message"=>"Não foi possível realizar a consulta do equipamento por Marca/Modelo"),JSON_UNESCAPED_UNICODE));
                         }
                         else{
                             $retorno = json_decode($r,true);
-                            if( empty($retorno["status"]) ) {
+                            if( $validaModelo && empty($retorno["status"]) ) {
                                 $msg = ( !empty($retorno["mensagem"]) ) ? $retorno["mensagem"] : $r;
                                 die(json_encode(array("status"=>false,"message"=>$msg),JSON_UNESCAPED_UNICODE));
                             }
