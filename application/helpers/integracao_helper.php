@@ -5358,8 +5358,9 @@ if ( ! function_exists('app_integracao_mapfre_lasa_final'))
                 $sinistro_vcmotivolog = $integracao_log_detalhe_dados['sinistro_vcmotivolog'];
                 $sinistro_data_envio = $integracao_log_detalhe_dados['sinistro_data_envio'];
                 $sinistro_valor = $integracao_log_detalhe_dados['sinistro_valor'];
-                $sinistro_cod_tipo_mov = $integracao_log_detalhe_dados['sinistro_cod_tipo_mov'];
                 $integracao_log_detalhe_id = $integracao_log_detalhe_dados['integracao_log_detalhe_id'];
+                $sinistro_cod_tipo_mov = $integracao_log_detalhe_dados['sinistro_cod_tipo_mov'];
+                $sinistro_cod_tipo_mov = empty($sinistro_cod_tipo_mov) ? 'NULL' : $sinistro_cod_tipo_mov;
 
                 $CI->db->query("INSERT INTO sissolucoes1.sis_exp_hist_carga (id_exp, id_sinistro, data_envio, tipo_expediente, id_controle_arquivo_registros, valor, cod_mov_arquivo_registros) 
                 VALUES ($sinistro_id_exp, '$sinistro_id', '$sinistro_data_envio', '$sinistro_tipo_expediente', '$integracao_log_detalhe_id', $sinistro_valor, $sinistro_cod_tipo_mov)");
