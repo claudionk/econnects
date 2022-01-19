@@ -366,7 +366,7 @@ class Apolice extends CI_Controller {
 
             $pedido = $this->pedido->with_apolice()->filter_by_apolice($apolice_id)->get_all();
             if(!$pedido) {
-                throw new Exception("Apólice não encontrada");''
+                throw new Exception("Apólice não encontrada");
             }
 
             return [ 'dados' => $POST, 'pedido_id' => $pedido[0]["pedido_id"] ];
