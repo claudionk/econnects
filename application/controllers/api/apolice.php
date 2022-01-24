@@ -403,7 +403,6 @@ class Apolice extends CI_Controller {
         } else {
             die( json_encode( array( "status" => true, "message" => "Apólice cancelada com sucesso" ) ) );
         }
-
     }
 
     public function calculoCancelar() {

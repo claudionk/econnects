@@ -139,6 +139,12 @@ class Produto_Parceiro_Cancelamento_Model extends MY_Model
             'label' => 'cancelar via admin',
             'rules' => 'required',
             'groups' => 'default'
+        ),
+        array(
+            'field' => 'retencao_humano',
+            'label' => 'Retenção por Humano',
+            'rules' => 'required',
+            'groups' => 'default'
         )
     );
 
@@ -168,6 +174,7 @@ class Produto_Parceiro_Cancelamento_Model extends MY_Model
             'inad_reativacao_valor' => app_unformat_currency($this->input->post('inad_reativacao_valor')),
             'indenizacao_hab' => $this->input->post('indenizacao_hab'),
             'cancel_via_admin' => $this->input->post('cancel_via_admin'),
+            'retencao_humano' => $this->input->post('retencao_humano'),
         );
         return $data;
     }

@@ -1043,6 +1043,7 @@ class Pedido_Model extends MY_Model
             'dias_utilizados' => issetor($dias_utilizados,  0),
             'dias_aderido' => issetor($dias_aderido, 0),
             'devolucao_integral' => $devolucao_integral,
+            'retencao_humano' => !empty($produto_parceiro_cancelamento['retencao_humano']),
             'dados' => $retorno,
         ];
     }

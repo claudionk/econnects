@@ -292,6 +292,18 @@ if ($_POST)
                                             </div>
                                           </div>
                                         </fieldset>
+                                        <?php $field_name = 'retencao_humano'; ?>
+                                        <div class="form-group">
+                                          <label class="col-md-2 control-label" for="<?= $field_name; ?>">Retenção por Humano *</label>
+                                          <label class="radio-inline radio-styled radio-primary">
+                                            <input type="radio" id="<?= $field_name; ?>1" name="<?= $field_name; ?>" class="required styled" value="1" <?php if (isset($row[$field_name]) && $row[$field_name] == '1') echo 'checked="checked"'; ?> />
+                                            Sim
+                                          </label>
+                                          <label class="radio-inline radio-styled radio-primary">
+                                            <input type="radio" id="<?= $field_name; ?>2" name="<?= $field_name; ?>" class="required styled" value="0" <?php if (isset($row[$field_name]) && $row[$field_name] == '0') echo 'checked="checked"'; ?> />
+                                            Não
+                                          </label>
+                                        </div>
                                       </div>
                                       <!-- End Tab content -->
 
