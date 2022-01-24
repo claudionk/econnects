@@ -73,9 +73,13 @@ class Produto extends CI_Controller {
 		foreach($aProduto as $i => $produto){
 			$produto_parceiro_id = $produto["produto_parceiro_id"];
 			$calculo = [];
+			$onlyInvalids = false;
+			$cotacao_id = null;
 			$produto["planos"] = $this->produto_parceiro_plano->PlanosHabilitados($this->parceiro_id, $produto_parceiro_id, null);
 			if(!empty($cotacao) && $cotacao["produto_parceiro_id"] == $produto_parceiro_id){
-				$calculo = $this->regra_preco->calculo( true, ['cotacao_id' => $cotacao["cotacao_id"]], true );
+				$cotacao_id = $cotacao["cotacao_id"];
+				$calculo = $this->regra_preco->calculo( true, ['cotacao_id' => $cotacao_id], true );
+				$onlyInvalids = !empty($_GET['invalidos']) && !empty($calculo);
 			}
 
 			foreach($produto["planos"] as $j => $plano){
@@ -99,7 +103,7 @@ class Produto extends CI_Controller {
 				}
 			}
 
-			$produto["campos"] = $this->produto_parceiro_plano->getCampos((object)["produto_parceiro_id" => $produto_parceiro_id, "slug" => null, "produto_parceiro_plano_id" => null]);
+			$produto["campos"] = $this->produto_parceiro_plano->getCampos((object)["produto_parceiro_id" => $produto_parceiro_id, "slug" => null, "produto_parceiro_plano_id" => null], $onlyInvalids, $cotacao_id);
 			$aProduto[$i] = $produto;
 		}
 		echo json_encode($aProduto);
