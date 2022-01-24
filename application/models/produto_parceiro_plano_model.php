@@ -777,12 +777,12 @@ class Produto_Parceiro_Plano_Model extends MY_Model
 
         $planos = $this->coreSelectPlanosProdutoParceiro( $produto_parceiro_id, $produto_parceiro_plano_id )->get_all_select();
         $result = array();
-        
+
         if( $planos ) {
           //$produto_parceiro_id = $planos[0]["produto_parceiro_id"];
           $produtos = $this->produto_parceiro->get_produtos_venda_admin( null, null, $produto_parceiro_id );
           $produto_slug = $produtos[0]["slug"];
-  
+
           $campos_tipo = $this->campo_tipo->coreSelecCampoTipo( $slug )->get_all_select();
           $i = 0;
           foreach ($campos_tipo as $index => $item) {

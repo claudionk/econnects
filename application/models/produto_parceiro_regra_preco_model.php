@@ -34,21 +34,22 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
     //Get dados
     public function get_form_data($just_check = false) {
         //Dados
-      if( intval( $this->input->post('regra_preco_id') ) == 2 ) {
-        $data =  array(
-            'regra_preco_id' => $this->input->post('regra_preco_id'),
-            'parametros' => app_unformat_currency( $this->input->post('parametros') ),
-            'produto_parceiro_id' => $this->input->post('produto_parceiro_id')
-        );
-      } else {
-        $data =  array(
-            'regra_preco_id' => $this->input->post('regra_preco_id'),
-            'parametros' => $this->input->post('parametros'),
-            'produto_parceiro_id' => $this->input->post('produto_parceiro_id')
-        );
-      }
+		if( intval( $this->input->post('regra_preco_id') ) == 2 ) {
+			$data =  array(
+				'regra_preco_id' => $this->input->post('regra_preco_id'),
+				'parametros' => app_unformat_currency( $this->input->post('parametros') ),
+				'produto_parceiro_id' => $this->input->post('produto_parceiro_id')
+			);
+		} else {
+			$data =  array(
+				'regra_preco_id' => $this->input->post('regra_preco_id'),
+				'parametros' => $this->input->post('parametros'),
+				'produto_parceiro_id' => $this->input->post('produto_parceiro_id')
+			);
+		}
         return $data;
     }
+
     function get_by_id($id)
     {
         return $this->get($id);
@@ -984,5 +985,92 @@ Class Produto_Parceiro_Regra_Preco_Model extends MY_Model
         }
     }
 
+    /**
+    * Efetua calculo, retorna JSON
+    */
+    public function calculo( $multipleResult = false, $GET = [], $api = false )
+    {
+        $this->load->model( "cotacao_model", "cotacao" );
+        $this->load->model( "produto_parceiro_model", "produto_parceiro" );
+        $this->load->model( "produto_parceiro_campo_model", "produto_parceiro_campo" );
+        $this->load->model( "cobertura_plano_model", "cobertura_plano");
+        $this->load->model( "cotacao_equipamento_model", "cotacao_equipamento" );
+        $this->load->model( "cotacao_generico_model", "cotacao_generico" );
+        $this->load->model( "cotacao_generico_cobertura_model", "cotacao_generico_cobertura");
+
+        $cotacao_id = null;
+        if( !isset( $GET["cotacao_id"] ) ) {
+            return [
+                "status" => false,
+                "message" => "Campo cotacao_id é obrigatório"
+            ];
+        }
+
+        $result = array();
+        $cotacao_id                     = $GET["cotacao_id"];
+        $produto_parceiro_id            = issetor( $GET["produto_parceiro_id"], null );
+        $equipamento_id                 = issetor( $GET["equipamento_id"] , null);
+        $equipamento_marca_id           = issetor( $GET["equipamento_marca_id"] , null);
+        $equipamento_categoria_id       = issetor( $GET["equipamento_categoria_id"] , null);
+        $equipamento_de_para            = issetor( $GET["equipamento_de_para"] , null);
+        $equipamento_sub_categoria_id   = issetor( $GET["equipamento_sub_categoria_id"] , null);
+        $quantidade                     = issetor( $GET["quantidade"] , 1);
+        $coberturas_opcionais           = issetor( $GET["coberturas_opcionais"] , null);
+        $coberturas_v                   = issetor( $GET["coberturas"] , null);
+        $repasse_comissao               = issetor( $GET["repasse_comissao"] , 0);
+        $desconto_condicional           = issetor( $GET["desconto_condicional"] , 0);
+        $comissao_premio                = issetor( $GET["comissao_premio"] , 0);
+        $valor_fixo                     = issetor( $GET["valor_fixo"] , null);
+        $garantia_fabricante            = issetor( $GET["garantia_fabricante"] , null);
+        $vigencia_mes                   = issetor( $GET["vigencia_mes"] , null);
+
+        if( is_null( $produto_parceiro_id ) ) {
+            $cotacao = $this->cotacao->get_by_id( $cotacao_id );
+            $produto_parceiro_id = $cotacao["produto_parceiro_id"];
+        }
+        $produto = $this->produto_parceiro->with_produto()->get($produto_parceiro_id);
+        if ( $produto['produto_slug'] == 'equipamento') {
+            $cotacao_aux = $this->cotacao_equipamento->get_by(['cotacao_id' => $cotacao_id]);
+        } else {
+            $cotacao_aux = $this->cotacao_generico->get_by(['cotacao_id' => $cotacao_id]);
+        }
+
+        $params["cotacao_id"]                   = $cotacao_id;
+        $params["produto_parceiro_id"]          = $produto_parceiro_id;
+        $params["parceiro_id"]                  = $this->parceiro_id;
+        $params["equipamento_id"]               = emptyor($equipamento_id, $cotacao_aux['equipamento_id']);
+        $params["equipamento_marca_id"]         = emptyor($equipamento_marca_id, $cotacao_aux['equipamento_marca_id']);
+        $params["equipamento_categoria_id"]     = emptyor($equipamento_categoria_id, $cotacao_aux['equipamento_categoria_id']);
+        $params["equipamento_sub_categoria_id"] = emptyor($equipamento_sub_categoria_id, $cotacao_aux['equipamento_sub_categoria_id']);
+        $params["equipamento_de_para"]          = emptyor($equipamento_de_para, $cotacao_aux['equipamento_de_para']);
+        $params["quantidade"]                   = $quantidade;
+        $params["valor_fixo"]                   = $valor_fixo;
+        $params["repasse_comissao"]             = emptyor($repasse_comissao, $cotacao_aux['repasse_comissao']);
+        $params["desconto_condicional"]         = emptyor($desconto_condicional, $cotacao_aux['desconto_condicional']);
+        $params["comissao_premio"]              = emptyor($comissao_premio, $cotacao_aux['comissao_premio']);
+        $params["coberturas"]                   = emptyor($coberturas_v, null);
+        $params["garantia_fabricante"]          = emptyor($garantia_fabricante, 0);
+        $params["vigencia_mes"]                 = emptyor($vigencia_mes, null);
+
+        if ( !empty($coberturas_opcionais) && is_array($coberturas_opcionais))
+        {
+            $coberturas = $this->cobertura_plano->filter_adicional_by_cobertura_slug($cotacao_id, $coberturas_opcionais)->get_all();
+            foreach ($coberturas as $cobAdd) {
+                $params["coberturas_adicionais"][] = $cobAdd['cobertura_plano_id'] .";". $cobAdd['preco'];
+            }
+        } else {
+            $coberturas = $this->cotacao_generico_cobertura->with_cotacao($cotacao_id)->get_all();
+            foreach ($coberturas as $cobAdd) {
+                $params["coberturas_adicionais"][] = $cobAdd['produto_parceiro_plano_id'] .";". $cobAdd['cobertura_plano_id'];
+            }
+        }
+
+        if (!$multipleResult)
+            $result = $this->calculo_plano( $params, $api );
+        else 
+            $result = $this->calculo_plano_multiple( $params, $api );
+
+        return $result;
+    }
 }
 

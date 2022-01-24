@@ -154,7 +154,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         $this->_database->select("{$this->_table}.campo_id");
         $this->_database->select("{$this->_table}.label");
         $this->_database->select("{$this->_table}.tamanho");
-        $this->_database->select("{$this->_table}.opcoes");
+        $this->_database->select("IF({$this->_table}.opcoes <> '', {$this->_table}.opcoes, campo.opcoes) AS opcoes", FALSE);
         $this->_database->select("{$this->_table}.validacoes");
         $this->_database->select("{$this->_table}.classe_css");
         $this->_database->select("campo.nome");
