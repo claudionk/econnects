@@ -545,6 +545,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         curl_setopt( $myCurl, CURLOPT_HTTPHEADER, array( "Content-Type: application/json", "apikey: $api_key" ) );
         curl_setopt( $myCurl, CURLOPT_TIMEOUT, 15 );
         curl_setopt( $myCurl, CURLOPT_CONNECTTIMEOUT, 15 );
+        curl_setopt( $myCurl, CURLOPT_SSL_VERIFYPEER, false);
         $Response = curl_exec( $myCurl );
         curl_close( $myCurl );
 
