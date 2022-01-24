@@ -154,7 +154,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
         $this->_database->select("{$this->_table}.campo_id");
         $this->_database->select("{$this->_table}.label");
         $this->_database->select("{$this->_table}.tamanho");
-        $this->_database->select("{$this->_table}.opcoes");
+        $this->_database->select("IF({$this->_table}.opcoes <> '', {$this->_table}.opcoes, campo.opcoes) AS opcoes", FALSE);
         $this->_database->select("{$this->_table}.validacoes");
         $this->_database->select("{$this->_table}.classe_css");
         $this->_database->select("campo.nome");
@@ -411,6 +411,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                 "group"     => $tipo_slug,
             );
             $erros = array();
+            $errorFieldName = array();
             $campos = $this
                 ->with_campo()
                 ->with_campo_tipo()
@@ -424,6 +425,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                 if( strpos( $campo["validacoes"], "required" ) !== false ) {
                     if( !isset( $values[$campo["campo_nome_banco_equipamento"]] ) || trim($values[$campo["campo_nome_banco_equipamento"]]) == '' ) {
                         $erros[] = "O campo ". $campo["campo_nome"] ." (". $campo["campo_nome_banco_equipamento"] .") não foi informado";
+                        $errorFieldName[] = $campo["campo_nome_banco"];
                         $validacao_ok = false;
                     }
                 }
@@ -432,6 +434,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
             if( !$validacao_ok || sizeof( $erros ) > 0 ) {
                 $result["erros"] = $erros;
                 $result["errors"] = $erros;
+                $result["errorFieldName"] = $errorFieldName;
                 return $result;
             }
 
@@ -440,6 +443,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                 if( strpos( $campo["validacoes"], "required" ) !== false && ( is_null( $values[$campo["campo_nome_banco_equipamento"]] ) || trim($values[$campo["campo_nome_banco_equipamento"]]) == ''  ) ) {
                     $rule_check = "O preenchimento do campo ". $campo["campo_nome_banco_equipamento"] ." é obrigatório";
                     $erros[] = $rule_check;
+                    $errorFieldName[] = $campo["campo_nome_banco"];
                 } else {
                     if( isset($values[$campo["campo_nome_banco_equipamento"]]) && $values[$campo["campo_nome_banco_equipamento"]] != "0000-00-00" && !is_null( $values[$campo["campo_nome_banco_equipamento"]] )  ) {
                         if( strpos( $campo["validacoes"], "validate_data" ) !== false ) {
@@ -449,6 +453,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                                 if( !checkdate( $valida_data["month"], $valida_data["day"], $valida_data["year"] ) ) {
                                     $rule_check = "Data inválida (". $campo["campo_nome_banco_equipamento"] .")";
                                     $erros[] = $rule_check;
+                                    $errorFieldName[] = $campo["campo_nome_banco"];
                                 }
                             }
                         }
@@ -459,6 +464,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                                 if( !$valida_email ) {
                                     $rule_check = "E-mail inválido (". $campo["campo_nome_banco_equipamento"] .")";
                                     $erros[] = $rule_check;
+                                    $errorFieldName[] = $campo["campo_nome_banco"];
                                 }
                             }
                         }
@@ -466,24 +472,28 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
                             if( !empty($values[$campo["campo_nome_banco_equipamento"]]) && !app_validate_celular( $values[$campo["campo_nome_banco_equipamento"]] ) ) {
                                 $rule_check = "Número de telefone celular inválido (". $campo["campo_nome_banco_equipamento"] .")";
                                 $erros[] = $rule_check;
+                                $errorFieldName[] = $campo["campo_nome_banco"];
                             }
                         }
                         if( $campo["campo_nome_banco_equipamento"] == 'endereco_cep' ) {
                             if( !app_validate_cep($values[$campo["campo_nome_banco_equipamento"]]) ) {
                                 $rule_check = "CEP inválido (". $campo["campo_nome_banco_equipamento"] .")";
                                 $erros[] = $rule_check;
+                                $errorFieldName[] = $campo["campo_nome_banco"];
                             }
                         }
                         if( $campo["campo_nome_banco_equipamento"] == 'endereco_logradouro' ) {
                             if( !empty($values[$campo["campo_nome_banco_equipamento"]]) && strlen(trataRetorno($values[$campo["campo_nome_banco_equipamento"]])) < 3 ) {
                                 $rule_check = "Logradouro precisa ter mais que 3 caracteres (". $campo["campo_nome_banco_equipamento"] .")";
                                 $erros[] = $rule_check;
+                                $errorFieldName[] = $campo["campo_nome_banco"];
                             }
                         }
                         if( $campo["campo_nome_banco_equipamento"] == 'cnpj_cpf' ) {
                             if( strpos( $campo["validacoes"], "validate_cpf" ) !== false && !empty($values[$campo["campo_nome_banco_equipamento"]]) && !app_validate_cpf_cnpj( $values[$campo["campo_nome_banco_equipamento"]] ) ) {
                                 $rule_check = "CPF / CNPJ não é válido (". $campo["campo_nome_banco_equipamento"] .")";
                                 $erros[] = $rule_check;
+                                $errorFieldName[] = $campo["campo_nome_banco"];
                             }
                         }
                     }
@@ -502,6 +512,7 @@ Class Produto_Parceiro_Campo_Model extends MY_Model
             if( !$validacao_ok || sizeof( $erros ) > 0 ) {
                 $result["erros"] = $erros;
                 $result["errors"] = $erros;
+                $result["errorFieldName"] = $errorFieldName;
                 return $result;
             }
 

@@ -774,7 +774,7 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         return $planos;
     }
 
-    public function getCampos($filter){
+    public function getCampos($filter, $onlyInvalids = false, $cotacao_id = null){
 
         $filter = (object) $filter;
         $slug                       = $filter->slug;
@@ -784,30 +784,49 @@ class Produto_Parceiro_Plano_Model extends MY_Model
         $this->load->model( "produto_parceiro_model", "produto_parceiro" );
         $this->load->model( "produto_parceiro_campo_model", "produto_parceiro_campo" );
         $this->load->model( "campo_tipo_model", "campo_tipo" );
+        $this->load->model( "cotacao_model", "cotacao" );
 
         $planos = $this->coreSelectPlanosProdutoParceiro( $produto_parceiro_id, $produto_parceiro_plano_id )->get_all_select();
         $result = array();
-        
+
         if( $planos ) {
-          //$produto_parceiro_id = $planos[0]["produto_parceiro_id"];
-          $produtos = $this->produto_parceiro->get_produtos_venda_admin( null, null, $produto_parceiro_id );
-          $produto_slug = $produtos[0]["slug"];
-  
-          $campos_tipo = $this->campo_tipo->coreSelecCampoTipo( $slug )->get_all_select();
-          $i = 0;
-          foreach ($campos_tipo as $index => $item) {
-            $campos = $this->produto_parceiro_campo->coreSelecCampoProdutoParceiro( $produto_parceiro_id, $item["campo_tipo_id"] )->get_all_select();
-            if( $campos ) {
-              if( $item["slug"] == "dados_passageiro" && $produto_slug != "seguro_viagem" ) {
-                $pula = null;
-              } else {
-                $result[$i] = $item;
-                $result[$i]["campos"] = $campos;
-                $i++;
-              }
-            }
-          }
-        }
+			//$produto_parceiro_id = $planos[0]["produto_parceiro_id"];
+			$produtos = $this->produto_parceiro->get_produtos_venda_admin( null, null, $produto_parceiro_id );
+			$produto_slug = $produtos[0]["slug"];
+			$campos_tipo = $this->campo_tipo->coreSelecCampoTipo( $slug )->get_all_select();
+			$cotacao = [];
+			if (!empty($onlyInvalids) && !empty($cotacao_id)){
+				$cotacao = $this->cotacao->get_by_id($cotacao_id);
+			}
+
+			$i = 0;
+			foreach ($campos_tipo as $index => $item) {
+				$campos = $this->produto_parceiro_campo->coreSelecCampoProdutoParceiro( $produto_parceiro_id, $item["campo_tipo_id"] )->get_all_select();
+				if( $campos ) {
+					if( $item["slug"] == "dados_passageiro" && $produto_slug != "seguro_viagem" ) {
+						$pula = null;
+					} else {
+						$result[$i] = $item;
+						$camposReturn = $campos;
+
+						if (!empty($cotacao)) {
+							$fildValidate = $this->produto_parceiro_campo->validate_campos( $produto_parceiro_id, $item["slug"], $cotacao );
+							if ( empty($fildValidate['status']) ) {
+								$camposReturn = [];
+								foreach ($campos as $key => $value) {
+									if ( in_array($value['nome_banco'], $fildValidate['errorFieldName']) ) {
+										$camposReturn[] = $campos[$key];
+									}
+								}
+		        			}
+						}
+
+						$result[$i]["campos"] = $camposReturn;
+						$i++;
+					}
+				}
+			}
+		}
         return $result;
     }
 

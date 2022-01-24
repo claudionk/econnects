@@ -59,11 +59,29 @@ class Produto extends CI_Controller {
 		die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
 	}
 
-	public function detalhado(){
+	public function detalhado()
+	{
+		$this->load->model( 'produto_parceiro_regra_preco_model', 'regra_preco');
+		$this->load->model( "cotacao_model", "cotacao" );
+
+		$cotacao = null;
+		if (!empty($_GET['cotacao_id'])){
+			$cotacao = $this->cotacao->get_by_id($_GET['cotacao_id']);
+		}
+
 		$aProduto = $this->getProdutosByRequestInfo();		
 		foreach($aProduto as $i => $produto){
 			$produto_parceiro_id = $produto["produto_parceiro_id"];
+			$calculo = [];
+			$onlyInvalids = false;
+			$cotacao_id = null;
 			$produto["planos"] = $this->produto_parceiro_plano->PlanosHabilitados($this->parceiro_id, $produto_parceiro_id, null);
+			if(!empty($cotacao) && $cotacao["produto_parceiro_id"] == $produto_parceiro_id){
+				$cotacao_id = $cotacao["cotacao_id"];
+				$calculo = $this->regra_preco->calculo( true, ['cotacao_id' => $cotacao_id], true );
+				$onlyInvalids = !empty($_GET['invalidos']) && !empty($calculo);
+			}
+
 			foreach($produto["planos"] as $j => $plano){
 				$produto["planos"][$j]["coberturas"] = $this->cobertura_plano
 				->with_cobertura()
@@ -72,9 +90,20 @@ class Produto extends CI_Controller {
 				->filter_by_produto_parceiro_plano($plano["produto_parceiro_plano_id"])
 				->order_by('cobertura_plano.ordem')
 				->get_all();
-				
+
+				if (!empty($calculo)) {
+					$idxF = app_search( $calculo['planos'], $plano["produto_parceiro_plano_id"], 'produto_parceiro_plano_id' );
+					if ( $idxF >= 0 ) {
+						$produto["planos"][$j]["valores"] = $calculo['planos'][$idxF]["valores"];
+					} else {
+						$produto["planos"][$j]["valores"] = [];
+					}
+				} else {
+					$produto["planos"][$j]["valores"] = [];
+				}
 			}
-			$produto["campos"] = $this->produto_parceiro_plano->getCampos((object)["produto_parceiro_id" => $produto_parceiro_id, "slug" => null, "produto_parceiro_plano_id" => null]);
+
+			$produto["campos"] = $this->produto_parceiro_plano->getCampos((object)["produto_parceiro_id" => $produto_parceiro_id, "slug" => null, "produto_parceiro_plano_id" => null], $onlyInvalids, $cotacao_id);
 			$aProduto[$i] = $produto;
 		}
 		echo json_encode($aProduto);

@@ -262,6 +262,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         $garantia_fabricante = emptyor($data_preco['garantia_fabricante'], 0);
         $cotacao = emptyor($data_preco['cotacao'], NULL);
 
+        $this->load->model('produto_parceiro_model', 'produto_parceiro');
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
         $this->load->model('moeda_cambio_model', 'moeda_cambio');
@@ -274,7 +275,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         // Ex: Casos onde o valor do plano é variável de acordo com a vigência está configurado por mês, logo, valor x 5 = valor final
         $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, 'M');
 
-        $produto_parceiro =  $this->current_model->get_by_id($produto_parceiro_id);
+        $produto_parceiro =  $this->produto_parceiro->get_by_id($produto_parceiro_id);
         if($produto_parceiro['venda_agrupada']) {
             $arrPlanos = $this->plano->distinct()
                 ->order_by('produto_parceiro_plano.ordem', 'asc')
@@ -583,6 +584,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         $garantia_fabricante = emptyor($data_preco['garantia_fabricante'], 0);
         $vigencia_mes = emptyor($data_preco['vigencia_mes'], 0);
 
+        $this->load->model('produto_parceiro_model', 'produto_parceiro');
         $this->load->model('produto_parceiro_plano_model', 'plano');
         $this->load->model('moeda_model', 'moeda');
         $this->load->model('moeda_cambio_model', 'moeda_cambio');
@@ -595,7 +597,7 @@ Class Produto_Parceiro_Plano_Precificacao_Itens_Model extends MY_Model
         // Ex: Casos onde o valor do plano é variável de acordo com a vigência está configurado por mês, logo, valor x 5 = valor final
         $quantidade = $this->getQuantidade($quantidade, $data_inicio_vigencia, $data_fim_vigencia, 'M');
 
-        $produto_parceiro =  $this->current_model->get_by_id($produto_parceiro_id);
+        $produto_parceiro =  $this->produto_parceiro->get_by_id($produto_parceiro_id);
         if($produto_parceiro['venda_agrupada']) {
             $arrPlanos = $this->plano->distinct()
                 ->order_by('produto_parceiro_plano.ordem', 'asc')
