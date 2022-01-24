@@ -80,6 +80,7 @@ class Produtos_Parceiros_Cancelamento extends Admin_Controller
             $data['row']['inad_reativacao_calculo'] = 'PORCENTAGEM';
             $data['row']['indenizacao_hab'] = 1;
             $data['row']['cancel_via_admin'] = 0;
+            $data['row']['retencao_humano'] = 0;
             $data['new_record'] = '1';
         } else {
             $data['new_record'] = '0';
