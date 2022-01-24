@@ -58,6 +58,8 @@ class Campos extends CI_Controller {
     if( !isset( $GET["produto_parceiro_id"] ) ) {
       die( json_encode( array( "status" => false, "message" => "Campo produto_parceiro_id é obrigatório" ) ) );
     } else {
+      $this->load->model( "cotacao_model", "cotacao" );
+
       $produto_parceiro_id = $GET["produto_parceiro_id"];
       $produto_parceiro_plano_id = null;
 
@@ -70,12 +72,24 @@ class Campos extends CI_Controller {
         $slug = $GET["slug"];
       }
 
+      $onlyInvalids = false;
+      $cotacao_id = null;
+      $cotacao = null;
+      if (!empty($_GET['cotacao_id'])){
+        $cotacao = $this->cotacao->get_by_id($_GET['cotacao_id']);
+
+        if(!empty($cotacao) && $cotacao["produto_parceiro_id"] == $produto_parceiro_id){
+          $cotacao_id = $cotacao["cotacao_id"];
+          $onlyInvalids = !empty($_GET['invalidos']);
+        }
+      }
+
       $filter = new stdClass();
       $filter->slug = $slug;
       $filter->produto_parceiro_plano_id = $produto_parceiro_plano_id;
       $filter->produto_parceiro_id = $produto_parceiro_id;
 
-      $result = $this->produto_parceiro_plano->getCampos($filter);
+      $result = $this->produto_parceiro_plano->getCampos($filter, $onlyInvalids, $cotacao_id);
 
       if( $result ) {
         die( json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
