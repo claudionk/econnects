@@ -1941,7 +1941,7 @@ class Apolice_Model extends MY_Model
 
     public function solicitacao_desistencia($apolice_id, $export = "")
     {
-        $this->load->model('pedido_model', 'pedido');        
+        $this->load->model('pedido_model', 'pedido');
         $this->load->model('produto_parceiro_solicitacao_desistencia_model', 'solicitacao_desistencia');
 
         $data_template = array();
@@ -2335,6 +2335,104 @@ class Apolice_Model extends MY_Model
                 $this->db->where("apolice_status.slug = '".$slug."'");                        
             }        
         }            
+    }
+
+    public function updateApolice($apolice_id, $apolice = [], $dados = [])
+    {
+        $output = ['status' => false, 'message' => 'Dados não atualizados.'];
+        if ( empty($apolice) )
+        {
+            $apolice = $this->getApolice($apolice_id);
+        }
+
+        if (empty($apolice)){
+            $output['message'] = 'A apólice não identificada';
+            return $output;
+        }
+
+        if (empty($dados)){
+            $output['message'] = 'Os dados para atualização não foram enviados';
+            return $output;
+        }
+
+        if ($apolice['apolice_status_slug'] != 'ativa'){
+            $output['message'] = 'A apólice não pode ser alterada pois encontra-se no status "'.$apolice['apolice_status_nome'].'"';
+            return $output;
+        }
+
+        $dadosPermitidos = [
+            'nome' => 'Nome do Segurado',
+            'nome_mae' => 'Nome da mãe do Segurado',
+            'sexo' => 'Sexo do Segurado',
+            'email' => 'E-mail do Segurado',
+            'endereco_logradouro' => 'Endereço do Segurado - Logradouro',
+            'endereco_numero' => 'Endereço do Segurado - Número',
+            'endereco_complemento' => 'Endereço do Segurado - Complemento',
+            'endereco_bairro' => 'Endereço do Segurado - Bairro',
+            'endereco_cidade' => 'Endereço do Segurado - Cidade',
+            'endereco_estado' => 'Endereço do Segurado - UF',
+            'endereco_cep' => 'Endereço do Segurado - CEP',
+        ];
+        $fieldsFail = [];
+        foreach ($dados as $key => $value) {
+            if (!isset($dadosPermitidos[$key])) {
+                $fieldsFail[] = $key;
+            }
+        }
+
+        if (!empty($fieldsFail)){
+            $output['message'] = 'Os seguintes campos não permitem alteração: '. implode(', ', $fieldsFail);
+            return $output;
+        }
+
+        // Carrega as models
+        $this->load->model('apolice_seguro_viagem_model', 'apolice_seguro_viagem');
+        $this->load->model('apolice_equipamento_model', 'apolice_equipamento');
+        $this->load->model('apolice_generico_model', 'apolice_generico');
+
+        $update = false;
+        $pedido_id = $apolice['pedido_id'];
+        $produto = $this->pedido->getPedidoProdutoParceiro( $pedido_id );
+        if ($produto) {
+            $produto = $produto[0];
+
+            if ($produto['slug'] == 'seguro_viagem') {
+                $apolice_item = $this
+                    ->apolice_seguro_viagem
+                    ->filter_by_apolice($apolice_id)
+                    ->get_all();
+
+                $update = $this
+                    ->apolice_seguro_viagem
+                    ->update($apolice_item[0]['apolice_seguro_viagem_id'], $dados, true);
+
+            } elseif ($produto['slug'] == 'equipamento') {
+                $apolice_item = $this
+                    ->apolice_equipamento
+                    ->filter_by_apolice($apolice_id)
+                    ->get_all();
+
+                $update = $this
+                    ->apolice_equipamento
+                    ->update($apolice_item[0]['apolice_equipamento_id'], $dados, true);
+            } elseif ($produto["slug"] == "generico" || $produto["slug"] == "seguro_saude") {
+                $apolice_item = $this
+                    ->apolice_generico
+                    ->filter_by_apolice($apolice_id)
+                    ->get_all();
+
+                $update = $this
+                    ->apolice_generico
+                    ->update($apolice_item[0]['apolice_generico_id'], $dados, true);
+            }
+        }
+
+        if (!empty($update)){
+            $output['status'] = true;
+            $output['message'] = 'Dados atualizados com sucesso';
+        }
+
+        return $output;
     }
 
 }

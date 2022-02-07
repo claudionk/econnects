@@ -45,52 +45,51 @@ class Apolice extends CI_Controller {
         return $webservice;
     }
 
-    public function consulta(){             
-        $this->checkKey();        
-        $filtroApolice = array();        
+    public function consulta(){
+        $this->checkKey();
+        $filtroApolice = array();
 
-        $inputData = $_POST;      
+        $inputData = $_POST;
 
         try{
             if(empty($inputData["apolice_status"])){
-                throw new Exception('O campo "apolice_status" é obrigatório');         
-            }else{            
+                throw new Exception('O campo "apolice_status" é obrigatório');
+            }else{
                 if(!in_array($inputData["apolice_status"],["1", "2", "3"])){
                     throw new Exception('O campo "apolice_status" deve ser "1", "2" ou "3" [1: ativa; 2: cancelada; 3: ativa ou cancelada]');
                 }
             }
-    
-            if(empty($inputData["data_inicio"])){            
+
+            if(empty($inputData["data_inicio"])){
                 throw new Exception('O campo "data_inicio" é obrigatório');
             }else{
                 if (!preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $inputData["data_inicio"])) {
                     throw new Exception('O campo "data_inicio" deve conter o formato "yyyy-mm-dd"');
-                }        
-            } 
-    
-            if(empty($inputData["data_fim"])){            
+                }
+            }
+
+            if(empty($inputData["data_fim"])){
                 throw new Exception('O campo "data_fim" é obrigatório');
             }else{
                 if (!preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $inputData["data_fim"])) {
                     throw new Exception('O campo "data_fim" deve conter o formato "yyyy-mm-dd"');
-                }        
+                }
             }
-    
+
             $data_inicio = new DateTime($inputData["data_inicio"]);
             $data_fim = new DateTime($inputData["data_fim"]);
             $dias = $data_fim->diff($data_inicio)->format("%a");
             if($dias > 31){
                 throw new Exception("O intervalo de datas deve ter no máximo 31 dias");
-            }        
-    
+            }
+
             $outputData = $this->retornaApolices($inputData);
         }catch(Exception $ex){
             $outputData = array("status" => false, "message" => $ex->getMessage());
         }
-        
+
         die( json_encode( $outputData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
     }
-    
 
     public function consultaBase() {
         $outputData =  $this->retornaApolices($_POST);
@@ -592,6 +591,37 @@ class Apolice extends CI_Controller {
         die( json_encode( array( "status" => false, "message" => "Não foi possível exportar o bilhete" ) ) );
     }
 
+    public function update()
+    {
+        $this->checkKey();
+
+        try
+        {
+            if ($_SERVER["REQUEST_METHOD"] !== "PUT" ) {
+                throw new Exception('Invalid HTTP method');
+            }
+
+            $payload = json_decode( file_get_contents( "php://input" ), false );
+
+            if( empty( $payload->{"apolice_id"} ) ) {
+                throw new Exception("O atributo 'apolice_id' é um campo obrigatório");
+            } else {
+                $apolice_id = $payload->{"apolice_id"};
+            }
+
+            if( empty( $payload->{"campos"} ) ) {
+                throw new Exception("O atributo 'campos' é um campo obrigatório");
+            }
+
+            $campos = (array)$payload->{"campos"};
+            $outputData = $this->apolice->updateApolice($apolice_id, null, $campos);
+
+        }catch(Exception $ex){
+            $outputData = array("status" => false, "message" => $ex->getMessage());
+        }
+
+        die( json_encode( $outputData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+    }
 }
 
 
