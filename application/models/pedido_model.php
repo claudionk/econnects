@@ -453,6 +453,155 @@ Class Pedido_Model extends MY_Model
         }
     }
 
+    function getPedidoProdutoParceiroTemplateWithVigencia( $pedido_id = 0 ){
+        $templates = $this->db->query("SELECT *
+                                         FROM (SELECT pedido.pedido_id,
+                                                      apolice.apolice_id,
+                                                      produto_parceiro_apolice_id,
+                                                      produto_parceiro_apolice.template AS template_apolice,                
+                                                      CASE WHEN apolice_equipamento.data_adesao IS NOT NULL THEN apolice_equipamento.data_adesao
+                                                           WHEN apolice_generico.data_adesao IS NOT NULL THEN apolice_generico.data_adesao
+                                                           WHEN apolice_seguro_viagem.data_adesao IS NOT NULL THEN apolice_seguro_viagem.data_adesao
+                                                           ELSE NULL
+                                                       END AS data_adesao,
+                                                      CASE WHEN apolice_equipamento.data_cancelamento IS NOT NULL THEN apolice_equipamento.data_cancelamento
+                                                           WHEN apolice_generico.data_cancelamento IS NOT NULL THEN apolice_generico.data_cancelamento
+                                                           WHEN apolice_seguro_viagem.data_cancelamento IS NOT NULL THEN apolice_seguro_viagem.data_cancelamento
+                                                           ELSE NULL
+                                                       END AS data_cancelamento,
+                                                      produto_parceiro_apolice.termo_data_ini,
+                                                      produto_parceiro_apolice.termo_data_fim
+                                                 FROM pedido
+                                                INNER JOIN cotacao ON cotacao.cotacao_id = pedido.cotacao_id
+                                                INNER JOIN produto_parceiro ON cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id
+                                                INNER JOIN parceiro ON cotacao.parceiro_id = parceiro.parceiro_id
+                                                INNER JOIN produto ON produto.produto_id = produto_parceiro.produto_id
+                                                 LEFT JOIN produto_parceiro_apolice ON ( produto_parceiro_apolice.produto_parceiro_id = produto_parceiro.produto_parceiro_id) 
+                                                       AND produto_parceiro_apolice.deletado = 0
+                                                 LEFT JOIN cotacao_seguro_viagem ON ( cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id)
+                                                 LEFT JOIN cotacao_equipamento ON ( cotacao_equipamento.cotacao_id = cotacao.cotacao_id)
+                                                 LEFT JOIN cotacao_generico ON ( cotacao_generico.cotacao_id = cotacao.cotacao_id)
+                                                INNER JOIN apolice ON (pedido.pedido_id = apolice.pedido_id)
+                                                 LEFT JOIN apolice_equipamento ON (apolice.apolice_id = apolice_equipamento.apolice_id)
+                                                 LEFT JOIN apolice_generico ON (apolice.apolice_id = apolice_generico.apolice_id)
+                                                 LEFT JOIN apolice_seguro_viagem ON (apolice.apolice_id = apolice_seguro_viagem.apolice_id)
+                                                WHERE pedido.pedido_id IN ($pedido_id)                                                
+                                              ) TEMPLATE
+                                          WHERE CASE WHEN TEMPLATE.data_adesao IS NOT NULL 
+                                                          THEN TEMPLATE.data_adesao BETWEEN DATE(TEMPLATE.termo_data_ini) AND DATE(TEMPLATE.termo_data_fim) 
+                                                                                         OR DATE(TEMPLATE.termo_data_fim) IS NULL
+                                                 END 
+                                          ORDER BY TEMPLATE.data_adesao ASC
+                                          LIMIT 1" 
+                                    )->result_array();
+        if( $templates ) {
+            $template = $templates;
+        } else {
+            $template = array();
+        }
+        return $template;
+    }
+
+    function getPedidoProdutoParceiroCobrancaTemplateWithVigencia( $pedido_id = 0 ){
+        $templates = $this->db->query("SELECT *
+                                         FROM (SELECT pedido.pedido_id,
+                                                      apolice.apolice_id,
+                                                      produto_parceiro_autorizacao_cobranca_id,
+                                                      produto_parceiro_autorizacao_cobranca.autorizacao_cobranca AS autorizacao_cobranca,                
+                                                      CASE WHEN apolice_equipamento.data_adesao IS NOT NULL THEN apolice_equipamento.data_adesao
+                                                           WHEN apolice_generico.data_adesao IS NOT NULL THEN apolice_generico.data_adesao
+                                                           WHEN apolice_seguro_viagem.data_adesao IS NOT NULL THEN apolice_seguro_viagem.data_adesao
+                                                           ELSE NULL
+                                                       END AS data_adesao,
+                                                      CASE WHEN apolice_equipamento.data_cancelamento IS NOT NULL THEN apolice_equipamento.data_cancelamento
+                                                           WHEN apolice_generico.data_cancelamento IS NOT NULL THEN apolice_generico.data_cancelamento
+                                                           WHEN apolice_seguro_viagem.data_cancelamento IS NOT NULL THEN apolice_seguro_viagem.data_cancelamento
+                                                           ELSE NULL
+                                                       END AS data_cancelamento,
+                                                      produto_parceiro_autorizacao_cobranca.termo_data_ini,
+                                                      produto_parceiro_autorizacao_cobranca.termo_data_fim
+                                                 FROM pedido
+                                                INNER JOIN cotacao ON cotacao.cotacao_id = pedido.cotacao_id
+                                                INNER JOIN produto_parceiro ON cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id
+                                                INNER JOIN parceiro ON cotacao.parceiro_id = parceiro.parceiro_id
+                                                INNER JOIN produto ON produto.produto_id = produto_parceiro.produto_id
+                                                 LEFT JOIN produto_parceiro_autorizacao_cobranca ON ( produto_parceiro_autorizacao_cobranca.produto_parceiro_id = produto_parceiro.produto_parceiro_id) 
+                                                       AND produto_parceiro_autorizacao_cobranca.deletado = 0
+                                                 LEFT JOIN cotacao_seguro_viagem ON ( cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id)
+                                                 LEFT JOIN cotacao_equipamento ON ( cotacao_equipamento.cotacao_id = cotacao.cotacao_id)
+                                                 LEFT JOIN cotacao_generico ON ( cotacao_generico.cotacao_id = cotacao.cotacao_id)
+                                                INNER JOIN apolice ON (pedido.pedido_id = apolice.pedido_id)
+                                                 LEFT JOIN apolice_equipamento ON (apolice.apolice_id = apolice_equipamento.apolice_id)
+                                                 LEFT JOIN apolice_generico ON (apolice.apolice_id = apolice_generico.apolice_id)
+                                                 LEFT JOIN apolice_seguro_viagem ON (apolice.apolice_id = apolice_seguro_viagem.apolice_id)
+                                                WHERE pedido.pedido_id IN ($pedido_id)                                                
+                                              ) TEMPLATE
+                                          WHERE CASE WHEN TEMPLATE.data_adesao IS NOT NULL 
+                                                          THEN TEMPLATE.data_adesao BETWEEN DATE(TEMPLATE.termo_data_ini) AND DATE(TEMPLATE.termo_data_fim) 
+                                                                                         OR DATE(TEMPLATE.termo_data_fim) IS NULL
+                                                 END 
+                                          ORDER BY TEMPLATE.data_adesao ASC
+                                          LIMIT 1" 
+                                    )->result_array();
+        if( $templates ) {
+            $template = $templates;
+        } else {
+            $template = array();
+        }
+        return $template;
+    }
+
+
+    function getPedidoProdutoParceiroDesistenciaTemplateWithVigencia( $pedido_id = 0 ){
+        $templates = $this->db->query("SELECT *
+                                         FROM (SELECT pedido.pedido_id,
+                                                      apolice.apolice_id,
+                                                      produto_parceiro_solicitacao_desistencia_id,
+                                                      produto_parceiro_solicitacao_desistencia.solicitacao_desistencia AS solicitacao_desistencia,                
+                                                      CASE WHEN apolice_equipamento.data_adesao IS NOT NULL THEN apolice_equipamento.data_adesao
+                                                           WHEN apolice_generico.data_adesao IS NOT NULL THEN apolice_generico.data_adesao
+                                                           WHEN apolice_seguro_viagem.data_adesao IS NOT NULL THEN apolice_seguro_viagem.data_adesao
+                                                           ELSE NULL
+                                                       END AS data_adesao,
+                                                      CASE WHEN apolice_equipamento.data_cancelamento IS NOT NULL THEN apolice_equipamento.data_cancelamento
+                                                           WHEN apolice_generico.data_cancelamento IS NOT NULL THEN apolice_generico.data_cancelamento
+                                                           WHEN apolice_seguro_viagem.data_cancelamento IS NOT NULL THEN apolice_seguro_viagem.data_cancelamento
+                                                           ELSE NULL
+                                                       END AS data_cancelamento,
+                                                      produto_parceiro_solicitacao_desistencia.termo_data_ini,
+                                                      produto_parceiro_solicitacao_desistencia.termo_data_fim
+                                                 FROM pedido
+                                                INNER JOIN cotacao ON cotacao.cotacao_id = pedido.cotacao_id
+                                                INNER JOIN produto_parceiro ON cotacao.produto_parceiro_id = produto_parceiro.produto_parceiro_id
+                                                INNER JOIN parceiro ON cotacao.parceiro_id = parceiro.parceiro_id
+                                                INNER JOIN produto ON produto.produto_id = produto_parceiro.produto_id
+                                                 LEFT JOIN produto_parceiro_solicitacao_desistencia ON ( produto_parceiro_solicitacao_desistencia.produto_parceiro_id = produto_parceiro.produto_parceiro_id) 
+                                                       AND produto_parceiro_solicitacao_desistencia.deletado = 0
+                                                 LEFT JOIN cotacao_seguro_viagem ON ( cotacao_seguro_viagem.cotacao_id = cotacao.cotacao_id)
+                                                 LEFT JOIN cotacao_equipamento ON ( cotacao_equipamento.cotacao_id = cotacao.cotacao_id)
+                                                 LEFT JOIN cotacao_generico ON ( cotacao_generico.cotacao_id = cotacao.cotacao_id)
+                                                INNER JOIN apolice ON (pedido.pedido_id = apolice.pedido_id)
+                                                 LEFT JOIN apolice_equipamento ON (apolice.apolice_id = apolice_equipamento.apolice_id)
+                                                 LEFT JOIN apolice_generico ON (apolice.apolice_id = apolice_generico.apolice_id)
+                                                 LEFT JOIN apolice_seguro_viagem ON (apolice.apolice_id = apolice_seguro_viagem.apolice_id)
+                                                WHERE pedido.pedido_id IN ($pedido_id)                                                
+                                              ) TEMPLATE
+                                          WHERE CASE WHEN TEMPLATE.data_adesao IS NOT NULL 
+                                                          THEN TEMPLATE.data_adesao BETWEEN DATE(TEMPLATE.termo_data_ini) AND DATE(TEMPLATE.termo_data_fim) 
+                                                                                         OR DATE(TEMPLATE.termo_data_fim) IS NULL
+                                                 END 
+                                          ORDER BY TEMPLATE.data_adesao ASC
+                                          LIMIT 1" 
+                                    )->result_array();
+        if( $templates ) {
+            $template = $templates;
+        } else {
+            $template = array();
+        }
+        return $template;
+    }
+
+
     public function with_seguro_viagem(){
 
         $this->_database->select("cotacao_seguro_viagem.*")

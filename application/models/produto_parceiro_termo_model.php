@@ -37,6 +37,12 @@ Class Produto_Parceiro_Termo_Model extends MY_Model
             'label' => 'Termo',
             'rules' => 'required',
             'groups' => 'default'
+        ),
+        array(
+            'field' => 'termo_data_ini',
+            'label' => 'Data Início',
+            'rules' => 'required',
+            'groups' => 'default'
         )
     );
 
@@ -49,7 +55,8 @@ Class Produto_Parceiro_Termo_Model extends MY_Model
             'nome' => $this->input->post('nome'),
             'slug' => $this->input->post('slug'),
             'termo' => $this->input->post('termo'),
-
+            'termo_data_ini' => app_dateonly_mask_to_mysql($this->input->post('termo_data_ini')),
+            'termo_data_fim' => ($this->input->post('termo_data_fim') != '') ? app_dateonly_mask_to_mysql($this->input->post('termo_data_fim')) : NULL,
         );
         return $data;
     }
@@ -66,5 +73,25 @@ Class Produto_Parceiro_Termo_Model extends MY_Model
         return $this;
     }
 
+    function update_last_row($produto_parceiro_id, $slug, $termo_data_ini){
+        $ano= substr($termo_data_ini, 6);
+        $mes= substr($termo_data_ini, 3,-5);
+        $dia= substr($termo_data_ini, 0,-8);
+        $termo_data_ini = $ano."-".$mes."-".$dia;
+        
+        $this->_database->query("UPDATE produto_parceiro_termo 
+                                    SET termo_data_fim = DATE_ADD('{$termo_data_ini}', INTERVAL -1 DAY)
+                                  WHERE produto_parceiro_id = {$produto_parceiro_id}
+                                    AND slug = '{$slug}'
+                                    AND deletado = 0
+                                    AND termo_data_fim IS NULL");    
+        return true;
+    }    
+
+    public function with_vigencia($slug, $data_adesao_cancelamento){
+        $this->_database->where('slug', $slug);
+        $this->_database->where('termo_data_ini', "'$data_adesao_cancelamento' BETWEEN DATE(termo_data_ini) AND DATE(termo_data_fim)");
+        return $this;
+    }    
 
 }

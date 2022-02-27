@@ -34,6 +34,7 @@ class Produtos_Parceiros_Apolice extends Admin_Controller
         $this->template->set('page_title_info', '');
         $this->template->set('page_subtitle', "Produto / Parceiro / Apólice / Bilhete");
         $this->template->set_breadcrumb('Produto / Parceiro / Apólice / Bilhete', base_url("$this->controller_uri/index"));
+        $this->template->js(app_assets_url('modulos/produtos_parceiros_apolice/base.js', 'admin'));
 
         //Carrega dados para a página
         $data = array();
@@ -41,8 +42,10 @@ class Produtos_Parceiros_Apolice extends Admin_Controller
 
         if(count($row) > 0){
             $data['row'] = $row[0];
+            $data['row_vigencia'] = $row;
         }else{
             $data['row'] = NULL;
+            $data['row_vigencia'] = NULL;
         }
 
         $data['primary_key'] = $this->current_model->primary_key();
@@ -74,7 +77,8 @@ class Produtos_Parceiros_Apolice extends Admin_Controller
             if($this->current_model->validate_form()) //Valida form
             {
 
-                if($this->input->post('new_record') == '1'){
+                if($this->input->post('new_record') == '1' || $this->input->post('new_record') == '0'){
+                    $this->current_model->update_last_row($produto_parceiro_id, $_POST['slug'],  $_POST['termo_data_ini']);
                     $this->current_model->insert_form();
                 }else {
                     //Realiza update
