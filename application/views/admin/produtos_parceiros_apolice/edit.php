@@ -41,7 +41,17 @@ if($_POST)
 
                             <!-- col-app -->
                             <div class="col-app">
-
+                                <!-- Inicio Vigência -->
+                                <?php
+                                    $select_vigencia_id =  $this->uri->segment(5);
+                                    $exibe_termo = false;
+                                    if(isset($select_vigencia_id) && $select_vigencia_id != ""){
+                                        $exibe_termo = true;
+                                    }              
+                                    $new_record = $select_vigencia_id;                         
+                                    //print_r($row);                                                                                                                       
+                                ?>
+                                <!-- Final Vigência -->
                                 <!-- Form -->
                                 <form class="form-horizontal margin-none" id="validateSubmitForm" method="post" autocomplete="off">
                                     <input type="hidden" name="<?php echo $primary_key ?>" value="<?php if (isset($row[$primary_key])) echo $row[$primary_key]; ?>"/>
@@ -81,17 +91,69 @@ if($_POST)
                                                                     <div class="tab-content">
                                                                 <!-- Tab content -->
                                                                 <div id="tabGeral" class="tab-pane active widget-body-regular">
+                                                                            <!-- Inicio Vigência -->
+                                                                            <?php $field_name = 'produto_parceiro_apolice_id';?>
+                                                                            <div class="form-group">
+                                                                                <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Vigência *</label>
+                                                                                <div class="col-md-10">
+                                                                                <select class="form-control" name="<?php echo $field_name;?>" id="<?php echo $field_name;?>" onChange="refresh_apolice();">
+                                                                                    <option name="" value="">-- Selecione --</option>
+                                                                                    <?php 
+                                                                                        $selected = "";
+                                                                                        if($exibe_termo && $select_vigencia_id == 0){
+                                                                                            $selected = "selected";
+                                                                                        }
+                                                                                    ?>
+                                                                                    <option <?php echo $selected;?> name="" value="0">-- Incluir Nova Vigência --</option>
+                                                                                    <?php 
+                                                                                        $select = false; 
+                                                                                        $row_select = array();
+                                                                                        foreach($row_vigencia as $linha) { 
+                                                                                    ?>
+                                                                                    <option name="" value="<?php echo $linha['produto_parceiro_apolice_id']?>"
+                                                                                        <?php 
+                                                                                            if(isset($select_vigencia_id)){
+                                                                                                if($select_vigencia_id != ""){
+                                                                                                    if($linha['produto_parceiro_apolice_id'] == $select_vigencia_id && $select == false) {
+                                                                                                       echo " selected "; $select = true;
+                                                                                                       $row_select = $linha;
+                                                                                                    };
+                                                                                                }
+                                                                                            }; 
+                                                                                        ?>
+                                                                                    >
+                                                                                    <?php 
+                                                                                        $termo_data_fim = ($linha['termo_data_fim']!= '') ? app_date_mysql_to_mask($linha['termo_data_fim'],'d/m/Y') : "Aberto" ;
+                                                                                        echo app_date_mysql_to_mask($linha['termo_data_ini'],'d/m/Y') . ' - '. $termo_data_fim . ' : ' . $linha['nome']; 
+                                                                                    ?>
+                                                                                    </option>
+                                                                                    <?php }  ?>
+                                                                                </select>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <?php $field_name = 'termo_data_ini';?>
+                                                                            <div class="form-group">
+                                                                                <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Data início *</label>
+                                                                                <div class="col-md-10"><input placeholder="__/__/____" class="form-control inputmask-date" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php if($exibe_termo){ echo isset($row_select[$field_name]) ? app_date_mysql_to_mask($row_select[$field_name]) : set_value($field_name);} ?>" /></div>
+                                                                            </div>
+                                                                            <?php $field_name = 'termo_data_fim';?>
+                                                                            <div class="form-group">
+                                                                                <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Data Final</label>
+                                                                                <div class="col-md-10"><input placeholder="__/__/____" class="form-control inputmask-date" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php if($exibe_termo){ echo isset($row_select[$field_name]) ? app_date_mysql_to_mask($row_select[$field_name]) : set_value($field_name);} ?>" /></div>
+                                                                            </div>
+                                                                            <!-- Final Vigência -->                                                                
 
                                                                             <?php $field_name = 'nome';?>
                                                                             <div class="form-group">
                                                                                 <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Nome *</label>
-                                                                                <div class="col-md-10"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                                                <div class="col-md-10"><input class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" type="text" value="<?php if($exibe_termo){ echo isset($row_select[$field_name]) ? $row_select[$field_name] : set_value($field_name);} ?>" /></div>
                                                                             </div>
 
                                                                             <?php $field_name = 'slug';?>
                                                                             <div class="form-group">
                                                                                 <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Slug *</label>
-                                                                                <div class="col-md-10"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?>" /></div>
+                                                                                <div class="col-md-10"><input class="form-control" id="<?php echo $field_name ?>" name="<?php echo $field_name ?>" type="text" value="<?php if($exibe_termo){ echo isset($row_select[$field_name]) ? $row_select[$field_name] : set_value($field_name);} ?>" /></div>
                                                                             </div>
 
                                                                             <?php $field_name = 'template_coberturas';?>
@@ -103,7 +165,7 @@ if($_POST)
                                                                                         <?php
                                                                                         foreach($template_coberturas as $k => $v) { ?>
                                                                                             <option name="" value="<?php echo $k ?>"
-                                                                                                <?php if(isset($row)){if($row[$field_name] == $k) {echo " selected ";};}; ?> ><?php echo $v; ?>
+                                                                                                <?php if(isset($row) && $select_vigencia_id != 0){if($row[$field_name] == $k) {echo " selected ";};}; ?> ><?php echo $v; ?>
                                                                                             </option>
                                                                                         <?php }  ?>
                                                                                     </select>
@@ -113,7 +175,7 @@ if($_POST)
                                                                             <?php $field_name = 'template';?>
                                                                             <div class="form-group">
                                                                                 <label class="col-md-2 control-label" for="<?php echo $field_name;?>">Conteúdo</label>
-                                                                                <div class="col-md-10"><textarea class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" rows='5' /><?php echo isset($row[$field_name]) ? $row[$field_name] : set_value($field_name); ?></textarea></div>
+                                                                                <div class="col-md-10"><textarea class="form-control" id="<?php echo $field_name;?>" name="<?php echo $field_name;?>" rows='5' /><?php if($exibe_termo){ echo isset($row_select[$field_name]) ? $row_select[$field_name] : set_value($field_name);} ?></textarea></div>
                                                                                 <?php echo display_ckeditor($ckeditor_template); ?>
                                                                             </div>
                                                                 </div>

@@ -1141,9 +1141,12 @@ class Apolice_Model extends MY_Model
         $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
         $dados = $dados[0];
 
-        if ( !empty($dados['template_apolice']) )
+        $templates = $this->pedido->getPedidoProdutoParceiroTemplateWithVigencia($apolice['pedido_id']);
+        $templates = $templates[0];
+
+        if ( !empty($templates['template_apolice']) )
         {
-            $template = $this->templates($dados['template_apolice'], $apolice_id, $apolice, $dados);
+            $template = $this->templates($templates['template_apolice'], $apolice_id, $apolice, $dados);
         }
 
         if (($export == 'pdf') || ($export == 'pdf_file')) {
@@ -1827,7 +1830,7 @@ class Apolice_Model extends MY_Model
         $data_template = array();
         $template = '';
         if($apolice_id == null){
-            $termo = $this->termo->filter_by_produto_parceiro($produto_parceiro_id)->get_all();
+            $termo = $this->termo->filter_by_produto_parceiro($produto_parceiro_id)->with_vigencia($termo['slug'], $data_adesao_cancelamento)->get_all();
             if ( !empty($termo) )
             {
                 $termo = $termo[0];
@@ -1901,7 +1904,7 @@ class Apolice_Model extends MY_Model
 
         $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
         $dados = $dados[0];
-        $autorizacao_cobranca = $this->autorizacao_cobranca->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
+        $autorizacao_cobranca = $this->pedido->getPedidoProdutoParceiroCobrancaTemplateWithVigencia($apolice['pedido_id']);
 
         if ( !empty($autorizacao_cobranca) )
         {
@@ -1955,7 +1958,8 @@ class Apolice_Model extends MY_Model
 
         $dados = $this->pedido->getPedidoProdutoParceiro($apolice['pedido_id']);
         $dados = $dados[0];
-        $solicitacao_desistencia = $this->solicitacao_desistencia->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
+        //$solicitacao_desistencia = $this->solicitacao_desistencia->filter_by_produto_parceiro($dados['produto_parceiro_id'])->get_all();
+        $solicitacao_desistencia = $this->pedido->getPedidoProdutoParceiroDesistenciaTemplateWithVigencia($apolice['pedido_id']);
 
         if ( !empty($solicitacao_desistencia) )
         {
