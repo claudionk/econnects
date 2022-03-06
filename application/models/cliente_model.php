@@ -669,6 +669,10 @@ class Cliente_Model extends MY_Model
             }
         }
 
+        if ( empty($data['cnpj_cpf']) ){
+            return $cliente;
+        }
+
         if (count($cliente) == 0) {
 
             //insere novo cliente

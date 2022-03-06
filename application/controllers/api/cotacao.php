@@ -251,9 +251,30 @@ class Cotacao extends CI_Controller {
         }
         $cotacao_id = $POST["cotacao_id"];
 
+        $this->load->model( "pedido_model", "pedido" );
+        $this->load->model("produto_parceiro_configuracao_model", "produto_parceiro_configuracao");
+
         $cotacao = $this->cotacao->get_by_id( $cotacao_id );
         $produto_parceiro_id = $cotacao["produto_parceiro_id"];
         $produto = $this->current_model->with_produto()->get($produto_parceiro_id);
+
+        $conclui_em_tempo_real = 0;
+        $configsProduto = $this->produto_parceiro_configuracao->get_by(array("produto_parceiro_id" => $produto_parceiro_id));
+        if (!empty($configsProduto)){
+            $conclui_em_tempo_real = $configsProduto['conclui_em_tempo_real'];
+        }
+
+        $pedido = $this->pedido->filter_by_cotacao($cotacao_id)->get_all();
+        $step = !empty($conclui_em_tempo_real) ? 1 : 2;
+        if ( !empty($conclui_em_tempo_real) && !empty($pedido) ) {
+            ob_clean();
+            die( json_encode( array( "status" => false, "message" => "Não é possível realizar a contratação pois já existe um Pedido gerado para esta cotação" ) ) );
+        }
+
+        if ( empty($conclui_em_tempo_real) && empty($pedido) ) {
+            ob_clean();
+            die( json_encode( array( "status" => false, "message" => "É necessário efetuar o pagamento da apólice antes de confirmar a contratação." ) ) );
+        }
 
         if( $produto["produto_slug"] == "equipamento" ) {
             $cotacao_itens = $this->cotacao_equipamento->get_by( array( "cotacao_id" => $cotacao_id ) );
@@ -305,7 +326,6 @@ class Cotacao extends CI_Controller {
         $this->load->model( "cotacao_seguro_viagem_model", "cotacao_seguro_viagem" );
         $this->load->model( "cliente_model", "cliente" );
         $this->load->model( "cotacao_model", "cotacao" );
-        $this->load->model( "pedido_model", "pedido" );
         $this->load->model( "apolice_model", "apolice" );
         $this->load->model( "localidade_estado_model", "localidade_estado" );
         $this->load->model( "capitalizacao_model", "capitalizacao" );
@@ -317,8 +337,10 @@ class Cotacao extends CI_Controller {
         $repasse_comissao = $params["repasse_comissao"];
         $desconto_condicional= $params["desconto_condicional"];
         $cotacao_id = issetor($params['cotacao_id'], 0);
+        $data_nascimento = issetor($params["data_nascimento"], null);
+        $data_adesao = issetor($params["data_adesao"], null);
 
-        $validaDataNascimento = $this->produto_parceiro_plano->valida_data_nascimento($produto_parceiro_id, $produto_parceiro_plano_id, $params["data_nascimento"], $params["data_adesao"]);
+        $validaDataNascimento = $this->produto_parceiro_plano->valida_data_nascimento($produto_parceiro_id, $produto_parceiro_plano_id, $data_nascimento, $data_adesao);
         if (empty($validaDataNascimento['status'])) {
             return $validaDataNascimento;
         }
@@ -328,8 +350,8 @@ class Cotacao extends CI_Controller {
             'mensagem' => 'Contratação não finalizada',
         );
 
-        if( $cotacao_id > 0 ) {
-
+        if( $cotacao_id > 0 )
+        {
             if( $this->cotacao->isCotacaoValida( $cotacao_id ) == FALSE ) {
                 $result  = array(
                     "status" => false,
@@ -385,6 +407,8 @@ class Cotacao extends CI_Controller {
         if ( empty($result['status']) ) {
             return $result;
         }
+
+        $validacao = $result['validacao'];
 
         // NUMERO DE DEPENDENTES DO SEGURO SAUDE
         if ( $produto_slug == "seguro_saude" )
@@ -472,7 +496,8 @@ class Cotacao extends CI_Controller {
                 "mensagem" => "Cotação finalizada com Sucesso.",
                 "produto_parceiro_id" => $cotacao_salva["produto_parceiro_id"],
                 "cotacao_id" => $cotacao_salva["cotacao_id"],
-                "validacao" => $result['validacao'],
+                "validacao" => $validacao,
+                "dados" => [],
             );
 
             // Valida config do produto para definir se gera apólice ao contratar ou não
@@ -482,6 +507,10 @@ class Cotacao extends CI_Controller {
                 $apolice_id = $this->apolice->insertApolice($pedido_id, 'contratar');
                 $result['apolice_id'] = $apolice_id;
                 $result['pedido_id'] = $pedido_id;
+                $result['dados'] = [
+                    'pedido_id' => $pedido_id,
+                    'apolice_id' => $apolice_id,
+                ];
             }
 
             $result["validacao"] = $result['validacao'];

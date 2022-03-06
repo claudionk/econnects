@@ -32,6 +32,17 @@
         <div id="image-login-container">
             <img id="image-login" src="<?php echo app_assets_url('template/img/image-login.png', 'admin'); ?>">
         </div>
+        <div class="row">
+            <div class="col-md-12">
+                <?php if($this->session->flashdata('loginerro')): ?>
+                    <div class="alert alert-danger fade in widget-inner">
+                        <button type="button" class="close" data-dismiss="alert">×</button>
+                        <i class="fa fa-times"></i> <?php echo $this->session->flashdata('loginerro');?>
+                    </div>
+                <?php endif;?>
+            </div>
+
+        </div>
         <div id="form-login-container">
             <form id="form-login" class="form" action="<?php echo $login_form_url;?>" accept-charset="utf-8" method="post">
                 <h2 id="form-login-title"><b>ENTRE NA SUA CONTA</b></h2>
