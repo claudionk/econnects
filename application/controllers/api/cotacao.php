@@ -496,6 +496,7 @@ class Cotacao extends CI_Controller {
                 "mensagem" => "Cotação finalizada com Sucesso.",
                 "produto_parceiro_id" => $cotacao_salva["produto_parceiro_id"],
                 "cotacao_id" => $cotacao_salva["cotacao_id"],
+                "dados" => [],
             );
 
             // Valida config do produto para definir se gera apólice ao contratar ou não
@@ -505,6 +506,10 @@ class Cotacao extends CI_Controller {
                 $apolice_id = $this->apolice->insertApolice($pedido_id, 'contratar');
                 $result['apolice_id'] = $apolice_id;
                 $result['pedido_id'] = $pedido_id;
+                $result['dados'] = [
+                    'pedido_id' => $pedido_id,
+                    'apolice_id' => $apolice_id,
+                ];
             }
 
             $result["validacao"] = $validacao;
