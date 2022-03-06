@@ -496,6 +496,7 @@ class Cotacao extends CI_Controller {
                 "mensagem" => "Cotação finalizada com Sucesso.",
                 "produto_parceiro_id" => $cotacao_salva["produto_parceiro_id"],
                 "cotacao_id" => $cotacao_salva["cotacao_id"],
+                "validacao" => $validacao,
                 "dados" => [],
             );
 
@@ -512,7 +513,6 @@ class Cotacao extends CI_Controller {
                 ];
             }
 
-            $result["validacao"] = $validacao;
         }
 
         return $result;
