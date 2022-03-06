@@ -413,13 +413,19 @@ class Pagamento extends CI_Controller
             die(json_encode(array("status" => false, "message" => "Não foi encontrada a cotacao_id $cotacao_id")));
         }
 
+        $conclui_em_tempo_real = 0;
+        $configsProduto = $this->produto_parceiro_configuracao->get_by(array("produto_parceiro_id" => $produto_parceiro_id));
+        if (!empty($configsProduto)){
+            $conclui_em_tempo_real = $configsProduto['conclui_em_tempo_real'];
+        }
+
         switch ($cotacao["produto_slug"]) {
             case "seguro_viagem":
                 $valor_total = $this->cotacao_seguro_viagem->getValorTotal($cotacao_id);
                 break;
             case "equipamento":
                 $valor_total = $this->cotacao_equipamento->getValorTotal($cotacao_id);
-                if (!$this->db->query("SELECT cotacao_equipamento_id FROM cotacao_equipamento WHERE cotacao_id=$cotacao_id AND step=4")->result_array()) {
+                if ( !empty($conclui_em_tempo_real) && !$this->db->query("SELECT cotacao_equipamento_id FROM cotacao_equipamento WHERE cotacao_id=$cotacao_id AND step=4")->result_array()) {
                     die(json_encode(array("status" => false, "message" => "Não é possível efetuar o pagamento. É necessário confirmar a contratação da apólice antes de efetuar seu pagamento.")));
                 }
                 break;
@@ -427,8 +433,6 @@ class Pagamento extends CI_Controller
                 $valor_total = $this->cotacao_generico->getValorTotal($cotacao_id);
                 break;
         }
-
-        //die( json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
 
         $erros           = [];
         $nome_cartao     = ""; //$scope.dadosPagamento.Holder,
@@ -764,7 +768,7 @@ class Pagamento extends CI_Controller
             $data["cotacao_id"]                    = $cotacao_id;
             $data["pedido_id"]                     = $pedido_id;
             $data["produto_slug"]                  = $cotacao["produto_slug"];
-            $data["produto_parceiro_configuracao"] = $this->produto_parceiro_configuracao->get_by(array("produto_parceiro_id" => $produto_parceiro_id));
+            $data["produto_parceiro_configuracao"] = $configsProduto;
             $data["produto_parceiro_id"]           = $produto_parceiro_id;
 
             switch ($forma_pagamento_tipo_id) {
@@ -897,13 +901,19 @@ class Pagamento extends CI_Controller
                 $this->apolice->insertApolice($pedido_id);
 
                 $apolice = $this->apolice->get_by("pedido_id", $pedido_id);
-                if (empty($apolice)) {
+                if (empty($apolice) && !empty($conclui_em_tempo_real)) {
                     $result["erros"] = "Não foi possível criar a apólice";
                 } else {
+                    $dd["pedido_id"] = $pedido_id;
+                    if (!empty($conclui_em_tempo_real)){
+                        $dd["apolice_id"] = $apolice["apolice_id"];
+                        $dd["num_apolice"] = $apolice["num_apolice"];
+                    }
+
                     $result = array(
                         "status"   => true,
                         "mensagem" => "Pedido confirmado",
-                        "dados"    => array("pedido_id" => $pedido_id, "apolice_id" => $apolice["apolice_id"], "num_apolice" => $apolice["num_apolice"]),
+                        "dados"    => $dd,
                     );
                 }
 

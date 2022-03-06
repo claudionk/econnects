@@ -14,6 +14,7 @@ class Emissao extends CI_Controller {
 
     public $parceiro_id;
     public $produto_parceiro_id;
+    public $conclui_em_tempo_real;
     public $parceiro_id_pai; 
     public $produto_parceiro_plano_id;
     public $cotacao_id;
@@ -69,6 +70,7 @@ class Emissao extends CI_Controller {
         $this->session->set_userdata("tokenAPIvalid",$webservice["validade"]);
 
         $this->load->model( "apolice_model", "apolice" );
+        $this->load->model('produto_parceiro_configuracao_model', 'prod_parc_config');
     }
 
     public function index() {
@@ -155,6 +157,10 @@ class Emissao extends CI_Controller {
                 {
                     die(json_encode(array("status"=>false,"message"=>"Não foi possível identificar o Produto"),JSON_UNESCAPED_UNICODE));
                 }
+
+                $this->conclui_em_tempo_real = $this
+                    ->prod_parc_config
+                    ->item_config($this->produto_parceiro_id, 'conclui_em_tempo_real');
 
                 // Campos da cotação
                 $arrOptions = [
@@ -367,7 +373,12 @@ class Emissao extends CI_Controller {
                         }
 
                         $retorno->{"cotacao_id"} = $this->cotacao_id;
-                        $this->etapas('contratarcotacao',$retorno);
+
+                        if ( !empty($this->conclui_em_tempo_real) ) {
+                            $this->etapas('contratarcotacao',$retorno);
+                        } else {
+                            $this->etapas('formapagamento',$retorno);
+                        }
                     }
                     else
                     {
@@ -395,7 +406,11 @@ class Emissao extends CI_Controller {
                         $retorno = convert_objeto_to_array($r);
                         if( !empty($retorno->{"status"}) )
                         {
-                            $this->etapas('formapagamento', $retorno);
+                            if ( !empty($this->conclui_em_tempo_real) ) {
+                                $this->etapas('formapagamento', $retorno);
+                            } else {
+                                $this->etapas('exibeapolice',$retorno);
+                            }
                         }
                         else
                         {
@@ -489,7 +504,11 @@ class Emissao extends CI_Controller {
                             if (!empty($this->equipamento_nome)) $retorno->modelo = $this->equipamento_nome;
                             if (!empty($this->ean)) $retorno->ean = $this->ean;
 
-                            $this->etapas('exibeapolice', $retorno);
+                            if ( !empty($this->conclui_em_tempo_real) ) {
+                                $this->etapas('exibeapolice', $retorno);
+                            } else {
+                                $this->etapas('contratarcotacao',$retorno);
+                            }
                         }
                         else
                         {

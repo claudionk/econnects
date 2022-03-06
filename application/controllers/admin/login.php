@@ -12,6 +12,7 @@ class Login extends Admin_Controller {
 
         $this->load->model('usuario_model', 'usuario');
         $this->load->model('parceiro_model', 'parceiro');
+        $this->load->library('form_validation');
     }
 
     public function index($parceiro = null) {
@@ -41,7 +42,6 @@ class Login extends Admin_Controller {
         $redirect = urldecode($this->input->get('redirect'));
 
         $this->load->helper('cookie');
-        $this->load->library('form_validation');
 
         $this->form_validation->set_rules('login', 'E-mail', 'valid_email|trim|required|xss_clean');
         $this->form_validation->set_rules('password', 'Senha', 'trim|required|xss_clean');
