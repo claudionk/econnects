@@ -512,8 +512,6 @@ class Cotacao extends CI_Controller {
                     'apolice_id' => $apolice_id,
                 ];
             }
-
-            $result["validacao"] = $result['validacao'];
         }
 
         return $result;
